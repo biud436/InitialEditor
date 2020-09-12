@@ -12,6 +12,7 @@
 .maptree ul li {
     width: 100%;
     display: block;
+    position: relative;
 }
 
 .child-tree li {
