@@ -1,0 +1,12 @@
+.contents {
+    width: 70%;
+    min-height: calc(98vh - 48px);
+    height: calc(98vh - 48px);
+    float: left;
+}
+
+#main-canvas {
+    background-color: black;
+    width: 100%;
+    height: 100%;
+}

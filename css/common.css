@@ -1,9 +1,9 @@
 :root {
-    --dark-title-color: rgb(60,60,60);
-    --dark-selection-color: rgb(80,80,80);
-    --dark-text-color: rgb(159,159,159);
-    --dark-shadow-color: rgb(40,40,40);
-    --dark-border-color: rgb(90,90,90);
+    --dark-title-color: rgb(60, 60, 60);
+    --dark-selection-color: rgb(80, 80, 80);
+    --dark-text-color: rgb(159, 159, 159);
+    --dark-shadow-color: rgb(40, 40, 40);
+    --dark-border-color: rgb(90, 90, 90);
 }
 
 .container {
@@ -21,10 +21,13 @@ body {
 
 * {
     list-style-type: none;
-    font-family: 'Nanum Gothic', sans-serif;    
+    font-family: 'Nanum Gothic', sans-serif;
 }
 
-li, span, em, * {
+li,
+span,
+em,
+* {
     color: var(--dark-text-color);
 }
 
@@ -36,20 +39,33 @@ i {
 ul {
     -webkit-user-select: none;
     -moz-user-select: none;
-    -o-user-select: none;    
+    -o-user-select: none;
 }
 
 .container {
     position: relative;
     margin: 0;
-    padding: 0;    
+    padding: 0;
 }
 
 .menu input[type="radio"] {
-    overflow:hidden;
+    overflow: hidden;
     text-overflow: clip;
     white-space: nowrap;
     width: 0px;
     height: 0px;
     position: fixed;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px var(--dark-shadow-color);
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--dark-text-color);
+    outline: 1px solid var(--dark-border-color);
 }
