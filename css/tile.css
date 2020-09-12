@@ -17,8 +17,8 @@
 
 #view {
     width: 100%;
-    min-height: calc(100% - 32px);
-    height: calc(100% - 32px);
+    min-height: calc(68% - 32px);
+    height: calc(68% - 32px);
     overflow: scroll;
     display: block;
     background: rgb(50,50,50);    
