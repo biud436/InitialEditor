@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap" rel="stylesheet">    
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/main.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="menu">
+            <input type="radio" name="menu" id="file">
+            <input type="radio" name="menu" id="edit">
+            <input type="radio" name="menu" id="mode">
+            <input type="radio" name="menu" id="draw">
+            <input type="radio" name="menu" id="scale">
+            <input type="radio" name="menu" id="tools">
+            <input type="radio" name="menu" id="game">
+            <input type="radio" name="menu" id="help">
+            <ul class="main">
+                <li class="file">
+                    <label for="file">File</label>
+                </li>
+                <li><label for="edit">Edit</label></li>
+                <li><label for="mode">Mode</label></li>
+                <li><label for="draw">Draw</label></li>
+                <li><label for="scale">Scale</label></li>
+                <li><label for="tools">Tools</label></li>
+                <li><label for="game">Game</label></li>
+                <li><label for="help">Help</label></li>
+                <ul class="control-box">
+                    <li class="minimum"><i class="fas fa-minus"></i></li>
+                    <li class="maximum"><i class="fas fa-window-maximize"></i></li>
+                    <li class="close"><i class="far fa-window-close"></i></li>  
+                </ul>
+            </ul>
+            <ul class="file-sub menu-style" value="File">
+                <li><i class="far fa-file"></i>New<em>Ctrl+N</em></li>
+                <li><i class="far fa-folder-open"></i>Open<em>Ctrl+O</em></li>
+                <li><i class="far fa-window-close"></i>Close</li>
+                <li><i class="far fa-save"></i>Save<em>Ctrl+S</em></li>
+                <li><i class="fas fa-wrench"></i></i>User Preferences<em>Ctrl+M</em></li>
+                <li class="empty-line"></li>
+                <li><i class="fas fa-file-download"></i>Export</li>
+                <li class="empty-line"></li>
+                <li><i class="far fa-times-circle"></i><u>E</u>xit</li>
+            </ul>
+            <ul class="edit-sub menu-style" value="Edit">
+                <li><i class="fas fa-undo"></i>Undo</li>
+                <li class="empty-line"></li>
+                <li><i class="fas fa-cut"></i>Cut</li>
+                <li><i class="fas fa-copy"></i>Copy</li>
+                <li><i class="fas fa-paste"></i>Paste</li>
+                <li><i class="fas fa-trash-alt"></i>Delete</li>
+            </ul>
+            <ul class="mode-sub menu-style" value="Mode">
+                <li><i class="fas fa-layer-group"></i>Map</li>
+                <li><i class="fas fa-flag-checkered"></i>Event</li>
+                <li><i class="fas fa-map"></i>Region</li>
+            </ul>
+            <ul class="draw-sub menu-style" value="Draw">
+                <li><i class="fas fa-pencil-alt"></i>Pencil</li>
+                <li><i class="fas fa-square-full"></i>Rectangle</li>
+                <li><i class="fas fa-square"></i>Ellipse</li>
+                <li><i class="fas fa-fill"></i>Flood Fill</li>
+                <li><i class="fas fa-paint-brush"></i>Shadow Pen</li>
+            </ul>
+            <ul class="scale-sub menu-style" value="Scale">
+                <li><i class="fas fa-search-plus"></i>1:1</li>
+                <li><i class="fas fa-search-plus"></i>1:2</li>
+                <li><i class="fas fa-search-plus"></i>1:4</li>
+                <li><i class="fas fa-search-plus"></i>1:8</li>
+            </ul>
+            <ul class="tools-sub menu-style" value="Tools">
+                <li><i class="fas fa-book"></i>Database...<em>F9</em></li>
+                <li><i class="fas fa-scroll"></i>Resource Manager</li>
+                <li><i class="fas fa-toolbox"></i>Script Editor</li>
+                <li><i class="fas fa-music"></i>Sound Test</li>
+                <li class="empty-line"></li>
+                <li><i class="fas fa-user-cog"></i>Options...</li>
+            </ul>
+            <ul class="game-sub menu-style" value="Game">
+                <li><i class="fas fa-gamepad"></i>Playtest<em>F12</em></li>
+                <li class="empty-line"></li>
+                <li>Launch in Full Screen</li>
+                <li>Show Console</li>
+                <li><i class="fas fa-folder-open"></i>Open Game Folder</li>
+            </ul>
+            <ul class="help-sub menu-style" value="Help">
+                <li><i class="fas fa-question-circle"></i>Contents<em>F1</em></li>
+                <li class="empty-line"></li>
+                <li><i class="fas fa-info-circle"></i>About...</li>
+            </ul>
+        </div>
+        <div class="toolbar">
+            <ul>
+                <li><i class="far fa-file"></i></li>
+                <li><i class="far fa-folder-open"></i></li>
+                <li><i class="far fa-save"></i></li>
+                <li><i class="fas fa-undo"></i></li>
+                <li class="empty-line2"></li>
+                <li><i class="fas fa-cut"></i></li>
+                <li><i class="fas fa-copy"></i></li>
+                <li><i class="fas fa-paste"></i></li>
+                <li><i class="fas fa-trash-alt"></i></li>
+                <li class="empty-line2"></li>    
+                <li><i class="fas fa-layer-group"></i></li>
+                <li><i class="fas fa-flag-checkered"></i></li>
+                <li><i class="fas fa-map"></i></li>                            
+                <li class="empty-line2"></li>    
+                <li><i class="fas fa-book"></i></li>
+                <li><i class="fas fa-scroll"></i></li>
+                <li><i class="fas fa-toolbox"></i></li>
+                <li><i class="fas fa-music"></i></li>
+                <li class="empty-line2"></li>
+                <li><i class="fas fa-user-cog"></i></li>       
+                <li class="empty-line2"></li>   
+                <li><i class="fas fa-gamepad"></i></li>
+                <li class="empty-line2"></li>   
+                <li><i class="fas fa-folder-open"></i></li>                         
+            </ul>
+        </div>   
+        <div id="aside">
+            <div class="tile-tab-control">
+                <div id="view" ondragstart="return false;">
+                    <img src="./images/tiles/tileset16-8x13.png" alt="">
+                </div>            
+                <input type="radio" name="tile" id="a" checked>
+                <input type="radio" name="tile" id="b">
+                <input type="radio" name="tile" id="c">
+                <input type="radio" name="tile" id="d">
+                <input type="radio" name="tile" id="e">            
+                <ul>
+                    <li><label for="a" id="tab-a">A</label></li>
+                    <li><label for="b" id="tab-b">B</label></li>
+                    <li><label for="c" id="tab-c">C</label></li>
+                    <li><label for="d" id="tab-d">D</label></li>
+                    <li><label for="e" id="tab-e">E</label></li>
+                </ul>
+            </div>
+        </div>
+        <div id="contents">
+            
+        </div>
+    </div>
+</body>
+
+</html>
