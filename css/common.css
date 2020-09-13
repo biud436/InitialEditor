@@ -1,6 +1,8 @@
 :root {
     --dark-title-color: rgb(60, 60, 60);
     --dark-selection-color: rgb(80, 80, 80);
+    --dark-input-background-color: rgb(90, 90, 90);
+    --dark-input-text-color: rgb(120, 120, 120);
     --dark-text-color: rgb(159, 159, 159);
     --dark-shadow-color: rgb(40, 40, 40);
     --dark-border-color: rgb(90, 90, 90);
@@ -11,12 +13,59 @@
     height: 100%;
     padding: 0;
     margin: 0;
+    position: relative;
+}
+
+.flex-container {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 15;
 }
 
 body {
     margin: 0;
     padding: 0;
     background-color: var(--dark-title-color);
+}
+
+div[id*="Window"] {
+    background-color: var(--dark-title-color);
+    background-size: 100% 100%;
+    color: var(--dark-text-color);
+    padding-top: 1rem;
+    position: relative;
+    border: 1px solid var(--dark-border-color);
+    box-sizing: border-box;
+    opacity: 0.9;
+    padding-left: 5px;
+}
+
+div[id*="Window"]::before {
+    content: attr(window-name);
+    background: linear-gradient(to bottom, var(--dark-title-color) 0%, var(--dark-shadow-color) 100%) no-repeat;
+    position: absolute;
+    width: 100%;
+    box-sizing: border-box;
+    height: 10%;
+    display: flex;
+    align-items: center;
+    top: 0;
+    left: 0;
+    padding: 5px;
+    font: menu;
+    box-shadow: 1px 1px 1px var(--dark-border-color);
+}
+
+input[type="text"] {
+    background-color: var(--dark-input-background-color);
+    color: var(--dark-input-text-color);
+    border: 1px solid var(--dark-border-color);
 }
 
 * {

@@ -1,0 +1,43 @@
+<style>
+    #newWindow {
+        width: 300px;
+        height: 240px;
+        position: relative;
+    }
+
+    #newWindow ul {
+        margin: 0;
+        padding: 0;
+        padding-top: 12px;
+    }
+
+    #newWindow ul li{
+        display: inline-block;
+        list-style-type: none;
+    }
+
+    #newWindow .control-box {
+        position: absolute;
+        top: -16px;
+        right: 10px;
+        text-align: right;
+        width: 24px;
+        height: 24px;
+    }
+
+    #newWindow .control-box i:hover {
+        color: var(--dark-selection-color);
+    }
+
+</style>
+<div id="newWindow" window-name="New Window">
+    <ul>
+        <li><label for="name">게임명 : </label><input type="text" placeholder="name"></li>
+        <li><label for="name">위치 : </label><input type="text" placeholder="test"></li>        
+    </ul>     
+    <div class="control-box">
+        <p>
+            <span><i class="far fa-window-close" id="action-close"></i></span>
+        </p>
+    </div>
+</div>

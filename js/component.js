@@ -14,7 +14,9 @@ class Component {
 }
 
 class BasicComponent extends Component {
-
+    constructor(...args) {
+        super(...args);
+    }
 }
 
 export { Component, BasicComponent };

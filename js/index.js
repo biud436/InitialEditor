@@ -1,12 +1,38 @@
-import {Component, BasicComponent} from "./component";
+// import {Component, BasicComponent} from "./component";
+import Renderer from "./renderer.js";
 
 class App {
-    constructor() {
+
+    initMembers() {
+
+    }
+
+    initWithRenderer() {
+        this._renderer = new Renderer({
+            display: "relative",
+            // x: "50%",
+            // y: "50px",
+            width: "100px",
+            height: "300px",
+            parentId: ".flex-container",
+            id: "newContainer",
+            zIndex: "10",
+            path: "lib/windows/context.html",
+        });
+
+        this._renderer.render()
+            .then(ret => {
+                this._renderer.show();
+            })
+            .catch(err => {
+                console.warn(err);
+            });
         
     }
 
     start() {
-
+        this.initMembers();
+        this.initWithRenderer();
     }
 }
 
