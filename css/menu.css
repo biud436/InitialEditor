@@ -71,13 +71,14 @@
     z-index: 2;
 }
 
-.menu input[id="file"]:focus ~ .file-sub {
+.menu input[id="file"]:checked ~ .file-sub {
     display: block;
     z-index: 100;
+    margin-left: initial;
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="edit"]:focus ~ .edit-sub {
+.menu input[id="edit"]:checked ~ .edit-sub {
     display: block;
     position: relative;
     left: calc(12px + 3ch);
@@ -85,7 +86,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="mode"]:focus ~ .mode-sub {
+.menu input[id="mode"]:checked ~ .mode-sub {
     display: block;
     position: relative;
     left: calc(12px * 2 + 7ch);
@@ -93,7 +94,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="draw"]:focus ~ .draw-sub {
+.menu input[id="draw"]:checked ~ .draw-sub {
     display: block;
     position: relative;
     left: calc(12px * 3 + 13ch);
@@ -101,7 +102,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="scale"]:focus ~ .scale-sub {
+.menu input[id="scale"]:checked ~ .scale-sub {
     display: block;
     position: relative;
     left: calc(12px * 4 + 18ch);
@@ -109,7 +110,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="tools"]:focus ~ .tools-sub {
+.menu input[id="tools"]:checked ~ .tools-sub {
     display: block;
     position: relative;
     left: calc(12px * 5 + 24ch);
@@ -117,7 +118,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="game"]:focus ~ .game-sub {
+.menu input[id="game"]:checked ~ .game-sub {
     display: block;
     position: relative;
     left: calc(12px * 6 + 29ch);
@@ -125,7 +126,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="help"]:focus ~ .help-sub {
+.menu input[id="help"]:checked ~ .help-sub {
     display: block;
     position: relative;
     left: calc(12px * 7 + 35ch);
@@ -133,7 +134,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[type="radio"]:focus ~ *[class*="sub"]::before {
+/* .menu input[type="radio"]:focus ~ *[class*="sub"]::before {
     content: attr(value);
     width: calc(max-content);
     height: 32px;
@@ -148,7 +149,7 @@
     font-weight: bold;
     color: var(--dark-text-color);
     z-index: 1;
-}
+} */
 
 .empty-line {
     margin-top: 8px;
