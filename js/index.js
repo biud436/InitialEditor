@@ -9,7 +9,7 @@ class App {
 
     initWithRenderer() {
         this._renderer = new Renderer({
-            display: "relative",
+            // display: "relative",
             // x: "50%",
             // y: "50px",
             width: "100px",
