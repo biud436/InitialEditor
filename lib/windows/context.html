@@ -35,11 +35,15 @@
         color: var(--dark-selection-color);
     }
 
+    #newWindow input {
+        width: 60%;
+    }
+
 </style>
 <div id="newWindow" window-name="New Window">
     <ul>
         <li><label for="name">게임명 : </label><input type="text" placeholder="name"></li>
-        <li><label for="name">위치 : </label><input type="text" placeholder="test"></li>        
+        <li><label for="name">위치 : </label><input type="file" placeholder="" webkitdirectory directory multiple></li>        
     </ul>     
     <div class="control-box">
         <p>
