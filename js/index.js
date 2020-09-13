@@ -4,7 +4,7 @@ import Renderer from "./renderer.js";
 class App {
 
     initMembers() {
-
+        this.windowIds = {};
     }
 
     initWithRenderer() {
@@ -22,19 +22,30 @@ class App {
 
         this._renderer.render()
             .then(ret => {
-                this._renderer.show();
+                this.windowIds["new-window"] = this._renderer;
+                document.querySelectorAll(".file-menu-new-button").forEach(i => {
+                    i.addEventListener("click", () => {
+                        this._renderer.show();
+                    }, false);                    
+                })
             })
             .catch(err => {
                 console.warn(err);
             });
-        
     }
 
     start() {
         this.initMembers();
         this.initWithRenderer();
     }
+
+    onLoad(elem, id) {
+        if(this.windowIds[id]) {
+            const self = this.windowIds[id];
+            this.windowIds[id].onLoad(elem, self);
+        }
+    }
 }
 
-const app = new App();
-app.start();
+window.app = new App();
+window.app.start();

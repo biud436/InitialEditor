@@ -105,4 +105,11 @@ export default class Renderer {
             console.warn(err);
         });
     }
+
+    onLoad(elem, self) {
+        const parent = elem.parentNode;
+        parent.querySelector(".control-box p i").onclick = () => {
+            self.hide();
+        };
+    }
 }
