@@ -22,6 +22,7 @@
     overflow: scroll;
     display: block;
     background: rgb(50,50,50);    
+    position: relative;
 }
 
 .tile-tab-control img {

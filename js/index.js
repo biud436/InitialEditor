@@ -2,6 +2,7 @@ import Renderer from "./renderer.js";
 import { Component } from "./component.js";
 import {MenuComponent, ActiveMenuWatcher} from "./menu_component.js";
 import {TilesetMarker} from "./tileset_marker.js";
+import Tilemap from "./canvas.js";
 
 class App {
 
@@ -34,6 +35,7 @@ class App {
         this._components.push(new MenuComponent());
         this._components.push(new ActiveMenuWatcher(true));
         this._components.push(new TilesetMarker(true));
+        this._components.push(new Tilemap());
         this._components.forEach(component => {
             component.start();
         })
