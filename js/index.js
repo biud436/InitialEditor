@@ -137,12 +137,24 @@ class App {
         //     });
     }
 
+    initWithMapLayers() {
+        const children = document.querySelectorAll("ul.child-tree li i");
+        children.forEach(e => {
+            e.onclick = function() {
+                e.className = e.className.includes("slash") ? "far fa-eye":"far fa-eye-slash";
+            }
+        });
+
+        children[0].parentElement.style.backgroundColor = "var(--dark-selection-color)";
+    }
+
     start() {
         this.initMembers();
         this.initWithMouseEvent();
         this.initWithComponents();
         this.initWithGamePropertiesWindow();
         this.initWithAlertWindow();
+        this.initWithMapLayers();
     }
 
     /**
