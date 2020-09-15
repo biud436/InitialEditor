@@ -18,7 +18,9 @@ export default class Tilemap extends Component {
         this._mapHeight = Math.round(600 / this._tileHeight);
         this._layerCount = 4;
 
-        this._data = new Array(this._mapWidth * this._mapHeight * 4);
+        if(!(this._data = localStorage.getItem("tileMapData"))) {
+            this._data = new Array(this._mapWidth * this._mapHeight * 4);
+        }
 
         const tilesetImg = document.querySelector("#view img");
         if(!tilesetImg) {
@@ -35,7 +37,7 @@ export default class Tilemap extends Component {
         this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x] = tileId;
     }
 
-    getData(x, y, z, tileId) {
+    getData(x, y, z) {
         return this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x];
     }
 
