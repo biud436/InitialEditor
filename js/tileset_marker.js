@@ -50,6 +50,13 @@ class TilesetMarker extends Component {
             return;
         }
 
+        const target = args[0].target;
+
+
+        if(target && target.id !== "view") {
+            return;
+        }
+
         const parent = document.querySelector("#view");
         const img = parent.querySelector("img");
         const tileset = getComputedStyle(img);
@@ -69,7 +76,7 @@ class TilesetMarker extends Component {
         const cursorCols = parseInt(this._element.style.left) / tw;
         const cursorRows = parseInt(this._element.style.top) / th;
         const targetX = nx / tw;
-        const targetY = ny / th;
+        const targetY = (ny - topY) / th;
 
         if(nx < 0) {
             nx = 0;
@@ -87,6 +94,8 @@ class TilesetMarker extends Component {
         this._element.style.position = "absolute";
         this._element.style.left = nx + "px";
         this._element.style.top = ny - topY + "px";
+
+        window.app.setTileId(targetY * 8 + targetX);
     }
 
 }

@@ -22,6 +22,7 @@ class App {
         };
         this._now = performance.now();
         this._isMenuOpen = false;
+        this._tileId = 0;
     }
 
     /**
@@ -35,10 +36,12 @@ class App {
         this._components.push(new MenuComponent());
         this._components.push(new ActiveMenuWatcher(true));
         this._components.push(new TilesetMarker(true));
-        this._components.push(new Tilemap());
+        this._components.push((this._tilemap = new Tilemap()));
         this._components.forEach(component => {
             component.start();
-        })
+        });
+
+        this._tilemap.setTileId(0);
     }
 
     /**
@@ -78,6 +81,11 @@ class App {
             }
         }, false);      
 
+    }
+
+    setTileId(tileId) {
+        if(!this._tilemap) return;
+        this._tilemap.setTileId(tileId);
     }
 
     /**
@@ -157,6 +165,8 @@ class App {
         this.initWithMapLayers();
     }
 
+
+
     /**
      * 매 프레임마다 반복 실행되는 메소드입니다.
      * @param {Number}} deltaTime 
@@ -179,11 +189,12 @@ class App {
                 // 마우스 이벤트를 수신하지 않을 경우,
                 component.update();
             } else {
+                    
+                // 마우스 타겟 요소를 가져옵니다.
+                const target = this._mouse.target;
+
                 // 마우스 이벤트를 수신할 경우
                 if(this._mouse.buttons.leftFire) {
-
-                    // 마우스 타겟 요소를 가져옵니다.
-                    const target = this._mouse.target;
 
                     if(target) {
 
@@ -206,10 +217,17 @@ class App {
                             }
                             if(target.id == "view" && this._mouse.buttons.leftFire) {
                                 component.update(this._mouse);
-                            }                            
+                            }                                                   
                         }
                     }
+                } else if(this._mouse.buttons.left) {
+                    if(!target) return;
+                    if(target.id == "main-canvas") {
+                        component.update(this._mouse);
+                    }
                 }
+
+
                 
             }
         });
