@@ -1,27 +1,39 @@
+//@ts-check
 import {
     Component
 } from "./component.js";
+
+// @ts-ignore
+window.config = {
+    SCREEN_WIDTH: 800,
+    SCREEN_HEIGHT: 600,
+    TILE_WIDTH: 16,
+    TILE_HEIGHT: 16,
+    MAP_COLS: 8,
+    MAP_ROWS: 8,
+    LAYERS: 4
+};
 
 export default class Tilemap extends Component {
 
     initMembers() {
         this._tileset = 'images/tiles/tileset16-8x13.png';
-        this._tileWidth = 16;
-        this._tileHeight = 16;
-        this._mapCols = 8;
-        this._mapRows = 8;
-        this._tileId = 45;
+        this._tileWidth = window.config.TILE_WIDTH;
+        this._tileHeight = window.config.TILE_HEIGHT;
+        this._mapCols = window.config.MAP_COLS;
+        this._mapRows =window.config.MAP_ROWS;
+        this._tileId = 0;
         this._mouseX = 0;
         this._mouseY = 0;
 
-        this._mapWidth = Math.round(800 / this._tileWidth);
-        this._mapHeight = Math.round(600 / this._tileHeight);
-        this._layerCount = 4;
+        this._mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
+        this._mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
+        this._layerCount = window.config.LAYERS;
 
         if(!(this._data = localStorage.getItem("tileMapData"))) {
             this._data = new Array(this._mapWidth * this._mapHeight * 4);
         }
-
+        
         const tilesetImg = document.querySelector("#view img");
         if(!tilesetImg) {
             throw new Error("Cant't find tileset");
@@ -51,17 +63,24 @@ export default class Tilemap extends Component {
 
     start() {
         this._app = new PIXI.Application({
-            width: 800,
-            height: 600,
+            width: window.config.SCREEN_WIDTH,
+            height: window.config.SCREEN_HEIGHT,
             backgroundColor: 0x000000,
             resolution: window.devicePixelRatio || 1,
             view: document.querySelector("#main-canvas")
         });
+        
         this._container = new PIXI.Container();
         this._container.interactive = true;
         this._container.on("mousemove", this.onMouseMove.bind(this));
-        this.app.stage.addChild(this._container);        
+
+        this.app.stage.addChild(this._container);    
+        
+        this._tilesets = [];
+        this._tilesets.push(PIXI.Texture.from(this._tileset));        
+        
         // this.draw();
+
     }
 
     get app() {
@@ -71,7 +90,23 @@ export default class Tilemap extends Component {
     onMouseMove(ev) {
         this._mouseX = ev.data.global.x;
         this._mouseY = ev.data.global.y;
+    }
 
+    /**
+     * Get a tileset image from the tileset collection.
+     */
+    getTileset() {
+        const tilesets = this._tileset;
+
+        if(!tilesets) {
+            throw new Error("Can't find the tileset from the memory.");
+        }
+
+        if(Array.isArray(tilesets) && tilesets.length <= 0) {
+            throw new Error("The tileset image can't create correctly.");
+        }
+
+        return tilesets[0];
     }
     
     cropTexture(dx, dy, texture) {
@@ -88,14 +123,16 @@ export default class Tilemap extends Component {
         texture = this.cropTexture(dx, dy, texture);
 
         const sprite = new PIXI.Sprite(texture);
-        const mapWidth = Math.round(800 / this._tileWidth);
-        const mapHeight = Math.round(600 / this._tileHeight);
+        const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
+        const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
         sprite.x = Math.floor(mx / this._tileWidth) * this._tileWidth;
         sprite.y = Math.floor(my / this._tileHeight) * this._tileHeight;
 
-        
-
         this._container.addChild(sprite);
+    }
+
+    drawRect(sx, sy, ex, ey, tileID) {
+
     }
 
     update(...args) {
@@ -105,8 +142,8 @@ export default class Tilemap extends Component {
     draw() {        
         this._container.removeChildren();
 
-        const mapWidth = Math.round(800 / this._tileWidth);
-        const mapHeight = Math.round(600 / this._tileHeight);
+        const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
+        const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
 
         let texture = PIXI.Texture.from(this._tileset);
         const tileID = this._tileId;
@@ -125,3 +162,4 @@ export default class Tilemap extends Component {
     }
 
 }
+

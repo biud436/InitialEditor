@@ -8,7 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap" rel="stylesheet">    
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
     <link rel="stylesheet" href="./css/main.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script> -->
+    <script src="./libs/pixi.js"></script>
 </head>
 
 <body>
@@ -100,8 +101,8 @@
         </div>
         <div class="toolbar">
             <ul>
-                <li class="file-menu-new-button"><i class="far fa-file"></i></li>
-                <li><i class="far fa-folder-open"></i></li>
+                <li class="file-menu-new-button"><i class="far fa-file" title="게임 만들기"></i></li>
+                <li><i class="far fa-folder-open" title="게임 열기"></i></li>
                 <li><i class="far fa-save"></i></li>
                 <li><i class="fas fa-undo"></i></li>
                 <li class="empty-line2"></li>
@@ -113,6 +114,12 @@
                 <li><i class="fas fa-layer-group"></i></li>
                 <li><i class="fas fa-flag-checkered"></i></li>
                 <li><i class="fas fa-map"></i></li>                            
+                <li class="empty-line2"></li>    
+                <li><i id="pen-tool" class="fas fa-pencil-alt" title="펜"></i></li>
+                <li><i id="square-tool" class="fas fa-square-full" title="사각형"></i></li>
+                <li><i id="rectangle-tool" class="fas fa-square" title="직사각형"></i></li>
+                <li><i id="pen-tool" class="fas fa-fill" title="채우기"></i></li>
+                <li><i id="shadow-tool" class="fas fa-paint-brush" title="그림자"></i></li>
                 <li class="empty-line2"></li>    
                 <li><i class="fas fa-book"></i></li>
                 <li><i class="fas fa-scroll"></i></li>

@@ -132,6 +132,7 @@ class App {
         //     height: "100%",
         //     parentId: ".flex-container",
         //     id: "alertWindowContainer",
+        //     position: "absolute",
         //     zIndex: "10",
         //     path: "view/windows/alert.html",            
         // });
@@ -164,8 +165,6 @@ class App {
         this.initWithAlertWindow();
         this.initWithMapLayers();
     }
-
-
 
     /**
      * 매 프레임마다 반복 실행되는 메소드입니다.
