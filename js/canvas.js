@@ -1,4 +1,4 @@
-//@ts-check
+// //@ts-check
 import {
     Component
 } from "./component.js";
@@ -80,7 +80,6 @@ export default class Tilemap extends Component {
         this._tilesets.push(PIXI.Texture.from(this._tileset));        
         
         // this.draw();
-
     }
 
     get app() {
@@ -131,12 +130,47 @@ export default class Tilemap extends Component {
         this._container.addChild(sprite);
     }
 
-    drawRect(sx, sy, ex, ey, tileID) {
+    /**
+     * Print tiles to certain area.
+     * @param {Number} sx 
+     * @param {Number} sy 
+     * @param {Number} ex 
+     * @param {Number} ey 
+     * @param {Number} tileID 
+     */
+    drawRect(sx, sy, ex, ey) {
 
+        const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
+        const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
+
+        const mx = Math.floor(sx / this._tileWidth);
+        const my = Math.floor(sy / this._tileHeight);   
+
+        let texture = PIXI.Texture.from(this._tileset);
+        const tileID = this._tileId;
+        const dx = (tileID % this._mapCols) * this._tileWidth;
+        const dy = (tileID / this._mapRows) * this._tileHeight;        
+        const cropTexture = this.cropTexture(dx, dy, texture);  
+        
+        const width = mx + ex;
+        const height = my + ey;
+
+        for(let y = my; y < height; y++) {
+            for(let x = mx; x < width; x++) {
+                const sprite = new PIXI.Sprite(cropTexture);
+                sprite.x = x * this._tileWidth;
+                sprite.y = y * this._tileHeight;
+                this._container.addChild(sprite);
+            }
+        }        
     }
 
     update(...args) {
+        // 펜 툴 테스트
         this.drawTile(this._mouseX, this._mouseY, this._tileId);
+
+        // 사각형 툴 테스트
+        // this.drawRect(this._mouseX, this._mouseY, 20, 5);
     }
 
     draw() {        

@@ -1,5 +1,8 @@
 {
     "compilerOptions": {
         "target": "es6",
+        "paths": {
+            "PIXI": "./libs/pixi.js"
+        }
     }
 }
