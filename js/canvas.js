@@ -45,6 +45,18 @@ export default class Tilemap extends Component {
         this.active();
     }
 
+    initWithDrawingType() {
+        this._penType = 0;
+        document.querySelector("#pen-tool").onclick = (ev) => {
+            this._penType = 0;
+            console.log("펜");
+        };
+        document.querySelector("#square-tool").onclick = (ev) => {
+            this._penType = 1;
+            console.log("사각형");
+        };
+    }
+
     setData(x, y, z, tileId) {
         this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x] = tileId;
     }
@@ -77,13 +89,30 @@ export default class Tilemap extends Component {
         this.app.stage.addChild(this._container);    
         
         this._tilesets = [];
-        this._tilesets.push(PIXI.Texture.from(this._tileset));        
+        this._tilesets.push(PIXI.Texture.from(this._tileset));  
+        
+        this.initWithDrawingType();
+
+        document.querySelector("#take-screenshot").addEventListener("click", this.takeScreenshot.bind(this), false);
         
         // this.draw();
     }
 
     get app() {
         return this._app;
+    }
+
+    takeScreenshot() {
+        const app = this._app;
+        if(!app) return;
+        app.renderer.extract.canvas(app.stage).toBlob((b) => {
+            const a = document.createElement('a');
+            document.body.append(a);
+            a.download = 'screenshot';
+            a.href = URL.createObjectURL(b);
+            a.click();
+            a.remove();
+        }, 'image/png');        
     }
 
     onMouseMove(ev) {
@@ -166,11 +195,16 @@ export default class Tilemap extends Component {
     }
 
     update(...args) {
-        // 펜 툴 테스트
-        this.drawTile(this._mouseX, this._mouseY, this._tileId);
+        const penType = this._penType;
 
-        // 사각형 툴 테스트
-        // this.drawRect(this._mouseX, this._mouseY, 20, 5);
+        switch(penType) {
+            case 0: 
+                this.drawTile(this._mouseX, this._mouseY, this._tileId);
+                break;
+            case 1:
+                this.drawRect(this._mouseX, this._mouseY, 20, 5);
+                break;
+        }
     }
 
     draw() {        
@@ -183,7 +217,7 @@ export default class Tilemap extends Component {
         const tileID = this._tileId;
         const dx = (tileID % this._mapCols) * this._tileWidth;
         const dy = (tileID / this._mapRows) * this._tileHeight;        
-        const cropTexture = this.cropTexture(dx, dy, texture);        
+        const cropTexture = this.cropTexture(dx, dy, texture);
 
         for(let y = 0; y < mapHeight; y++) {
             for(let x = 0; x < mapWidth; x++) {
