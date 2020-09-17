@@ -1,8 +1,9 @@
-import Renderer from "./renderer.js";
+import GamePropertiesWindowController from "./renderer.js";
 import { Component } from "./component.js";
 import {MenuComponent, ActiveMenuWatcher} from "./menu_component.js";
 import {TilesetMarker} from "./tileset_marker.js";
 import Tilemap from "./canvas.js";
+import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
 
 class App {
 
@@ -94,14 +95,7 @@ class App {
     initWithGamePropertiesWindow() {
 
         // 게임 속성 창 생성하기
-        this._gamePropertiesWindow = new Renderer({
-            width: "100%",
-            height: "100%",
-            parentId: ".flex-container",
-            id: "newContainer",
-            zIndex: "10",
-            path: "view/windows/context.html",
-        });
+        this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
 
         // 동적으로 HTML 과 CSS 데이터를 가져옵니다.
         this._gamePropertiesWindow.render()
@@ -125,27 +119,6 @@ class App {
             });
     }
 
-    initWithAlertWindow() {
-
-        // this._alertWindow = new Renderer({
-        //     width: "100%",
-        //     height: "100%",
-        //     parentId: ".flex-container",
-        //     id: "alertWindowContainer",
-        //     position: "absolute",
-        //     zIndex: "10",
-        //     path: "view/windows/alert.html",            
-        // });
-
-        // this._alertWindow.render()
-        //     .then(ret => {
-        //         this.cache["alert-window"] = this._alertWindow;
-        //         this._alertWindow.show();
-        //     }).catch(err => {
-
-        //     });
-    }
-
     initWithMapLayers() {
         const children = document.querySelectorAll("ul.child-tree li i");
         children.forEach(e => {
@@ -162,7 +135,6 @@ class App {
         this.initWithMouseEvent();
         this.initWithComponents();
         this.initWithGamePropertiesWindow();
-        this.initWithAlertWindow();
         this.initWithMapLayers();
     }
 
@@ -261,7 +233,12 @@ function update(deltaTime) {
     window.requestAnimationFrame(update);
 }
 
-window.onload = () => {
+// window.onload = () => {
+//     window.app.start();
+//     update();
+// };
+
+$(() => {
     window.app.start();
-    update();
-};
+    update();    
+});

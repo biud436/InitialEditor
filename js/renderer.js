@@ -1,39 +1,19 @@
+import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
+
 /**
  * @author Eo Jinseok
  * @class Renderer
  */
-export default class Renderer {
+export default class GamePropertiesWindowController {
+
     /**
-     * @param {
-     * {position: String, 
-     * x: Number, 
-     * y: Number, 
-     * width: Number, 
-     * height: Number, 
-     * parentId: String, 
-     * id: String,
-     * zIndex: Number, 
-     * path: String}
-     * } config
+     * @param {GamePropertiesWindow} config
      */
     constructor(config) {
-        this.initMembers(config);
+        this.initMembers(config.data);
         this.initWithCanvas();
     }
 
-    /**
-     * @param {
-        * {position: String, 
-            * x: Number, 
-            * y: Number, 
-            * width: Number, 
-            * height: Number, 
-            * parentId: String, 
-            * id: String,
-            * zIndex: Number, 
-            * path: String}
-            * } config
-            */
     initMembers(config) {
 
         /**
