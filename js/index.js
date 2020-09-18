@@ -51,8 +51,8 @@ class App {
     initWithMouseEvent() {
 
         window.addEventListener("mousemove", (ev) => {
-            this._mouse.x = ev.pageX;
-            this._mouse.y = ev.pageY;
+            this._mouse.x = ev.clientX;
+            this._mouse.y = ev.clientY;
         }, false);
 
         window.addEventListener("mousedown", (ev) => {
