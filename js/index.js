@@ -4,6 +4,7 @@ import {MenuComponent, ActiveMenuWatcher} from "./menu_component.js";
 import {TilesetMarker} from "./tileset_marker.js";
 import Tilemap from "./canvas.js";
 import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
+import toCamelCase from "./camelCase.js"
 
 class App {
 
@@ -15,6 +16,8 @@ class App {
         this._mouse = {
             x: 0,
             y: 0,
+            screenX : 0,
+            screenY : 0,
             buttons: {
                 left: false,
                 leftFire: false,
@@ -45,14 +48,26 @@ class App {
         this._tilemap.setTileId(0);
     }
 
+    toCamelCase() {
+        return toCamelCase();
+    }
+
     /**
      * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
      */
     initWithMouseEvent() {
 
         window.addEventListener("mousemove", (ev) => {
-            this._mouse.x = ev.clientX;
-            this._mouse.y = ev.clientY;
+            /**
+             * position을 적용한 Element를 기준으로 한 좌표
+             */
+            this._mouse.x = ev.layerX;
+            this._mouse.y = ev.layerY;
+            /**
+             * 모니터를 기준으로 한 마우스 좌표
+             */
+            this._mouse.screenX = ev.layerX;
+            this._mouse.screenY = ev.layerY;
         }, false);
 
         window.addEventListener("mousedown", (ev) => {
