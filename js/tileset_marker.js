@@ -62,7 +62,7 @@ class TilesetMarker extends Component {
         const tileset = getComputedStyle(img);
         const tilesetWidth = img.width;
         const tilesetHeight = img.height;
-        const topY = 48;
+        const topY = 0;
 
         const mouse = args[0];
 
