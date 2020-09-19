@@ -3,25 +3,16 @@ import {
     Component
 } from "./component.js";
 
-// @ts-ignore
-window.config = {
-    SCREEN_WIDTH: 800,
-    SCREEN_HEIGHT: 600,
-    TILE_WIDTH: 16,
-    TILE_HEIGHT: 16,
-    MAP_COLS: 8,
-    MAP_ROWS: 8,
-    LAYERS: 4
-};
+import {config} from "./config.js";
 
 export default class Tilemap extends Component {
 
     initMembers() {
         this._tileset = $("#view canvas").get(0);
-        this._tileWidth = window.config.TILE_WIDTH;
-        this._tileHeight = window.config.TILE_HEIGHT;
-        this._mapCols = window.config.MAP_COLS;
-        this._mapRows =window.config.MAP_ROWS;
+        this._tileWidth = config.TILE_WIDTH;
+        this._tileHeight = config.TILE_HEIGHT;
+        this._mapCols = config.MAP_COLS;
+        this._mapRows =config.MAP_ROWS;
         this._tileId = 0;
         this._mouseX = 0;
         this._mouseY = 0;
@@ -32,12 +23,12 @@ export default class Tilemap extends Component {
         // 1이면 오토타일, 0이면 일반 타일
         this._tileType = 0;
 
-        this._mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
-        this._mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
-        this._layerCount = window.config.LAYERS;
+        this._mapWidth = Math.round(config.SCREEN_WIDTH / this._tileWidth);
+        this._mapHeight = Math.round(config.SCREEN_HEIGHT / this._tileHeight);
+        this._layerCount = config.LAYERS;
 
         if(!(this._data = localStorage.getItem("tileMapData"))) {
-            this._data = new Array(this._mapWidth * this._mapHeight * 4);
+            this._data = new Array(this._mapWidth * this._mapHeight * config.LAYERS);
         }
         
         const tilesetImg = $("#view canvas").get(0);
@@ -89,8 +80,8 @@ export default class Tilemap extends Component {
 
     start() {
         this._app = new PIXI.Application({
-            width: window.config.SCREEN_WIDTH,
-            height: window.config.SCREEN_HEIGHT,
+            width: config.SCREEN_WIDTH,
+            height: config.SCREEN_HEIGHT,
             backgroundColor: 0x000000,
             resolution: window.devicePixelRatio || 1,
             view: $("#main-canvas").get(0)
@@ -101,7 +92,7 @@ export default class Tilemap extends Component {
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
         this.app.stage.addChild(this._layerContainer);   
 
-        for(let i = 0; i < window.config.LAYERS; i++) {
+        for(let i = 0; i < config.LAYERS; i++) {
             this._layerContainer.addChild(new PIXI.Container());   
         }
 
@@ -290,10 +281,10 @@ export default class Tilemap extends Component {
     draw() {        
         this.clear();
 
-        const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
-        const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
+        const mapWidth = Math.round(config.SCREEN_WIDTH / this._tileWidth);
+        const mapHeight = Math.round(config.SCREEN_HEIGHT / this._tileHeight);
 
-        for(let z = 0; z < window.config.LAYERS; z++) {
+        for(let z = 0; z < config.LAYERS; z++) {
             const container = this._layerContainer.children[z];
             for(let y = 0; y < mapHeight; y++) {
                 for(let x = 0; x < mapWidth; x++) {

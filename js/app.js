@@ -189,14 +189,15 @@ export default class App {
     start() {
         this.initMembers();
         this.initWithMouseEvent();
-        this.initWithComponents().then(ret => {
-            this.initWithGamePropertiesWindow();
-        }).then(ret => {
-            this.initWithMapLayers();     
-            this._isReady = true;       
-        }).catch(err => {
-            console.warn(err);
-        })
+        this.initWithComponents()
+            .then(ret => this.initWithGamePropertiesWindow())
+            .then(ret => {
+                this.initWithMapLayers();     
+                this._isReady = true;       
+            }).catch(err => {
+                console.warn(err);
+                this._isReady = false;
+            })
     }
 
     /**

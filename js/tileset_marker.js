@@ -1,12 +1,13 @@
 import {Component} from "./component.js";
+import {config} from "./config.js";
 
 /**
  * @class TilesetMarker
  */
 class TilesetMarker extends Component {
     initMembers() {
-        this._tileWidth = 16;
-        this._tileHeight = 16;
+        this._tileWidth = config.TILE_WIDTH;
+        this._tileHeight = config.TILE_HEIGHT;
         this._isReady = false;
         
         this.initWithElement();
@@ -14,31 +15,32 @@ class TilesetMarker extends Component {
     }
 
     initWithElement() {
-        const parent = document.querySelector("#view");
+        const parent = $("#view");
         let child = null;
         if((child = document.querySelector("#tileset-marker"))) {
-            parent.removeChild(child);
+            parent.get(0).removeChild(child);
             return;
         }
 
-        this._element = document.createElement("div");
-        this._element.id = "tileset-marker";
-        this._element.style.minWidth = "16px";
-        this._element.style.minHeight = "16px";
-        this._element.style.width = "16px";
-        this._element.style.height = "16px";
-        this._element.style.position = "absolute";
-        this._element.style.top = "0";
-        this._element.style.left = "0";
-        this._element.style.margin = "0";
-        this._element.style.padding = "0";
-        this._element.style.border = "2px dotted white";
-        this._element.style.zIndex = "50";
-        this._element.style.boxSizing = "border-box";
+        this._element = $("<div></div>", {"id" : "tileset-marker"})
+            .css({
+                "min-width": `${this._tileWidth}px`,
+                "min-height": `${this._tileHeight}px`,
+                "width": `${this._tileWidth}px`,
+                "height": `${this._tileHeight}px`,
+                "position": "absolute",
+                "top": "0",
+                "left": "0",
+                "margin": "0",
+                "padding": "0",
+                "border": "2px dotted white",
+                "z-index": "50",
+                "box-sizing": "border-box",
+            });
 
         this._isReady = true;
         
-        parent.appendChild(this._element);
+        parent.append(this._element);
     }
 
     start() {
@@ -51,13 +53,10 @@ class TilesetMarker extends Component {
         }
 
         const target = args[0].target;
-        
-        const parent = document.querySelector("#view");
+
         const img = $("#view canvas");
-        // const tileset = getComputedStyle(img);
         const tilesetWidth = img.width();
         const tilesetHeight = img.height();
-        console.log(tilesetWidth, tilesetHeight);
         const topY = 0;
 
         const mouse = args[0];
@@ -67,10 +66,6 @@ class TilesetMarker extends Component {
         let nx = Math.floor(mouse.x / tw) * tw;
         let ny = Math.floor(mouse.y / th) * th;
 
-        const mapCols = tilesetWidth / tw;
-        const mapRows = tilesetHeight / th;    
-        const cursorCols = parseInt(this._element.style.left) / tw;
-        const cursorRows = parseInt(this._element.style.top) / th;
         const targetX = nx / tw;
         const targetY = (ny - topY) / th;
 
@@ -87,9 +82,11 @@ class TilesetMarker extends Component {
             ny = tilesetHeight - th + topY;
         }
 
-        this._element.style.position = "absolute";
-        this._element.style.left = nx + "px";
-        this._element.style.top = ny - topY + "px";
+        this._element.css({
+            position : "absolute",
+            left : nx + "px",
+            top : ny - topY + "px",
+        });
 
         window.app.setTileId(targetY * 8 + targetX);
     }
