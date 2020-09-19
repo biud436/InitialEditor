@@ -22,14 +22,14 @@ export default class TilesetCanvas {
 
         return new Promise((resolve, reject) => {
             for(let i = 0; i < this._tilesetImgages.length; i++) {
-                const elem = $("<img>").attr("src", this._tilesetImgages[i]);
-                elem.hide();
-                elem.appendTo($("#view"));
-    
+                const elem = $("<img>").attr("src", this._tilesetImgages[i]);   
                 elem.on("load", () => {     
-                    count++;
                     this._tilesets.push(elem);
+                    
+                    ++count;
+
                     if(count >= this._tilesetImgages.length) {
+                        console.log(this._tilesetImgages[i]);
                         this.createCanvas();
                         resolve();
                     }
@@ -79,10 +79,6 @@ export default class TilesetCanvas {
             const width = img.get(0).naturalWidth;
             const height = img.get(0).naturalHeight;   
             
-            if(width > maxW) {
-                maxW = width;
-                this._canvas.prop("width" , maxW);                
-            }
             if(height > acc + height) {
                 maxH = acc + height;
                 this._canvas.prop("height" , maxH);                

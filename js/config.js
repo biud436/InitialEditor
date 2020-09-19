@@ -8,7 +8,6 @@ const config = {
     LAYERS: 4,
     TILESET_IMGAGES: [
         "./images/tiles/tileset16-8x13.png",
-        "./images/tiles/autotile-ground.png"
     ],
 };
 
