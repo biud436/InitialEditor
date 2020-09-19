@@ -5,6 +5,7 @@ import {TilesetMarker} from "./tileset_marker.js";
 import Tilemap from "./tilemap.js";
 import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
+import TilesetCanvas from "./TilesetCanvas.js";
 
 export default class App {
 
@@ -27,25 +28,31 @@ export default class App {
         this._now = performance.now();
         this._isMenuOpen = false;
         this._tileId = 0;
+        this._isReady = false;
         document.title = "Initial Map Editor";
     }
 
     /**
      * 컴포넌트를 초기화합니다.
      */
-    initWithComponents() {
+    async initWithComponents() {
         /**
          * @type {Component[]}
          */
         this._components = [];
         this._components.push(this._menu = new MenuComponent());
-        this._components.push(this._tilesetMarker = new TilesetMarker());
-        this._components.push(this._tilemap = new Tilemap());
-        this._components.forEach(component => {
-            component.start();
-        });
 
-        this._tilemap.setTileId(0);
+        this._tilesetCanvas = new TilesetCanvas();
+        await this._tilesetCanvas.start().then(ret => {
+            this._components.push(this._tilesetMarker = new TilesetMarker());                    
+            this._components.push(this._tilemap = new Tilemap());    
+            this._components.forEach(component => {
+                component.start();
+            });            
+            this._tilemap.setTileId(0);
+        }).catch(err => {
+            console.warn(err);
+        });
     }
 
     toCamelCase() {
@@ -182,9 +189,14 @@ export default class App {
     start() {
         this.initMembers();
         this.initWithMouseEvent();
-        this.initWithComponents();
-        this.initWithGamePropertiesWindow();
-        this.initWithMapLayers();
+        this.initWithComponents().then(ret => {
+            this.initWithGamePropertiesWindow();
+        }).then(ret => {
+            this.initWithMapLayers();     
+            this._isReady = true;       
+        }).catch(err => {
+            console.warn(err);
+        })
     }
 
     /**
@@ -192,6 +204,9 @@ export default class App {
      * @param {Number}} deltaTime 
      */
     update(deltaTime) {
+
+        if(!this._isReady) return;
+
         // 400ms가 지났을 때 마다 무언가를 실행한다.
         if(deltaTime - this._now >= 400) {
             this._now = deltaTime;
@@ -216,6 +231,7 @@ export default class App {
 
         if(!this._menu.isMenuOpen()) {
             switch(id) {
+                case "tileset-canvas":
                 case "view":
                     if(this._mouse.buttons.leftFire) {
                         this._tilesetMarker.update(mouse);

@@ -51,17 +51,13 @@ class TilesetMarker extends Component {
         }
 
         const target = args[0].target;
-
-
-        if(target && target.id !== "view") {
-            return;
-        }
-
+        
         const parent = document.querySelector("#view");
-        const img = parent.querySelector("img");
-        const tileset = getComputedStyle(img);
-        const tilesetWidth = img.width;
-        const tilesetHeight = img.height;
+        const img = $("#view canvas");
+        // const tileset = getComputedStyle(img);
+        const tilesetWidth = img.width();
+        const tilesetHeight = img.height();
+        console.log(tilesetWidth, tilesetHeight);
         const topY = 0;
 
         const mouse = args[0];

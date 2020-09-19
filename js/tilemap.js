@@ -17,7 +17,7 @@ window.config = {
 export default class Tilemap extends Component {
 
     initMembers() {
-        this._tileset = 'images/tiles/tileset16-8x13.png';
+        this._tileset = $("#view canvas").get(0);
         this._tileWidth = window.config.TILE_WIDTH;
         this._tileHeight = window.config.TILE_HEIGHT;
         this._mapCols = window.config.MAP_COLS;
@@ -26,6 +26,11 @@ export default class Tilemap extends Component {
         this._mouseX = 0;
         this._mouseY = 0;
         this._currentLayer = 0;
+        this._autoTileIndexedList = [];
+        this._autoTileTextureList = {};
+        
+        // 1이면 오토타일, 0이면 일반 타일
+        this._tileType = 0;
 
         this._mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
         this._mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
@@ -35,7 +40,7 @@ export default class Tilemap extends Component {
             this._data = new Array(this._mapWidth * this._mapHeight * 4);
         }
         
-        const tilesetImg = document.querySelector("#view img");
+        const tilesetImg = $("#view canvas").get(0);
         if(!tilesetImg) {
             throw new Error("Cant't find tileset");
         }
@@ -216,10 +221,21 @@ export default class Tilemap extends Component {
         this._dirty = true;
     }
 
+    isAutoTile(tileID) {
+        return this._autoTileIndexedList.indexOf(tileId) >= 0;
+    }
+
     update(...args) {
         const penType = this._penType;
+        const tileId = this._tileId;
 
-        console.log(this.collectAutoTileID(this._mouseX, this._mouseY));
+        // if(this.isAutoTile(tileId)) {
+        //     this._tileId = this.collectAutoTileID(this._mouseX, this._mouseY);
+        //     this._tileset = this._autoTileTextureList[tileId];
+        //     this._tileType = 1;
+        // } else {
+        //     this._tileType = 0;
+        // }
 
         switch(penType) {
             case 0: 
