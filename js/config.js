@@ -7,6 +7,7 @@ const config = {
     MAP_ROWS: 8,
     LAYERS: 4,
     TILESET_IMGAGES: [
+        // "./images/tiles/autotile-ground.png",
         "./images/tiles/tileset16-8x13.png",
     ],
 };
