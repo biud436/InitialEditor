@@ -89,7 +89,7 @@ class TilesetMarker extends Component {
             top : ny - topY + "px",
         });
 
-        console.log(targetY * mapCols + targetX);
+        console.log("타일 ID : " + targetY * mapCols + targetX);
 
         window.app.setTileId(targetY * mapCols + targetX);
     }
