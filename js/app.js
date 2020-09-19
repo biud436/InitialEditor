@@ -1,12 +1,12 @@
 import GamePropertiesWindowController from "./renderer.js";
 import { Component } from "./component.js";
-import {MenuComponent, ActiveMenuWatcher} from "./menu_component.js";
+import {MenuComponent} from "./menu_component.js";
 import {TilesetMarker} from "./tileset_marker.js";
-import Tilemap from "./canvas.js";
+import Tilemap from "./tilemap.js";
 import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
 
-class App {
+export default class App {
 
     /**
      * 멤버 변수를 초기화합니다.
@@ -27,6 +27,7 @@ class App {
         this._now = performance.now();
         this._isMenuOpen = false;
         this._tileId = 0;
+        document.title = "Initial Map Editor";
     }
 
     /**
@@ -37,10 +38,9 @@ class App {
          * @type {Component[]}
          */
         this._components = [];
-        this._components.push(new MenuComponent());
-        this._components.push(new ActiveMenuWatcher(true));
-        this._components.push(new TilesetMarker(true));
-        this._components.push((this._tilemap = new Tilemap()));
+        this._components.push(this._menu = new MenuComponent());
+        this._components.push(this._tilesetMarker = new TilesetMarker());
+        this._components.push(this._tilemap = new Tilemap());
         this._components.forEach(component => {
             component.start();
         });
@@ -119,15 +119,13 @@ class App {
                 // 로딩이 성공적으로 완료되었다면 창 데이터를 현재 렌더러에 캐시합니다.
                 this.cache["new-window"] = this._gamePropertiesWindow;
 
-                // 파일 메뉴 버튼이 눌렸을 때의 액션을 처리합니다.
-                document.querySelectorAll(".file-menu-new-button").forEach(i => {
-                    i.addEventListener("click", (ev) => {
-                        // 창을 화면에 보이게 합니다.
-                        this._gamePropertiesWindow.show();
-                        // 펼쳐진 메뉴를 다시 접습니다.
-                        document.querySelector("#none").checked = true;
-                    }, false);                    
+                $(`.file-menu-new-button`).on("click", (ev) => {
+                    // 창을 화면에 보이게 합니다.
+                    this._gamePropertiesWindow.show();
+                    // 펼쳐진 메뉴를 다시 접습니다.
+                    $("#none").prop("checked", true);
                 })
+
             })
             .catch(err => {
                 console.warn(err);
@@ -135,14 +133,50 @@ class App {
     }
 
     initWithMapLayers() {
-        const children = document.querySelectorAll("ul.child-tree li i");
-        children.forEach(e => {
-            e.onclick = function() {
+        const children = $("ul.child-tree li i").children();
+        let target = null;
+        children.each((index, elem) => {
+            const e = e.get(0);
+            elem.click(() => {
                 e.className = e.className.includes("slash") ? "far fa-eye":"far fa-eye-slash";
-            }
+            });
         });
 
-        children[0].parentElement.style.backgroundColor = "var(--dark-selection-color)";
+        $("ul.child-tree li i").on("click", (ev) => {
+            const target = $(ev.currentTarget);
+            const parentNode = $(ev.currentTarget).parent();
+            const layerId = parentNode.index();
+            const tilemap = this._tilemap;
+
+            if(target.hasClass("fa-eye")) {
+                target.removeClass("fa-eye")
+                    .addClass("fa-eye-slash");
+            } else {
+                target.removeClass("fa-eye-slash")
+                    .addClass("fa-eye");                
+            }
+
+            tilemap.toggleLayerVisibility(layerId);
+        });
+
+        $("ul.child-tree li").on("click", (ev) => {
+            const elem = $(ev.currentTarget).css({
+                "backgroundColor": "var(--dark-selection-color)"
+            });
+            $("ul.child-tree li").not(elem).css({
+                "backgroundColor": "rgba(255, 255, 255, 0)"
+            });
+
+            const layerId = elem.index();
+            const tilemap = this._tilemap;
+
+            tilemap.setCurrentLayerId(layerId);
+            tilemap.clear();
+            tilemap.draw();
+            tilemap.updateAlphaLayers();
+        });
+
+        $("ul.child-tree li:first-child").trigger("click");
     }
 
     start() {
@@ -164,59 +198,37 @@ class App {
         }
 
         this.updateComponents();
+
         this._mouse.buttons.leftFire = false;
     }
 
-    updateComponents() {
-        // 왼쪽 마우스 또는 터치 버튼이 눌렸는가?
+    updateComponents() {        
+        const target = this._mouse.target;
+
+        if(!target) {
+            return;
+        }
         
-        this._components.forEach(component => {
-            if(!component.isActiveEvent()) {
-                // 마우스 이벤트를 수신하지 않을 경우,
-                component.update();
-            } else {
-                    
-                // 마우스 타겟 요소를 가져옵니다.
-                const target = this._mouse.target;
+        const id = target.id;
+        const mouse = this._mouse;
 
-                // 마우스 이벤트를 수신할 경우
-                if(this._mouse.buttons.leftFire) {
+        this._menu.update(target, mouse);
 
-                    if(target) {
-
-                        // 최상위 노드를 선택합니다.
-                        let parentNode = target.parentNode;
-                        while(parentNode != null && parentNode.className != "main") {
-                            parentNode = parentNode.parentNode;
-                        }
-
-                        // 최상위 노드가 메인 메뉴라면
-                        if(parentNode && parentNode.className === "main") {
-                            // 메뉴가 열린 것으로 간주
-                            this._isMenuOpen = true;
-                        } else {
-                            // 왼쪽 마우스 버튼이 눌렸을 때
-                            if(this._isMenuOpen && this._mouse.buttons.leftFire) {
-                                component.update(this._mouse);
-                                document.querySelector("#none").checked = true;
-                                this._isMenuOpen = false;
-                            }
-                            if(target.id == "view" && this._mouse.buttons.leftFire) {
-                                component.update(this._mouse);
-                            }                                                   
-                        }
+        if(!this._menu.isMenuOpen()) {
+            switch(id) {
+                case "view":
+                    if(this._mouse.buttons.leftFire) {
+                        this._tilesetMarker.update(mouse);
                     }
-                } else if(this._mouse.buttons.left) {
-                    if(!target) return;
-                    if(target.id == "main-canvas") {
-                        component.update(this._mouse);
+                    break;
+                case "main-canvas":
+                    if(this._mouse.buttons.left) {
+                        this._tilemap.update(mouse);
                     }
-                }
-
-
-                
+                    break;
             }
-        });
+        }
+
     }
 
     /**
@@ -241,19 +253,3 @@ class App {
 }
 
 App.Instance = null;
-window.app = App.GetInstance();
-
-function update(deltaTime) {
-    window.app.update(deltaTime);
-    window.requestAnimationFrame(update);
-}
-
-// window.onload = () => {
-//     window.app.start();
-//     update();
-// };
-
-$(() => {
-    window.app.start();
-    update();    
-});

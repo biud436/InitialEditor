@@ -25,6 +25,7 @@ export default class Tilemap extends Component {
         this._tileId = 0;
         this._mouseX = 0;
         this._mouseY = 0;
+        this._currentLayer = 0;
 
         this._mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
         this._mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
@@ -47,14 +48,14 @@ export default class Tilemap extends Component {
 
     initWithDrawingType() {
         this._penType = 0;
-        document.querySelector("#pen-tool").onclick = (ev) => {
+        $("#pen-tool").on("click", () => {
             this._penType = 0;
             console.log("펜");
-        };
-        document.querySelector("#square-tool").onclick = (ev) => {
+        });
+        $("#square-tool").on("click", () => {
             this._penType = 1;
             console.log("사각형");
-        };
+        });
     }
 
     setData(x, y, z, tileId) {
@@ -62,7 +63,7 @@ export default class Tilemap extends Component {
     }
 
     getData(x, y, z) {
-        return this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x];
+        return this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x] || 0;
     }
 
     setTileId(tileId) {
@@ -73,29 +74,39 @@ export default class Tilemap extends Component {
         return this._tileId;
     } 
 
+    setCurrentLayerId(layerId) {
+        this._currentLayer = layerId;
+    }
+
+    getCurrentLayerId() {
+        return this._currentLayer;
+    }
+
     start() {
         this._app = new PIXI.Application({
             width: window.config.SCREEN_WIDTH,
             height: window.config.SCREEN_HEIGHT,
             backgroundColor: 0x000000,
             resolution: window.devicePixelRatio || 1,
-            view: document.querySelector("#main-canvas")
+            view: $("#main-canvas").get(0)
         });
-        
-        this._container = new PIXI.Container();
-        this._container.interactive = true;
-        this._container.on("mousemove", this.onMouseMove.bind(this));
 
-        this.app.stage.addChild(this._container);    
-        
+        this._layerContainer = new PIXI.Container();
+        this._layerContainer.interactive = true;
+        this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
+        this.app.stage.addChild(this._layerContainer);   
+
+        for(let i = 0; i < window.config.LAYERS; i++) {
+            this._layerContainer.addChild(new PIXI.Container());   
+        }
+
         this._tilesets = [];
         this._tilesets.push(PIXI.Texture.from(this._tileset));  
         
         this.initWithDrawingType();
 
-        document.querySelector("#take-screenshot").addEventListener("click", this.takeScreenshot.bind(this), false);
-        
-        // this.draw();
+        $("#take-screenshot").on("click", () => this.takeScreenshot());
+
     }
 
     get app() {
@@ -144,19 +155,38 @@ export default class Tilemap extends Component {
         return cropTexture;
     }
 
+    collectAutoTileID(mx, my) {
+        const mapX = Math.floor(mx / this._tileWidth);
+        const mapY = Math.floor(my / this._tileHeight);
+        const layerId = this._currentLayer;
+        let mask = 0x00;
+        const bits = [
+            this.getData(mapX + 0, mapY - 1, layerId) <= 0, // 북
+            this.getData(mapX + 1, mapY - 1, layerId) <= 0, // 동북
+            this.getData(mapX + 1, mapY + 0, layerId) <= 0, // 동
+            this.getData(mapX + 1, mapY + 1, layerId) <= 0, // 동남
+            this.getData(mapX + 0, mapY + 1, layerId) <= 0, // 남
+            this.getData(mapX - 1, mapY + 1, layerId) <= 0, // 남서
+            this.getData(mapX - 1, mapY + 0, layerId) <= 0, // 서
+            this.getData(mapX - 1, mapY - 1, layerId) <= 0 // 북서
+        ];
+
+        bits.forEach((e, i, a) => {
+            if(e === true) {
+                mask += (1 << i);
+            }
+        });
+
+        return mask;
+    }    
+
     drawTile(mx, my, tileID) {
-        let texture = PIXI.Texture.from(this._tileset);
-        const dx = Math.floor(tileID % this._mapCols) * this._tileWidth;
-        const dy = Math.floor(tileID / this._mapRows) * this._tileHeight;        
-        texture = this.cropTexture(dx, dy, texture);
+        const mapX = Math.floor(mx / this._tileWidth);
+        const mapY = Math.floor(my / this._tileHeight);
 
-        const sprite = new PIXI.Sprite(texture);
-        const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
-        const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
-        sprite.x = Math.floor(mx / this._tileWidth) * this._tileWidth;
-        sprite.y = Math.floor(my / this._tileHeight) * this._tileHeight;
+        this.setData(mapX, mapY, this._currentLayer, tileID);
 
-        this._container.addChild(sprite);
+        this._dirty = true;
     }
 
     /**
@@ -169,33 +199,27 @@ export default class Tilemap extends Component {
      */
     drawRect(sx, sy, ex, ey) {
 
-        const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
-        const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
-
         const mx = Math.floor(sx / this._tileWidth);
         const my = Math.floor(sy / this._tileHeight);   
 
-        let texture = PIXI.Texture.from(this._tileset);
         const tileID = this._tileId;
-        const dx = (tileID % this._mapCols) * this._tileWidth;
-        const dy = (tileID / this._mapRows) * this._tileHeight;        
-        const cropTexture = this.cropTexture(dx, dy, texture);  
         
         const width = mx + ex;
         const height = my + ey;
 
         for(let y = my; y < height; y++) {
             for(let x = mx; x < width; x++) {
-                const sprite = new PIXI.Sprite(cropTexture);
-                sprite.x = x * this._tileWidth;
-                sprite.y = y * this._tileHeight;
-                this._container.addChild(sprite);
+                this.setData(x, y, this._currentLayer, tileID);
             }
         }        
+
+        this._dirty = true;
     }
 
     update(...args) {
         const penType = this._penType;
+
+        console.log(this.collectAutoTileID(this._mouseX, this._mouseY));
 
         switch(penType) {
             case 0: 
@@ -205,28 +229,68 @@ export default class Tilemap extends Component {
                 this.drawRect(this._mouseX, this._mouseY, 20, 5);
                 break;
         }
+  
+        if(this._dirty) {
+            this.draw();
+            this._dirty = false;
+        }
+    }
+
+    clear() {
+        this._layerContainer.children.forEach(i => {
+            i.removeChildren();
+        });
+    }
+
+    getTileCropTexture(tileID) {
+        let texture = PIXI.Texture.from(this._tileset);
+        const dx = (tileID % this._mapCols) * this._tileWidth;
+        const dy = Math.floor(tileID / this._mapRows) * this._tileHeight;        
+        const cropTexture = this.cropTexture(dx, dy, texture);
+
+        return cropTexture;
+    }
+
+    toggleLayerVisibility(layerId) {
+        if(!this._layerContainer) return;
+        const children = this._layerContainer.children;
+        children[layerId].visible = !children[layerId].visible;
+    }
+
+    updateAlphaLayers() {
+        const currentLayer = this._currentLayer;
+        const children = this._layerContainer.children;
+        const layers = children.filter((e, i, a) => {
+            return i !== currentLayer;
+        });
+
+        layers.forEach(layer => {
+            layer.alpha = 0.25;
+        });
+
+        children[currentLayer].alpha = 1.0;
     }
 
     draw() {        
-        this._container.removeChildren();
+        this.clear();
 
         const mapWidth = Math.round(window.config.SCREEN_WIDTH / this._tileWidth);
         const mapHeight = Math.round(window.config.SCREEN_HEIGHT / this._tileHeight);
 
-        let texture = PIXI.Texture.from(this._tileset);
-        const tileID = this._tileId;
-        const dx = (tileID % this._mapCols) * this._tileWidth;
-        const dy = (tileID / this._mapRows) * this._tileHeight;        
-        const cropTexture = this.cropTexture(dx, dy, texture);
-
-        for(let y = 0; y < mapHeight; y++) {
-            for(let x = 0; x < mapWidth; x++) {
-                const sprite = new PIXI.Sprite(cropTexture);
-                sprite.x = x * this._tileWidth;
-                sprite.y = y * this._tileHeight;
-                this._container.addChild(sprite);
+        for(let z = 0; z < window.config.LAYERS; z++) {
+            const container = this._layerContainer.children[z];
+            for(let y = 0; y < mapHeight; y++) {
+                for(let x = 0; x < mapWidth; x++) {
+                    const tileID = this.getData(x, y, z);
+                    if(!tileID) continue;
+                    const sprite = new PIXI.Sprite(this.getTileCropTexture(tileID));
+                    sprite.x = x * this._tileWidth;
+                    sprite.y = y * this._tileHeight;
+                    container.addChild(sprite);
+                }
             }
         }
+
     }
 
 }
