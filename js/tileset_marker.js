@@ -1,13 +1,13 @@
 import {Component} from "./component.js";
-import {config} from "./config.js";
 
 /**
  * @class TilesetMarker
  */
 class TilesetMarker extends Component {
-    initMembers() {
-        this._tileWidth = config.TILE_WIDTH;
-        this._tileHeight = config.TILE_HEIGHT;
+    initMembers(...args) {
+        this._config = args[0];
+        this._tileWidth = this._config.TILE_WIDTH;
+        this._tileHeight = this._config.TILE_HEIGHT;
         this._isReady = false;
         
         this.initWithElement();

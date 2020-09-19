@@ -6,6 +6,7 @@ import Tilemap from "./tilemap.js";
 import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
+import {config} from "./config.js";
 
 export default class App {
 
@@ -14,6 +15,7 @@ export default class App {
      */
     initMembers() {
         this.cache = {};
+        this._config = config;
         this._mouse = {
             x: 0,
             y: 0,
@@ -40,12 +42,12 @@ export default class App {
          * @type {Component[]}
          */
         this._components = [];
-        this._components.push(this._menu = new MenuComponent());
+        this._components.push(this._menu = new MenuComponent(this._config));
 
-        this._tilesetCanvas = new TilesetCanvas();
+        this._tilesetCanvas = new TilesetCanvas(this._config);
         await this._tilesetCanvas.start().then(ret => {
-            this._components.push(this._tilesetMarker = new TilesetMarker());                    
-            this._components.push(this._tilemap = new Tilemap());    
+            this._components.push(this._tilesetMarker = new TilesetMarker(this._config));                    
+            this._components.push(this._tilemap = new Tilemap(this._config));    
             this._components.forEach(component => {
                 component.start();
             });            

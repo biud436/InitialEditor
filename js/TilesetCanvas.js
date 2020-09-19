@@ -1,13 +1,14 @@
 import {config} from "./config.js";
 
 export default class TilesetCanvas {
-    constructor() {
-        this.initMembers()
+    constructor(...args) {
+        this.initMembers(...args)
     }
 
-    initMembers() {
+    initMembers(...args) {
+        this._config = args[0];
         this._isReady = false;
-        this._tilesetImgages = config.TILESET_IMGAGES;
+        this._tilesetImgages = this._config.TILESET_IMGAGES;
     }
 
     async start() {
