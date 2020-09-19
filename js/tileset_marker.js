@@ -55,14 +55,15 @@ class TilesetMarker extends Component {
         const target = args[0].target;
 
         const img = $("#view canvas");
+        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
         const tilesetWidth = img.width();
         const tilesetHeight = img.height();
         const topY = 0;
 
         const mouse = args[0];
 
-        const tw = 16;
-        const th = 16;
+        const tw = this._tileWidth;
+        const th = this._tileHeight;
         let nx = Math.floor(mouse.x / tw) * tw;
         let ny = Math.floor(mouse.y / th) * th;
 
@@ -88,7 +89,9 @@ class TilesetMarker extends Component {
             top : ny - topY + "px",
         });
 
-        window.app.setTileId(targetY * 8 + targetX);
+        console.log(targetY * mapCols + targetX);
+
+        window.app.setTileId(targetY * mapCols + targetX);
     }
 
 }

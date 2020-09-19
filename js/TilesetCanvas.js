@@ -40,10 +40,14 @@ export default class TilesetCanvas {
     }
 
     createCanvas() {
+
+        const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
+        const canvasHeight = this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
+
         this._parent = $("#view");
         this._canvas = $("<canvas />", {"id": "tileset-canvas"})
-            .attr("width", "400")
-            .attr("height", "1000")
+            .attr("width", canvasWidth)
+            .attr("height", canvasHeight)
             .css({
                 "padding": "0",
                 "margin": "0"

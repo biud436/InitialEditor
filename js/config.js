@@ -1,8 +1,8 @@
 const config = {
     SCREEN_WIDTH: 800,
     SCREEN_HEIGHT: 600,
-    TILE_WIDTH: 16,
-    TILE_HEIGHT: 16,
+    TILE_WIDTH: 32,
+    TILE_HEIGHT: 32,
     MAP_COLS: 8,
     MAP_ROWS: 8,
     LAYERS: 4,

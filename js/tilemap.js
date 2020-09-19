@@ -11,7 +11,7 @@ export default class Tilemap extends Component {
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
         this._mapCols = this._config.MAP_COLS;
-        this._mapRows =this._config.MAP_ROWS;
+        this._mapRows = this._config.MAP_ROWS;
         this._tileId = 0;
         this._mouseX = 0;
         this._mouseY = 0;
@@ -35,8 +35,8 @@ export default class Tilemap extends Component {
             throw new Error("Cant't find tileset");
         }
         
-        this._mapCols = Math.floor(tilesetImg.width / this._tileWidth);
-        this._mapRows = Math.floor(tilesetImg.width / this._tileWidth);    
+        this._mapCols = Math.floor((tilesetImg.width) / this._tileWidth);
+        this._mapRows = Math.floor((tilesetImg.width) / this._tileWidth);    
         
         this.active();
     }
@@ -229,7 +229,7 @@ export default class Tilemap extends Component {
 
         switch(penType) {
             case 0: 
-                this.drawTile(this._mouseX, this._mouseY, this._tileId);
+                this.drawTile(this._mouseX, this._mouseY, tileId);
                 break;
             case 1:
                 this.drawRect(this._mouseX, this._mouseY, 20, 5);
@@ -250,8 +250,10 @@ export default class Tilemap extends Component {
 
     getTileCropTexture(tileID) {
         let texture = PIXI.Texture.from(this._tileset);
-        const dx = (tileID % this._mapCols) * this._tileWidth;
-        const dy = Math.floor(tileID / this._mapRows) * this._tileHeight;        
+        const mapCols = Math.floor(texture.width / this._tileWidth);
+        const mapRows = Math.floor((texture.height) / this._tileHeight);
+        const dx = (tileID % mapCols) * this._tileWidth;
+        const dy = Math.floor(tileID / mapCols) * this._tileHeight;        
         const cropTexture = this.cropTexture(dx, dy, texture);
 
         return cropTexture;
@@ -280,8 +282,8 @@ export default class Tilemap extends Component {
     draw() {        
         this.clear();
 
-        const mapWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
-        const mapHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
+        const mapWidth = this._mapWidth;
+        const mapHeight = this._mapHeight;
 
         for(let z = 0; z < this._config.LAYERS; z++) {
             const container = this._layerContainer.children[z];
