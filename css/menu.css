@@ -12,14 +12,14 @@
     z-index: 10;
 }
 
-.menu .main {
+.menu .menu__main {
     padding: 0;
     margin: 0;
     list-style-type: none; 
     position: relative;
 }
 
-.menu .main li {
+.menu .menu__main li {
     padding: 0;
     margin: 0;    
     display: inline-block;
@@ -29,7 +29,7 @@
     padding-right: 12px;
 }
 
-.menu .main li:hover {
+.menu .menu__main li:hover {
     display: inline-block;    
     background: var(--dark-selection-color);
     cursor: default;
@@ -71,14 +71,14 @@
     z-index: 2;
 }
 
-.menu input[id="file"]:checked ~ .file-sub {
+.menu input[id="file"]:checked ~ .menu__file-sub {
     display: block;
     z-index: 100;
     margin-left: initial;
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="edit"]:checked ~ .edit-sub {
+.menu input[id="edit"]:checked ~ .menu__edit-sub {
     display: block;
     position: relative;
     left: calc(12px + 3ch);
@@ -86,7 +86,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="mode"]:checked ~ .mode-sub {
+.menu input[id="mode"]:checked ~ .menu__mode-sub {
     display: block;
     position: relative;
     left: calc(12px * 2 + 7ch);
@@ -94,7 +94,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="draw"]:checked ~ .draw-sub {
+.menu input[id="draw"]:checked ~ .menu__draw-sub {
     display: block;
     position: relative;
     left: calc(12px * 3 + 13ch);
@@ -102,7 +102,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="scale"]:checked ~ .scale-sub {
+.menu input[id="scale"]:checked ~ .menu__scale-sub {
     display: block;
     position: relative;
     left: calc(12px * 4 + 18ch);
@@ -110,7 +110,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="tools"]:checked ~ .tools-sub {
+.menu input[id="tools"]:checked ~ .menu__tools-sub {
     display: block;
     position: relative;
     left: calc(12px * 5 + 24ch);
@@ -118,7 +118,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="game"]:checked ~ .game-sub {
+.menu input[id="game"]:checked ~ .menu__game-sub {
     display: block;
     position: relative;
     left: calc(12px * 6 + 29ch);
@@ -126,7 +126,7 @@
     box-shadow: 1px 1px 6px var(--dark-shadow-color);
 }
 
-.menu input[id="help"]:checked ~ .help-sub {
+.menu input[id="help"]:checked ~ .menu__help-sub {
     display: block;
     position: relative;
     left: calc(12px * 7 + 35ch);
@@ -151,7 +151,7 @@
     z-index: 1;
 } */
 
-.empty-line {
+.menu__empty-line {
     margin-top: 8px;
     margin-bottom: 8px;
     border-bottom: 1px solid var(--dark-border-color);
@@ -195,7 +195,7 @@ ul li em {
     padding: 0;
 }
 
-.toolbar .empty-line2 {
+.toolbar .toolbar__empty-line--modifier {
     width: 2px;
     height: 24px;
     display: inline-block;    
@@ -215,27 +215,8 @@ ul li em {
     background-color: var(--dark-selection-color);
 }
 
-@media only screen and (max-width: 600px) {
-    .control-box {
-        display: none;
-    }
-    .close {
-        display: inline-block;
-    }
-}
-
-@media only screen and (max-width: 360px) {
-    .main li {
-        width: 10px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.5em;
-    }
-}
-
-@media only screen and (max-width: 180px) {
-    .container {
-        display: none;
-    }
+.control-box {
+    position: absolute;
+    top: 0.25em;
+    right: 0;
 }

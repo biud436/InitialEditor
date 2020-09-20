@@ -3,10 +3,11 @@
     min-height: calc(98vh - 48px);
     height: calc(98vh - 48px);
     float: left;
+    position: relative;
 }
 
-#main-canvas {
-    background-color: black;
+#contents__main-canvas {
+    background-color: transparent;
     width: 100%;
     height: 98%;
 }

@@ -41,6 +41,10 @@ export default class Tilemap extends Component {
         this.active();
     }
 
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     initWithDrawingType() {
         this._penType = 0;
         $("#pen-tool").on("click", () => {
@@ -78,17 +82,28 @@ export default class Tilemap extends Component {
     }
 
     start() {
-        this._app = new PIXI.Application({
+
+        let option = {
             width: this._config.SCREEN_WIDTH,
             height: this._config.SCREEN_HEIGHT,
-            backgroundColor: 0x000000,
+            // backgroundColor: 0x00000000,
             resolution: window.devicePixelRatio || 1,
-            view: $("#main-canvas").get(0)
-        });
+            view: $("#contents__main-canvas").get(0),
+            autoDensity: true,
+            transparent: true,
+        };
+
+        // if(this.isMobileDevice()) {
+            option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
+            option.width = $(window).innerWidth() - $(".aside__tile-tab-control").innerWidth() - 10;
+        // }
+
+        this._app = new PIXI.Application(option);
 
         this._layerContainer = new PIXI.Container();
         this._layerContainer.interactive = true;
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
+        this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
         this.app.stage.addChild(this._layerContainer);   
 
         for(let i = 0; i < this._config.LAYERS; i++) {

@@ -6,7 +6,9 @@ import Tilemap from "./tilemap.js";
 import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
+import TileMarker from "./tile_marker.js";
 import {config} from "./config.js";
+import Localization from "./localization.js";
 
 export default class App {
 
@@ -18,19 +20,23 @@ export default class App {
         this._config = config;
         this._mouse = {
             x: 0,
-            y: 0,
+            y: 0, 
             screenX : 0,
             screenY : 0,
             buttons: {
                 left: false,
                 leftFire: false,
             },
+            /**
+             * @type {HTMLElement}
+             */            
             target: null,
         };
         this._now = performance.now();
         this._isMenuOpen = false;
         this._tileId = 0;
         this._isReady = false;
+
         document.title = "Initial Map Editor";
     }
 
@@ -43,11 +49,13 @@ export default class App {
          */
         this._components = [];
         this._components.push(this._menu = new MenuComponent(this._config));
+        this._components.push(new Localization(this._config));
 
         this._tilesetCanvas = new TilesetCanvas(this._config);
         await this._tilesetCanvas.start().then(ret => {
             this._components.push(this._tilesetMarker = new TilesetMarker(this._config));                    
             this._components.push(this._tilemap = new Tilemap(this._config));    
+            this._components.push(this._tileMarker = new TileMarker(this._config));    
             this._components.forEach(component => {
                 component.start();
             });            
@@ -61,51 +69,103 @@ export default class App {
         return toCamelCase();
     }
 
+    isMobileDevice() {
+        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        return ret;
+    }
+
+    onMouseTouchMove(ev) {
+        this._mouse.x = ev.layerX;
+        this._mouse.y = ev.layerY;
+        this._mouse.screenX = ev.layerX;
+        this._mouse.screenY = ev.layerY;
+    }
+
     /**
      * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
      */
     initWithMouseEvent() {
 
-        window.addEventListener("mousemove", (ev) => {
-            /**
-             * position을 적용한 Element를 기준으로 한 좌표
-             */
-            this._mouse.x = ev.layerX;
-            this._mouse.y = ev.layerY;
-            /**
-             * 모니터를 기준으로 한 마우스 좌표
-             */
-            this._mouse.screenX = ev.layerX;
-            this._mouse.screenY = ev.layerY;
-        }, false);
+        const isMobileDevice = this.isMobileDevice();
+        let events;
 
-        window.addEventListener("mousedown", (ev) => {
-            if(ev.button == 0) {
-                this._mouse.buttons.left = true;
-                this._mouse.buttons.leftFire = false;
-                this._mouse.target = ev.target;
-            }
-        }, false);
+        if(isMobileDevice) {
+            events = {
+                "touchmove": (ev) => {        
+                    let touchEvent = ev;
+                    if(ev.type.indexOf("touch") >= 0) {
+                        touchEvent = ev.touches[0];
+                    }                          
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
 
-        window.addEventListener("mouseup", (ev) => {
-            if(ev.button == 0) {
-                this._mouse.buttons.left = false;
-                this._mouse.buttons.leftFire = true;
-            }
-        }, false);
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                },
+                "touchstart pointerdown mousedown": (ev) => {
+                    let touchEvent = ev;
+                    if(ev.type.indexOf("touch") >= 0) {
+                        touchEvent = ev.touches[0];
+                    }
+                    
+                    this._mouse.target = ev.target; 
 
-        window.addEventListener("touchstart", (ev) => {
-            if(ev.button == 0) {
-                this._mouse.buttons.left = true;
-            }
-        }, false);        
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
 
-        window.addEventListener("touchend", (ev) => {
-            if(ev.button == 0) {
-                this._mouse.buttons.left = false;
-            }
-        }, false);      
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;           
+                    this._mouse.buttons.left = true;
+                    this._mouse.buttons.leftFire = false;                  
+                },
+                "touchend pointerup mouseup": (ev) => {
+                    this._mouse.buttons.left = false;
+                    this._mouse.buttons.leftFire = true; 
+                }
+            };
 
+            $(window).on(events);
+
+        } else {
+            events = {
+                "mousemove": (ev) => {
+                    this._mouse.x = ev.layerX;
+                    this._mouse.y = ev.layerY;
+                    this._mouse.screenX = ev.layerX;
+                    this._mouse.screenY = ev.layerY;
+                },
+                "mousedown": (ev) => {
+                    if(ev.button == 0) {
+                        this._mouse.buttons.left = true;
+                        this._mouse.buttons.leftFire = false;
+                        this._mouse.target = ev.target;
+                    }
+                },
+                "mouseup": (ev) => {
+                    if(ev.button == 0) {
+                        this._mouse.buttons.left = false;
+                        this._mouse.buttons.leftFire = true;
+                    }
+                }
+            }         
+            
+            for(let k in events) {
+                window.addEventListener(k, events[k], false);
+            }                 
+        }
+
+       
+  
     }
 
     setTileId(tileId) {
@@ -142,7 +202,7 @@ export default class App {
     }
 
     initWithMapLayers() {
-        const children = $("ul.child-tree li i").children();
+        const children = $("ul.aside__tile-tab-control__maptree_child-tree li i").children();
         let target = null;
         children.each((index, elem) => {
             const e = e.get(0);
@@ -151,7 +211,7 @@ export default class App {
             });
         });
 
-        $("ul.child-tree li i").on("click", (ev) => {
+        $("ul.aside__tile-tab-control__maptree_child-tree li i").on("click", (ev) => {
             const target = $(ev.currentTarget);
             const parentNode = $(ev.currentTarget).parent();
             const layerId = parentNode.index();
@@ -168,11 +228,11 @@ export default class App {
             tilemap.toggleLayerVisibility(layerId);
         });
 
-        $("ul.child-tree li").on("click", (ev) => {
+        $("ul.aside__tile-tab-control__maptree_child-tree li").on("click", (ev) => {
             const elem = $(ev.currentTarget).css({
                 "backgroundColor": "var(--dark-selection-color)"
             });
-            $("ul.child-tree li").not(elem).css({
+            $("ul.aside__tile-tab-control__maptree_child-tree li").not(elem).css({
                 "backgroundColor": "rgba(255, 255, 255, 0)"
             });
 
@@ -185,7 +245,7 @@ export default class App {
             tilemap.updateAlphaLayers();
         });
 
-        $("ul.child-tree li:first-child").trigger("click");
+        $("ul.aside__tile-tab-control__maptree_child-tree li:first-child").trigger("click");
     }
 
     start() {
@@ -240,9 +300,12 @@ export default class App {
                         this._tilesetMarker.update(mouse);
                     }
                     break;
-                case "main-canvas":
+                case "contents__main-canvas":
                     if(this._mouse.buttons.left) {
-                        this._tilemap.update(mouse);
+                        this._tilemap.update(mouse);                                           
+                    }
+                    if(this._mouse.buttons.leftFire) {
+                        this._tileMarker.update(mouse);    
                     }
                     break;
             }

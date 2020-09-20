@@ -3,27 +3,35 @@ import {Component} from "./component.js";
 class MenuComponent extends Component {
     start() {
         this._isMenuOpen = false;
+        $(".toolbar").draggable({ snap: ".menu" });
+        $(".aside__tile-tab-control").resizable({
+            containment: "#aside"
+        });
     }
 
     isMenuOpen() {
         return this._isMenuOpen;
     }
 
+    hideMenu() {
+        $("#none").prop("checked", true);
+        this._isMenuOpen = false;      
+    }
+
     update(target, mouse) {
         // 최상위 노드를 선택합니다.
         let parentNode = target.parentNode;
-        while(parentNode != null && parentNode.className != "main") {
+        while(parentNode != null && parentNode.className != "menu__main") {
             parentNode = parentNode.parentNode;
         }
 
         // 최상위 노드가 메인 메뉴라면
-        if(parentNode && parentNode.className === "main") {
+        if(parentNode && parentNode.className === "menu__main") {
             // 메뉴가 열린 것으로 간주
             this._isMenuOpen = true;
         } else {
             if(this._isMenuOpen && mouse.buttons.leftFire) {
-                document.querySelector("#none").checked = true;
-                this._isMenuOpen = false;
+                this.hideMenu();
             }                                              
         }        
     }

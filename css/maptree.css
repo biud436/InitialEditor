@@ -1,21 +1,21 @@
-.maptree {
+.aside__tile-tab-control__maptree {
     width: 100%;
     min-height: 100%;    
     height: auto;
 }
 
-.maptree ul {
+.aside__tile-tab-control__maptree ul {
     width: 100%;
     height: 100%;
 }
 
-.maptree ul li {
+.aside__tile-tab-control__maptree ul li {
     width: 100%;
     display: block;
     position: relative;
 }
 
-.child-tree li {
+.aside__tile-tab-control__maptree_child-tree li {
     display: block;
     margin-left: 1em;
 }

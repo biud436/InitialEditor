@@ -41,6 +41,9 @@ export default class GamePropertiesWindowController {
 
         this.hide();
 
+        $(this._element).draggable({ snap: ".contents" })
+            .resizable({containment: ".flex-container"});
+
         document.querySelector(config.parentId).appendChild(this._element);
 
     }
@@ -51,14 +54,16 @@ export default class GamePropertiesWindowController {
     }    
 
     hide() {
-        this._element.style.display = "none";
-        document.querySelector(".flex-container").style.display = "none";
+        $(".flex-container").fadeOut();    
+        $(this._element).fadeOut();
+        // document.querySelector(".flex-container").style.display = "none";
         this._isValid = false;
     }
 
     show() {
-        this._element.style.display = "block";
-        document.querySelector(".flex-container").style.display = "flex";
+        $(this._element).fadeIn();
+        // document.querySelector(".flex-container").style.display = "flex";
+        $(".flex-container").slideDown();
         this._isValid = true;
     }    
 
@@ -88,7 +93,7 @@ export default class GamePropertiesWindowController {
 
     onLoad(elem, self) {
         const parent = elem.parentNode;
-        parent.querySelector(".control-box p i").onclick = () => {
+        parent.querySelector(".newWindow__control-box p i").onclick = () => {
             self.hide();
         };
     }
