@@ -58,11 +58,23 @@ export default class Tilemap extends Component {
     }
 
     setData(x, y, z, tileId) {
-        this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x] = tileId;
+        if(x < 0) x = 0;
+        if(x > this._mapWidth - 1) x = this._mapWidth - 1;
+        y = Math.min(Math.max(0, y), this._mapHeight - 1);
+        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
+
+        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        console.log((this._mapWidth * y) + x);
+        this._data[id] = tileId;
     }
 
     getData(x, y, z) {
-        return this._data[(this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x] || 0;
+        x = Math.min(Math.max(0, x), this._mapWidth);
+        y = Math.min(Math.max(0, y), this._mapHeight);        
+        z = Math.min(Math.max(0, z), this._config.LAYERS);
+
+        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        return this._data[id] || 0;
     }
 
     setTileId(tileId) {
@@ -90,8 +102,10 @@ export default class Tilemap extends Component {
             resolution: window.devicePixelRatio || 1,
             view: $("#contents__main-canvas").get(0),
             autoDensity: true,
-            transparent: true,
+            transparent: false,
         };
+
+        // $(`#contents__main-canvas`).resizable();
 
         // if(this.isMobileDevice()) {
             option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
@@ -191,8 +205,10 @@ export default class Tilemap extends Component {
     }    
 
     drawTile(mx, my, tileID) {
-        const mapX = Math.floor(mx / this._tileWidth);
-        const mapY = Math.floor(my / this._tileHeight);
+        let mapX = Math.floor(mx / this._tileWidth);
+        let mapY = Math.floor(my / this._tileHeight);
+
+        console.log(mx, my, mapX, mapY);
 
         this.setData(mapX, mapY, this._currentLayer, tileID);
 
@@ -209,8 +225,8 @@ export default class Tilemap extends Component {
      */
     drawRect(sx, sy, ex, ey) {
 
-        const mx = Math.floor(sx / this._tileWidth);
-        const my = Math.floor(sy / this._tileHeight);   
+        let mx = Math.floor(sx / this._tileWidth);
+        let my = Math.floor(sy / this._tileHeight);       
 
         const tileID = this._tileId;
         
