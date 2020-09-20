@@ -41,8 +41,8 @@ export default class GamePropertiesWindowController {
 
         this.hide();
 
-        $(this._element).draggable({ snap: ".contents" })
-            .resizable({containment: ".flex-container"});
+        $(this._element).draggable({ snap: ".contents" });
+        $("#newContainer").resizable({containment: ".flex-container"});
 
         document.querySelector(config.parentId).appendChild(this._element);
 
