@@ -10,7 +10,7 @@ import TilesetCanvas from "./TilesetCanvas.js";
 import TileMarker from "./tileMarker.js";
 import {config} from "./config.js";
 import Localization from "./localization.js";
-import pixi, { Rectangle } from "../libs/pixi.js";
+import Rectangle from "./Rectangle.js";
 
 export default class App {
 
@@ -41,7 +41,7 @@ export default class App {
          */
         this._blockRect = {
             isDrawing: false,
-            rect: new PIXI.Rectangle(0, 0, 1, 1),
+            rect: new Rectangle(0, 0, 1, 1),
         };
         this._now = performance.now();
         this._isMenuOpen = false;
@@ -118,7 +118,7 @@ export default class App {
                     this._mouse.screenX = touchEvent.screenX;
                     this._mouse.screenY = touchEvent.screenY;
                 },
-                "touchstart pointerdown mousedown": (ev) => {
+                "touchstart pointerdown": (ev) => {
                     let touchEvent = ev;
                     if(ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
@@ -156,7 +156,7 @@ export default class App {
                     this._mouse.screenY = ev.layerY;
                 },
                 "mousedown": (ev) => {
-                    if(ev.button == 0) {
+                    if(ev.button == 0) {                 
                         this._mouse.buttons.left = true;
                         this._mouse.buttons.leftFire = false;
                         this._mouse.target = ev.target;
@@ -315,7 +315,7 @@ export default class App {
                     break;
                 case "contents__main-canvas":
                     if(this._mouse.buttons.left) {
-                        this._tilemap.update(mouse);                                           
+                        this._tilemap.update(mouse);                                        
                     }
                     if(this._mouse.buttons.leftFire) {
                         this._tileMarker.update(mouse);    

@@ -65,7 +65,7 @@ const menu = {
             children: {
                 "mode-map": {
                     name: "맵",
-                    children: {},
+                    children: {},                    
                 },
                 "mode-event": {
                     name: "이벤트",
@@ -83,22 +83,37 @@ const menu = {
                 "draw-pencil": {
                     name: "펜",
                     children: {},
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "draw-rectangle": {
                     name: "정사각형",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "draw-ellipse": {
                     name: "직사각형",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "draw-flood-fill": {
                     name: "채우기",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "draw-shadow pen": {
                     name: "그림자",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
             },
         },
@@ -108,18 +123,30 @@ const menu = {
                 "scale-1x": {
                     name: "실제 비율",
                     children: {},
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "scale-2x": {
                     name: "2배 축소",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "scale-4x": {
                     name: "4배 축소",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "scale-8x": {
                     name: "8배 축소",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
             },
         },
@@ -129,14 +156,23 @@ const menu = {
                 "tools-database": {
                     name: "데이터베이스",
                     children: {},
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "tools-resource-manager": {
                     name: "소재 관리자",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                            
                 },
                 "tools-script-eidtor": {
                     name: "스크립트 에디터",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                      
                 },
                 "tools-sound-test": {
                     name: "사운드 테스트",
@@ -152,24 +188,32 @@ const menu = {
             name: "게임",
             children: {
                 "game-playtest": {
-                    name: "데이터베이스",
+                    name: "플레이 테스트",
                     children: {},
+                    action: (ev) => {
+                        alert("플레이 테스트 기능을 지원하지 않습니다.");
+                    },                      
                 },
                 "game-fullscreen": {
-                    name: "소재 관리자",
+                    name: "전체 화면",
                     children: {}, 
+                    action: (ev) => {
+                        
+                    },                     
                 },
                 "game-show-console": {
-                    name: "스크립트 에디터",
+                    name: "콘솔 표시",
                     children: {}, 
-                },
-                "game-show-console": {
-                    name: "스크립트 에디터",
-                    children: {}, 
+                    action: (ev) => {
+                        alert("웹 버전에서는 콘솔 표시 기능을 지원하지 않습니다.");
+                    },                       
                 },
                 "game-folder-open": {
                     name: "게임 폴더 열기",
                     children: {}, 
+                    action: (ev) => {
+                        alert("웹 버전에서는 게임 폴더 열기 기능을 지원하지 않습니다.");
+                    },                      
                 },
             },
         },
@@ -179,13 +223,16 @@ const menu = {
                 "help-contents": {
                     name: "도움말",
                     children: {},
-                    onclick: (ev) => {
-
+                    action: (ev) => {
+                        alert("도움말이 아직 없습니다.");
                     },
                 },
                 "help-about": {
                     name: "버전 정보",
                     children: {}, 
+                    action: (ev) => {
+                        alert("현재 버전은 테스트 버전입니다.");
+                    },                    
                 },
             },
         },
@@ -225,6 +272,12 @@ export default class Localization extends Component {
                         const _type = _node.data("action");
                         const _res = data.children[_type];
                         if(_res) {
+
+                            // 메뉴 노드에 메뉴 액션을 등록합니다.
+                            if(_res.action) {
+                                _node.get(0).onclick = _res.action;
+                            }
+
                             const _name = _res.name;
                             _node.get(0).childNodes.forEach(i => {
                                 // 텍스트 노드만 찾습니다.
