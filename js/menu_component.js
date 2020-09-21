@@ -7,6 +7,12 @@ class MenuComponent extends Component {
         $(".aside__tile-tab-control").resizable({
             containment: "#aside"
         });
+
+        const rect = $(".toolbar").get(0).getBoundingClientRect();
+        this._originalPos = {
+            x: rect.x,
+            y: rect.y
+        };
     }
 
     isMenuOpen() {
@@ -19,6 +25,11 @@ class MenuComponent extends Component {
     }
 
     update(target, mouse) {
+        if($(".toolbar").is('.ui-draggable-dragging')) {
+            const rect = $(".toolbar").get(0).getBoundingClientRect();
+            
+        }
+
         // 최상위 노드를 선택합니다.
         let parentNode = target.parentNode;
         while(parentNode != null && parentNode.className != "menu__main") {

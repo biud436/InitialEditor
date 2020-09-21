@@ -179,6 +179,9 @@ const menu = {
                 "help-contents": {
                     name: "도움말",
                     children: {},
+                    onclick: (ev) => {
+
+                    },
                 },
                 "help-about": {
                     name: "버전 정보",
@@ -251,8 +254,25 @@ export default class Localization extends Component {
             })
         }
 
+        const resizeConfig = {
+            ".contents": {
+                "width": "65%",
+            },
+            ".aside__tile-tab-control": {
+                "width": "30%",
+            },
+            "#contents__main-canvas": {
+                "width": "100%",
+            }
+        }
+
         $(window).on("resize", () => {
+
             if($(window).width() <= 640) {
+                for(let i in resizeConfig) {
+                    $(i).css(resizeConfig[i]);
+                }
+
                 $(".toolbar i").each((index, elem) => {
                     $(elem)
                         .removeClass("fa-3x")                    

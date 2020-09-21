@@ -1,4 +1,4 @@
-export default class HelpAbount {
+export default class HelpAbout {
     
     constructor() {
         this._data = this.getData();

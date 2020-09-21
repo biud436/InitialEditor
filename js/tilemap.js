@@ -1,3 +1,4 @@
+// import pixi from "../libs/pixi.js";
 // //@ts-check
 import {
     Component
@@ -175,7 +176,7 @@ export default class Tilemap extends Component {
     cropTexture(dx, dy, texture) {
         const crop = new PIXI.Rectangle(dx, dy, this._tileWidth, this._tileHeight);
         const cropTexture = new PIXI.Texture(texture.baseTexture, crop);
-
+        
         return cropTexture;
     }
 

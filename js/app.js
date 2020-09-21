@@ -1,14 +1,16 @@
+
 import GamePropertiesWindowController from "./renderer.js";
 import { Component } from "./component.js";
 import {MenuComponent} from "./menu_component.js";
-import {TilesetMarker} from "./tileset_marker.js";
+import {TilesetMarker} from "./tilesetMarker.js";
 import Tilemap from "./tilemap.js";
 import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
-import TileMarker from "./tile_marker.js";
+import TileMarker from "./tileMarker.js";
 import {config} from "./config.js";
 import Localization from "./localization.js";
+import pixi, { Rectangle } from "../libs/pixi.js";
 
 export default class App {
 
@@ -31,6 +33,15 @@ export default class App {
              * @type {HTMLElement}
              */            
             target: null,
+        };
+
+        /**
+         * 사각형 툴을 위한 선택 영역
+         * @link http://jsfiddle.net/qGzkG/2/
+         */
+        this._blockRect = {
+            isDrawing: false,
+            rect: new PIXI.Rectangle(0, 0, 1, 1),
         };
         this._now = performance.now();
         this._isMenuOpen = false;
@@ -155,6 +166,8 @@ export default class App {
                     if(ev.button == 0) {
                         this._mouse.buttons.left = false;
                         this._mouse.buttons.leftFire = true;
+
+                        this._blockRect.isDrawing = false;
                     }
                 }
             }         

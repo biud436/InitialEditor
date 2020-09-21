@@ -1,4 +1,4 @@
-import {TilesetMarker} from "./tileset_marker.js";
+import {TilesetMarker} from "./tilesetMarker.js";
 
 export default class TileMarker extends TilesetMarker {
 
@@ -71,6 +71,6 @@ export default class TileMarker extends TilesetMarker {
             position : "absolute",
             left : nx + "px",
             top : ny - topY + "px",
-        });
+        });     
     }    
 }
