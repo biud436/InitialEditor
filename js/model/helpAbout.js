@@ -10,7 +10,7 @@ export default class HelpAboutWindowModel {
             height: "100%",
             parentId: ".flex-container",
             id: "helpAbout",
-            zIndex: "10",
+            zIndex: "11",
             path: "view/windows/helpWindow.html",
         }; 
     }

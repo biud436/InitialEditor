@@ -1,4 +1,4 @@
-import HelpAboutWindowModel from "./model/helpAbout";
+import HelpAboutWindowModel from "./model/helpAbout.js";
 import BaseController from "./BaseController.js";
 
 export default class HelpAboutWindow extends BaseController {
@@ -9,8 +9,5 @@ export default class HelpAboutWindow extends BaseController {
     onLoad(elem, self) {
         super.onLoad(elem, self);
         const parent = elem.parentNode;
-        parent.querySelector(".newWindow__control-box p i").onclick = () => {
-            self.hide();
-        };
     }    
 }
