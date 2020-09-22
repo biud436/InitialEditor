@@ -1,4 +1,4 @@
-export default class HelpAbout {
+export default class HelpAboutWindowModel {
     
     constructor() {
         this._data = this.getData();

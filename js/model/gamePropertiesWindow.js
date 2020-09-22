@@ -1,4 +1,4 @@
-export default class GamePropertiesWindow {
+export default class GamePropertiesWindowModel {
     
     constructor() {
         this._data = this.getData();

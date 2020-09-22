@@ -1,5 +1,5 @@
 
-import GamePropertiesWindowController from "./renderer.js";
+import GamePropertiesWindowController from "./GamePropertiesWindowController.js";
 import { Component } from "./component.js";
 import {MenuComponent} from "./menu_component.js";
 import {TilesetMarker} from "./tilesetMarker.js";
@@ -49,6 +49,15 @@ export default class App {
         this._isReady = false;
 
         document.title = "Initial Map Editor";
+
+        /**
+         * 커스텀 이벤트
+         */
+        $(".container").on("window:add", (ev, ...data) => {
+            console.log(data);
+        })
+
+        $(".container").trigger("window:add", [1,2,3]);
     }
 
     /**

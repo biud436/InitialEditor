@@ -1,5 +1,6 @@
 import {Component} from "./component.js";
 
+
 const menu = {
     "ko": {
         file: {
@@ -231,7 +232,9 @@ const menu = {
                     name: "버전 정보",
                     children: {}, 
                     action: (ev) => {
-                        alert("현재 버전은 테스트 버전입니다.");
+                        // if(!$(".container").is("#helpAbout")) {
+                        //     $(".container").append(new HelpAboutWindow(new HelpAboutWindowModel()));
+                        // }
                     },                    
                 },
             },
