@@ -223,6 +223,9 @@ export default class App {
             });
     }
 
+    /**
+     * This method allows you to the map layer is toggled.
+     */
     initWithMapLayers() {
         const children = $("ul.aside__tile-tab-control__maptree_child-tree li i").children();
         let target = null;
@@ -273,6 +276,8 @@ export default class App {
     start() {
         this.initMembers();
         this.initWithMouseEvent();
+
+        // This method creates all windows after initializing components.
         this.initWithComponents()
             .then(ret => this.initWithGamePropertiesWindow())
             .then(ret => {
@@ -319,7 +324,7 @@ export default class App {
                 case "tileset-canvas":
                 case "view":
                     if(this._mouse.buttons.leftFire) {
-                        this._tilesetMarker.update(mouse);
+                        // this._tilesetMarker.update(mouse);
                     }
                     break;
                 case "contents__main-canvas":
