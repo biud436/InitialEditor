@@ -54,43 +54,43 @@ class TilesetMarker extends Component {
 
         const topY = $("#view").offset().top;
 
-        // TODO: 마우스 좌표가 잘못되어있음 (수정 요망)
-        $("#view canvas")
-            .on("mousedown", (ev) => {
-                this._isDraw = true;
-                this._isClicked = true;
+        // TODO: 마우스 좌표가 잘못되어있음 (수정 요망) => 수정 불가능
+        // $("#view canvas")
+        //     .on("mousedown", (ev) => {
+        //         this._isDraw = true;
+        //         this._isClicked = true;
 
-                this.touches[0].x = ev.clientX;
-                this.touches[0].y = ev.clientY - topY;
+        //         this.touches[0].x = ev.clientX;
+        //         this.touches[0].y = ev.clientY - topY;
 
-                this._blockSize.width = this._tileWidth;
-                this._blockSize.height = this._tileHeight - topY;
+        //         this._blockSize.width = this._tileWidth;
+        //         this._blockSize.height = this._tileHeight - topY;
 
-                this._blockSize.refresh();
-            })
-            .on("mousemove", (ev) => {
-                if(this._isClicked) {
-                    this._isDraw = true;
-                    this._blockSize._x = this.touches[0].x;
-                    this._blockSize._y = this.touches[0].y - topY;
-                    this._blockSize.width = ev.clientX - $("#view canvas").offset().left;
-                    this._blockSize.height = (ev.clientY - topY) - ($("#view canvas").offset().top);
-                    this._blockSize.refresh();
-                    this.touches[1].x = ev.clientX;
-                    this.touches[1].y = ev.clientY;                    
-                }
-            })
-            .on("mouseup", (ev) => {
-                this._isDraw = false;
-                this._isClicked = false;
-                this._blockSize._x = this.touches[0].x;
-                this._blockSize._y = this.touches[0].y;
-                this._blockSize.width = ev.clientX - $("#view canvas").offset().left;
-                this._blockSize.height = (ev.clientY - topY) - $("#view canvas").offset().top;
-                this.touches[1].x = ev.clientX;
-                this.touches[1].y = ev.clientY;   
-                this._blockSize.refresh();                                 
-            });
+        //         this._blockSize.refresh();
+        //     })
+        //     .on("mousemove", (ev) => {
+        //         if(this._isClicked) {
+        //             this._isDraw = true;
+        //             this._blockSize._x = this.touches[0].x;
+        //             this._blockSize._y = this.touches[0].y - topY;
+        //             this._blockSize.width = ev.clientX - $("#view canvas").offset().left;
+        //             this._blockSize.height = (ev.clientY - topY) - ($("#view canvas").offset().top);
+        //             this._blockSize.refresh();
+        //             this.touches[1].x = ev.clientX;
+        //             this.touches[1].y = ev.clientY;                    
+        //         }
+        //     })
+        //     .on("mouseup", (ev) => {
+        //         this._isDraw = false;
+        //         this._isClicked = false;
+        //         this._blockSize._x = this.touches[0].x;
+        //         this._blockSize._y = this.touches[0].y;
+        //         this._blockSize.width = ev.clientX - $("#view canvas").offset().left;
+        //         this._blockSize.height = (ev.clientY - topY) - $("#view canvas").offset().top;
+        //         this.touches[1].x = ev.clientX;
+        //         this.touches[1].y = ev.clientY;   
+        //         this._blockSize.refresh();                                 
+        //     });
     }
 
     start() {
@@ -208,6 +208,5 @@ class BlockSize {
     }
 
 }
-
 
 export {TilesetMarker};

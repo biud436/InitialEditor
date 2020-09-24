@@ -48,6 +48,7 @@ export default class App {
         this._tileId = 0;
         this._isReady = false;
 
+        // 타이틀을 변경합니다.
         document.title = "Initial Map Editor";
 
         /**
@@ -324,7 +325,7 @@ export default class App {
                 case "tileset-canvas":
                 case "view":
                     if(this._mouse.buttons.leftFire) {
-                        // this._tilesetMarker.update(mouse);
+                        this._tilesetMarker.update(mouse);
                     }
                     break;
                 case "contents__main-canvas":
@@ -337,7 +338,6 @@ export default class App {
                     break;
             }
         }
-
     }
 
     /**

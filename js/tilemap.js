@@ -130,7 +130,11 @@ export default class Tilemap extends Component {
         
         this.initWithDrawingType();
 
-        $("#take-screenshot").on("click", () => this.takeScreenshot());
+        $("#take-screenshot").on("click", (ev) => {
+            this.takeScreenshot();
+
+            ev.stopPropagation();
+        });
 
     }
 
@@ -138,6 +142,10 @@ export default class Tilemap extends Component {
         return this._app;
     }
 
+    /**
+     * TODO: 클립보드에 저장하는 방식으로 변환할 것.
+     * @link https://developer.mozilla.org/ko/docs/Web/API/Clipboard/write
+     */
     takeScreenshot() {
         const app = this._app;
         if(!app) return;
@@ -146,8 +154,13 @@ export default class Tilemap extends Component {
             document.body.append(a);
             a.download = 'screenshot';
             a.href = URL.createObjectURL(b);
+            a.onclick = function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+            };
             a.click();
             a.remove();
+
         }, 'image/png');        
     }
 
