@@ -1,15 +1,15 @@
 
-import GamePropertiesWindowController from "./GamePropertiesWindowController.js";
-import { Component } from "./component.js";
-import {MenuComponent} from "./menu_component.js";
+import GamePropertiesWindowController from "./controllers/GamePropertiesWindowController.js";
+import { Component } from "./Component.js";
+import {MenuComponent} from "./MenuComponent.js";
 import {TilesetMarker} from "./tilesetMarker.js";
-import Tilemap from "./tilemap.js";
-import GamePropertiesWindow from "./model/gamePropertiesWindow.js";
+import Tilemap from "./Tilemap.js";
+import GamePropertiesWindow from "./models/GamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
-import TileMarker from "./tileMarker.js";
+import TileMarker from "./TileMarker.js";
 import {config} from "./config.js";
-import Localization from "./localization.js";
+import Localization from "./MenuService.js";
 import Rectangle from "./Rectangle.js";
 
 export default class App {
@@ -50,15 +50,6 @@ export default class App {
 
         // 타이틀을 변경합니다.
         document.title = "Initial Map Editor";
-
-        /**
-         * 커스텀 이벤트
-         */
-        $(".container").on("window:add", (ev, ...data) => {
-            console.log(data);
-        })
-
-        $(".container").trigger("window:add", [1,2,3]);
     }
 
     /**
@@ -201,6 +192,8 @@ export default class App {
      */
     initWithGamePropertiesWindow() {
 
+        $(".darken").fadeIn();
+
         // 게임 속성 창 생성하기
         this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
 
@@ -210,14 +203,6 @@ export default class App {
 
                 // 로딩이 성공적으로 완료되었다면 창 데이터를 현재 렌더러에 캐시합니다.
                 this.cache["new-window"] = this._gamePropertiesWindow;
-
-                $(`.file-menu-new-button`).on("click", (ev) => {
-                    // 창을 화면에 보이게 합니다.
-                    this._gamePropertiesWindow.show();
-                    // 펼쳐진 메뉴를 다시 접습니다.
-                    $("#none").prop("checked", true);
-                })
-
             })
             .catch(err => {
                 console.warn(err);

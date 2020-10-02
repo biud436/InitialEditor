@@ -1,4 +1,6 @@
-export default class HelpAboutWindowModel {
+import Model from "./Model.js";
+
+export default class HelpAboutWindowModel extends Model {
     
     constructor() {
         this._data = this.getData();
@@ -8,7 +10,7 @@ export default class HelpAboutWindowModel {
         return {
             width: "100%",
             height: "100%",
-            parentId: ".flex-container",
+            parentId: ".darken",
             id: "helpAbout",
             zIndex: "11",
             path: "view/windows/helpWindow.html",

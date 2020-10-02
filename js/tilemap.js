@@ -2,7 +2,7 @@
 // //@ts-check
 import {
     Component
-} from "./component.js";
+} from "./Component.js";
 
 export default class Tilemap extends Component {
 
@@ -56,6 +56,20 @@ export default class Tilemap extends Component {
             this._penType = 1;
             console.log("사각형");
         });
+    }
+
+    initWithLayers() {
+        const maxZ = this._config.LAYERS;
+        const maxWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
+        const maxHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);        
+
+        for(let z = 0; z < maxZ; z++) {
+            for(let y = 0; y < maxHeight; y++) {
+                for(let x = 0; x < maxWidth; x++) {
+                    this.set(x, y, z, 0);
+                }
+            }
+        }
     }
 
     setData(x, y, z, tileId) {

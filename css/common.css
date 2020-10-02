@@ -16,18 +16,17 @@
     position: relative;
 }
 
-.flex-container {
-    width: auto;
-    height: 98%;
-    padding: 0;
-    margin: 0;
-    margin-left: calc(58vh);
-    position: relative;
-    display: flex;
-    flex: 1 1 0;
-    justify-content: flex-start;
-    align-items: flex-start;
-    z-index: 15;
+.darken {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    z-index: 99999999;
+    position: fixed;
+    overflow: hidden;
 }
 
 body {

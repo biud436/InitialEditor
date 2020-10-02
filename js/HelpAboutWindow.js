@@ -1,5 +1,5 @@
-import HelpAboutWindowModel from "./model/helpAbout.js";
-import BaseController from "./BaseController.js";
+import HelpAboutWindowModel from "../models/helpAbout.js";
+import BaseController from "./controllers/BaseController.js";
 
 export default class HelpAboutWindow extends BaseController {
     constructor(config) {

@@ -30,15 +30,9 @@ export default class BaseController {
         }
 
         this._element = $("<div></div>")
-            .css({
-                marginLeft: config.x,
-                marginTop: config.position || "fixed",
-                width : config.width || "50%",
-                height : config.height || "50%",
-                zIndex : config.zIndex || 1000,
-            })
+            .css(config)
             .attr("id", config.id)
-            .draggable({ snap: ".contents" });
+            .draggable({ snap: ".container" });
 
         this.hide();
 
@@ -64,6 +58,12 @@ export default class BaseController {
         $(this._config.parentId).slideDown();
         this._isValid = true;
     }    
+
+    remove() {
+        this._element.fadeOut(700, () => {
+            this._element.remove();
+        });
+    }
 
     isMobile() {
         const r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
@@ -95,7 +95,11 @@ export default class BaseController {
     }
 
     onLoad(elem, self) {
-
+        this.addEventHandlers(elem, self);
     }    
+
+    addEventHandlers() {
+
+    }
 
 }

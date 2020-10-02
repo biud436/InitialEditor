@@ -1,12 +1,11 @@
-import GamePropertiesWindowModel from "./model/gamePropertiesWindow.js";
+import TilesetWindowModel from "../models/TilesetWindow.js";
 import BaseController from "./BaseController.js";
 
 /**
  * @author Eo Jinseok
  * @class Renderer
  */
-export default class GamePropertiesWindowController extends BaseController {
-
+export default class TilesetWindowController extends BaseController {
     /**
      * @param {GamePropertiesWindow} config
      */
@@ -17,8 +16,10 @@ export default class GamePropertiesWindowController extends BaseController {
     onLoad(elem, self) {
         super.onLoad(elem, self);
         const parent = elem.parentNode;
-        parent.querySelector(".newWindow__control-box p i").onclick = () => {
+        parent.querySelector(".tileset-window__control-box p i").onclick = () => {
             self.hide();
+            $(".darken").fadeOut();
         };
-    }
+    }    
+
 }

@@ -1,4 +1,4 @@
-import {Component} from "./component.js";
+import {Component} from "./Component.js";
 
 class MenuComponent extends Component {
     start() {
