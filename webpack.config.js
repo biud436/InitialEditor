@@ -4,7 +4,7 @@ const webpack = require('webpack');
 
 module.exports = {
     mode: "production",
-    entry: `./js/main.js`,
+    entry: `./js/App.js`,
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: `bundle.js`
@@ -12,7 +12,7 @@ module.exports = {
     module: {
       rules: [
         // {
-        //   test: /\.js$/,
+        //   test: /\.m?js$/,
         //   include: [
         //     path.resolve(__dirname, 'js')
         //   ],
@@ -21,7 +21,7 @@ module.exports = {
         //     loader: 'babel-loader',
         //     options: {
         //       presets: ['@babel/preset-env'],
-        //       plugins: ['@babel/plugin-proposal-class-properties']
+        //       plugins: ['@babel/plugin-proposal-object-rest-spread']
         //     }       
         //   }
         // },
@@ -34,10 +34,7 @@ module.exports = {
             ],
         },         
         {
-            test: /\.css$/,
-            include: [
-                path.resolve(__dirname, 'css')
-            ],            
+            test: /\.css$/, 
             use: [
                 'style-loader',
                 'css-loader',
@@ -56,7 +53,4 @@ module.exports = {
       ]
     },
     devtool: 'source-map',
-    plugins: [
-      // new MinifyPlugin({},{}),
-    ]
   };

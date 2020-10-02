@@ -347,3 +347,23 @@ export default class App {
 }
 
 App.Instance = null;
+
+//==========================================================
+// Main
+//==========================================================
+ class Main {
+    static start() {
+        $(async () => {
+            window.app = App.GetInstance();
+            window.app.start();
+            this.update();                
+        });
+    }
+
+    static update(deltaTime) {
+        window.app.update(deltaTime);
+        window.requestAnimationFrame(Main.update);
+    }    
+}
+
+Main.start();
