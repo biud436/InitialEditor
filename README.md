@@ -15,6 +15,7 @@ This tool is under the MIT License.
 - jQuery - MIT License.
 - jQuery UI - MIT License.
 - pixi.js - MIT License.
+- prefixfree.min.js - MIT License.
 
 ---
 

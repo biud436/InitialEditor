@@ -1,7 +1,7 @@
 class Component {
     constructor(...args) {
         this.initMembers(...args);
-        this.start();
+        this.start(...args);
     }
 
     initMembers(...args) {
@@ -20,7 +20,7 @@ class Component {
         return this._isActiveEvent;
     }
 
-    start() {
+    start(...args) {
         return this;
     }
 

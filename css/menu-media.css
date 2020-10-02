@@ -25,7 +25,7 @@
         display: none;
     }
 
-    .aside__tile-tab-control ul li {
+    .aside__tabs ul li {
         width: 1em;
         font: menu;
     }
@@ -91,7 +91,7 @@
         display: none;
     }
 
-    .aside__tile-tab-control ul li {
+    .aside__tabs ul li {
         width: 1em;
         font: menu;
     }

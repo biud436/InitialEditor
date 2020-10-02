@@ -9,7 +9,7 @@ import toCamelCase from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
 import TileMarker from "./TileMarker.js";
 import {config} from "./config.js";
-import Localization from "./MenuService.js";
+import MenuService from "./MenuService.js";
 import Rectangle from "./Rectangle.js";
 
 export default class App {
@@ -61,7 +61,7 @@ export default class App {
          */
         this._components = [];
         this._components.push(this._menu = new MenuComponent(this._config));
-        this._components.push(new Localization(this._config));
+        this._components.push(new MenuService(this._config, this._menu));
 
         this._tilesetCanvas = new TilesetCanvas(this._config);
         await this._tilesetCanvas.start().then(ret => {
@@ -213,7 +213,7 @@ export default class App {
      * This method allows you to the map layer is toggled.
      */
     initWithMapLayers() {
-        const children = $("ul.aside__tile-tab-control__maptree_child-tree li i").children();
+        const children = $("ul.aside__tabs__maptree-child-tree li i").children();
         let target = null;
         children.each((index, elem) => {
             const e = e.get(0);
@@ -222,7 +222,7 @@ export default class App {
             });
         });
 
-        $("ul.aside__tile-tab-control__maptree_child-tree li i").on("click", (ev) => {
+        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
             const target = $(ev.currentTarget);
             const parentNode = $(ev.currentTarget).parent();
             const layerId = parentNode.index();
@@ -239,11 +239,11 @@ export default class App {
             tilemap.toggleLayerVisibility(layerId);
         });
 
-        $("ul.aside__tile-tab-control__maptree_child-tree li").on("click", (ev) => {
+        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
             const elem = $(ev.currentTarget).css({
                 "backgroundColor": "var(--dark-selection-color)"
             });
-            $("ul.aside__tile-tab-control__maptree_child-tree li").not(elem).css({
+            $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
                 "backgroundColor": "rgba(255, 255, 255, 0)"
             });
 
@@ -256,7 +256,7 @@ export default class App {
             tilemap.updateAlphaLayers();
         });
 
-        $("ul.aside__tile-tab-control__maptree_child-tree li:first-child").trigger("click");
+        $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
     }
 
     start() {

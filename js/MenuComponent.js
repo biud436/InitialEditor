@@ -4,7 +4,7 @@ class MenuComponent extends Component {
     start() {
         this._isMenuOpen = false;
         $(".toolbar").draggable({ snap: ".menu" });
-        $(".aside__tile-tab-control").resizable({
+        $(".aside__tabs").resizable({
             containment: "#aside"
         });
 

@@ -1,4 +1,5 @@
 import {Component} from "./Component.js";
+import {MenuComponent} from "./MenuComponent.js";
 
 const menu = {
     "ko": {
@@ -244,10 +245,22 @@ const menu = {
     },
 };
 
-export default class Localization extends Component {
+export default class MenuService extends Component {
+
+    initMembers(...args) {
+
+        /**
+         * @type {MenuComponent}
+         */
+        this._menuComponent = args[1];
+        this._isClickedMenu = false;        
+    }
+
     start(...args) {
+
         this.changeMenuLocaleAsPersonalize();
         this.changeToolbarIconOnMobileDevice();
+        this.addMenuEventHandlers();
     }    
 
     changeMenuLocaleAsPersonalize() {
@@ -295,6 +308,20 @@ export default class Localization extends Component {
         })
     }
 
+    addMenuEventHandlers() {
+
+        let isDone = false;
+
+        $(".menu__main li").on("click", ev => {
+            if(isDone) {
+                isDone = false;
+                ev.stopImmediatePropagation();                
+                return;
+            }
+          
+        });
+    }
+
     changeToolbarIconOnMobileDevice() {
         const media = window.matchMedia("(max-width: 640px)");
         if(media.matches) {
@@ -313,7 +340,7 @@ export default class Localization extends Component {
             ".contents": {
                 "width": "65%",
             },
-            ".aside__tile-tab-control": {
+            ".aside__tabs": {
                 "width": "30%",
             },
             "#contents__main-canvas": {

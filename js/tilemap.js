@@ -124,7 +124,7 @@ export default class Tilemap extends Component {
 
         // if(this.isMobileDevice()) {
             option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
-            option.width = $(window).innerWidth() - $(".aside__tile-tab-control").innerWidth() - 10;
+            option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
         // }
 
         this._app = new PIXI.Application(option);
