@@ -1,6 +1,14 @@
 # Introduction
 This tool allows you to create a multidimensional tilemap without standalone application in the web.
 
+# Environment
+
+|Platform Type|Status|
+|:--:|:--:|
+|Chrome 85.0.4183.121 (64 Bit)|Stable (100%)|
+|Firebox 79.0 (64 Bit)|Stable (90%)|
+
+
 # License
 This tool is under the MIT License.
 
