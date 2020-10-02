@@ -4,7 +4,7 @@ This tool allows you to create a multidimensional tilemap without standalone app
 # License
 This tool is under the MIT License.
 
-- jQeury - MIT License.
+- jQuery - MIT License.
 - jQuery UI - MIT License.
 - pixi.js - MIT License.
 
