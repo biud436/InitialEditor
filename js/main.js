@@ -8,7 +8,7 @@
 class Main {
     static start() {
         $(async () => {
-            const App = await import("./app.js");
+            const App = await import("./App.js");
             window.app = App.default.GetInstance();
             window.app.start();
             this.update();                
