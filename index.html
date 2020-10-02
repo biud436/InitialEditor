@@ -164,7 +164,6 @@
         <div id="aside">
             <div class="aside__tabs">
                 <div id="view" ondragstart="return false;">
-                    <!-- 타일 선택 창은 HTML5 캔버스로 구현됩니다. -->
                 </div>            
                 <!-- 탭 컨트롤을 위한 체크박스입니다. -->
                 <input type="radio" name="tile" id="a" checked>
@@ -198,14 +197,11 @@
 
             </canvas>
         </div>
-        <div class="darken">
-
-        </div>
-        <div class="loading">
-
-        </div>
+        <div class="darken"></div>
+        <div class="loading"></div>
     </div>
-    <script src="./dist/bundle.js"></script>
+    <script type="module" src="./js/main.js"></script>
+    <!-- <script src="./dist/bundle.js"></script> -->
 </body>
 
 </html>
