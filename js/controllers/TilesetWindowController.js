@@ -19,7 +19,38 @@ export default class TilesetWindowController extends BaseController {
         parent.querySelector(".tilesetWindow__control-box p i").onclick = () => {
             self.remove();
         };
+
+        $(elem.parentNode).find(".tilesetWindow__panel #ok").on("click", ev => {
+            this.onOk(ev);
+        })
+
+        $(elem.parentNode).find(".tilesetWindow__panel #cancel").on("click", ev => {
+            this.onCancel(ev);
+        })
+
         this.show();
-    }    
+    }   
+    
+    onOk(ev) {
+        this.remove();
+        
+        const tilesets = this._element.find("input");
+        const data = {
+            tilesets: {
+                name: $(tilesets[0]).val(),
+                src: $(tilesets[1]).val(),
+            },
+            tile: {
+                width: parseInt($(tilesets[2]).val()),
+                height: parseInt($(tilesets[3]).val()),
+            }
+        }
+        
+        alert(JSON.stringify(data));
+    }
+
+    onCancel(ev) {
+        this.remove();
+    }
 
 }

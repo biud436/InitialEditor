@@ -5,11 +5,12 @@
         padding: 1em;
         background-color: inherit;
         overflow: hidden;
-        background: var(--dark-background-color);
+        background: var(--dark-shadow-color);
         opacity: 1.0;
+        position: relative;
     }
 
-    .ttilesetWindow__tab-border {
+    .tilesetWindow__tab-border {
         width: 100%;
         height: max-content;
         border: 1px solid var(--dark-border-color);
@@ -17,10 +18,11 @@
         position: relative;
         background-color: inherit;
         margin-bottom: 1em;
+        margin-top: 1.2em;
     }
 
     .tilesetWindow__tab-border::before {
-        content: attr(window-name);
+        content: attr(tab-name);
         position: absolute;
         top: -0.7em;
         left: 0.8em;
@@ -79,13 +81,13 @@
 
 </style>
 <div id="tilesetWindow" window-name="타일셋 창">
-    <div class="tilesetWindow__tileset tilesetWindow__tab-border">
+    <div class="tilesetWindow__tileset tilesetWindow__tab-border" tab-name="타일셋">
         <ul>
             <li><label for="name">Name : </label><input type="text" placeholder="name"></li>
-            <li><label for="name">Images: </label><input type="file" placeholder="" webkitdirectory directory multiple></li>        
+            <li><label for="name">Images: </label><input type="file" placeholder=""></li>        
         </ul>             
     </div>
-    <div class="tilesetWindow-tile tilesetWindow__tab-border">
+    <div class="tilesetWindow-tile tilesetWindow__tab-border" tab-name="타일">
         <ul>
             <li><label for="tile-width">Tile Width : </label><input type="number" id="tile-width" value="32">px</li>
             <li><label for="tile-height">Tile Height : </label><input type="number" id="tile-height" value="32">px</li>
@@ -98,8 +100,8 @@
         </p>
     </div>
     <div class="tilesetWindow__panel">
-        <button>OK</button>
-        <button>Cancel</button>
+        <button id="ok">OK</button>
+        <button id="cancel">Cancel</button>
     </div>
     <img src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' onload='app.onLoad(this, "tileset");this.parentNode.removeChild(this);'>
 </div>
