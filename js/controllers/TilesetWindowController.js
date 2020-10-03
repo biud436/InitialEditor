@@ -18,7 +18,7 @@ export default class TilesetWindowController extends BaseController {
         const parent = elem.parentNode;
         parent.querySelector(".tileset-window__control-box p i").onclick = () => {
             self.hide();
-            $(".darken").fadeOut();
+            $(".darken").css("left", "-9999px");
         };
     }    
 

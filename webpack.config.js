@@ -33,13 +33,13 @@ module.exports = {
             use: [
             ],
         },         
-        {
-            test: /\.css$/, 
-            use: [
-                'style-loader',
-                'css-loader',
-            ],
-        },    
+        // {
+        //     test: /\.css$/, 
+        //     use: [
+        //         'style-loader',
+        //         'css-loader',
+        //     ],
+        // },    
         {
             test: /\.(png|svg|jpg|gif)$/,
             include: [

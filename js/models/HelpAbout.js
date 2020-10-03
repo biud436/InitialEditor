@@ -10,7 +10,7 @@ export default class HelpAboutWindowModel extends Model {
         return {
             width: "100%",
             height: "100%",
-            parentId: ".darken",
+            parentId: ".windows-container",
             id: "helpAbout",
             zIndex: "11",
             path: "view/windows/helpWindow.html",

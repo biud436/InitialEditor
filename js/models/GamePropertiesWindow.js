@@ -6,11 +6,12 @@ export default class GamePropertiesWindowModel extends Model {
         return {
             width: "240px",
             height: "100%",
-            parentId: ".darken",
+            parentId: ".windows-container",
             id: "newContainer",
             zIndex: "10",
             path: "view/windows/context.html",
             position: "absolute",
+            display: "flex",
         }; 
     }
 

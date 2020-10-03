@@ -5,7 +5,7 @@ export class TilesetWindowModel extends Model {
         return {
             width: "100%",
             height: "100%",
-            parentId: ".darken",
+            parentId: ".windows-container",
             id: "tileset-window-container",
             zIndex: "10",
             path: "view/windows/tilesetWindow.html",

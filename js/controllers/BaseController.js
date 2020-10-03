@@ -48,14 +48,14 @@ export default class BaseController {
     }    
 
     hide() {
-        $(this._config.parentId).fadeOut();    
-        this._element.fadeOut();
+        $(this._config.parentId).hide();    
+        this._element.hide();
         this._isValid = false;
     }
 
     show() {
-        this._element.fadeIn();
-        $(this._config.parentId).slideDown();
+        this._element.show();
+        $(this._config.parentId).show();
         this._isValid = true;
     }    
 

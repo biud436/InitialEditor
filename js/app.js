@@ -72,6 +72,8 @@ export default class App {
                 component.start();
             });            
             this._tilemap.setTileId(0);
+        }).then(ret => {
+            $(".darken, .windows-container").css("left", "-9999px");
         }).catch(err => {
             console.warn(err);
         });
@@ -192,8 +194,6 @@ export default class App {
      */
     initWithGamePropertiesWindow() {
 
-        $(".darken").fadeIn();
-
         // 게임 속성 창 생성하기
         this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
 
@@ -210,11 +210,13 @@ export default class App {
     }
 
     /**
-     * This method allows you to the map layer is toggled.
+     * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
         const children = $("ul.aside__tabs__maptree-child-tree li i").children();
         let target = null;
+
+        // 레이어 항목에서 눈 아이콘을 추가합니다.
         children.each((index, elem) => {
             const e = e.get(0);
             elem.click(() => {
@@ -222,6 +224,7 @@ export default class App {
             });
         });
 
+        // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
         $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
             const target = $(ev.currentTarget);
             const parentNode = $(ev.currentTarget).parent();
@@ -239,6 +242,7 @@ export default class App {
             tilemap.toggleLayerVisibility(layerId);
         });
 
+        // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
         $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
             const elem = $(ev.currentTarget).css({
                 "backgroundColor": "var(--dark-selection-color)"
@@ -250,6 +254,7 @@ export default class App {
             const layerId = elem.index();
             const tilemap = this._tilemap;
 
+            // 타일맵을 지우고 다시 그립니다.
             tilemap.setCurrentLayerId(layerId);
             tilemap.clear();
             tilemap.draw();
@@ -263,9 +268,9 @@ export default class App {
         this.initMembers();
         this.initWithMouseEvent();
 
-        // This method creates all windows after initializing components.
+        // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
         this.initWithComponents()
-            .then(ret => this.initWithGamePropertiesWindow())
+            // .then(ret => this.initWithGamePropertiesWindow())
             .then(ret => {
                 this.initWithMapLayers();     
                 this._isReady = true;       
@@ -283,7 +288,7 @@ export default class App {
 
         if(!this._isReady) return;
 
-        // 400ms가 지났을 때 마다 무언가를 실행한다.
+        // 400ms가 지났을 때 마다 무언가를 실행합니다.
         if(deltaTime - this._now >= 400) {
             this._now = deltaTime;
         }
