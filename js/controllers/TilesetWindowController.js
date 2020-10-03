@@ -46,10 +46,29 @@ export default class TilesetWindowController extends BaseController {
             }
         }
         
-        alert(JSON.stringify(data));
+        $('form[name="uploadTilesetImage"]').on("submit", function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                cache:false,
+                contentType: false,
+                processData: false,
+                url: $(this).attr('action'),
+                data: new FormData(this),
+                success: function(msg) {
+                    console.log(msg);
+                },
+                error: function(data){
+                    console.log("error");
+                    console.log(data);
+                }                
+            });
+        });    
     }
 
     onCancel(ev) {
+        ev.preventDefault();
         this.remove();
     }
 

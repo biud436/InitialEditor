@@ -81,27 +81,30 @@
 
 </style>
 <div id="tilesetWindow" window-name="타일셋 창">
-    <div class="tilesetWindow__tileset tilesetWindow__tab-border" tab-name="타일셋">
-        <ul>
-            <li><label for="name">Name : </label><input type="text" placeholder="name"></li>
-            <li><label for="name">Images: </label><input type="file" placeholder="" accept="image/png"></li>        
-        </ul>             
-    </div>
-    <div class="tilesetWindow-tile tilesetWindow__tab-border" tab-name="타일">
-        <ul>
-            <li><label for="tile-width">Tile Width : </label><input type="number" id="tile-width" value="32">px</li>
-            <li><label for="tile-height">Tile Height : </label><input type="number" id="tile-height" value="32">px</li>
-        </ul>
-    </div>
+    <form action="http://localhost:8080/upload_images" method="POST" name="uploadTilesetImage" enctype="multipart/form-data">
+        <div class="tilesetWindow__tileset tilesetWindow__tab-border" tab-name="타일셋">
+            <ul>
+                <li><label for="name">Name : </label><input type="text" placeholder="name" name="name"></li>
+                <li><label for="name">Images: </label><input type="file" placeholder="" accept="image/png" name="image"></li>        
+            </ul>             
+        </div>
+        <div class="tilesetWindow-tile tilesetWindow__tab-border" tab-name="타일">
+            <ul>
+                <li><label for="tile-width">Tile Width : </label><input type="number" id="tile-width" value="32" name="tileWidth">px</li>
+                <li><label for="tile-height">Tile Height : </label><input type="number" id="tile-height" value="32" name="tileHeight">px</li>
+            </ul>
+        </div>
+    
+        <div class="tilesetWindow__control-box">
+            <p>
+                <span><i class="far fa-window-close" id="action-close"></i></span>
+            </p>
+        </div>
 
-    <div class="tilesetWindow__control-box">
-        <p>
-            <span><i class="far fa-window-close" id="action-close"></i></span>
-        </p>
-    </div>
-    <div class="tilesetWindow__panel">
-        <button id="ok">OK</button>
-        <button id="cancel">Cancel</button>
-    </div>
+        <div class="tilesetWindow__panel">
+            <input type="submit" id="ok" value="OK" />
+            <button id="cancel">Cancel</button>
+        </div>        
+    </form>
     <img src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' onload='app.onLoad(this, "tileset");this.parentNode.removeChild(this);'>
 </div>
