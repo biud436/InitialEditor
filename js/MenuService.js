@@ -188,6 +188,9 @@ const menu = {
                 "tools-options": {
                     name: "옵션",
                     children: {}, 
+                    action: function(ev) {
+                        App.GetInstance().initWithTilesetWindow();
+                    }
                 },
             },
         },

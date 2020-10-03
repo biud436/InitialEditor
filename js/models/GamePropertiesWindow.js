@@ -7,7 +7,7 @@ export default class GamePropertiesWindowModel extends Model {
             width: "240px",
             height: "100%",
             parentId: ".windows-container",
-            id: "newContainer",
+            id: "newContainer", /** ID에 "Window"가 들어가면 안됩니다 */
             zIndex: "10",
             path: "view/windows/context.html",
             position: "absolute",

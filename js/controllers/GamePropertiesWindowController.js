@@ -19,10 +19,10 @@ export default class GamePropertiesWindowController extends BaseController {
         const parent = elem.parentNode;
         parent.querySelector(".newWindow__control-box p i").onclick = () => {
             self.remove();
-            $(".darken, .windows-container").css("left", "-9999px");
+            
         };
+        this.show();
         $(".darken, .windows-container").css("left", "0");
-        self.show();
     }
 
     onClick(ev) {
@@ -43,7 +43,6 @@ export default class GamePropertiesWindowController extends BaseController {
 
         alert(JSON.stringify(data, null, "\t"));
         this.remove();
-        $(".darken, .windows-container").css("left", "-9999px");
     }
 
     addEventHandlers(elem, self) {

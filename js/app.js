@@ -11,6 +11,8 @@ import TileMarker from "./TileMarker.js";
 import {config} from "./config.js";
 import MenuService from "./MenuService.js";
 import Rectangle from "./Rectangle.js";
+import TilesetWindowController from "./controllers/TilesetWindowController.js";
+import { TilesetWindowModel } from "./models/TilesetWindow.js";
 
 export default class App {
 
@@ -200,13 +202,28 @@ export default class App {
         // 동적으로 HTML 과 CSS 데이터를 가져옵니다.
         this._gamePropertiesWindow.render()
             .then(ret => {
-
-                // 로딩이 성공적으로 완료되었다면 창 데이터를 현재 렌더러에 캐시합니다.
+                const id = "new-window";
                 this.cache["new-window"] = this._gamePropertiesWindow;
+
+                this._gamePropertiesWindow.setUniqueId(id);
             })
             .catch(err => {
                 console.warn(err);
             });
+    }
+
+    initWithTilesetWindow() {
+        this._tilesetWindow = new TilesetWindowController(new TilesetWindowModel());
+        this._tilesetWindow.render()
+            .then(ret => {
+                const id = "tileset";
+                this.cache[id] = this._tilesetWindow;
+                
+                this._tilesetWindow.setUniqueId(id);
+            })
+            .catch(err => {
+                console.warn(err);
+            })
     }
 
     /**
@@ -270,7 +287,6 @@ export default class App {
 
         // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
         this.initWithComponents()
-            // .then(ret => this.initWithGamePropertiesWindow())
             .then(ret => {
                 this.initWithMapLayers();     
                 this._isReady = true;       
@@ -342,6 +358,9 @@ export default class App {
         }
     }
 
+    /**
+     * @return {App}
+     */
     static GetInstance() {
         if(!App.Instance) {
             App.Instance = new App();

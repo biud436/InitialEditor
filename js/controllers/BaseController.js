@@ -1,3 +1,4 @@
+import App from "../App";
 
 /**
  * @author Eo Jinseok
@@ -20,7 +21,12 @@ export default class BaseController {
          */
         this._config = config;
         this._isValid = false;
+        this._uniqueId = null;
     }    
+
+    setUniqueId(id) {
+        this._uniqueId = id;
+    }
 
     initWithCanvas() {
         const config = this._config;
@@ -57,12 +63,15 @@ export default class BaseController {
         this._element.show();
         $(this._config.parentId).show();
         this._isValid = true;
+        $(".darken, .windows-container").css("left", "0");
     }    
 
     remove() {
         this._element.fadeOut(700, () => {
             this._element.remove();
         });
+        $(".darken, .windows-container").css("left", "-9999px");
+        delete App.GetInstance().cache[this._uniqueId];
     }
 
     isMobile() {

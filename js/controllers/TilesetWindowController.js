@@ -16,10 +16,10 @@ export default class TilesetWindowController extends BaseController {
     onLoad(elem, self) {
         super.onLoad(elem, self);
         const parent = elem.parentNode;
-        parent.querySelector(".tileset-window__control-box p i").onclick = () => {
-            self.hide();
-            $(".darken").css("left", "-9999px");
+        parent.querySelector(".tilesetWindow__control-box p i").onclick = () => {
+            self.remove();
         };
+        this.show();
     }    
 
 }

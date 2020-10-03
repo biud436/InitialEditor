@@ -1,13 +1,15 @@
 <style>
     @import "../../css/main.css";
 
-    #tileset-window {
+    #tilesetWindow {
         padding: 1em;
         background-color: inherit;
         overflow: hidden;
+        background: var(--dark-background-color);
+        opacity: 1.0;
     }
 
-    .tileset-window__tab-border {
+    .ttilesetWindow__tab-border {
         width: 100%;
         height: max-content;
         border: 1px solid var(--dark-border-color);
@@ -17,7 +19,7 @@
         margin-bottom: 1em;
     }
 
-    .tileset-window__tab-border::before {
+    .tilesetWindow__tab-border::before {
         content: attr(window-name);
         position: absolute;
         top: -0.7em;
@@ -27,23 +29,23 @@
         font: menu;
     }
 
-    .tileset-window__tab-border ul li {
+    .tilesetWindow__tab-border ul li {
         margin-bottom: 0.5em;
         font: menu;
     }
 
-    .tileset-window__tab-border input {
+    .tilesetWindow__tab-border input {
         text-align: right;
         background-color: var(--dark-input-background-color);
         color: var(--dark-input-text-color);
         border: var(--dark-border-color);
     }
 
-    .tileset-window__tab-border input:focus {
+    .tilesetWindow__tab-border input:focus {
         outline: none;
     }
 
-    #tileset-window .tileset-window__control-box {
+    #tilesetWindow .tilesetWindow__control-box {
         position: absolute;
         top: -16px;
         right: 10px;
@@ -52,50 +54,50 @@
         height: 24px;
     }    
 
-    #tileset-window .ntileset-window__control-box i:hover {
+    #tilesetWindow .tilesetWindow__control-box i:hover {
         color: var(--dark-selection-color);
     }    
 
-    .tileset-window__panel {
+    .tilesetWindow__panel {
         float: right;
     }
 
-    #tileset-window button {
+    #tilesetWindow button {
         background-color: var(--dark-title-color);
         border: 1px solid var( --dark-border-color);
     }    
 
-    #tileset-window button:hover, button:focus {
+    #tilesetWindow button:hover, button:focus {
         outline: none;
         background-color: var(--dark-selection-color);        
     }
 
-    #tileset-window button:active {
+    #tilesetWindow button:active {
         outline: none;
         background-color: rgba(60,60,60,0.9);        
     }
 
 </style>
-<div id="tileset-window" window-name="타일셋 창">
-    <div class="tileset-window__tileset tileset-window__tab-border" window-name="타일셋">
+<div id="tilesetWindow" window-name="타일셋 창">
+    <div class="tilesetWindow__tileset tilesetWindow__tab-border">
         <ul>
             <li><label for="name">Name : </label><input type="text" placeholder="name"></li>
             <li><label for="name">Images: </label><input type="file" placeholder="" webkitdirectory directory multiple></li>        
         </ul>             
     </div>
-    <div class="tileset-window-tile tileset-window__tab-border" window-name="타일">
+    <div class="tilesetWindow-tile tilesetWindow__tab-border">
         <ul>
             <li><label for="tile-width">Tile Width : </label><input type="number" id="tile-width" value="32">px</li>
             <li><label for="tile-height">Tile Height : </label><input type="number" id="tile-height" value="32">px</li>
         </ul>
     </div>
 
-    <div class="tileset-window__control-box">
+    <div class="tilesetWindow__control-box">
         <p>
             <span><i class="far fa-window-close" id="action-close"></i></span>
         </p>
     </div>
-    <div class="tileset-window__panel">
+    <div class="tilesetWindow__panel">
         <button>OK</button>
         <button>Cancel</button>
     </div>
