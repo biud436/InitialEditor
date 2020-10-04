@@ -19,10 +19,10 @@ class EventEmitter {
         }
 
         this._events[name].forEach(func => {
-            if(typeof(func) === "func") {
+            if(typeof(func) === "function") {
                 func(...args);
             }
-        })
+        });
     }
 }
 

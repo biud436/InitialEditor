@@ -255,6 +255,11 @@ export default class App extends EventEmitter {
             .then(ret => {
                 this.initWithMapLayers();     
                 this._isReady = true;       
+
+                this.on("update", (deltaTime) => {
+                    this.update(deltaTime);
+                });
+
             }).catch(err => {
                 console.warn(err);
                 this._isReady = false;
@@ -337,23 +342,3 @@ export default class App extends EventEmitter {
 }
 
 App.Instance = null;
-
-//==========================================================
-// Main
-//==========================================================
- class Main {
-    static start() {
-        $(async () => {
-            window.app = App.GetInstance();
-            window.app.start();
-            this.update();                
-        });
-    }
-
-    static update(deltaTime) {
-        window.app.update(deltaTime);
-        window.requestAnimationFrame(Main.update);
-    }    
-}
-
-Main.start();
