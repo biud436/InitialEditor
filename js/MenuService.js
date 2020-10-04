@@ -14,7 +14,7 @@ const menu = {
                     name: "새로 만들기",
                     children: {},
                     action: function(ev) {
-                        WindowCreator.GetInstance().createGamePropertiesWindow();
+                        WindowCreator.GrapWindow(ev);
                     }                    
                 },
                 "file-open": {
@@ -190,7 +190,7 @@ const menu = {
                     name: "옵션",
                     children: {}, 
                     action: function(ev) {
-                        WindowCreator.GetInstance().createWithTilesetWindow();
+                        WindowCreator.GrapWindow(ev);
                     }
                 },
             },

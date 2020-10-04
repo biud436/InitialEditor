@@ -7,7 +7,10 @@ import GamePropertiesWindow from "./models/GamePropertiesWindow.js";
 import TilesetWindowController from "./controllers/TilesetWindowController.js";
 import { TilesetWindowModel } from "./models/TilesetWindow.js";
 
+import {toCamelCase, getClassName} from "./camelCase.js";
+
 class WindowCreator extends EventEmitter {
+
     /**
      * @param {App} app 
      */
@@ -19,14 +22,14 @@ class WindowCreator extends EventEmitter {
         this.cache = {};
     }
 
-    createGamePropertiesWindow() {
+    onFileNew() {
 
         this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
 
         this._gamePropertiesWindow.render()
             .then(ret => {
                 const id = "new-window";
-                this.cache["new-window"] = this._gamePropertiesWindow;
+                this.cache[id] = this._gamePropertiesWindow;
 
                 this._gamePropertiesWindow.setUniqueId(id);
             })
@@ -35,7 +38,7 @@ class WindowCreator extends EventEmitter {
             });        
     }
 
-    createWithTilesetWindow() {
+    onToolsOptions() {
         this._tilesetWindow = new TilesetWindowController(new TilesetWindowModel());
 
         this._tilesetWindow.render()
@@ -56,6 +59,40 @@ class WindowCreator extends EventEmitter {
                 this.cache[i].remove();
             }
         }
+    }
+
+    /**
+     * @param {MouseEvent}
+     */
+    static GrapWindow(ev) {
+        const target = $(ev.currentTarget);
+        if( !target ) {
+            return;
+        }
+
+        const id = target.data("action");
+        const creator = WindowCreator.GetInstance();
+        const type = getClassName(id);
+        const methodName = "on" + type;
+        const cb = creator[methodName].bind(creator);
+
+        if(typeof(cb) === "function") {
+            cb();
+        }
+    }
+
+    /**
+     * @param {String} id 
+     */
+    static GrapWindowAsType(id) {
+        const creator = WindowCreator.GetInstance();
+        const type = getClassName(id);
+        const methodName = "on" + type;
+        const cb = creator[methodName].bind(creator);
+
+        if(typeof(cb) === "function") {
+            cb();
+        }        
     }
 
     /**
