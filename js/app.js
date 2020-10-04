@@ -1,20 +1,18 @@
 
-import GamePropertiesWindowController from "./controllers/GamePropertiesWindowController.js";
+import {EventEmitter} from "./EventEmitter.js";
 import { Component } from "./Component.js";
 import {MenuComponent} from "./MenuComponent.js";
 import {TilesetMarker} from "./tilesetMarker.js";
 import Tilemap from "./Tilemap.js";
-import GamePropertiesWindow from "./models/GamePropertiesWindow.js";
 import toCamelCase from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
 import TileMarker from "./TileMarker.js";
 import {config} from "./config.js";
 import MenuService from "./MenuService.js";
 import Rectangle from "./Rectangle.js";
-import TilesetWindowController from "./controllers/TilesetWindowController.js";
-import { TilesetWindowModel } from "./models/TilesetWindow.js";
+import { WindowCreator } from "./WindowCreator.js";
 
-export default class App {
+export default class App extends EventEmitter {
 
     /**
      * 멤버 변수를 초기화합니다.
@@ -52,6 +50,8 @@ export default class App {
 
         // 타이틀을 변경합니다.
         document.title = "Initial Map Editor";
+
+        this.emit("ready", JSON.stringify(this));
     }
 
     /**
@@ -192,41 +192,6 @@ export default class App {
     }
 
     /**
-     * 창을 동적으로 렌더링합니다.
-     */
-    initWithGamePropertiesWindow() {
-
-        // 게임 속성 창 생성하기
-        this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
-
-        // 동적으로 HTML 과 CSS 데이터를 가져옵니다.
-        this._gamePropertiesWindow.render()
-            .then(ret => {
-                const id = "new-window";
-                this.cache["new-window"] = this._gamePropertiesWindow;
-
-                this._gamePropertiesWindow.setUniqueId(id);
-            })
-            .catch(err => {
-                console.warn(err);
-            });
-    }
-
-    initWithTilesetWindow() {
-        this._tilesetWindow = new TilesetWindowController(new TilesetWindowModel());
-        this._tilesetWindow.render()
-            .then(ret => {
-                const id = "tileset";
-                this.cache[id] = this._tilesetWindow;
-                
-                this._tilesetWindow.setUniqueId(id);
-            })
-            .catch(err => {
-                console.warn(err);
-            })
-    }
-
-    /**
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
@@ -352,10 +317,11 @@ export default class App {
      * @param {Number} id 
      */
     onLoad(elem, id) {
-        if(this.cache[id]) {
-            const self = this.cache[id];
-            this.cache[id].onLoad(elem, self);
-        }
+        // if(this.cache[id]) {
+        //     const self = this.cache[id];
+        //     this.cache[id].onLoad(elem, self);
+        // }
+        WindowCreator.onLoad(elem, id);
     }
 
     /**

@@ -3,6 +3,7 @@ import {MenuComponent} from "./MenuComponent.js";
 import App from "./App.js";
 import GamePropertiesWindowController from "./controllers/GamePropertiesWindowController.js";
 import GamePropertiesWindow from "./models/GamePropertiesWindow.js";
+import { WindowCreator } from "./WindowCreator.js";
 
 const menu = {
     "ko": {
@@ -13,7 +14,7 @@ const menu = {
                     name: "새로 만들기",
                     children: {},
                     action: function(ev) {
-                        App.GetInstance().initWithGamePropertiesWindow();
+                        WindowCreator.GetInstance().createGamePropertiesWindow();
                     }                    
                 },
                 "file-open": {
@@ -189,7 +190,7 @@ const menu = {
                     name: "옵션",
                     children: {}, 
                     action: function(ev) {
-                        App.GetInstance().initWithTilesetWindow();
+                        WindowCreator.GetInstance().createWithTilesetWindow();
                     }
                 },
             },
