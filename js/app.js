@@ -181,8 +181,6 @@ export default class App extends EventEmitter {
                 window.addEventListener(k, events[k], false);
             }                 
         }
-
-       
   
     }
 
@@ -322,10 +320,6 @@ export default class App extends EventEmitter {
      * @param {Number} id 
      */
     onLoad(elem, id) {
-        // if(this.cache[id]) {
-        //     const self = this.cache[id];
-        //     this.cache[id].onLoad(elem, self);
-        // }
         WindowCreator.onLoad(elem, id);
     }
 

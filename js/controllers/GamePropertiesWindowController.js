@@ -45,9 +45,7 @@ export default class GamePropertiesWindowController extends BaseController {
         this.remove();
     }
 
-    addEventHandlers(elem, self) {
-        $(`.file-menu-new-button`).on("click", ev => this.onClick(ev));
-        
+    addEventHandlers(elem, self) {        
         const container = $("#newContainer #newWindow");
         const okButton = container.find("div.panel");
         okButton.eq(0).on("click", ev => {
