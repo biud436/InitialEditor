@@ -242,9 +242,7 @@ const menu = {
                     name: "버전 정보",
                     children: {}, 
                     action: (ev) => {
-                        // if(!$(".container").is("#helpAbout")) {
-                        //     $(".container").append(new HelpAboutWindow(new HelpAboutWindowModel()));
-                        // }
+                        
                     },                    
                 },
             },
