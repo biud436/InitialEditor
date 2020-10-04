@@ -4,7 +4,7 @@ import { Component } from "./Component.js";
 import {MenuComponent} from "./MenuComponent.js";
 import {TilesetMarker} from "./tilesetMarker.js";
 import Tilemap from "./Tilemap.js";
-import toCamelCase from "./camelCase.js"
+import {toCamelCase} from "./camelCase.js"
 import TilesetCanvas from "./TilesetCanvas.js";
 import TileMarker from "./TileMarker.js";
 import {config} from "./config.js";
