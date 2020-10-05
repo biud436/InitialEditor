@@ -27,6 +27,8 @@ export default class Tilemap extends Component {
         this._mapHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
         this._layerCount = this._config.LAYERS;
 
+        localStorage.removeItem("tileMapData");
+
         if(!(this._data = localStorage.getItem("tileMapData"))) {
             this._data = new Array(this._mapWidth * this._mapHeight * this._config.LAYERS);
         }
