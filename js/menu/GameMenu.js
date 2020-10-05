@@ -21,14 +21,17 @@ const GameMenu = {
             name: "콘솔 표시",
             children: {}, 
             action: (ev) => {
-                alert("웹 버전에서는 콘솔 표시 기능을 지원하지 않습니다.");
             },                       
         },
         "game-folder-open": {
             name: "게임 폴더 열기",
             children: {}, 
             action: (ev) => {
-                alert("웹 버전에서는 게임 폴더 열기 기능을 지원하지 않습니다.");
+                const cp = require('child_process');
+                const cwd = process.cwd();
+                cp.execSync(`start ${cwd}`, {
+                    encoding: "utf8"
+                });
             },                      
         },
     },
