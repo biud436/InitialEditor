@@ -75,13 +75,25 @@ export default class MenuService extends Component {
 
     addMenuEventHandlers() {
 
-        // let isDone = false;
+        // 창 최소화
+        $(".menu .control-box li.minimum").on("click", ev => {
+            const { ipcRenderer } = require('electron') ;
+            ipcRenderer.send('minimize');
+            ev.stopImmediatePropagation();
+        });   
 
-        // $(".menu__main li").on("click", ev => {
-        //     const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
-        //     $("ul[class*='sub']").hide();
-        //     $("#none").prop("checked", true);
-        // });
+        // 창 최대화
+        $(".menu .control-box li.maximum").on("click", ev => {
+            const { ipcRenderer } = require('electron') ;
+            ipcRenderer.send('maximize');
+            ev.stopImmediatePropagation();
+        });              
+
+        // 창 닫기
+        $(".menu .control-box li.close").on("click", ev => {
+            window.close();
+            ev.stopImmediatePropagation();
+        });                
     }
 
     changeToolbarIconOnMobileDevice() {

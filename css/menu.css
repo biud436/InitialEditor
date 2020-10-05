@@ -220,3 +220,12 @@ ul li em {
     top: 0.25em;
     right: 0;
 }
+
+.drag-zon {
+    position: absolute;
+    left: calc(100% / 3);
+    width: 50%;
+    height: 24px;
+    -webkit-app-region: drag;
+    background: var(--dark-shadow-color);
+}

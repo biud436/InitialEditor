@@ -33,6 +33,10 @@ export default class App extends EventEmitter {
              * @type {HTMLElement}
              */            
             target: null,
+            /**
+             * @type {HTMLElement}
+             */                        
+            menuTarget: null,
         };
 
         /**
@@ -63,7 +67,7 @@ export default class App extends EventEmitter {
          */
         this._components = [];
         this._components.push(this._menu = new MenuComponent(this._config));
-        this._components.push(new MenuService(this._config, this._menu));
+        this._components.push(this._menuController = new MenuService(this._config, this._menu));
 
         this._tilesetCanvas = new TilesetCanvas(this._config);
         await this._tilesetCanvas.start().then(ret => {
@@ -174,6 +178,12 @@ export default class App extends EventEmitter {
 
                         this._blockRect.isDrawing = false;
                     }
+                },
+                "mouseover": (ev) => {
+                    if(this._menu._isMenuOpen) {
+                        this._mouse.buttons.menuTarget = ev.target;
+                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
+                    }
                 }
             }         
             
@@ -257,7 +267,7 @@ export default class App extends EventEmitter {
                 this.on("update", (deltaTime) => {
                     this.update(deltaTime);
                 });
-
+                
             }).catch(err => {
                 console.warn(err);
                 this._isReady = false;

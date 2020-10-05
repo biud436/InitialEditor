@@ -1,5 +1,8 @@
-class Component {
+import {EventEmitter} from "./EventEmitter";
+
+class Component extends EventEmitter {
     constructor(...args) {
+        super();
         this.initMembers(...args);
         this.start(...args);
     }
