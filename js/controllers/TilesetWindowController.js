@@ -28,6 +28,15 @@ export default class TilesetWindowController extends BaseController {
             this.onCancel(ev);
         })
 
+        $("input#image-load-dialog").on("change", (ev) => {
+            /**
+             * @type {File[]}
+             */
+            const files = Array.from(ev.target.files);
+            console.log(files[0].name, files[0].path);
+
+        })
+
         this.show();
     }   
     

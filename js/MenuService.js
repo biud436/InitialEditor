@@ -93,7 +93,20 @@ export default class MenuService extends Component {
         $(".menu .control-box li.close").on("click", ev => {
             window.close();
             ev.stopImmediatePropagation();
-        });                
+        });    
+        
+        // const main = document.querySelector(".menu__main");
+        // const children = Array.from(main.children).pop();
+
+        // const rect = children.getBoundingClientRect();
+        // const w = rect.x + rect.width;
+
+        // const paretWidth = $(".menu__main").width();
+        // const dragZoneWidth = $(".menu.drag-zon").width(w);
+        // const controlBoxWidth = $(".menu__main .control-box").width();
+        // const nodeWidth = (paretWidth - w - controlBoxWidth);
+
+        // $(".menu.drag-zon").width(nodeWidth);        
     }
 
     changeToolbarIconOnMobileDevice() {
@@ -152,5 +165,6 @@ export default class MenuService extends Component {
                 })  
             }
         })
+
     }
 }

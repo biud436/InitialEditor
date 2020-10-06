@@ -7,6 +7,7 @@ function createWindow() {
         height: 720,
         webPreferences: {
             nodeIntegration: true,
+            enableRemoteModule: true,
         },
         frame: false,
 
@@ -31,7 +32,7 @@ function createWindow() {
         } else {
             win.unmaximize();
         }
-    }) ;    
+    });
 
 }
 

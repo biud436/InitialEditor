@@ -227,5 +227,20 @@ ul li em {
     width: 50%;
     height: 24px;
     -webkit-app-region: drag;
-    background: var(--dark-shadow-color);
+    background: var(--dark-border-color);
+    cursor: pointer;
+}
+
+.drag-zon::after {
+    content: attr(window-name);
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 1em;
+    display: inline-block;
+    background: none;
+    color: var(--dark-text-color);
+    font: menu;
+    text-align: center;
+
 }
