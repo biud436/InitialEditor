@@ -11,6 +11,7 @@ import {config} from "./config.js";
 import MenuService from "./MenuService.js";
 import Rectangle from "./Rectangle.js";
 import { WindowCreator } from "./WindowCreator.js";
+import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
 
 export default class App extends EventEmitter {
 

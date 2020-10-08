@@ -41,6 +41,10 @@ class WindowCreator extends EventEmitter {
             });        
     }
 
+    /**
+     * Open the tools option window.
+     * This window allows you to add a new tile image on the tileset canvas window of this map editor.
+     */
     onToolsOptions() {
         this._tilesetWindow = new TilesetWindowController(new TilesetWindowModel());
 
@@ -56,6 +60,9 @@ class WindowCreator extends EventEmitter {
             })
     }    
 
+    /**
+     * This method removes all cache window for some times.
+     */
     update() {
         for(let i in this.cache) {
             if(this.cache[i] instanceof BaseController) {
