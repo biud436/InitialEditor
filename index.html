@@ -211,9 +211,21 @@
     <!-- <script type="module" src="./js/main.js"></script> -->
 
     <script>
-        if(typeof(process) !== "object") {
+        let platform = "";
+
+        if( typeof(process) === "object" || 
+            typeof require === 'function' ||
+            typeof global === 'object'
+            ) {
+            platform = "electron";
+        } else {
+            platform = "web";
+        }
+
+        if(platform === "web") {
             alert("웹 보안 문제로 인해 이제 PC에서만 동작합니다.");
         }
+
     </script>
     <script src="./dist/bundle.js"></script>
 </body>
