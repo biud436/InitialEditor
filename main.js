@@ -1,5 +1,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 
+if(typeof(process) !== "object") {
+    alert("이제 InitialEditor는 웹에서 동작하지 않습니다.");
+}
+
 function createWindow() {
     // 브라우저 창을 생성합니다.
     const win = new BrowserWindow({

@@ -6,11 +6,7 @@ import App from "./App.js";
 class Main {
     static start() {
         $(async () => {
-
-            if(typeof(process) !== "object") {
-                alert("이제 InitialEditor는 웹에서 동작하지 않습니다.");
-            }
-
+            
             window.app = App.GetInstance();
             window.app.start();
             this.update();
