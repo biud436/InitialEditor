@@ -77,16 +77,20 @@ export default class MenuService extends Component {
 
         // 창 최소화
         $(".menu .control-box li.minimum").on("click", ev => {
-            const { ipcRenderer } = require('electron') ;
-            ipcRenderer.send('minimize');
-            ev.stopImmediatePropagation();
+            if(platform === "electron") {
+                const { ipcRenderer } = require('electron') ;
+                ipcRenderer.send('minimize');
+                ev.stopImmediatePropagation();
+            }
         });   
 
         // 창 최대화
         $(".menu .control-box li.maximum").on("click", ev => {
-            const { ipcRenderer } = require('electron') ;
-            ipcRenderer.send('maximize');
-            ev.stopImmediatePropagation();
+            if(platform === "electron") {
+                const { ipcRenderer } = require('electron') ;
+                ipcRenderer.send('maximize');
+                ev.stopImmediatePropagation();
+            }
         });              
 
         // 창 닫기

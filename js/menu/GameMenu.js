@@ -27,11 +27,13 @@ const GameMenu = {
             name: "게임 폴더 열기",
             children: {}, 
             action: (ev) => {
-                const cp = require('child_process');
-                const cwd = process.cwd();
-                cp.execSync(`start ${cwd}`, {
-                    encoding: "utf8"
-                });
+                if(platform === "electron") {
+                    const cp = require('child_process');
+                    const cwd = process.cwd();
+                    cp.execSync(`start ${cwd}`, {
+                        encoding: "utf8"
+                    });
+                }
             },                      
         },
     },
