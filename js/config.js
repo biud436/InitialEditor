@@ -1,3 +1,6 @@
+import {EditorSchema} from "./schema/EditorSchema";
+import {MapSchema} from "./schema/MapSchema";
+
 const config = {
     SCREEN_WIDTH: 800,
     SCREEN_HEIGHT: 600,
@@ -12,6 +15,8 @@ const config = {
         "./images/tiles/2k_town05.png",
         "./images/tiles/2k_town05-01.png",
     ],
+    Editor: new EditorSchema(),
+    Maps: new EditorSchema(),
 };
 
 export {config};

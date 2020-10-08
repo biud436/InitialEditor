@@ -22,6 +22,9 @@ class WindowCreator extends EventEmitter {
         this.cache = {};
     }
 
+    /**
+     * This method is called when clicking the file menu.
+     */
     onFileNew() {
 
         this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
@@ -62,6 +65,7 @@ class WindowCreator extends EventEmitter {
     }
 
     /**
+     * Create a certain window.
      * @param {MouseEvent}
      */
     static GrapWindow(ev) {
@@ -82,6 +86,8 @@ class WindowCreator extends EventEmitter {
     }
 
     /**
+     * Create a specific window as type. 
+     * the type name is the same as data-action property.
      * @param {String} id 
      */
     static GrapWindowAsType(id) {
@@ -96,6 +102,7 @@ class WindowCreator extends EventEmitter {
     }
 
     /**
+     * Load a window from the cache data.
      * 
      * @param {HTMLElement} elem 
      * @param {Number} id 
@@ -110,6 +117,8 @@ class WindowCreator extends EventEmitter {
     }
 
     /**
+     * Gets a single instance.
+     * 
      * @return {WindowCreator}
      */
     static GetInstance() {

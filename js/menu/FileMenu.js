@@ -6,12 +6,14 @@ const FileMenu = {
         "file-new": {
             name: "새로 만들기",
             children: {},
+            shortcut: ["ctrl", "n"],
             action: function(ev) {
                 WindowCreator.GrapWindow(ev);
             }                    
         },
         "file-open": {
             name: "파일 열기",
+            shortcut: ["ctrl", "o"],
             children: {}, 
         },
         "file-close": {
