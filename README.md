@@ -5,8 +5,28 @@ This tool allows you to create a multidimensional tilemap without standalone app
 
 |Platform Type|Status|
 |:--:|:--:|
-|Chrome 85.0.4183.121 (64 Bit)|Stable (100%)|
-|Firebox 79.0 (64 Bit)|Stable (90%)|
+|Electron|Stable (100%)|
+|Chrome 85.0.4183.121 (64 Bit)|Stable (40%)|
+|Firebox 79.0 (64 Bit)|Stable (10%)|
+
+# How to start InitialEditor
+You have to execute a command before building this tool in the command line.
+
+```bat
+npm install
+```
+
+and next run the command for bundling, as follows.
+
+```bat
+./build.bat
+```
+
+To start a standalone program using the Electron, you should run this command, as follows.
+
+```bat
+npm start
+```
 
 
 # License
@@ -16,6 +36,7 @@ This tool is under the MIT License.
 - jQuery UI - MIT License.
 - pixi.js - MIT License.
 - prefixfree.min.js - MIT License.
+- Electron - MIT Liccense.
 
 ---
 
