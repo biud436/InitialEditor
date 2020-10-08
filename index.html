@@ -210,6 +210,11 @@
     <div class="windows-container"></div>    
     <!-- <script type="module" src="./js/main.js"></script> -->
 
+    <script>
+        if(typeof(process) !== "object") {
+            alert("이제 InitialEditor는 웹에서 동작하지 않습니다.");
+        }
+    </script>
     <script src="./dist/bundle.js"></script>
 </body>
 
