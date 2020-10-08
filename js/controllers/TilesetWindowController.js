@@ -1,5 +1,6 @@
 import TilesetWindowModel from "../models/TilesetWindow.js";
 import BaseController from "./BaseController.js";
+import App from "../app.js";
 
 /**
  * @author Eo Jinseok
@@ -34,6 +35,9 @@ export default class TilesetWindowController extends BaseController {
              */
             const files = Array.from(ev.target.files);
             console.log(files[0].name, files[0].path);
+
+            // 타일셋을 다시 그립니다.            
+            // app._tilesetCanvas.refreshTilesets(files[0].path);
 
         })
 

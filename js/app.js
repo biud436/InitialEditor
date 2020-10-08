@@ -60,6 +60,19 @@ export default class App extends EventEmitter {
     }
 
     /**
+     * Creates all components.
+     */
+    createComponents() {
+        this._components.push(this._tilesetMarker = new TilesetMarker(this._config));                    
+        this._components.push(this._tilemap = new Tilemap(this._config));    
+        this._components.push(this._tileMarker = new TileMarker(this._config));    
+        this._components.forEach(component => {
+            component.start();
+        });            
+        this._tilemap.setTileId(0);
+    }
+
+    /**
      * 컴포넌트를 초기화합니다.
      */
     async initWithComponents() {
@@ -72,13 +85,7 @@ export default class App extends EventEmitter {
 
         this._tilesetCanvas = new TilesetCanvas(this._config);
         await this._tilesetCanvas.start().then(ret => {
-            this._components.push(this._tilesetMarker = new TilesetMarker(this._config));                    
-            this._components.push(this._tilemap = new Tilemap(this._config));    
-            this._components.push(this._tileMarker = new TileMarker(this._config));    
-            this._components.forEach(component => {
-                component.start();
-            });            
-            this._tilemap.setTileId(0);
+            this.createComponents();
         }).then(ret => {
             $(".darken, .windows-container").css("left", "-9999px");
         }).catch(err => {

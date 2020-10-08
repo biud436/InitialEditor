@@ -1,3 +1,4 @@
+import { app } from "electron";
 import {config} from "./config.js";
 
 export default class TilesetCanvas {
@@ -39,6 +40,23 @@ export default class TilesetCanvas {
         });       
     }
 
+    /**
+     * 이 메소드는 타일셋을 지우고 다시 처음부터 그립니다.
+     * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
+     */
+    async refreshTilesets(newTileset) {
+        
+        this._tilesetImgages.push(newTileset);
+
+        if(this._canvas) {
+            this._canvas.remove();
+        }
+
+        await this.start().then(ret => {
+            window.app.createComponents();
+        })
+    }
+
     createCanvas() {
 
         const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
@@ -51,7 +69,7 @@ export default class TilesetCanvas {
             .css({
                 "padding": "0",
                 "margin": "0"
-            })
+            });
 
         this._parent.prepend(this._canvas)
         this._parent.css({
