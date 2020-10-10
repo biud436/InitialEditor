@@ -10,24 +10,7 @@ This tool allows you to create a multidimensional tilemap without standalone app
 |Firebox 79.0 (64 Bit)|Stable (10%)|
 
 # How to start InitialEditor
-You have to execute a command before building this tool in the command line.
-
-```bat
-npm install
-```
-
-and next run the command for bundling, as follows.
-
-```bat
-./build.bat
-```
-
-To start a standalone program using the Electron, you should run this command, as follows.
-
-```bat
-npm start
-```
-
+Open the Visual Studio Code and Press key called ```F5```
 
 # License
 This tool is under the MIT License.

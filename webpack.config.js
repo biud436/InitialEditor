@@ -68,4 +68,4 @@ const webTarget = {
   devtool: 'source-map',
 };
 
-module.exports = [ electronTarget, webTarget ];
+module.exports = [ electronTarget ];

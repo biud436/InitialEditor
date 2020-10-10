@@ -13,6 +13,10 @@ child.stdout.on("data", c => {
     stack.push(c);
 });
 
+child.stdout.on("error", c => {
+    stack.push(c);
+});
+
 child.on("exit", (code, signal) => {
     console.log("빌드가 완료되었습니다.");
 });
