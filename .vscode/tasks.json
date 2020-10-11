@@ -4,7 +4,7 @@
 		{
 			"label": "Build Webpack",
 			"type": "shell",
-			"command": ".\\build.sh",
+			"command": "./build.sh",
 			"problemMatcher": ["$webpack"],
 			"windows": {
 				"command": ".\\build.bat",
