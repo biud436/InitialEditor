@@ -9,6 +9,12 @@ This tool allows you to create a multidimensional tilemap without standalone app
 |Chrome 85.0.4183.121 (64 Bit)|Stable (40%)|
 |Firebox 79.0 (64 Bit)|Stable (10%)|
 
+# How to setup
+
+```bat
+npm install -D
+```
+
 # How to start InitialEditor
 Open the Visual Studio Code and Press key called ```F5```
 
