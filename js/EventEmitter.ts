@@ -18,9 +18,6 @@ class EventEmitter {
     }
 
     emit(name: string, ...args: any[]) {
-        if(!this._events[name]) {
-            this._events[name] = [];
-        }
 
         // Is it included colon(:)?
         if(name.indexOf(":") >= 0) {
@@ -34,6 +31,10 @@ class EventEmitter {
                 name = parent;
                 args = [child, ...args];
             }
+        }
+
+        if(!this._events[name]) {
+            this._events[name] = [];
         }
 
         this._events[name].forEach(func => {
