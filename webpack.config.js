@@ -35,23 +35,31 @@ const electronTarget = {
   devtool: 'source-map',
 };
 
-const webTarget = {
+const electronTypeTarget = {
   mode: "production",
-  entry: `./js/index.js`,
+  entry: `./js/index.ts`,
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: `bundle-web.js`
+    filename: `bundle.js`
   },
-  target: 'web',
+  target: 'electron-main',
   module: {
     rules: [
       {
-          test: /\.js$/,
+        test: /\.js$/,
+        include: [
+            path.resolve(__dirname, 'libs')
+        ],            
+        use: [
+        ],
+      },        
+      {
+          test: /\.ts$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
           include: [
-              path.resolve(__dirname, 'libs')
+              path.resolve(__dirname, 'js')
           ],            
-          use: [
-          ],
       },         
       {
           test: /\.(png|svg|jpg|gif)$/,
@@ -65,7 +73,10 @@ const webTarget = {
       },            
     ]
   },
+  resolve: {
+    extensions: [ '.tsx', '.ts', '.js' ],
+  },  
   devtool: 'source-map',
 };
 
-module.exports = [ electronTarget ];
+module.exports = [ electronTypeTarget ];
