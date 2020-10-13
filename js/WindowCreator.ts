@@ -147,6 +147,4 @@ class WindowCreator extends EventEmitter {
 
 }
 
-WindowCreator.Instance = null;
-
 export {WindowCreator};

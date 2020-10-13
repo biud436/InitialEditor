@@ -1,6 +1,12 @@
 import App from "./App";
 import * as $globals from './globals';
 
+declare global {
+    interface Window {
+      app: App;
+    }
+  }
+
 //==========================================================
 // Main
 //==========================================================
