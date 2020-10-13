@@ -6,8 +6,8 @@ This tool allows you to create a multidimensional tilemap without standalone app
 |Platform Type|Status|
 |:--:|:--:|
 |Electron|Stable (100%)|
-|Chrome 85.0.4183.121 (64 Bit)|Stable (40%)|
-|Firebox 79.0 (64 Bit)|Stable (10%)|
+|Chrome 85.0.4183.121 (64 Bit)|UnStable (0%)|
+|Firebox 79.0 (64 Bit)|UnStable (0%)|
 
 # How to setup
 
