@@ -52,8 +52,8 @@ export default class App extends EventEmitter {
         LAYERS: number;
         TRANSPARENT_COLOR_GROUP: string[];
         TILESET_IMGAGES: string[];
-        Editor: import("./schema/EditorSchema.js").EditorSchema;
-        Maps: import("./schema/EditorSchema.js").EditorSchema;
+        Editor: import("./schema/EditorSchema").EditorSchema;
+        Maps: import("./schema/EditorSchema").EditorSchema;
     };
     private _mouse: {
         x: number;
@@ -144,6 +144,12 @@ export default class App extends EventEmitter {
             component.start();
         });            
         this._tilemap.setTileId(0);
+
+        // emit event!
+        this.on("tilemap", (args: any) => {
+            console.log(args);
+            this._tilemap.emit(args[0], args.slice(1));
+        });
     }
 
     /**

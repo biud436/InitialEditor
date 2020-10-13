@@ -4,6 +4,14 @@ import {
 import {config} from "./config";
 import * as PIXI from "pixi.js";
 
+enum PenType {
+    PENCIL = 0,
+    RECTANGLE,
+    ELLIPSE,
+    FLOOD_FILL,
+    SHADOW_PEN
+};
+
 export default class Tilemap extends Component {
 
     private _config: typeof config;
@@ -70,15 +78,32 @@ export default class Tilemap extends Component {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
+    /**
+     * Initialize with drawing type.
+     */
     initWithDrawingType() {
-        this._penType = 0;
-        $("#pen-tool").on("click", () => {
-            this._penType = 0;
-            console.log("펜");
-        });
-        $("#square-tool").on("click", () => {
-            this._penType = 1;
-            console.log("사각형");
+        this._penType = PenType.PENCIL;
+
+        this.on("drawingType", (penType: number) => {
+            
+            switch(penType) {
+                case PenType.PENCIL:
+                    console.log("펜 툴");
+                    break;
+                case PenType.RECTANGLE:
+                    console.log("사각형 툴");
+                    break;
+                case PenType.ELLIPSE:
+                    console.log("원형 툴");
+                    break;
+                case PenType.FLOOD_FILL:
+                    console.log("채우기 툴");
+                    break;
+                case PenType.SHADOW_PEN:
+                    console.log("그림자 툴");
+                    break;
+            }
+            this._penType = penType;
         });
     }
 
@@ -149,6 +174,7 @@ export default class Tilemap extends Component {
 
         this._app = new PIXI.Application(option);
 
+        // Create layer container.
         this._layerContainer = new PIXI.Container();
         this._layerContainer.interactive = true;
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
@@ -159,6 +185,7 @@ export default class Tilemap extends Component {
             this._layerContainer.addChild(new PIXI.Container());   
         }
 
+        // 메인 타일셋
         this._tilesets = [];
         this._tilesets.push(PIXI.Texture.from(this._tileset));  
         

@@ -33,24 +33,6 @@ class MenuComponent extends Component {
         };
 
         this._currentTarget = null;
-
-        // this.on("menu_open", (target) => {
-        //     this._currentTarget = $(window.app._mouse.target);
-
-        //     if(this._currentTarget && this._currentTarget.is(":visible")) {
-    
-        //         if(!target) {
-        //             return;
-        //         }
-
-        //         // 현재 메뉴 액션을 가져옵니다.
-        //         const actionName = target.dataset.action;
-        //         $(`ul[class*=-sub]`).hide();
-        //         $(`ul[class*=${actionName}]`).parent().trigger("click");
-        //     } else {
-        //         // 서브 메뉴가 열린 상태가 아닙니다.
-        //     }
-        // });     
         
         return this;
     }

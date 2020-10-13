@@ -8,6 +8,11 @@ class ElectronService extends EventEmitter {
     constructor() {
         super();
     }
+
+    openFolder(folderName: string) {
+        const { shell } = require('electron');
+        shell.showItemInFolder(folderName);        
+    }
 }
 
 export {ElectronService};
