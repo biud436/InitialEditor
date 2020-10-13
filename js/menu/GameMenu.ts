@@ -29,11 +29,8 @@ const GameMenu = {
             action: (ev: any) =>  {
                 // @ts-ignore
                 if(platform === "electron") {
-                    const cp = require('child_process');
-                    const cwd = process.cwd();
-                    cp.execSync(`start ${cwd}`, {
-                        encoding: "utf8"
-                    });
+                    const { shell } = require('electron');
+                    shell.showItemInFolder(location.href);
                 }
             },                      
         },

@@ -1,4 +1,3 @@
-import { app } from "electron";
 import {config} from "./config.js";
 import * as $globals from './globals';
 
