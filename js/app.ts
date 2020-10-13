@@ -147,7 +147,7 @@ export default class App extends EventEmitter {
 
         // emit event!
         this.on("tilemap", (args: any) => {
-            console.log(args);
+            alert(args);
             this._tilemap.emit(args[0], args.slice(1));
         });
     }

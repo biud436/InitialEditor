@@ -7,14 +7,14 @@ const DrawToolbar = [
         name: "",
         children: "draw-pencil",
         action: (ev: any) => {
-            App.GetInstance().emit("tilemap:drawingType", 0);
+            window.app.emit("tilemap:drawingType", 0);
         },           
     },
     {
         name: "",
         children: "draw-rectangle",
         action: (ev: any) => {
-            App.GetInstance().emit("tilemap:drawingType", 1);
+            window.app.emit("tilemap:drawingType", 1);
         },           
     },
     {
