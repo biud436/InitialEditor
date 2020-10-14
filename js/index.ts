@@ -2,6 +2,8 @@ import App from "./app";
 import {ToolbarManager} from "./toolbar/Toolbar";
 import {ElectronService} from "./ElectronService";
 
+require('source-map-support').install();
+
 //==========================================================
 // Main
 //==========================================================

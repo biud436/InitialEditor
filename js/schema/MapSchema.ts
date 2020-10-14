@@ -12,7 +12,7 @@ class MapSchema extends Schema {
         this.Name = "None",
         this.Id = 1,
         this.MapWidth = 17;
-        this.MapHeight = 13;        
+        this.MapHeight = 13;  
         this.Data = [];
         this.Tilesets = [];
     }

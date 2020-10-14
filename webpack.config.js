@@ -36,7 +36,7 @@ const electronTarget = {
 };
 
 const electronTypeTarget = {
-  mode: "production",
+  mode: "development", // none' | 'development' | 'production'
   entry: `./js/index.ts`,
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -76,7 +76,7 @@ const electronTypeTarget = {
   resolve: {
     extensions: [ '.tsx', '.ts', '.js' ],
   },  
-  devtool: 'source-map',
+  devtool: this.move === "development" ? 'eval-cheap-source-map' : 'source-map',
 };
 
 module.exports = [ electronTypeTarget ];

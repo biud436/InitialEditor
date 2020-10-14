@@ -5,7 +5,7 @@ let stack = [];
 
 let child = cd.exec(`chcp 65001 | npx webpack --config=webpack.config.js`, {cwd: path.join(__dirname, "..")}, (err, stdout, stdin) => {
     if(err) {
-        throw new Error(err);
+        throw new Error(err.stack);
     }
 });
 

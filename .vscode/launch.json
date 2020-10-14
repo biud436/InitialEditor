@@ -8,6 +8,7 @@
             "appDir": "${workspaceFolder}",
             "sourceMaps": true,
             "preLaunchTask": "${defaultBuildTask}",
+            "cwd": "${workspaceRoot}",
         }
     ],
     "compounds": [{

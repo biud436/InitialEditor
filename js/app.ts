@@ -13,6 +13,7 @@ import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
 import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
 import {ElectronService} from "./ElectronService";
+import {EditorSchema} from "./schema/EditorSchema";
 
 interface Mouse {
     x: number;
@@ -132,6 +133,11 @@ export default class App extends EventEmitter {
         document.title = "Initial Map Editor";
 
         this.emit("ready", JSON.stringify(this));
+
+        new EditorSchema(this._config).toFile("./editor.json").then(ret => {
+            alert("완료");
+        })
+
     }
 
     /**
