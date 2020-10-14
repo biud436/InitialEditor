@@ -1,6 +1,5 @@
 import {Component} from "./Component";
 import type {config} from "../types/config";
-import * as $globals from './globals';
 
 /**
  * @class TilesetMarker
@@ -116,7 +115,7 @@ class TilesetMarker extends Component {
 
         console.log("타일 ID : " + (targetY * mapCols + targetX));
 
-        $globals.app.setTileId((targetY * mapCols + targetX));
+        window.app.setTileId((targetY * mapCols + targetX));
     }
 
 }

@@ -1,5 +1,6 @@
-import App from "./App";
-import * as $globals from './globals';
+import App from "./app";
+import {ToolbarManager} from "./toolbar/Toolbar";
+import {ElectronService} from "./ElectronService";
 
 //==========================================================
 // Main
@@ -7,6 +8,9 @@ import * as $globals from './globals';
 class Main {
     static start() {
         $(async () => {
+            window.app = App.GetInstance();
+            window.electronService = new ElectronService();
+            window.ToolbarManager = new ToolbarManager();            
             window.app.start();
             this.update(1.0);
         });

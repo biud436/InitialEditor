@@ -1,5 +1,4 @@
 import {config} from "./config.js";
-import * as $globals from './globals';
 
 export default class TilesetCanvas {
 
@@ -62,7 +61,7 @@ export default class TilesetCanvas {
         }
 
         await this.start().then(ret => {
-            $globals.app.createComponents();
+            window.app.createComponents();
         })
     }
 

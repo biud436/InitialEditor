@@ -22,12 +22,4 @@ class ElectronService extends EventEmitter {
     }
 }
 
-declare global {
-    interface Window {
-        electronService: ElectronService;
-    }
-}
-
-window.electronService = new ElectronService();
-
 export {ElectronService};

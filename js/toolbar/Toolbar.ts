@@ -88,7 +88,7 @@ class ToolbarManager {
         items.forEach((e, i, a) => {
             const target = $(`li[data-action='${e.children}']:last`);
             if(target.get()[0]) {
-                target.on("click", ev => {
+                target.on("click", (ev:any) => {
                     if(typeof(e.action) === "function") {
                         e.action.call(this, ev);
                     }
@@ -98,7 +98,5 @@ class ToolbarManager {
     }
     
 }
-
-(<any>window).ToolbarManager = new ToolbarManager();
 
 export {Toolbar, ToolbarManager};

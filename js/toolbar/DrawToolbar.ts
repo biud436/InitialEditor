@@ -1,6 +1,5 @@
 import App from "../App";
 import {EmptySegment} from "./EmptySegment";
-import * as $globals from '../globals';
 import {ElectronService} from "../ElectronService";
 
 const DrawToolbar = [
@@ -8,16 +7,14 @@ const DrawToolbar = [
         name: "",
         children: "draw-pencil",
         action: (ev: any) => {
-            console.log(0);
-            window.electronService.ipcMain.emit("tilemap", ["drawingType", 0]);
+            window.app.emit("tilemap:drawingType", 0);
         },           
     },
     {
         name: "",
         children: "draw-rectangle",
         action: (ev: any) => {
-            console.log(1);
-            window.electronService.ipcMain.emit("tilemap", ["drawingType", 1]);
+            window.app.emit("tilemap:drawingType", 1);
         },           
     },
     {

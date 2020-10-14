@@ -138,17 +138,18 @@ export default class App extends EventEmitter {
      * Creates all components.
      */
     createComponents() {
+        this._tilemap = new Tilemap(this._config);
+
         this._components.push(this._tilesetMarker = new TilesetMarker(this._config));                    
-        this._components.push(this._tilemap = new Tilemap(this._config));    
+        this._components.push(this._tilemap);    
         this._components.push(this._tileMarker = new TileMarker(this._config));    
         this._components.forEach(component => {
             component.start();
         });            
         this._tilemap.setTileId(0);
 
-        window.electronService.ipcMain.on("tileemap", (args: any) => {
-            console.log("이벤트 방출");
-            this._tilemap.emit(args[0], args.slice(1));
+        this.on("tilemap", (...args: any) => {
+            this._tilemap.emit(args[0], ...args.slice(1));
         });
     }
 

@@ -86,10 +86,12 @@ export default class Tilemap extends Component {
      * Initialize with drawing type.
      */
     initWithDrawingType() {
-        this._penType = PenType.PENCIL;
+        this._penType = PenType.RECTANGLE;
 
         this.on("drawingType", (penType: number) => {
-            
+
+            console.log("펜툴 동작");
+
             switch(penType) {
                 case PenType.PENCIL:
                     console.log("펜 툴");
@@ -173,9 +175,9 @@ export default class Tilemap extends Component {
             transparent: false,
         };
 
-        document.querySelector("#contents__main-canvas").addEventListener("mousemove", (ev:MouseEvent) => {
-            console.log(ev.pageX, ev.pageY);
-        });
+        // document.querySelector("#contents__main-canvas").addEventListener("mousemove", (ev:MouseEvent) => {
+        //     console.log(ev.pageX, ev.pageY);
+        // });
 
         option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
         option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
