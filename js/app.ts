@@ -12,6 +12,7 @@ import MenuService from "./MenuService";
 import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
 import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
+import {ElectronService} from "./ElectronService";
 
 interface Mouse {
     x: number;
@@ -145,9 +146,8 @@ export default class App extends EventEmitter {
         });            
         this._tilemap.setTileId(0);
 
-        // emit event!
-        this.on("tilemap", (args: any) => {
-            alert(args);
+        window.electronService.ipcMain.on("tileemap", (args: any) => {
+            console.log("이벤트 방출");
             this._tilemap.emit(args[0], args.slice(1));
         });
     }

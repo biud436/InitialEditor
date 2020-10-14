@@ -70,6 +70,10 @@ export default class Tilemap extends Component {
         
         this._mapCols = Math.floor(((tilesetImg as HTMLCanvasElement).width) / this._tileWidth);
         this._mapRows = Math.floor(((tilesetImg as HTMLCanvasElement).width) / this._tileWidth);    
+
+        // this._tileset.addEventListener("mousemove", (ev:MouseEvent) => {
+        //     console.log(ev);
+        // });
         
         this.active();
     }
@@ -168,6 +172,10 @@ export default class Tilemap extends Component {
             autoDensity: true,
             transparent: false,
         };
+
+        document.querySelector("#contents__main-canvas").addEventListener("mousemove", (ev:MouseEvent) => {
+            console.log(ev.pageX, ev.pageY);
+        });
 
         option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
         option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
