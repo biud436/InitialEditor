@@ -86,11 +86,9 @@ export default class Tilemap extends Component {
      * Initialize with drawing type.
      */
     initWithDrawingType() {
-        this._penType = PenType.RECTANGLE;
+        this._penType = PenType.PENCIL;
 
         this.on("drawingType", (penType: number) => {
-
-            console.log("펜툴 동작");
 
             switch(penType) {
                 case PenType.PENCIL:
@@ -220,18 +218,10 @@ export default class Tilemap extends Component {
     takeScreenshot() {
         const app = this._app;
         if(!app) return;
-        app.renderer.extract.canvas(app.stage).toBlob((b) => {
-            const a = document.createElement('a');
-            document.body.append(a);
-            a.download = 'screenshot';
-            a.href = URL.createObjectURL(b);
-            a.onclick = function(ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-            };
-            a.click();
-            a.remove();
-
+        app.renderer.extract.canvas(app.stage).toBlob(async (b: Blob) => {
+            const buffer = Buffer.from( await b.arrayBuffer() );
+            const fs = require('fs');
+            fs.writeFile(Date.now() + ".png", buffer, () => console.log('saved!'));
         }, 'image/png');        
     }
 

@@ -135,7 +135,7 @@ export default class App extends EventEmitter {
     }
 
     /**
-     * Creates all components.
+     * 컴포넌트를 생성합니다.
      */
     createComponents() {
         this._tilemap = new Tilemap(this._config);
