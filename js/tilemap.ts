@@ -155,8 +155,10 @@ export default class Tilemap extends Component {
         return this._tileId;
     } 
 
-    setCurrentLayerId(layerId: number) {
+    setCurrentLayerId(layerId: number): Tilemap {
         this._currentLayer = layerId;
+
+        return this;
     }
 
     getCurrentLayerId() {
@@ -174,10 +176,6 @@ export default class Tilemap extends Component {
             autoDensity: true,
             transparent: false,
         };
-
-        // document.querySelector("#contents__main-canvas").addEventListener("mousemove", (ev:MouseEvent) => {
-        //     console.log(ev.pageX, ev.pageY);
-        // });
 
         option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
         option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
@@ -303,7 +301,8 @@ export default class Tilemap extends Component {
     }
 
     /**
-     * Print tiles to certain area.
+     * 특정 영역에 타일을 사각형으로 그립니다.
+     * 
      * @param {Number} sx 
      * @param {Number} sy 
      * @param {Number} ex 
@@ -329,14 +328,23 @@ export default class Tilemap extends Component {
         this._dirty = true;
     }
 
+    /**
+     * 오토 타일인 지 확인합니다.
+     * 
+     * @param tileId 
+     */
     isAutoTile(tileId: number) {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     }
 
+    /**
+     * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
+     */
     update(...args: any[]) {
         const penType = this._penType;
         const tileId = this._tileId;
 
+        // 오토 타일을 처리합니다.
         // if(this.isAutoTile(tileId)) {
         //     this._tileId = this.collectAutoTileID(this._mouseX, this._mouseY);
         //     this._tileset = this._autoTileTextureList[tileId];
@@ -345,27 +353,46 @@ export default class Tilemap extends Component {
         //     this._tileType = 0;
         // }
 
+        // 펜 타입에 따라 그리기 처리를 합니다.
         switch(penType) {
-            case 0: 
+            case PenType.PENCIL: 
                 this.drawTile(this._mouseX, this._mouseY, tileId);
                 break;
-            case 1:
+            case PenType.RECTANGLE:
                 this.drawRect(this._mouseX, this._mouseY, 20, 5);
+                break;
+            case PenType.ELLIPSE:
+                break;
+            case PenType.FLOOD_FILL:
+                break;
+            case PenType.SHADOW_PEN:
                 break;
         }
   
+        // 타일맵 배열에 변화가 있을 경우, 새로 그리기 처리를 합니다.
         if(this._dirty) {
             this.draw();
             this._dirty = false;
         }
     }
 
-    clear() {
+    /**
+     * 모든 타일 스프라이트를 화면에서 제거합니다.
+     * 
+     */
+    clear(): Tilemap {
         this._layerContainer.children.forEach(i => {
             (i as PIXI.Sprite).removeChildren();
         });
+
+        return this;
     }
 
+    /**
+     * 타일셋 이미지에서 특정 영역만 가져와 잘라냅니다.
+     * 
+     * @param tileID 
+     */
     getTileCropTexture(tileID: number) {
         let texture = PIXI.Texture.from(this._tileset);
         const mapCols = Math.floor(texture.width / this._tileWidth);
@@ -377,13 +404,21 @@ export default class Tilemap extends Component {
         return cropTexture;
     }
 
+    /**
+     * 특정 레이어 컨테이너를 화면에서 감추거나 표시합니다.
+     * 
+     * @param layerId 
+     */
     toggleLayerVisibility(layerId: number) {
         if(!this._layerContainer) return;
         const children = this._layerContainer.children;
         children[layerId].visible = !children[layerId].visible;
     }
 
-    updateAlphaLayers() {
+    /**
+     * 레이어의 투명도를 조절합니다.
+     */
+    updateAlphaLayers(): Tilemap {
         const currentLayer = this._currentLayer;
         const children = this._layerContainer.children;
         const layers = children.filter((e, i, a) => {
@@ -395,14 +430,19 @@ export default class Tilemap extends Component {
         });
 
         children[currentLayer].alpha = 1.0;
+
+        return this;
     }
 
-    draw() {        
+    draw(): Tilemap {        
+
+        // 화면에 있는 모든 타일 스프라이트를 없앱니다.
         this.clear();
 
         const mapWidth = this._mapWidth;
         const mapHeight = this._mapHeight;
 
+        // 레이어 Z부터 반복하여 모든 타일을 반복하여 그립니다.
         for(let z = 0; z < this._config.LAYERS; z++) {
             const container = this._layerContainer.children[z];
             for(let y = 0; y < mapHeight; y++) {
@@ -416,6 +456,8 @@ export default class Tilemap extends Component {
                 }
             }
         }
+
+        return this;
 
     }
 

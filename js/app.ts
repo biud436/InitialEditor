@@ -148,6 +148,7 @@ export default class App extends EventEmitter {
         });            
         this._tilemap.setTileId(0);
 
+        // 타일맵 이벤트를 재전파합니다.
         this.on("tilemap", (...args: any) => {
             this._tilemap.emit(args[0], ...args.slice(1));
         });
@@ -178,7 +179,11 @@ export default class App extends EventEmitter {
         return toCamelCase();
     }
 
-    isMobileDevice() {
+    /**
+     * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
+     * @return {Boolean}
+     */
+    isMobileDevice(): Boolean {
         const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         return ret;
     }
@@ -211,6 +216,7 @@ export default class App extends EventEmitter {
                     const target = this._mouse.target;
                     const rect = this._mouse.target.getBoundingClientRect();
 
+                    // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
                     this._mouse.x = touchEvent.clientX - rect.x;
                     this._mouse.y = touchEvent.clientY - rect.y;
                     this._mouse.screenX = touchEvent.screenX;
@@ -338,10 +344,10 @@ export default class App extends EventEmitter {
             const tilemap = this._tilemap;
 
             // 타일맵을 지우고 다시 그립니다.
-            tilemap.setCurrentLayerId(layerId);
-            tilemap.clear();
-            tilemap.draw();
-            tilemap.updateAlphaLayers();
+            tilemap.setCurrentLayerId(layerId)
+                   .clear()
+                   .draw()
+                   .updateAlphaLayers();
         });
 
         $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
@@ -385,6 +391,9 @@ export default class App extends EventEmitter {
         this._mouse.buttons.leftFire = false;
     }
 
+    /**
+     * 컴포넌트를 업데이트 합니다.
+     */
     updateComponents() {        
         const target = this._mouse.target;
 
@@ -395,21 +404,29 @@ export default class App extends EventEmitter {
         const id = target.id;
         const mouse = this._mouse;
 
+        // 메뉴를 업데이트합니다.
         this._menu.update(target, mouse);
 
+        // 메뉴가 열리지 않았을 경우
         if(!this._menu.isMenuOpen()) {
             switch(id) {
                 case "tileset-canvas":
                 case "view":
+                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
                     if(this._mouse.buttons.leftFire) {
+                        // 타일셋 마커를 표시합니다.
                         this._tilesetMarker.update(mouse);
                     }
                     break;
                 case "contents__main-canvas":
+                    // * 마우스 왼쪽 버튼을 누르고 있을 때
                     if(this._mouse.buttons.left) {
+                        // 타일셋을 업데이트합니다.
                         this._tilemap.update(mouse);                                        
                     }
+                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
                     if(this._mouse.buttons.leftFire) {
+                        // 타일 마커의 위치를 변경합니다.
                         this._tileMarker.update(mouse);    
                     }
                     break;
