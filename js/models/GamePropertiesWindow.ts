@@ -11,7 +11,7 @@ export default class GamePropertiesWindowModel extends Model {
             zIndex: "10",
             path: "view/windows/newWindow.html",
             position: "absolute",
-            display: "flex",
+            display: "relative",
         }; 
     }
 

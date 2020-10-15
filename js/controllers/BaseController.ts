@@ -1,22 +1,50 @@
 import App from "../App";
 
+import {ViewModel} from "../viewmodels/ViewModel";
+
+interface Config {
+    widht: string;
+    height: string;
+    parentId: string;
+    id: string;
+    zIndex: string;
+    path: string;
+    position: string;
+    display: string;
+}
+
+interface ViewModelImpl {
+    createViewModel(): void;
+}
+
 /**
  * @author Eo Jinseok
  * @class Renderer
  */
-export default class BaseController {
+export default class BaseController implements ViewModelImpl {
     
-    protected _config: any;
+    protected _view: ViewModel;
+
+    protected _config: Config|any;
     protected _isValid: boolean;
     protected _uniqueId: any;
     protected _element: JQuery<HTMLElement>;
+
+    get config() {
+        return this._config;
+    }
 
     /**
      * @param {GamePropertiesWindow} config
      */
     constructor(config: any) {
+        this.createViewModel();
         this.initMembers(config.data);
         this.initWithCanvas();
+    }
+
+    createViewModel() {
+        this._view = new ViewModel(this);
     }
 
     initMembers(config: any): void {
@@ -35,44 +63,27 @@ export default class BaseController {
 
     initWithCanvas() {
         const config = this._config;
-
-        if(!config.parentId || !config.id) {
-            throw new Error("The parent element is not exist!");
-        }
-
-        this._element = $("<div></div>")
-            .css(config)
-            .attr("id", config.id)
-            .draggable({ snap: ".container" });
-
-        this.hide();
-
-        $(`#${config.id}`).resizable({containment: config.parentId});
-
-        $(config.parentId).append(this._element);
-
+        this._view.emit("create", config);
     }
 
     hide() {
-        $(this._config.parentId).hide();    
-        this._element.hide();
+        this._view.onHide();      
+    }
+
+    invalid() {
         this._isValid = false;
     }
 
-    show() {
-        this._element.show();
-        $(this._config.parentId).show();
+    valid() {
         this._isValid = true;
-        $(".darken, .windows-container").css("left", "0");
-    }    
+    }
+
+    show() {
+        this._view.emit("show");
+    }
 
     remove() {
-        this._element.fadeOut(700, () => {
-            this._element.remove();
-        });
-        $(".darken, .windows-container").css("left", "-9999px");
-        // @ts-ignore
-        delete App.GetInstance().cache[this._uniqueId];
+        this._view.emit("dispose");
     }
 
     isMobile() {
@@ -97,9 +108,8 @@ export default class BaseController {
     }
 
     async render() {
-        await this.load().then(result => {
-            // @ts-ignore
-            this._element.html(result);
+        await this.load().then((result: any) => {
+            this._view.emit("render", result);
         }).catch(err => {
             console.warn(err);
         });

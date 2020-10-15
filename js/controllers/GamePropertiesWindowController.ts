@@ -1,4 +1,5 @@
 import GamePropertiesWindowModel from "../models/GamePropertiesWindow";
+import { NewWindowViewModel } from "../viewmodels/newWindowViewModel";
 import BaseController from "./BaseController";
 
 /**
@@ -14,15 +15,17 @@ export default class GamePropertiesWindowController extends BaseController {
         super( config );
     }
 
+    /**
+     * 컨트롤러에 있는 뷰 접근 코드를 뷰 모델로 전부 옮깁니다.
+     */
+    createViewModel() {
+        this._view = new NewWindowViewModel(this);
+    }
+
     onLoad(elem: any, self: any): void {
         super.onLoad(elem, self);
-        const parent = elem.parentNode;
-        parent.querySelector(".newWindow__control-box p i").onclick = () => {
-            self.remove();
-            
-        };
-        this.show();
-        $(".darken, .windows-container").css("left", "0");
+        
+        this._view.emit("create", elem as HTMLElement);
     }
 
     onClick(ev: any): void {

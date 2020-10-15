@@ -219,6 +219,7 @@ var App = /** @class */ (function (_super) {
         // 타이틀을 변경합니다.
         document.title = "Initial Map Editor";
         this.emit("ready", JSON.stringify(this));
+        // 맵 설정 파일을 생성합니다.
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
             alert("완료");
         });
@@ -2086,6 +2087,7 @@ var App = /** @class */ (function (_super) {
         // 타이틀을 변경합니다.
         document.title = "Initial Map Editor";
         this.emit("ready", JSON.stringify(this));
+        // 맵 설정 파일을 생성합니다.
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
             alert("완료");
         });
@@ -2471,7 +2473,7 @@ var config = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../App */ "./js/App.ts");
+/* harmony import */ var _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/ViewModel */ "./js/viewmodels/ViewModel.ts");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -2518,9 +2520,20 @@ var BaseController = /** @class */ (function () {
      * @param {GamePropertiesWindow} config
      */
     function BaseController(config) {
+        this.createViewModel();
         this.initMembers(config.data);
         this.initWithCanvas();
     }
+    Object.defineProperty(BaseController.prototype, "config", {
+        get: function () {
+            return this._config;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    BaseController.prototype.createViewModel = function () {
+        this._view = new _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"](this);
+    };
     BaseController.prototype.initMembers = function (config) {
         /**
          * 실제 HTML 파일이 있는 위치
@@ -2534,36 +2547,22 @@ var BaseController = /** @class */ (function () {
     };
     BaseController.prototype.initWithCanvas = function () {
         var config = this._config;
-        if (!config.parentId || !config.id) {
-            throw new Error("The parent element is not exist!");
-        }
-        this._element = $("<div></div>")
-            .css(config)
-            .attr("id", config.id)
-            .draggable({ snap: ".container" });
-        this.hide();
-        $("#" + config.id).resizable({ containment: config.parentId });
-        $(config.parentId).append(this._element);
+        this._view.emit("create", config);
     };
     BaseController.prototype.hide = function () {
-        $(this._config.parentId).hide();
-        this._element.hide();
+        this._view.onHide();
+    };
+    BaseController.prototype.invalid = function () {
         this._isValid = false;
     };
-    BaseController.prototype.show = function () {
-        this._element.show();
-        $(this._config.parentId).show();
+    BaseController.prototype.valid = function () {
         this._isValid = true;
-        $(".darken, .windows-container").css("left", "0");
+    };
+    BaseController.prototype.show = function () {
+        this._view.emit("show");
     };
     BaseController.prototype.remove = function () {
-        var _this = this;
-        this._element.fadeOut(700, function () {
-            _this._element.remove();
-        });
-        $(".darken, .windows-container").css("left", "-9999px");
-        // @ts-ignore
-        delete _App__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance().cache[this._uniqueId];
+        this._view.emit("dispose");
     };
     BaseController.prototype.isMobile = function () {
         var r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
@@ -2591,8 +2590,7 @@ var BaseController = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.load().then(function (result) {
-                            // @ts-ignore
-                            _this._element.html(result);
+                            _this._view.emit("render", result);
                         }).catch(function (err) {
                             console.warn(err);
                         })];
@@ -2624,7 +2622,8 @@ var BaseController = /** @class */ (function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
+/* harmony import */ var _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/newWindowViewModel */ "./js/viewmodels/newWindowViewModel.ts");
+/* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2639,6 +2638,7 @@ var __extends = (undefined && undefined.__extends) || (function () {
     };
 })();
 
+
 /**
  * @author Eo Jinseok
  * @class Renderer
@@ -2651,14 +2651,15 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
     function GamePropertiesWindowController(config) {
         return _super.call(this, config) || this;
     }
+    /**
+     * 컨트롤러에 있는 뷰 접근 코드를 뷰 모델로 전부 옮깁니다.
+     */
+    GamePropertiesWindowController.prototype.createViewModel = function () {
+        this._view = new _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__["NewWindowViewModel"](this);
+    };
     GamePropertiesWindowController.prototype.onLoad = function (elem, self) {
         _super.prototype.onLoad.call(this, elem, self);
-        var parent = elem.parentNode;
-        parent.querySelector(".newWindow__control-box p i").onclick = function () {
-            self.remove();
-        };
-        this.show();
-        $(".darken, .windows-container").css("left", "0");
+        this._view.emit("create", elem);
     };
     GamePropertiesWindowController.prototype.onClick = function (ev) {
         // 창을 화면에 보이게 합니다.
@@ -2686,7 +2687,7 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
         });
     };
     return GamePropertiesWindowController;
-}(_BaseController__WEBPACK_IMPORTED_MODULE_0__["default"]));
+}(_BaseController__WEBPACK_IMPORTED_MODULE_1__["default"]));
 /* harmony default export */ __webpack_exports__["default"] = (GamePropertiesWindowController);
 
 
@@ -2702,6 +2703,7 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
+/* harmony import */ var _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../viewmodels/TilesetWindowViewModel */ "./js/viewmodels/TilesetWindowViewModel.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2716,6 +2718,7 @@ var __extends = (undefined && undefined.__extends) || (function () {
     };
 })();
 
+
 /**
  * @author Eo Jinseok
  * @class Renderer
@@ -2728,6 +2731,9 @@ var TilesetWindowController = /** @class */ (function (_super) {
     function TilesetWindowController(config) {
         return _super.call(this, config) || this;
     }
+    TilesetWindowController.prototype.createViewModel = function () {
+        this._view = new _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__["TilesetWindowViewModel"](this);
+    };
     TilesetWindowController.prototype.onLoad = function (elem, self) {
         var _this = this;
         _super.prototype.onLoad.call(this, elem, self);
@@ -3321,7 +3327,7 @@ var GamePropertiesWindowModel = /** @class */ (function (_super) {
             zIndex: "10",
             path: "view/windows/newWindow.html",
             position: "absolute",
-            display: "flex",
+            display: "relative",
         };
     };
     return GamePropertiesWindowModel;
@@ -3340,9 +3346,31 @@ var GamePropertiesWindowModel = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-var Model = /** @class */ (function () {
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./js/EventEmitter.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var Model = /** @class */ (function (_super) {
+    __extends(Model, _super);
     function Model() {
-        this._data = this.getData();
+        var _this = _super.call(this) || this;
+        // 데이터를 가져옵니다.
+        _this._data = _this.getData();
+        // 뷰를 가져옵니다.
+        _this.VIEW = $("#" + _this._data.id);
+        _this.emit("create", _this._data);
+        return _this;
     }
     /**
      * @return {{
@@ -3361,11 +3389,15 @@ var Model = /** @class */ (function () {
         get: function () {
             return this._data;
         },
+        set: function (value) {
+            this._data = value;
+            this.emit("change", this._data);
+        },
         enumerable: false,
         configurable: true
     });
     return Model;
-}());
+}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
 /* harmony default export */ __webpack_exports__["default"] = (Model);
 
 
@@ -4079,6 +4111,228 @@ var ToolbarManager = /** @class */ (function () {
     };
     return ToolbarManager;
 }());
+
+
+
+/***/ }),
+
+/***/ "./js/viewmodels/TilesetWindowViewModel.ts":
+/*!*************************************************!*\
+  !*** ./js/viewmodels/TilesetWindowViewModel.ts ***!
+  \*************************************************/
+/*! exports provided: TilesetWindowViewModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowViewModel", function() { return TilesetWindowViewModel; });
+/* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./js/viewmodels/ViewModel.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var TilesetWindowViewModel = /** @class */ (function (_super) {
+    __extends(TilesetWindowViewModel, _super);
+    function TilesetWindowViewModel(__controller) {
+        return _super.call(this, __controller) || this;
+    }
+    TilesetWindowViewModel.prototype.initMembers = function () {
+    };
+    TilesetWindowViewModel.prototype.onCreate = function (elem) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+    };
+    TilesetWindowViewModel.prototype.onShow = function (elem) {
+    };
+    return TilesetWindowViewModel;
+}(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));
+
+
+
+/***/ }),
+
+/***/ "./js/viewmodels/ViewModel.ts":
+/*!************************************!*\
+  !*** ./js/viewmodels/ViewModel.ts ***!
+  \************************************/
+/*! exports provided: ViewModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ViewModel", function() { return ViewModel; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./js/EventEmitter.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var ViewModel = /** @class */ (function (_super) {
+    __extends(ViewModel, _super);
+    /**
+     *
+     */
+    function ViewModel(__controller) {
+        var _this = _super.call(this) || this;
+        _this._isReady = false;
+        _this._controller = __controller;
+        _this.on("create", function (elem) { return _this.onCreate(elem); })
+            .on("update", function (elem) { return _this.onUpdate(elem); })
+            .on("stop", function (elem) { return _this.onStop(elem); })
+            .on("dispose", function (elem) { return _this.onDispose(elem); })
+            .on("render", function (result) { return _this.onRender(result); })
+            .on("show", function (elem) { return _this.onShow(elem); });
+        _this.initMembers();
+        return _this;
+    }
+    ViewModel.prototype.initMembers = function () {
+    };
+    ViewModel.prototype.onShow = function (elem) {
+        var element = this._element;
+        var controller = this._controller;
+        var config = controller.config;
+        if (!element)
+            return;
+        element.show();
+        $(config.parentId).show();
+        controller.valid();
+        $(".darken, .windows-container").css("left", "0");
+    };
+    ViewModel.prototype.onHide = function (elem) {
+        var controller = this._controller;
+        var config = controller.config;
+        this._element.hide();
+        controller.invalid();
+    };
+    ViewModel.prototype.onNotify = function (elem) {
+    };
+    ViewModel.prototype.onCreate = function (elem) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var controller = this._controller;
+        var config = args[0];
+        if (!config.parentId || !config.id) {
+            throw new Error("The parent element is not exist!");
+        }
+        // HTMLDivElement를 생성합니다.
+        this._element = $("<div></div>")
+            .css(config)
+            .attr("id", config.id)
+            .draggable({ snap: ".container" });
+        this.onHide();
+        $("#" + config.id).resizable({ containment: config.parentId });
+        $(config.parentId).append(this._element);
+        this._isReady = true;
+    };
+    /**
+     * HTML 파일로부터 도큐먼트를 렌더링합니다.
+     * @param result
+     */
+    ViewModel.prototype.onRender = function (result) {
+        this._element.html(result);
+    };
+    ViewModel.prototype.onUpdate = function (elem) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+    };
+    ViewModel.prototype.onStop = function (elem) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+    };
+    ViewModel.prototype.onDispose = function (elem) {
+        var _this = this;
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        this._element.fadeOut(700, function () {
+            _this._element.remove();
+        });
+        $(".darken, .windows-container").css("left", "-9999px");
+    };
+    return ViewModel;
+}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
+
+
+
+/***/ }),
+
+/***/ "./js/viewmodels/newWindowViewModel.ts":
+/*!*********************************************!*\
+  !*** ./js/viewmodels/newWindowViewModel.ts ***!
+  \*********************************************/
+/*! exports provided: NewWindowViewModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NewWindowViewModel", function() { return NewWindowViewModel; });
+/* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./js/viewmodels/ViewModel.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var NewWindowViewModel = /** @class */ (function (_super) {
+    __extends(NewWindowViewModel, _super);
+    function NewWindowViewModel(__controller) {
+        return _super.call(this, __controller) || this;
+    }
+    NewWindowViewModel.prototype.initMembers = function () {
+    };
+    NewWindowViewModel.prototype.onCreate = function (elem) {
+        var _this = this;
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        var parent = elem.parentNode;
+        parent.querySelector(".newWindow__control-box p i").onclick = function () {
+            _this._controller.remove();
+        };
+        this._controller.show();
+        $(".darken, .windows-container").css("left", "0");
+    };
+    NewWindowViewModel.prototype.onShow = function (elem) {
+    };
+    return NewWindowViewModel;
+}(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));
 
 
 

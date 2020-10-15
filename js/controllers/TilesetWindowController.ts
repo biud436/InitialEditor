@@ -1,5 +1,6 @@
 import {TilesetWindowModel} from "../models/TilesetWindow";
 import BaseController from "./BaseController";
+import {TilesetWindowViewModel} from "../viewmodels/TilesetWindowViewModel";
 import App from "../app.js";
 
 /**
@@ -12,6 +13,10 @@ export default class TilesetWindowController extends BaseController {
      */
     constructor(config: any) {
         super( config );
+    }
+
+    createViewModel() {
+        this._view = new TilesetWindowViewModel(this);
     }
 
     onLoad(elem: any, self: any): void  {
