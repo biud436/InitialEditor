@@ -12,7 +12,7 @@ export class TilesetWindowViewModel extends ViewModel {
     }
 
     onCreate(elem?: HTMLElement, ...args: any[]) {
-        
+        super.onCreate(elem, ...args);
     }
 
     onShow(elem?: JQuery<HTMLElement>) {
