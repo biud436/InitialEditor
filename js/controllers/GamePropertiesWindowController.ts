@@ -24,8 +24,6 @@ export default class GamePropertiesWindowController extends BaseController {
 
     onLoad(elem: any, self: any): void {
         super.onLoad(elem, self);
-        
-        this._view.emit("create", elem as HTMLElement);
     }
 
     onClick(ev: any): void {

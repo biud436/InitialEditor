@@ -2590,6 +2590,7 @@ var BaseController = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.load().then(function (result) {
+                            _this._view.emit("create", null, _this._config);
                             _this._view.emit("render", result);
                         }).catch(function (err) {
                             console.warn(err);
@@ -2659,7 +2660,6 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
     };
     GamePropertiesWindowController.prototype.onLoad = function (elem, self) {
         _super.prototype.onLoad.call(this, elem, self);
-        this._view.emit("create", elem);
     };
     GamePropertiesWindowController.prototype.onClick = function (ev) {
         // 창을 화면에 보이게 합니다.
@@ -4187,6 +4187,13 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 
 var ViewModel = /** @class */ (function (_super) {
     __extends(ViewModel, _super);
@@ -4197,7 +4204,14 @@ var ViewModel = /** @class */ (function (_super) {
         var _this = _super.call(this) || this;
         _this._isReady = false;
         _this._controller = __controller;
-        _this.on("create", function (elem) { return _this.onCreate(elem); })
+        // 라이프 싸이클과 관련된 이벤트 선언
+        _this.on("create", function (elem) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            return _this.onCreate.apply(_this, __spreadArrays([elem], args));
+        })
             .on("update", function (elem) { return _this.onUpdate(elem); })
             .on("stop", function (elem) { return _this.onStop(elem); })
             .on("dispose", function (elem) { return _this.onDispose(elem); })
@@ -4308,6 +4322,13 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 
 var NewWindowViewModel = /** @class */ (function (_super) {
     __extends(NewWindowViewModel, _super);
@@ -4322,6 +4343,7 @@ var NewWindowViewModel = /** @class */ (function (_super) {
         for (var _i = 1; _i < arguments.length; _i++) {
             args[_i - 1] = arguments[_i];
         }
+        _super.prototype.onCreate.apply(this, __spreadArrays([elem], args));
         var parent = elem.parentNode;
         parent.querySelector(".newWindow__control-box p i").onclick = function () {
             _this._controller.remove();

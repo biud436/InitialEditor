@@ -12,6 +12,8 @@ export class NewWindowViewModel extends ViewModel {
     }
 
     onCreate(elem?: HTMLElement, ...args: any[]) {
+        super.onCreate(elem, ...args);
+        
         const parent = elem.parentNode;
         (parent.querySelector(".newWindow__control-box p i") as HTMLElement).onclick = () => {
             this._controller.remove();  

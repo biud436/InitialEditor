@@ -109,6 +109,7 @@ export default class BaseController implements ViewModelImpl {
 
     async render() {
         await this.load().then((result: any) => {
+            this._view.emit("create", null, this._config);
             this._view.emit("render", result);
         }).catch(err => {
             console.warn(err);
