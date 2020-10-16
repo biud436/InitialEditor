@@ -8,6 +8,8 @@ import BaseController from "./BaseController";
  */
 export default class GamePropertiesWindowController extends BaseController {
 
+    protected _view: NewWindowViewModel;
+
     /**
      * @param {GamePropertiesWindow} config
      */

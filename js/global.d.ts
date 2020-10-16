@@ -9,5 +9,6 @@ declare global {
         app: App;
         electronService: ElectronService;
         ToolbarManager: ToolbarManager;
+        devmode: boolean;
     }
 }

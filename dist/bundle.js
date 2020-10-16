@@ -468,7 +468,7 @@ var App = /** @class */ (function (_super) {
         this._mouse.buttons.leftFire = false;
     };
     /**
-     * 컴포넌트를 업데이트 합니다.
+     * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
      */
     App.prototype.updateComponents = function () {
         var target = this._mouse.target;
@@ -506,14 +506,33 @@ var App = /** @class */ (function (_super) {
         }
     };
     /**
+     * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
+     * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
+     * 창은 생성 직후, 화면에서 감춰진 상태로 존재하게 됩니다.
+     *
+     * HTML 파일 내부에는 로드가 완료되었음을 감지하는 콜백 함수가 걸려 있습니다.
+     *
+     * 그 콜백 함수가 바로 이 함수이며 이 함수가 실행되면 화면에 창이 보여지게 됩니다.
+     *
+     * 창 생성 요청
+     *              ->  HTML 파일 로드 요청
+     *              ->  로드 시작
+     *              ->  로드 완료
+     *              ->  렌더링 시작
+     *              ->  렌더링 완료 후, 브라우저에 의해 window.app.onLoad 함수가 자동으로 실행됨.
+     *
+     * 창은 특별한(Unique) ID 값에 의해 식별되며 이 값은 문자열입니다.
      *
      * @param {HTMLElement} elem
-     * @param {Number} id
+     * @param {String}} id
      */
     App.prototype.onLoad = function (elem, id) {
         _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
     };
     /**
+     * 유일한 인스턴스를 반환하는 메소드입니다.
+     * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
+     *
      * @return {App}
      */
     App.GetInstance = function () {
@@ -1812,7 +1831,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./models/GamePropertiesWindow */ "./js/models/GamePropertiesWindow.ts");
 /* harmony import */ var _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./controllers/TilesetWindowController */ "./js/controllers/TilesetWindowController.ts");
 /* harmony import */ var _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./models/TilesetWindow */ "./js/models/TilesetWindow.ts");
-/* harmony import */ var _camelCase_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./camelCase.js */ "./js/camelCase.js");
+/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./camelCase */ "./js/camelCase.js");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -1847,9 +1866,12 @@ var WindowCreator = /** @class */ (function (_super) {
     }
     /**
      * This method is called when clicking the file menu.
+     *
+     * 창을 생성한 후 캐시에 저장을 해둡니다.
      */
     WindowCreator.prototype.onFileNew = function () {
         var _this = this;
+        // 윈도우를 생성합니다.
         this._gamePropertiesWindow = new _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__["default"](new _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__["default"]());
         this._gamePropertiesWindow.render()
             .then(function (ret) {
@@ -1899,7 +1921,7 @@ var WindowCreator = /** @class */ (function (_super) {
         }
         var id = target.data("action");
         var creator = WindowCreator.GetInstance();
-        var type = Object(_camelCase_js__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
+        var type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
         var methodName = "on" + type;
         // @ts-ignore
         var cb = creator[methodName].bind(creator);
@@ -1914,7 +1936,7 @@ var WindowCreator = /** @class */ (function (_super) {
      */
     WindowCreator.GrapWindowAsType = function (id) {
         var creator = WindowCreator.GetInstance();
-        var type = Object(_camelCase_js__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
+        var type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
         var methodName = "on" + type;
         // @ts-ignore
         var cb = creator[methodName].bind(creator);
@@ -1930,6 +1952,7 @@ var WindowCreator = /** @class */ (function (_super) {
      */
     WindowCreator.onLoad = function (elem, id) {
         var creator = this.GetInstance();
+        // 이미 생성된 창이 있으면 해당 요소의 onLoad 메소드를 호출하여 창을 다시 호출합니다.
         if (creator.cache[id]) {
             var self_1 = creator.cache[id];
             creator.cache[id].onLoad(elem, self_1);
@@ -2336,7 +2359,7 @@ var App = /** @class */ (function (_super) {
         this._mouse.buttons.leftFire = false;
     };
     /**
-     * 컴포넌트를 업데이트 합니다.
+     * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
      */
     App.prototype.updateComponents = function () {
         var target = this._mouse.target;
@@ -2374,14 +2397,33 @@ var App = /** @class */ (function (_super) {
         }
     };
     /**
+     * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
+     * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
+     * 창은 생성 직후, 화면에서 감춰진 상태로 존재하게 됩니다.
+     *
+     * HTML 파일 내부에는 로드가 완료되었음을 감지하는 콜백 함수가 걸려 있습니다.
+     *
+     * 그 콜백 함수가 바로 이 함수이며 이 함수가 실행되면 화면에 창이 보여지게 됩니다.
+     *
+     * 창 생성 요청
+     *              ->  HTML 파일 로드 요청
+     *              ->  로드 시작
+     *              ->  로드 완료
+     *              ->  렌더링 시작
+     *              ->  렌더링 완료 후, 브라우저에 의해 window.app.onLoad 함수가 자동으로 실행됨.
+     *
+     * 창은 특별한(Unique) ID 값에 의해 식별되며 이 값은 문자열입니다.
      *
      * @param {HTMLElement} elem
-     * @param {Number} id
+     * @param {String}} id
      */
     App.prototype.onLoad = function (elem, id) {
         _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
     };
     /**
+     * 유일한 인스턴스를 반환하는 메소드입니다.
+     * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
+     *
      * @return {App}
      */
     App.GetInstance = function () {
@@ -2525,6 +2567,7 @@ var BaseController = /** @class */ (function () {
         this.initWithCanvas();
     }
     Object.defineProperty(BaseController.prototype, "config", {
+        // protected _element: JQuery<HTMLElement>;
         get: function () {
             return this._config;
         },
@@ -2568,11 +2611,15 @@ var BaseController = /** @class */ (function () {
         var r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
         return !!navigator.userAgent.match(r);
     };
+    /**
+     * AJAX를 이용하여 새로 고침 없이 창의 실제 데이터(HTML 파일)을 로드합니다.
+     */
     BaseController.prototype.load = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             var path = _this._config.path;
+            // 데이터 파일의 경로를 지정합니다.
             var url = location.href.slice(0, location.href.lastIndexOf("/")) + "/" + path;
             xhr.open("GET", url);
             xhr.onload = function () {
@@ -2584,13 +2631,18 @@ var BaseController = /** @class */ (function () {
             xhr.send();
         });
     };
+    /**
+     * 비동기적으로 HTML 파일을 시스템으로 불러와 렌더링을 진행하는 메서드입니다.
+     * HTML 파일은 뷰(View)에 해당하며 View 데이터는 뷰 모델(View Model)을 통해서만 접근이 가능합니다.
+     */
     BaseController.prototype.render = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.load().then(function (result) {
-                            _this._view.emit("create", null, _this._config);
+                            // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
+                            // 창의 렌더링을 진행합니다 (다소의 시간 소요)
                             _this._view.emit("render", result);
                         }).catch(function (err) {
                             console.warn(err);
@@ -2602,6 +2654,12 @@ var BaseController = /** @class */ (function () {
             });
         });
     };
+    /**
+     * 로드가 완료되면 호출되는 리스너를 지정합니다.
+     *
+     * @param elem
+     * @param self
+     */
     BaseController.prototype.onLoad = function (elem, self) {
         this.addEventHandlers(elem, self);
     };
@@ -2761,39 +2819,7 @@ var TilesetWindowController = /** @class */ (function (_super) {
         this.show();
     };
     TilesetWindowController.prototype.onOk = function (ev) {
-        this.remove();
-        /**
-         * @type JQuery<HTMLInputElement>
-         */
-        var tilesets = this._element.find("input");
-        var data = {
-            tilesets: {
-                name: $(tilesets[0]).val(),
-                src: $(tilesets[1]).val(),
-            },
-            tile: {
-                width: parseInt($(tilesets[2]).val()),
-                height: parseInt($(tilesets[3]).val()),
-            }
-        };
-        $('form[name="uploadTilesetImage"]').on("submit", function (e) {
-            e.preventDefault();
-            $.ajax({
-                type: 'POST',
-                cache: false,
-                contentType: false,
-                processData: false,
-                url: $(this).attr('action'),
-                data: new FormData(this),
-                success: function (msg) {
-                    console.log(msg);
-                },
-                error: function (data) {
-                    console.log("error");
-                    console.log(data);
-                }
-            });
-        });
+        this._view.onOk(ev);
     };
     TilesetWindowController.prototype.onCancel = function (ev) {
         ev.preventDefault();
@@ -4164,6 +4190,41 @@ var TilesetWindowViewModel = /** @class */ (function (_super) {
     };
     TilesetWindowViewModel.prototype.onShow = function (elem) {
     };
+    TilesetWindowViewModel.prototype.onOk = function (ev) {
+        this._controller.remove();
+        /**
+         * @type JQuery<HTMLInputElement>
+         */
+        var tilesets = this._element.find("input");
+        var data = {
+            tilesets: {
+                name: $(tilesets[0]).val(),
+                src: $(tilesets[1]).val(),
+            },
+            tile: {
+                width: parseInt($(tilesets[2]).val()),
+                height: parseInt($(tilesets[3]).val()),
+            }
+        };
+        $('form[name="uploadTilesetImage"]').on("submit", function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                contentType: false,
+                processData: false,
+                url: $(this).attr('action'),
+                data: new FormData(this),
+                success: function (msg) {
+                    console.log(msg);
+                },
+                error: function (data) {
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        });
+    };
     return TilesetWindowViewModel;
 }(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));
 
@@ -4236,9 +4297,11 @@ var ViewModel = /** @class */ (function (_super) {
         var config = controller.config;
         if (!element)
             return;
+        // 화면에 창을 표시합니다.
         element.show();
         $(config.parentId).show();
         controller.valid();
+        // 창 뒤에 표시된 라이트 박스를 감춥니다.
         $(".darken, .windows-container").css("left", "0");
     };
     ViewModel.prototype.onHide = function (elem) {
@@ -4264,8 +4327,11 @@ var ViewModel = /** @class */ (function (_super) {
             .css(config)
             .attr("id", config.id)
             .draggable({ snap: ".container" });
+        // 화면에서 요소를 감춥니다.
         this.onHide();
+        // 창의 크기를 조절가능하게 만듭니다.
         $("#" + config.id).resizable({ containment: config.parentId });
+        // 부모 컨테이너에 로드된 창을 추가합니다.
         $(config.parentId).append(this._element);
         this._isReady = true;
     };

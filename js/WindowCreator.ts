@@ -7,7 +7,7 @@ import GamePropertiesWindow from "./models/GamePropertiesWindow";
 import TilesetWindowController from "./controllers/TilesetWindowController";
 import { TilesetWindowModel } from "./models/TilesetWindow";
 
-import {toCamelCase, getClassName} from "./camelCase.js";
+import {toCamelCase, getClassName} from "./camelCase";
 
 class WindowCreator extends EventEmitter {
     
@@ -31,9 +31,12 @@ class WindowCreator extends EventEmitter {
 
     /**
      * This method is called when clicking the file menu.
+     * 
+     * 창을 생성한 후 캐시에 저장을 해둡니다.
      */
     onFileNew() {
 
+        // 윈도우를 생성합니다.
         this._gamePropertiesWindow = new GamePropertiesWindowController(new GamePropertiesWindow());
 
         this._gamePropertiesWindow.render()
@@ -45,7 +48,7 @@ class WindowCreator extends EventEmitter {
             })
             .catch(err => {
                 console.warn(err);
-            });        
+            });
     }
 
     /**
@@ -114,7 +117,7 @@ class WindowCreator extends EventEmitter {
 
         if(typeof(cb) === "function") {
             cb();
-        }        
+        }
     }
 
     /**
@@ -123,13 +126,14 @@ class WindowCreator extends EventEmitter {
      * @param {HTMLElement} elem 
      * @param {Number} id 
      */
-    static onLoad(elem: HTMLElement, id: number): void {
+    static onLoad(elem: HTMLElement, id: String): void {
         const creator = this.GetInstance();
 
-        if(creator.cache[id]) {
-            const self = creator.cache[id];
-            creator.cache[id].onLoad(elem, self);
-        }        
+        // 이미 생성된 창이 있으면 해당 요소의 onLoad 메소드를 호출하여 창을 다시 호출합니다.
+        if(creator.cache[id as any]) {
+            const self = creator.cache[id as any];
+            creator.cache[id as any].onLoad(elem, self);
+        }
     }
 
     /**

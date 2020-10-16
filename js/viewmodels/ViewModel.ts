@@ -64,9 +64,12 @@ export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle 
         const config = controller.config;
         if(!element) return;
 
+        // 화면에 창을 표시합니다.
         element.show();
         $((config as Config).parentId).show();
         controller.valid();
+
+        // 창 뒤에 표시된 라이트 박스를 감춥니다.
         $(".darken, .windows-container").css("left", "0");
     }
 
@@ -96,10 +99,13 @@ export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle 
             .attr("id", config.id)
             .draggable({ snap: ".container" });
 
+        // 화면에서 요소를 감춥니다.
         this.onHide();
 
+        // 창의 크기를 조절가능하게 만듭니다.
         $(`#${config.id}`).resizable({containment: config.parentId});
 
+        // 부모 컨테이너에 로드된 창을 추가합니다.
         $(config.parentId).append(this._element);     
 
         this._isReady = true;      

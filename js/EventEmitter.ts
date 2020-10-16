@@ -6,6 +6,12 @@ class EventEmitter {
         this._events = {};
     }
 
+    debug(message: string) {
+        if(window.devmode) {
+            console.log(message);
+        }
+    }
+
     on(name: string, lsn: Function):EventEmitter {
 
         if(!this._events[name]) {
