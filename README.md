@@ -1,6 +1,8 @@
 # Introduction
 This tool allows you to create a multidimensional tilemap without standalone application in the web.
 
+![IMG](https://github.com/biud436/Initial2D/raw/master/docs/img/new_editor.png)
+
 # Environment
 
 |Platform Type|Status|
