@@ -36,6 +36,9 @@
   "dependencies": {
     "@types/jquery": "^3.5.3",
     "@types/jqueryui": "^1.12.13",
+    "@types/node": "^14.14.3",
+    "@typescript-eslint/eslint-plugin": "^4.5.0",
+    "@typescript-eslint/parser": "^4.5.0",
     "jquery": "^3.5.1",
     "minimist": "^1.2.5",
     "pixi.js": "^5.3.3"

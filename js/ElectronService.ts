@@ -1,11 +1,10 @@
 import { IpcMain } from "electron";
 import {EventEmitter} from "./EventEmitter";
-const { ipcMain } = require('electron')
+const { ipcMain } = require('electron');
+import * as fs from 'fs';
+import * as cp from "child_process";
+import * as path from "path";
 
-/**
- * TODO: Electron과 관련된 기능은 모두 이 파일에 작성하고 이벤트로 처리할 것.
- * 공통적으로 사용되는 파일에 require 구문 모두 제거할 것.
- */
 class ElectronService extends EventEmitter {
 
     public ipcMain: IpcMain;
@@ -19,6 +18,15 @@ class ElectronService extends EventEmitter {
     openFolder(folderName: string) {
         const { shell } = require('electron');
         shell.showItemInFolder(folderName);        
+
+        // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
+        if(process.platform.includes("win")) {
+            const myPath = path.resolve(`tools/bin/open_folder.exe`);
+            if(fs.existsSync(myPath)) {
+                cp.spawn(myPath, ["CabinetWClass"]);
+            }
+        }
+
     }
 }
 

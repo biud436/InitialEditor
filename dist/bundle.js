@@ -645,6 +645,12 @@ var BasicComponent = /** @class */ (function (_super) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ElectronService", function() { return ElectronService; });
 /* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! child_process */ "child_process");
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -660,10 +666,9 @@ var __extends = (undefined && undefined.__extends) || (function () {
 })();
 
 var ipcMain = __webpack_require__(/*! electron */ "electron").ipcMain;
-/**
- * TODO: Electron과 관련된 기능은 모두 이 파일에 작성하고 이벤트로 처리할 것.
- * 공통적으로 사용되는 파일에 require 구문 모두 제거할 것.
- */
+
+
+
 var ElectronService = /** @class */ (function (_super) {
     __extends(ElectronService, _super);
     function ElectronService() {
@@ -674,6 +679,10 @@ var ElectronService = /** @class */ (function (_super) {
     ElectronService.prototype.openFolder = function (folderName) {
         var shell = __webpack_require__(/*! electron */ "electron").shell;
         shell.showItemInFolder(folderName);
+        var myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"]("tools/bin/open_folder.exe");
+        if (fs__WEBPACK_IMPORTED_MODULE_1__["existsSync"](myPath)) {
+            child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
+        }
     };
     return ElectronService;
 }(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
@@ -703,6 +712,11 @@ var EventEmitter = /** @class */ (function () {
     function EventEmitter() {
         this._events = {};
     }
+    EventEmitter.prototype.debug = function (message) {
+        if (window.devmode) {
+            console.log(message);
+        }
+    };
     EventEmitter.prototype.on = function (name, lsn) {
         if (!this._events[name]) {
             this._events[name] = [];
@@ -49847,6 +49861,17 @@ module.exports = function(module) {
 	return module;
 };
 
+
+/***/ }),
+
+/***/ "child_process":
+/*!********************************!*\
+  !*** external "child_process" ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("child_process");
 
 /***/ }),
 
