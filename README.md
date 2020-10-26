@@ -20,6 +20,8 @@ npm install -D
 # How to start InitialEditor
 Open the Visual Studio Code and Press key called ```F5```
 
+![IMG](./Call.png)
+
 # License
 This tool is under the MIT License.
 

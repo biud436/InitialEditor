@@ -14,25 +14,7 @@ import { WindowCreator } from "./WindowCreator";
 import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
 import {ElectronService} from "./ElectronService";
 import {EditorSchema} from "./schema/EditorSchema";
-
-interface Mouse {
-    x: number;
-    y: number;
-    screenX: number;
-    screenY: number;
-    buttons: {
-        left: boolean;
-        leftFire: boolean;
-    };
-    /**
-     * @type {HTMLElement}
-     */
-    target: HTMLElement;
-    /**
-     * @type {HTMLElement}
-     */
-    menuTarget: HTMLElement;
-}
+import {Mouse} from "./Mouse";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -74,6 +56,10 @@ export default class App extends EventEmitter {
          * @type {HTMLElement}
          */
         menuTarget: HTMLElement;
+        isDrawing: boolean;
+
+        startX: number;
+        startY: number;
     };
     private _blockRect: {
         isDrawing: boolean;
@@ -114,6 +100,9 @@ export default class App extends EventEmitter {
              * @type {HTMLElement}
              */                        
             menuTarget: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
         };
 
         /**
@@ -265,20 +254,41 @@ export default class App extends EventEmitter {
                     this._mouse.y = ev.layerY;
                     this._mouse.screenX = ev.layerX;
                     this._mouse.screenY = ev.layerY;
+
+                    if(this._mouse.isDrawing) {
+
+                    }
                 },
                 "mousedown": (ev: any) => {
                     if(ev.button == 0) {                 
                         this._mouse.buttons.left = true;
                         this._mouse.buttons.leftFire = false;
                         this._mouse.target = ev.target;
+                        this._mouse.isDrawing = true;
+
+                        // 캔버스
+                        const canvas = (document.querySelector("#contents__main-canvas") as HTMLCanvasElement);
+
+                        canvas.style.cursor = "crosshair";	
+                        const canvasOffset = $("#contents__main-canvas").offset();
+                        const offsetX: number = parseInt(canvasOffset.left as any);
+                        const offsetY: number = parseInt(canvasOffset.top as any);
+
+                        this._mouse.startX = parseInt(ev.clientX - offsetX as any);
+                        this._mouse.startY = parseInt(ev.clientY - offsetY as any);
                     }
                 },
                 "mouseup": (ev: any) => {
                     if(ev.button == 0) {
                         this._mouse.buttons.left = false;
                         this._mouse.buttons.leftFire = true;
-
                         this._blockRect.isDrawing = false;
+                        this._mouse.isDrawing = false;
+
+                        const canvas = (document.querySelector("#contents__main-canvas") as HTMLCanvasElement);
+                        canvas.style.cursor = "default";	
+
+
                     }
                 },
                 "mouseover": (ev: any) => {

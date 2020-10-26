@@ -203,6 +203,9 @@ var App = /** @class */ (function (_super) {
              * @type {HTMLElement}
              */
             menuTarget: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
         };
         /**
          * 사각형 툴을 위한 선택 영역
@@ -351,12 +354,23 @@ var App = /** @class */ (function (_super) {
                     _this._mouse.y = ev.layerY;
                     _this._mouse.screenX = ev.layerX;
                     _this._mouse.screenY = ev.layerY;
+                    if (_this._mouse.isDrawing) {
+                    }
                 },
                 "mousedown": function (ev) {
                     if (ev.button == 0) {
                         _this._mouse.buttons.left = true;
                         _this._mouse.buttons.leftFire = false;
                         _this._mouse.target = ev.target;
+                        _this._mouse.isDrawing = true;
+                        // 캔버스
+                        var canvas_1 = document.querySelector("#contents__main-canvas");
+                        canvas_1.style.cursor = "crosshair";
+                        var canvasOffset = $("#contents__main-canvas").offset();
+                        var offsetX = parseInt(canvasOffset.left);
+                        var offsetY = parseInt(canvasOffset.top);
+                        _this._mouse.startX = parseInt(ev.clientX - offsetX);
+                        _this._mouse.startY = parseInt(ev.clientY - offsetY);
                     }
                 },
                 "mouseup": function (ev) {
@@ -364,6 +378,9 @@ var App = /** @class */ (function (_super) {
                         _this._mouse.buttons.left = false;
                         _this._mouse.buttons.leftFire = true;
                         _this._blockRect.isDrawing = false;
+                        _this._mouse.isDrawing = false;
+                        var canvas_2 = document.querySelector("#contents__main-canvas");
+                        canvas_2.style.cursor = "default";
                     }
                 },
                 "mouseover": function (ev) {
@@ -679,9 +696,13 @@ var ElectronService = /** @class */ (function (_super) {
     ElectronService.prototype.openFolder = function (folderName) {
         var shell = __webpack_require__(/*! electron */ "electron").shell;
         shell.showItemInFolder(folderName);
-        var myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"]("tools/bin/open_folder.exe");
-        if (fs__WEBPACK_IMPORTED_MODULE_1__["existsSync"](myPath)) {
-            child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
+        // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
+        if (process.platform.includes("win")) {
+            // 절대 경로를 가져옵니다.
+            var myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"]("tools/bin/open_folder.exe");
+            if (fs__WEBPACK_IMPORTED_MODULE_1__["existsSync"](myPath)) {
+                child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
+            }
         }
     };
     return ElectronService;
@@ -1561,7 +1582,8 @@ var Tilemap = /** @class */ (function (_super) {
                 this.drawTile(this._mouseX, this._mouseY, tileId);
                 break;
             case PenType.RECTANGLE:
-                this.drawRect(this._mouseX, this._mouseY, 20, 5);
+                var mouse = args[0];
+                this.drawRect(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
                 break;
             case PenType.ELLIPSE:
                 break;
@@ -2108,6 +2130,9 @@ var App = /** @class */ (function (_super) {
              * @type {HTMLElement}
              */
             menuTarget: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
         };
         /**
          * 사각형 툴을 위한 선택 영역
@@ -2256,12 +2281,23 @@ var App = /** @class */ (function (_super) {
                     _this._mouse.y = ev.layerY;
                     _this._mouse.screenX = ev.layerX;
                     _this._mouse.screenY = ev.layerY;
+                    if (_this._mouse.isDrawing) {
+                    }
                 },
                 "mousedown": function (ev) {
                     if (ev.button == 0) {
                         _this._mouse.buttons.left = true;
                         _this._mouse.buttons.leftFire = false;
                         _this._mouse.target = ev.target;
+                        _this._mouse.isDrawing = true;
+                        // 캔버스
+                        var canvas_1 = document.querySelector("#contents__main-canvas");
+                        canvas_1.style.cursor = "crosshair";
+                        var canvasOffset = $("#contents__main-canvas").offset();
+                        var offsetX = parseInt(canvasOffset.left);
+                        var offsetY = parseInt(canvasOffset.top);
+                        _this._mouse.startX = parseInt(ev.clientX - offsetX);
+                        _this._mouse.startY = parseInt(ev.clientY - offsetY);
                     }
                 },
                 "mouseup": function (ev) {
@@ -2269,6 +2305,9 @@ var App = /** @class */ (function (_super) {
                         _this._mouse.buttons.left = false;
                         _this._mouse.buttons.leftFire = true;
                         _this._blockRect.isDrawing = false;
+                        _this._mouse.isDrawing = false;
+                        var canvas_2 = document.querySelector("#contents__main-canvas");
+                        canvas_2.style.cursor = "default";
                     }
                 },
                 "mouseover": function (ev) {
@@ -4278,6 +4317,13 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
     return r;
 };
 
+var StatusProproties = /** @class */ (function () {
+    function StatusProproties() {
+        this.currentStatus = "NORMAL";
+        this.history = [this.currentStatus];
+    }
+    return StatusProproties;
+}());
 var ViewModel = /** @class */ (function (_super) {
     __extends(ViewModel, _super);
     /**
@@ -4287,6 +4333,7 @@ var ViewModel = /** @class */ (function (_super) {
         var _this = _super.call(this) || this;
         _this._isReady = false;
         _this._controller = __controller;
+        _this._status = new StatusProproties();
         // 라이프 싸이클과 관련된 이벤트 선언
         _this.on("create", function (elem) {
             var args = [];

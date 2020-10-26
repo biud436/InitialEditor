@@ -32,6 +32,9 @@ class ElectronService extends EventEmitter {
         }
 
     }
+
+    
+
 }
 
 export {ElectronService};

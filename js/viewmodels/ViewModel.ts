@@ -26,10 +26,28 @@ interface Config {
     display: string;
 }
 
+interface Status {
+    currentStatus: string;
+    history: string[];
+}
+
+class StatusProproties implements Status {
+    
+    currentStatus: string;
+    history: string[];
+
+    constructor() {
+        this.currentStatus = "NORMAL";
+        this.history = [this.currentStatus];
+    }
+
+}
+
 export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle {
 
     protected _controller: BaseController;
     protected _element: JQuery<HTMLElement>;
+    protected _status: StatusProproties;
 
     private _isReady: boolean;
 
@@ -41,6 +59,7 @@ export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle 
         
         this._isReady = false;
         this._controller = __controller;
+        this._status = new StatusProproties();
 
         // 라이프 싸이클과 관련된 이벤트 선언
         this.on("create", (elem?: HTMLElement, ...args: any[]) => this.onCreate(elem, ...args))

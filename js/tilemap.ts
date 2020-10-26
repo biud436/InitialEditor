@@ -3,6 +3,7 @@ import {
 } from "./Component";
 import {config} from "./config";
 import * as PIXI from "pixi.js";
+import {Mouse} from "./Mouse";
 
 enum PenType {
     PENCIL = 0,
@@ -349,7 +350,12 @@ export default class Tilemap extends Component {
                 this.drawTile(this._mouseX, this._mouseY, tileId);
                 break;
             case PenType.RECTANGLE:
-                this.drawRect(this._mouseX, this._mouseY, 20, 5);
+                const mouse: Mouse = args[0];
+                this.drawRect(
+                    mouse.startX, 
+                    mouse.startY, 
+                    (mouse.x - mouse.startX) / this._tileWidth, 
+                    (mouse.y - mouse.startY) / this._tileHeight);
                 break;
             case PenType.ELLIPSE:
                 break;
