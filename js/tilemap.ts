@@ -340,6 +340,35 @@ export default class Tilemap extends Component {
         this._dirty = true;
     }
 
+    isInCircle(centerX: number, centerY: number, x: number, y: number, r: number) {
+        let dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
+        return (dist + 0.00004) < r + 0.00004;
+    }
+
+    drawEllipse(sx: number, sy: number, ex: number, ey: number) {
+        let mx = Math.floor(sx / this._tileWidth);
+        let my = Math.floor(sy / this._tileHeight);       
+
+        const tileID = this._tileId;
+        
+        const width = mx + ex;
+        const height = my + ey;
+        const centerX = Math.floor(mx + (ex / 2));
+        const centerY = Math.floor(my + (ey / 2));
+        const r = Math.floor(centerY - my);
+
+        for(let y = my; y < height; y++) {
+            for(let x = mx; x < width; x++) {
+
+                if(this.isInCircle(centerX, centerY, x, y, r) && r > 8) {
+                    this.setData(x, y, this._currentLayer, tileID);
+                }
+            }
+        }        
+
+        this._dirty = true;        
+    }
+
     /**
      * 오토 타일인 지 확인합니다.
      * 
@@ -371,15 +400,26 @@ export default class Tilemap extends Component {
                 this.drawTile(this._mouseX, this._mouseY, tileId);
                 break;
             case PenType.RECTANGLE:
-                const mouse: Mouse = args[0];
-                this.drawRect(
-                    mouse.startX, 
-                    mouse.startY, 
-                    (mouse.x - mouse.startX) / this._tileWidth, 
-                    (mouse.y - mouse.startY) / this._tileHeight);
+                {
+                    const mouse: Mouse = args[0];
+                    this.drawRect(
+                        mouse.startX, 
+                        mouse.startY, 
+                        (mouse.x - mouse.startX) / this._tileWidth, 
+                        (mouse.y - mouse.startY) / this._tileHeight);
+                }
                 break;
             case PenType.ELLIPSE:
-                break;
+                // https://stackoverflow.com/a/46630005
+                {
+                    const mouse: Mouse = args[0];
+                    this.drawEllipse(
+                        mouse.startX, 
+                        mouse.startY, 
+                        (mouse.x - mouse.startX) / this._tileWidth, 
+                        (mouse.y - mouse.startY) / this._tileHeight);
+                }
+                break;                
             case PenType.FLOOD_FILL:
                 break;
             case PenType.SHADOW_PEN:

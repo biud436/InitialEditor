@@ -1344,7 +1344,7 @@ var Tilemap = /** @class */ (function (_super) {
             var path = __webpack_require__(/*! path */ "path");
             var data = _this._data.map(function (i) { return (!!i) ? i : 0; });
             var layerData = {
-                data: new Array(data.length).fill(0).concat(data),
+                data: data,
             };
             var contents = JSON.stringify(layerData);
             fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8");
@@ -1565,6 +1565,28 @@ var Tilemap = /** @class */ (function (_super) {
         }
         this._dirty = true;
     };
+    Tilemap.prototype.isInCircle = function (centerX, centerY, x, y, r) {
+        var dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
+        return (dist + 0.00004) < r + 0.00004;
+    };
+    Tilemap.prototype.drawEllipse = function (sx, sy, ex, ey) {
+        var mx = Math.floor(sx / this._tileWidth);
+        var my = Math.floor(sy / this._tileHeight);
+        var tileID = this._tileId;
+        var width = mx + ex;
+        var height = my + ey;
+        var centerX = Math.floor(mx + (ex / 2));
+        var centerY = Math.floor(my + (ey / 2));
+        var r = Math.floor(centerY - my);
+        for (var y = my; y < height; y++) {
+            for (var x = mx; x < width; x++) {
+                if (this.isInCircle(centerX, centerY, x, y, r) && r > 8) {
+                    this.setData(x, y, this._currentLayer, tileID);
+                }
+            }
+        }
+        this._dirty = true;
+    };
     /**
      * 오토 타일인 지 확인합니다.
      *
@@ -1597,10 +1619,17 @@ var Tilemap = /** @class */ (function (_super) {
                 this.drawTile(this._mouseX, this._mouseY, tileId);
                 break;
             case PenType.RECTANGLE:
-                var mouse = args[0];
-                this.drawRect(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
+                {
+                    var mouse = args[0];
+                    this.drawRect(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
+                }
                 break;
             case PenType.ELLIPSE:
+                // https://stackoverflow.com/a/46630005
+                {
+                    var mouse = args[0];
+                    this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
+                }
                 break;
             case PenType.FLOOD_FILL:
                 break;
@@ -3877,6 +3906,7 @@ var DrawToolbar = [
         name: "",
         children: "draw-ellipse",
         action: function (ev) {
+            window.app.emit("tilemap:drawingType", 2);
         },
     },
     {

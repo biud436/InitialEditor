@@ -21,8 +21,8 @@ const DrawToolbar = [
         name: "",
         children: "draw-ellipse",
         action: (ev: any) => {
-            
-        },           
+            window.app.emit("tilemap:drawingType", 2);
+        },              
     },
     {
         name: "",
