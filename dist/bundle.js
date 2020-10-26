@@ -1595,18 +1595,26 @@ var Tilemap = /** @class */ (function (_super) {
     Tilemap.prototype.isAutoTile = function (tileId) {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     };
-    Tilemap.prototype.floodFill = function (x, y, startTileId) {
+    Tilemap.prototype.floodFill = function (x, y, startTileId, nodes, stack) {
         if (startTileId < 0) {
             startTileId = this.getData(x, y, this._currentLayer);
         }
         if (startTileId !== this.getData(x, y, this._currentLayer)) {
             return;
         }
+        if (stack > this._mapWidth * this._mapHeight) {
+            return;
+        }
+        stack++;
+        nodes.push({
+            x: x,
+            y: y,
+        });
         this.setData(x, y, this._currentLayer, this._tileId);
-        this.floodFill(x - 1, y, startTileId);
-        this.floodFill(x + 1, y, startTileId);
-        this.floodFill(x, y - 1, startTileId);
-        this.floodFill(x, y + 1, startTileId);
+        this.floodFill(x - 1, y, startTileId, nodes, stack);
+        this.floodFill(x + 1, y, startTileId, nodes, stack);
+        this.floodFill(x, y - 1, startTileId, nodes, stack);
+        this.floodFill(x, y + 1, startTileId, nodes, stack);
     };
     /**
      * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
@@ -1648,7 +1656,8 @@ var Tilemap = /** @class */ (function (_super) {
                 {
                     var mx = Math.floor(this._mouseX / this._tileWidth);
                     var my = Math.floor(this._mouseY / this._tileHeight);
-                    this.floodFill(mx, my, -1);
+                    var nodes = [];
+                    this.floodFill(mx, my, -1, nodes, 0);
                     this._dirty = true;
                 }
                 break;

@@ -15,6 +15,11 @@ enum PenType {
     SHADOW_PEN
 };
 
+interface TilemapPoint {
+    x: number;
+    y: number;
+}
+
 export default class Tilemap extends Component {
 
     private _config: typeof config;
@@ -378,7 +383,7 @@ export default class Tilemap extends Component {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     }
 
-    floodFill(x: number, y: number, startTileId: number) {
+    floodFill(x: number, y: number, startTileId: number, nodes: any[], stack: number) {
 
         if(startTileId < 0) {
             startTileId = this.getData(x, y, this._currentLayer);
@@ -388,11 +393,23 @@ export default class Tilemap extends Component {
             return;
         }
 
+        if(stack > this._mapWidth * this._mapHeight) {
+            return;
+        }
+
+        stack++;
+
+        nodes.push({
+            x: x,
+            y: y,
+        });
+
         this.setData(x, y, this._currentLayer, this._tileId);
-        this.floodFill(x - 1, y, startTileId);
-        this.floodFill(x + 1, y, startTileId);
-        this.floodFill(x, y - 1, startTileId);
-        this.floodFill(x, y + 1, startTileId);    
+        this.floodFill(x - 1, y, startTileId, nodes, stack);
+        this.floodFill(x + 1, y, startTileId, nodes, stack);
+        this.floodFill(x, y - 1, startTileId, nodes, stack);
+        this.floodFill(x, y + 1, startTileId, nodes, stack);
+
     }
 
     /**
@@ -441,8 +458,10 @@ export default class Tilemap extends Component {
                 {
                     let mx = Math.floor(this._mouseX / this._tileWidth);
                     let my = Math.floor(this._mouseY / this._tileHeight);                         
-                    this.floodFill(mx, my, -1);
+                    let nodes: TilemapPoint[] = [];
+                    this.floodFill(mx, my, -1, nodes, 0);
                     this._dirty = true;
+
                 }
                 break;
             case PenType.SHADOW_PEN:
