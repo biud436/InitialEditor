@@ -1595,6 +1595,19 @@ var Tilemap = /** @class */ (function (_super) {
     Tilemap.prototype.isAutoTile = function (tileId) {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     };
+    Tilemap.prototype.floodFill = function (x, y, startTileId) {
+        if (startTileId < 0) {
+            startTileId = this.getData(x, y, this._currentLayer);
+        }
+        if (startTileId !== this.getData(x, y, this._currentLayer)) {
+            return;
+        }
+        this.setData(x, y, this._currentLayer, this._tileId);
+        this.floodFill(x - 1, y, startTileId);
+        this.floodFill(x + 1, y, startTileId);
+        this.floodFill(x, y - 1, startTileId);
+        this.floodFill(x, y + 1, startTileId);
+    };
     /**
      * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
      */
@@ -1632,6 +1645,12 @@ var Tilemap = /** @class */ (function (_super) {
                 }
                 break;
             case PenType.FLOOD_FILL:
+                {
+                    var mx = Math.floor(this._mouseX / this._tileWidth);
+                    var my = Math.floor(this._mouseY / this._tileHeight);
+                    this.floodFill(mx, my, -1);
+                    this._dirty = true;
+                }
                 break;
             case PenType.SHADOW_PEN:
                 break;
@@ -3913,6 +3932,7 @@ var DrawToolbar = [
         name: "",
         children: "draw-flood-fill",
         action: function (ev) {
+            window.app.emit("tilemap:drawingType", 3);
         },
     },
     {

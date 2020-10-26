@@ -378,6 +378,23 @@ export default class Tilemap extends Component {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     }
 
+    floodFill(x: number, y: number, startTileId: number) {
+
+        if(startTileId < 0) {
+            startTileId = this.getData(x, y, this._currentLayer);
+        }
+        
+        if(startTileId !== this.getData(x, y, this._currentLayer)) {
+            return;
+        }
+
+        this.setData(x, y, this._currentLayer, this._tileId);
+        this.floodFill(x - 1, y, startTileId);
+        this.floodFill(x + 1, y, startTileId);
+        this.floodFill(x, y - 1, startTileId);
+        this.floodFill(x, y + 1, startTileId);    
+    }
+
     /**
      * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
      */
@@ -421,6 +438,12 @@ export default class Tilemap extends Component {
                 }
                 break;                
             case PenType.FLOOD_FILL:
+                {
+                    let mx = Math.floor(this._mouseX / this._tileWidth);
+                    let my = Math.floor(this._mouseY / this._tileHeight);                         
+                    this.floodFill(mx, my, -1);
+                    this._dirty = true;
+                }
                 break;
             case PenType.SHADOW_PEN:
                 break;

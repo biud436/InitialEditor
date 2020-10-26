@@ -28,8 +28,8 @@ const DrawToolbar = [
         name: "",
         children: "draw-flood-fill",
         action: (ev: any) => {
-            
-        },           
+            window.app.emit("tilemap:drawingType", 3);
+        },                     
     },
     {
         name: "",
