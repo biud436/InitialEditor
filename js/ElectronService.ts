@@ -21,10 +21,14 @@ class ElectronService extends EventEmitter {
 
         // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
         if(process.platform.includes("win")) {
+
+            // 절대 경로를 가져옵니다.
             const myPath = path.resolve(`tools/bin/open_folder.exe`);
+
             if(fs.existsSync(myPath)) {
                 cp.spawn(myPath, ["CabinetWClass"]);
             }
+
         }
 
     }
