@@ -383,6 +383,16 @@ export default class Tilemap extends Component {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     }
 
+    /**
+     * 재귀 -> 스택이 깊다는 오류가 생김
+     * 이것은 BFS, DFS로 구현되어야 함.
+     * 
+     * @param x 
+     * @param y 
+     * @param startTileId 
+     * @param nodes 
+     * @param stack 
+     */
     floodFill(x: number, y: number, startTileId: number, nodes: any[], stack: number) {
 
         if(startTileId < 0) {
