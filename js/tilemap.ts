@@ -4,6 +4,8 @@ import {
 import {config} from "./config";
 import * as PIXI from "pixi.js";
 import {Mouse} from "./Mouse";
+import { fstat } from "fs";
+import { ArrayResource } from "../libs/pixi";
 
 enum PenType {
     PENCIL = 0,
@@ -77,10 +79,29 @@ export default class Tilemap extends Component {
         // });
         
         this.active();
+        this.initWithSaveEventListener();
     }
 
     isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    initWithSaveEventListener() {
+        this.on("save", () => {
+            const fs = require("fs");
+            const path = require("path");
+            const data = this._data.map(i => (!!i) ? i : 0);
+
+            const layerData = {
+                data,
+            };
+            
+            const contents = JSON.stringify(layerData);
+
+            fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8"); 
+
+            alert("파일 저장이 완료되었습니다.");
+        });
     }
 
     /**

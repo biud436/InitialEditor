@@ -70,6 +70,10 @@ class WindowCreator extends EventEmitter {
             })
     }    
 
+    onFileSave() {
+        window.app.emit("tilemap:save");
+    }
+
     /**
      * This method removes all cache window for some times.
      */

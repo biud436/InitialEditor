@@ -1332,9 +1332,24 @@ var Tilemap = /** @class */ (function (_super) {
         //     console.log(ev);
         // });
         this.active();
+        this.initWithSaveEventListener();
     };
     Tilemap.prototype.isMobileDevice = function () {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+    Tilemap.prototype.initWithSaveEventListener = function () {
+        var _this = this;
+        this.on("save", function () {
+            var fs = __webpack_require__(/*! fs */ "fs");
+            var path = __webpack_require__(/*! path */ "path");
+            var data = _this._data.map(function (i) { return (!!i) ? i : 0; });
+            var layerData = {
+                data: new Array(data.length).fill(0).concat(data),
+            };
+            var contents = JSON.stringify(layerData);
+            fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8");
+            alert("파일 저장이 완료되었습니다.");
+        });
     };
     /**
      * Initialize with drawing type.
@@ -1935,6 +1950,9 @@ var WindowCreator = /** @class */ (function (_super) {
             .catch(function (err) {
             console.warn(err);
         });
+    };
+    WindowCreator.prototype.onFileSave = function () {
+        window.app.emit("tilemap:save");
     };
     /**
      * This method removes all cache window for some times.
