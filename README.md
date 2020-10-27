@@ -22,7 +22,11 @@ Open the Visual Studio Code and Press key called ```F5```
 
 ![IMG](./Call.png)
 
+This tool includes an event emitter on all sub windows. The window is splitted ```Controller``` and ```View``` and ```Model```. and the Model has a data only and passed to as ```Controller```.
+
 ![IMG](./diagram.png)
+
+![IMG](./event.png)
 
 # License
 This tool is under the MIT License.
