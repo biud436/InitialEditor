@@ -15,6 +15,8 @@ export interface Mouse {
      * @type {HTMLElement}
      */
     menuTarget: HTMLElement;
+    isDrawing: boolean,
     startX: number;
     startY: number;    
+    dragTime: number;
 }

@@ -206,6 +206,7 @@ var App = /** @class */ (function (_super) {
             isDrawing: false,
             startX: 0,
             startY: 0,
+            dragTime: 0,
         };
         /**
          * 사각형 툴을 위한 선택 영역
@@ -355,6 +356,7 @@ var App = /** @class */ (function (_super) {
                     _this._mouse.screenX = ev.layerX;
                     _this._mouse.screenY = ev.layerY;
                     if (_this._mouse.isDrawing) {
+                        _this._mouse.dragTime++;
                     }
                 },
                 "mousedown": function (ev) {
@@ -381,6 +383,7 @@ var App = /** @class */ (function (_super) {
                         _this._mouse.isDrawing = false;
                         var canvas_2 = document.querySelector("#contents__main-canvas");
                         canvas_2.style.cursor = "default";
+                        _this._mouse.dragTime = 0;
                     }
                 },
                 "mouseover": function (ev) {
@@ -1565,10 +1568,26 @@ var Tilemap = /** @class */ (function (_super) {
         }
         this._dirty = true;
     };
+    /**
+     * 원 안에 있는지 확인합니다.
+     * @param centerX
+     * @param centerY
+     * @param x
+     * @param y
+     * @param r
+     */
     Tilemap.prototype.isInCircle = function (centerX, centerY, x, y, r) {
         var dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
-        return (dist + 0.00004) < r + 0.00004;
+        return (dist + 0.00004) < r;
     };
+    /**
+     * 원을 그립니다.
+     *
+     * @param sx
+     * @param sy
+     * @param ex
+     * @param ey
+     */
     Tilemap.prototype.drawEllipse = function (sx, sy, ex, ey) {
         var mx = Math.floor(sx / this._tileWidth);
         var my = Math.floor(sy / this._tileHeight);
@@ -1577,10 +1596,10 @@ var Tilemap = /** @class */ (function (_super) {
         var height = my + ey;
         var centerX = Math.floor(mx + (ex / 2));
         var centerY = Math.floor(my + (ey / 2));
-        var r = Math.floor(centerY - my);
+        var r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
         for (var y = my; y < height; y++) {
             for (var x = mx; x < width; x++) {
-                if (this.isInCircle(centerX, centerY, x, y, r) && r > 8) {
+                if (this.isInCircle(centerX, centerY, x, y, r)) {
                     this.setData(x, y, this._currentLayer, tileID);
                 }
             }
@@ -1595,26 +1614,66 @@ var Tilemap = /** @class */ (function (_super) {
     Tilemap.prototype.isAutoTile = function (tileId) {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
     };
+    /**
+     *
+     * @link https://stackoverflow.com/a/40421933
+     * @param hits
+     * @param x
+     * @param y
+     * @param srcColor
+     * @param tgtColor
+     */
+    Tilemap.prototype.floodFillDo = function (hits, x, y, srcColor, tgtColor) {
+        if (y < 0)
+            return false;
+        if (x < 0)
+            return false;
+        if (y > this._mapHeight - 1)
+            return false;
+        if (x > this._mapWidth - 1)
+            return false;
+        if (hits[y][x])
+            return false;
+        if (this.getData(x, y, this._currentLayer) != srcColor)
+            return false;
+        this.setData(x, y, this._currentLayer, tgtColor);
+        hits[y][x] = true;
+        return true;
+    };
+    /**
+     *
+     * @link https://stackoverflow.com/a/40421933
+     * @param x
+     * @param y
+     * @param startTileId
+     * @param nodes
+     * @param stack
+     */
     Tilemap.prototype.floodFill = function (x, y, startTileId, nodes, stack) {
-        if (startTileId < 0) {
-            startTileId = this.getData(x, y, this._currentLayer);
+        var hits = [];
+        for (var y_1 = 0; y_1 < this._mapHeight; y_1++) {
+            hits[y_1] = [];
+            for (var x_1 = 0; x_1 < this._mapWidth; x_1++) {
+                hits[y_1][x_1] = false;
+            }
         }
-        if (startTileId !== this.getData(x, y, this._currentLayer)) {
-            return;
+        var queue = new Array();
+        var srcColor = 0;
+        var targetColor = 1;
+        if (startTileId == -1) {
+            srcColor = this.getData(x, y, this._currentLayer);
         }
-        if (stack > this._mapWidth * this._mapHeight) {
-            return;
+        targetColor = this._tileId;
+        queue.push({ x: x, y: y });
+        while (queue.length !== 0) {
+            var p = queue.shift();
+            if (this.floodFillDo(hits, p.x, p.y, srcColor, targetColor)) {
+                queue.push({ x: p.x, y: p.y - 1 });
+                queue.push({ x: p.x, y: p.y + 1 });
+                queue.push({ x: p.x - 1, y: p.y });
+                queue.push({ x: p.x + 1, y: p.y });
+            }
         }
-        stack++;
-        nodes.push({
-            x: x,
-            y: y,
-        });
-        this.setData(x, y, this._currentLayer, this._tileId);
-        this.floodFill(x - 1, y, startTileId, nodes, stack);
-        this.floodFill(x + 1, y, startTileId, nodes, stack);
-        this.floodFill(x, y - 1, startTileId, nodes, stack);
-        this.floodFill(x, y + 1, startTileId, nodes, stack);
     };
     /**
      * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
@@ -1649,11 +1708,14 @@ var Tilemap = /** @class */ (function (_super) {
                 // https://stackoverflow.com/a/46630005
                 {
                     var mouse = args[0];
-                    this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
+                    if (mouse.dragTime >= 32) {
+                        this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight - 1);
+                    }
                 }
                 break;
             case PenType.FLOOD_FILL:
                 {
+                    var mouse = args[0];
                     var mx = Math.floor(this._mouseX / this._tileWidth);
                     var my = Math.floor(this._mouseY / this._tileHeight);
                     var nodes = [];
@@ -2208,6 +2270,7 @@ var App = /** @class */ (function (_super) {
             isDrawing: false,
             startX: 0,
             startY: 0,
+            dragTime: 0,
         };
         /**
          * 사각형 툴을 위한 선택 영역
@@ -2357,6 +2420,7 @@ var App = /** @class */ (function (_super) {
                     _this._mouse.screenX = ev.layerX;
                     _this._mouse.screenY = ev.layerY;
                     if (_this._mouse.isDrawing) {
+                        _this._mouse.dragTime++;
                     }
                 },
                 "mousedown": function (ev) {
@@ -2383,6 +2447,7 @@ var App = /** @class */ (function (_super) {
                         _this._mouse.isDrawing = false;
                         var canvas_2 = document.querySelector("#contents__main-canvas");
                         canvas_2.style.cursor = "default";
+                        _this._mouse.dragTime = 0;
                     }
                 },
                 "mouseover": function (ev) {

@@ -39,28 +39,7 @@ export default class App extends EventEmitter {
         Editor: import("./schema/EditorSchema").EditorSchema;
         Maps: import("./schema/EditorSchema").EditorSchema;
     };
-    private _mouse: {
-        x: number;
-        y: number;
-        screenX: number;
-        screenY: number;
-        buttons: {
-            left: boolean;
-            leftFire: boolean;
-        };
-        /**
-         * @type {HTMLElement}
-         */
-        target: HTMLElement;
-        /**
-         * @type {HTMLElement}
-         */
-        menuTarget: HTMLElement;
-        isDrawing: boolean;
-
-        startX: number;
-        startY: number;
-    };
+    private _mouse: Mouse;
     private _blockRect: {
         isDrawing: boolean;
         rect: Rectangle;
@@ -103,6 +82,7 @@ export default class App extends EventEmitter {
             isDrawing: false,
             startX: 0,
             startY: 0,
+            dragTime: 0,
         };
 
         /**
@@ -256,7 +236,7 @@ export default class App extends EventEmitter {
                     this._mouse.screenY = ev.layerY;
 
                     if(this._mouse.isDrawing) {
-
+                        this._mouse.dragTime++;
                     }
                 },
                 "mousedown": (ev: any) => {
@@ -287,6 +267,8 @@ export default class App extends EventEmitter {
 
                         const canvas = (document.querySelector("#contents__main-canvas") as HTMLCanvasElement);
                         canvas.style.cursor = "default";	
+
+                        this._mouse.dragTime = 0;
 
 
                     }

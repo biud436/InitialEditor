@@ -345,11 +345,27 @@ export default class Tilemap extends Component {
         this._dirty = true;
     }
 
+    /**
+     * 원 안에 있는지 확인합니다.
+     * @param centerX 
+     * @param centerY 
+     * @param x 
+     * @param y 
+     * @param r 
+     */
     isInCircle(centerX: number, centerY: number, x: number, y: number, r: number) {
         let dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
-        return (dist + 0.00004) < r + 0.00004;
+        return (dist + 0.00004) < r;
     }
 
+    /**
+     * 원을 그립니다.
+     * 
+     * @param sx 
+     * @param sy 
+     * @param ex 
+     * @param ey 
+     */
     drawEllipse(sx: number, sy: number, ex: number, ey: number) {
         let mx = Math.floor(sx / this._tileWidth);
         let my = Math.floor(sy / this._tileHeight);       
@@ -360,12 +376,12 @@ export default class Tilemap extends Component {
         const height = my + ey;
         const centerX = Math.floor(mx + (ex / 2));
         const centerY = Math.floor(my + (ey / 2));
-        const r = Math.floor(centerY - my);
+        const r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
 
         for(let y = my; y < height; y++) {
             for(let x = mx; x < width; x++) {
 
-                if(this.isInCircle(centerX, centerY, x, y, r) && r > 8) {
+                if(this.isInCircle(centerX, centerY, x, y, r)) {
                     this.setData(x, y, this._currentLayer, tileID);
                 }
             }
@@ -384,9 +400,34 @@ export default class Tilemap extends Component {
     }
 
     /**
-     * 재귀 -> 스택이 깊다는 오류가 생김
-     * 이것은 BFS, DFS로 구현되어야 함.
      * 
+     * @link https://stackoverflow.com/a/40421933
+     * @param hits 
+     * @param x 
+     * @param y 
+     * @param srcColor 
+     * @param tgtColor 
+     */
+    floodFillDo(hits: boolean[][], x: number, y: number, srcColor: number, tgtColor: number) {
+	    if (y < 0) return false;
+	    if (x < 0) return false;
+	    if (y > this._mapHeight - 1) return false;
+        if (x > this._mapWidth - 1) return false;
+        
+	    if (hits[y][x]) return false;
+
+	    if (this.getData(x, y, this._currentLayer) != srcColor)
+	        return false;
+
+        this.setData(x, y, this._currentLayer, tgtColor);
+	    
+	    hits[y][x] = true;
+	    return true;        
+    }
+
+    /**
+     * 
+     * @link https://stackoverflow.com/a/40421933
      * @param x 
      * @param y 
      * @param startTileId 
@@ -395,30 +436,38 @@ export default class Tilemap extends Component {
      */
     floodFill(x: number, y: number, startTileId: number, nodes: any[], stack: number) {
 
-        if(startTileId < 0) {
-            startTileId = this.getData(x, y, this._currentLayer);
-        }
-        
-        if(startTileId !== this.getData(x, y, this._currentLayer)) {
-            return;
-        }
 
-        if(stack > this._mapWidth * this._mapHeight) {
-            return;
+        const hits: boolean[][] = [];
+
+        for(let y = 0; y < this._mapHeight; y++) {
+            hits[y] = [];
+            for(let x = 0; x < this._mapWidth; x++) {
+                hits[y][x] = false;
+            }
         }
 
-        stack++;
+        const queue: TilemapPoint[] = new Array();
 
-        nodes.push({
-            x: x,
-            y: y,
-        });
+        let srcColor = 0;
+        let targetColor = 1;
 
-        this.setData(x, y, this._currentLayer, this._tileId);
-        this.floodFill(x - 1, y, startTileId, nodes, stack);
-        this.floodFill(x + 1, y, startTileId, nodes, stack);
-        this.floodFill(x, y - 1, startTileId, nodes, stack);
-        this.floodFill(x, y + 1, startTileId, nodes, stack);
+        if(startTileId == -1) {
+            srcColor = this.getData(x, y, this._currentLayer);
+        }
+
+        targetColor = this._tileId;
+        queue.push({x, y});
+
+        while( queue.length !== 0) {
+            const p = queue.shift();
+
+            if(this.floodFillDo(hits, p.x, p.y, srcColor, targetColor)) {
+                queue.push({x: p.x, y: p.y - 1});
+                queue.push({x: p.x, y: p.y + 1});
+                queue.push({x: p.x - 1, y: p.y});
+                queue.push({x: p.x + 1, y: p.y});
+            }
+        }
 
     }
 
@@ -457,21 +506,26 @@ export default class Tilemap extends Component {
                 // https://stackoverflow.com/a/46630005
                 {
                     const mouse: Mouse = args[0];
-                    this.drawEllipse(
-                        mouse.startX, 
-                        mouse.startY, 
-                        (mouse.x - mouse.startX) / this._tileWidth, 
-                        (mouse.y - mouse.startY) / this._tileHeight);
+                    if(mouse.dragTime >= 32) {
+                        this.drawEllipse(
+                            mouse.startX, 
+                            mouse.startY, 
+                            (mouse.x - mouse.startX) / this._tileWidth, 
+                            (mouse.y - mouse.startY) / this._tileHeight - 1);
+                    }
+
                 }
                 break;                
             case PenType.FLOOD_FILL:
                 {
+                    const mouse: Mouse = args[0];
+
                     let mx = Math.floor(this._mouseX / this._tileWidth);
                     let my = Math.floor(this._mouseY / this._tileHeight);                         
                     let nodes: TilemapPoint[] = [];
                     this.floodFill(mx, my, -1, nodes, 0);
-                    this._dirty = true;
 
+                    this._dirty  = true;
                 }
                 break;
             case PenType.SHADOW_PEN:
