@@ -2910,7 +2910,13 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
         this._view = new _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__["NewWindowViewModel"](this);
     };
     GamePropertiesWindowController.prototype.onLoad = function (elem, self) {
+        var _this = this;
         _super.prototype.onLoad.call(this, elem, self);
+        var container = $("#newContainer #newWindow");
+        var okButton = container.find("div.panel");
+        okButton.eq(0).on("click", function (ev) {
+            _this.onOkButton(ev);
+        });
         this.show();
     };
     GamePropertiesWindowController.prototype.onClick = function (ev) {
@@ -2931,12 +2937,6 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
         this.remove();
     };
     GamePropertiesWindowController.prototype.addEventHandlers = function (elem, self) {
-        var _this = this;
-        var container = $("#newContainer #newWindow");
-        var okButton = container.find("div.panel");
-        okButton.eq(0).on("click", function (ev) {
-            _this.onOkButton(ev);
-        });
     };
     return GamePropertiesWindowController;
 }(_BaseController__WEBPACK_IMPORTED_MODULE_1__["default"]));
@@ -4458,6 +4458,12 @@ var ViewModel = /** @class */ (function (_super) {
         _this._isReady = false;
         _this._controller = __controller;
         _this._status = new StatusProproties();
+        /**
+         * onCreate() ->
+         * onLoad() ->
+         * onRender() ->
+         * onShow();
+         */
         // 라이프 싸이클과 관련된 이벤트 선언
         _this.on("create", function (elem) {
             var args = [];
@@ -4591,22 +4597,25 @@ var NewWindowViewModel = /** @class */ (function (_super) {
         _super.prototype.initMembers.call(this);
     };
     NewWindowViewModel.prototype.onCreate = function () {
-        var _this = this;
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
         }
         _super.prototype.onCreate.apply(this, args);
         var config = args[0];
-        var parent = document.querySelector("#" + config.id).parentNode;
-        parent.querySelector(".newWindow__control-box p i").onclick = function () {
-            _this._controller.remove();
-        };
         this._controller.show();
         $(".darken, .windows-container").css("left", "0");
     };
     NewWindowViewModel.prototype.onShow = function (elem) {
+        var _this = this;
         _super.prototype.onShow.call(this, elem);
+        var parent = this._element.get(0);
+        var child = parent.querySelector(".newWindow__control-box p i");
+        if (child) {
+            child.onclick = function () {
+                _this._controller.remove();
+            };
+        }
     };
     return NewWindowViewModel;
 }(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));

@@ -26,16 +26,20 @@ export class NewWindowViewModel extends ViewModel {
         super.onCreate(...args);
         const config : Config = args[0]; 
   
-        const parent = document.querySelector(`#${config.id}`).parentNode;
-        (parent.querySelector(".newWindow__control-box p i") as HTMLElement).onclick = () => {
-            this._controller.remove();  
-        };
         this._controller.show();
         $(".darken, .windows-container").css("left", "0");
     }
 
     onShow(elem?: JQuery<HTMLElement>) {
         super.onShow(elem);
+
+        const parent = this._element.get(0);
+        const child = (parent.querySelector(".newWindow__control-box p i") as any);
+        if(child) {
+            child.onclick = () => {
+                this._controller.remove();
+            };
+        }
     }
 
 }

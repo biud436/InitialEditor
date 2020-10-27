@@ -61,6 +61,13 @@ export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle 
         this._controller = __controller;
         this._status = new StatusProproties();
 
+        /**
+         * onCreate() -> 
+         * onLoad() -> 
+         * onRender() -> 
+         * onShow();
+         */
+
         // 라이프 싸이클과 관련된 이벤트 선언
         this.on("create", (elem?: HTMLElement, ...args: any[]) => this.onCreate(...args))
             .on("update", (elem?: HTMLElement)  => this.onUpdate(elem))
