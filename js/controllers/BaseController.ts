@@ -69,7 +69,7 @@ export default class BaseController implements ViewModelImpl {
 
     initWithCanvas() {
         const config = this._config;
-        this._view.emit("create", config);
+        this._view.emit("create", null, config);
     }
 
     hide() {

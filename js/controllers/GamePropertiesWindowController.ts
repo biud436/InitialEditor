@@ -26,6 +26,14 @@ export default class GamePropertiesWindowController extends BaseController {
 
     onLoad(elem: any, self: any): void {
         super.onLoad(elem, self);
+
+        const container = $("#newContainer #newWindow");
+        const okButton = container.find("div.panel");
+        okButton.eq(0).on("click", (ev:any) => {
+            this.onOkButton(ev); 
+        });
+
+        this.show();
     }
 
     onClick(ev: any): void {
@@ -49,10 +57,5 @@ export default class GamePropertiesWindowController extends BaseController {
     }
 
     addEventHandlers(elem: any, self: any): void {        
-        const container = $("#newContainer #newWindow");
-        const okButton = container.find("div.panel");
-        okButton.eq(0).on("click", (ev:any) => {
-            this.onOkButton(ev); 
-        });
     }
 }

@@ -62,7 +62,7 @@ export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle 
         this._status = new StatusProproties();
 
         // 라이프 싸이클과 관련된 이벤트 선언
-        this.on("create", (elem?: HTMLElement, ...args: any[]) => this.onCreate(elem, ...args))
+        this.on("create", (elem?: HTMLElement, ...args: any[]) => this.onCreate(...args))
             .on("update", (elem?: HTMLElement)  => this.onUpdate(elem))
             .on("stop", (elem?: HTMLElement)  => this.onStop(elem))
             .on("dispose", (elem?: HTMLElement)  => this.onDispose(elem))
@@ -104,7 +104,7 @@ export class ViewModel extends EventEmitter implements ViewModelImpl, LifeCycle 
 
     }
     
-    onCreate(elem?: HTMLElement, ...args: any[]) {
+    onCreate(...args: any[]) {
         const controller = this._controller;
         const config : Config = args[0]; 
         

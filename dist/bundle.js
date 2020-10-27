@@ -1578,7 +1578,7 @@ var Tilemap = /** @class */ (function (_super) {
      */
     Tilemap.prototype.isInCircle = function (centerX, centerY, x, y, r) {
         var dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
-        return (dist + 0.00004) < r;
+        return dist < r;
     };
     /**
      * 원을 그립니다.
@@ -1708,8 +1708,8 @@ var Tilemap = /** @class */ (function (_super) {
                 // https://stackoverflow.com/a/46630005
                 {
                     var mouse = args[0];
-                    if (mouse.dragTime >= 32) {
-                        this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight - 1);
+                    if (mouse.dragTime >= 20) {
+                        this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
                     }
                 }
                 break;
@@ -2783,7 +2783,7 @@ var BaseController = /** @class */ (function () {
     };
     BaseController.prototype.initWithCanvas = function () {
         var config = this._config;
-        this._view.emit("create", config);
+        this._view.emit("create", null, config);
     };
     BaseController.prototype.hide = function () {
         this._view.onHide();
@@ -2911,6 +2911,7 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
     };
     GamePropertiesWindowController.prototype.onLoad = function (elem, self) {
         _super.prototype.onLoad.call(this, elem, self);
+        this.show();
     };
     GamePropertiesWindowController.prototype.onClick = function (ev) {
         // 창을 화면에 보이게 합니다.
@@ -4361,13 +4362,6 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 
 var TilesetWindowViewModel = /** @class */ (function (_super) {
     __extends(TilesetWindowViewModel, _super);
@@ -4375,15 +4369,10 @@ var TilesetWindowViewModel = /** @class */ (function (_super) {
         return _super.call(this, __controller) || this;
     }
     TilesetWindowViewModel.prototype.initMembers = function () {
-    };
-    TilesetWindowViewModel.prototype.onCreate = function (elem) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        _super.prototype.onCreate.apply(this, __spreadArrays([elem], args));
+        _super.prototype.initMembers.call(this);
     };
     TilesetWindowViewModel.prototype.onShow = function (elem) {
+        _super.prototype.onShow.call(this, elem);
     };
     TilesetWindowViewModel.prototype.onOk = function (ev) {
         this._controller.remove();
@@ -4451,13 +4440,6 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 
 var StatusProproties = /** @class */ (function () {
     function StatusProproties() {
@@ -4482,7 +4464,7 @@ var ViewModel = /** @class */ (function (_super) {
             for (var _i = 1; _i < arguments.length; _i++) {
                 args[_i - 1] = arguments[_i];
             }
-            return _this.onCreate.apply(_this, __spreadArrays([elem], args));
+            return _this.onCreate.apply(_this, args);
         })
             .on("update", function (elem) { return _this.onUpdate(elem); })
             .on("stop", function (elem) { return _this.onStop(elem); })
@@ -4515,10 +4497,10 @@ var ViewModel = /** @class */ (function (_super) {
     };
     ViewModel.prototype.onNotify = function (elem) {
     };
-    ViewModel.prototype.onCreate = function (elem) {
+    ViewModel.prototype.onCreate = function () {
         var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
         }
         var controller = this._controller;
         var config = args[0];
@@ -4599,13 +4581,6 @@ var __extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 
 var NewWindowViewModel = /** @class */ (function (_super) {
     __extends(NewWindowViewModel, _super);
@@ -4613,15 +4588,17 @@ var NewWindowViewModel = /** @class */ (function (_super) {
         return _super.call(this, __controller) || this;
     }
     NewWindowViewModel.prototype.initMembers = function () {
+        _super.prototype.initMembers.call(this);
     };
-    NewWindowViewModel.prototype.onCreate = function (elem) {
+    NewWindowViewModel.prototype.onCreate = function () {
         var _this = this;
         var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
         }
-        _super.prototype.onCreate.apply(this, __spreadArrays([elem], args));
-        var parent = elem.parentNode;
+        _super.prototype.onCreate.apply(this, args);
+        var config = args[0];
+        var parent = document.querySelector("#" + config.id).parentNode;
         parent.querySelector(".newWindow__control-box p i").onclick = function () {
             _this._controller.remove();
         };
@@ -4629,6 +4606,7 @@ var NewWindowViewModel = /** @class */ (function (_super) {
         $(".darken, .windows-container").css("left", "0");
     };
     NewWindowViewModel.prototype.onShow = function (elem) {
+        _super.prototype.onShow.call(this, elem);
     };
     return NewWindowViewModel;
 }(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));

@@ -1,6 +1,17 @@
 import {ViewModel} from "./ViewModel";
 import BaseController from "../controllers/BaseController";
 
+interface Config {
+    widht: string;
+    height: string;
+    parentId: string;
+    id: string;
+    zIndex: string;
+    path: string;
+    position: string;
+    display: string;
+}
+
 export class NewWindowViewModel extends ViewModel {
     
     constructor(__controller : BaseController) {
@@ -8,13 +19,14 @@ export class NewWindowViewModel extends ViewModel {
     }
 
     initMembers() {
-
+        super.initMembers();
     }
 
-    onCreate(elem?: HTMLElement, ...args: any[]) {
-        super.onCreate(elem, ...args);
-        
-        const parent = elem.parentNode;
+    onCreate(...args: any[]) {
+        super.onCreate(...args);
+        const config : Config = args[0]; 
+  
+        const parent = document.querySelector(`#${config.id}`).parentNode;
         (parent.querySelector(".newWindow__control-box p i") as HTMLElement).onclick = () => {
             this._controller.remove();  
         };
@@ -23,7 +35,7 @@ export class NewWindowViewModel extends ViewModel {
     }
 
     onShow(elem?: JQuery<HTMLElement>) {
-        
+        super.onShow(elem);
     }
 
 }

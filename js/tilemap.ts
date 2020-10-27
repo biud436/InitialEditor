@@ -355,7 +355,7 @@ export default class Tilemap extends Component {
      */
     isInCircle(centerX: number, centerY: number, x: number, y: number, r: number) {
         let dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
-        return (dist + 0.00004) < r;
+        return dist < r;
     }
 
     /**
@@ -506,12 +506,12 @@ export default class Tilemap extends Component {
                 // https://stackoverflow.com/a/46630005
                 {
                     const mouse: Mouse = args[0];
-                    if(mouse.dragTime >= 32) {
+                    if(mouse.dragTime >= 20) {
                         this.drawEllipse(
                             mouse.startX, 
                             mouse.startY, 
                             (mouse.x - mouse.startX) / this._tileWidth, 
-                            (mouse.y - mouse.startY) / this._tileHeight - 1);
+                            (mouse.y - mouse.startY) / this._tileHeight);
                     }
 
                 }

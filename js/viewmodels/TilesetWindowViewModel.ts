@@ -8,15 +8,11 @@ export class TilesetWindowViewModel extends ViewModel {
     }
 
     initMembers() {
-
-    }
-
-    onCreate(elem?: HTMLElement, ...args: any[]) {
-        super.onCreate(elem, ...args);
+        super.initMembers();
     }
 
     onShow(elem?: JQuery<HTMLElement>) {
-        
+        super.onShow(elem);
     }
 
     onOk(ev: any): void {
