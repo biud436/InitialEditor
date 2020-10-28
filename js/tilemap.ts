@@ -288,8 +288,8 @@ export default class Tilemap extends Component {
         let mask = 0x00;
         const bits = [
             this.getData(mapX + 0, mapY - 1, layerId) <= 0, // 북
-            this.getData(mapX + 1, mapY - 1, layerId) <= 0, // 동북
             this.getData(mapX + 1, mapY + 0, layerId) <= 0, // 동
+            this.getData(mapX + 1, mapY - 1, layerId) <= 0, // 동북
             this.getData(mapX + 1, mapY + 1, layerId) <= 0, // 동남
             this.getData(mapX + 0, mapY + 1, layerId) <= 0, // 남
             this.getData(mapX - 1, mapY + 1, layerId) <= 0, // 남서
@@ -506,7 +506,7 @@ export default class Tilemap extends Component {
                 // https://stackoverflow.com/a/46630005
                 {
                     const mouse: Mouse = args[0];
-                    if(mouse.dragTime >= 20) {
+                    if(mouse.dragTime >= 48) {
                         this.drawEllipse(
                             mouse.startX, 
                             mouse.startY, 
