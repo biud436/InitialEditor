@@ -2,6 +2,7 @@ import App from "./app";
 import {ToolbarManager} from "./toolbar/Toolbar";
 import {ElectronService} from "./ElectronService";
 
+// 소스 맵 지원을 위한 코드
 require('source-map-support').install();
 
 //==========================================================

@@ -1,3 +1,9 @@
+/**
+ * @class EventEmitter
+ * @description
+ * 이 클래스는 이벤트 큐를 위해 존재합니다.
+ * on 과 emit로 이벤트를 설정하거나 실행할 수 있습니다.
+ */
 class EventEmitter {
 
     protected _events: {[eventName: string]: Array<Function>};
@@ -21,6 +27,21 @@ class EventEmitter {
         this._events[name].push(lsn);
 
         return this;
+    }
+
+    /**
+     * 이벤트를 삭제합니다.
+     * 
+     * @param {String} name 
+     */
+    off(name: string) {
+        if(!this._events[name]) {
+            return;
+        }
+
+        if(name in this._events) {
+            delete this._events[name];
+        }
     }
 
     emit(name: string, ...args: any[]) {

@@ -13,6 +13,11 @@ interface Mouse {
     menuTarget: HTMLElement,
 };
 
+/**
+ * @class MenuComponent
+ * @description
+ * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
+ */
 class MenuComponent extends Component {
 
     public _isMenuOpen: boolean;
@@ -21,11 +26,16 @@ class MenuComponent extends Component {
 
     start(...args:any[]) {
         this._isMenuOpen = false;
+
+        // 툴바를 드래그 가능한 상태로 변경합니다.
         $(".toolbar").draggable({ snap: ".menu" });
+
+        // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
         $(".aside__tabs").resizable({
             containment: "#aside"
         });
 
+        // 툴바의 크기를 가져옵니다.
         const rect = $(".toolbar").get(0).getBoundingClientRect();
         this._originalPos = {
             x: rect.x,
