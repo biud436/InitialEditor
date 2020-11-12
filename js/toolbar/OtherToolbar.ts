@@ -6,7 +6,7 @@ const OtherToolbar = [
         name: "",
         children: "take-screenshot",
         action: (ev: any) =>  {
-            
+            $("#take-screenshot").trigger("click");
         },           
     },
     {

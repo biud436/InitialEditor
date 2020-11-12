@@ -1524,8 +1524,8 @@ var Tilemap = /** @class */ (function (_super) {
         var mask = 0x00;
         var bits = [
             this.getData(mapX + 0, mapY - 1, layerId) <= 0,
-            this.getData(mapX + 1, mapY - 1, layerId) <= 0,
             this.getData(mapX + 1, mapY + 0, layerId) <= 0,
+            this.getData(mapX + 1, mapY - 1, layerId) <= 0,
             this.getData(mapX + 1, mapY + 1, layerId) <= 0,
             this.getData(mapX + 0, mapY + 1, layerId) <= 0,
             this.getData(mapX - 1, mapY + 1, layerId) <= 0,
@@ -1708,7 +1708,7 @@ var Tilemap = /** @class */ (function (_super) {
                 // https://stackoverflow.com/a/46630005
                 {
                     var mouse = args[0];
-                    if (mouse.dragTime >= 20) {
+                    if (mouse.dragTime >= 48) {
                         this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
                     }
                 }
@@ -4196,6 +4196,7 @@ var OtherToolbar = [
         name: "",
         children: "take-screenshot",
         action: function (ev) {
+            $("#take-screenshot").trigger("click");
         },
     },
     {
