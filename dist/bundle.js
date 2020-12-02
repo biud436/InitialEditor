@@ -689,6 +689,15 @@ var ipcMain = __webpack_require__(/*! electron */ "electron").ipcMain;
 
 
 
+/**
+ * @class ElectronService
+ * @description
+ * 일렉트론과 IPC를 하기 위해 만든 클래스입니다.
+ *
+ * 다양한 플랫폼에서 동작할 수 있게 서비스 형태로 제공합니다.
+ *
+ * 조건 컴파일을 통하여 구현될 예정입니다.
+ */
 var ElectronService = /** @class */ (function (_super) {
     __extends(ElectronService, _super);
     function ElectronService() {
@@ -732,6 +741,12 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
             r[k] = a[j];
     return r;
 };
+/**
+ * @class EventEmitter
+ * @description
+ * 이 클래스는 이벤트 큐를 위해 존재합니다.
+ * on 과 emit로 이벤트를 설정하거나 실행할 수 있습니다.
+ */
 var EventEmitter = /** @class */ (function () {
     function EventEmitter() {
         this._events = {};
@@ -747,6 +762,19 @@ var EventEmitter = /** @class */ (function () {
         }
         this._events[name].push(lsn);
         return this;
+    };
+    /**
+     * 이벤트를 삭제합니다.
+     *
+     * @param {String} name
+     */
+    EventEmitter.prototype.off = function (name) {
+        if (!this._events[name]) {
+            return;
+        }
+        if (name in this._events) {
+            delete this._events[name];
+        }
     };
     EventEmitter.prototype.emit = function (name) {
         var args = [];
@@ -811,6 +839,11 @@ var __extends = (undefined && undefined.__extends) || (function () {
 })();
 
 ;
+/**
+ * @class MenuComponent
+ * @description
+ * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
+ */
 var MenuComponent = /** @class */ (function (_super) {
     __extends(MenuComponent, _super);
     function MenuComponent() {
@@ -822,10 +855,13 @@ var MenuComponent = /** @class */ (function (_super) {
             args[_i] = arguments[_i];
         }
         this._isMenuOpen = false;
+        // 툴바를 드래그 가능한 상태로 변경합니다.
         $(".toolbar").draggable({ snap: ".menu" });
+        // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
         $(".aside__tabs").resizable({
             containment: "#aside"
         });
+        // 툴바의 크기를 가져옵니다.
         var rect = $(".toolbar").get(0).getBoundingClientRect();
         this._originalPos = {
             x: rect.x,
@@ -3077,6 +3113,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
+// 소스 맵 지원을 위한 코드
 __webpack_require__(/*! source-map-support */ "./node_modules/source-map-support/source-map-support.js").install();
 //==========================================================
 // Main

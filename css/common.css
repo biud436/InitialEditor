@@ -8,6 +8,26 @@
     --dark-border-color: rgb(90, 90, 90);
 }
 
+[data-theme="dark"] {
+    --dark-title-color: rgb(60, 60, 60);
+    --dark-selection-color: rgb(80, 80, 80);
+    --dark-input-background-color: rgb(90, 90, 90);
+    --dark-input-text-color: rgb(194, 194, 194);
+    --dark-text-color: rgb(159, 159, 159);
+    --dark-shadow-color: rgb(40, 40, 40);
+    --dark-border-color: rgb(90, 90, 90);
+}
+
+[data-theme="light"] {
+    --dark-title-color: #DDDDDD;
+    --dark-selection-color: #C6C6C6;
+    --dark-input-background-color: #DDDDDD;
+    --dark-input-text-color: #000000;
+    --dark-text-color: #000000;
+    --dark-shadow-color: #F3F3F3;
+    --dark-border-color: #DDDDDD;
+}
+
 .container {
     width: 100%;
     height: 100%;
