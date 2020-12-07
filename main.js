@@ -22,6 +22,10 @@ function createWindow() {
     ipcMain.on('minimize', () => {
         win.minimize() ;
     });
+
+    win.webContents.once('dom-ready', () => {
+        win.webContents.send('change-theme');
+    });
     
     let restoreSize = [];
 

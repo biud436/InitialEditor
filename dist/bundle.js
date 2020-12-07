@@ -107,6 +107,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Rectangle__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Rectangle */ "./js/Rectangle.ts");
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./js/WindowCreator.ts");
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
+/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./js/ThemeManager.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -175,6 +176,7 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
 
 
 
+
 var App = /** @class */ (function (_super) {
     __extends(App, _super);
     function App() {
@@ -224,6 +226,19 @@ var App = /** @class */ (function (_super) {
         document.title = "Initial Map Editor";
         this.emit("ready", JSON.stringify(this));
         // 맵 설정 파일을 생성합니다.
+        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then(function (data) {
+            // @ts-ignore
+            var myEditorConfig = JSON.parse(data);
+            var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            if (myEditorConfig.Theme == 1) {
+                $("body").data("theme", "light");
+                themeManager.changeDarkTheme();
+            }
+            else {
+                $("body").data("theme", "dark");
+                themeManager.changeLightTheme();
+            }
+        });
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
         });
     };
@@ -1153,6 +1168,50 @@ var Rectangle = /** @class */ (function () {
     return Rectangle;
 }());
 /* harmony default export */ __webpack_exports__["default"] = (Rectangle);
+
+
+/***/ }),
+
+/***/ "./js/ThemeManager.ts":
+/*!****************************!*\
+  !*** ./js/ThemeManager.ts ***!
+  \****************************/
+/*! exports provided: ThemeManager */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThemeManager", function() { return ThemeManager; });
+var ThemeManager = /** @class */ (function () {
+    function ThemeManager() {
+    }
+    ThemeManager.prototype.set = function (key, value) {
+        // document.documentElement.style.setProperty(key, value);
+        $(':root').css(key, value);
+    };
+    ThemeManager.prototype.flush = function () {
+    };
+    ThemeManager.prototype.changeDarkTheme = function () {
+        this.set("--dark-title-color", "rgb(60, 60, 60)");
+        this.set("--dark-selection-color", "rgb(80, 80, 80)");
+        this.set("--dark-input-background-color", "rgb(90, 90, 90)");
+        this.set("--dark-input-text-color", "rgb(194, 194, 194)");
+        this.set("--dark-text-color", "rgb(159, 159, 159)");
+        this.set("--dark-shadow-color", "rgb(40, 40, 40)");
+        this.set("--dark-border-color", "rgb(90, 90, 90)");
+    };
+    ThemeManager.prototype.changeLightTheme = function () {
+        this.set("--dark-title-color", "#DDDDDD");
+        this.set("--dark-selection-color", "#C6C6C6");
+        this.set("--dark-input-background-color", "#DDDDDD");
+        this.set("--dark-input-text-color", "#000000");
+        this.set("--dark-text-color", "#000000");
+        this.set("--dark-shadow-color", "#F3F3F3");
+        this.set("--dark-border-color", "#DDDDDD");
+    };
+    return ThemeManager;
+}());
+
 
 
 /***/ }),
@@ -2206,6 +2265,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Rectangle__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Rectangle */ "./js/Rectangle.ts");
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./js/WindowCreator.ts");
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
+/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./js/ThemeManager.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -2274,6 +2334,7 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
 
 
 
+
 var App = /** @class */ (function (_super) {
     __extends(App, _super);
     function App() {
@@ -2323,6 +2384,19 @@ var App = /** @class */ (function (_super) {
         document.title = "Initial Map Editor";
         this.emit("ready", JSON.stringify(this));
         // 맵 설정 파일을 생성합니다.
+        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then(function (data) {
+            // @ts-ignore
+            var myEditorConfig = JSON.parse(data);
+            var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            if (myEditorConfig.Theme == 1) {
+                $("body").data("theme", "light");
+                themeManager.changeDarkTheme();
+            }
+            else {
+                $("body").data("theme", "dark");
+                themeManager.changeLightTheme();
+            }
+        });
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
         });
     };
@@ -2990,6 +3064,7 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
 /* harmony import */ var _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../viewmodels/TilesetWindowViewModel */ "./js/viewmodels/TilesetWindowViewModel.ts");
+/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ThemeManager */ "./js/ThemeManager.ts");
 var __extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -3005,6 +3080,13 @@ var __extends = (undefined && undefined.__extends) || (function () {
 })();
 
 
+
+var Theme;
+(function (Theme) {
+    Theme[Theme["DARK"] = 0] = "DARK";
+    Theme[Theme["LIGHT"] = 1] = "LIGHT";
+})(Theme || (Theme = {}));
+;
 /**
  * @author Eo Jinseok
  * @class Renderer
@@ -3047,6 +3129,16 @@ var TilesetWindowController = /** @class */ (function (_super) {
         this.show();
     };
     TilesetWindowController.prototype.onOk = function (ev) {
+        var themeIndex = $("#theme-select-box").prop("selectedIndex");
+        var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_2__["ThemeManager"]();
+        if (themeIndex == Theme.DARK) {
+            $("body").data("theme", "dark");
+            themeManager.changeDarkTheme();
+        }
+        else {
+            $("body").data("theme", "light");
+            themeManager.changeLightTheme();
+        }
         this._view.onOk(ev);
     };
     TilesetWindowController.prototype.onCancel = function (ev) {
@@ -3731,6 +3823,12 @@ var __extends = (undefined && undefined.__extends) || (function () {
     };
 })();
 
+var Theme;
+(function (Theme) {
+    Theme[Theme["DARK"] = 0] = "DARK";
+    Theme[Theme["LIGHT"] = 1] = "LIGHT";
+})(Theme || (Theme = {}));
+;
 var EditorSchema = /** @class */ (function (_super) {
     __extends(EditorSchema, _super);
     function EditorSchema() {
@@ -3744,6 +3842,7 @@ var EditorSchema = /** @class */ (function (_super) {
         this.StartMapId = 1;
         this.CurrentMapId = 1;
         this.LayerCount = 4;
+        this.Theme = Theme.LIGHT;
     };
     return EditorSchema;
 }(_Schema__WEBPACK_IMPORTED_MODULE_0__["Schema"]));
@@ -3776,6 +3875,20 @@ var Schema = /** @class */ (function () {
      */
     Schema.prototype.toJson = function () {
         return JSON.stringify(this, null, "    ");
+    };
+    Schema.prototype.load = function (filename) {
+        if (!filename) {
+            filename = this.constructor.name;
+        }
+        return new Promise(function (resolve, reject) {
+            fs__WEBPACK_IMPORTED_MODULE_0__["readFile"](filename, "utf-8", function (err, data) {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(data);
+            });
+        });
     };
     /**
      * 파일로 내보냅니다 (비동기 방식)

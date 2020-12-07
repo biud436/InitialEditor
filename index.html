@@ -10,6 +10,14 @@
     <link rel="stylesheet" href="./css/main.css">
     <script>
 
+        // 메시지를 받습니다.
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.on("change-theme", () => {
+            const theme = $("<theme>").data("theme","light");
+            
+            $("body").append(theme);
+        });
+
         let platform = "";
         let devmode = true;
 

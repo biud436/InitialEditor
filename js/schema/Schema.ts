@@ -16,6 +16,22 @@ class Schema {
         return JSON.stringify(this, null, "    ");
     }
 
+    load(filename? :string) {
+        if(!filename) {
+            filename = this.constructor.name;
+        }
+
+        return new Promise((resolve, reject) => {
+            fs.readFile(filename, "utf-8", (err, data) => {
+                if(err) {
+                    reject(err);
+                    return;
+                }
+                resolve(data);
+            });
+        });
+    }
+
     /**
      * 파일로 내보냅니다 (비동기 방식)
      * 

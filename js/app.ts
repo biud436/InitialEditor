@@ -15,6 +15,7 @@ import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
 import {ElectronService} from "./ElectronService";
 import {EditorSchema} from "./schema/EditorSchema";
 import {Mouse} from "./Mouse";
+import { ThemeManager } from "./ThemeManager";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -104,6 +105,20 @@ export default class App extends EventEmitter {
         this.emit("ready", JSON.stringify(this));
 
         // 맵 설정 파일을 생성합니다.
+        new EditorSchema(this._config).load("./editor.json").then(data => {
+            // @ts-ignore
+            const myEditorConfig : EditorSchema = JSON.parse(data);
+            const themeManager = new ThemeManager();
+
+            if(myEditorConfig.Theme == 1) {
+                $("body").data("theme", "light");
+                themeManager.changeDarkTheme();
+            } else {
+                $("body").data("theme", "dark");
+                themeManager.changeLightTheme();
+            }
+            
+        })
         new EditorSchema(this._config).toFile("./editor.json").then(ret => {
         })
 

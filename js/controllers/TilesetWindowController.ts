@@ -2,6 +2,12 @@ import {TilesetWindowModel} from "../models/TilesetWindow";
 import BaseController from "./BaseController";
 import {TilesetWindowViewModel} from "../viewmodels/TilesetWindowViewModel";
 import App from "../app.js";
+import { ThemeManager } from "../ThemeManager";
+
+enum Theme {
+    DARK = 0,
+    LIGHT = 1
+};
 
 /**
  * @author Eo Jinseok
@@ -54,6 +60,19 @@ export default class TilesetWindowController extends BaseController {
     }   
     
     onOk(ev: any): void {
+        
+        const themeIndex = $("#theme-select-box").prop("selectedIndex");
+
+        const themeManager = new ThemeManager();
+
+        if(themeIndex == Theme.DARK) {
+            $("body").data("theme", "dark");
+            themeManager.changeDarkTheme();
+        } else {
+            $("body").data("theme", "light");
+            themeManager.changeLightTheme();
+        }
+
         this._view.onOk(ev);
     }
 
