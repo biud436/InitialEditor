@@ -231,6 +231,7 @@ var App = /** @class */ (function (_super) {
             // @ts-ignore
             var myEditorConfig = JSON.parse(data);
             var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            //@ts-ignore
             if (myEditorConfig.Theme == 1) {
                 $("body").data("theme", "light");
                 themeManager.changeLightTheme();
@@ -241,14 +242,14 @@ var App = /** @class */ (function (_super) {
             }
         });
         this.on("save-config", function (extraConfig) {
-            var myConfig = Object.assign({}, _this._config);
-            myConfig = Object.assign(myConfig, extraConfig);
+            var myConfig = Object.assign(_this._config.Editor, extraConfig);
+            _this._config.Editor = myConfig;
             new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then(function (ret) {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
-        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
-        });
+        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
+        // });
     };
     /**
      * 컴포넌트를 생성합니다.
@@ -2408,6 +2409,7 @@ var App = /** @class */ (function (_super) {
             // @ts-ignore
             var myEditorConfig = JSON.parse(data);
             var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            //@ts-ignore
             if (myEditorConfig.Theme == 1) {
                 $("body").data("theme", "light");
                 themeManager.changeLightTheme();
@@ -2418,14 +2420,14 @@ var App = /** @class */ (function (_super) {
             }
         });
         this.on("save-config", function (extraConfig) {
-            var myConfig = Object.assign({}, _this._config);
-            myConfig = Object.assign(myConfig, extraConfig);
+            var myConfig = Object.assign(_this._config.Editor, extraConfig);
+            _this._config.Editor = myConfig;
             new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then(function (ret) {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
-        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
-        });
+        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
+        // });
     };
     /**
      * 컴포넌트를 생성합니다.
@@ -3869,7 +3871,8 @@ var EditorSchema = /** @class */ (function (_super) {
         this.StartMapId = 1;
         this.CurrentMapId = 1;
         this.LayerCount = 4;
-        this.Theme = Theme.LIGHT;
+        this.Theme = Theme.DARK;
+        Object.assign(this, config);
     };
     return EditorSchema;
 }(_Schema__WEBPACK_IMPORTED_MODULE_0__["Schema"]));

@@ -23,7 +23,9 @@ class EditorSchema extends Schema {
         this.StartMapId = 1;
         this.CurrentMapId = 1;
         this.LayerCount = 4;
-        this.Theme = Theme.LIGHT;
+        this.Theme = Theme.DARK;
+
+        Object.assign(this, config);
     }
 }
 

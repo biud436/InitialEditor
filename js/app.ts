@@ -110,6 +110,7 @@ export default class App extends EventEmitter {
             const myEditorConfig : EditorSchema = JSON.parse(data);
             const themeManager = new ThemeManager();
 
+            //@ts-ignore
             if(myEditorConfig.Theme == 1) {
                 $("body").data("theme", "light");
                 themeManager.changeLightTheme();
@@ -121,16 +122,16 @@ export default class App extends EventEmitter {
         });
 
         this.on("save-config", (extraConfig: any) => {
-            let myConfig = Object.assign({}, this._config);
-            myConfig = Object.assign(myConfig, extraConfig);
+            let myConfig = Object.assign(this._config.Editor, extraConfig);
+            this._config.Editor = myConfig;
 
             new EditorSchema(myConfig).toFile("./editor.json").then(ret => {
                 alert("설정 변경이 완료되었습니다.");
             });            
         });
 
-        new EditorSchema(this._config).toFile("./editor.json").then(ret => {
-        });
+        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
+        // });
 
     }
 
