@@ -506,14 +506,13 @@ export default class Tilemap extends Component {
                 // https://stackoverflow.com/a/46630005
                 {
                     const mouse: Mouse = args[0];
-                    if(mouse.dragTime >= 48) {
+                    if(mouse.dragTime >= 8) {
                         this.drawEllipse(
                             mouse.startX, 
                             mouse.startY, 
                             (mouse.x - mouse.startX) / this._tileWidth, 
                             (mouse.y - mouse.startY) / this._tileHeight);
                     }
-
                 }
                 break;                
             case PenType.FLOOD_FILL:

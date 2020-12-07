@@ -105,7 +105,6 @@ export default class App extends EventEmitter {
 
         // 맵 설정 파일을 생성합니다.
         new EditorSchema(this._config).toFile("./editor.json").then(ret => {
-            alert("완료");
         })
 
     }

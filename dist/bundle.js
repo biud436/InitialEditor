@@ -225,7 +225,6 @@ var App = /** @class */ (function (_super) {
         this.emit("ready", JSON.stringify(this));
         // 맵 설정 파일을 생성합니다.
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
-            alert("완료");
         });
     };
     /**
@@ -1744,7 +1743,7 @@ var Tilemap = /** @class */ (function (_super) {
                 // https://stackoverflow.com/a/46630005
                 {
                     var mouse = args[0];
-                    if (mouse.dragTime >= 48) {
+                    if (mouse.dragTime >= 8) {
                         this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
                     }
                 }
@@ -2325,7 +2324,6 @@ var App = /** @class */ (function (_super) {
         this.emit("ready", JSON.stringify(this));
         // 맵 설정 파일을 생성합니다.
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
-            alert("완료");
         });
     };
     /**
