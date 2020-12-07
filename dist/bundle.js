@@ -186,6 +186,7 @@ var App = /** @class */ (function (_super) {
      * 멤버 변수를 초기화합니다.
      */
     App.prototype.initMembers = function () {
+        var _this = this;
         this.cache = {};
         this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
         this._mouse = {
@@ -232,12 +233,19 @@ var App = /** @class */ (function (_super) {
             var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             if (myEditorConfig.Theme == 1) {
                 $("body").data("theme", "light");
-                themeManager.changeDarkTheme();
+                themeManager.changeLightTheme();
             }
             else {
                 $("body").data("theme", "dark");
-                themeManager.changeLightTheme();
+                themeManager.changeDarkTheme();
             }
+        });
+        this.on("save-config", function (extraConfig) {
+            var myConfig = Object.assign({}, _this._config);
+            myConfig = Object.assign(myConfig, extraConfig);
+            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then(function (ret) {
+                alert("설정 변경이 완료되었습니다.");
+            });
         });
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
         });
@@ -1189,9 +1197,13 @@ var ThemeManager = /** @class */ (function () {
         // document.documentElement.style.setProperty(key, value);
         $(':root').css(key, value);
     };
-    ThemeManager.prototype.flush = function () {
+    ThemeManager.prototype.flush = function (theme) {
+        window.app.emit("save-config", {
+            Theme: theme
+        });
     };
-    ThemeManager.prototype.changeDarkTheme = function () {
+    ThemeManager.prototype.changeDarkTheme = function (isOption) {
+        if (isOption === void 0) { isOption = false; }
         this.set("--dark-title-color", "rgb(60, 60, 60)");
         this.set("--dark-selection-color", "rgb(80, 80, 80)");
         this.set("--dark-input-background-color", "rgb(90, 90, 90)");
@@ -1199,8 +1211,12 @@ var ThemeManager = /** @class */ (function () {
         this.set("--dark-text-color", "rgb(159, 159, 159)");
         this.set("--dark-shadow-color", "rgb(40, 40, 40)");
         this.set("--dark-border-color", "rgb(90, 90, 90)");
+        if (isOption) {
+            this.flush(0);
+        }
     };
-    ThemeManager.prototype.changeLightTheme = function () {
+    ThemeManager.prototype.changeLightTheme = function (isOption) {
+        if (isOption === void 0) { isOption = false; }
         this.set("--dark-title-color", "#DDDDDD");
         this.set("--dark-selection-color", "#C6C6C6");
         this.set("--dark-input-background-color", "#DDDDDD");
@@ -1208,6 +1224,9 @@ var ThemeManager = /** @class */ (function () {
         this.set("--dark-text-color", "#000000");
         this.set("--dark-shadow-color", "#F3F3F3");
         this.set("--dark-border-color", "#DDDDDD");
+        if (isOption) {
+            this.flush(1);
+        }
     };
     return ThemeManager;
 }());
@@ -2344,6 +2363,7 @@ var App = /** @class */ (function (_super) {
      * 멤버 변수를 초기화합니다.
      */
     App.prototype.initMembers = function () {
+        var _this = this;
         this.cache = {};
         this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
         this._mouse = {
@@ -2390,12 +2410,19 @@ var App = /** @class */ (function (_super) {
             var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             if (myEditorConfig.Theme == 1) {
                 $("body").data("theme", "light");
-                themeManager.changeDarkTheme();
+                themeManager.changeLightTheme();
             }
             else {
                 $("body").data("theme", "dark");
-                themeManager.changeLightTheme();
+                themeManager.changeDarkTheme();
             }
+        });
+        this.on("save-config", function (extraConfig) {
+            var myConfig = Object.assign({}, _this._config);
+            myConfig = Object.assign(myConfig, extraConfig);
+            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then(function (ret) {
+                alert("설정 변경이 완료되었습니다.");
+            });
         });
         new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).toFile("./editor.json").then(function (ret) {
         });
@@ -3133,11 +3160,11 @@ var TilesetWindowController = /** @class */ (function (_super) {
         var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_2__["ThemeManager"]();
         if (themeIndex == Theme.DARK) {
             $("body").data("theme", "dark");
-            themeManager.changeDarkTheme();
+            themeManager.changeDarkTheme(true);
         }
         else {
             $("body").data("theme", "light");
-            themeManager.changeLightTheme();
+            themeManager.changeLightTheme(true);
         }
         this._view.onOk(ev);
     };

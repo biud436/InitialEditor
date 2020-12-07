@@ -112,15 +112,25 @@ export default class App extends EventEmitter {
 
             if(myEditorConfig.Theme == 1) {
                 $("body").data("theme", "light");
-                themeManager.changeDarkTheme();
+                themeManager.changeLightTheme();
             } else {
                 $("body").data("theme", "dark");
-                themeManager.changeLightTheme();
+                themeManager.changeDarkTheme();
             }
             
-        })
+        });
+
+        this.on("save-config", (extraConfig: any) => {
+            let myConfig = Object.assign({}, this._config);
+            myConfig = Object.assign(myConfig, extraConfig);
+
+            new EditorSchema(myConfig).toFile("./editor.json").then(ret => {
+                alert("설정 변경이 완료되었습니다.");
+            });            
+        });
+
         new EditorSchema(this._config).toFile("./editor.json").then(ret => {
-        })
+        });
 
     }
 

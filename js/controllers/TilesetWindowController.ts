@@ -67,10 +67,10 @@ export default class TilesetWindowController extends BaseController {
 
         if(themeIndex == Theme.DARK) {
             $("body").data("theme", "dark");
-            themeManager.changeDarkTheme();
+            themeManager.changeDarkTheme(true);
         } else {
             $("body").data("theme", "light");
-            themeManager.changeLightTheme();
+            themeManager.changeLightTheme(true);
         }
 
         this._view.onOk(ev);
