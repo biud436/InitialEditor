@@ -5,5 +5,5 @@ CREATE TABLE `tblTilemap` (
 )
 COLLATE='utf8mb4_general_ci'
 ENGINE=InnoDB
-AUTO_INCREMENT=2
+AUTO_INCREMENT=1
 ;;
