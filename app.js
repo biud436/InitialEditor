@@ -2,13 +2,16 @@ const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const logger = require('morgan');
+const compression = require('compression');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
 const { sequelize } = require("./models");
 const cors = require("cors");
+const timeout = require('connect-timeout')
 
 const app = express();
 
@@ -23,13 +26,16 @@ app.set('view engine', 'ejs');
 //     console.error(err);
 //   });
 
+app.use(timeout('5s'));
 app.use(cors());
 app.options('*', cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(compression());
+app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
