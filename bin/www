@@ -5,29 +5,38 @@
  */
 
 var app = require('../app');
+var fs = require('fs');
 var debug = require('debug')('initialeditor:server');
 var http = require('http');
-
+var https = require('https');
 /**
- * Get port from environment and store in Express.
+ * Get ports from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '9000');
-app.set('port', port);
+var http_port = normalizePort(process.env.PORT || '9000');
+var https_port = normalizePort(process.env.HTTPS_PORT || '9001');
 
 /**
- * Create HTTP server.
+ * Create HTTPS & HTTP servers.
  */
 
-var server = http.createServer(app);
+var http_server = http.createServer(app);
+
+var https_server = https.createServer({
+  key: fs.readFileSync('/etc/letsencrypt/live/biud436.xyz/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/biud436.xyz/fullchain.pem')
+}, app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
+http_server.listen(http_port);
+http_server.on('error', onError);
+http_server.on('listening', onListening);
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+https_server.listen(https_port);
+https_server.on('error', onErrorHttps);
+https_server.on('listening', onListeningHttps);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -50,7 +59,7 @@ function normalizePort(val) {
 }
 
 /**
- * Event listener for HTTP server "error" event.
+ * Event listener for HTTP & HTTPS servers "error" event.
  */
 
 function onError(error) {
@@ -58,9 +67,33 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  var bind = typeof http_port === 'string'
+    ? 'Pipe ' + http_port
+    : 'Port ' + http_port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+function onErrorHttps(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof https_port === 'string'
+    ? 'Pipe ' + https_port
+    : 'Port ' + https_port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
@@ -78,11 +111,19 @@ function onError(error) {
 }
 
 /**
- * Event listener for HTTP server "listening" event.
+ * Event listener for HTTP & HTTPS server "listening" event.
  */
 
 function onListening() {
-  var addr = server.address();
+  var addr = http_server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+function onListeningHttps() {
+  var addr = https_server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
