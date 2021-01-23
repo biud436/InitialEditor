@@ -52,7 +52,6 @@ export default class TilesetWindowController extends BaseController {
              * @type {File[]}
              */
             const files = Array.from(ev.target.files);
-            console.log(files[0].name, files[0].path);
 
         })
 
