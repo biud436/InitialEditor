@@ -14,7 +14,7 @@ var https = require('https');
  */
 
 var http_port = normalizePort(process.env.PORT || '9000');
-var https_port = normalizePort(process.env.HTTPS_PORT || '9001');
+// var https_port = normalizePort(process.env.HTTPS_PORT || '9001');
 
 /**
  * Create HTTPS & HTTP servers.
@@ -22,10 +22,10 @@ var https_port = normalizePort(process.env.HTTPS_PORT || '9001');
 
 var http_server = http.createServer(app);
 
-var https_server = https.createServer({
-  key: fs.readFileSync('/etc/letsencrypt/live/biud436.xyz/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/biud436.xyz/fullchain.pem')
-}, app);
+// var https_server = https.createServer({
+//   key: fs.readFileSync('/etc/letsencrypt/live/biud436.xyz/privkey.pem'),
+//   cert: fs.readFileSync('/etc/letsencrypt/live/biud436.xyz/fullchain.pem')
+// }, app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -34,9 +34,9 @@ http_server.listen(http_port);
 http_server.on('error', onError);
 http_server.on('listening', onListening);
 
-https_server.listen(https_port);
-https_server.on('error', onErrorHttps);
-https_server.on('listening', onListeningHttps);
+// https_server.listen(https_port);
+// https_server.on('error', onErrorHttps);
+// https_server.on('listening', onListeningHttps);
 
 /**
  * Normalize a port into a number, string, or false.
