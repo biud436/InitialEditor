@@ -16,11 +16,11 @@ const timeout = require('connect-timeout')
 const app = express();
 
 // view engine setup
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-
 app.use(cors());
 app.options('*', cors());
+
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 
 app.use(express.static(__dirname + "/public"));
 app.use(bodyParser.urlencoded({ extended: true }));
