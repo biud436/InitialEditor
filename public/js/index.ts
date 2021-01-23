@@ -1,9 +1,9 @@
 import App from "./app";
 import {ToolbarManager} from "./toolbar/Toolbar";
-import {ElectronService} from "./ElectronService";
+// import {ElectronService} from "./ElectronService";
 
 // 소스 맵 지원을 위한 코드
-require('source-map-support').install();
+// require('source-map-support').install();
 
 //==========================================================
 // Main
@@ -12,7 +12,7 @@ class Main {
     static start() {
         $(async () => {
             window.app = App.GetInstance();
-            window.electronService = new ElectronService();
+            // window.electronService = new ElectronService();
             window.ToolbarManager = new ToolbarManager();            
             window.app.start();
             this.update(1.0);

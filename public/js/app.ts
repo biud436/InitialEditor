@@ -12,7 +12,7 @@ import MenuService from "./MenuService";
 import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
 import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
-import {ElectronService} from "./ElectronService";
+// import {ElectronService} from "./ElectronService";
 import {EditorSchema} from "./schema/EditorSchema";
 import {Mouse} from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
@@ -100,7 +100,7 @@ export default class App extends EventEmitter {
         this._isReady = false;
 
         // 타이틀을 변경합니다.
-        document.title = "Initial Map Editor";
+        document.title = "Initial Editor";
 
         this.emit("ready", JSON.stringify(this));
 

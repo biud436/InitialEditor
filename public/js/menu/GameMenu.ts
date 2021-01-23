@@ -1,5 +1,5 @@
 import { WindowCreator } from "../WindowCreator";
-import { ElectronService } from "../ElectronService";
+// import { ElectronService } from "../ElectronService";
 
 const GameMenu = {
     name: "게임",
@@ -30,8 +30,8 @@ const GameMenu = {
             action: (ev: any) =>  {
                 // @ts-ignore
                 if(platform === "electron") {
-                    const service = new ElectronService();
-                    service.openFolder(location.href);
+                    // const service = new ElectronService();
+                    // service.openFolder(location.href);
                 }
             },                      
         },

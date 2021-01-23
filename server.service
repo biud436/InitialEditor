@@ -1,0 +1,16 @@
+[Unit]
+Description=Initial Editor Server
+Requires=After=mysql.service
+
+[Service]
+ExecStart=npx nodemon /home/ubuntu/InitialEditor/app.js
+
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=initial-editor-server
+
+[Install]
+WantedBy=multi-user.target
+

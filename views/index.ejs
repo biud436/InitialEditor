@@ -4,21 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title><%= title %></title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap" rel="stylesheet">    
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
-    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="/css/main.css">
     <script>
-
-        // 메시지를 받습니다.
-        const { ipcRenderer } = require('electron');
-        const settings = require("./editor.json");
-        ipcRenderer.on("change-theme", () => {
-            const theme = $("<theme>").data("theme",settings.Theme);
-            
-            $("body").append(theme);
-        });
-
         let platform = "";
         let devmode = true;
 
@@ -49,6 +40,11 @@
             window.require = function() {
                 
             }
+
+            const theme = document.createElement("theme");
+            theme.setAttribute("data-theme", 0);
+
+            document.body.appendChild(theme);
             
             (async function() {
                 
@@ -59,7 +55,18 @@
                 })();
 
             })();
+            
         } else {
+
+            // 메시지를 받습니다.
+            const { ipcRenderer } = require('electron');
+            const settings = require("./editor.json");
+            ipcRenderer.on("change-theme", () => {
+                const theme = $("<theme>").data("theme",settings.Theme);
+                
+                $("body").append(theme);
+            });
+
             (async function() {
                 window.$ = window.jQuery = require('./libs/jquery-3.5.1.js');
                 loadScript("./dist/bundle.js").then(script => {
@@ -68,13 +75,12 @@
                     console.warn(err);
                 })
             })();
-        }
+        }  
 
     </script>
-    <link rel="stylesheet" href="./css/jquery-ui.min.css">
-    <!-- <script src="./libs/jquery-3.5.1.js"></script> -->
-    <script src="./libs/jquery-ui.min.js"></script>
-    <script src="./libs/pixi.js"></script>
+    <link rel="stylesheet" href="/css/jquery-ui.min.css">
+    <script src="/libs/jquery-ui.min.js"></script>
+    <script src="/libs/pixi.js"></script>
 </head>
 
 <body data-theme="dark">
@@ -269,7 +275,7 @@
     <div class="darken"></div>
     <div class="windows-container"></div>    
     <!-- <script type="module" src="./js/main.js"></script> -->
-    <script src="./dist/bundle.js"></script>
+    <script src="/dist/bundle.js"></script>
 </body>
 
 </html>
