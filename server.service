@@ -3,7 +3,7 @@ Description=Initial Editor Server
 Requires=After=mysql.service
 
 [Service]
-ExecStart=npx nodemon /home/ubuntu/InitialEditor/app.js
+ExecStart=npx nodemon /home/ubuntu/InitialEditor/bin/www
 
 Restart=always
 RestartSec=10
