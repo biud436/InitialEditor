@@ -18,6 +18,9 @@ const timeout = require('connect-timeout')
 const app = express();
 
 app.use(function (req, res, next) {
+  // if(req.protocol === "http") {
+
+  // }
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
