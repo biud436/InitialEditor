@@ -23,7 +23,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.use(express.static(__dirname + "/public"));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // sequelize.sync( {force: false} )
 //   .then(() => {
@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //     console.error(err);
 //   });
 
-app.use(timeout('5s'));
+// app.use(timeout('5s'));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
