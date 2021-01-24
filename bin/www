@@ -13,8 +13,8 @@ var https = require('https');
  * Get ports from environment and store in Express.
  */
 
-var http_port = normalizePort(process.env.PORT || '9000');
-var https_port = normalizePort(process.env.HTTPS_PORT || '9001');
+var http_port = normalizePort('9000');
+var https_port = normalizePort('9001');
 
 /**
  * Create HTTPS & HTTP servers.
