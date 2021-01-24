@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const logger = require('morgan');
 const compression = require('compression');
 
+const todoRouter = require('./routes/todo');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
@@ -36,8 +37,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+app.use('*', todoRouter);
 app.use('/', indexRouter);
-// app.use('/users', usersRouter);
+app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
