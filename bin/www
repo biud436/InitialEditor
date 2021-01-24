@@ -9,10 +9,10 @@ var fs = require('fs');
 var debug = require('debug')('initialeditor:server');
 var http = require('http');
 var https = require('https');
+
 /**
  * Get ports from environment and store in Express.
  */
-
 var http_port = normalizePort('9000');
 var https_port = normalizePort('9001');
 
