@@ -42,7 +42,9 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 
-app.use("*", todoRouter);
+app.use(cors());
+
+// app.use("*", todoRouter);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
