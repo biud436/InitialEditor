@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const compression = require('compression');
+const cors = require("cors");
 
 const todoRouter = require('./routes/todo');
 const indexRouter = require('./routes/index');
@@ -16,6 +17,8 @@ const {
 const timeout = require('connect-timeout')
 
 const app = express();
+
+app.use(cors());
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -39,7 +42,6 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 
-app.use('*', todoRouter);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
