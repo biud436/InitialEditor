@@ -17,7 +17,7 @@ const timeout = require('connect-timeout')
 
 const app = express();
 
-app.use(function (req, res, next) {
+app.use("*", function (req, res, next) {
   // if(req.protocol === "http") {
 
   // }
