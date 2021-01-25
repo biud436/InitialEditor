@@ -57,6 +57,7 @@
     "mysql2": "^2.2.5",
     "pixi.js": "^5.3.3",
     "sequelize": "^6.4.0",
-    "sequelize-cli": "^6.2.0"
+    "sequelize-cli": "^6.2.0",
+    "serve-static": "^1.14.1"
   }
 }
