@@ -25,7 +25,7 @@ app.set('view engine', 'ejs');
 
 // view engine setup
 app.use(express.static(__dirname + "/public"));
-// app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // sequelize.sync( {force: false} )
 //   .then(() => {
