@@ -18,7 +18,7 @@ const timeout = require('connect-timeout')
 
 const app = express();
 
-app.use(cors());
+// app.use(cors());
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -42,6 +42,7 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 
+app.use("*", todoRouter);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
