@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스크립트 에디터</title>
+    <script>
+        var require = { paths: { 'vs': 'node_modules/monaco-editor/min/vs' } };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.1/min/vs/loader.js" integrity="sha512-edyWTPergmE+5su85KhbmdlcKLYmYE5YvxnD9lOlEBeFJdTb371Y5KYj/eHov8TfqqjeqqsU1x6wMYS0WrfAPA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.1/min/vs/editor/editor.main.nls.ko.js" integrity="sha512-drlmFSTonqvcaooxdZXFoNQE6nKKyJfm6a2S2ZJ/u5F+gkJ1gPslFjOeEPCcuirLlyFmLuQqc8+hULaPyj5+fA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.22.1/min/vs/editor/editor.main.js" integrity="sha512-z4Z0bJkjfG6rGR7VuMsgAd74YWkqtPwFOp9/QH5x55gsISFpBDqo4ZnjnRSZrhWZuX/hMaucg53C83hHY5ZEkA==" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="script-container" style="height:100%;"></div>
+    <script type="module" src="/js/scriptEditor.js"></script>
+</body>
+</html>
