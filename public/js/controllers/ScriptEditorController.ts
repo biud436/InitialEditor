@@ -10,12 +10,21 @@ interface ScriptEditorConfig {
 }
 
 export default class ScriptEditorController extends BaseController {
+
+    private _isReady: boolean;
+
     /**
      * @param {GamePropertiesWindow} config
      */
     constructor(config: any) {
         super( config );
         this.create();
+    }
+
+    initMembers(config: any) {
+        super.initMembers(config);
+        
+        this._isReady = false;
     }
 
     /**
@@ -36,10 +45,11 @@ export default class ScriptEditorController extends BaseController {
             const script = document.createElement("script");
             script.crossOrigin = 'anonymous';
             script.src = src;
-            script.onload = function() {
+            script.onload = () => {
                 const isMaxCount = pendingCount() >= urls.length - 1;
                 if( isMaxCount ) {
                     alert("React.js 스크립트 동적 바인드가 완료되었습니다.");
+                    this._isReady = true;
                 }
             };
 
