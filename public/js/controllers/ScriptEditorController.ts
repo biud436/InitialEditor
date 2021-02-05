@@ -1,3 +1,5 @@
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { EventEmitter } from "../EventEmitter";
 import BaseController from "./BaseController";
 
@@ -68,7 +70,7 @@ export default class ScriptEditorController extends BaseController {
                     this._isReady = true;
 
                     // 스크립트 로드 완료 이벤트 호출
-                    this.listeners.emit("ready");
+                    this.listeners.emit("ready", domContainer);
                 }
             };
 
@@ -76,8 +78,10 @@ export default class ScriptEditorController extends BaseController {
         });
     }
 
-    onReactLoad() {
+    onReactLoad(domContainer: HTMLDivElement) {
         alert("React.js 스크립트 동적 바인드가 완료되었습니다.");
+
+        ReactDOM.render(e(LikeButton), domContainer);
     }
 
     /**
@@ -118,4 +122,35 @@ export default class ScriptEditorController extends BaseController {
         });
     }
 
+}
+
+const e = React.createElement;
+
+class LikeButton extends React.Component {
+
+    public state: {
+        liked: boolean
+    };
+
+    constructor(props: any) {
+        super(props);
+        this.state = {
+            liked: false
+        };
+    }
+
+    render() {
+        if (this.state.liked) {
+            return 'You liked this.';
+        }
+
+        return e(
+            'button', {
+                onClick: () => this.setState({
+                    liked: true
+                })
+            },
+            'Like'
+        );
+    }
 }
