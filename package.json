@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "snowpack dev",
+    "build": "snowpack build"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
     "file-loader": "^6.1.0",
     "nodemon": "^2.0.7",
     "sass": "^1.29.0",
+    "snowpack": "^3.0.11",
     "source-map-loader": "^1.1.1",
     "source-map-support": "^0.5.19",
     "style-loader": "^1.2.1",
