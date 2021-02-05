@@ -10,7 +10,6 @@ const cors = require("cors");
 const todoRouter = require('./routes/todo');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const scriptRouter = require('./routes/scriptEditor');
 
 const {
   sequelize
@@ -48,6 +47,5 @@ app.use(cors());
 // app.use("*", todoRouter);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use("/scriptEditor", scriptRouter);
 
 module.exports = app;
