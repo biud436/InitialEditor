@@ -36,7 +36,7 @@ const electronTarget = {
 };
 
 const electronTypeTarget = {
-  mode: "production", // none' | 'development' | 'production'
+  mode: "development", // none' | 'development' | 'production'
   entry: `./js/index.ts`,
   output: {
     path: path.resolve(__dirname, 'dist'),
