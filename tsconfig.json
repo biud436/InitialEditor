@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "outDir": "./dist/",
+        "outDir": "./public/dist/",
         "noImplicitAny": true,
         "module": "es6",
         "target": "es5",
@@ -8,6 +8,13 @@
         "sourceMap": true,
         // "emitDeclarationOnly": true,
         // "declaration": true,
-        "moduleResolution": "node"
-    }
+        "moduleResolution": "node",
+        "baseUrl": "./public",
+        "paths": {
+            "~/*": ["./*"]
+        },        
+        "typeRoots": ["node_modules/@types"],
+
+    },
+    "include": ["public/js/**/*"]
 }

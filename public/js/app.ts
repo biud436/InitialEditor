@@ -16,6 +16,7 @@ import {Toolbar, ToolbarManager} from "./toolbar/Toolbar";
 import {EditorSchema} from "./schema/EditorSchema";
 import {Mouse} from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
+import ScriptEditorController from "./controllers/ScriptEditorController";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -55,7 +56,10 @@ export default class App extends EventEmitter {
     private _components: Component[];
     private _menu: MenuComponent;
     private _menuController: MenuService;  
-    private _tilesetCanvas: TilesetCanvas;       
+    private _tilesetCanvas: TilesetCanvas;     
+    
+    // 테스트 창 생성
+    private _scriptEditor: ScriptEditorController;
 
     /**
      * 멤버 변수를 초기화합니다.
@@ -390,6 +394,8 @@ export default class App extends EventEmitter {
                 this.on("update", (deltaTime: number) => {
                     this.update(deltaTime);
                 });
+
+                this._scriptEditor = new ScriptEditorController({});
                 
             }).catch(err => {
                 console.warn(err);
