@@ -37,6 +37,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "@nestjs/cli": "^7.6.0",
     "@snowpack/plugin-typescript": "^1.2.1",
     "@types/express": "^4.17.9",
     "@types/jquery": "^3.5.3",

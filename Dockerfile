@@ -6,4 +6,3 @@ RUN npm install
 COPY . .
 COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 CMD ["node", "./bin/www"]
-
