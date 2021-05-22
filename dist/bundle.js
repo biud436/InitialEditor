@@ -4380,40 +4380,37 @@ var OtherToolbar = [
     {
         name: "",
         children: "tools-resource-manager",
-        action: function (ev) {
-        },
+        action: function (ev) { },
     },
     {
         name: "",
         children: "tools-script-eidtor",
-        action: function (ev) {
-        },
+        action: function (ev) { },
     },
     {
         name: "",
         children: "tools-sound-test",
-        action: function (ev) {
-        },
+        action: function (ev) { },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
     {
         name: "",
         children: "tools-options",
-        action: function (ev) {
-        },
+        action: function (ev) { },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
     {
         name: "",
         children: "game-playtest",
-        action: function (ev) {
-        },
+        action: function (ev) { },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
     {
         name: "",
         children: "game-folder-open",
         action: function (ev) {
+            var shell = __webpack_require__(/*! electron */ "electron").shell;
+            shell.showItemInFolder(".");
         },
     },
 ];
