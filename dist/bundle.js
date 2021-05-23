@@ -4368,6 +4368,12 @@ var ModeToolbar = [
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OtherToolbar", function() { return OtherToolbar; });
 /* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
+/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! electron */ "electron");
+/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
+
+
 
 var OtherToolbar = [
     {
@@ -4409,8 +4415,9 @@ var OtherToolbar = [
         name: "",
         children: "game-folder-open",
         action: function (ev) {
-            var shell = __webpack_require__(/*! electron */ "electron").shell;
-            shell.showItemInFolder(".");
+            var current = path__WEBPACK_IMPORTED_MODULE_2__["join"](process.cwd().replace(/\\/g, "/"));
+            window.alert(current);
+            electron__WEBPACK_IMPORTED_MODULE_1__["shell"].showItemInFolder(current);
         },
     },
 ];

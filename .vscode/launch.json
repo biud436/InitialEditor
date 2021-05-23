@@ -6,13 +6,16 @@
             "request": "launch",
             "name": "Launch Electron",
             "appDir": "${workspaceFolder}",
+
             "sourceMaps": true,
             "preLaunchTask": "${defaultBuildTask}",
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}"
         }
     ],
-    "compounds": [{
-        "name": "Build and Run",
-        "configurations": ["Launch Electron"],
-    }] 
+    "compounds": [
+        {
+            "name": "Build and Run",
+            "configurations": ["Launch Electron"]
+        }
+    ]
 }

@@ -1,5 +1,8 @@
 import { EmptySegment } from "./EmptySegment";
 import { WindowCreator } from "../WindowCreator";
+import { shell } from "electron";
+import * as fs from "fs";
+import * as path from "path";
 
 const OtherToolbar = [
     {
@@ -41,8 +44,9 @@ const OtherToolbar = [
         name: "",
         children: "game-folder-open",
         action: (ev: any) => {
-            const { shell } = require("electron");
-            shell.showItemInFolder(".");
+            const current = path.join(process.cwd().replace(/\\/g, "/"));
+            window.alert(current);
+            shell.showItemInFolder(current);
         },
     },
 ];
