@@ -1,6 +1,6 @@
 # Introduction
 
-This tool allows you to create a multidimensional tilemap.
+This tool allows you to create a multidimensional tilemap
 
 ![IMG](https://github.com/biud436/Initial2D/raw/master/docs/img/new_editor.png)
 
