@@ -14,21 +14,42 @@ This tool allows you to create a multidimensional tilemap
 
 # How to setup
 
+In case of platform such as `OSX`, try these steps. First up, you must install node in your system.
+
+```sh
+brew install node
+node -v
+cd ~/Documents
+git clone https://github.com/biud436/InitialEditor.git
+cd InitialEidtor
+sudo npm install -D
+```
+
+In case of platform such as `Windows 10`, try to download the Node.js LTS version in your system manually. and next, if you exist the program called `git` in environment variable named `PATH` of your system, you must just call the command such as `git clone https://github.com/biud436/InitialEditor.git` in desired directory. and next try to below step.
+
 ```bat
+git clone https://github.com/biud436/InitialEditor.git
+cd InitialEidtor
 npm install -D
 ```
 
-# How to start InitialEditor
+# How to start on Windows 10
 
-Open the Visual Studio Code and Press key called `F5` on platform such as Windows.
+It is pretty easy. Open the Visual Studio Code and press key called `F5` on platform such as Windows 10. if you can't start the program, you must see the previous step.
 
-In case of platform such as OSX, try these steps.
+# How to start on Mac OSX (Apple Silicon M1)
+
+you have to run the shell script file such as `build.sh` and execute the command such as `npm run start`
 
 ```sh
-chmod +x ./build.sh
+sudo chmod +x ./build.sh
 ./build.sh
-npm run start
+sudo npm run start
 ```
+
+# Life Time
+
+This documentation named 'Life Time' can't be translated yet in English.
 
 ![IMG](./Call.png)
 
