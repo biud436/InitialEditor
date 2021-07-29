@@ -182,14 +182,12 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
             const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             //@ts-ignore
             if (myEditorConfig.Theme == 1) {
-                // $("body").data("theme", "light");
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "light");
                 themeManager.changeLightTheme();
             }
             else {
-                // $("body").data("theme", "dark");
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "dark");
@@ -1993,14 +1991,12 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
             const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             //@ts-ignore
             if (myEditorConfig.Theme == 1) {
-                // $("body").data("theme", "light");
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "light");
                 themeManager.changeLightTheme();
             }
             else {
-                // $("body").data("theme", "dark");
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "dark");

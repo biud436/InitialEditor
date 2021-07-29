@@ -15,6 +15,7 @@ import { ElectronService } from "./ElectronService";
 import { EditorSchema } from "./schema/EditorSchema";
 import { Mouse } from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
+import * as e from "express";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -110,13 +111,11 @@ export default class App extends EventEmitter {
 
             //@ts-ignore
             if (myEditorConfig.Theme == 1) {
-                // $("body").data("theme", "light");
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "light");
                 themeManager.changeLightTheme();
             } else {
-                // $("body").data("theme", "dark");
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "dark");
@@ -290,9 +289,12 @@ export default class App extends EventEmitter {
                         ) as HTMLCanvasElement;
 
                         canvas.style.cursor = "crosshair";
-                        const canvasOffset = $(
+
+                        const __canvas = document.querySelector(
                             "#contents__main-canvas"
-                        ).offset();
+                        );
+                        const canvasOffset = __canvas.getBoundingClientRect();
+
                         const offsetX: number = parseInt(
                             canvasOffset.left as any
                         );
@@ -352,22 +354,20 @@ export default class App extends EventEmitter {
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
-        const children = $(
-            "ul.aside__tabs__maptree-child-tree li i"
-        ).children();
-        let target = null;
+        const children = Array.from(
+            document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i")
+        );
 
-        // 레이어 항목에서 눈 아이콘을 추가합니다.
-        children.each((index: number, elem: HTMLLIElement) => {
-            // @ts-ignore
-            const e = e.get(0);
-            // @ts-ignore
-            elem.click(() => {
-                e.className = e.className.includes("slash")
+        children.forEach((elem: HTMLLIElement, index: number) => {
+            elem.onclick = () => {
+                elem.className = elem.className.includes("slash")
                     ? "far fa-eye"
                     : "far fa-eye-slash";
-            });
+            };
         });
+
+        let target = null;
+
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
         $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
             const target = $(ev.currentTarget);
