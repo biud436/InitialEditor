@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "electron",
+            "type": "node",
             "request": "launch",
             "name": "Launch Electron",
             "appDir": "${workspaceFolder}",
 
             "sourceMaps": true,
-            "preLaunchTask": "${defaultBuildTask}",
+            "preLaunchTask": "Build Webpack",
             "cwd": "${workspaceRoot}"
         }
     ],

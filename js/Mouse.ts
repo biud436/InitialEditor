@@ -6,6 +6,7 @@ export interface Mouse {
     buttons: {
         left: boolean;
         leftFire: boolean;
+        menuTarget?: any;
     };
     /**
      * @type {HTMLElement}
@@ -15,8 +16,8 @@ export interface Mouse {
      * @type {HTMLElement}
      */
     menuTarget: HTMLElement;
-    isDrawing: boolean,
+    isDrawing: boolean;
     startX: number;
-    startY: number;    
+    startY: number;
     dragTime: number;
 }
