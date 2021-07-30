@@ -95,6 +95,7 @@
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return App; });
 /* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
 /* harmony import */ var _MenuComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MenuComponent */ "./js/MenuComponent.ts");
 /* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tilesetMarker */ "./js/tilesetMarker.ts");
@@ -108,19 +109,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./js/WindowCreator.ts");
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
 /* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./js/ThemeManager.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -130,40 +118,6 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 
 
 
@@ -177,16 +131,11 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
 
 
 
-var App = /** @class */ (function (_super) {
-    __extends(App, _super);
-    function App() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
+class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      * 멤버 변수를 초기화합니다.
      */
-    App.prototype.initMembers = function () {
-        var _this = this;
+    initMembers() {
         this.cache = {};
         this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
         this._mouse = {
@@ -227,280 +176,272 @@ var App = /** @class */ (function (_super) {
         document.title = "Initial Map Editor";
         this.emit("ready", JSON.stringify(this));
         // 맵 설정 파일을 생성합니다.
-        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then(function (data) {
+        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then((data) => {
             // @ts-ignore
-            var myEditorConfig = JSON.parse(data);
-            var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            const myEditorConfig = JSON.parse(data);
+            const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             //@ts-ignore
             if (myEditorConfig.Theme == 1) {
-                $("body").data("theme", "light");
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "light");
                 themeManager.changeLightTheme();
             }
             else {
-                $("body").data("theme", "dark");
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "dark");
                 themeManager.changeDarkTheme();
             }
         });
-        this.on("save-config", function (extraConfig) {
-            var myConfig = Object.assign(_this._config.Editor, extraConfig);
-            _this._config.Editor = myConfig;
-            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then(function (ret) {
+        this.on("save-config", (extraConfig) => {
+            let myConfig = Object.assign(this._config.Editor, extraConfig);
+            this._config.Editor = myConfig;
+            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then((ret) => {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
         // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
         // });
-    };
+    }
     /**
      * 컴포넌트를 생성합니다.
      */
-    App.prototype.createComponents = function () {
-        var _this = this;
+    createComponents() {
         this._tilemap = new _Tilemap__WEBPACK_IMPORTED_MODULE_3__["default"](this._config);
-        this._components.push(this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config));
+        this._components.push((this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config)));
         this._components.push(this._tilemap);
-        this._components.push(this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config));
-        this._components.forEach(function (component) {
+        this._components.push((this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config)));
+        this._components.forEach((component) => {
             component.start();
         });
         this._tilemap.setTileId(0);
         // 타일맵 이벤트를 재전파합니다.
-        this.on("tilemap", function () {
-            var _a;
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            (_a = _this._tilemap).emit.apply(_a, __spreadArrays([args[0]], args.slice(1)));
+        this.on("tilemap", (...args) => {
+            this._tilemap.emit(args[0], ...args.slice(1));
         });
-    };
+    }
     /**
      * 컴포넌트를 초기화합니다.
      */
-    App.prototype.initWithComponents = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        /**
-                         * @type {Component[]}
-                         */
-                        this._components = [];
-                        this._components.push(this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config));
-                        this._components.push(this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu));
-                        this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
-                        return [4 /*yield*/, this._tilesetCanvas.start().then(function (ret) {
-                                _this.createComponents();
-                            }).then(function (ret) {
-                                $(".darken, .windows-container").css("left", "-9999px");
-                            }).catch(function (err) {
-                                console.warn(err);
-                            })];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
+    initWithComponents() {
+        return __awaiter(this, void 0, void 0, function* () {
+            /**
+             * @type {Component[]}
+             */
+            this._components = [];
+            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
+            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
+            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
+            yield this._tilesetCanvas
+                .start()
+                .then((ret) => {
+                this.createComponents();
+            })
+                .then((ret) => {
+                $(".darken, .windows-container").css("left", "-9999px");
+            })
+                .catch((err) => {
+                console.warn(err);
             });
         });
-    };
-    App.prototype.toCamelCase = function () {
+    }
+    toCamelCase() {
         return Object(_camelCase__WEBPACK_IMPORTED_MODULE_4__["toCamelCase"])();
-    };
+    }
     /**
      * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
      * @return {Boolean}
      */
-    App.prototype.isMobileDevice = function () {
-        var ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    isMobileDevice() {
+        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         return ret;
-    };
-    App.prototype.onMouseTouchMove = function (ev) {
+    }
+    onMouseTouchMove(ev) {
         this._mouse.x = ev.layerX;
         this._mouse.y = ev.layerY;
         this._mouse.screenX = ev.layerX;
         this._mouse.screenY = ev.layerY;
-    };
+    }
     /**
      * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
      */
-    App.prototype.initWithMouseEvent = function () {
-        var _this = this;
-        var isMobileDevice = this.isMobileDevice();
-        var events;
+    initWithMouseEvent() {
+        const isMobileDevice = this.isMobileDevice();
+        let events;
         if (isMobileDevice) {
             events = {
-                "touchmove": function (ev) {
-                    var touchEvent = ev;
+                touchmove: (ev) => {
+                    let touchEvent = ev;
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
                     /**
                      * @type {HTMLElement}
                      */
-                    var target = _this._mouse.target;
-                    var rect = _this._mouse.target.getBoundingClientRect();
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
-                    _this._mouse.x = touchEvent.clientX - rect.x;
-                    _this._mouse.y = touchEvent.clientY - rect.y;
-                    _this._mouse.screenX = touchEvent.screenX;
-                    _this._mouse.screenY = touchEvent.screenY;
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
                 },
-                "touchstart pointerdown": function (ev) {
-                    var touchEvent = ev;
+                "touchstart pointerdown": (ev) => {
+                    let touchEvent = ev;
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
-                    _this._mouse.target = ev.target;
+                    this._mouse.target = ev.target;
                     /**
                      * @type {HTMLElement}
                      */
-                    var target = _this._mouse.target;
-                    var rect = _this._mouse.target.getBoundingClientRect();
-                    _this._mouse.x = touchEvent.clientX - rect.x;
-                    _this._mouse.y = touchEvent.clientY - rect.y;
-                    _this._mouse.screenX = touchEvent.screenX;
-                    _this._mouse.screenY = touchEvent.screenY;
-                    _this._mouse.buttons.left = true;
-                    _this._mouse.buttons.leftFire = false;
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                    this._mouse.buttons.left = true;
+                    this._mouse.buttons.leftFire = false;
                 },
-                "touchend pointerup mouseup": function (ev) {
-                    _this._mouse.buttons.left = false;
-                    _this._mouse.buttons.leftFire = true;
-                }
+                "touchend pointerup mouseup": (ev) => {
+                    this._mouse.buttons.left = false;
+                    this._mouse.buttons.leftFire = true;
+                },
             };
             $(window).on(events);
         }
         else {
             events = {
-                "mousemove": function (ev) {
-                    _this._mouse.x = ev.layerX;
-                    _this._mouse.y = ev.layerY;
-                    _this._mouse.screenX = ev.layerX;
-                    _this._mouse.screenY = ev.layerY;
-                    if (_this._mouse.isDrawing) {
-                        _this._mouse.dragTime++;
+                mousemove: (ev) => {
+                    this._mouse.x = ev.layerX;
+                    this._mouse.y = ev.layerY;
+                    this._mouse.screenX = ev.layerX;
+                    this._mouse.screenY = ev.layerY;
+                    if (this._mouse.isDrawing) {
+                        this._mouse.dragTime++;
                     }
                 },
-                "mousedown": function (ev) {
+                mousedown: (ev) => {
                     if (ev.button == 0) {
-                        _this._mouse.buttons.left = true;
-                        _this._mouse.buttons.leftFire = false;
-                        _this._mouse.target = ev.target;
-                        _this._mouse.isDrawing = true;
+                        this._mouse.buttons.left = true;
+                        this._mouse.buttons.leftFire = false;
+                        this._mouse.target = ev.target;
+                        this._mouse.isDrawing = true;
                         // 캔버스
-                        var canvas_1 = document.querySelector("#contents__main-canvas");
-                        canvas_1.style.cursor = "crosshair";
-                        var canvasOffset = $("#contents__main-canvas").offset();
-                        var offsetX = parseInt(canvasOffset.left);
-                        var offsetY = parseInt(canvasOffset.top);
-                        _this._mouse.startX = parseInt(ev.clientX - offsetX);
-                        _this._mouse.startY = parseInt(ev.clientY - offsetY);
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "crosshair";
+                        const canvasOffset = $("#contents__main-canvas").offset();
+                        const offsetX = parseInt(canvasOffset.left);
+                        const offsetY = parseInt(canvasOffset.top);
+                        this._mouse.startX = parseInt((ev.clientX - offsetX));
+                        this._mouse.startY = parseInt((ev.clientY - offsetY));
                     }
                 },
-                "mouseup": function (ev) {
+                mouseup: (ev) => {
                     if (ev.button == 0) {
-                        _this._mouse.buttons.left = false;
-                        _this._mouse.buttons.leftFire = true;
-                        _this._blockRect.isDrawing = false;
-                        _this._mouse.isDrawing = false;
-                        var canvas_2 = document.querySelector("#contents__main-canvas");
-                        canvas_2.style.cursor = "default";
-                        _this._mouse.dragTime = 0;
+                        this._mouse.buttons.left = false;
+                        this._mouse.buttons.leftFire = true;
+                        this._blockRect.isDrawing = false;
+                        this._mouse.isDrawing = false;
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "default";
+                        this._mouse.dragTime = 0;
                     }
                 },
-                "mouseover": function (ev) {
-                    if (_this._menu._isMenuOpen) {
+                mouseover: (ev) => {
+                    if (this._menu._isMenuOpen) {
                         //@ts-ignore
-                        _this._mouse.buttons.menuTarget = ev.target;
+                        this._mouse.buttons.menuTarget = ev.target;
                         //@ts-ignore
-                        _this._menu.emit("menu_open", _this._mouse.buttons.menuTarget);
+                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
                     }
-                }
+                },
             };
-            for (var k in events) {
+            for (let k in events) {
                 //@ts-ignore
                 window.addEventListener(k, events[k], false);
             }
         }
-    };
-    App.prototype.setTileId = function (tileId) {
+    }
+    setTileId(tileId) {
         if (!this._tilemap)
             return;
         this._tilemap.setTileId(tileId);
-    };
+    }
     /**
      * 레이어를 토글하는 기능을 수행합니다.
      */
-    App.prototype.initWithMapLayers = function () {
-        var _this = this;
-        var children = $("ul.aside__tabs__maptree-child-tree li i").children();
-        var target = null;
+    initWithMapLayers() {
+        const children = $("ul.aside__tabs__maptree-child-tree li i").children();
+        let target = null;
         // 레이어 항목에서 눈 아이콘을 추가합니다.
-        children.each(function (index, elem) {
+        children.each((index, elem) => {
             // @ts-ignore
-            var e = e.get(0);
+            const e = e.get(0);
             // @ts-ignore
-            elem.click(function () {
-                e.className = e.className.includes("slash") ? "far fa-eye" : "far fa-eye-slash";
+            elem.click(() => {
+                e.className = e.className.includes("slash")
+                    ? "far fa-eye"
+                    : "far fa-eye-slash";
             });
         });
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
-        $("ul.aside__tabs__maptree-child-tree li i").on("click", function (ev) {
-            var target = $(ev.currentTarget);
-            var parentNode = $(ev.currentTarget).parent();
-            var layerId = parentNode.index();
-            var tilemap = _this._tilemap;
+        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
+            const target = $(ev.currentTarget);
+            const parentNode = $(ev.currentTarget).parent();
+            const layerId = parentNode.index();
+            const tilemap = this._tilemap;
             if (target.hasClass("fa-eye")) {
-                target.removeClass("fa-eye")
-                    .addClass("fa-eye-slash");
+                target.removeClass("fa-eye").addClass("fa-eye-slash");
             }
             else {
-                target.removeClass("fa-eye-slash")
-                    .addClass("fa-eye");
+                target.removeClass("fa-eye-slash").addClass("fa-eye");
             }
             tilemap.toggleLayerVisibility(layerId);
         });
         // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
-        $("ul.aside__tabs__maptree-child-tree li").on("click", function (ev) {
-            var elem = $(ev.currentTarget).css({
-                "backgroundColor": "var(--dark-selection-color)"
+        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
+            const elem = $(ev.currentTarget).css({
+                backgroundColor: "var(--dark-selection-color)",
             });
             $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
-                "backgroundColor": "rgba(255, 255, 255, 0)"
+                backgroundColor: "rgba(255, 255, 255, 0)",
             });
-            var layerId = elem.index();
-            var tilemap = _this._tilemap;
+            const layerId = elem.index();
+            const tilemap = this._tilemap;
             // 타일맵을 지우고 다시 그립니다.
-            tilemap.setCurrentLayerId(layerId)
+            tilemap
+                .setCurrentLayerId(layerId)
                 .clear()
                 .draw()
                 .updateAlphaLayers();
         });
         $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
-    };
-    App.prototype.start = function () {
-        var _this = this;
+    }
+    start() {
         this.initMembers();
         this.initWithMouseEvent();
         // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
         this.initWithComponents()
-            .then(function (ret) {
-            _this.initWithMapLayers();
-            _this._isReady = true;
-            _this.on("update", function (deltaTime) {
-                _this.update(deltaTime);
+            .then((ret) => {
+            this.initWithMapLayers();
+            this._isReady = true;
+            this.on("update", (deltaTime) => {
+                this.update(deltaTime);
             });
-        }).catch(function (err) {
+        })
+            .catch((err) => {
             console.warn(err);
-            _this._isReady = false;
+            this._isReady = false;
         });
-    };
+    }
     /**
      * 매 프레임마다 반복 실행되는 메소드입니다.
      * @param {Number}} deltaTime
      */
-    App.prototype.update = function (deltaTime) {
+    update(deltaTime) {
         if (!this._isReady)
             return;
         // 400ms가 지났을 때 마다 무언가를 실행합니다.
@@ -509,17 +450,17 @@ var App = /** @class */ (function (_super) {
         }
         this.updateComponents();
         this._mouse.buttons.leftFire = false;
-    };
+    }
     /**
      * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
      */
-    App.prototype.updateComponents = function () {
-        var target = this._mouse.target;
+    updateComponents() {
+        const target = this._mouse.target;
         if (!target) {
             return;
         }
-        var id = target.id;
-        var mouse = this._mouse;
+        const id = target.id;
+        const mouse = this._mouse;
         // 메뉴를 업데이트합니다.
         this._menu.update(target, mouse);
         // 메뉴가 열리지 않았을 경우
@@ -547,7 +488,7 @@ var App = /** @class */ (function (_super) {
                     break;
             }
         }
-    };
+    }
     /**
      * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
      * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
@@ -569,25 +510,23 @@ var App = /** @class */ (function (_super) {
      * @param {HTMLElement} elem
      * @param {String}} id
      */
-    App.prototype.onLoad = function (elem, id) {
+    onLoad(elem, id) {
         _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
-    };
+    }
     /**
      * 유일한 인스턴스를 반환하는 메소드입니다.
      * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
      *
      * @return {App}
      */
-    App.GetInstance = function () {
+    static GetInstance() {
         if (!App.Instance) {
             App.Instance = new App();
         }
         return App.Instance;
-    };
-    App.Instance = null;
-    return App;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
-/* harmony default export */ __webpack_exports__["default"] = (App);
+    }
+}
+App.Instance = null;
 
 
 /***/ }),
@@ -604,74 +543,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return Component; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BasicComponent", function() { return BasicComponent; });
 /* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var Component = /** @class */ (function (_super) {
-    __extends(Component, _super);
-    function Component() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var _this = _super.call(this) || this;
-        _this.initMembers.apply(_this, args);
-        _this.start.apply(_this, args);
-        return _this;
+class Component extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    constructor(...args) {
+        super();
+        this.initMembers(...args);
+        this.start(...args);
     }
-    Component.prototype.initMembers = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    initMembers(...args) {
         this._isActiveEvent = false;
-    };
-    Component.prototype.active = function () {
+    }
+    active() {
         this._isActiveEvent = true;
-    };
-    Component.prototype.deactive = function () {
-        this._isActiveEvent = false;
-    };
-    Component.prototype.isActiveEvent = function () {
-        return this._isActiveEvent;
-    };
-    Component.prototype.start = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return this;
-    };
-    Component.prototype.update = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-    };
-    return Component;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
-var BasicComponent = /** @class */ (function (_super) {
-    __extends(BasicComponent, _super);
-    function BasicComponent() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return _super.apply(this, args) || this;
     }
-    return BasicComponent;
-}(Component));
+    deactive() {
+        this._isActiveEvent = false;
+    }
+    isActiveEvent() {
+        return this._isActiveEvent;
+    }
+    start(...args) {
+        return this;
+    }
+    update(...args) {
+    }
+}
+class BasicComponent extends Component {
+    constructor(...args) {
+        super(...args);
+    }
+}
 
 
 
@@ -694,21 +595,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var ipcMain = __webpack_require__(/*! electron */ "electron").ipcMain;
+const { ipcMain } = __webpack_require__(/*! electron */ "electron");
 
 
 
@@ -721,27 +609,24 @@ var ipcMain = __webpack_require__(/*! electron */ "electron").ipcMain;
  *
  * 조건 컴파일을 통하여 구현될 예정입니다.
  */
-var ElectronService = /** @class */ (function (_super) {
-    __extends(ElectronService, _super);
-    function ElectronService() {
-        var _this = _super.call(this) || this;
-        _this.ipcMain = ipcMain;
-        return _this;
+class ElectronService extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    constructor() {
+        super();
+        this.ipcMain = ipcMain;
     }
-    ElectronService.prototype.openFolder = function (folderName) {
-        var shell = __webpack_require__(/*! electron */ "electron").shell;
+    openFolder(folderName) {
+        const { shell } = __webpack_require__(/*! electron */ "electron");
         shell.showItemInFolder(folderName);
         // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
         if (process.platform.includes("win")) {
             // 절대 경로를 가져옵니다.
-            var myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"]("tools/bin/open_folder.exe");
+            const myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"](`tools/bin/open_folder.exe`);
             if (fs__WEBPACK_IMPORTED_MODULE_1__["existsSync"](myPath)) {
                 child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
             }
         }
-    };
-    return ElectronService;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
+    }
+}
 
 
 
@@ -757,80 +642,68 @@ var ElectronService = /** @class */ (function (_super) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EventEmitter", function() { return EventEmitter; });
-var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 /**
  * @class EventEmitter
  * @description
  * 이 클래스는 이벤트 큐를 위해 존재합니다.
  * on 과 emit로 이벤트를 설정하거나 실행할 수 있습니다.
  */
-var EventEmitter = /** @class */ (function () {
-    function EventEmitter() {
+class EventEmitter {
+    constructor() {
         this._events = {};
     }
-    EventEmitter.prototype.debug = function (message) {
+    debug(message) {
         if (window.devmode) {
             console.log(message);
         }
-    };
-    EventEmitter.prototype.on = function (name, lsn) {
+    }
+    on(name, lsn) {
         if (!this._events[name]) {
             this._events[name] = [];
         }
         this._events[name].push(lsn);
         return this;
-    };
+    }
     /**
      * 이벤트를 삭제합니다.
      *
      * @param {String} name
      */
-    EventEmitter.prototype.off = function (name) {
+    off(name) {
         if (!this._events[name]) {
             return;
         }
         if (name in this._events) {
             delete this._events[name];
         }
-    };
-    EventEmitter.prototype.emit = function (name) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
+    }
+    emit(name, ...args) {
         if (!this._events[name]) {
             this._events[name] = [];
         }
         // Is it included colon(:)?
         if (name.indexOf(":") >= 0) {
             console.log("자식 이벤트 방출이 감지되었습니다.");
-            var items = name.split(":");
+            const items = name.split(":");
             if (items.length > 0) {
-                var parent_1 = items[0];
-                var child = items[1];
+                const parent = items[0];
+                const child = items[1];
                 // 콜론이 있다면 매개변수를 대체합니다.
-                name = parent_1;
-                args = __spreadArrays([child], args);
+                name = parent;
+                args = [child, ...args];
                 console.log(name, args);
             }
         }
         if (!this._events[name]) {
-            throw new Error(name + "\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.");
+            throw new Error(`${name}이 없습니다.`);
         }
-        this._events[name].forEach(function (func) {
+        this._events[name].forEach(func => {
             if (typeof (func) === "function") {
-                func.apply(void 0, args);
+                func(...args);
             }
         });
-    };
-    return EventEmitter;
-}());
+    }
+}
 
 
 
@@ -847,19 +720,6 @@ var EventEmitter = /** @class */ (function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MenuComponent", function() { return MenuComponent; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 ;
 /**
@@ -867,16 +727,8 @@ var __extends = (undefined && undefined.__extends) || (function () {
  * @description
  * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
  */
-var MenuComponent = /** @class */ (function (_super) {
-    __extends(MenuComponent, _super);
-    function MenuComponent() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    MenuComponent.prototype.start = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    start(...args) {
         this._isMenuOpen = false;
         // 툴바를 드래그 가능한 상태로 변경합니다.
         $(".toolbar").draggable({ snap: ".menu" });
@@ -885,34 +737,34 @@ var MenuComponent = /** @class */ (function (_super) {
             containment: "#aside"
         });
         // 툴바의 크기를 가져옵니다.
-        var rect = $(".toolbar").get(0).getBoundingClientRect();
+        const rect = $(".toolbar").get(0).getBoundingClientRect();
         this._originalPos = {
             x: rect.x,
             y: rect.y
         };
         this._currentTarget = null;
         return this;
-    };
-    MenuComponent.prototype.isMenuOpen = function () {
+    }
+    isMenuOpen() {
         return this._isMenuOpen;
-    };
-    MenuComponent.prototype.hideMenu = function () {
+    }
+    hideMenu() {
         $("#none").prop("checked", true);
         this._isMenuOpen = false;
-    };
-    MenuComponent.prototype.update = function (target, mouse) {
+    }
+    update(target, mouse) {
         if ($(".toolbar").is('.ui-draggable-dragging')) {
-            var rect = $(".toolbar").get(0).getBoundingClientRect();
+            const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
         // 최상위 노드를 선택합니다.
         /**
          * @type {HTMLElement}
          */
-        var parentNode = target.parentNode;
+        let parentNode = target.parentNode;
         while (parentNode != null && parentNode.className != "menu__main") {
             parentNode = parentNode.parentNode;
         }
-        var isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
+        const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
         // 최상위 노드가 메인 메뉴라면
         if (parentNode && parentNode.className === "menu__main") {
             // 메뉴가 열린 것으로 간주
@@ -923,9 +775,8 @@ var MenuComponent = /** @class */ (function (_super) {
                 this.hideMenu();
             }
         }
-    };
-    return MenuComponent;
-}(_Component__WEBPACK_IMPORTED_MODULE_0__["Component"]));
+    }
+}
 
 
 
@@ -940,118 +791,94 @@ var MenuComponent = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MenuService; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
 /* harmony import */ var _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./menu/KoreanMenu */ "./js/menu/KoreanMenu.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 
-var menu = {
+const menu = {
     "ko": _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"],
 };
-var MenuService = /** @class */ (function (_super) {
-    __extends(MenuService, _super);
-    function MenuService() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    MenuService.prototype.initMembers = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    initMembers(...args) {
         /**
          * @type {MenuComponent}
          */
         this._menuComponent = args[1];
         this._isClickedMenu = false;
-    };
-    MenuService.prototype.start = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    }
+    start(...args) {
         this.changeMenuLocaleAsPersonalize();
         this.changeToolbarIconOnMobileDevice();
         this.addMenuEventHandlers();
         return this;
-    };
-    MenuService.prototype.changeMenuLocaleAsPersonalize = function () {
-        var langCode = navigator.language.slice(0, 2);
-        $(".menu__main label").each(function (index, elem) {
-            var parent = $(elem);
-            var type = parent.data("action");
+    }
+    changeMenuLocaleAsPersonalize() {
+        const langCode = navigator.language.slice(0, 2);
+        $(".menu__main label").each((index, elem) => {
+            const parent = $(elem);
+            const type = parent.data("action");
             // @ts-ignore
-            var res = menu[langCode];
+            const res = menu[langCode];
             if (res) {
-                var data_1 = res[type];
-                var name_1 = data_1.name;
-                var font_1 = res["$font"];
-                parent.text(name_1);
-                parent.css("font-size", font_1.size);
-                $(".menu__" + type + "-sub li")
-                    .each(function (_index, _elem) {
-                    var _node = $(_elem);
+                const data = res[type];
+                const name = data.name;
+                const font = res["$font"];
+                parent.text(name);
+                parent.css("font-size", font.size);
+                $(`.menu__${type}-sub li`)
+                    .each((_index, _elem) => {
+                    const _node = $(_elem);
                     // 서브 메뉴의 위치를 세밀하게 조정합니다.
-                    var menuNode = parent.parent();
+                    const menuNode = parent.parent();
                     _node.parent().css("left", menuNode.get(0).getBoundingClientRect().x + "px");
-                    var _type = _node.data("action");
-                    var _res = data_1.children[_type];
+                    const _type = _node.data("action");
+                    const _res = data.children[_type];
                     if (_res) {
                         // 메뉴 노드에 메뉴 액션을 등록합니다.
                         if (_res.action) {
                             _node.get(0).onclick = _res.action;
                         }
-                        var _name_1 = _res.name;
-                        _node.get(0).childNodes.forEach(function (i) {
+                        const _name = _res.name;
+                        _node.get(0).childNodes.forEach(i => {
                             // 텍스트 노드만 찾습니다.
                             if (i.nodeType == 3) {
-                                i.textContent = _name_1;
+                                i.textContent = _name;
                             }
                         });
-                        _node.css("font-size", font_1.size);
+                        _node.css("font-size", font.size);
                     }
                 });
             }
         });
-    };
-    MenuService.prototype.addMenuEventHandlers = function () {
+    }
+    addMenuEventHandlers() {
         // 창 최소화
-        $(".menu .control-box li.minimum").on("click", function (ev) {
+        $(".menu .control-box li.minimum").on("click", ev => {
             if (platform === "electron") {
-                var ipcRenderer = __webpack_require__(/*! electron */ "electron").ipcRenderer;
+                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
                 ipcRenderer.send('minimize');
                 ev.stopImmediatePropagation();
             }
         });
         // 창 최대화
-        $(".menu .control-box li.maximum").on("click", function (ev) {
+        $(".menu .control-box li.maximum").on("click", ev => {
             if (platform === "electron") {
-                var ipcRenderer = __webpack_require__(/*! electron */ "electron").ipcRenderer;
+                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
                 ipcRenderer.send('maximize');
                 ev.stopImmediatePropagation();
             }
         });
         // 창 닫기
-        $(".menu .control-box li.close").on("click", function (ev) {
+        $(".menu .control-box li.close").on("click", ev => {
             window.close();
             ev.stopImmediatePropagation();
         });
-    };
-    MenuService.prototype.changeToolbarIconOnMobileDevice = function () {
-        var media = window.matchMedia("(max-width: 640px)");
+    }
+    changeToolbarIconOnMobileDevice() {
+        const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
-            $(".toolbar i").each(function (index, elem) {
+            $(".toolbar i").each((index, elem) => {
                 $(elem)
                     .addClass("fa-3x")
                     .css({
@@ -1061,7 +888,7 @@ var MenuService = /** @class */ (function (_super) {
                 });
             });
         }
-        var resizeConfig = {
+        const resizeConfig = {
             ".contents": {
                 "width": "65%",
             },
@@ -1072,13 +899,13 @@ var MenuService = /** @class */ (function (_super) {
                 "width": "100%",
             }
         };
-        $(window).on("resize", function () {
+        $(window).on("resize", () => {
             if ($(window).width() <= 640) {
-                for (var i in resizeConfig) {
+                for (let i in resizeConfig) {
                     //@ts-ignore
                     $(i).css(resizeConfig[i]);
                 }
-                $(".toolbar i").each(function (index, elem) {
+                $(".toolbar i").each((index, elem) => {
                     $(elem)
                         .removeClass("fa-3x")
                         .addClass("fa-3x")
@@ -1090,7 +917,7 @@ var MenuService = /** @class */ (function (_super) {
                 });
             }
             else {
-                $(".toolbar i").each(function (index, elem) {
+                $(".toolbar i").each((index, elem) => {
                     $(elem)
                         .removeClass("fa-3x")
                         .addClass("fa-sm")
@@ -1102,10 +929,8 @@ var MenuService = /** @class */ (function (_super) {
                 });
             }
         });
-    };
-    return MenuService;
-}(_Component__WEBPACK_IMPORTED_MODULE_0__["Component"]));
-/* harmony default export */ __webpack_exports__["default"] = (MenuService);
+    }
+}
 
 
 /***/ }),
@@ -1119,64 +944,47 @@ var MenuService = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-var Rectangle = /** @class */ (function () {
-    function Rectangle(x, y, width, height) {
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Rectangle; });
+class Rectangle {
+    constructor(x, y, width, height) {
         this._x = x;
         this._y = y;
         this._width = width;
         this._height = height;
     }
-    Object.defineProperty(Rectangle.prototype, "x", {
-        get: function () {
-            return this._x;
-        },
-        set: function (value) {
-            this._x = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Rectangle.prototype, "y", {
-        get: function () {
-            return this._x;
-        },
-        set: function (value) {
-            this._x = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Rectangle.prototype, "width", {
-        get: function () {
-            return this._width;
-        },
-        set: function (value) {
-            this._width = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Rectangle.prototype, "height", {
-        get: function () {
-            return this._height;
-        },
-        set: function (value) {
-            this._height = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Rectangle.prototype.contains = function (mx, my) {
-        var x = this._x;
-        var y = this._y;
-        var width = this._width;
-        var height = this._height;
+    get x() {
+        return this._x;
+    }
+    get y() {
+        return this._x;
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    set x(value) {
+        this._x = value;
+    }
+    set y(value) {
+        this._x = value;
+    }
+    set width(value) {
+        this._width = value;
+    }
+    set height(value) {
+        this._height = value;
+    }
+    contains(mx, my) {
+        const x = this._x;
+        const y = this._y;
+        const width = this._width;
+        const height = this._height;
         return mx >= x && mx <= (x + width) && my >= y && my <= (y + height);
-    };
-    Rectangle.EMPTY = new Rectangle(0, 0, 0, 0);
-    return Rectangle;
-}());
-/* harmony default export */ __webpack_exports__["default"] = (Rectangle);
+    }
+}
+Rectangle.EMPTY = new Rectangle(0, 0, 0, 0);
 
 
 /***/ }),
@@ -1191,20 +999,17 @@ var Rectangle = /** @class */ (function () {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThemeManager", function() { return ThemeManager; });
-var ThemeManager = /** @class */ (function () {
-    function ThemeManager() {
-    }
-    ThemeManager.prototype.set = function (key, value) {
+class ThemeManager {
+    set(key, value) {
         // document.documentElement.style.setProperty(key, value);
         $(':root').css(key, value);
-    };
-    ThemeManager.prototype.flush = function (theme) {
+    }
+    flush(theme) {
         window.app.emit("save-config", {
             Theme: theme
         });
-    };
-    ThemeManager.prototype.changeDarkTheme = function (isOption) {
-        if (isOption === void 0) { isOption = false; }
+    }
+    changeDarkTheme(isOption = false) {
         this.set("--dark-title-color", "rgb(60, 60, 60)");
         this.set("--dark-selection-color", "rgb(80, 80, 80)");
         this.set("--dark-input-background-color", "rgb(90, 90, 90)");
@@ -1215,9 +1020,8 @@ var ThemeManager = /** @class */ (function () {
         if (isOption) {
             this.flush(0);
         }
-    };
-    ThemeManager.prototype.changeLightTheme = function (isOption) {
-        if (isOption === void 0) { isOption = false; }
+    }
+    changeLightTheme(isOption = false) {
         this.set("--dark-title-color", "#DDDDDD");
         this.set("--dark-selection-color", "#C6C6C6");
         this.set("--dark-input-background-color", "#DDDDDD");
@@ -1228,9 +1032,8 @@ var ThemeManager = /** @class */ (function () {
         if (isOption) {
             this.flush(1);
         }
-    };
-    return ThemeManager;
-}());
+    }
+}
 
 
 
@@ -1245,39 +1048,23 @@ var ThemeManager = /** @class */ (function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TileMarker; });
 /* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./tilesetMarker */ "./js/tilesetMarker.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var TileMarker = /** @class */ (function (_super) {
-    __extends(TileMarker, _super);
-    function TileMarker() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    TileMarker.prototype.initWithElement = function () {
-        var parent = $(".contents");
-        var child = null;
+class TileMarker extends _tilesetMarker__WEBPACK_IMPORTED_MODULE_0__["TilesetMarker"] {
+    initWithElement() {
+        const parent = $(".contents");
+        let child = null;
         if ((child = document.querySelector("#tile-marker"))) {
             parent.get(0).removeChild(child);
             return;
         }
         this._element = $("<div></div>", { "id": "tile-marker" })
             .css({
-            "min-width": this._tileWidth + "px",
-            "min-height": this._tileHeight + "px",
-            "width": this._tileWidth + "px",
-            "height": this._tileHeight + "px",
+            "min-width": `${this._tileWidth}px`,
+            "min-height": `${this._tileHeight}px`,
+            "width": `${this._tileWidth}px`,
+            "height": `${this._tileHeight}px`,
             "position": "absolute",
             "top": "0",
             "left": "0",
@@ -1289,28 +1076,24 @@ var TileMarker = /** @class */ (function (_super) {
         });
         this._isReady = true;
         parent.append(this._element);
-    };
-    TileMarker.prototype.update = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    }
+    update(...args) {
         if (!this._isReady) {
             return;
         }
-        var target = args[0].target;
-        var img = $("#contents__main-canvas");
-        var mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
-        var tilesetWidth = img.width();
-        var tilesetHeight = img.height();
-        var topY = 0;
-        var mouse = args[0];
-        var tw = this._tileWidth;
-        var th = this._tileHeight;
-        var nx = Math.floor(mouse.x / tw) * tw;
-        var ny = Math.floor(mouse.y / th) * th;
-        var targetX = nx / tw;
-        var targetY = (ny - topY) / th;
+        const target = args[0].target;
+        const img = $("#contents__main-canvas");
+        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
+        const tilesetWidth = img.width();
+        const tilesetHeight = img.height();
+        const topY = 0;
+        const mouse = args[0];
+        const tw = this._tileWidth;
+        const th = this._tileHeight;
+        let nx = Math.floor(mouse.x / tw) * tw;
+        let ny = Math.floor(mouse.y / th) * th;
+        const targetX = nx / tw;
+        const targetY = (ny - topY) / th;
         if (nx < 0) {
             nx = 0;
         }
@@ -1329,10 +1112,8 @@ var TileMarker = /** @class */ (function (_super) {
             top: ny - topY + "px",
         });
         return this;
-    };
-    return TileMarker;
-}(_tilesetMarker__WEBPACK_IMPORTED_MODULE_0__["TilesetMarker"]));
-/* harmony default export */ __webpack_exports__["default"] = (TileMarker);
+    }
+}
 
 
 /***/ }),
@@ -1346,21 +1127,9 @@ var TileMarker = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Tilemap; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
 /* harmony import */ var pixi_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/pixi.es.js");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1369,33 +1138,6 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-};
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
 };
 
 
@@ -1408,16 +1150,8 @@ var PenType;
     PenType[PenType["SHADOW_PEN"] = 4] = "SHADOW_PEN";
 })(PenType || (PenType = {}));
 ;
-var Tilemap = /** @class */ (function (_super) {
-    __extends(Tilemap, _super);
-    function Tilemap() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Tilemap.prototype.initMembers = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    initMembers(...args) {
         this._config = args[0];
         this._tileset = $("#view canvas").get(0);
         this._tileWidth = this._config.TILE_WIDTH;
@@ -1439,7 +1173,7 @@ var Tilemap = /** @class */ (function (_super) {
         /**
          * @type {HTMLCanvasElement}
          */
-        var tilesetImg = $("#view canvas").get(0);
+        const tilesetImg = $("#view canvas").get(0);
         if (!tilesetImg) {
             throw new Error("Cant't find tileset");
         }
@@ -1450,31 +1184,29 @@ var Tilemap = /** @class */ (function (_super) {
         // });
         this.active();
         this.initWithSaveEventListener();
-    };
-    Tilemap.prototype.isMobileDevice = function () {
+    }
+    isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    };
-    Tilemap.prototype.initWithSaveEventListener = function () {
-        var _this = this;
-        this.on("save", function () {
-            var fs = __webpack_require__(/*! fs */ "fs");
-            var path = __webpack_require__(/*! path */ "path");
-            var data = _this._data.map(function (i) { return (!!i) ? i : 0; });
-            var layerData = {
-                data: data,
+    }
+    initWithSaveEventListener() {
+        this.on("save", () => {
+            const fs = __webpack_require__(/*! fs */ "fs");
+            const path = __webpack_require__(/*! path */ "path");
+            const data = this._data.map(i => (!!i) ? i : 0);
+            const layerData = {
+                data,
             };
-            var contents = JSON.stringify(layerData);
+            const contents = JSON.stringify(layerData);
             fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8");
             alert("파일 저장이 완료되었습니다.");
         });
-    };
+    }
     /**
      * Initialize with drawing type.
      */
-    Tilemap.prototype.initWithDrawingType = function () {
-        var _this = this;
+    initWithDrawingType() {
         this._penType = PenType.PENCIL;
-        this.on("drawingType", function (penType) {
+        this.on("drawingType", (penType) => {
             switch (penType) {
                 case PenType.PENCIL:
                     console.log("펜 툴");
@@ -1492,61 +1224,56 @@ var Tilemap = /** @class */ (function (_super) {
                     console.log("그림자 툴");
                     break;
             }
-            _this._penType = penType;
+            this._penType = penType;
         });
-    };
-    Tilemap.prototype.initWithLayers = function () {
-        var maxZ = this._config.LAYERS;
-        var maxWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
-        var maxHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
-        for (var z = 0; z < maxZ; z++) {
-            for (var y = 0; y < maxHeight; y++) {
-                for (var x = 0; x < maxWidth; x++) {
+    }
+    initWithLayers() {
+        const maxZ = this._config.LAYERS;
+        const maxWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
+        const maxHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
+        for (let z = 0; z < maxZ; z++) {
+            for (let y = 0; y < maxHeight; y++) {
+                for (let x = 0; x < maxWidth; x++) {
                     this.setData(x, y, z, 0);
                 }
             }
         }
-    };
-    Tilemap.prototype.setData = function (x, y, z, tileId) {
+    }
+    setData(x, y, z, tileId) {
         if (x < 0)
             x = 0;
         if (x > this._mapWidth - 1)
             x = this._mapWidth - 1;
         y = Math.min(Math.max(0, y), this._mapHeight - 1);
         z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
-        var id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
         this._data[id] = tileId;
-    };
-    Tilemap.prototype.getData = function (x, y, z) {
+    }
+    getData(x, y, z) {
         if (x < 0)
             x = 0;
         if (x > this._mapWidth - 1)
             x = this._mapWidth - 1;
         y = Math.min(Math.max(0, y), this._mapHeight - 1);
         z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
-        var id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
         return this._data[id] || 0;
-    };
-    Tilemap.prototype.setTileId = function (tileId) {
+    }
+    setTileId(tileId) {
         this._tileId = tileId;
-    };
-    Tilemap.prototype.getTileId = function () {
+    }
+    getTileId() {
         return this._tileId;
-    };
-    Tilemap.prototype.setCurrentLayerId = function (layerId) {
+    }
+    setCurrentLayerId(layerId) {
         this._currentLayer = layerId;
         return this;
-    };
-    Tilemap.prototype.getCurrentLayerId = function () {
+    }
+    getCurrentLayerId() {
         return this._currentLayer;
-    };
-    Tilemap.prototype.start = function () {
-        var _this = this;
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var option = {
+    }
+    start(...args) {
+        let option = {
             width: this._config.SCREEN_WIDTH,
             height: this._config.SCREEN_HEIGHT,
             backgroundColor: 0x00000000,
@@ -1564,60 +1291,45 @@ var Tilemap = /** @class */ (function (_super) {
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
         this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
         this.app.stage.addChild(this._layerContainer);
-        for (var i = 0; i < this._config.LAYERS; i++) {
+        for (let i = 0; i < this._config.LAYERS; i++) {
             this._layerContainer.addChild(new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Container"]());
         }
         // 메인 타일셋
         this._tilesets = [];
         this._tilesets.push(pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset));
         this.initWithDrawingType();
-        $("#take-screenshot").on("click", function (ev) {
-            _this.takeScreenshot();
+        $("#take-screenshot").on("click", (ev) => {
+            this.takeScreenshot();
             ev.stopPropagation();
         });
         return this;
-    };
-    Object.defineProperty(Tilemap.prototype, "app", {
-        get: function () {
-            return this._app;
-        },
-        enumerable: false,
-        configurable: true
-    });
+    }
+    get app() {
+        return this._app;
+    }
     /**
      * TODO: 클립보드에 저장하는 방식으로 변환할 것.
      * @link https://developer.mozilla.org/ko/docs/Web/API/Clipboard/write
      */
-    Tilemap.prototype.takeScreenshot = function () {
-        var _this = this;
-        var app = this._app;
+    takeScreenshot() {
+        const app = this._app;
         if (!app)
             return;
-        app.renderer.extract.canvas(app.stage).toBlob(function (b) { return __awaiter(_this, void 0, void 0, function () {
-            var buffer, _a, _b, fs;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
-                    case 0:
-                        _b = (_a = Buffer).from;
-                        return [4 /*yield*/, b.arrayBuffer()];
-                    case 1:
-                        buffer = _b.apply(_a, [_c.sent()]);
-                        fs = __webpack_require__(/*! fs */ "fs");
-                        fs.writeFile(Date.now() + ".png", buffer, function () { return console.log('saved!'); });
-                        return [2 /*return*/];
-                }
-            });
-        }); }, 'image/png');
-    };
-    Tilemap.prototype.onMouseMove = function (ev) {
+        app.renderer.extract.canvas(app.stage).toBlob((b) => __awaiter(this, void 0, void 0, function* () {
+            const buffer = Buffer.from(yield b.arrayBuffer());
+            const fs = __webpack_require__(/*! fs */ "fs");
+            fs.writeFile(Date.now() + ".png", buffer, () => console.log('saved!'));
+        }), 'image/png');
+    }
+    onMouseMove(ev) {
         this._mouseX = ev.data.global.x;
         this._mouseY = ev.data.global.y;
-    };
+    }
     /**
      * Get a tileset image from the tileset collection.
      */
-    Tilemap.prototype.getTileset = function () {
-        var tilesets = this._tileset;
+    getTileset() {
+        const tilesets = this._tileset;
         if (!tilesets) {
             throw new Error("Can't find the tileset from the memory.");
         }
@@ -1625,18 +1337,18 @@ var Tilemap = /** @class */ (function (_super) {
             throw new Error("The tileset image can't create correctly.");
         }
         return tilesets;
-    };
-    Tilemap.prototype.cropTexture = function (dx, dy, texture) {
-        var crop = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Rectangle"](dx, dy, this._tileWidth, this._tileHeight);
-        var cropTexture = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"](texture.baseTexture, crop);
+    }
+    cropTexture(dx, dy, texture) {
+        const crop = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Rectangle"](dx, dy, this._tileWidth, this._tileHeight);
+        const cropTexture = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"](texture.baseTexture, crop);
         return cropTexture;
-    };
-    Tilemap.prototype.collectAutoTileID = function (mx, my) {
-        var mapX = Math.floor(mx / this._tileWidth);
-        var mapY = Math.floor(my / this._tileHeight);
-        var layerId = this._currentLayer;
-        var mask = 0x00;
-        var bits = [
+    }
+    collectAutoTileID(mx, my) {
+        const mapX = Math.floor(mx / this._tileWidth);
+        const mapY = Math.floor(my / this._tileHeight);
+        const layerId = this._currentLayer;
+        let mask = 0x00;
+        const bits = [
             this.getData(mapX + 0, mapY - 1, layerId) <= 0,
             this.getData(mapX + 1, mapY + 0, layerId) <= 0,
             this.getData(mapX + 1, mapY - 1, layerId) <= 0,
@@ -1646,20 +1358,20 @@ var Tilemap = /** @class */ (function (_super) {
             this.getData(mapX - 1, mapY + 0, layerId) <= 0,
             this.getData(mapX - 1, mapY - 1, layerId) <= 0 // 북서
         ];
-        bits.forEach(function (e, i, a) {
+        bits.forEach((e, i, a) => {
             if (e === true) {
                 mask += (1 << i);
             }
         });
         return mask;
-    };
-    Tilemap.prototype.drawTile = function (mx, my, tileID) {
-        var mapX = Math.floor(mx / this._tileWidth);
-        var mapY = Math.floor(my / this._tileHeight);
+    }
+    drawTile(mx, my, tileID) {
+        let mapX = Math.floor(mx / this._tileWidth);
+        let mapY = Math.floor(my / this._tileHeight);
         console.log(mx, my, mapX, mapY);
         this.setData(mapX, mapY, this._currentLayer, tileID);
         this._dirty = true;
-    };
+    }
     /**
      * 특정 영역에 타일을 사각형으로 그립니다.
      *
@@ -1669,19 +1381,19 @@ var Tilemap = /** @class */ (function (_super) {
      * @param {Number} ey
      * @param {Number} tileID
      */
-    Tilemap.prototype.drawRect = function (sx, sy, ex, ey) {
-        var mx = Math.floor(sx / this._tileWidth);
-        var my = Math.floor(sy / this._tileHeight);
-        var tileID = this._tileId;
-        var width = mx + ex;
-        var height = my + ey;
-        for (var y = my; y < height; y++) {
-            for (var x = mx; x < width; x++) {
+    drawRect(sx, sy, ex, ey) {
+        let mx = Math.floor(sx / this._tileWidth);
+        let my = Math.floor(sy / this._tileHeight);
+        const tileID = this._tileId;
+        const width = mx + ex;
+        const height = my + ey;
+        for (let y = my; y < height; y++) {
+            for (let x = mx; x < width; x++) {
                 this.setData(x, y, this._currentLayer, tileID);
             }
         }
         this._dirty = true;
-    };
+    }
     /**
      * 원 안에 있는지 확인합니다.
      * @param centerX
@@ -1690,10 +1402,10 @@ var Tilemap = /** @class */ (function (_super) {
      * @param y
      * @param r
      */
-    Tilemap.prototype.isInCircle = function (centerX, centerY, x, y, r) {
-        var dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
+    isInCircle(centerX, centerY, x, y, r) {
+        let dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
         return dist < r;
-    };
+    }
     /**
      * 원을 그립니다.
      *
@@ -1702,32 +1414,32 @@ var Tilemap = /** @class */ (function (_super) {
      * @param ex
      * @param ey
      */
-    Tilemap.prototype.drawEllipse = function (sx, sy, ex, ey) {
-        var mx = Math.floor(sx / this._tileWidth);
-        var my = Math.floor(sy / this._tileHeight);
-        var tileID = this._tileId;
-        var width = mx + ex;
-        var height = my + ey;
-        var centerX = Math.floor(mx + (ex / 2));
-        var centerY = Math.floor(my + (ey / 2));
-        var r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
-        for (var y = my; y < height; y++) {
-            for (var x = mx; x < width; x++) {
+    drawEllipse(sx, sy, ex, ey) {
+        let mx = Math.floor(sx / this._tileWidth);
+        let my = Math.floor(sy / this._tileHeight);
+        const tileID = this._tileId;
+        const width = mx + ex;
+        const height = my + ey;
+        const centerX = Math.floor(mx + (ex / 2));
+        const centerY = Math.floor(my + (ey / 2));
+        const r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
+        for (let y = my; y < height; y++) {
+            for (let x = mx; x < width; x++) {
                 if (this.isInCircle(centerX, centerY, x, y, r)) {
                     this.setData(x, y, this._currentLayer, tileID);
                 }
             }
         }
         this._dirty = true;
-    };
+    }
     /**
      * 오토 타일인 지 확인합니다.
      *
      * @param tileId
      */
-    Tilemap.prototype.isAutoTile = function (tileId) {
+    isAutoTile(tileId) {
         return this._autoTileIndexedList.indexOf(tileId) >= 0;
-    };
+    }
     /**
      *
      * @link https://stackoverflow.com/a/40421933
@@ -1737,7 +1449,7 @@ var Tilemap = /** @class */ (function (_super) {
      * @param srcColor
      * @param tgtColor
      */
-    Tilemap.prototype.floodFillDo = function (hits, x, y, srcColor, tgtColor) {
+    floodFillDo(hits, x, y, srcColor, tgtColor) {
         if (y < 0)
             return false;
         if (x < 0)
@@ -1753,7 +1465,7 @@ var Tilemap = /** @class */ (function (_super) {
         this.setData(x, y, this._currentLayer, tgtColor);
         hits[y][x] = true;
         return true;
-    };
+    }
     /**
      *
      * @link https://stackoverflow.com/a/40421933
@@ -1763,24 +1475,24 @@ var Tilemap = /** @class */ (function (_super) {
      * @param nodes
      * @param stack
      */
-    Tilemap.prototype.floodFill = function (x, y, startTileId, nodes, stack) {
-        var hits = [];
-        for (var y_1 = 0; y_1 < this._mapHeight; y_1++) {
-            hits[y_1] = [];
-            for (var x_1 = 0; x_1 < this._mapWidth; x_1++) {
-                hits[y_1][x_1] = false;
+    floodFill(x, y, startTileId, nodes, stack) {
+        const hits = [];
+        for (let y = 0; y < this._mapHeight; y++) {
+            hits[y] = [];
+            for (let x = 0; x < this._mapWidth; x++) {
+                hits[y][x] = false;
             }
         }
-        var queue = new Array();
-        var srcColor = 0;
-        var targetColor = 1;
+        const queue = new Array();
+        let srcColor = 0;
+        let targetColor = 1;
         if (startTileId == -1) {
             srcColor = this.getData(x, y, this._currentLayer);
         }
         targetColor = this._tileId;
-        queue.push({ x: x, y: y });
+        queue.push({ x, y });
         while (queue.length !== 0) {
-            var p = queue.shift();
+            const p = queue.shift();
             if (this.floodFillDo(hits, p.x, p.y, srcColor, targetColor)) {
                 queue.push({ x: p.x, y: p.y - 1 });
                 queue.push({ x: p.x, y: p.y + 1 });
@@ -1788,17 +1500,13 @@ var Tilemap = /** @class */ (function (_super) {
                 queue.push({ x: p.x + 1, y: p.y });
             }
         }
-    };
+    }
     /**
      * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
      */
-    Tilemap.prototype.update = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var penType = this._penType;
-        var tileId = this._tileId;
+    update(...args) {
+        const penType = this._penType;
+        const tileId = this._tileId;
         // 오토 타일을 처리합니다.
         // if(this.isAutoTile(tileId)) {
         //     this._tileId = this.collectAutoTileID(this._mouseX, this._mouseY);
@@ -1814,14 +1522,14 @@ var Tilemap = /** @class */ (function (_super) {
                 break;
             case PenType.RECTANGLE:
                 {
-                    var mouse = args[0];
+                    const mouse = args[0];
                     this.drawRect(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
                 }
                 break;
             case PenType.ELLIPSE:
                 // https://stackoverflow.com/a/46630005
                 {
-                    var mouse = args[0];
+                    const mouse = args[0];
                     if (mouse.dragTime >= 8) {
                         this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
                     }
@@ -1829,10 +1537,10 @@ var Tilemap = /** @class */ (function (_super) {
                 break;
             case PenType.FLOOD_FILL:
                 {
-                    var mouse = args[0];
-                    var mx = Math.floor(this._mouseX / this._tileWidth);
-                    var my = Math.floor(this._mouseY / this._tileHeight);
-                    var nodes = [];
+                    const mouse = args[0];
+                    let mx = Math.floor(this._mouseX / this._tileWidth);
+                    let my = Math.floor(this._mouseY / this._tileHeight);
+                    let nodes = [];
                     this.floodFill(mx, my, -1, nodes, 0);
                     this._dirty = true;
                 }
@@ -1845,71 +1553,71 @@ var Tilemap = /** @class */ (function (_super) {
             this.draw();
             this._dirty = false;
         }
-    };
+    }
     /**
      * 모든 타일 스프라이트를 화면에서 제거합니다.
      *
      */
-    Tilemap.prototype.clear = function () {
-        this._layerContainer.children.forEach(function (i) {
+    clear() {
+        this._layerContainer.children.forEach(i => {
             i.removeChildren();
         });
         return this;
-    };
+    }
     /**
      * 타일셋 이미지에서 특정 영역만 가져와 잘라냅니다.
      *
      * @param tileID
      */
-    Tilemap.prototype.getTileCropTexture = function (tileID) {
-        var texture = pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset);
-        var mapCols = Math.floor(texture.width / this._tileWidth);
-        var mapRows = Math.floor((texture.height) / this._tileHeight);
-        var dx = (tileID % mapCols) * this._tileWidth;
-        var dy = Math.floor(tileID / mapCols) * this._tileHeight;
-        var cropTexture = this.cropTexture(dx, dy, texture);
+    getTileCropTexture(tileID) {
+        let texture = pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset);
+        const mapCols = Math.floor(texture.width / this._tileWidth);
+        const mapRows = Math.floor((texture.height) / this._tileHeight);
+        const dx = (tileID % mapCols) * this._tileWidth;
+        const dy = Math.floor(tileID / mapCols) * this._tileHeight;
+        const cropTexture = this.cropTexture(dx, dy, texture);
         return cropTexture;
-    };
+    }
     /**
      * 특정 레이어 컨테이너를 화면에서 감추거나 표시합니다.
      *
      * @param layerId
      */
-    Tilemap.prototype.toggleLayerVisibility = function (layerId) {
+    toggleLayerVisibility(layerId) {
         if (!this._layerContainer)
             return;
-        var children = this._layerContainer.children;
+        const children = this._layerContainer.children;
         children[layerId].visible = !children[layerId].visible;
-    };
+    }
     /**
      * 레이어의 투명도를 조절합니다.
      */
-    Tilemap.prototype.updateAlphaLayers = function () {
-        var currentLayer = this._currentLayer;
-        var children = this._layerContainer.children;
-        var layers = children.filter(function (e, i, a) {
+    updateAlphaLayers() {
+        const currentLayer = this._currentLayer;
+        const children = this._layerContainer.children;
+        const layers = children.filter((e, i, a) => {
             return i !== currentLayer;
         });
-        layers.forEach(function (layer) {
+        layers.forEach(layer => {
             layer.alpha = 0.25;
         });
         children[currentLayer].alpha = 1.0;
         return this;
-    };
-    Tilemap.prototype.draw = function () {
+    }
+    draw() {
         // 화면에 있는 모든 타일 스프라이트를 없앱니다.
         this.clear();
-        var mapWidth = this._mapWidth;
-        var mapHeight = this._mapHeight;
+        const mapWidth = this._mapWidth;
+        const mapHeight = this._mapHeight;
         // 레이어 Z부터 반복하여 모든 타일을 반복하여 그립니다.
-        for (var z = 0; z < this._config.LAYERS; z++) {
-            var container = this._layerContainer.children[z];
-            for (var y = 0; y < mapHeight; y++) {
-                for (var x = 0; x < mapWidth; x++) {
-                    var tileID = this.getData(x, y, z);
+        for (let z = 0; z < this._config.LAYERS; z++) {
+            const container = this._layerContainer.children[z];
+            for (let y = 0; y < mapHeight; y++) {
+                for (let x = 0; x < mapWidth; x++) {
+                    const tileID = this.getData(x, y, z);
                     if (!tileID)
                         continue;
-                    var sprite = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Sprite"](this.getTileCropTexture(tileID));
+                    const sprite = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Sprite"](this.getTileCropTexture(tileID));
                     sprite.x = x * this._tileWidth;
                     sprite.y = y * this._tileHeight;
                     container.addChild(sprite);
@@ -1917,10 +1625,8 @@ var Tilemap = /** @class */ (function (_super) {
             }
         }
         return this;
-    };
-    return Tilemap;
-}(_Component__WEBPACK_IMPORTED_MODULE_0__["Component"]));
-/* harmony default export */ __webpack_exports__["default"] = (Tilemap);
+    }
+}
 
 
 /***/ }),
@@ -1934,6 +1640,7 @@ var Tilemap = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetCanvas; });
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1943,143 +1650,87 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+class TilesetCanvas {
+    constructor(...args) {
+        this.initMembers(...args);
     }
-};
-var TilesetCanvas = /** @class */ (function () {
-    function TilesetCanvas() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        this.initMembers.apply(this, args);
-    }
-    TilesetCanvas.prototype.initMembers = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    initMembers(...args) {
         this._config = args[0];
         this._isReady = false;
         this._tilesetImgages = this._config.TILESET_IMGAGES;
-    };
-    TilesetCanvas.prototype.start = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.loadTilesets()];
-            });
+    }
+    start(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.loadTilesets();
         });
-    };
-    TilesetCanvas.prototype.loadTilesets = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var count;
-            var _this = this;
-            return __generator(this, function (_a) {
-                this._tilesets = [];
-                count = 0;
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var _loop_1 = function (i) {
-                            var elem = $("<img>").attr("src", _this._tilesetImgages[i]);
-                            elem.on("load", function () {
-                                _this._tilesets.push(elem);
-                                ++count;
-                                if (count >= _this._tilesetImgages.length) {
-                                    console.log(_this._tilesetImgages[i]);
-                                    _this.createCanvas();
-                                    resolve();
-                                }
-                            });
-                            elem.on("error", reject);
-                        };
-                        for (var i = 0; i < _this._tilesetImgages.length; i++) {
-                            _loop_1(i);
+    }
+    loadTilesets() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._tilesets = [];
+            let count = 0;
+            return new Promise((resolve, reject) => {
+                for (let i = 0; i < this._tilesetImgages.length; i++) {
+                    const elem = $("<img>").attr("src", this._tilesetImgages[i]);
+                    elem.on("load", () => {
+                        this._tilesets.push(elem);
+                        ++count;
+                        if (count >= this._tilesetImgages.length) {
+                            console.log(this._tilesetImgages[i]);
+                            this.createCanvas();
+                            resolve(this._tilesetImgages[i]);
                         }
-                    })];
+                    });
+                    elem.on("error", reject);
+                }
             });
         });
-    };
+    }
     /**
      * 이 메소드는 타일셋을 지우고 다시 처음부터 그립니다.
      * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
      */
-    TilesetCanvas.prototype.refreshTilesets = function (newTileset) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this._tilesetImgages.push(newTileset);
-                        if (this._canvas) {
-                            this._canvas.remove();
-                        }
-                        return [4 /*yield*/, this.start().then(function (ret) {
-                                window.app.createComponents();
-                            })];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
+    refreshTilesets(newTileset) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._tilesetImgages.push(newTileset);
+            if (this._canvas) {
+                this._canvas.remove();
+            }
+            yield this.start().then((ret) => {
+                window.app.createComponents();
             });
         });
-    };
-    TilesetCanvas.prototype.createCanvas = function () {
-        var canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
-        var canvasHeight = this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
+    }
+    createCanvas() {
+        const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
+        const canvasHeight = this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
         this._parent = $("#view");
-        this._canvas = $("<canvas />", { "id": "tileset-canvas" })
+        this._canvas = $("<canvas />", { id: "tileset-canvas" })
             .attr("width", canvasWidth)
             .attr("height", canvasHeight)
             .css({
-            "padding": "0",
-            "margin": "0"
+            padding: "0",
+            margin: "0",
         });
         this._parent.prepend(this._canvas);
         this._parent.css({
-            "width": "100%",
-            "height": "60%",
+            width: "100%",
+            height: "60%",
         });
         /**
          * @type {CanvasRenderingContext2D}
          */
         this._context = this._canvas.get(0).getContext("2d");
-        var ctx = this._context;
-        var acc = 0;
-        var maxW = 0;
-        var maxH = 0;
-        for (var i = 0; i < this._tilesetImgages.length; i++) {
+        const ctx = this._context;
+        let acc = 0;
+        let maxW = 0;
+        let maxH = 0;
+        for (let i = 0; i < this._tilesetImgages.length; i++) {
             /**
              * @type {JQuery}
              */
-            var img = this._tilesets[i];
-            var width = img.get(0).naturalWidth;
-            var height = img.get(0).naturalHeight;
+            const img = this._tilesets[i];
+            const width = img.get(0).naturalWidth;
+            const height = img.get(0).naturalHeight;
             if (height > acc + height) {
                 maxH = acc + height;
                 this._canvas.prop("height", maxH);
@@ -2090,10 +1741,8 @@ var TilesetCanvas = /** @class */ (function () {
             acc += height;
         }
         this._isReady = true;
-    };
-    return TilesetCanvas;
-}());
-/* harmony default export */ __webpack_exports__["default"] = (TilesetCanvas);
+    }
+}
 
 
 /***/ }),
@@ -2116,19 +1765,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./controllers/TilesetWindowController */ "./js/controllers/TilesetWindowController.ts");
 /* harmony import */ var _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./models/TilesetWindow */ "./js/models/TilesetWindow.ts");
 /* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./camelCase */ "./js/camelCase.js");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 
 
@@ -2137,128 +1773,123 @@ var __extends = (undefined && undefined.__extends) || (function () {
 
 
 
-var WindowCreator = /** @class */ (function (_super) {
-    __extends(WindowCreator, _super);
+class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"] {
     /**
      * @param {App} app
      */
-    function WindowCreator() {
-        var _this = _super.call(this) || this;
-        _this._app = _App__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
-        _this.cache = {};
-        return _this;
+    constructor() {
+        super();
+        this._app = _App__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
+        this.cache = {};
     }
     /**
      * This method is called when clicking the file menu.
      *
      * 창을 생성한 후 캐시에 저장을 해둡니다.
      */
-    WindowCreator.prototype.onFileNew = function () {
-        var _this = this;
+    onFileNew() {
         // 윈도우를 생성합니다.
         this._gamePropertiesWindow = new _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__["default"](new _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__["default"]());
         this._gamePropertiesWindow.render()
-            .then(function (ret) {
-            var id = "new-window";
-            _this.cache[id] = _this._gamePropertiesWindow;
-            _this._gamePropertiesWindow.setUniqueId(id);
+            .then(ret => {
+            const id = "new-window";
+            this.cache[id] = this._gamePropertiesWindow;
+            this._gamePropertiesWindow.setUniqueId(id);
         })
-            .catch(function (err) {
+            .catch(err => {
             console.warn(err);
         });
-    };
+    }
     /**
      * Open the tools option window.
      * This window allows you to add a new tile image on the tileset canvas window of this map editor.
      */
-    WindowCreator.prototype.onToolsOptions = function () {
-        var _this = this;
+    onToolsOptions() {
         this._tilesetWindow = new _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__["default"](new _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__["TilesetWindowModel"]());
         this._tilesetWindow.render()
-            .then(function (ret) {
-            var id = "tileset";
-            _this.cache[id] = _this._tilesetWindow;
-            _this._tilesetWindow.setUniqueId(id);
+            .then(ret => {
+            const id = "tileset";
+            this.cache[id] = this._tilesetWindow;
+            this._tilesetWindow.setUniqueId(id);
         })
-            .catch(function (err) {
+            .catch(err => {
             console.warn(err);
         });
-    };
-    WindowCreator.prototype.onFileSave = function () {
+    }
+    onFileSave() {
         window.app.emit("tilemap:save");
-    };
+    }
     /**
      * This method removes all cache window for some times.
      */
-    WindowCreator.prototype.update = function () {
-        for (var i in this.cache) {
+    update() {
+        for (let i in this.cache) {
             if (this.cache[i] instanceof _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__["default"]) {
                 this.cache[i].remove();
             }
         }
-    };
+    }
     /**
      * Create a certain window.
      * @param {MouseEvent}
      */
-    WindowCreator.GrapWindow = function (ev) {
-        var target = $(ev.currentTarget);
+    static GrapWindow(ev) {
+        const target = $(ev.currentTarget);
         if (!target) {
             return;
         }
-        var id = target.data("action");
-        var creator = WindowCreator.GetInstance();
-        var type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
-        var methodName = "on" + type;
+        const id = target.data("action");
+        const creator = WindowCreator.GetInstance();
+        const type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
+        const methodName = "on" + type;
         // @ts-ignore
-        var cb = creator[methodName].bind(creator);
+        const cb = creator[methodName].bind(creator);
         if (typeof (cb) === "function") {
             cb();
         }
-    };
+    }
     /**
      * Create a specific window as type.
      * the type name is the same as data-action property.
      * @param {String} id
      */
-    WindowCreator.GrapWindowAsType = function (id) {
-        var creator = WindowCreator.GetInstance();
-        var type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
-        var methodName = "on" + type;
+    static GrapWindowAsType(id) {
+        const creator = WindowCreator.GetInstance();
+        const type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
+        const methodName = "on" + type;
         // @ts-ignore
-        var cb = creator[methodName].bind(creator);
+        const cb = creator[methodName].bind(creator);
         if (typeof (cb) === "function") {
             cb();
         }
-    };
+    }
     /**
      * Load a window from the cache data.
      *
      * @param {HTMLElement} elem
      * @param {Number} id
      */
-    WindowCreator.onLoad = function (elem, id) {
-        var creator = this.GetInstance();
+    static onLoad(elem, id) {
+        const creator = this.GetInstance();
         // 이미 생성된 창이 있으면 해당 요소의 onLoad 메소드를 호출하여 창을 다시 호출합니다.
         if (creator.cache[id]) {
-            var self_1 = creator.cache[id];
-            creator.cache[id].onLoad(elem, self_1);
+            const self = creator.cache[id];
+            creator.cache[id].onLoad(elem, self);
         }
-    };
+    }
     /**
      * Gets a single instance.
      *
      * @return {WindowCreator}
      */
-    WindowCreator.GetInstance = function () {
+    static GetInstance() {
         if (!WindowCreator.Instance) {
             WindowCreator.Instance = new WindowCreator();
         }
         return WindowCreator.Instance;
-    };
-    WindowCreator.Instance = null;
-    return WindowCreator;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"]));
+    }
+}
+WindowCreator.Instance = null;
 
 
 
@@ -2273,6 +1904,7 @@ var WindowCreator = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return App; });
 /* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
 /* harmony import */ var _MenuComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MenuComponent */ "./js/MenuComponent.ts");
 /* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tilesetMarker */ "./js/tilesetMarker.ts");
@@ -2286,19 +1918,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./js/WindowCreator.ts");
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
 /* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./js/ThemeManager.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -2308,40 +1927,6 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 
 
 
@@ -2355,16 +1940,11 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
 
 
 
-var App = /** @class */ (function (_super) {
-    __extends(App, _super);
-    function App() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
+class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      * 멤버 변수를 초기화합니다.
      */
-    App.prototype.initMembers = function () {
-        var _this = this;
+    initMembers() {
         this.cache = {};
         this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
         this._mouse = {
@@ -2405,280 +1985,272 @@ var App = /** @class */ (function (_super) {
         document.title = "Initial Map Editor";
         this.emit("ready", JSON.stringify(this));
         // 맵 설정 파일을 생성합니다.
-        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then(function (data) {
+        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then((data) => {
             // @ts-ignore
-            var myEditorConfig = JSON.parse(data);
-            var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            const myEditorConfig = JSON.parse(data);
+            const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             //@ts-ignore
             if (myEditorConfig.Theme == 1) {
-                $("body").data("theme", "light");
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "light");
                 themeManager.changeLightTheme();
             }
             else {
-                $("body").data("theme", "dark");
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "dark");
                 themeManager.changeDarkTheme();
             }
         });
-        this.on("save-config", function (extraConfig) {
-            var myConfig = Object.assign(_this._config.Editor, extraConfig);
-            _this._config.Editor = myConfig;
-            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then(function (ret) {
+        this.on("save-config", (extraConfig) => {
+            let myConfig = Object.assign(this._config.Editor, extraConfig);
+            this._config.Editor = myConfig;
+            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then((ret) => {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
         // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
         // });
-    };
+    }
     /**
      * 컴포넌트를 생성합니다.
      */
-    App.prototype.createComponents = function () {
-        var _this = this;
+    createComponents() {
         this._tilemap = new _Tilemap__WEBPACK_IMPORTED_MODULE_3__["default"](this._config);
-        this._components.push(this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config));
+        this._components.push((this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config)));
         this._components.push(this._tilemap);
-        this._components.push(this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config));
-        this._components.forEach(function (component) {
+        this._components.push((this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config)));
+        this._components.forEach((component) => {
             component.start();
         });
         this._tilemap.setTileId(0);
         // 타일맵 이벤트를 재전파합니다.
-        this.on("tilemap", function () {
-            var _a;
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            (_a = _this._tilemap).emit.apply(_a, __spreadArrays([args[0]], args.slice(1)));
+        this.on("tilemap", (...args) => {
+            this._tilemap.emit(args[0], ...args.slice(1));
         });
-    };
+    }
     /**
      * 컴포넌트를 초기화합니다.
      */
-    App.prototype.initWithComponents = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        /**
-                         * @type {Component[]}
-                         */
-                        this._components = [];
-                        this._components.push(this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config));
-                        this._components.push(this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu));
-                        this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
-                        return [4 /*yield*/, this._tilesetCanvas.start().then(function (ret) {
-                                _this.createComponents();
-                            }).then(function (ret) {
-                                $(".darken, .windows-container").css("left", "-9999px");
-                            }).catch(function (err) {
-                                console.warn(err);
-                            })];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
+    initWithComponents() {
+        return __awaiter(this, void 0, void 0, function* () {
+            /**
+             * @type {Component[]}
+             */
+            this._components = [];
+            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
+            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
+            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
+            yield this._tilesetCanvas
+                .start()
+                .then((ret) => {
+                this.createComponents();
+            })
+                .then((ret) => {
+                $(".darken, .windows-container").css("left", "-9999px");
+            })
+                .catch((err) => {
+                console.warn(err);
             });
         });
-    };
-    App.prototype.toCamelCase = function () {
+    }
+    toCamelCase() {
         return Object(_camelCase__WEBPACK_IMPORTED_MODULE_4__["toCamelCase"])();
-    };
+    }
     /**
      * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
      * @return {Boolean}
      */
-    App.prototype.isMobileDevice = function () {
-        var ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    isMobileDevice() {
+        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         return ret;
-    };
-    App.prototype.onMouseTouchMove = function (ev) {
+    }
+    onMouseTouchMove(ev) {
         this._mouse.x = ev.layerX;
         this._mouse.y = ev.layerY;
         this._mouse.screenX = ev.layerX;
         this._mouse.screenY = ev.layerY;
-    };
+    }
     /**
      * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
      */
-    App.prototype.initWithMouseEvent = function () {
-        var _this = this;
-        var isMobileDevice = this.isMobileDevice();
-        var events;
+    initWithMouseEvent() {
+        const isMobileDevice = this.isMobileDevice();
+        let events;
         if (isMobileDevice) {
             events = {
-                "touchmove": function (ev) {
-                    var touchEvent = ev;
+                touchmove: (ev) => {
+                    let touchEvent = ev;
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
                     /**
                      * @type {HTMLElement}
                      */
-                    var target = _this._mouse.target;
-                    var rect = _this._mouse.target.getBoundingClientRect();
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
-                    _this._mouse.x = touchEvent.clientX - rect.x;
-                    _this._mouse.y = touchEvent.clientY - rect.y;
-                    _this._mouse.screenX = touchEvent.screenX;
-                    _this._mouse.screenY = touchEvent.screenY;
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
                 },
-                "touchstart pointerdown": function (ev) {
-                    var touchEvent = ev;
+                "touchstart pointerdown": (ev) => {
+                    let touchEvent = ev;
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
-                    _this._mouse.target = ev.target;
+                    this._mouse.target = ev.target;
                     /**
                      * @type {HTMLElement}
                      */
-                    var target = _this._mouse.target;
-                    var rect = _this._mouse.target.getBoundingClientRect();
-                    _this._mouse.x = touchEvent.clientX - rect.x;
-                    _this._mouse.y = touchEvent.clientY - rect.y;
-                    _this._mouse.screenX = touchEvent.screenX;
-                    _this._mouse.screenY = touchEvent.screenY;
-                    _this._mouse.buttons.left = true;
-                    _this._mouse.buttons.leftFire = false;
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                    this._mouse.buttons.left = true;
+                    this._mouse.buttons.leftFire = false;
                 },
-                "touchend pointerup mouseup": function (ev) {
-                    _this._mouse.buttons.left = false;
-                    _this._mouse.buttons.leftFire = true;
-                }
+                "touchend pointerup mouseup": (ev) => {
+                    this._mouse.buttons.left = false;
+                    this._mouse.buttons.leftFire = true;
+                },
             };
             $(window).on(events);
         }
         else {
             events = {
-                "mousemove": function (ev) {
-                    _this._mouse.x = ev.layerX;
-                    _this._mouse.y = ev.layerY;
-                    _this._mouse.screenX = ev.layerX;
-                    _this._mouse.screenY = ev.layerY;
-                    if (_this._mouse.isDrawing) {
-                        _this._mouse.dragTime++;
+                mousemove: (ev) => {
+                    this._mouse.x = ev.layerX;
+                    this._mouse.y = ev.layerY;
+                    this._mouse.screenX = ev.layerX;
+                    this._mouse.screenY = ev.layerY;
+                    if (this._mouse.isDrawing) {
+                        this._mouse.dragTime++;
                     }
                 },
-                "mousedown": function (ev) {
+                mousedown: (ev) => {
                     if (ev.button == 0) {
-                        _this._mouse.buttons.left = true;
-                        _this._mouse.buttons.leftFire = false;
-                        _this._mouse.target = ev.target;
-                        _this._mouse.isDrawing = true;
+                        this._mouse.buttons.left = true;
+                        this._mouse.buttons.leftFire = false;
+                        this._mouse.target = ev.target;
+                        this._mouse.isDrawing = true;
                         // 캔버스
-                        var canvas_1 = document.querySelector("#contents__main-canvas");
-                        canvas_1.style.cursor = "crosshair";
-                        var canvasOffset = $("#contents__main-canvas").offset();
-                        var offsetX = parseInt(canvasOffset.left);
-                        var offsetY = parseInt(canvasOffset.top);
-                        _this._mouse.startX = parseInt(ev.clientX - offsetX);
-                        _this._mouse.startY = parseInt(ev.clientY - offsetY);
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "crosshair";
+                        const canvasOffset = $("#contents__main-canvas").offset();
+                        const offsetX = parseInt(canvasOffset.left);
+                        const offsetY = parseInt(canvasOffset.top);
+                        this._mouse.startX = parseInt((ev.clientX - offsetX));
+                        this._mouse.startY = parseInt((ev.clientY - offsetY));
                     }
                 },
-                "mouseup": function (ev) {
+                mouseup: (ev) => {
                     if (ev.button == 0) {
-                        _this._mouse.buttons.left = false;
-                        _this._mouse.buttons.leftFire = true;
-                        _this._blockRect.isDrawing = false;
-                        _this._mouse.isDrawing = false;
-                        var canvas_2 = document.querySelector("#contents__main-canvas");
-                        canvas_2.style.cursor = "default";
-                        _this._mouse.dragTime = 0;
+                        this._mouse.buttons.left = false;
+                        this._mouse.buttons.leftFire = true;
+                        this._blockRect.isDrawing = false;
+                        this._mouse.isDrawing = false;
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "default";
+                        this._mouse.dragTime = 0;
                     }
                 },
-                "mouseover": function (ev) {
-                    if (_this._menu._isMenuOpen) {
+                mouseover: (ev) => {
+                    if (this._menu._isMenuOpen) {
                         //@ts-ignore
-                        _this._mouse.buttons.menuTarget = ev.target;
+                        this._mouse.buttons.menuTarget = ev.target;
                         //@ts-ignore
-                        _this._menu.emit("menu_open", _this._mouse.buttons.menuTarget);
+                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
                     }
-                }
+                },
             };
-            for (var k in events) {
+            for (let k in events) {
                 //@ts-ignore
                 window.addEventListener(k, events[k], false);
             }
         }
-    };
-    App.prototype.setTileId = function (tileId) {
+    }
+    setTileId(tileId) {
         if (!this._tilemap)
             return;
         this._tilemap.setTileId(tileId);
-    };
+    }
     /**
      * 레이어를 토글하는 기능을 수행합니다.
      */
-    App.prototype.initWithMapLayers = function () {
-        var _this = this;
-        var children = $("ul.aside__tabs__maptree-child-tree li i").children();
-        var target = null;
+    initWithMapLayers() {
+        const children = $("ul.aside__tabs__maptree-child-tree li i").children();
+        let target = null;
         // 레이어 항목에서 눈 아이콘을 추가합니다.
-        children.each(function (index, elem) {
+        children.each((index, elem) => {
             // @ts-ignore
-            var e = e.get(0);
+            const e = e.get(0);
             // @ts-ignore
-            elem.click(function () {
-                e.className = e.className.includes("slash") ? "far fa-eye" : "far fa-eye-slash";
+            elem.click(() => {
+                e.className = e.className.includes("slash")
+                    ? "far fa-eye"
+                    : "far fa-eye-slash";
             });
         });
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
-        $("ul.aside__tabs__maptree-child-tree li i").on("click", function (ev) {
-            var target = $(ev.currentTarget);
-            var parentNode = $(ev.currentTarget).parent();
-            var layerId = parentNode.index();
-            var tilemap = _this._tilemap;
+        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
+            const target = $(ev.currentTarget);
+            const parentNode = $(ev.currentTarget).parent();
+            const layerId = parentNode.index();
+            const tilemap = this._tilemap;
             if (target.hasClass("fa-eye")) {
-                target.removeClass("fa-eye")
-                    .addClass("fa-eye-slash");
+                target.removeClass("fa-eye").addClass("fa-eye-slash");
             }
             else {
-                target.removeClass("fa-eye-slash")
-                    .addClass("fa-eye");
+                target.removeClass("fa-eye-slash").addClass("fa-eye");
             }
             tilemap.toggleLayerVisibility(layerId);
         });
         // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
-        $("ul.aside__tabs__maptree-child-tree li").on("click", function (ev) {
-            var elem = $(ev.currentTarget).css({
-                "backgroundColor": "var(--dark-selection-color)"
+        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
+            const elem = $(ev.currentTarget).css({
+                backgroundColor: "var(--dark-selection-color)",
             });
             $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
-                "backgroundColor": "rgba(255, 255, 255, 0)"
+                backgroundColor: "rgba(255, 255, 255, 0)",
             });
-            var layerId = elem.index();
-            var tilemap = _this._tilemap;
+            const layerId = elem.index();
+            const tilemap = this._tilemap;
             // 타일맵을 지우고 다시 그립니다.
-            tilemap.setCurrentLayerId(layerId)
+            tilemap
+                .setCurrentLayerId(layerId)
                 .clear()
                 .draw()
                 .updateAlphaLayers();
         });
         $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
-    };
-    App.prototype.start = function () {
-        var _this = this;
+    }
+    start() {
         this.initMembers();
         this.initWithMouseEvent();
         // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
         this.initWithComponents()
-            .then(function (ret) {
-            _this.initWithMapLayers();
-            _this._isReady = true;
-            _this.on("update", function (deltaTime) {
-                _this.update(deltaTime);
+            .then((ret) => {
+            this.initWithMapLayers();
+            this._isReady = true;
+            this.on("update", (deltaTime) => {
+                this.update(deltaTime);
             });
-        }).catch(function (err) {
+        })
+            .catch((err) => {
             console.warn(err);
-            _this._isReady = false;
+            this._isReady = false;
         });
-    };
+    }
     /**
      * 매 프레임마다 반복 실행되는 메소드입니다.
      * @param {Number}} deltaTime
      */
-    App.prototype.update = function (deltaTime) {
+    update(deltaTime) {
         if (!this._isReady)
             return;
         // 400ms가 지났을 때 마다 무언가를 실행합니다.
@@ -2687,17 +2259,17 @@ var App = /** @class */ (function (_super) {
         }
         this.updateComponents();
         this._mouse.buttons.leftFire = false;
-    };
+    }
     /**
      * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
      */
-    App.prototype.updateComponents = function () {
-        var target = this._mouse.target;
+    updateComponents() {
+        const target = this._mouse.target;
         if (!target) {
             return;
         }
-        var id = target.id;
-        var mouse = this._mouse;
+        const id = target.id;
+        const mouse = this._mouse;
         // 메뉴를 업데이트합니다.
         this._menu.update(target, mouse);
         // 메뉴가 열리지 않았을 경우
@@ -2725,7 +2297,7 @@ var App = /** @class */ (function (_super) {
                     break;
             }
         }
-    };
+    }
     /**
      * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
      * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
@@ -2747,25 +2319,23 @@ var App = /** @class */ (function (_super) {
      * @param {HTMLElement} elem
      * @param {String}} id
      */
-    App.prototype.onLoad = function (elem, id) {
+    onLoad(elem, id) {
         _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
-    };
+    }
     /**
      * 유일한 인스턴스를 반환하는 메소드입니다.
      * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
      *
      * @return {App}
      */
-    App.GetInstance = function () {
+    static GetInstance() {
         if (!App.Instance) {
             App.Instance = new App();
         }
         return App.Instance;
-    };
-    App.Instance = null;
-    return App;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
-/* harmony default export */ __webpack_exports__["default"] = (App);
+    }
+}
+App.Instance = null;
 
 
 /***/ }),
@@ -2814,7 +2384,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "config", function() { return config; });
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
 
-var config = {
+const config = {
     SCREEN_WIDTH: 800,
     SCREEN_HEIGHT: 600,
     TILE_WIDTH: 16,
@@ -2845,6 +2415,7 @@ var config = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseController; });
 /* harmony import */ var _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/ViewModel */ "./js/viewmodels/ViewModel.ts");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2855,102 +2426,70 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 
 /**
  * @author Eo Jinseok
  * @class Renderer
  */
-var BaseController = /** @class */ (function () {
+class BaseController {
     /**
      * @param {GamePropertiesWindow} config
      */
-    function BaseController(config) {
+    constructor(config) {
         this.createViewModel();
         this.initMembers(config.data);
         this.initWithCanvas();
     }
-    Object.defineProperty(BaseController.prototype, "config", {
-        // protected _element: JQuery<HTMLElement>;
-        get: function () {
-            return this._config;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BaseController.prototype.createViewModel = function () {
+    // protected _element: JQuery<HTMLElement>;
+    get config() {
+        return this._config;
+    }
+    createViewModel() {
         this._view = new _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"](this);
-    };
-    BaseController.prototype.initMembers = function (config) {
+    }
+    initMembers(config) {
         /**
          * 실제 HTML 파일이 있는 위치
          */
         this._config = config;
         this._isValid = false;
         this._uniqueId = null;
-    };
-    BaseController.prototype.setUniqueId = function (id) {
+    }
+    setUniqueId(id) {
         this._uniqueId = id;
-    };
-    BaseController.prototype.initWithCanvas = function () {
-        var config = this._config;
+    }
+    initWithCanvas() {
+        const config = this._config;
         this._view.emit("create", null, config);
-    };
-    BaseController.prototype.hide = function () {
+    }
+    hide() {
         this._view.onHide();
-    };
-    BaseController.prototype.invalid = function () {
+    }
+    invalid() {
         this._isValid = false;
-    };
-    BaseController.prototype.valid = function () {
+    }
+    valid() {
         this._isValid = true;
-    };
-    BaseController.prototype.show = function () {
+    }
+    show() {
         this._view.emit("show");
-    };
-    BaseController.prototype.remove = function () {
+    }
+    remove() {
         this._view.emit("dispose");
-    };
-    BaseController.prototype.isMobile = function () {
-        var r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
+    }
+    isMobile() {
+        const r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
         return !!navigator.userAgent.match(r);
-    };
+    }
     /**
      * AJAX를 이용하여 새로 고침 없이 창의 실제 데이터(HTML 파일)을 로드합니다.
      */
-    BaseController.prototype.load = function () {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            var path = _this._config.path;
+    load() {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            const path = this._config.path;
             // 데이터 파일의 경로를 지정합니다.
-            var url = location.href.slice(0, location.href.lastIndexOf("/")) + "/" + path;
+            const url = `${location.href.slice(0, location.href.lastIndexOf("/"))}/${path}`;
             xhr.open("GET", url);
             xhr.onload = function () {
                 if (xhr.status === 200) {
@@ -2960,44 +2499,34 @@ var BaseController = /** @class */ (function () {
             xhr.onerror = reject;
             xhr.send();
         });
-    };
+    }
     /**
      * 비동기적으로 HTML 파일을 시스템으로 불러와 렌더링을 진행하는 메서드입니다.
      * HTML 파일은 뷰(View)에 해당하며 View 데이터는 뷰 모델(View Model)을 통해서만 접근이 가능합니다.
      */
-    BaseController.prototype.render = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.load().then(function (result) {
-                            // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
-                            // 창의 렌더링을 진행합니다 (다소의 시간 소요)
-                            _this._view.emit("render", result);
-                        }).catch(function (err) {
-                            console.warn(err);
-                        })];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
+    render() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.load().then((result) => {
+                // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
+                // 창의 렌더링을 진행합니다 (다소의 시간 소요)
+                this._view.emit("render", result);
+            }).catch(err => {
+                console.warn(err);
             });
         });
-    };
+    }
     /**
      * 로드가 완료되면 호출되는 리스너를 지정합니다.
      *
      * @param elem
      * @param self
      */
-    BaseController.prototype.onLoad = function (elem, self) {
+    onLoad(elem, self) {
         this.addEventHandlers(elem, self);
-    };
-    BaseController.prototype.addEventHandlers = function (elem, self) {
-    };
-    return BaseController;
-}());
-/* harmony default export */ __webpack_exports__["default"] = (BaseController);
+    }
+    addEventHandlers(elem, self) {
+    }
+}
 
 
 /***/ }),
@@ -3011,73 +2540,57 @@ var BaseController = /** @class */ (function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePropertiesWindowController; });
 /* harmony import */ var _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/newWindowViewModel */ "./js/viewmodels/newWindowViewModel.ts");
 /* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 
 /**
  * @author Eo Jinseok
  * @class Renderer
  */
-var GamePropertiesWindowController = /** @class */ (function (_super) {
-    __extends(GamePropertiesWindowController, _super);
+class GamePropertiesWindowController extends _BaseController__WEBPACK_IMPORTED_MODULE_1__["default"] {
     /**
      * @param {GamePropertiesWindow} config
      */
-    function GamePropertiesWindowController(config) {
-        return _super.call(this, config) || this;
+    constructor(config) {
+        super(config);
     }
     /**
      * 컨트롤러에 있는 뷰 접근 코드를 뷰 모델로 전부 옮깁니다.
      */
-    GamePropertiesWindowController.prototype.createViewModel = function () {
+    createViewModel() {
         this._view = new _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__["NewWindowViewModel"](this);
-    };
-    GamePropertiesWindowController.prototype.onLoad = function (elem, self) {
-        var _this = this;
-        _super.prototype.onLoad.call(this, elem, self);
-        var container = $("#newContainer #newWindow");
-        var okButton = container.find("div.panel");
-        okButton.eq(0).on("click", function (ev) {
-            _this.onOkButton(ev);
+    }
+    onLoad(elem, self) {
+        super.onLoad(elem, self);
+        const container = $("#newContainer #newWindow");
+        const okButton = container.find("div.panel");
+        okButton.eq(0).on("click", (ev) => {
+            this.onOkButton(ev);
         });
         this.show();
-    };
-    GamePropertiesWindowController.prototype.onClick = function (ev) {
+    }
+    onClick(ev) {
         // 창을 화면에 보이게 합니다.
         this.show();
         // 펼쳐진 메뉴를 다시 접습니다.
         $("#none").prop("checked", true);
-    };
-    GamePropertiesWindowController.prototype.onOkButton = function (ev) {
-        var container = $("#newContainer #newWindow");
-        var inp = container.find("input");
-        var data = {
+    }
+    onOkButton(ev) {
+        const container = $("#newContainer #newWindow");
+        const inp = container.find("input");
+        const data = {
             gameName: $(inp[0]).val(),
             gameFolder: $(inp[1]).val(),
             author: $(inp[2]).val(),
         };
         alert(JSON.stringify(data, null, "\t"));
         this.remove();
-    };
-    GamePropertiesWindowController.prototype.addEventHandlers = function (elem, self) {
-    };
-    return GamePropertiesWindowController;
-}(_BaseController__WEBPACK_IMPORTED_MODULE_1__["default"]));
-/* harmony default export */ __webpack_exports__["default"] = (GamePropertiesWindowController);
+    }
+    addEventHandlers(elem, self) {
+    }
+}
 
 
 /***/ }),
@@ -3091,22 +2604,10 @@ var GamePropertiesWindowController = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetWindowController; });
 /* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
 /* harmony import */ var _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../viewmodels/TilesetWindowViewModel */ "./js/viewmodels/TilesetWindowViewModel.ts");
 /* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ThemeManager */ "./js/ThemeManager.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 
 
@@ -3120,46 +2621,44 @@ var Theme;
  * @author Eo Jinseok
  * @class Renderer
  */
-var TilesetWindowController = /** @class */ (function (_super) {
-    __extends(TilesetWindowController, _super);
+class TilesetWindowController extends _BaseController__WEBPACK_IMPORTED_MODULE_0__["default"] {
     /**
      * @param {GamePropertiesWindow} config
      */
-    function TilesetWindowController(config) {
-        return _super.call(this, config) || this;
+    constructor(config) {
+        super(config);
     }
-    TilesetWindowController.prototype.createViewModel = function () {
+    createViewModel() {
         this._view = new _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__["TilesetWindowViewModel"](this);
-    };
-    TilesetWindowController.prototype.onLoad = function (elem, self) {
-        var _this = this;
-        _super.prototype.onLoad.call(this, elem, self);
-        var parent = elem.parentNode;
-        parent.querySelector(".tilesetWindow__control-box p i").onclick = function () {
+    }
+    onLoad(elem, self) {
+        super.onLoad(elem, self);
+        const parent = elem.parentNode;
+        parent.querySelector(".tilesetWindow__control-box p i").onclick = () => {
             self.remove();
         };
-        $(elem.parentNode).find(".tilesetWindow__panel #ok").on("click", function (ev) {
-            _this.onOk(ev);
+        $(elem.parentNode).find(".tilesetWindow__panel #ok").on("click", ev => {
+            this.onOk(ev);
         });
-        $(elem.parentNode).find(".tilesetWindow__panel #cancel").on("click", function (ev) {
-            _this.onCancel(ev);
+        $(elem.parentNode).find(".tilesetWindow__panel #cancel").on("click", ev => {
+            this.onCancel(ev);
         });
         /**
          * @type JQuery<HTMLInputElement>
          */
-        var inputElement = $("input#image-load-dialog");
-        inputElement.on("change", function (ev) {
+        const inputElement = $("input#image-load-dialog");
+        inputElement.on("change", (ev) => {
             /**
              * @type {File[]}
              */
-            var files = Array.from(ev.target.files);
+            const files = Array.from(ev.target.files);
             console.log(files[0].name, files[0].path);
         });
         this.show();
-    };
-    TilesetWindowController.prototype.onOk = function (ev) {
-        var themeIndex = $("#theme-select-box").prop("selectedIndex");
-        var themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_2__["ThemeManager"]();
+    }
+    onOk(ev) {
+        const themeIndex = $("#theme-select-box").prop("selectedIndex");
+        const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_2__["ThemeManager"]();
         if (themeIndex == Theme.DARK) {
             $("body").data("theme", "dark");
             themeManager.changeDarkTheme(true);
@@ -3169,14 +2668,12 @@ var TilesetWindowController = /** @class */ (function (_super) {
             themeManager.changeLightTheme(true);
         }
         this._view.onOk(ev);
-    };
-    TilesetWindowController.prototype.onCancel = function (ev) {
+    }
+    onCancel(ev) {
         ev.preventDefault();
         this.remove();
-    };
-    return TilesetWindowController;
-}(_BaseController__WEBPACK_IMPORTED_MODULE_0__["default"]));
-/* harmony default export */ __webpack_exports__["default"] = (TilesetWindowController);
+    }
+}
 
 
 /***/ }),
@@ -3202,33 +2699,6 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 
 
 
@@ -3237,28 +2707,21 @@ __webpack_require__(/*! source-map-support */ "./node_modules/source-map-support
 //==========================================================
 // Main
 //==========================================================
-var Main = /** @class */ (function () {
-    function Main() {
+class Main {
+    static start() {
+        $(() => __awaiter(this, void 0, void 0, function* () {
+            window.app = _app__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
+            window.electronService = new _ElectronService__WEBPACK_IMPORTED_MODULE_2__["ElectronService"]();
+            window.ToolbarManager = new _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__["ToolbarManager"]();
+            window.app.start();
+            this.update(1.0);
+        }));
     }
-    Main.start = function () {
-        var _this = this;
-        $(function () { return __awaiter(_this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                window.app = _app__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
-                window.electronService = new _ElectronService__WEBPACK_IMPORTED_MODULE_2__["ElectronService"]();
-                window.ToolbarManager = new _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__["ToolbarManager"]();
-                window.app.start();
-                this.update(1.0);
-                return [2 /*return*/];
-            });
-        }); });
-    };
-    Main.update = function (deltaTime) {
+    static update(deltaTime) {
         window.app.emit("update", deltaTime);
         window.requestAnimationFrame(Main.update);
-    };
-    return Main;
-}());
+    }
+}
 Main.start();
 
 
@@ -3274,37 +2737,37 @@ Main.start();
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DrawMenu", function() { return DrawMenu; });
-var DrawMenu = {
+const DrawMenu = {
     name: "그리기",
     children: {
         "draw-pencil": {
             name: "펜",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "draw-rectangle": {
             name: "정사각형",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "draw-ellipse": {
             name: "직사각형",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "draw-flood-fill": {
             name: "채우기",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "draw-shadow pen": {
             name: "그림자",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
     },
@@ -3324,7 +2787,7 @@ var DrawMenu = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditMenu", function() { return EditMenu; });
-var EditMenu = {
+const EditMenu = {
     name: "편집",
     children: {
         "edit-undo": {
@@ -3366,7 +2829,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileMenu", function() { return FileMenu; });
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./js/WindowCreator.ts");
 
-var FileMenu = {
+const FileMenu = {
     name: "파일",
     children: {
         "file-new": {
@@ -3421,35 +2884,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GameMenu", function() { return GameMenu; });
 /* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ElectronService */ "./js/ElectronService.ts");
 
-var GameMenu = {
+const GameMenu = {
     name: "게임",
     children: {
         "game-playtest": {
             name: "플레이 테스트",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
                 alert("플레이 테스트 기능을 지원하지 않습니다.");
             },
         },
         "game-fullscreen": {
             name: "전체 화면",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "game-show-console": {
             name: "콘솔 표시",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "game-folder-open": {
             name: "게임 폴더 열기",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
                 // @ts-ignore
                 if (platform === "electron") {
-                    var service = new _ElectronService__WEBPACK_IMPORTED_MODULE_0__["ElectronService"]();
+                    const service = new _ElectronService__WEBPACK_IMPORTED_MODULE_0__["ElectronService"]();
                     service.openFolder(location.href);
                 }
             },
@@ -3471,20 +2934,20 @@ var GameMenu = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "HelpMenu", function() { return HelpMenu; });
-var HelpMenu = {
+const HelpMenu = {
     name: "도움말",
     children: {
         "help-contents": {
             name: "도움말",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
                 alert("도움말이 아직 없습니다.");
             },
         },
         "help-about": {
             name: "버전 정보",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
     },
@@ -3520,7 +2983,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var KoreanMenu = {
+const KoreanMenu = {
     file: _FileMenu__WEBPACK_IMPORTED_MODULE_0__["FileMenu"],
     edit: _EditMenu__WEBPACK_IMPORTED_MODULE_1__["EditMenu"],
     mode: _ModeMenu__WEBPACK_IMPORTED_MODULE_2__["ModeMenu"],
@@ -3548,7 +3011,7 @@ var KoreanMenu = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModeMenu", function() { return ModeMenu; });
-var ModeMenu = {
+const ModeMenu = {
     name: "모드",
     children: {
         "mode-map": {
@@ -3580,31 +3043,31 @@ var ModeMenu = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ScaleMenu", function() { return ScaleMenu; });
-var ScaleMenu = {
+const ScaleMenu = {
     name: "배율",
     children: {
         "scale-1x": {
             name: "실제 비율",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "scale-2x": {
             name: "2배 축소",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "scale-4x": {
             name: "4배 축소",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "scale-8x": {
             name: "8배 축소",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
     },
@@ -3626,25 +3089,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToolMenu", function() { return ToolMenu; });
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./js/WindowCreator.ts");
 
-var ToolMenu = {
+const ToolMenu = {
     name: "도구",
     children: {
         "tools-database": {
             name: "데이터베이스",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "tools-resource-manager": {
             name: "소재 관리자",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "tools-script-eidtor": {
             name: "스크립트 에디터",
             children: {},
-            action: function (ev) {
+            action: (ev) => {
             },
         },
         "tools-sound-test": {
@@ -3674,27 +3137,11 @@ var ToolMenu = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePropertiesWindowModel; });
 /* harmony import */ var _Model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Model */ "./js/models/Model.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var GamePropertiesWindowModel = /** @class */ (function (_super) {
-    __extends(GamePropertiesWindowModel, _super);
-    function GamePropertiesWindowModel() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    GamePropertiesWindowModel.prototype.getData = function () {
+class GamePropertiesWindowModel extends _Model__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    getData() {
         return {
             width: "240px",
             height: "100%",
@@ -3705,10 +3152,8 @@ var GamePropertiesWindowModel = /** @class */ (function (_super) {
             position: "absolute",
             display: "relative",
         };
-    };
-    return GamePropertiesWindowModel;
-}(_Model__WEBPACK_IMPORTED_MODULE_0__["default"]));
-/* harmony default export */ __webpack_exports__["default"] = (GamePropertiesWindowModel);
+    }
+}
 
 
 /***/ }),
@@ -3722,31 +3167,17 @@ var GamePropertiesWindowModel = /** @class */ (function (_super) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Model; });
 /* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./js/EventEmitter.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var Model = /** @class */ (function (_super) {
-    __extends(Model, _super);
-    function Model() {
-        var _this = _super.call(this) || this;
+class Model extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    constructor() {
+        super();
         // 데이터를 가져옵니다.
-        _this._data = _this.getData();
+        this._data = this.getData();
         // 뷰를 가져옵니다.
-        _this.VIEW = $("#" + _this._data.id);
-        _this.emit("create", _this._data);
-        return _this;
+        this.VIEW = $(`#${this._data.id}`);
+        this.emit("create", this._data);
     }
     /**
      * @return {{
@@ -3758,23 +3189,17 @@ var Model = /** @class */ (function (_super) {
      *  path: String,
      * }}
      */
-    Model.prototype.getData = function () {
+    getData() {
         return {};
-    };
-    Object.defineProperty(Model.prototype, "data", {
-        get: function () {
-            return this._data;
-        },
-        set: function (value) {
-            this._data = value;
-            this.emit("change", this._data);
-        },
-        enumerable: false,
-        configurable: true
-    });
-    return Model;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
-/* harmony default export */ __webpack_exports__["default"] = (Model);
+    }
+    get data() {
+        return this._data;
+    }
+    set data(value) {
+        this._data = value;
+        this.emit("change", this._data);
+    }
+}
 
 
 /***/ }),
@@ -3790,26 +3215,9 @@ var Model = /** @class */ (function (_super) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowModel", function() { return TilesetWindowModel; });
 /* harmony import */ var _Model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Model */ "./js/models/Model.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var TilesetWindowModel = /** @class */ (function (_super) {
-    __extends(TilesetWindowModel, _super);
-    function TilesetWindowModel() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    TilesetWindowModel.prototype.getData = function () {
+class TilesetWindowModel extends _Model__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    getData() {
         return {
             width: "540px",
             height: "100%",
@@ -3819,9 +3227,8 @@ var TilesetWindowModel = /** @class */ (function (_super) {
             path: "view/windows/tilesetWindow.html",
             opacity: "1.0",
         };
-    };
-    return TilesetWindowModel;
-}(_Model__WEBPACK_IMPORTED_MODULE_0__["default"]));
+    }
+}
 
 
 
@@ -3838,19 +3245,6 @@ var TilesetWindowModel = /** @class */ (function (_super) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditorSchema", function() { return EditorSchema; });
 /* harmony import */ var _Schema__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Schema */ "./js/schema/Schema.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 var Theme;
 (function (Theme) {
@@ -3858,12 +3252,8 @@ var Theme;
     Theme[Theme["LIGHT"] = 1] = "LIGHT";
 })(Theme || (Theme = {}));
 ;
-var EditorSchema = /** @class */ (function (_super) {
-    __extends(EditorSchema, _super);
-    function EditorSchema() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    EditorSchema.prototype.initMembers = function (config) {
+class EditorSchema extends _Schema__WEBPACK_IMPORTED_MODULE_0__["Schema"] {
+    initMembers(config) {
         this.ProjectPath = "E:\\VS2015\\Projects\\Initial2D";
         this.TileWidth = 16;
         this.TileHeight = 16;
@@ -3873,9 +3263,8 @@ var EditorSchema = /** @class */ (function (_super) {
         this.LayerCount = 4;
         this.Theme = Theme.DARK;
         Object.assign(this, config);
-    };
-    return EditorSchema;
-}(_Schema__WEBPACK_IMPORTED_MODULE_0__["Schema"]));
+    }
+}
 
 
 
@@ -3894,24 +3283,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fs */ "fs");
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
 
-var Schema = /** @class */ (function () {
-    function Schema(config) {
+class Schema {
+    constructor(config) {
         this.initMembers(config);
     }
-    Schema.prototype.initMembers = function (config) {
-    };
+    initMembers(config) {
+    }
     /**
      * 멤버 변수를 JSON 데이터로 변환합니다.
      */
-    Schema.prototype.toJson = function () {
+    toJson() {
         return JSON.stringify(this, null, "    ");
-    };
-    Schema.prototype.load = function (filename) {
+    }
+    load(filename) {
         if (!filename) {
             filename = this.constructor.name;
         }
-        return new Promise(function (resolve, reject) {
-            fs__WEBPACK_IMPORTED_MODULE_0__["readFile"](filename, "utf-8", function (err, data) {
+        return new Promise((resolve, reject) => {
+            fs__WEBPACK_IMPORTED_MODULE_0__["readFile"](filename, "utf-8", (err, data) => {
                 if (err) {
                     reject(err);
                     return;
@@ -3919,29 +3308,28 @@ var Schema = /** @class */ (function () {
                 resolve(data);
             });
         });
-    };
+    }
     /**
      * 파일로 내보냅니다 (비동기 방식)
      *
      * @param filename
      */
-    Schema.prototype.toFile = function (filename) {
-        var path = __webpack_require__(/*! path */ "path");
+    toFile(filename) {
+        const path = __webpack_require__(/*! path */ "path");
         if (!filename) {
             filename = this.constructor.name;
         }
-        var contents = this.toJson();
-        return new Promise(function (resolve, reject) {
-            fs__WEBPACK_IMPORTED_MODULE_0__["writeFile"](filename, contents, { encoding: "utf8" }, function (err) {
+        const contents = this.toJson();
+        return new Promise((resolve, reject) => {
+            fs__WEBPACK_IMPORTED_MODULE_0__["writeFile"](filename, contents, { encoding: "utf8" }, (err) => {
                 if (err) {
                     reject(err.message);
                 }
                 resolve();
             });
         });
-    };
-    return Schema;
-}());
+    }
+}
 
 
 
@@ -3958,53 +3346,32 @@ var Schema = /** @class */ (function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetMarker", function() { return TilesetMarker; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
 /**
  * @class TilesetMarker
  */
-var TilesetMarker = /** @class */ (function (_super) {
-    __extends(TilesetMarker, _super);
-    function TilesetMarker() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    TilesetMarker.prototype.initMembers = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+class TilesetMarker extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    initMembers(...args) {
         this._config = args[0];
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
         this._isReady = false;
         this.initWithElement();
         this.active();
-    };
-    TilesetMarker.prototype.initWithElement = function () {
-        var parent = $("#view");
-        var child = null;
+    }
+    initWithElement() {
+        const parent = $("#view");
+        let child = null;
         if ((child = document.querySelector("#tileset-marker"))) {
             parent.get(0).removeChild(child);
             return;
         }
         this._element = $("<div></div>", { "id": "tileset-marker" })
             .css({
-            "min-width": this._tileWidth + "px",
-            "min-height": this._tileHeight + "px",
-            "width": this._tileWidth + "px",
-            "height": this._tileHeight + "px",
+            "min-width": `${this._tileWidth}px`,
+            "min-height": `${this._tileHeight}px`,
+            "width": `${this._tileWidth}px`,
+            "height": `${this._tileHeight}px`,
             "position": "absolute",
             "top": "0",
             "left": "0",
@@ -4024,36 +3391,28 @@ var TilesetMarker = /** @class */ (function (_super) {
             { x: 0, y: 0 },
             { x: 0, y: 0 },
         ];
-        var topY = $("#view").offset().top;
-    };
-    TilesetMarker.prototype.start = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+        const topY = $("#view").offset().top;
+    }
+    start(...args) {
         return this;
-    };
-    TilesetMarker.prototype.update = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
+    }
+    update(...args) {
         if (!this._isReady) {
             return;
         }
-        var target = args[0].target;
-        var img = $("#view canvas");
-        var mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
-        var tilesetWidth = img.width();
-        var tilesetHeight = img.height();
-        var topY = 0;
-        var mouse = args[0];
-        var tw = this._tileWidth;
-        var th = this._tileHeight;
-        var nx = Math.floor(mouse.x / tw) * tw;
-        var ny = Math.floor(mouse.y / th) * th;
-        var targetX = nx / tw;
-        var targetY = (ny - topY) / th;
+        const target = args[0].target;
+        const img = $("#view canvas");
+        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
+        const tilesetWidth = img.width();
+        const tilesetHeight = img.height();
+        const topY = 0;
+        const mouse = args[0];
+        const tw = this._tileWidth;
+        const th = this._tileHeight;
+        let nx = Math.floor(mouse.x / tw) * tw;
+        let ny = Math.floor(mouse.y / th) * th;
+        const targetX = nx / tw;
+        const targetY = (ny - topY) / th;
         if (nx < 0) {
             nx = 0;
         }
@@ -4073,11 +3432,10 @@ var TilesetMarker = /** @class */ (function (_super) {
         });
         console.log("타일 ID : " + (targetY * mapCols + targetX));
         window.app.setTileId((targetY * mapCols + targetX));
-    };
-    return TilesetMarker;
-}(_Component__WEBPACK_IMPORTED_MODULE_0__["Component"]));
-var BlockSize = /** @class */ (function () {
-    function BlockSize(x, y, width, height) {
+    }
+}
+class BlockSize {
+    constructor(x, y, width, height) {
         this._x = 0;
         this._y = 0;
         this._width = 0;
@@ -4088,50 +3446,34 @@ var BlockSize = /** @class */ (function () {
         this._height = height;
         this._parent = null;
     }
-    Object.defineProperty(BlockSize.prototype, "width", {
-        get: function () {
-            return this._width;
-        },
-        set: function (value) {
-            this._width = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BlockSize.prototype, "height", {
-        get: function () {
-            return this._height;
-        },
-        set: function (value) {
-            this._height = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BlockSize.prototype, "x", {
-        get: function () {
-            return this._x;
-        },
-        set: function (value) {
-            this._x = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(BlockSize.prototype, "y", {
-        get: function () {
-            return this._y;
-        },
-        set: function (value) {
-            this._y = value;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    BlockSize.prototype.setParent = function (parent) {
+    set width(value) {
+        this._width = value;
+    }
+    set height(value) {
+        this._height = value;
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    set x(value) {
+        this._x = value;
+    }
+    set y(value) {
+        this._y = value;
+    }
+    get x() {
+        return this._x;
+    }
+    get y() {
+        return this._y;
+    }
+    setParent(parent) {
         this._parent = parent;
-    };
-    BlockSize.prototype.refresh = function () {
+    }
+    refresh() {
         this._parent.css({
             width: this.width,
             height: this.height,
@@ -4139,9 +3481,8 @@ var BlockSize = /** @class */ (function () {
             top: this._y,
             position: "absolute"
         });
-    };
-    return BlockSize;
-}());
+    }
+}
 
 
 
@@ -4159,39 +3500,39 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DrawToolbar", function() { return DrawToolbar; });
 /* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
 
-var DrawToolbar = [
+const DrawToolbar = [
     {
         name: "",
         children: "draw-pencil",
-        action: function (ev) {
+        action: (ev) => {
             window.app.emit("tilemap:drawingType", 0);
         },
     },
     {
         name: "",
         children: "draw-rectangle",
-        action: function (ev) {
+        action: (ev) => {
             window.app.emit("tilemap:drawingType", 1);
         },
     },
     {
         name: "",
         children: "draw-ellipse",
-        action: function (ev) {
+        action: (ev) => {
             window.app.emit("tilemap:drawingType", 2);
         },
     },
     {
         name: "",
         children: "draw-flood-fill",
-        action: function (ev) {
+        action: (ev) => {
             window.app.emit("tilemap:drawingType", 3);
         },
     },
     {
         name: "",
         children: "draw-shadow-pen",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
@@ -4213,29 +3554,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditToolbar", function() { return EditToolbar; });
 /* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
 
-var EditToolbar = [
+const EditToolbar = [
     {
         name: "",
         children: "edit-cut",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     {
         name: "",
         children: "edit-copy",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     {
         name: "",
         children: "edit-paste",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     {
         name: "",
         children: "edit-delete",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
@@ -4258,10 +3599,10 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * 비어있는 메뉴
  */
-var EmptySegment = {
+const EmptySegment = {
     name: "toolbar__empty-line--modifier",
     children: "empty-line",
-    action: function (ev) {
+    action: (ev) => {
     },
 };
 
@@ -4283,32 +3624,32 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../WindowCreator */ "./js/WindowCreator.ts");
 
 
-var FileToolbar = [
+const FileToolbar = [
     {
         name: "파일 만들기",
         children: "file-new",
-        action: function (ev) {
+        action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
         },
     },
     {
         name: "파일 열기",
         children: "file-open",
-        action: function (ev) {
+        action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
         },
     },
     {
         name: "파일 저장",
         children: "file-save",
-        action: function (ev) {
+        action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
         },
     },
     {
         name: "파일 저장",
         children: "edit-undo",
-        action: function (ev) {
+        action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
         },
     },
@@ -4331,23 +3672,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModeToolbar", function() { return ModeToolbar; });
 /* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
 
-var ModeToolbar = [
+const ModeToolbar = [
     {
         name: "",
         children: "mode-map",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     {
         name: "",
         children: "mode-event",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     {
         name: "",
         children: "mode-region",
-        action: function (ev) {
+        action: (ev) => {
         },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
@@ -4375,47 +3716,47 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var OtherToolbar = [
+const OtherToolbar = [
     {
         name: "",
         children: "take-screenshot",
-        action: function (ev) {
+        action: (ev) => {
             $("#take-screenshot").trigger("click");
         },
     },
     {
         name: "",
         children: "tools-resource-manager",
-        action: function (ev) { },
+        action: (ev) => { },
     },
     {
         name: "",
         children: "tools-script-eidtor",
-        action: function (ev) { },
+        action: (ev) => { },
     },
     {
         name: "",
         children: "tools-sound-test",
-        action: function (ev) { },
+        action: (ev) => { },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
     {
         name: "",
         children: "tools-options",
-        action: function (ev) { },
+        action: (ev) => { },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
     {
         name: "",
         children: "game-playtest",
-        action: function (ev) { },
+        action: (ev) => { },
     },
     _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
     {
         name: "",
         children: "game-folder-open",
-        action: function (ev) {
-            var current = path__WEBPACK_IMPORTED_MODULE_2__["join"](process.cwd().replace(/\\/g, "/"));
+        action: (ev) => {
+            const current = path__WEBPACK_IMPORTED_MODULE_2__["join"](process.cwd().replace(/\\/g, "/"));
             window.alert(current);
             electron__WEBPACK_IMPORTED_MODULE_1__["shell"].showItemInFolder(current);
         },
@@ -4448,74 +3789,72 @@ __webpack_require__.r(__webpack_exports__);
 
 
 // 모든 배열을 하나로 합칩니다.
-var Toolbar = [].concat(_FileToolbar__WEBPACK_IMPORTED_MODULE_0__["FileToolbar"], _EditToolbar__WEBPACK_IMPORTED_MODULE_1__["EditToolbar"], _ModeToolbar__WEBPACK_IMPORTED_MODULE_2__["ModeToolbar"], _DrawToolbar__WEBPACK_IMPORTED_MODULE_3__["DrawToolbar"], _OtherToolbar__WEBPACK_IMPORTED_MODULE_4__["OtherToolbar"]);
+const Toolbar = [].concat(_FileToolbar__WEBPACK_IMPORTED_MODULE_0__["FileToolbar"], _EditToolbar__WEBPACK_IMPORTED_MODULE_1__["EditToolbar"], _ModeToolbar__WEBPACK_IMPORTED_MODULE_2__["ModeToolbar"], _DrawToolbar__WEBPACK_IMPORTED_MODULE_3__["DrawToolbar"], _OtherToolbar__WEBPACK_IMPORTED_MODULE_4__["OtherToolbar"]);
 /**
  * @class ToolbarManager
  * @description
  * This class allows you to control the toolbar and hide or show in the current tool.
  */
-var ToolbarManager = /** @class */ (function () {
-    function ToolbarManager() {
+class ToolbarManager {
+    constructor() {
         this.initMembers();
         this.create();
     }
-    ToolbarManager.prototype.initMembers = function () {
+    initMembers() {
         this._mainToolbarId = ".toolbar";
         this._isOpened = false;
         // Setting up as true this variable, it can't move the toolbar.
         this._isMovable = false;
         this.lock();
         this._originPosition = $(this._mainToolbarId).get(0).getBoundingClientRect();
-    };
+    }
     /**
      * Shows up the toolbar.
      */
-    ToolbarManager.prototype.show = function () {
+    show() {
         this._isOpened = true;
         $(this._mainToolbarId)
             .show();
-    };
+    }
     /**
      * Hides out the toolbar.
      */
-    ToolbarManager.prototype.hide = function () {
+    hide() {
         this._isOpened = false;
         $(this._mainToolbarId)
             .hide();
-    };
-    ToolbarManager.prototype.lock = function () {
+    }
+    lock() {
         $(this._mainToolbarId).draggable({ disabled: true });
-    };
-    ToolbarManager.prototype.unlock = function () {
-        var _a = this._originPosition, x = _a.x, y = _a.y;
+    }
+    unlock() {
+        const { x, y } = this._originPosition;
         $(this._mainToolbarId).css({
             left: x,
             top: y,
         });
         $(this._mainToolbarId).draggable({ disabled: false });
-    };
-    ToolbarManager.prototype.create = function () {
-        var _this = this;
-        $("li", this._mainToolbarId).each(function (index, elem) {
+    }
+    create() {
+        $(`li`, this._mainToolbarId).each((index, elem) => {
             console.log(elem, Toolbar[index]);
         });
         /**
          * @type {{name: String, children: String, action: Function}[]}
          */
-        var items = Toolbar.slice(0);
-        items.forEach(function (e, i, a) {
-            var target = $("li[data-action='" + e.children + "']:last");
+        const items = Toolbar.slice(0);
+        items.forEach((e, i, a) => {
+            const target = $(`li[data-action='${e.children}']:last`);
             if (target.get()[0]) {
-                target.on("click", function (ev) {
+                target.on("click", (ev) => {
                     if (typeof (e.action) === "function") {
-                        e.action.call(_this, ev);
+                        e.action.call(this, ev);
                     }
                 });
             }
         });
-    };
-    return ToolbarManager;
-}());
+    }
+}
 
 
 
@@ -4532,38 +3871,24 @@ var ToolbarManager = /** @class */ (function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowViewModel", function() { return TilesetWindowViewModel; });
 /* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./js/viewmodels/ViewModel.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var TilesetWindowViewModel = /** @class */ (function (_super) {
-    __extends(TilesetWindowViewModel, _super);
-    function TilesetWindowViewModel(__controller) {
-        return _super.call(this, __controller) || this;
+class TilesetWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"] {
+    constructor(__controller) {
+        super(__controller);
     }
-    TilesetWindowViewModel.prototype.initMembers = function () {
-        _super.prototype.initMembers.call(this);
-    };
-    TilesetWindowViewModel.prototype.onShow = function (elem) {
-        _super.prototype.onShow.call(this, elem);
-    };
-    TilesetWindowViewModel.prototype.onOk = function (ev) {
+    initMembers() {
+        super.initMembers();
+    }
+    onShow(elem) {
+        super.onShow(elem);
+    }
+    onOk(ev) {
         this._controller.remove();
         /**
          * @type JQuery<HTMLInputElement>
          */
-        var tilesets = this._element.find("input");
-        var data = {
+        const tilesets = this._element.find("input");
+        const data = {
             tilesets: {
                 name: $(tilesets[0]).val(),
                 src: $(tilesets[1]).val(),
@@ -4591,10 +3916,8 @@ var TilesetWindowViewModel = /** @class */ (function (_super) {
                 }
             });
         });
-    };
-    return TilesetWindowViewModel;
-}(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));
-
+    }
+}
 
 
 /***/ }),
@@ -4610,37 +3933,22 @@ var TilesetWindowViewModel = /** @class */ (function (_super) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ViewModel", function() { return ViewModel; });
 /* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./js/EventEmitter.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var StatusProproties = /** @class */ (function () {
-    function StatusProproties() {
+class StatusProproties {
+    constructor() {
         this.currentStatus = "NORMAL";
         this.history = [this.currentStatus];
     }
-    return StatusProproties;
-}());
-var ViewModel = /** @class */ (function (_super) {
-    __extends(ViewModel, _super);
+}
+class ViewModel extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      *
      */
-    function ViewModel(__controller) {
-        var _this = _super.call(this) || this;
-        _this._isReady = false;
-        _this._controller = __controller;
-        _this._status = new StatusProproties();
+    constructor(__controller) {
+        super();
+        this._isReady = false;
+        this._controller = __controller;
+        this._status = new StatusProproties();
         /**
          * onCreate() ->
          * onLoad() ->
@@ -4648,27 +3956,20 @@ var ViewModel = /** @class */ (function (_super) {
          * onShow();
          */
         // 라이프 싸이클과 관련된 이벤트 선언
-        _this.on("create", function (elem) {
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
-            return _this.onCreate.apply(_this, args);
-        })
-            .on("update", function (elem) { return _this.onUpdate(elem); })
-            .on("stop", function (elem) { return _this.onStop(elem); })
-            .on("dispose", function (elem) { return _this.onDispose(elem); })
-            .on("render", function (result) { return _this.onRender(result); })
-            .on("show", function (elem) { return _this.onShow(elem); });
-        _this.initMembers();
-        return _this;
+        this.on("create", (elem, ...args) => this.onCreate(...args))
+            .on("update", (elem) => this.onUpdate(elem))
+            .on("stop", (elem) => this.onStop(elem))
+            .on("dispose", (elem) => this.onDispose(elem))
+            .on("render", (result) => this.onRender(result))
+            .on("show", (elem) => this.onShow(elem));
+        this.initMembers();
     }
-    ViewModel.prototype.initMembers = function () {
-    };
-    ViewModel.prototype.onShow = function (elem) {
-        var element = this._element;
-        var controller = this._controller;
-        var config = controller.config;
+    initMembers() {
+    }
+    onShow(elem) {
+        const element = this._element;
+        const controller = this._controller;
+        const config = controller.config;
         if (!element)
             return;
         // 화면에 창을 표시합니다.
@@ -4677,22 +3978,18 @@ var ViewModel = /** @class */ (function (_super) {
         controller.valid();
         // 창 뒤에 표시된 라이트 박스를 감춥니다.
         $(".darken, .windows-container").css("left", "0");
-    };
-    ViewModel.prototype.onHide = function (elem) {
-        var controller = this._controller;
-        var config = controller.config;
+    }
+    onHide(elem) {
+        const controller = this._controller;
+        const config = controller.config;
         this._element.hide();
         controller.invalid();
-    };
-    ViewModel.prototype.onNotify = function (elem) {
-    };
-    ViewModel.prototype.onCreate = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var controller = this._controller;
-        var config = args[0];
+    }
+    onNotify(elem) {
+    }
+    onCreate(...args) {
+        const controller = this._controller;
+        const config = args[0];
         if (!config.parentId || !config.id) {
             throw new Error("The parent element is not exist!");
         }
@@ -4704,44 +4001,29 @@ var ViewModel = /** @class */ (function (_super) {
         // 화면에서 요소를 감춥니다.
         this.onHide();
         // 창의 크기를 조절가능하게 만듭니다.
-        $("#" + config.id).resizable({ containment: config.parentId });
+        $(`#${config.id}`).resizable({ containment: config.parentId });
         // 부모 컨테이너에 로드된 창을 추가합니다.
         $(config.parentId).append(this._element);
         this._isReady = true;
-    };
+    }
     /**
      * HTML 파일로부터 도큐먼트를 렌더링합니다.
      * @param result
      */
-    ViewModel.prototype.onRender = function (result) {
+    onRender(result) {
         this._element.html(result);
-    };
-    ViewModel.prototype.onUpdate = function (elem) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-    };
-    ViewModel.prototype.onStop = function (elem) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-    };
-    ViewModel.prototype.onDispose = function (elem) {
-        var _this = this;
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        this._element.fadeOut(700, function () {
-            _this._element.remove();
+    }
+    onUpdate(elem, ...args) {
+    }
+    onStop(elem, ...args) {
+    }
+    onDispose(elem, ...args) {
+        this._element.fadeOut(700, () => {
+            this._element.remove();
         });
         $(".darken, .windows-container").css("left", "-9999px");
-    };
-    return ViewModel;
-}(_EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"]));
-
+    }
+}
 
 
 /***/ }),
@@ -4757,52 +4039,31 @@ var ViewModel = /** @class */ (function (_super) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NewWindowViewModel", function() { return NewWindowViewModel; });
 /* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./js/viewmodels/ViewModel.ts");
-var __extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 
-var NewWindowViewModel = /** @class */ (function (_super) {
-    __extends(NewWindowViewModel, _super);
-    function NewWindowViewModel(__controller) {
-        return _super.call(this, __controller) || this;
+class NewWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"] {
+    constructor(__controller) {
+        super(__controller);
     }
-    NewWindowViewModel.prototype.initMembers = function () {
-        _super.prototype.initMembers.call(this);
-    };
-    NewWindowViewModel.prototype.onCreate = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        _super.prototype.onCreate.apply(this, args);
-        var config = args[0];
+    initMembers() {
+        super.initMembers();
+    }
+    onCreate(...args) {
+        super.onCreate(...args);
+        const config = args[0];
         this._controller.show();
         $(".darken, .windows-container").css("left", "0");
-    };
-    NewWindowViewModel.prototype.onShow = function (elem) {
-        var _this = this;
-        _super.prototype.onShow.call(this, elem);
-        var parent = this._element.get(0);
-        var child = parent.querySelector(".newWindow__control-box p i");
+    }
+    onShow(elem) {
+        super.onShow(elem);
+        const parent = this._element.get(0);
+        const child = parent.querySelector(".newWindow__control-box p i");
         if (child) {
-            child.onclick = function () {
-                _this._controller.remove();
+            child.onclick = () => {
+                this._controller.remove();
             };
         }
-    };
-    return NewWindowViewModel;
-}(_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"]));
-
+    }
+}
 
 
 /***/ }),
