@@ -1,0 +1,44 @@
+version: "3"
+services:
+    editor-backend-server:
+        container_name: editor-server
+        image: "editor-server:latest"
+        build:
+            dockerfile: Dockerfile
+            context: ../server
+        links:
+            - redis
+        expose:
+            - 3000
+        volumes:
+            - ../upload:/usr/src/app/upload
+            - ../server/config/:/usr/src/app/config
+    editor-front-server:
+        container_name: editor-front-server
+        image: "editor-front-server:latest"
+        build:
+            dockerfile: Dockerfile
+            context: ../
+        expose:
+            - 8080
+        volumes:
+            - ../images:/usr/src/app/images
+    redis:
+        image: redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - ./data:/data
+    proxy:
+        container_name: nginx_proxy
+        image: nginx_proxy
+        restart: always
+        build:
+            dockerfile: Dockerfile
+            context: ./nginx-proxy
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./certbot/conf:/etc/nginx/ssl
+            - ./certbot/data:/var/www/certbot
