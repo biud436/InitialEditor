@@ -39,7 +39,7 @@ It is pretty easy. Open the Visual Studio Code and press key called `F5` on plat
 
 # How to start on Mac OSX (Apple Silicon M1)
 
-you have to run the shell script file such as `build.sh` and execute the command such as `npm run start`
+you have to run the shell script file such as `build.sh` and execute the command such as `npm run start` or `fn + F5`
 
 ```sh
 sudo chmod +x ./build.sh
