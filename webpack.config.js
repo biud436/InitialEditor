@@ -4,7 +4,7 @@ const webpack = require("webpack");
 
 const electronTypeTarget = {
     mode: "development", // none' | 'development' | 'production'
-    entry: `./js/index.ts`,
+    entry: `./packages/index.ts`,
     output: {
         path: path.resolve(__dirname, "dist"),
         filename: `bundle.js`,
@@ -21,7 +21,7 @@ const electronTypeTarget = {
                 test: /\.ts$/,
                 use: "ts-loader",
                 exclude: /node_modules/,
-                include: [path.resolve(__dirname, "js")],
+                include: [path.resolve(__dirname, "packages")],
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,

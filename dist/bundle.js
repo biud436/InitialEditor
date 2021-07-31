@@ -81,3983 +81,10 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./js/index.ts");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./packages/index.ts");
 /******/ })
 /************************************************************************/
 /******/ ({
-
-/***/ "./js/App.ts":
-/*!*******************!*\
-  !*** ./js/App.ts ***!
-  \*******************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return App; });
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
-/* harmony import */ var _MenuComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MenuComponent */ "./js/MenuComponent.ts");
-/* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tilesetMarker */ "./js/tilesetMarker.ts");
-/* harmony import */ var _Tilemap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Tilemap */ "./js/Tilemap.ts");
-/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./camelCase */ "./js/camelCase.js");
-/* harmony import */ var _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./TilesetCanvas */ "./js/TilesetCanvas.ts");
-/* harmony import */ var _TileMarker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./TileMarker */ "./js/TileMarker.ts");
-/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./config */ "./js/config.ts");
-/* harmony import */ var _MenuService__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./MenuService */ "./js/MenuService.ts");
-/* harmony import */ var _Rectangle__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Rectangle */ "./js/Rectangle.ts");
-/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./js/WindowCreator.ts");
-/* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
-/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./js/ThemeManager.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
-    /**
-     * 멤버 변수를 초기화합니다.
-     */
-    initMembers() {
-        this.cache = {};
-        this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
-        this._mouse = {
-            x: 0,
-            y: 0,
-            screenX: 0,
-            screenY: 0,
-            buttons: {
-                left: false,
-                leftFire: false,
-            },
-            /**
-             * @type {HTMLElement}
-             */
-            target: null,
-            /**
-             * @type {HTMLElement}
-             */
-            menuTarget: null,
-            isDrawing: false,
-            startX: 0,
-            startY: 0,
-            dragTime: 0,
-        };
-        /**
-         * 사각형 툴을 위한 선택 영역
-         * @link http://jsfiddle.net/qGzkG/2/
-         */
-        this._blockRect = {
-            isDrawing: false,
-            rect: new _Rectangle__WEBPACK_IMPORTED_MODULE_9__["default"](0, 0, 1, 1),
-        };
-        this._now = performance.now();
-        this._isMenuOpen = false;
-        this._tileId = 0;
-        this._isReady = false;
-        // 타이틀을 변경합니다.
-        document.title = "Initial Map Editor";
-        this.emit("ready", JSON.stringify(this));
-        // 맵 설정 파일을 생성합니다.
-        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then((data) => {
-            // @ts-ignore
-            const myEditorConfig = JSON.parse(data);
-            const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
-            //@ts-ignore
-            if (myEditorConfig.Theme == 1) {
-                document
-                    .querySelector("body")
-                    .setAttribute("data-theme", "light");
-                themeManager.changeLightTheme();
-            }
-            else {
-                document
-                    .querySelector("body")
-                    .setAttribute("data-theme", "dark");
-                themeManager.changeDarkTheme();
-            }
-        });
-        this.on("save-config", (extraConfig) => {
-            let myConfig = Object.assign(this._config.Editor, extraConfig);
-            this._config.Editor = myConfig;
-            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then((ret) => {
-                alert("설정 변경이 완료되었습니다.");
-            });
-        });
-        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
-        // });
-    }
-    /**
-     * 컴포넌트를 생성합니다.
-     */
-    createComponents() {
-        this._tilemap = new _Tilemap__WEBPACK_IMPORTED_MODULE_3__["default"](this._config);
-        this._components.push((this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config)));
-        this._components.push(this._tilemap);
-        this._components.push((this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config)));
-        this._components.forEach((component) => {
-            component.start();
-        });
-        this._tilemap.setTileId(0);
-        // 타일맵 이벤트를 재전파합니다.
-        this.on("tilemap", (...args) => {
-            this._tilemap.emit(args[0], ...args.slice(1));
-        });
-    }
-    /**
-     * 컴포넌트를 초기화합니다.
-     */
-    initWithComponents() {
-        return __awaiter(this, void 0, void 0, function* () {
-            /**
-             * @type {Component[]}
-             */
-            this._components = [];
-            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
-            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
-            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
-            yield this._tilesetCanvas
-                .start()
-                .then((ret) => {
-                this.createComponents();
-            })
-                .then((ret) => {
-                $(".darken, .windows-container").css("left", "-9999px");
-            })
-                .catch((err) => {
-                console.warn(err);
-            });
-        });
-    }
-    toCamelCase() {
-        return Object(_camelCase__WEBPACK_IMPORTED_MODULE_4__["toCamelCase"])();
-    }
-    /**
-     * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
-     * @return {Boolean}
-     */
-    isMobileDevice() {
-        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        return ret;
-    }
-    onMouseTouchMove(ev) {
-        this._mouse.x = ev.layerX;
-        this._mouse.y = ev.layerY;
-        this._mouse.screenX = ev.layerX;
-        this._mouse.screenY = ev.layerY;
-    }
-    /**
-     * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
-     */
-    initWithMouseEvent() {
-        const isMobileDevice = this.isMobileDevice();
-        let events;
-        if (isMobileDevice) {
-            events = {
-                touchmove: (ev) => {
-                    let touchEvent = ev;
-                    if (ev.type.indexOf("touch") >= 0) {
-                        touchEvent = ev.touches[0];
-                    }
-                    /**
-                     * @type {HTMLElement}
-                     */
-                    const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
-                    // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
-                    this._mouse.x = touchEvent.clientX - rect.x;
-                    this._mouse.y = touchEvent.clientY - rect.y;
-                    this._mouse.screenX = touchEvent.screenX;
-                    this._mouse.screenY = touchEvent.screenY;
-                },
-                "touchstart pointerdown": (ev) => {
-                    let touchEvent = ev;
-                    if (ev.type.indexOf("touch") >= 0) {
-                        touchEvent = ev.touches[0];
-                    }
-                    this._mouse.target = ev.target;
-                    /**
-                     * @type {HTMLElement}
-                     */
-                    const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
-                    this._mouse.x = touchEvent.clientX - rect.x;
-                    this._mouse.y = touchEvent.clientY - rect.y;
-                    this._mouse.screenX = touchEvent.screenX;
-                    this._mouse.screenY = touchEvent.screenY;
-                    this._mouse.buttons.left = true;
-                    this._mouse.buttons.leftFire = false;
-                },
-                "touchend pointerup mouseup": (ev) => {
-                    this._mouse.buttons.left = false;
-                    this._mouse.buttons.leftFire = true;
-                },
-            };
-            $(window).on(events);
-        }
-        else {
-            events = {
-                mousemove: (ev) => {
-                    this._mouse.x = ev.layerX;
-                    this._mouse.y = ev.layerY;
-                    this._mouse.screenX = ev.layerX;
-                    this._mouse.screenY = ev.layerY;
-                    if (this._mouse.isDrawing) {
-                        this._mouse.dragTime++;
-                    }
-                },
-                mousedown: (ev) => {
-                    if (ev.button == 0) {
-                        this._mouse.buttons.left = true;
-                        this._mouse.buttons.leftFire = false;
-                        this._mouse.target = ev.target;
-                        this._mouse.isDrawing = true;
-                        // 캔버스
-                        const canvas = document.querySelector("#contents__main-canvas");
-                        canvas.style.cursor = "crosshair";
-                        const __canvas = document.querySelector("#contents__main-canvas");
-                        const canvasOffset = __canvas.getBoundingClientRect();
-                        const offsetX = parseInt(canvasOffset.left);
-                        const offsetY = parseInt(canvasOffset.top);
-                        this._mouse.startX = parseInt((ev.clientX - offsetX));
-                        this._mouse.startY = parseInt((ev.clientY - offsetY));
-                    }
-                },
-                mouseup: (ev) => {
-                    if (ev.button == 0) {
-                        this._mouse.buttons.left = false;
-                        this._mouse.buttons.leftFire = true;
-                        this._blockRect.isDrawing = false;
-                        this._mouse.isDrawing = false;
-                        const canvas = document.querySelector("#contents__main-canvas");
-                        canvas.style.cursor = "default";
-                        this._mouse.dragTime = 0;
-                    }
-                },
-                mouseover: (ev) => {
-                    if (this._menu._isMenuOpen) {
-                        //@ts-ignore
-                        this._mouse.buttons.menuTarget = ev.target;
-                        //@ts-ignore
-                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
-                    }
-                },
-            };
-            for (let k in events) {
-                //@ts-ignore
-                window.addEventListener(k, events[k], false);
-            }
-        }
-    }
-    setTileId(tileId) {
-        if (!this._tilemap)
-            return;
-        this._tilemap.setTileId(tileId);
-    }
-    /**
-     * 레이어를 토글하는 기능을 수행합니다.
-     */
-    initWithMapLayers() {
-        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
-        children.forEach((elem, index) => {
-            elem.onclick = () => {
-                elem.className = elem.className.includes("slash")
-                    ? "far fa-eye"
-                    : "far fa-eye-slash";
-            };
-        });
-        let target = null;
-        // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
-        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
-            const target = $(ev.currentTarget);
-            const parentNode = $(ev.currentTarget).parent();
-            const layerId = parentNode.index();
-            const tilemap = this._tilemap;
-            if (target.hasClass("fa-eye")) {
-                target.removeClass("fa-eye").addClass("fa-eye-slash");
-            }
-            else {
-                target.removeClass("fa-eye-slash").addClass("fa-eye");
-            }
-            tilemap.toggleLayerVisibility(layerId);
-        });
-        // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
-        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
-            const elem = $(ev.currentTarget).css({
-                backgroundColor: "var(--dark-selection-color)",
-            });
-            $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
-                backgroundColor: "rgba(255, 255, 255, 0)",
-            });
-            const layerId = elem.index();
-            const tilemap = this._tilemap;
-            // 타일맵을 지우고 다시 그립니다.
-            tilemap
-                .setCurrentLayerId(layerId)
-                .clear()
-                .draw()
-                .updateAlphaLayers();
-        });
-        $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
-    }
-    start() {
-        this.initMembers();
-        this.initWithMouseEvent();
-        // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
-        this.initWithComponents()
-            .then((ret) => {
-            this.initWithMapLayers();
-            this._isReady = true;
-            this.on("update", (deltaTime) => {
-                this.update(deltaTime);
-            });
-        })
-            .catch((err) => {
-            console.warn(err);
-            this._isReady = false;
-        });
-    }
-    /**
-     * 매 프레임마다 반복 실행되는 메소드입니다.
-     * @param {Number}} deltaTime
-     */
-    update(deltaTime) {
-        if (!this._isReady)
-            return;
-        // 400ms가 지났을 때 마다 무언가를 실행합니다.
-        if (deltaTime - this._now >= 400) {
-            this._now = deltaTime;
-        }
-        this.updateComponents();
-        this._mouse.buttons.leftFire = false;
-    }
-    /**
-     * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
-     */
-    updateComponents() {
-        const target = this._mouse.target;
-        if (!target) {
-            return;
-        }
-        const id = target.id;
-        const mouse = this._mouse;
-        // 메뉴를 업데이트합니다.
-        this._menu.update(target, mouse);
-        // 메뉴가 열리지 않았을 경우
-        if (!this._menu.isMenuOpen()) {
-            switch (id) {
-                case "tileset-canvas":
-                case "view":
-                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
-                    if (this._mouse.buttons.leftFire) {
-                        // 타일셋 마커를 표시합니다.
-                        this._tilesetMarker.update(mouse);
-                    }
-                    break;
-                case "contents__main-canvas":
-                    // * 마우스 왼쪽 버튼을 누르고 있을 때
-                    if (this._mouse.buttons.left) {
-                        // 타일셋을 업데이트합니다.
-                        this._tilemap.update(mouse);
-                    }
-                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
-                    if (this._mouse.buttons.leftFire) {
-                        // 타일 마커의 위치를 변경합니다.
-                        this._tileMarker.update(mouse);
-                    }
-                    break;
-            }
-        }
-    }
-    /**
-     * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
-     * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
-     * 창은 생성 직후, 화면에서 감춰진 상태로 존재하게 됩니다.
-     *
-     * HTML 파일 내부에는 로드가 완료되었음을 감지하는 콜백 함수가 걸려 있습니다.
-     *
-     * 그 콜백 함수가 바로 이 함수이며 이 함수가 실행되면 화면에 창이 보여지게 됩니다.
-     *
-     * 창 생성 요청
-     *              ->  HTML 파일 로드 요청
-     *              ->  로드 시작
-     *              ->  로드 완료
-     *              ->  렌더링 시작
-     *              ->  렌더링 완료 후, 브라우저에 의해 window.app.onLoad 함수가 자동으로 실행됨.
-     *
-     * 창은 특별한(Unique) ID 값에 의해 식별되며 이 값은 문자열입니다.
-     *
-     * @param {HTMLElement} elem
-     * @param {String}} id
-     */
-    onLoad(elem, id) {
-        _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
-    }
-    /**
-     * 유일한 인스턴스를 반환하는 메소드입니다.
-     * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
-     *
-     * @return {App}
-     */
-    static GetInstance() {
-        if (!App.Instance) {
-            App.Instance = new App();
-        }
-        return App.Instance;
-    }
-}
-App.Instance = null;
-
-
-/***/ }),
-
-/***/ "./js/Component.ts":
-/*!*************************!*\
-  !*** ./js/Component.ts ***!
-  \*************************/
-/*! exports provided: Component, BasicComponent */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return Component; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BasicComponent", function() { return BasicComponent; });
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
-
-class Component extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
-    constructor(...args) {
-        super();
-        this.initMembers(...args);
-        this.start(...args);
-    }
-    initMembers(...args) {
-        this._isActiveEvent = false;
-    }
-    active() {
-        this._isActiveEvent = true;
-    }
-    deactive() {
-        this._isActiveEvent = false;
-    }
-    isActiveEvent() {
-        return this._isActiveEvent;
-    }
-    start(...args) {
-        return this;
-    }
-    update(...args) {
-    }
-}
-class BasicComponent extends Component {
-    constructor(...args) {
-        super(...args);
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/ElectronService.ts":
-/*!*******************************!*\
-  !*** ./js/ElectronService.ts ***!
-  \*******************************/
-/*! exports provided: ElectronService */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ElectronService", function() { return ElectronService; });
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! child_process */ "child_process");
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! path */ "path");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
-
-const { ipcMain } = __webpack_require__(/*! electron */ "electron");
-
-
-
-/**
- * @class ElectronService
- * @description
- * 일렉트론과 IPC를 하기 위해 만든 클래스입니다.
- *
- * 다양한 플랫폼에서 동작할 수 있게 서비스 형태로 제공합니다.
- *
- * 조건 컴파일을 통하여 구현될 예정입니다.
- */
-class ElectronService extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
-    constructor() {
-        super();
-        this.ipcMain = ipcMain;
-    }
-    openFolder(folderName) {
-        const { shell } = __webpack_require__(/*! electron */ "electron");
-        shell.showItemInFolder(folderName);
-        // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
-        if (process.platform.includes("win")) {
-            // 절대 경로를 가져옵니다.
-            const myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"](`tools/bin/open_folder.exe`);
-            if (fs__WEBPACK_IMPORTED_MODULE_1__["existsSync"](myPath)) {
-                child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
-            }
-        }
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/EventEmitter.ts":
-/*!****************************!*\
-  !*** ./js/EventEmitter.ts ***!
-  \****************************/
-/*! exports provided: EventEmitter */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EventEmitter", function() { return EventEmitter; });
-/**
- * @class EventEmitter
- * @description
- * 이 클래스는 이벤트 큐를 위해 존재합니다.
- * on 과 emit로 이벤트를 설정하거나 실행할 수 있습니다.
- */
-class EventEmitter {
-    constructor() {
-        this._events = {};
-    }
-    debug(message) {
-        if (window.devmode) {
-            console.log(message);
-        }
-    }
-    on(name, lsn) {
-        if (!this._events[name]) {
-            this._events[name] = [];
-        }
-        this._events[name].push(lsn);
-        return this;
-    }
-    /**
-     * 이벤트를 삭제합니다.
-     *
-     * @param {String} name
-     */
-    off(name) {
-        if (!this._events[name]) {
-            return;
-        }
-        if (name in this._events) {
-            delete this._events[name];
-        }
-    }
-    emit(name, ...args) {
-        if (!this._events[name]) {
-            this._events[name] = [];
-        }
-        // Is it included colon(:)?
-        if (name.indexOf(":") >= 0) {
-            console.log("자식 이벤트 방출이 감지되었습니다.");
-            const items = name.split(":");
-            if (items.length > 0) {
-                const parent = items[0];
-                const child = items[1];
-                // 콜론이 있다면 매개변수를 대체합니다.
-                name = parent;
-                args = [child, ...args];
-                console.log(name, args);
-            }
-        }
-        if (!this._events[name]) {
-            throw new Error(`${name}이 없습니다.`);
-        }
-        this._events[name].forEach(func => {
-            if (typeof (func) === "function") {
-                func(...args);
-            }
-        });
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/MenuComponent.ts":
-/*!*****************************!*\
-  !*** ./js/MenuComponent.ts ***!
-  \*****************************/
-/*! exports provided: MenuComponent */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MenuComponent", function() { return MenuComponent; });
-/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
-
-/**
- * @class MenuComponent
- * @description
- * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
- */
-class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
-    start(...args) {
-        this._isMenuOpen = false;
-        // 툴바를 드래그 가능한 상태로 변경합니다.
-        // @ts-ignore
-        $(".toolbar").draggable({ snap: ".menu" });
-        // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
-        // @ts-ignore
-        $(".aside__tabs").resizable({
-            containment: "#aside",
-        });
-        // 툴바의 크기를 가져옵니다.
-        const rect = $(".toolbar").get(0).getBoundingClientRect();
-        this._originalPos = {
-            x: rect.x,
-            y: rect.y,
-        };
-        this._currentTarget = null;
-        return this;
-    }
-    isMenuOpen() {
-        return this._isMenuOpen;
-    }
-    hideMenu() {
-        $("#none").prop("checked", true);
-        this._isMenuOpen = false;
-    }
-    update(target, mouse) {
-        if ($(".toolbar").is(".ui-draggable-dragging")) {
-            const rect = $(".toolbar").get(0).getBoundingClientRect();
-        }
-        // 최상위 노드를 선택합니다.
-        /**
-         * @type {HTMLElement}
-         */
-        let parentNode = target.parentNode;
-        while (parentNode != null &&
-            parentNode.className != "menu__main") {
-            parentNode = parentNode.parentNode;
-        }
-        const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
-        // 최상위 노드가 메인 메뉴라면
-        if (parentNode && parentNode.className === "menu__main") {
-            // 메뉴가 열린 것으로 간주
-            this._isMenuOpen = true;
-        }
-        else {
-            if (this._isMenuOpen && mouse.buttons.leftFire) {
-                this.hideMenu();
-            }
-        }
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/MenuService.ts":
-/*!***************************!*\
-  !*** ./js/MenuService.ts ***!
-  \***************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MenuService; });
-/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
-/* harmony import */ var _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./menu/KoreanMenu */ "./js/menu/KoreanMenu.ts");
-
-
-const menu = {
-    ko: _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"],
-};
-class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
-    initMembers(...args) {
-        /**
-         * @type {MenuComponent}
-         */
-        this._menuComponent = args[1];
-        this._isClickedMenu = false;
-    }
-    start(...args) {
-        this.changeMenuLocaleAsPersonalize();
-        this.changeToolbarIconOnMobileDevice();
-        this.addMenuEventHandlers();
-        return this;
-    }
-    changeMenuLocaleAsPersonalize() {
-        const langCode = navigator.language.slice(0, 2);
-        $(".menu__main label").each((index, elem) => {
-            const parent = $(elem);
-            const type = parent.data("action");
-            // @ts-ignore
-            const res = menu[langCode];
-            if (res) {
-                const data = res[type];
-                const name = data.name;
-                const font = res["$font"];
-                parent.text(name);
-                parent.css("font-size", font.size);
-                $(`.menu__${type}-sub li`).each((_index, _elem) => {
-                    const _node = $(_elem);
-                    // 서브 메뉴의 위치를 세밀하게 조정합니다.
-                    const menuNode = parent.parent();
-                    _node
-                        .parent()
-                        .css("left", menuNode.get(0).getBoundingClientRect().x + "px");
-                    const _type = _node.data("action");
-                    const _res = data.children[_type];
-                    if (_res) {
-                        // 메뉴 노드에 메뉴 액션을 등록합니다.
-                        if (_res.action) {
-                            _node.get(0).onclick = _res.action;
-                        }
-                        const _name = _res.name;
-                        _node.get(0).childNodes.forEach((i) => {
-                            // 텍스트 노드만 찾습니다.
-                            if (i.nodeType == 3) {
-                                i.textContent = _name;
-                            }
-                        });
-                        _node.css("font-size", font.size);
-                    }
-                });
-            }
-        });
-    }
-    addMenuEventHandlers() {
-        // 창 최소화
-        document
-            .querySelector(".menu .control-box li.minimum")
-            .addEventListener("click", (ev) => {
-            if (platform === "electron") {
-                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
-                ipcRenderer.send("minimize");
-                ev.stopImmediatePropagation();
-            }
-        });
-        // 창 최대화
-        $(".menu .control-box li.maximum").on("click", (ev) => {
-            if (platform === "electron") {
-                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
-                ipcRenderer.send("maximize");
-                ev.stopImmediatePropagation();
-            }
-        });
-        // 창 닫기
-        $(".menu .control-box li.close").on("click", (ev) => {
-            window.close();
-            ev.stopImmediatePropagation();
-        });
-    }
-    changeToolbarIconOnMobileDevice() {
-        const media = window.matchMedia("(max-width: 640px)");
-        if (media.matches) {
-            $(".toolbar i").each((index, elem) => {
-                $(elem).addClass("fa-3x").css({
-                    width: "98%",
-                    height: "98%",
-                    "font-size": "1.25em",
-                });
-            });
-        }
-        const resizeConfig = {
-            ".contents": {
-                width: "65%",
-            },
-            ".aside__tabs": {
-                width: "30%",
-            },
-            "#contents__main-canvas": {
-                width: "100%",
-            },
-        };
-        $(window).on("resize", () => {
-            if ($(window).width() <= 640) {
-                for (let i in resizeConfig) {
-                    //@ts-ignore
-                    $(i).css(resizeConfig[i]);
-                }
-                $(".toolbar i").each((index, elem) => {
-                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
-                        width: "98%",
-                        height: "98%",
-                        "font-size": "1.25em",
-                    });
-                });
-            }
-            else {
-                $(".toolbar i").each((index, elem) => {
-                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
-                        width: "98%",
-                        height: "98%",
-                        "font-size": "0.875em",
-                    });
-                });
-            }
-        });
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/Rectangle.ts":
-/*!*************************!*\
-  !*** ./js/Rectangle.ts ***!
-  \*************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Rectangle; });
-class Rectangle {
-    constructor(x, y, width, height) {
-        this._x = x;
-        this._y = y;
-        this._width = width;
-        this._height = height;
-    }
-    get x() {
-        return this._x;
-    }
-    get y() {
-        return this._x;
-    }
-    get width() {
-        return this._width;
-    }
-    get height() {
-        return this._height;
-    }
-    set x(value) {
-        this._x = value;
-    }
-    set y(value) {
-        this._x = value;
-    }
-    set width(value) {
-        this._width = value;
-    }
-    set height(value) {
-        this._height = value;
-    }
-    contains(mx, my) {
-        const x = this._x;
-        const y = this._y;
-        const width = this._width;
-        const height = this._height;
-        return mx >= x && mx <= (x + width) && my >= y && my <= (y + height);
-    }
-}
-Rectangle.EMPTY = new Rectangle(0, 0, 0, 0);
-
-
-/***/ }),
-
-/***/ "./js/ThemeManager.ts":
-/*!****************************!*\
-  !*** ./js/ThemeManager.ts ***!
-  \****************************/
-/*! exports provided: ThemeManager */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThemeManager", function() { return ThemeManager; });
-class ThemeManager {
-    set(key, value) {
-        // document.documentElement.style.setProperty(key, value);
-        $(':root').css(key, value);
-    }
-    flush(theme) {
-        window.app.emit("save-config", {
-            Theme: theme
-        });
-    }
-    changeDarkTheme(isOption = false) {
-        this.set("--dark-title-color", "rgb(60, 60, 60)");
-        this.set("--dark-selection-color", "rgb(80, 80, 80)");
-        this.set("--dark-input-background-color", "rgb(90, 90, 90)");
-        this.set("--dark-input-text-color", "rgb(194, 194, 194)");
-        this.set("--dark-text-color", "rgb(159, 159, 159)");
-        this.set("--dark-shadow-color", "rgb(40, 40, 40)");
-        this.set("--dark-border-color", "rgb(90, 90, 90)");
-        if (isOption) {
-            this.flush(0);
-        }
-    }
-    changeLightTheme(isOption = false) {
-        this.set("--dark-title-color", "#DDDDDD");
-        this.set("--dark-selection-color", "#C6C6C6");
-        this.set("--dark-input-background-color", "#DDDDDD");
-        this.set("--dark-input-text-color", "#000000");
-        this.set("--dark-text-color", "#000000");
-        this.set("--dark-shadow-color", "#F3F3F3");
-        this.set("--dark-border-color", "#DDDDDD");
-        if (isOption) {
-            this.flush(1);
-        }
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/TileMarker.ts":
-/*!**************************!*\
-  !*** ./js/TileMarker.ts ***!
-  \**************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TileMarker; });
-/* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./tilesetMarker */ "./js/tilesetMarker.ts");
-
-class TileMarker extends _tilesetMarker__WEBPACK_IMPORTED_MODULE_0__["TilesetMarker"] {
-    initWithElement() {
-        const parent = $(".contents");
-        let child = null;
-        if ((child = document.querySelector("#tile-marker"))) {
-            parent.get(0).removeChild(child);
-            return;
-        }
-        this._element = $("<div></div>", { "id": "tile-marker" })
-            .css({
-            "min-width": `${this._tileWidth}px`,
-            "min-height": `${this._tileHeight}px`,
-            "width": `${this._tileWidth}px`,
-            "height": `${this._tileHeight}px`,
-            "position": "absolute",
-            "top": "0",
-            "left": "0",
-            "margin": "0",
-            "padding": "0",
-            "border": "2px dotted white",
-            "z-index": "0",
-            "box-sizing": "border-box",
-        });
-        this._isReady = true;
-        parent.append(this._element);
-    }
-    update(...args) {
-        if (!this._isReady) {
-            return;
-        }
-        const target = args[0].target;
-        const img = $("#contents__main-canvas");
-        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
-        const tilesetWidth = img.width();
-        const tilesetHeight = img.height();
-        const topY = 0;
-        const mouse = args[0];
-        const tw = this._tileWidth;
-        const th = this._tileHeight;
-        let nx = Math.floor(mouse.x / tw) * tw;
-        let ny = Math.floor(mouse.y / th) * th;
-        const targetX = nx / tw;
-        const targetY = (ny - topY) / th;
-        if (nx < 0) {
-            nx = 0;
-        }
-        if (nx > tilesetWidth - tw) {
-            nx = tilesetWidth - tw;
-        }
-        if (ny < 0) {
-            ny = 0;
-        }
-        if (ny > tilesetHeight) {
-            ny = tilesetHeight - th + topY;
-        }
-        this._element.css({
-            position: "absolute",
-            left: nx + "px",
-            top: ny - topY + "px",
-        });
-        return this;
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/Tilemap.ts":
-/*!***********************!*\
-  !*** ./js/Tilemap.ts ***!
-  \***********************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Tilemap; });
-/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
-/* harmony import */ var pixi_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/pixi.es.js");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-var PenType;
-(function (PenType) {
-    PenType[PenType["PENCIL"] = 0] = "PENCIL";
-    PenType[PenType["RECTANGLE"] = 1] = "RECTANGLE";
-    PenType[PenType["ELLIPSE"] = 2] = "ELLIPSE";
-    PenType[PenType["FLOOD_FILL"] = 3] = "FLOOD_FILL";
-    PenType[PenType["SHADOW_PEN"] = 4] = "SHADOW_PEN";
-})(PenType || (PenType = {}));
-;
-class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
-    initMembers(...args) {
-        this._config = args[0];
-        this._tileset = $("#view canvas").get(0);
-        this._tileWidth = this._config.TILE_WIDTH;
-        this._tileHeight = this._config.TILE_HEIGHT;
-        this._mapCols = this._config.MAP_COLS;
-        this._mapRows = this._config.MAP_ROWS;
-        this._tileId = 0;
-        this._mouseX = 0;
-        this._mouseY = 0;
-        this._currentLayer = 0;
-        this._autoTileIndexedList = [];
-        this._autoTileTextureList = {};
-        // 1이면 오토타일, 0이면 일반 타일
-        this._tileType = 0;
-        this._mapWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
-        this._mapHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
-        this._layerCount = this._config.LAYERS;
-        this._data = new Array(this._mapWidth * this._mapHeight * this._config.LAYERS);
-        /**
-         * @type {HTMLCanvasElement}
-         */
-        const tilesetImg = $("#view canvas").get(0);
-        if (!tilesetImg) {
-            throw new Error("Cant't find tileset");
-        }
-        this._mapCols = Math.floor((tilesetImg.width) / this._tileWidth);
-        this._mapRows = Math.floor((tilesetImg.width) / this._tileWidth);
-        // this._tileset.addEventListener("mousemove", (ev:MouseEvent) => {
-        //     console.log(ev);
-        // });
-        this.active();
-        this.initWithSaveEventListener();
-    }
-    isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-    initWithSaveEventListener() {
-        this.on("save", () => {
-            const fs = __webpack_require__(/*! fs */ "fs");
-            const path = __webpack_require__(/*! path */ "path");
-            const data = this._data.map(i => (!!i) ? i : 0);
-            const layerData = {
-                data,
-            };
-            const contents = JSON.stringify(layerData);
-            fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8");
-            alert("파일 저장이 완료되었습니다.");
-        });
-    }
-    /**
-     * Initialize with drawing type.
-     */
-    initWithDrawingType() {
-        this._penType = PenType.PENCIL;
-        this.on("drawingType", (penType) => {
-            switch (penType) {
-                case PenType.PENCIL:
-                    console.log("펜 툴");
-                    break;
-                case PenType.RECTANGLE:
-                    console.log("사각형 툴");
-                    break;
-                case PenType.ELLIPSE:
-                    console.log("원형 툴");
-                    break;
-                case PenType.FLOOD_FILL:
-                    console.log("채우기 툴");
-                    break;
-                case PenType.SHADOW_PEN:
-                    console.log("그림자 툴");
-                    break;
-            }
-            this._penType = penType;
-        });
-    }
-    initWithLayers() {
-        const maxZ = this._config.LAYERS;
-        const maxWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
-        const maxHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
-        for (let z = 0; z < maxZ; z++) {
-            for (let y = 0; y < maxHeight; y++) {
-                for (let x = 0; x < maxWidth; x++) {
-                    this.setData(x, y, z, 0);
-                }
-            }
-        }
-    }
-    setData(x, y, z, tileId) {
-        if (x < 0)
-            x = 0;
-        if (x > this._mapWidth - 1)
-            x = this._mapWidth - 1;
-        y = Math.min(Math.max(0, y), this._mapHeight - 1);
-        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
-        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
-        this._data[id] = tileId;
-    }
-    getData(x, y, z) {
-        if (x < 0)
-            x = 0;
-        if (x > this._mapWidth - 1)
-            x = this._mapWidth - 1;
-        y = Math.min(Math.max(0, y), this._mapHeight - 1);
-        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
-        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
-        return this._data[id] || 0;
-    }
-    setTileId(tileId) {
-        this._tileId = tileId;
-    }
-    getTileId() {
-        return this._tileId;
-    }
-    setCurrentLayerId(layerId) {
-        this._currentLayer = layerId;
-        return this;
-    }
-    getCurrentLayerId() {
-        return this._currentLayer;
-    }
-    start(...args) {
-        let option = {
-            width: this._config.SCREEN_WIDTH,
-            height: this._config.SCREEN_HEIGHT,
-            backgroundColor: 0x00000000,
-            resolution: window.devicePixelRatio || 1,
-            view: $("#contents__main-canvas").get(0),
-            autoDensity: true,
-            transparent: false,
-        };
-        option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
-        option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
-        this._app = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Application"](option);
-        // Create layer container.
-        this._layerContainer = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Container"]();
-        this._layerContainer.interactive = true;
-        this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
-        this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
-        this.app.stage.addChild(this._layerContainer);
-        for (let i = 0; i < this._config.LAYERS; i++) {
-            this._layerContainer.addChild(new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Container"]());
-        }
-        // 메인 타일셋
-        this._tilesets = [];
-        this._tilesets.push(pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset));
-        this.initWithDrawingType();
-        $("#take-screenshot").on("click", (ev) => {
-            this.takeScreenshot();
-            ev.stopPropagation();
-        });
-        return this;
-    }
-    get app() {
-        return this._app;
-    }
-    /**
-     * TODO: 클립보드에 저장하는 방식으로 변환할 것.
-     * @link https://developer.mozilla.org/ko/docs/Web/API/Clipboard/write
-     */
-    takeScreenshot() {
-        const app = this._app;
-        if (!app)
-            return;
-        app.renderer.extract.canvas(app.stage).toBlob((b) => __awaiter(this, void 0, void 0, function* () {
-            const buffer = Buffer.from(yield b.arrayBuffer());
-            const fs = __webpack_require__(/*! fs */ "fs");
-            fs.writeFile(Date.now() + ".png", buffer, () => console.log('saved!'));
-        }), 'image/png');
-    }
-    onMouseMove(ev) {
-        this._mouseX = ev.data.global.x;
-        this._mouseY = ev.data.global.y;
-    }
-    /**
-     * Get a tileset image from the tileset collection.
-     */
-    getTileset() {
-        const tilesets = this._tileset;
-        if (!tilesets) {
-            throw new Error("Can't find the tileset from the memory.");
-        }
-        if (Array.isArray(tilesets) && tilesets.length <= 0) {
-            throw new Error("The tileset image can't create correctly.");
-        }
-        return tilesets;
-    }
-    cropTexture(dx, dy, texture) {
-        const crop = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Rectangle"](dx, dy, this._tileWidth, this._tileHeight);
-        const cropTexture = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"](texture.baseTexture, crop);
-        return cropTexture;
-    }
-    collectAutoTileID(mx, my) {
-        const mapX = Math.floor(mx / this._tileWidth);
-        const mapY = Math.floor(my / this._tileHeight);
-        const layerId = this._currentLayer;
-        let mask = 0x00;
-        const bits = [
-            this.getData(mapX + 0, mapY - 1, layerId) <= 0,
-            this.getData(mapX + 1, mapY + 0, layerId) <= 0,
-            this.getData(mapX + 1, mapY - 1, layerId) <= 0,
-            this.getData(mapX + 1, mapY + 1, layerId) <= 0,
-            this.getData(mapX + 0, mapY + 1, layerId) <= 0,
-            this.getData(mapX - 1, mapY + 1, layerId) <= 0,
-            this.getData(mapX - 1, mapY + 0, layerId) <= 0,
-            this.getData(mapX - 1, mapY - 1, layerId) <= 0 // 북서
-        ];
-        bits.forEach((e, i, a) => {
-            if (e === true) {
-                mask += (1 << i);
-            }
-        });
-        return mask;
-    }
-    drawTile(mx, my, tileID) {
-        let mapX = Math.floor(mx / this._tileWidth);
-        let mapY = Math.floor(my / this._tileHeight);
-        console.log(mx, my, mapX, mapY);
-        this.setData(mapX, mapY, this._currentLayer, tileID);
-        this._dirty = true;
-    }
-    /**
-     * 특정 영역에 타일을 사각형으로 그립니다.
-     *
-     * @param {Number} sx
-     * @param {Number} sy
-     * @param {Number} ex
-     * @param {Number} ey
-     * @param {Number} tileID
-     */
-    drawRect(sx, sy, ex, ey) {
-        let mx = Math.floor(sx / this._tileWidth);
-        let my = Math.floor(sy / this._tileHeight);
-        const tileID = this._tileId;
-        const width = mx + ex;
-        const height = my + ey;
-        for (let y = my; y < height; y++) {
-            for (let x = mx; x < width; x++) {
-                this.setData(x, y, this._currentLayer, tileID);
-            }
-        }
-        this._dirty = true;
-    }
-    /**
-     * 원 안에 있는지 확인합니다.
-     * @param centerX
-     * @param centerY
-     * @param x
-     * @param y
-     * @param r
-     */
-    isInCircle(centerX, centerY, x, y, r) {
-        let dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
-        return dist < r;
-    }
-    /**
-     * 원을 그립니다.
-     *
-     * @param sx
-     * @param sy
-     * @param ex
-     * @param ey
-     */
-    drawEllipse(sx, sy, ex, ey) {
-        let mx = Math.floor(sx / this._tileWidth);
-        let my = Math.floor(sy / this._tileHeight);
-        const tileID = this._tileId;
-        const width = mx + ex;
-        const height = my + ey;
-        const centerX = Math.floor(mx + (ex / 2));
-        const centerY = Math.floor(my + (ey / 2));
-        const r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
-        for (let y = my; y < height; y++) {
-            for (let x = mx; x < width; x++) {
-                if (this.isInCircle(centerX, centerY, x, y, r)) {
-                    this.setData(x, y, this._currentLayer, tileID);
-                }
-            }
-        }
-        this._dirty = true;
-    }
-    /**
-     * 오토 타일인 지 확인합니다.
-     *
-     * @param tileId
-     */
-    isAutoTile(tileId) {
-        return this._autoTileIndexedList.indexOf(tileId) >= 0;
-    }
-    /**
-     *
-     * @link https://stackoverflow.com/a/40421933
-     * @param hits
-     * @param x
-     * @param y
-     * @param srcColor
-     * @param tgtColor
-     */
-    floodFillDo(hits, x, y, srcColor, tgtColor) {
-        if (y < 0)
-            return false;
-        if (x < 0)
-            return false;
-        if (y > this._mapHeight - 1)
-            return false;
-        if (x > this._mapWidth - 1)
-            return false;
-        if (hits[y][x])
-            return false;
-        if (this.getData(x, y, this._currentLayer) != srcColor)
-            return false;
-        this.setData(x, y, this._currentLayer, tgtColor);
-        hits[y][x] = true;
-        return true;
-    }
-    /**
-     *
-     * @link https://stackoverflow.com/a/40421933
-     * @param x
-     * @param y
-     * @param startTileId
-     * @param nodes
-     * @param stack
-     */
-    floodFill(x, y, startTileId, nodes, stack) {
-        const hits = [];
-        for (let y = 0; y < this._mapHeight; y++) {
-            hits[y] = [];
-            for (let x = 0; x < this._mapWidth; x++) {
-                hits[y][x] = false;
-            }
-        }
-        const queue = new Array();
-        let srcColor = 0;
-        let targetColor = 1;
-        if (startTileId == -1) {
-            srcColor = this.getData(x, y, this._currentLayer);
-        }
-        targetColor = this._tileId;
-        queue.push({ x, y });
-        while (queue.length !== 0) {
-            const p = queue.shift();
-            if (this.floodFillDo(hits, p.x, p.y, srcColor, targetColor)) {
-                queue.push({ x: p.x, y: p.y - 1 });
-                queue.push({ x: p.x, y: p.y + 1 });
-                queue.push({ x: p.x - 1, y: p.y });
-                queue.push({ x: p.x + 1, y: p.y });
-            }
-        }
-    }
-    /**
-     * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
-     */
-    update(...args) {
-        const penType = this._penType;
-        const tileId = this._tileId;
-        // 오토 타일을 처리합니다.
-        // if(this.isAutoTile(tileId)) {
-        //     this._tileId = this.collectAutoTileID(this._mouseX, this._mouseY);
-        //     this._tileset = this._autoTileTextureList[tileId];
-        //     this._tileType = 1;
-        // } else {
-        //     this._tileType = 0;
-        // }
-        // 펜 타입에 따라 그리기 처리를 합니다.
-        switch (penType) {
-            case PenType.PENCIL:
-                this.drawTile(this._mouseX, this._mouseY, tileId);
-                break;
-            case PenType.RECTANGLE:
-                {
-                    const mouse = args[0];
-                    this.drawRect(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
-                }
-                break;
-            case PenType.ELLIPSE:
-                // https://stackoverflow.com/a/46630005
-                {
-                    const mouse = args[0];
-                    if (mouse.dragTime >= 8) {
-                        this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
-                    }
-                }
-                break;
-            case PenType.FLOOD_FILL:
-                {
-                    const mouse = args[0];
-                    let mx = Math.floor(this._mouseX / this._tileWidth);
-                    let my = Math.floor(this._mouseY / this._tileHeight);
-                    let nodes = [];
-                    this.floodFill(mx, my, -1, nodes, 0);
-                    this._dirty = true;
-                }
-                break;
-            case PenType.SHADOW_PEN:
-                break;
-        }
-        // 타일맵 배열에 변화가 있을 경우, 새로 그리기 처리를 합니다.
-        if (this._dirty) {
-            this.draw();
-            this._dirty = false;
-        }
-    }
-    /**
-     * 모든 타일 스프라이트를 화면에서 제거합니다.
-     *
-     */
-    clear() {
-        this._layerContainer.children.forEach(i => {
-            i.removeChildren();
-        });
-        return this;
-    }
-    /**
-     * 타일셋 이미지에서 특정 영역만 가져와 잘라냅니다.
-     *
-     * @param tileID
-     */
-    getTileCropTexture(tileID) {
-        let texture = pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset);
-        const mapCols = Math.floor(texture.width / this._tileWidth);
-        const mapRows = Math.floor((texture.height) / this._tileHeight);
-        const dx = (tileID % mapCols) * this._tileWidth;
-        const dy = Math.floor(tileID / mapCols) * this._tileHeight;
-        const cropTexture = this.cropTexture(dx, dy, texture);
-        return cropTexture;
-    }
-    /**
-     * 특정 레이어 컨테이너를 화면에서 감추거나 표시합니다.
-     *
-     * @param layerId
-     */
-    toggleLayerVisibility(layerId) {
-        if (!this._layerContainer)
-            return;
-        const children = this._layerContainer.children;
-        children[layerId].visible = !children[layerId].visible;
-    }
-    /**
-     * 레이어의 투명도를 조절합니다.
-     */
-    updateAlphaLayers() {
-        const currentLayer = this._currentLayer;
-        const children = this._layerContainer.children;
-        const layers = children.filter((e, i, a) => {
-            return i !== currentLayer;
-        });
-        layers.forEach(layer => {
-            layer.alpha = 0.25;
-        });
-        children[currentLayer].alpha = 1.0;
-        return this;
-    }
-    draw() {
-        // 화면에 있는 모든 타일 스프라이트를 없앱니다.
-        this.clear();
-        const mapWidth = this._mapWidth;
-        const mapHeight = this._mapHeight;
-        // 레이어 Z부터 반복하여 모든 타일을 반복하여 그립니다.
-        for (let z = 0; z < this._config.LAYERS; z++) {
-            const container = this._layerContainer.children[z];
-            for (let y = 0; y < mapHeight; y++) {
-                for (let x = 0; x < mapWidth; x++) {
-                    const tileID = this.getData(x, y, z);
-                    if (!tileID)
-                        continue;
-                    const sprite = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Sprite"](this.getTileCropTexture(tileID));
-                    sprite.x = x * this._tileWidth;
-                    sprite.y = y * this._tileHeight;
-                    container.addChild(sprite);
-                }
-            }
-        }
-        return this;
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/TilesetCanvas.ts":
-/*!*****************************!*\
-  !*** ./js/TilesetCanvas.ts ***!
-  \*****************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetCanvas; });
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-class TilesetCanvas {
-    constructor(...args) {
-        this.initMembers(...args);
-    }
-    initMembers(...args) {
-        this._config = args[0];
-        this._isReady = false;
-        this._tilesetImgages = this._config.TILESET_IMGAGES;
-    }
-    start(...args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.loadTilesets();
-        });
-    }
-    loadTilesets() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this._tilesets = [];
-            let count = 0;
-            return new Promise((resolve, reject) => {
-                for (let i = 0; i < this._tilesetImgages.length; i++) {
-                    const elem = $("<img>").attr("src", this._tilesetImgages[i]);
-                    elem.on("load", () => {
-                        this._tilesets.push(elem);
-                        ++count;
-                        if (count >= this._tilesetImgages.length) {
-                            console.log(this._tilesetImgages[i]);
-                            this.createCanvas();
-                            resolve(this._tilesetImgages[i]);
-                        }
-                    });
-                    elem.on("error", reject);
-                }
-            });
-        });
-    }
-    /**
-     * 이 메소드는 타일셋을 지우고 다시 처음부터 그립니다.
-     * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
-     */
-    refreshTilesets(newTileset) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this._tilesetImgages.push(newTileset);
-            if (this._canvas) {
-                this._canvas.remove();
-            }
-            yield this.start().then((ret) => {
-                window.app.createComponents();
-            });
-        });
-    }
-    createCanvas() {
-        const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
-        const canvasHeight = this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
-        this._parent = $("#view");
-        this._canvas = $("<canvas />", { id: "tileset-canvas" })
-            .attr("width", canvasWidth)
-            .attr("height", canvasHeight)
-            .css({
-            padding: "0",
-            margin: "0",
-        });
-        this._parent.prepend(this._canvas);
-        this._parent.css({
-            width: "100%",
-            height: "60%",
-        });
-        /**
-         * @type {CanvasRenderingContext2D}
-         */
-        this._context = this._canvas.get(0).getContext("2d");
-        const ctx = this._context;
-        let acc = 0;
-        let maxW = 0;
-        let maxH = 0;
-        for (let i = 0; i < this._tilesetImgages.length; i++) {
-            /**
-             * @type {JQuery}
-             */
-            const img = this._tilesets[i];
-            const width = img.get(0).naturalWidth;
-            const height = img.get(0).naturalHeight;
-            if (height > acc + height) {
-                maxH = acc + height;
-                this._canvas.prop("height", maxH);
-            }
-            ctx.setTransform(1, 0, 0, 1, 0, acc);
-            ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(img.get(0), 0, 0, width, height);
-            acc += height;
-        }
-        this._isReady = true;
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/WindowCreator.ts":
-/*!*****************************!*\
-  !*** ./js/WindowCreator.ts ***!
-  \*****************************/
-/*! exports provided: WindowCreator */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WindowCreator", function() { return WindowCreator; });
-/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./App */ "./js/App.ts");
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
-/* harmony import */ var _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./controllers/BaseController */ "./js/controllers/BaseController.ts");
-/* harmony import */ var _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./controllers/GamePropertiesWindowController */ "./js/controllers/GamePropertiesWindowController.ts");
-/* harmony import */ var _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./models/GamePropertiesWindow */ "./js/models/GamePropertiesWindow.ts");
-/* harmony import */ var _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./controllers/TilesetWindowController */ "./js/controllers/TilesetWindowController.ts");
-/* harmony import */ var _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./models/TilesetWindow */ "./js/models/TilesetWindow.ts");
-/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./camelCase */ "./js/camelCase.js");
-
-
-
-
-
-
-
-
-class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"] {
-    /**
-     * @param {App} app
-     */
-    constructor() {
-        super();
-        this._app = _App__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
-        this.cache = {};
-    }
-    /**
-     * This method is called when clicking the file menu.
-     *
-     * 창을 생성한 후 캐시에 저장을 해둡니다.
-     */
-    onFileNew() {
-        // 윈도우를 생성합니다.
-        this._gamePropertiesWindow = new _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__["default"](new _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__["default"]());
-        this._gamePropertiesWindow.render()
-            .then(ret => {
-            const id = "new-window";
-            this.cache[id] = this._gamePropertiesWindow;
-            this._gamePropertiesWindow.setUniqueId(id);
-        })
-            .catch(err => {
-            console.warn(err);
-        });
-    }
-    /**
-     * Open the tools option window.
-     * This window allows you to add a new tile image on the tileset canvas window of this map editor.
-     */
-    onToolsOptions() {
-        this._tilesetWindow = new _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__["default"](new _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__["TilesetWindowModel"]());
-        this._tilesetWindow.render()
-            .then(ret => {
-            const id = "tileset";
-            this.cache[id] = this._tilesetWindow;
-            this._tilesetWindow.setUniqueId(id);
-        })
-            .catch(err => {
-            console.warn(err);
-        });
-    }
-    onFileSave() {
-        window.app.emit("tilemap:save");
-    }
-    /**
-     * This method removes all cache window for some times.
-     */
-    update() {
-        for (let i in this.cache) {
-            if (this.cache[i] instanceof _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__["default"]) {
-                this.cache[i].remove();
-            }
-        }
-    }
-    /**
-     * Create a certain window.
-     * @param {MouseEvent}
-     */
-    static GrapWindow(ev) {
-        const target = $(ev.currentTarget);
-        if (!target) {
-            return;
-        }
-        const id = target.data("action");
-        const creator = WindowCreator.GetInstance();
-        const type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
-        const methodName = "on" + type;
-        // @ts-ignore
-        const cb = creator[methodName].bind(creator);
-        if (typeof (cb) === "function") {
-            cb();
-        }
-    }
-    /**
-     * Create a specific window as type.
-     * the type name is the same as data-action property.
-     * @param {String} id
-     */
-    static GrapWindowAsType(id) {
-        const creator = WindowCreator.GetInstance();
-        const type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
-        const methodName = "on" + type;
-        // @ts-ignore
-        const cb = creator[methodName].bind(creator);
-        if (typeof (cb) === "function") {
-            cb();
-        }
-    }
-    /**
-     * Load a window from the cache data.
-     *
-     * @param {HTMLElement} elem
-     * @param {Number} id
-     */
-    static onLoad(elem, id) {
-        const creator = this.GetInstance();
-        // 이미 생성된 창이 있으면 해당 요소의 onLoad 메소드를 호출하여 창을 다시 호출합니다.
-        if (creator.cache[id]) {
-            const self = creator.cache[id];
-            creator.cache[id].onLoad(elem, self);
-        }
-    }
-    /**
-     * Gets a single instance.
-     *
-     * @return {WindowCreator}
-     */
-    static GetInstance() {
-        if (!WindowCreator.Instance) {
-            WindowCreator.Instance = new WindowCreator();
-        }
-        return WindowCreator.Instance;
-    }
-}
-WindowCreator.Instance = null;
-
-
-
-/***/ }),
-
-/***/ "./js/app.ts":
-/*!*******************!*\
-  !*** ./js/app.ts ***!
-  \*******************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return App; });
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./js/EventEmitter.ts");
-/* harmony import */ var _MenuComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MenuComponent */ "./js/MenuComponent.ts");
-/* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tilesetMarker */ "./js/tilesetMarker.ts");
-/* harmony import */ var _Tilemap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Tilemap */ "./js/Tilemap.ts");
-/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./camelCase */ "./js/camelCase.js");
-/* harmony import */ var _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./TilesetCanvas */ "./js/TilesetCanvas.ts");
-/* harmony import */ var _TileMarker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./TileMarker */ "./js/TileMarker.ts");
-/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./config */ "./js/config.ts");
-/* harmony import */ var _MenuService__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./MenuService */ "./js/MenuService.ts");
-/* harmony import */ var _Rectangle__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Rectangle */ "./js/Rectangle.ts");
-/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./js/WindowCreator.ts");
-/* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
-/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./js/ThemeManager.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
-    /**
-     * 멤버 변수를 초기화합니다.
-     */
-    initMembers() {
-        this.cache = {};
-        this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
-        this._mouse = {
-            x: 0,
-            y: 0,
-            screenX: 0,
-            screenY: 0,
-            buttons: {
-                left: false,
-                leftFire: false,
-            },
-            /**
-             * @type {HTMLElement}
-             */
-            target: null,
-            /**
-             * @type {HTMLElement}
-             */
-            menuTarget: null,
-            isDrawing: false,
-            startX: 0,
-            startY: 0,
-            dragTime: 0,
-        };
-        /**
-         * 사각형 툴을 위한 선택 영역
-         * @link http://jsfiddle.net/qGzkG/2/
-         */
-        this._blockRect = {
-            isDrawing: false,
-            rect: new _Rectangle__WEBPACK_IMPORTED_MODULE_9__["default"](0, 0, 1, 1),
-        };
-        this._now = performance.now();
-        this._isMenuOpen = false;
-        this._tileId = 0;
-        this._isReady = false;
-        // 타이틀을 변경합니다.
-        document.title = "Initial Map Editor";
-        this.emit("ready", JSON.stringify(this));
-        // 맵 설정 파일을 생성합니다.
-        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then((data) => {
-            // @ts-ignore
-            const myEditorConfig = JSON.parse(data);
-            const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
-            //@ts-ignore
-            if (myEditorConfig.Theme == 1) {
-                document
-                    .querySelector("body")
-                    .setAttribute("data-theme", "light");
-                themeManager.changeLightTheme();
-            }
-            else {
-                document
-                    .querySelector("body")
-                    .setAttribute("data-theme", "dark");
-                themeManager.changeDarkTheme();
-            }
-        });
-        this.on("save-config", (extraConfig) => {
-            let myConfig = Object.assign(this._config.Editor, extraConfig);
-            this._config.Editor = myConfig;
-            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then((ret) => {
-                alert("설정 변경이 완료되었습니다.");
-            });
-        });
-        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
-        // });
-    }
-    /**
-     * 컴포넌트를 생성합니다.
-     */
-    createComponents() {
-        this._tilemap = new _Tilemap__WEBPACK_IMPORTED_MODULE_3__["default"](this._config);
-        this._components.push((this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config)));
-        this._components.push(this._tilemap);
-        this._components.push((this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config)));
-        this._components.forEach((component) => {
-            component.start();
-        });
-        this._tilemap.setTileId(0);
-        // 타일맵 이벤트를 재전파합니다.
-        this.on("tilemap", (...args) => {
-            this._tilemap.emit(args[0], ...args.slice(1));
-        });
-    }
-    /**
-     * 컴포넌트를 초기화합니다.
-     */
-    initWithComponents() {
-        return __awaiter(this, void 0, void 0, function* () {
-            /**
-             * @type {Component[]}
-             */
-            this._components = [];
-            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
-            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
-            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
-            yield this._tilesetCanvas
-                .start()
-                .then((ret) => {
-                this.createComponents();
-            })
-                .then((ret) => {
-                $(".darken, .windows-container").css("left", "-9999px");
-            })
-                .catch((err) => {
-                console.warn(err);
-            });
-        });
-    }
-    toCamelCase() {
-        return Object(_camelCase__WEBPACK_IMPORTED_MODULE_4__["toCamelCase"])();
-    }
-    /**
-     * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
-     * @return {Boolean}
-     */
-    isMobileDevice() {
-        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        return ret;
-    }
-    onMouseTouchMove(ev) {
-        this._mouse.x = ev.layerX;
-        this._mouse.y = ev.layerY;
-        this._mouse.screenX = ev.layerX;
-        this._mouse.screenY = ev.layerY;
-    }
-    /**
-     * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
-     */
-    initWithMouseEvent() {
-        const isMobileDevice = this.isMobileDevice();
-        let events;
-        if (isMobileDevice) {
-            events = {
-                touchmove: (ev) => {
-                    let touchEvent = ev;
-                    if (ev.type.indexOf("touch") >= 0) {
-                        touchEvent = ev.touches[0];
-                    }
-                    /**
-                     * @type {HTMLElement}
-                     */
-                    const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
-                    // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
-                    this._mouse.x = touchEvent.clientX - rect.x;
-                    this._mouse.y = touchEvent.clientY - rect.y;
-                    this._mouse.screenX = touchEvent.screenX;
-                    this._mouse.screenY = touchEvent.screenY;
-                },
-                "touchstart pointerdown": (ev) => {
-                    let touchEvent = ev;
-                    if (ev.type.indexOf("touch") >= 0) {
-                        touchEvent = ev.touches[0];
-                    }
-                    this._mouse.target = ev.target;
-                    /**
-                     * @type {HTMLElement}
-                     */
-                    const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
-                    this._mouse.x = touchEvent.clientX - rect.x;
-                    this._mouse.y = touchEvent.clientY - rect.y;
-                    this._mouse.screenX = touchEvent.screenX;
-                    this._mouse.screenY = touchEvent.screenY;
-                    this._mouse.buttons.left = true;
-                    this._mouse.buttons.leftFire = false;
-                },
-                "touchend pointerup mouseup": (ev) => {
-                    this._mouse.buttons.left = false;
-                    this._mouse.buttons.leftFire = true;
-                },
-            };
-            $(window).on(events);
-        }
-        else {
-            events = {
-                mousemove: (ev) => {
-                    this._mouse.x = ev.layerX;
-                    this._mouse.y = ev.layerY;
-                    this._mouse.screenX = ev.layerX;
-                    this._mouse.screenY = ev.layerY;
-                    if (this._mouse.isDrawing) {
-                        this._mouse.dragTime++;
-                    }
-                },
-                mousedown: (ev) => {
-                    if (ev.button == 0) {
-                        this._mouse.buttons.left = true;
-                        this._mouse.buttons.leftFire = false;
-                        this._mouse.target = ev.target;
-                        this._mouse.isDrawing = true;
-                        // 캔버스
-                        const canvas = document.querySelector("#contents__main-canvas");
-                        canvas.style.cursor = "crosshair";
-                        const __canvas = document.querySelector("#contents__main-canvas");
-                        const canvasOffset = __canvas.getBoundingClientRect();
-                        const offsetX = parseInt(canvasOffset.left);
-                        const offsetY = parseInt(canvasOffset.top);
-                        this._mouse.startX = parseInt((ev.clientX - offsetX));
-                        this._mouse.startY = parseInt((ev.clientY - offsetY));
-                    }
-                },
-                mouseup: (ev) => {
-                    if (ev.button == 0) {
-                        this._mouse.buttons.left = false;
-                        this._mouse.buttons.leftFire = true;
-                        this._blockRect.isDrawing = false;
-                        this._mouse.isDrawing = false;
-                        const canvas = document.querySelector("#contents__main-canvas");
-                        canvas.style.cursor = "default";
-                        this._mouse.dragTime = 0;
-                    }
-                },
-                mouseover: (ev) => {
-                    if (this._menu._isMenuOpen) {
-                        //@ts-ignore
-                        this._mouse.buttons.menuTarget = ev.target;
-                        //@ts-ignore
-                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
-                    }
-                },
-            };
-            for (let k in events) {
-                //@ts-ignore
-                window.addEventListener(k, events[k], false);
-            }
-        }
-    }
-    setTileId(tileId) {
-        if (!this._tilemap)
-            return;
-        this._tilemap.setTileId(tileId);
-    }
-    /**
-     * 레이어를 토글하는 기능을 수행합니다.
-     */
-    initWithMapLayers() {
-        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
-        children.forEach((elem, index) => {
-            elem.onclick = () => {
-                elem.className = elem.className.includes("slash")
-                    ? "far fa-eye"
-                    : "far fa-eye-slash";
-            };
-        });
-        let target = null;
-        // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
-        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
-            const target = $(ev.currentTarget);
-            const parentNode = $(ev.currentTarget).parent();
-            const layerId = parentNode.index();
-            const tilemap = this._tilemap;
-            if (target.hasClass("fa-eye")) {
-                target.removeClass("fa-eye").addClass("fa-eye-slash");
-            }
-            else {
-                target.removeClass("fa-eye-slash").addClass("fa-eye");
-            }
-            tilemap.toggleLayerVisibility(layerId);
-        });
-        // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
-        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
-            const elem = $(ev.currentTarget).css({
-                backgroundColor: "var(--dark-selection-color)",
-            });
-            $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
-                backgroundColor: "rgba(255, 255, 255, 0)",
-            });
-            const layerId = elem.index();
-            const tilemap = this._tilemap;
-            // 타일맵을 지우고 다시 그립니다.
-            tilemap
-                .setCurrentLayerId(layerId)
-                .clear()
-                .draw()
-                .updateAlphaLayers();
-        });
-        $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
-    }
-    start() {
-        this.initMembers();
-        this.initWithMouseEvent();
-        // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
-        this.initWithComponents()
-            .then((ret) => {
-            this.initWithMapLayers();
-            this._isReady = true;
-            this.on("update", (deltaTime) => {
-                this.update(deltaTime);
-            });
-        })
-            .catch((err) => {
-            console.warn(err);
-            this._isReady = false;
-        });
-    }
-    /**
-     * 매 프레임마다 반복 실행되는 메소드입니다.
-     * @param {Number}} deltaTime
-     */
-    update(deltaTime) {
-        if (!this._isReady)
-            return;
-        // 400ms가 지났을 때 마다 무언가를 실행합니다.
-        if (deltaTime - this._now >= 400) {
-            this._now = deltaTime;
-        }
-        this.updateComponents();
-        this._mouse.buttons.leftFire = false;
-    }
-    /**
-     * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
-     */
-    updateComponents() {
-        const target = this._mouse.target;
-        if (!target) {
-            return;
-        }
-        const id = target.id;
-        const mouse = this._mouse;
-        // 메뉴를 업데이트합니다.
-        this._menu.update(target, mouse);
-        // 메뉴가 열리지 않았을 경우
-        if (!this._menu.isMenuOpen()) {
-            switch (id) {
-                case "tileset-canvas":
-                case "view":
-                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
-                    if (this._mouse.buttons.leftFire) {
-                        // 타일셋 마커를 표시합니다.
-                        this._tilesetMarker.update(mouse);
-                    }
-                    break;
-                case "contents__main-canvas":
-                    // * 마우스 왼쪽 버튼을 누르고 있을 때
-                    if (this._mouse.buttons.left) {
-                        // 타일셋을 업데이트합니다.
-                        this._tilemap.update(mouse);
-                    }
-                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
-                    if (this._mouse.buttons.leftFire) {
-                        // 타일 마커의 위치를 변경합니다.
-                        this._tileMarker.update(mouse);
-                    }
-                    break;
-            }
-        }
-    }
-    /**
-     * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
-     * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
-     * 창은 생성 직후, 화면에서 감춰진 상태로 존재하게 됩니다.
-     *
-     * HTML 파일 내부에는 로드가 완료되었음을 감지하는 콜백 함수가 걸려 있습니다.
-     *
-     * 그 콜백 함수가 바로 이 함수이며 이 함수가 실행되면 화면에 창이 보여지게 됩니다.
-     *
-     * 창 생성 요청
-     *              ->  HTML 파일 로드 요청
-     *              ->  로드 시작
-     *              ->  로드 완료
-     *              ->  렌더링 시작
-     *              ->  렌더링 완료 후, 브라우저에 의해 window.app.onLoad 함수가 자동으로 실행됨.
-     *
-     * 창은 특별한(Unique) ID 값에 의해 식별되며 이 값은 문자열입니다.
-     *
-     * @param {HTMLElement} elem
-     * @param {String}} id
-     */
-    onLoad(elem, id) {
-        _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
-    }
-    /**
-     * 유일한 인스턴스를 반환하는 메소드입니다.
-     * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
-     *
-     * @return {App}
-     */
-    static GetInstance() {
-        if (!App.Instance) {
-            App.Instance = new App();
-        }
-        return App.Instance;
-    }
-}
-App.Instance = null;
-
-
-/***/ }),
-
-/***/ "./js/camelCase.js":
-/*!*************************!*\
-  !*** ./js/camelCase.js ***!
-  \*************************/
-/*! exports provided: toCamelCase, getClassName */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toCamelCase", function() { return toCamelCase; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getClassName", function() { return getClassName; });
-function toCamelCase(name) {
-    const snake = name || "";
-
-    let nodes = snake.split(/[\s\-]/);
-    let nodesTail = nodes.slice(1);
-    
-    const camel = nodes[0].concat(nodesTail.map( i => {
-        return i[0].toUpperCase() + i.slice(1);
-    }));
-    return camel;
-}
-
-function getClassName(name) {
-    const str = toCamelCase(name);
-    return str.slice(0, 1).toUpperCase() + str.slice(1);
-}
-
-
-
-/***/ }),
-
-/***/ "./js/config.ts":
-/*!**********************!*\
-  !*** ./js/config.ts ***!
-  \**********************/
-/*! exports provided: config */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "config", function() { return config; });
-/* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema/EditorSchema */ "./js/schema/EditorSchema.ts");
-
-const config = {
-    SCREEN_WIDTH: 800,
-    SCREEN_HEIGHT: 600,
-    TILE_WIDTH: 16,
-    TILE_HEIGHT: 16,
-    MAP_COLS: 32,
-    MAP_ROWS: 8,
-    LAYERS: 4,
-    TRANSPARENT_COLOR_GROUP: ["#007575"],
-    TILESET_IMGAGES: [
-        "./images/tiles/tileset16-8x13.png",
-        "./images/tiles/2k_town05.png",
-        "./images/tiles/2k_town05-01.png",
-    ],
-    Editor: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined),
-    Maps: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined),
-};
-
-
-
-/***/ }),
-
-/***/ "./js/controllers/BaseController.ts":
-/*!******************************************!*\
-  !*** ./js/controllers/BaseController.ts ***!
-  \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseController; });
-/* harmony import */ var _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/ViewModel */ "./js/viewmodels/ViewModel.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-/**
- * @author Eo Jinseok
- * @class Renderer
- */
-class BaseController {
-    /**
-     * @param {GamePropertiesWindow} config
-     */
-    constructor(config) {
-        this.createViewModel();
-        this.initMembers(config.data);
-        this.initWithCanvas();
-    }
-    // protected _element: JQuery<HTMLElement>;
-    get config() {
-        return this._config;
-    }
-    createViewModel() {
-        this._view = new _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"](this);
-    }
-    initMembers(config) {
-        /**
-         * 실제 HTML 파일이 있는 위치
-         */
-        this._config = config;
-        this._isValid = false;
-        this._uniqueId = null;
-    }
-    setUniqueId(id) {
-        this._uniqueId = id;
-    }
-    initWithCanvas() {
-        const config = this._config;
-        this._view.emit("create", null, config);
-    }
-    hide() {
-        this._view.onHide();
-    }
-    invalid() {
-        this._isValid = false;
-    }
-    valid() {
-        this._isValid = true;
-    }
-    show() {
-        this._view.emit("show");
-    }
-    remove() {
-        this._view.emit("dispose");
-    }
-    isMobile() {
-        const r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
-        return !!navigator.userAgent.match(r);
-    }
-    /**
-     * AJAX를 이용하여 새로 고침 없이 창의 실제 데이터(HTML 파일)을 로드합니다.
-     */
-    load() {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            const path = this._config.path;
-            // 데이터 파일의 경로를 지정합니다.
-            const url = `${location.href.slice(0, location.href.lastIndexOf("/"))}/${path}`;
-            xhr.open("GET", url);
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    resolve(xhr.responseText);
-                }
-            };
-            xhr.onerror = reject;
-            xhr.send();
-        });
-    }
-    /**
-     * 비동기적으로 HTML 파일을 시스템으로 불러와 렌더링을 진행하는 메서드입니다.
-     * HTML 파일은 뷰(View)에 해당하며 View 데이터는 뷰 모델(View Model)을 통해서만 접근이 가능합니다.
-     */
-    render() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.load().then((result) => {
-                // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
-                // 창의 렌더링을 진행합니다 (다소의 시간 소요)
-                this._view.emit("render", result);
-            }).catch(err => {
-                console.warn(err);
-            });
-        });
-    }
-    /**
-     * 로드가 완료되면 호출되는 리스너를 지정합니다.
-     *
-     * @param elem
-     * @param self
-     */
-    onLoad(elem, self) {
-        this.addEventHandlers(elem, self);
-    }
-    addEventHandlers(elem, self) {
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/controllers/GamePropertiesWindowController.ts":
-/*!**********************************************************!*\
-  !*** ./js/controllers/GamePropertiesWindowController.ts ***!
-  \**********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePropertiesWindowController; });
-/* harmony import */ var _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/newWindowViewModel */ "./js/viewmodels/newWindowViewModel.ts");
-/* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
-
-
-/**
- * @author Eo Jinseok
- * @class Renderer
- */
-class GamePropertiesWindowController extends _BaseController__WEBPACK_IMPORTED_MODULE_1__["default"] {
-    /**
-     * @param {GamePropertiesWindow} config
-     */
-    constructor(config) {
-        super(config);
-    }
-    /**
-     * 컨트롤러에 있는 뷰 접근 코드를 뷰 모델로 전부 옮깁니다.
-     */
-    createViewModel() {
-        this._view = new _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__["NewWindowViewModel"](this);
-    }
-    onLoad(elem, self) {
-        super.onLoad(elem, self);
-        const container = $("#newContainer #newWindow");
-        const okButton = container.find("div.panel");
-        okButton.eq(0).on("click", (ev) => {
-            this.onOkButton(ev);
-        });
-        this.show();
-    }
-    onClick(ev) {
-        // 창을 화면에 보이게 합니다.
-        this.show();
-        // 펼쳐진 메뉴를 다시 접습니다.
-        $("#none").prop("checked", true);
-    }
-    onOkButton(ev) {
-        const container = $("#newContainer #newWindow");
-        const inp = container.find("input");
-        const data = {
-            gameName: $(inp[0]).val(),
-            gameFolder: $(inp[1]).val(),
-            author: $(inp[2]).val(),
-        };
-        alert(JSON.stringify(data, null, "\t"));
-        this.remove();
-    }
-    addEventHandlers(elem, self) {
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/controllers/TilesetWindowController.ts":
-/*!***************************************************!*\
-  !*** ./js/controllers/TilesetWindowController.ts ***!
-  \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetWindowController; });
-/* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseController */ "./js/controllers/BaseController.ts");
-/* harmony import */ var _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../viewmodels/TilesetWindowViewModel */ "./js/viewmodels/TilesetWindowViewModel.ts");
-/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ThemeManager */ "./js/ThemeManager.ts");
-
-
-
-var Theme;
-(function (Theme) {
-    Theme[Theme["DARK"] = 0] = "DARK";
-    Theme[Theme["LIGHT"] = 1] = "LIGHT";
-})(Theme || (Theme = {}));
-;
-/**
- * @author Eo Jinseok
- * @class Renderer
- */
-class TilesetWindowController extends _BaseController__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    /**
-     * @param {GamePropertiesWindow} config
-     */
-    constructor(config) {
-        super(config);
-    }
-    createViewModel() {
-        this._view = new _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__["TilesetWindowViewModel"](this);
-    }
-    onLoad(elem, self) {
-        super.onLoad(elem, self);
-        const parent = elem.parentNode;
-        parent.querySelector(".tilesetWindow__control-box p i").onclick = () => {
-            self.remove();
-        };
-        $(elem.parentNode).find(".tilesetWindow__panel #ok").on("click", ev => {
-            this.onOk(ev);
-        });
-        $(elem.parentNode).find(".tilesetWindow__panel #cancel").on("click", ev => {
-            this.onCancel(ev);
-        });
-        /**
-         * @type JQuery<HTMLInputElement>
-         */
-        const inputElement = $("input#image-load-dialog");
-        inputElement.on("change", (ev) => {
-            /**
-             * @type {File[]}
-             */
-            const files = Array.from(ev.target.files);
-            console.log(files[0].name, files[0].path);
-        });
-        this.show();
-    }
-    onOk(ev) {
-        const themeIndex = $("#theme-select-box").prop("selectedIndex");
-        const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_2__["ThemeManager"]();
-        if (themeIndex == Theme.DARK) {
-            $("body").data("theme", "dark");
-            themeManager.changeDarkTheme(true);
-        }
-        else {
-            $("body").data("theme", "light");
-            themeManager.changeLightTheme(true);
-        }
-        this._view.onOk(ev);
-    }
-    onCancel(ev) {
-        ev.preventDefault();
-        this.remove();
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/index.ts":
-/*!*********************!*\
-  !*** ./js/index.ts ***!
-  \*********************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _app__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./app */ "./js/app.ts");
-/* harmony import */ var _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./toolbar/Toolbar */ "./js/toolbar/Toolbar.ts");
-/* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ElectronService */ "./js/ElectronService.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-
-// 소스 맵 지원을 위한 코드
-__webpack_require__(/*! source-map-support */ "./node_modules/source-map-support/source-map-support.js").install();
-//==========================================================
-// Main
-//==========================================================
-class Main {
-    static start() {
-        $(() => __awaiter(this, void 0, void 0, function* () {
-            window.app = _app__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
-            window.electronService = new _ElectronService__WEBPACK_IMPORTED_MODULE_2__["ElectronService"]();
-            window.ToolbarManager = new _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__["ToolbarManager"]();
-            window.app.start();
-            this.update(1.0);
-        }));
-    }
-    static update(deltaTime) {
-        window.app.emit("update", deltaTime);
-        window.requestAnimationFrame(Main.update);
-    }
-}
-Main.start();
-
-
-/***/ }),
-
-/***/ "./js/menu/DrawMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/DrawMenu.ts ***!
-  \*****************************/
-/*! exports provided: DrawMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DrawMenu", function() { return DrawMenu; });
-const DrawMenu = {
-    name: "그리기",
-    children: {
-        "draw-pencil": {
-            name: "펜",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "draw-rectangle": {
-            name: "정사각형",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "draw-ellipse": {
-            name: "직사각형",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "draw-flood-fill": {
-            name: "채우기",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "draw-shadow pen": {
-            name: "그림자",
-            children: {},
-            action: (ev) => {
-            },
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/EditMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/EditMenu.ts ***!
-  \*****************************/
-/*! exports provided: EditMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditMenu", function() { return EditMenu; });
-const EditMenu = {
-    name: "편집",
-    children: {
-        "edit-undo": {
-            name: "취소",
-            children: {},
-        },
-        "edit-cut": {
-            name: "자르기",
-            children: {},
-        },
-        "edit-copy": {
-            name: "복사하기",
-            children: {},
-        },
-        "edit-paste": {
-            name: "붙여넣기",
-            children: {},
-        },
-        "edit-delete": {
-            name: "삭제하기",
-            children: {},
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/FileMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/FileMenu.ts ***!
-  \*****************************/
-/*! exports provided: FileMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileMenu", function() { return FileMenu; });
-/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./js/WindowCreator.ts");
-
-const FileMenu = {
-    name: "파일",
-    children: {
-        "file-new": {
-            name: "새로 만들기",
-            children: {},
-            shortcut: ["ctrl", "n"],
-            action: function (ev) {
-                _WindowCreator__WEBPACK_IMPORTED_MODULE_0__["WindowCreator"].GrapWindow(ev);
-            }
-        },
-        "file-open": {
-            name: "파일 열기",
-            shortcut: ["ctrl", "o"],
-            children: {},
-        },
-        "file-close": {
-            name: "파일 닫기",
-            children: {},
-        },
-        "file-save": {
-            name: "파일 저장",
-            children: {},
-        },
-        "file-preferences": {
-            name: "환경 설정",
-            children: {},
-        },
-        "file-export": {
-            name: "내보내기",
-            children: {},
-        },
-        "file-exit": {
-            name: "프로그램 종료",
-            children: {},
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/GameMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/GameMenu.ts ***!
-  \*****************************/
-/*! exports provided: GameMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GameMenu", function() { return GameMenu; });
-/* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ElectronService */ "./js/ElectronService.ts");
-
-const GameMenu = {
-    name: "게임",
-    children: {
-        "game-playtest": {
-            name: "플레이 테스트",
-            children: {},
-            action: (ev) => {
-                alert("플레이 테스트 기능을 지원하지 않습니다.");
-            },
-        },
-        "game-fullscreen": {
-            name: "전체 화면",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "game-show-console": {
-            name: "콘솔 표시",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "game-folder-open": {
-            name: "게임 폴더 열기",
-            children: {},
-            action: (ev) => {
-                // @ts-ignore
-                if (platform === "electron") {
-                    const service = new _ElectronService__WEBPACK_IMPORTED_MODULE_0__["ElectronService"]();
-                    service.openFolder(location.href);
-                }
-            },
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/HelpMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/HelpMenu.ts ***!
-  \*****************************/
-/*! exports provided: HelpMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "HelpMenu", function() { return HelpMenu; });
-const HelpMenu = {
-    name: "도움말",
-    children: {
-        "help-contents": {
-            name: "도움말",
-            children: {},
-            action: (ev) => {
-                alert("도움말이 아직 없습니다.");
-            },
-        },
-        "help-about": {
-            name: "버전 정보",
-            children: {},
-            action: (ev) => {
-            },
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/KoreanMenu.ts":
-/*!*******************************!*\
-  !*** ./js/menu/KoreanMenu.ts ***!
-  \*******************************/
-/*! exports provided: KoreanMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "KoreanMenu", function() { return KoreanMenu; });
-/* harmony import */ var _FileMenu__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FileMenu */ "./js/menu/FileMenu.ts");
-/* harmony import */ var _EditMenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EditMenu */ "./js/menu/EditMenu.ts");
-/* harmony import */ var _ModeMenu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ModeMenu */ "./js/menu/ModeMenu.ts");
-/* harmony import */ var _DrawMenu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DrawMenu */ "./js/menu/DrawMenu.ts");
-/* harmony import */ var _ScaleMenu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./ScaleMenu */ "./js/menu/ScaleMenu.ts");
-/* harmony import */ var _ToolMenu__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./ToolMenu */ "./js/menu/ToolMenu.ts");
-/* harmony import */ var _GameMenu__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./GameMenu */ "./js/menu/GameMenu.ts");
-/* harmony import */ var _HelpMenu__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./HelpMenu */ "./js/menu/HelpMenu.ts");
-
-
-
-
-
-
-
-
-const KoreanMenu = {
-    file: _FileMenu__WEBPACK_IMPORTED_MODULE_0__["FileMenu"],
-    edit: _EditMenu__WEBPACK_IMPORTED_MODULE_1__["EditMenu"],
-    mode: _ModeMenu__WEBPACK_IMPORTED_MODULE_2__["ModeMenu"],
-    draw: _DrawMenu__WEBPACK_IMPORTED_MODULE_3__["DrawMenu"],
-    scale: _ScaleMenu__WEBPACK_IMPORTED_MODULE_4__["ScaleMenu"],
-    tools: _ToolMenu__WEBPACK_IMPORTED_MODULE_5__["ToolMenu"],
-    game: _GameMenu__WEBPACK_IMPORTED_MODULE_6__["GameMenu"],
-    help: _HelpMenu__WEBPACK_IMPORTED_MODULE_7__["HelpMenu"],
-    "$font": {
-        size: "8pt",
-    }
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/ModeMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/ModeMenu.ts ***!
-  \*****************************/
-/*! exports provided: ModeMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModeMenu", function() { return ModeMenu; });
-const ModeMenu = {
-    name: "모드",
-    children: {
-        "mode-map": {
-            name: "맵",
-            children: {},
-        },
-        "mode-event": {
-            name: "이벤트",
-            children: {},
-        },
-        "mode-region": {
-            name: "지역",
-            children: {},
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/ScaleMenu.ts":
-/*!******************************!*\
-  !*** ./js/menu/ScaleMenu.ts ***!
-  \******************************/
-/*! exports provided: ScaleMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ScaleMenu", function() { return ScaleMenu; });
-const ScaleMenu = {
-    name: "배율",
-    children: {
-        "scale-1x": {
-            name: "실제 비율",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "scale-2x": {
-            name: "2배 축소",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "scale-4x": {
-            name: "4배 축소",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "scale-8x": {
-            name: "8배 축소",
-            children: {},
-            action: (ev) => {
-            },
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/menu/ToolMenu.ts":
-/*!*****************************!*\
-  !*** ./js/menu/ToolMenu.ts ***!
-  \*****************************/
-/*! exports provided: ToolMenu */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToolMenu", function() { return ToolMenu; });
-/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./js/WindowCreator.ts");
-
-const ToolMenu = {
-    name: "도구",
-    children: {
-        "tools-database": {
-            name: "데이터베이스",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "tools-resource-manager": {
-            name: "소재 관리자",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "tools-script-eidtor": {
-            name: "스크립트 에디터",
-            children: {},
-            action: (ev) => {
-            },
-        },
-        "tools-sound-test": {
-            name: "사운드 테스트",
-            children: {},
-        },
-        "tools-options": {
-            name: "옵션",
-            children: {},
-            action: function (ev) {
-                _WindowCreator__WEBPACK_IMPORTED_MODULE_0__["WindowCreator"].GrapWindow(ev);
-            }
-        },
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/models/GamePropertiesWindow.ts":
-/*!*******************************************!*\
-  !*** ./js/models/GamePropertiesWindow.ts ***!
-  \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePropertiesWindowModel; });
-/* harmony import */ var _Model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Model */ "./js/models/Model.ts");
-
-class GamePropertiesWindowModel extends _Model__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    getData() {
-        return {
-            width: "240px",
-            height: "100%",
-            parentId: ".windows-container",
-            id: "newContainer",
-            zIndex: "10",
-            path: "view/windows/newWindow.html",
-            position: "absolute",
-            display: "relative",
-        };
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/models/Model.ts":
-/*!****************************!*\
-  !*** ./js/models/Model.ts ***!
-  \****************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Model; });
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./js/EventEmitter.ts");
-
-class Model extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
-    constructor() {
-        super();
-        // 데이터를 가져옵니다.
-        this._data = this.getData();
-        // 뷰를 가져옵니다.
-        this.VIEW = $(`#${this._data.id}`);
-        this.emit("create", this._data);
-    }
-    /**
-     * @return {{
-     *  width: String,
-     *  height: String,
-     *  parentId: String,
-     *  id: String,
-     *  zIndex: String,
-     *  path: String,
-     * }}
-     */
-    getData() {
-        return {};
-    }
-    get data() {
-        return this._data;
-    }
-    set data(value) {
-        this._data = value;
-        this.emit("change", this._data);
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/models/TilesetWindow.ts":
-/*!************************************!*\
-  !*** ./js/models/TilesetWindow.ts ***!
-  \************************************/
-/*! exports provided: TilesetWindowModel */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowModel", function() { return TilesetWindowModel; });
-/* harmony import */ var _Model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Model */ "./js/models/Model.ts");
-
-class TilesetWindowModel extends _Model__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    getData() {
-        return {
-            width: "540px",
-            height: "100%",
-            parentId: ".windows-container",
-            id: "tileset-container",
-            zIndex: "10",
-            path: "view/windows/tilesetWindow.html",
-            opacity: "1.0",
-        };
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/schema/EditorSchema.ts":
-/*!***********************************!*\
-  !*** ./js/schema/EditorSchema.ts ***!
-  \***********************************/
-/*! exports provided: EditorSchema */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditorSchema", function() { return EditorSchema; });
-/* harmony import */ var _Schema__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Schema */ "./js/schema/Schema.ts");
-
-var Theme;
-(function (Theme) {
-    Theme[Theme["DARK"] = 0] = "DARK";
-    Theme[Theme["LIGHT"] = 1] = "LIGHT";
-})(Theme || (Theme = {}));
-;
-class EditorSchema extends _Schema__WEBPACK_IMPORTED_MODULE_0__["Schema"] {
-    initMembers(config) {
-        this.ProjectPath = "E:\\VS2015\\Projects\\Initial2D";
-        this.TileWidth = 16;
-        this.TileHeight = 16;
-        this.CurrentLayer = 1;
-        this.StartMapId = 1;
-        this.CurrentMapId = 1;
-        this.LayerCount = 4;
-        this.Theme = Theme.DARK;
-        Object.assign(this, config);
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/schema/Schema.ts":
-/*!*****************************!*\
-  !*** ./js/schema/Schema.ts ***!
-  \*****************************/
-/*! exports provided: Schema */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schema", function() { return Schema; });
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fs */ "fs");
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
-
-class Schema {
-    constructor(config) {
-        this.initMembers(config);
-    }
-    initMembers(config) {
-    }
-    /**
-     * 멤버 변수를 JSON 데이터로 변환합니다.
-     */
-    toJson() {
-        return JSON.stringify(this, null, "    ");
-    }
-    load(filename) {
-        if (!filename) {
-            filename = this.constructor.name;
-        }
-        return new Promise((resolve, reject) => {
-            fs__WEBPACK_IMPORTED_MODULE_0__["readFile"](filename, "utf-8", (err, data) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(data);
-            });
-        });
-    }
-    /**
-     * 파일로 내보냅니다 (비동기 방식)
-     *
-     * @param filename
-     */
-    toFile(filename) {
-        const path = __webpack_require__(/*! path */ "path");
-        if (!filename) {
-            filename = this.constructor.name;
-        }
-        const contents = this.toJson();
-        return new Promise((resolve, reject) => {
-            fs__WEBPACK_IMPORTED_MODULE_0__["writeFile"](filename, contents, { encoding: "utf8" }, (err) => {
-                if (err) {
-                    reject(err.message);
-                }
-                resolve();
-            });
-        });
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/tilesetMarker.ts":
-/*!*****************************!*\
-  !*** ./js/tilesetMarker.ts ***!
-  \*****************************/
-/*! exports provided: TilesetMarker */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetMarker", function() { return TilesetMarker; });
-/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
-
-/**
- * @class TilesetMarker
- */
-class TilesetMarker extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
-    initMembers(...args) {
-        this._config = args[0];
-        this._tileWidth = this._config.TILE_WIDTH;
-        this._tileHeight = this._config.TILE_HEIGHT;
-        this._isReady = false;
-        this.initWithElement();
-        this.active();
-    }
-    initWithElement() {
-        const parent = $("#view");
-        let child = null;
-        if ((child = document.querySelector("#tileset-marker"))) {
-            parent.get(0).removeChild(child);
-            return;
-        }
-        this._element = $("<div></div>", { "id": "tileset-marker" })
-            .css({
-            "min-width": `${this._tileWidth}px`,
-            "min-height": `${this._tileHeight}px`,
-            "width": `${this._tileWidth}px`,
-            "height": `${this._tileHeight}px`,
-            "position": "absolute",
-            "top": "0",
-            "left": "0",
-            "margin": "0",
-            "padding": "0",
-            "border": "2px dotted white",
-            "z-index": "50",
-            "box-sizing": "border-box",
-        });
-        this._isReady = true;
-        parent.append(this._element);
-        this._isDraw = false;
-        this._isClicked = false;
-        this._blockSize = new BlockSize(0, 0, this._tileWidth, this._tileHeight);
-        this._blockSize.setParent(this._element);
-        this.touches = [
-            { x: 0, y: 0 },
-            { x: 0, y: 0 },
-        ];
-        const topY = $("#view").offset().top;
-    }
-    start(...args) {
-        return this;
-    }
-    update(...args) {
-        if (!this._isReady) {
-            return;
-        }
-        const target = args[0].target;
-        const img = $("#view canvas");
-        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
-        const tilesetWidth = img.width();
-        const tilesetHeight = img.height();
-        const topY = 0;
-        const mouse = args[0];
-        const tw = this._tileWidth;
-        const th = this._tileHeight;
-        let nx = Math.floor(mouse.x / tw) * tw;
-        let ny = Math.floor(mouse.y / th) * th;
-        const targetX = nx / tw;
-        const targetY = (ny - topY) / th;
-        if (nx < 0) {
-            nx = 0;
-        }
-        if (nx > tilesetWidth - tw) {
-            nx = tilesetWidth - tw;
-        }
-        if (ny < 0) {
-            ny = 0;
-        }
-        if (ny > tilesetHeight) {
-            ny = tilesetHeight - th + topY;
-        }
-        this._element.css({
-            position: "absolute",
-            left: nx + "px",
-            top: ny - topY + "px",
-        });
-        console.log("타일 ID : " + (targetY * mapCols + targetX));
-        window.app.setTileId((targetY * mapCols + targetX));
-    }
-}
-class BlockSize {
-    constructor(x, y, width, height) {
-        this._x = 0;
-        this._y = 0;
-        this._width = 0;
-        this._height = 0;
-        this._x = x;
-        this._y = y;
-        this._width = width;
-        this._height = height;
-        this._parent = null;
-    }
-    set width(value) {
-        this._width = value;
-    }
-    set height(value) {
-        this._height = value;
-    }
-    get width() {
-        return this._width;
-    }
-    get height() {
-        return this._height;
-    }
-    set x(value) {
-        this._x = value;
-    }
-    set y(value) {
-        this._y = value;
-    }
-    get x() {
-        return this._x;
-    }
-    get y() {
-        return this._y;
-    }
-    setParent(parent) {
-        this._parent = parent;
-    }
-    refresh() {
-        this._parent.css({
-            width: this.width,
-            height: this.height,
-            left: this._x,
-            top: this._y,
-            position: "absolute"
-        });
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/DrawToolbar.ts":
-/*!***********************************!*\
-  !*** ./js/toolbar/DrawToolbar.ts ***!
-  \***********************************/
-/*! exports provided: DrawToolbar */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DrawToolbar", function() { return DrawToolbar; });
-/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
-
-const DrawToolbar = [
-    {
-        name: "",
-        children: "draw-pencil",
-        action: (ev) => {
-            window.app.emit("tilemap:drawingType", 0);
-        },
-    },
-    {
-        name: "",
-        children: "draw-rectangle",
-        action: (ev) => {
-            window.app.emit("tilemap:drawingType", 1);
-        },
-    },
-    {
-        name: "",
-        children: "draw-ellipse",
-        action: (ev) => {
-            window.app.emit("tilemap:drawingType", 2);
-        },
-    },
-    {
-        name: "",
-        children: "draw-flood-fill",
-        action: (ev) => {
-            window.app.emit("tilemap:drawingType", 3);
-        },
-    },
-    {
-        name: "",
-        children: "draw-shadow-pen",
-        action: (ev) => {
-        },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-];
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/EditToolbar.ts":
-/*!***********************************!*\
-  !*** ./js/toolbar/EditToolbar.ts ***!
-  \***********************************/
-/*! exports provided: EditToolbar */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditToolbar", function() { return EditToolbar; });
-/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
-
-const EditToolbar = [
-    {
-        name: "",
-        children: "edit-cut",
-        action: (ev) => {
-        },
-    },
-    {
-        name: "",
-        children: "edit-copy",
-        action: (ev) => {
-        },
-    },
-    {
-        name: "",
-        children: "edit-paste",
-        action: (ev) => {
-        },
-    },
-    {
-        name: "",
-        children: "edit-delete",
-        action: (ev) => {
-        },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-];
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/EmptySegment.ts":
-/*!************************************!*\
-  !*** ./js/toolbar/EmptySegment.ts ***!
-  \************************************/
-/*! exports provided: EmptySegment */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EmptySegment", function() { return EmptySegment; });
-/**
- * 비어있는 메뉴
- */
-const EmptySegment = {
-    name: "toolbar__empty-line--modifier",
-    children: "empty-line",
-    action: (ev) => {
-    },
-};
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/FileToolbar.ts":
-/*!***********************************!*\
-  !*** ./js/toolbar/FileToolbar.ts ***!
-  \***********************************/
-/*! exports provided: FileToolbar */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileToolbar", function() { return FileToolbar; });
-/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
-/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../WindowCreator */ "./js/WindowCreator.ts");
-
-
-const FileToolbar = [
-    {
-        name: "파일 만들기",
-        children: "file-new",
-        action: (ev) => {
-            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
-    },
-    {
-        name: "파일 열기",
-        children: "file-open",
-        action: (ev) => {
-            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
-    },
-    {
-        name: "파일 저장",
-        children: "file-save",
-        action: (ev) => {
-            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
-    },
-    {
-        name: "파일 저장",
-        children: "edit-undo",
-        action: (ev) => {
-            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-];
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/ModeToolbar.ts":
-/*!***********************************!*\
-  !*** ./js/toolbar/ModeToolbar.ts ***!
-  \***********************************/
-/*! exports provided: ModeToolbar */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModeToolbar", function() { return ModeToolbar; });
-/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
-
-const ModeToolbar = [
-    {
-        name: "",
-        children: "mode-map",
-        action: (ev) => {
-        },
-    },
-    {
-        name: "",
-        children: "mode-event",
-        action: (ev) => {
-        },
-    },
-    {
-        name: "",
-        children: "mode-region",
-        action: (ev) => {
-        },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-];
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/OtherToolbar.ts":
-/*!************************************!*\
-  !*** ./js/toolbar/OtherToolbar.ts ***!
-  \************************************/
-/*! exports provided: OtherToolbar */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OtherToolbar", function() { return OtherToolbar; });
-/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./js/toolbar/EmptySegment.ts");
-/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! electron */ "electron");
-/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! path */ "path");
-/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
-
-
-
-const OtherToolbar = [
-    {
-        name: "",
-        children: "take-screenshot",
-        action: (ev) => {
-            $("#take-screenshot").trigger("click");
-        },
-    },
-    {
-        name: "",
-        children: "tools-resource-manager",
-        action: (ev) => { },
-    },
-    {
-        name: "",
-        children: "tools-script-eidtor",
-        action: (ev) => { },
-    },
-    {
-        name: "",
-        children: "tools-sound-test",
-        action: (ev) => { },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-    {
-        name: "",
-        children: "tools-options",
-        action: (ev) => { },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-    {
-        name: "",
-        children: "game-playtest",
-        action: (ev) => { },
-    },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
-    {
-        name: "",
-        children: "game-folder-open",
-        action: (ev) => {
-            const current = path__WEBPACK_IMPORTED_MODULE_2__["join"](process.cwd().replace(/\\/g, "/"));
-            window.alert(current);
-            electron__WEBPACK_IMPORTED_MODULE_1__["shell"].showItemInFolder(current);
-        },
-    },
-];
-
-
-
-/***/ }),
-
-/***/ "./js/toolbar/Toolbar.ts":
-/*!*******************************!*\
-  !*** ./js/toolbar/Toolbar.ts ***!
-  \*******************************/
-/*! exports provided: Toolbar, ToolbarManager */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Toolbar", function() { return Toolbar; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToolbarManager", function() { return ToolbarManager; });
-/* harmony import */ var _FileToolbar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FileToolbar */ "./js/toolbar/FileToolbar.ts");
-/* harmony import */ var _EditToolbar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EditToolbar */ "./js/toolbar/EditToolbar.ts");
-/* harmony import */ var _ModeToolbar__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ModeToolbar */ "./js/toolbar/ModeToolbar.ts");
-/* harmony import */ var _DrawToolbar__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DrawToolbar */ "./js/toolbar/DrawToolbar.ts");
-/* harmony import */ var _OtherToolbar__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./OtherToolbar */ "./js/toolbar/OtherToolbar.ts");
-
-
-
-
-
-// 모든 배열을 하나로 합칩니다.
-const Toolbar = [].concat(_FileToolbar__WEBPACK_IMPORTED_MODULE_0__["FileToolbar"], _EditToolbar__WEBPACK_IMPORTED_MODULE_1__["EditToolbar"], _ModeToolbar__WEBPACK_IMPORTED_MODULE_2__["ModeToolbar"], _DrawToolbar__WEBPACK_IMPORTED_MODULE_3__["DrawToolbar"], _OtherToolbar__WEBPACK_IMPORTED_MODULE_4__["OtherToolbar"]);
-/**
- * @class ToolbarManager
- * @description
- * This class allows you to control the toolbar and hide or show in the current tool.
- */
-class ToolbarManager {
-    constructor() {
-        this.initMembers();
-        this.create();
-    }
-    initMembers() {
-        this._mainToolbarId = ".toolbar";
-        this._isOpened = false;
-        // Setting up as true this variable, it can't move the toolbar.
-        this._isMovable = false;
-        this.lock();
-        this._originPosition = $(this._mainToolbarId).get(0).getBoundingClientRect();
-    }
-    /**
-     * Shows up the toolbar.
-     */
-    show() {
-        this._isOpened = true;
-        $(this._mainToolbarId)
-            .show();
-    }
-    /**
-     * Hides out the toolbar.
-     */
-    hide() {
-        this._isOpened = false;
-        $(this._mainToolbarId)
-            .hide();
-    }
-    lock() {
-        $(this._mainToolbarId).draggable({ disabled: true });
-    }
-    unlock() {
-        const { x, y } = this._originPosition;
-        $(this._mainToolbarId).css({
-            left: x,
-            top: y,
-        });
-        $(this._mainToolbarId).draggable({ disabled: false });
-    }
-    create() {
-        $(`li`, this._mainToolbarId).each((index, elem) => {
-            console.log(elem, Toolbar[index]);
-        });
-        /**
-         * @type {{name: String, children: String, action: Function}[]}
-         */
-        const items = Toolbar.slice(0);
-        items.forEach((e, i, a) => {
-            const target = $(`li[data-action='${e.children}']:last`);
-            if (target.get()[0]) {
-                target.on("click", (ev) => {
-                    if (typeof (e.action) === "function") {
-                        e.action.call(this, ev);
-                    }
-                });
-            }
-        });
-    }
-}
-
-
-
-/***/ }),
-
-/***/ "./js/viewmodels/TilesetWindowViewModel.ts":
-/*!*************************************************!*\
-  !*** ./js/viewmodels/TilesetWindowViewModel.ts ***!
-  \*************************************************/
-/*! exports provided: TilesetWindowViewModel */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowViewModel", function() { return TilesetWindowViewModel; });
-/* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./js/viewmodels/ViewModel.ts");
-
-class TilesetWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"] {
-    constructor(__controller) {
-        super(__controller);
-    }
-    initMembers() {
-        super.initMembers();
-    }
-    onShow(elem) {
-        super.onShow(elem);
-    }
-    onOk(ev) {
-        this._controller.remove();
-        /**
-         * @type JQuery<HTMLInputElement>
-         */
-        const tilesets = this._element.find("input");
-        const data = {
-            tilesets: {
-                name: $(tilesets[0]).val(),
-                src: $(tilesets[1]).val(),
-            },
-            tile: {
-                width: parseInt($(tilesets[2]).val()),
-                height: parseInt($(tilesets[3]).val()),
-            }
-        };
-        $('form[name="uploadTilesetImage"]').on("submit", function (e) {
-            e.preventDefault();
-            $.ajax({
-                type: 'POST',
-                cache: false,
-                contentType: false,
-                processData: false,
-                url: $(this).attr('action'),
-                data: new FormData(this),
-                success: function (msg) {
-                    console.log(msg);
-                },
-                error: function (data) {
-                    console.log("error");
-                    console.log(data);
-                }
-            });
-        });
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/viewmodels/ViewModel.ts":
-/*!************************************!*\
-  !*** ./js/viewmodels/ViewModel.ts ***!
-  \************************************/
-/*! exports provided: ViewModel */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ViewModel", function() { return ViewModel; });
-/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./js/EventEmitter.ts");
-
-class StatusProproties {
-    constructor() {
-        this.currentStatus = "NORMAL";
-        this.history = [this.currentStatus];
-    }
-}
-class ViewModel extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
-    /**
-     *
-     */
-    constructor(__controller) {
-        super();
-        this._isReady = false;
-        this._controller = __controller;
-        this._status = new StatusProproties();
-        /**
-         * onCreate() ->
-         * onLoad() ->
-         * onRender() ->
-         * onShow();
-         */
-        // 라이프 싸이클과 관련된 이벤트 선언
-        this.on("create", (elem, ...args) => this.onCreate(...args))
-            .on("update", (elem) => this.onUpdate(elem))
-            .on("stop", (elem) => this.onStop(elem))
-            .on("dispose", (elem) => this.onDispose(elem))
-            .on("render", (result) => this.onRender(result))
-            .on("show", (elem) => this.onShow(elem));
-        this.initMembers();
-    }
-    initMembers() {
-    }
-    onShow(elem) {
-        const element = this._element;
-        const controller = this._controller;
-        const config = controller.config;
-        if (!element)
-            return;
-        // 화면에 창을 표시합니다.
-        element.show();
-        $(config.parentId).show();
-        controller.valid();
-        // 창 뒤에 표시된 라이트 박스를 감춥니다.
-        $(".darken, .windows-container").css("left", "0");
-    }
-    onHide(elem) {
-        const controller = this._controller;
-        const config = controller.config;
-        this._element.hide();
-        controller.invalid();
-    }
-    onNotify(elem) {
-    }
-    onCreate(...args) {
-        const controller = this._controller;
-        const config = args[0];
-        if (!config.parentId || !config.id) {
-            throw new Error("The parent element is not exist!");
-        }
-        // HTMLDivElement를 생성합니다.
-        this._element = $("<div></div>")
-            .css(config)
-            .attr("id", config.id)
-            .draggable({ snap: ".container" });
-        // 화면에서 요소를 감춥니다.
-        this.onHide();
-        // 창의 크기를 조절가능하게 만듭니다.
-        $(`#${config.id}`).resizable({ containment: config.parentId });
-        // 부모 컨테이너에 로드된 창을 추가합니다.
-        $(config.parentId).append(this._element);
-        this._isReady = true;
-    }
-    /**
-     * HTML 파일로부터 도큐먼트를 렌더링합니다.
-     * @param result
-     */
-    onRender(result) {
-        this._element.html(result);
-    }
-    onUpdate(elem, ...args) {
-    }
-    onStop(elem, ...args) {
-    }
-    onDispose(elem, ...args) {
-        this._element.fadeOut(700, () => {
-            this._element.remove();
-        });
-        $(".darken, .windows-container").css("left", "-9999px");
-    }
-}
-
-
-/***/ }),
-
-/***/ "./js/viewmodels/newWindowViewModel.ts":
-/*!*********************************************!*\
-  !*** ./js/viewmodels/newWindowViewModel.ts ***!
-  \*********************************************/
-/*! exports provided: NewWindowViewModel */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NewWindowViewModel", function() { return NewWindowViewModel; });
-/* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./js/viewmodels/ViewModel.ts");
-
-class NewWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"] {
-    constructor(__controller) {
-        super(__controller);
-    }
-    initMembers() {
-        super.initMembers();
-    }
-    onCreate(...args) {
-        super.onCreate(...args);
-        const config = args[0];
-        this._controller.show();
-        $(".darken, .windows-container").css("left", "0");
-    }
-    onShow(elem) {
-        super.onShow(elem);
-        const parent = this._element.get(0);
-        const child = parent.querySelector(".newWindow__control-box p i");
-        if (child) {
-            child.onclick = () => {
-                this._controller.remove();
-            };
-        }
-    }
-}
-
-
-/***/ }),
 
 /***/ "./node_modules/@pixi/accessibility/lib/accessibility.es.js":
 /*!******************************************************************!*\
@@ -49471,6 +45498,3983 @@ module.exports = function(module) {
 	}
 	return module;
 };
+
+
+/***/ }),
+
+/***/ "./packages/App.ts":
+/*!*************************!*\
+  !*** ./packages/App.ts ***!
+  \*************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return App; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
+/* harmony import */ var _MenuComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MenuComponent */ "./packages/MenuComponent.ts");
+/* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tilesetMarker */ "./packages/tilesetMarker.ts");
+/* harmony import */ var _Tilemap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Tilemap */ "./packages/Tilemap.ts");
+/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./camelCase */ "./packages/camelCase.js");
+/* harmony import */ var _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./TilesetCanvas */ "./packages/TilesetCanvas.ts");
+/* harmony import */ var _TileMarker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./TileMarker */ "./packages/TileMarker.ts");
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./config */ "./packages/config.ts");
+/* harmony import */ var _MenuService__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./MenuService */ "./packages/MenuService.ts");
+/* harmony import */ var _Rectangle__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Rectangle */ "./packages/Rectangle.ts");
+/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./packages/WindowCreator.ts");
+/* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./packages/schema/EditorSchema.ts");
+/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./packages/ThemeManager.ts");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    /**
+     * 멤버 변수를 초기화합니다.
+     */
+    initMembers() {
+        this.cache = {};
+        this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
+        this._mouse = {
+            x: 0,
+            y: 0,
+            screenX: 0,
+            screenY: 0,
+            buttons: {
+                left: false,
+                leftFire: false,
+            },
+            /**
+             * @type {HTMLElement}
+             */
+            target: null,
+            /**
+             * @type {HTMLElement}
+             */
+            menuTarget: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
+            dragTime: 0,
+        };
+        /**
+         * 사각형 툴을 위한 선택 영역
+         * @link http://jsfiddle.net/qGzkG/2/
+         */
+        this._blockRect = {
+            isDrawing: false,
+            rect: new _Rectangle__WEBPACK_IMPORTED_MODULE_9__["default"](0, 0, 1, 1),
+        };
+        this._now = performance.now();
+        this._isMenuOpen = false;
+        this._tileId = 0;
+        this._isReady = false;
+        // 타이틀을 변경합니다.
+        document.title = "Initial Map Editor";
+        this.emit("ready", JSON.stringify(this));
+        // 맵 설정 파일을 생성합니다.
+        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then((data) => {
+            // @ts-ignore
+            const myEditorConfig = JSON.parse(data);
+            const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            //@ts-ignore
+            if (myEditorConfig.Theme == 1) {
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "light");
+                themeManager.changeLightTheme();
+            }
+            else {
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "dark");
+                themeManager.changeDarkTheme();
+            }
+        });
+        this.on("save-config", (extraConfig) => {
+            let myConfig = Object.assign(this._config.Editor, extraConfig);
+            this._config.Editor = myConfig;
+            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then((ret) => {
+                alert("설정 변경이 완료되었습니다.");
+            });
+        });
+        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
+        // });
+    }
+    /**
+     * 컴포넌트를 생성합니다.
+     */
+    createComponents() {
+        this._tilemap = new _Tilemap__WEBPACK_IMPORTED_MODULE_3__["default"](this._config);
+        this._components.push((this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config)));
+        this._components.push(this._tilemap);
+        this._components.push((this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config)));
+        this._components.forEach((component) => {
+            component.start();
+        });
+        this._tilemap.setTileId(0);
+        // 타일맵 이벤트를 재전파합니다.
+        this.on("tilemap", (...args) => {
+            this._tilemap.emit(args[0], ...args.slice(1));
+        });
+    }
+    /**
+     * 컴포넌트를 초기화합니다.
+     */
+    initWithComponents() {
+        return __awaiter(this, void 0, void 0, function* () {
+            /**
+             * @type {Component[]}
+             */
+            this._components = [];
+            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
+            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
+            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
+            yield this._tilesetCanvas
+                .start()
+                .then((ret) => {
+                this.createComponents();
+            })
+                .then((ret) => {
+                $(".darken, .windows-container").css("left", "-9999px");
+            })
+                .catch((err) => {
+                console.warn(err);
+            });
+        });
+    }
+    toCamelCase() {
+        return Object(_camelCase__WEBPACK_IMPORTED_MODULE_4__["toCamelCase"])();
+    }
+    /**
+     * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
+     * @return {Boolean}
+     */
+    isMobileDevice() {
+        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        return ret;
+    }
+    onMouseTouchMove(ev) {
+        this._mouse.x = ev.layerX;
+        this._mouse.y = ev.layerY;
+        this._mouse.screenX = ev.layerX;
+        this._mouse.screenY = ev.layerY;
+    }
+    /**
+     * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
+     */
+    initWithMouseEvent() {
+        const isMobileDevice = this.isMobileDevice();
+        let events;
+        if (isMobileDevice) {
+            events = {
+                touchmove: (ev) => {
+                    let touchEvent = ev;
+                    if (ev.type.indexOf("touch") >= 0) {
+                        touchEvent = ev.touches[0];
+                    }
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
+                    // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                },
+                "touchstart pointerdown": (ev) => {
+                    let touchEvent = ev;
+                    if (ev.type.indexOf("touch") >= 0) {
+                        touchEvent = ev.touches[0];
+                    }
+                    this._mouse.target = ev.target;
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                    this._mouse.buttons.left = true;
+                    this._mouse.buttons.leftFire = false;
+                },
+                "touchend pointerup mouseup": (ev) => {
+                    this._mouse.buttons.left = false;
+                    this._mouse.buttons.leftFire = true;
+                },
+            };
+            $(window).on(events);
+        }
+        else {
+            events = {
+                mousemove: (ev) => {
+                    this._mouse.x = ev.layerX;
+                    this._mouse.y = ev.layerY;
+                    this._mouse.screenX = ev.layerX;
+                    this._mouse.screenY = ev.layerY;
+                    if (this._mouse.isDrawing) {
+                        this._mouse.dragTime++;
+                    }
+                },
+                mousedown: (ev) => {
+                    if (ev.button == 0) {
+                        this._mouse.buttons.left = true;
+                        this._mouse.buttons.leftFire = false;
+                        this._mouse.target = ev.target;
+                        this._mouse.isDrawing = true;
+                        // 캔버스
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "crosshair";
+                        const __canvas = document.querySelector("#contents__main-canvas");
+                        const canvasOffset = __canvas.getBoundingClientRect();
+                        const offsetX = parseInt(canvasOffset.left);
+                        const offsetY = parseInt(canvasOffset.top);
+                        this._mouse.startX = parseInt((ev.clientX - offsetX));
+                        this._mouse.startY = parseInt((ev.clientY - offsetY));
+                    }
+                },
+                mouseup: (ev) => {
+                    if (ev.button == 0) {
+                        this._mouse.buttons.left = false;
+                        this._mouse.buttons.leftFire = true;
+                        this._blockRect.isDrawing = false;
+                        this._mouse.isDrawing = false;
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "default";
+                        this._mouse.dragTime = 0;
+                    }
+                },
+                mouseover: (ev) => {
+                    if (this._menu._isMenuOpen) {
+                        //@ts-ignore
+                        this._mouse.buttons.menuTarget = ev.target;
+                        //@ts-ignore
+                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
+                    }
+                },
+            };
+            for (let k in events) {
+                //@ts-ignore
+                window.addEventListener(k, events[k], false);
+            }
+        }
+    }
+    setTileId(tileId) {
+        if (!this._tilemap)
+            return;
+        this._tilemap.setTileId(tileId);
+    }
+    /**
+     * 레이어를 토글하는 기능을 수행합니다.
+     */
+    initWithMapLayers() {
+        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
+        children.forEach((elem, index) => {
+            elem.onclick = () => {
+                elem.className = elem.className.includes("slash")
+                    ? "far fa-eye"
+                    : "far fa-eye-slash";
+            };
+        });
+        let target = null;
+        // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
+        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
+            const target = $(ev.currentTarget);
+            const parentNode = $(ev.currentTarget).parent();
+            const layerId = parentNode.index();
+            const tilemap = this._tilemap;
+            if (target.hasClass("fa-eye")) {
+                target.removeClass("fa-eye").addClass("fa-eye-slash");
+            }
+            else {
+                target.removeClass("fa-eye-slash").addClass("fa-eye");
+            }
+            tilemap.toggleLayerVisibility(layerId);
+        });
+        // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
+        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
+            const elem = $(ev.currentTarget).css({
+                backgroundColor: "var(--dark-selection-color)",
+            });
+            $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
+                backgroundColor: "rgba(255, 255, 255, 0)",
+            });
+            const layerId = elem.index();
+            const tilemap = this._tilemap;
+            // 타일맵을 지우고 다시 그립니다.
+            tilemap
+                .setCurrentLayerId(layerId)
+                .clear()
+                .draw()
+                .updateAlphaLayers();
+        });
+        $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
+    }
+    start() {
+        this.initMembers();
+        this.initWithMouseEvent();
+        // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
+        this.initWithComponents()
+            .then((ret) => {
+            this.initWithMapLayers();
+            this._isReady = true;
+            this.on("update", (deltaTime) => {
+                this.update(deltaTime);
+            });
+        })
+            .catch((err) => {
+            console.warn(err);
+            this._isReady = false;
+        });
+    }
+    /**
+     * 매 프레임마다 반복 실행되는 메소드입니다.
+     * @param {Number}} deltaTime
+     */
+    update(deltaTime) {
+        if (!this._isReady)
+            return;
+        // 400ms가 지났을 때 마다 무언가를 실행합니다.
+        if (deltaTime - this._now >= 400) {
+            this._now = deltaTime;
+        }
+        this.updateComponents();
+        this._mouse.buttons.leftFire = false;
+    }
+    /**
+     * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
+     */
+    updateComponents() {
+        const target = this._mouse.target;
+        if (!target) {
+            return;
+        }
+        const id = target.id;
+        const mouse = this._mouse;
+        // 메뉴를 업데이트합니다.
+        this._menu.update(target, mouse);
+        // 메뉴가 열리지 않았을 경우
+        if (!this._menu.isMenuOpen()) {
+            switch (id) {
+                case "tileset-canvas":
+                case "view":
+                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
+                    if (this._mouse.buttons.leftFire) {
+                        // 타일셋 마커를 표시합니다.
+                        this._tilesetMarker.update(mouse);
+                    }
+                    break;
+                case "contents__main-canvas":
+                    // * 마우스 왼쪽 버튼을 누르고 있을 때
+                    if (this._mouse.buttons.left) {
+                        // 타일셋을 업데이트합니다.
+                        this._tilemap.update(mouse);
+                    }
+                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
+                    if (this._mouse.buttons.leftFire) {
+                        // 타일 마커의 위치를 변경합니다.
+                        this._tileMarker.update(mouse);
+                    }
+                    break;
+            }
+        }
+    }
+    /**
+     * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
+     * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
+     * 창은 생성 직후, 화면에서 감춰진 상태로 존재하게 됩니다.
+     *
+     * HTML 파일 내부에는 로드가 완료되었음을 감지하는 콜백 함수가 걸려 있습니다.
+     *
+     * 그 콜백 함수가 바로 이 함수이며 이 함수가 실행되면 화면에 창이 보여지게 됩니다.
+     *
+     * 창 생성 요청
+     *              ->  HTML 파일 로드 요청
+     *              ->  로드 시작
+     *              ->  로드 완료
+     *              ->  렌더링 시작
+     *              ->  렌더링 완료 후, 브라우저에 의해 window.app.onLoad 함수가 자동으로 실행됨.
+     *
+     * 창은 특별한(Unique) ID 값에 의해 식별되며 이 값은 문자열입니다.
+     *
+     * @param {HTMLElement} elem
+     * @param {String}} id
+     */
+    onLoad(elem, id) {
+        _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
+    }
+    /**
+     * 유일한 인스턴스를 반환하는 메소드입니다.
+     * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
+     *
+     * @return {App}
+     */
+    static GetInstance() {
+        if (!App.Instance) {
+            App.Instance = new App();
+        }
+        return App.Instance;
+    }
+}
+App.Instance = null;
+
+
+/***/ }),
+
+/***/ "./packages/Component.ts":
+/*!*******************************!*\
+  !*** ./packages/Component.ts ***!
+  \*******************************/
+/*! exports provided: Component, BasicComponent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return Component; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BasicComponent", function() { return BasicComponent; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
+
+class Component extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    constructor(...args) {
+        super();
+        this.initMembers(...args);
+        this.start(...args);
+    }
+    initMembers(...args) {
+        this._isActiveEvent = false;
+    }
+    active() {
+        this._isActiveEvent = true;
+    }
+    deactive() {
+        this._isActiveEvent = false;
+    }
+    isActiveEvent() {
+        return this._isActiveEvent;
+    }
+    start(...args) {
+        return this;
+    }
+    update(...args) {
+    }
+}
+class BasicComponent extends Component {
+    constructor(...args) {
+        super(...args);
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/ElectronService.ts":
+/*!*************************************!*\
+  !*** ./packages/ElectronService.ts ***!
+  \*************************************/
+/*! exports provided: ElectronService */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ElectronService", function() { return ElectronService; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! child_process */ "child_process");
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
+
+const { ipcMain } = __webpack_require__(/*! electron */ "electron");
+
+
+
+/**
+ * @class ElectronService
+ * @description
+ * 일렉트론과 IPC를 하기 위해 만든 클래스입니다.
+ *
+ * 다양한 플랫폼에서 동작할 수 있게 서비스 형태로 제공합니다.
+ *
+ * 조건 컴파일을 통하여 구현될 예정입니다.
+ */
+class ElectronService extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    constructor() {
+        super();
+        this.ipcMain = ipcMain;
+    }
+    openFolder(folderName) {
+        const { shell } = __webpack_require__(/*! electron */ "electron");
+        shell.showItemInFolder(folderName);
+        // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
+        if (process.platform.includes("win")) {
+            // 절대 경로를 가져옵니다.
+            const myPath = path__WEBPACK_IMPORTED_MODULE_3__["resolve"](`tools/bin/open_folder.exe`);
+            if (fs__WEBPACK_IMPORTED_MODULE_1__["existsSync"](myPath)) {
+                child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
+            }
+        }
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/EventEmitter.ts":
+/*!**********************************!*\
+  !*** ./packages/EventEmitter.ts ***!
+  \**********************************/
+/*! exports provided: EventEmitter */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EventEmitter", function() { return EventEmitter; });
+/**
+ * @class EventEmitter
+ * @description
+ * 이 클래스는 이벤트 큐를 위해 존재합니다.
+ * on 과 emit로 이벤트를 설정하거나 실행할 수 있습니다.
+ */
+class EventEmitter {
+    constructor() {
+        this._events = {};
+    }
+    debug(message) {
+        if (window.devmode) {
+            console.log(message);
+        }
+    }
+    on(name, lsn) {
+        if (!this._events[name]) {
+            this._events[name] = [];
+        }
+        this._events[name].push(lsn);
+        return this;
+    }
+    /**
+     * 이벤트를 삭제합니다.
+     *
+     * @param {String} name
+     */
+    off(name) {
+        if (!this._events[name]) {
+            return;
+        }
+        if (name in this._events) {
+            delete this._events[name];
+        }
+    }
+    emit(name, ...args) {
+        if (!this._events[name]) {
+            this._events[name] = [];
+        }
+        // Is it included colon(:)?
+        if (name.indexOf(":") >= 0) {
+            console.log("자식 이벤트 방출이 감지되었습니다.");
+            const items = name.split(":");
+            if (items.length > 0) {
+                const parent = items[0];
+                const child = items[1];
+                // 콜론이 있다면 매개변수를 대체합니다.
+                name = parent;
+                args = [child, ...args];
+                console.log(name, args);
+            }
+        }
+        if (!this._events[name]) {
+            throw new Error(`${name}이 없습니다.`);
+        }
+        this._events[name].forEach(func => {
+            if (typeof (func) === "function") {
+                func(...args);
+            }
+        });
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/MenuComponent.ts":
+/*!***********************************!*\
+  !*** ./packages/MenuComponent.ts ***!
+  \***********************************/
+/*! exports provided: MenuComponent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MenuComponent", function() { return MenuComponent; });
+/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
+
+/**
+ * @class MenuComponent
+ * @description
+ * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
+ */
+class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    start(...args) {
+        this._isMenuOpen = false;
+        // 툴바를 드래그 가능한 상태로 변경합니다.
+        // @ts-ignore
+        $(".toolbar").draggable({ snap: ".menu" });
+        // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
+        // @ts-ignore
+        $(".aside__tabs").resizable({
+            containment: "#aside",
+        });
+        // 툴바의 크기를 가져옵니다.
+        const rect = $(".toolbar").get(0).getBoundingClientRect();
+        this._originalPos = {
+            x: rect.x,
+            y: rect.y,
+        };
+        this._currentTarget = null;
+        return this;
+    }
+    isMenuOpen() {
+        return this._isMenuOpen;
+    }
+    hideMenu() {
+        $("#none").prop("checked", true);
+        this._isMenuOpen = false;
+    }
+    update(target, mouse) {
+        if ($(".toolbar").is(".ui-draggable-dragging")) {
+            const rect = $(".toolbar").get(0).getBoundingClientRect();
+        }
+        // 최상위 노드를 선택합니다.
+        /**
+         * @type {HTMLElement}
+         */
+        let parentNode = target.parentNode;
+        while (parentNode != null &&
+            parentNode.className != "menu__main") {
+            parentNode = parentNode.parentNode;
+        }
+        const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
+        // 최상위 노드가 메인 메뉴라면
+        if (parentNode && parentNode.className === "menu__main") {
+            // 메뉴가 열린 것으로 간주
+            this._isMenuOpen = true;
+        }
+        else {
+            if (this._isMenuOpen && mouse.buttons.leftFire) {
+                this.hideMenu();
+            }
+        }
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/MenuService.ts":
+/*!*********************************!*\
+  !*** ./packages/MenuService.ts ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MenuService; });
+/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
+/* harmony import */ var _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./menu/KoreanMenu */ "./packages/menu/KoreanMenu.ts");
+
+
+const menu = {
+    ko: _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"],
+};
+class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    initMembers(...args) {
+        /**
+         * @type {MenuComponent}
+         */
+        this._menuComponent = args[1];
+        this._isClickedMenu = false;
+    }
+    start(...args) {
+        this.changeMenuLocaleAsPersonalize();
+        this.changeToolbarIconOnMobileDevice();
+        this.addMenuEventHandlers();
+        return this;
+    }
+    changeMenuLocaleAsPersonalize() {
+        const langCode = navigator.language.slice(0, 2);
+        $(".menu__main label").each((index, elem) => {
+            const parent = $(elem);
+            const type = parent.data("action");
+            // @ts-ignore
+            const res = menu[langCode];
+            if (res) {
+                const data = res[type];
+                const name = data.name;
+                const font = res["$font"];
+                parent.text(name);
+                parent.css("font-size", font.size);
+                $(`.menu__${type}-sub li`).each((_index, _elem) => {
+                    const _node = $(_elem);
+                    // 서브 메뉴의 위치를 세밀하게 조정합니다.
+                    const menuNode = parent.parent();
+                    _node
+                        .parent()
+                        .css("left", menuNode.get(0).getBoundingClientRect().x + "px");
+                    const _type = _node.data("action");
+                    const _res = data.children[_type];
+                    if (_res) {
+                        // 메뉴 노드에 메뉴 액션을 등록합니다.
+                        if (_res.action) {
+                            _node.get(0).onclick = _res.action;
+                        }
+                        const _name = _res.name;
+                        _node.get(0).childNodes.forEach((i) => {
+                            // 텍스트 노드만 찾습니다.
+                            if (i.nodeType == 3) {
+                                i.textContent = _name;
+                            }
+                        });
+                        _node.css("font-size", font.size);
+                    }
+                });
+            }
+        });
+    }
+    addMenuEventHandlers() {
+        // 창 최소화
+        document
+            .querySelector(".menu .control-box li.minimum")
+            .addEventListener("click", (ev) => {
+            if (platform === "electron") {
+                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
+                ipcRenderer.send("minimize");
+                ev.stopImmediatePropagation();
+            }
+        });
+        // 창 최대화
+        $(".menu .control-box li.maximum").on("click", (ev) => {
+            if (platform === "electron") {
+                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
+                ipcRenderer.send("maximize");
+                ev.stopImmediatePropagation();
+            }
+        });
+        // 창 닫기
+        $(".menu .control-box li.close").on("click", (ev) => {
+            window.close();
+            ev.stopImmediatePropagation();
+        });
+    }
+    changeToolbarIconOnMobileDevice() {
+        const media = window.matchMedia("(max-width: 640px)");
+        if (media.matches) {
+            $(".toolbar i").each((index, elem) => {
+                $(elem).addClass("fa-3x").css({
+                    width: "98%",
+                    height: "98%",
+                    "font-size": "1.25em",
+                });
+            });
+        }
+        const resizeConfig = {
+            ".contents": {
+                width: "65%",
+            },
+            ".aside__tabs": {
+                width: "30%",
+            },
+            "#contents__main-canvas": {
+                width: "100%",
+            },
+        };
+        $(window).on("resize", () => {
+            if ($(window).width() <= 640) {
+                for (let i in resizeConfig) {
+                    //@ts-ignore
+                    $(i).css(resizeConfig[i]);
+                }
+                $(".toolbar i").each((index, elem) => {
+                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "1.25em",
+                    });
+                });
+            }
+            else {
+                $(".toolbar i").each((index, elem) => {
+                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "0.875em",
+                    });
+                });
+            }
+        });
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/Rectangle.ts":
+/*!*******************************!*\
+  !*** ./packages/Rectangle.ts ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Rectangle; });
+class Rectangle {
+    constructor(x, y, width, height) {
+        this._x = x;
+        this._y = y;
+        this._width = width;
+        this._height = height;
+    }
+    get x() {
+        return this._x;
+    }
+    get y() {
+        return this._x;
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    set x(value) {
+        this._x = value;
+    }
+    set y(value) {
+        this._x = value;
+    }
+    set width(value) {
+        this._width = value;
+    }
+    set height(value) {
+        this._height = value;
+    }
+    contains(mx, my) {
+        const x = this._x;
+        const y = this._y;
+        const width = this._width;
+        const height = this._height;
+        return mx >= x && mx <= (x + width) && my >= y && my <= (y + height);
+    }
+}
+Rectangle.EMPTY = new Rectangle(0, 0, 0, 0);
+
+
+/***/ }),
+
+/***/ "./packages/ThemeManager.ts":
+/*!**********************************!*\
+  !*** ./packages/ThemeManager.ts ***!
+  \**********************************/
+/*! exports provided: ThemeManager */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThemeManager", function() { return ThemeManager; });
+class ThemeManager {
+    set(key, value) {
+        // document.documentElement.style.setProperty(key, value);
+        $(':root').css(key, value);
+    }
+    flush(theme) {
+        window.app.emit("save-config", {
+            Theme: theme
+        });
+    }
+    changeDarkTheme(isOption = false) {
+        this.set("--dark-title-color", "rgb(60, 60, 60)");
+        this.set("--dark-selection-color", "rgb(80, 80, 80)");
+        this.set("--dark-input-background-color", "rgb(90, 90, 90)");
+        this.set("--dark-input-text-color", "rgb(194, 194, 194)");
+        this.set("--dark-text-color", "rgb(159, 159, 159)");
+        this.set("--dark-shadow-color", "rgb(40, 40, 40)");
+        this.set("--dark-border-color", "rgb(90, 90, 90)");
+        if (isOption) {
+            this.flush(0);
+        }
+    }
+    changeLightTheme(isOption = false) {
+        this.set("--dark-title-color", "#DDDDDD");
+        this.set("--dark-selection-color", "#C6C6C6");
+        this.set("--dark-input-background-color", "#DDDDDD");
+        this.set("--dark-input-text-color", "#000000");
+        this.set("--dark-text-color", "#000000");
+        this.set("--dark-shadow-color", "#F3F3F3");
+        this.set("--dark-border-color", "#DDDDDD");
+        if (isOption) {
+            this.flush(1);
+        }
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/TileMarker.ts":
+/*!********************************!*\
+  !*** ./packages/TileMarker.ts ***!
+  \********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TileMarker; });
+/* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./tilesetMarker */ "./packages/tilesetMarker.ts");
+
+class TileMarker extends _tilesetMarker__WEBPACK_IMPORTED_MODULE_0__["TilesetMarker"] {
+    initWithElement() {
+        const parent = $(".contents");
+        let child = null;
+        if ((child = document.querySelector("#tile-marker"))) {
+            parent.get(0).removeChild(child);
+            return;
+        }
+        this._element = $("<div></div>", { "id": "tile-marker" })
+            .css({
+            "min-width": `${this._tileWidth}px`,
+            "min-height": `${this._tileHeight}px`,
+            "width": `${this._tileWidth}px`,
+            "height": `${this._tileHeight}px`,
+            "position": "absolute",
+            "top": "0",
+            "left": "0",
+            "margin": "0",
+            "padding": "0",
+            "border": "2px dotted white",
+            "z-index": "0",
+            "box-sizing": "border-box",
+        });
+        this._isReady = true;
+        parent.append(this._element);
+    }
+    update(...args) {
+        if (!this._isReady) {
+            return;
+        }
+        const target = args[0].target;
+        const img = $("#contents__main-canvas");
+        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
+        const tilesetWidth = img.width();
+        const tilesetHeight = img.height();
+        const topY = 0;
+        const mouse = args[0];
+        const tw = this._tileWidth;
+        const th = this._tileHeight;
+        let nx = Math.floor(mouse.x / tw) * tw;
+        let ny = Math.floor(mouse.y / th) * th;
+        const targetX = nx / tw;
+        const targetY = (ny - topY) / th;
+        if (nx < 0) {
+            nx = 0;
+        }
+        if (nx > tilesetWidth - tw) {
+            nx = tilesetWidth - tw;
+        }
+        if (ny < 0) {
+            ny = 0;
+        }
+        if (ny > tilesetHeight) {
+            ny = tilesetHeight - th + topY;
+        }
+        this._element.css({
+            position: "absolute",
+            left: nx + "px",
+            top: ny - topY + "px",
+        });
+        return this;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/Tilemap.ts":
+/*!*****************************!*\
+  !*** ./packages/Tilemap.ts ***!
+  \*****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Tilemap; });
+/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
+/* harmony import */ var pixi_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/pixi.es.js");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+var PenType;
+(function (PenType) {
+    PenType[PenType["PENCIL"] = 0] = "PENCIL";
+    PenType[PenType["RECTANGLE"] = 1] = "RECTANGLE";
+    PenType[PenType["ELLIPSE"] = 2] = "ELLIPSE";
+    PenType[PenType["FLOOD_FILL"] = 3] = "FLOOD_FILL";
+    PenType[PenType["SHADOW_PEN"] = 4] = "SHADOW_PEN";
+})(PenType || (PenType = {}));
+;
+class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    initMembers(...args) {
+        this._config = args[0];
+        this._tileset = $("#view canvas").get(0);
+        this._tileWidth = this._config.TILE_WIDTH;
+        this._tileHeight = this._config.TILE_HEIGHT;
+        this._mapCols = this._config.MAP_COLS;
+        this._mapRows = this._config.MAP_ROWS;
+        this._tileId = 0;
+        this._mouseX = 0;
+        this._mouseY = 0;
+        this._currentLayer = 0;
+        this._autoTileIndexedList = [];
+        this._autoTileTextureList = {};
+        // 1이면 오토타일, 0이면 일반 타일
+        this._tileType = 0;
+        this._mapWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
+        this._mapHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
+        this._layerCount = this._config.LAYERS;
+        this._data = new Array(this._mapWidth * this._mapHeight * this._config.LAYERS);
+        /**
+         * @type {HTMLCanvasElement}
+         */
+        const tilesetImg = $("#view canvas").get(0);
+        if (!tilesetImg) {
+            throw new Error("Cant't find tileset");
+        }
+        this._mapCols = Math.floor((tilesetImg.width) / this._tileWidth);
+        this._mapRows = Math.floor((tilesetImg.width) / this._tileWidth);
+        // this._tileset.addEventListener("mousemove", (ev:MouseEvent) => {
+        //     console.log(ev);
+        // });
+        this.active();
+        this.initWithSaveEventListener();
+    }
+    isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    initWithSaveEventListener() {
+        this.on("save", () => {
+            const fs = __webpack_require__(/*! fs */ "fs");
+            const path = __webpack_require__(/*! path */ "path");
+            const data = this._data.map(i => (!!i) ? i : 0);
+            const layerData = {
+                data,
+            };
+            const contents = JSON.stringify(layerData);
+            fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8");
+            alert("파일 저장이 완료되었습니다.");
+        });
+    }
+    /**
+     * Initialize with drawing type.
+     */
+    initWithDrawingType() {
+        this._penType = PenType.PENCIL;
+        this.on("drawingType", (penType) => {
+            switch (penType) {
+                case PenType.PENCIL:
+                    console.log("펜 툴");
+                    break;
+                case PenType.RECTANGLE:
+                    console.log("사각형 툴");
+                    break;
+                case PenType.ELLIPSE:
+                    console.log("원형 툴");
+                    break;
+                case PenType.FLOOD_FILL:
+                    console.log("채우기 툴");
+                    break;
+                case PenType.SHADOW_PEN:
+                    console.log("그림자 툴");
+                    break;
+            }
+            this._penType = penType;
+        });
+    }
+    initWithLayers() {
+        const maxZ = this._config.LAYERS;
+        const maxWidth = Math.round(this._config.SCREEN_WIDTH / this._tileWidth);
+        const maxHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
+        for (let z = 0; z < maxZ; z++) {
+            for (let y = 0; y < maxHeight; y++) {
+                for (let x = 0; x < maxWidth; x++) {
+                    this.setData(x, y, z, 0);
+                }
+            }
+        }
+    }
+    setData(x, y, z, tileId) {
+        if (x < 0)
+            x = 0;
+        if (x > this._mapWidth - 1)
+            x = this._mapWidth - 1;
+        y = Math.min(Math.max(0, y), this._mapHeight - 1);
+        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
+        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        this._data[id] = tileId;
+    }
+    getData(x, y, z) {
+        if (x < 0)
+            x = 0;
+        if (x > this._mapWidth - 1)
+            x = this._mapWidth - 1;
+        y = Math.min(Math.max(0, y), this._mapHeight - 1);
+        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
+        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        return this._data[id] || 0;
+    }
+    setTileId(tileId) {
+        this._tileId = tileId;
+    }
+    getTileId() {
+        return this._tileId;
+    }
+    setCurrentLayerId(layerId) {
+        this._currentLayer = layerId;
+        return this;
+    }
+    getCurrentLayerId() {
+        return this._currentLayer;
+    }
+    start(...args) {
+        let option = {
+            width: this._config.SCREEN_WIDTH,
+            height: this._config.SCREEN_HEIGHT,
+            backgroundColor: 0x00000000,
+            resolution: window.devicePixelRatio || 1,
+            view: $("#contents__main-canvas").get(0),
+            autoDensity: true,
+            transparent: false,
+        };
+        option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
+        option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
+        this._app = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Application"](option);
+        // Create layer container.
+        this._layerContainer = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Container"]();
+        this._layerContainer.interactive = true;
+        this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
+        this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
+        this.app.stage.addChild(this._layerContainer);
+        for (let i = 0; i < this._config.LAYERS; i++) {
+            this._layerContainer.addChild(new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Container"]());
+        }
+        // 메인 타일셋
+        this._tilesets = [];
+        this._tilesets.push(pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset));
+        this.initWithDrawingType();
+        $("#take-screenshot").on("click", (ev) => {
+            this.takeScreenshot();
+            ev.stopPropagation();
+        });
+        return this;
+    }
+    get app() {
+        return this._app;
+    }
+    /**
+     * TODO: 클립보드에 저장하는 방식으로 변환할 것.
+     * @link https://developer.mozilla.org/ko/docs/Web/API/Clipboard/write
+     */
+    takeScreenshot() {
+        const app = this._app;
+        if (!app)
+            return;
+        app.renderer.extract.canvas(app.stage).toBlob((b) => __awaiter(this, void 0, void 0, function* () {
+            const buffer = Buffer.from(yield b.arrayBuffer());
+            const fs = __webpack_require__(/*! fs */ "fs");
+            fs.writeFile(Date.now() + ".png", buffer, () => console.log('saved!'));
+        }), 'image/png');
+    }
+    onMouseMove(ev) {
+        this._mouseX = ev.data.global.x;
+        this._mouseY = ev.data.global.y;
+    }
+    /**
+     * Get a tileset image from the tileset collection.
+     */
+    getTileset() {
+        const tilesets = this._tileset;
+        if (!tilesets) {
+            throw new Error("Can't find the tileset from the memory.");
+        }
+        if (Array.isArray(tilesets) && tilesets.length <= 0) {
+            throw new Error("The tileset image can't create correctly.");
+        }
+        return tilesets;
+    }
+    cropTexture(dx, dy, texture) {
+        const crop = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Rectangle"](dx, dy, this._tileWidth, this._tileHeight);
+        const cropTexture = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"](texture.baseTexture, crop);
+        return cropTexture;
+    }
+    collectAutoTileID(mx, my) {
+        const mapX = Math.floor(mx / this._tileWidth);
+        const mapY = Math.floor(my / this._tileHeight);
+        const layerId = this._currentLayer;
+        let mask = 0x00;
+        const bits = [
+            this.getData(mapX + 0, mapY - 1, layerId) <= 0,
+            this.getData(mapX + 1, mapY + 0, layerId) <= 0,
+            this.getData(mapX + 1, mapY - 1, layerId) <= 0,
+            this.getData(mapX + 1, mapY + 1, layerId) <= 0,
+            this.getData(mapX + 0, mapY + 1, layerId) <= 0,
+            this.getData(mapX - 1, mapY + 1, layerId) <= 0,
+            this.getData(mapX - 1, mapY + 0, layerId) <= 0,
+            this.getData(mapX - 1, mapY - 1, layerId) <= 0 // 북서
+        ];
+        bits.forEach((e, i, a) => {
+            if (e === true) {
+                mask += (1 << i);
+            }
+        });
+        return mask;
+    }
+    drawTile(mx, my, tileID) {
+        let mapX = Math.floor(mx / this._tileWidth);
+        let mapY = Math.floor(my / this._tileHeight);
+        console.log(mx, my, mapX, mapY);
+        this.setData(mapX, mapY, this._currentLayer, tileID);
+        this._dirty = true;
+    }
+    /**
+     * 특정 영역에 타일을 사각형으로 그립니다.
+     *
+     * @param {Number} sx
+     * @param {Number} sy
+     * @param {Number} ex
+     * @param {Number} ey
+     * @param {Number} tileID
+     */
+    drawRect(sx, sy, ex, ey) {
+        let mx = Math.floor(sx / this._tileWidth);
+        let my = Math.floor(sy / this._tileHeight);
+        const tileID = this._tileId;
+        const width = mx + ex;
+        const height = my + ey;
+        for (let y = my; y < height; y++) {
+            for (let x = mx; x < width; x++) {
+                this.setData(x, y, this._currentLayer, tileID);
+            }
+        }
+        this._dirty = true;
+    }
+    /**
+     * 원 안에 있는지 확인합니다.
+     * @param centerX
+     * @param centerY
+     * @param x
+     * @param y
+     * @param r
+     */
+    isInCircle(centerX, centerY, x, y, r) {
+        let dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
+        return dist < r;
+    }
+    /**
+     * 원을 그립니다.
+     *
+     * @param sx
+     * @param sy
+     * @param ex
+     * @param ey
+     */
+    drawEllipse(sx, sy, ex, ey) {
+        let mx = Math.floor(sx / this._tileWidth);
+        let my = Math.floor(sy / this._tileHeight);
+        const tileID = this._tileId;
+        const width = mx + ex;
+        const height = my + ey;
+        const centerX = Math.floor(mx + (ex / 2));
+        const centerY = Math.floor(my + (ey / 2));
+        const r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
+        for (let y = my; y < height; y++) {
+            for (let x = mx; x < width; x++) {
+                if (this.isInCircle(centerX, centerY, x, y, r)) {
+                    this.setData(x, y, this._currentLayer, tileID);
+                }
+            }
+        }
+        this._dirty = true;
+    }
+    /**
+     * 오토 타일인 지 확인합니다.
+     *
+     * @param tileId
+     */
+    isAutoTile(tileId) {
+        return this._autoTileIndexedList.indexOf(tileId) >= 0;
+    }
+    /**
+     *
+     * @link https://stackoverflow.com/a/40421933
+     * @param hits
+     * @param x
+     * @param y
+     * @param srcColor
+     * @param tgtColor
+     */
+    floodFillDo(hits, x, y, srcColor, tgtColor) {
+        if (y < 0)
+            return false;
+        if (x < 0)
+            return false;
+        if (y > this._mapHeight - 1)
+            return false;
+        if (x > this._mapWidth - 1)
+            return false;
+        if (hits[y][x])
+            return false;
+        if (this.getData(x, y, this._currentLayer) != srcColor)
+            return false;
+        this.setData(x, y, this._currentLayer, tgtColor);
+        hits[y][x] = true;
+        return true;
+    }
+    /**
+     *
+     * @link https://stackoverflow.com/a/40421933
+     * @param x
+     * @param y
+     * @param startTileId
+     * @param nodes
+     * @param stack
+     */
+    floodFill(x, y, startTileId, nodes, stack) {
+        const hits = [];
+        for (let y = 0; y < this._mapHeight; y++) {
+            hits[y] = [];
+            for (let x = 0; x < this._mapWidth; x++) {
+                hits[y][x] = false;
+            }
+        }
+        const queue = new Array();
+        let srcColor = 0;
+        let targetColor = 1;
+        if (startTileId == -1) {
+            srcColor = this.getData(x, y, this._currentLayer);
+        }
+        targetColor = this._tileId;
+        queue.push({ x, y });
+        while (queue.length !== 0) {
+            const p = queue.shift();
+            if (this.floodFillDo(hits, p.x, p.y, srcColor, targetColor)) {
+                queue.push({ x: p.x, y: p.y - 1 });
+                queue.push({ x: p.x, y: p.y + 1 });
+                queue.push({ x: p.x - 1, y: p.y });
+                queue.push({ x: p.x + 1, y: p.y });
+            }
+        }
+    }
+    /**
+     * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
+     */
+    update(...args) {
+        const penType = this._penType;
+        const tileId = this._tileId;
+        // 오토 타일을 처리합니다.
+        // if(this.isAutoTile(tileId)) {
+        //     this._tileId = this.collectAutoTileID(this._mouseX, this._mouseY);
+        //     this._tileset = this._autoTileTextureList[tileId];
+        //     this._tileType = 1;
+        // } else {
+        //     this._tileType = 0;
+        // }
+        // 펜 타입에 따라 그리기 처리를 합니다.
+        switch (penType) {
+            case PenType.PENCIL:
+                this.drawTile(this._mouseX, this._mouseY, tileId);
+                break;
+            case PenType.RECTANGLE:
+                {
+                    const mouse = args[0];
+                    this.drawRect(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
+                }
+                break;
+            case PenType.ELLIPSE:
+                // https://stackoverflow.com/a/46630005
+                {
+                    const mouse = args[0];
+                    if (mouse.dragTime >= 8) {
+                        this.drawEllipse(mouse.startX, mouse.startY, (mouse.x - mouse.startX) / this._tileWidth, (mouse.y - mouse.startY) / this._tileHeight);
+                    }
+                }
+                break;
+            case PenType.FLOOD_FILL:
+                {
+                    const mouse = args[0];
+                    let mx = Math.floor(this._mouseX / this._tileWidth);
+                    let my = Math.floor(this._mouseY / this._tileHeight);
+                    let nodes = [];
+                    this.floodFill(mx, my, -1, nodes, 0);
+                    this._dirty = true;
+                }
+                break;
+            case PenType.SHADOW_PEN:
+                break;
+        }
+        // 타일맵 배열에 변화가 있을 경우, 새로 그리기 처리를 합니다.
+        if (this._dirty) {
+            this.draw();
+            this._dirty = false;
+        }
+    }
+    /**
+     * 모든 타일 스프라이트를 화면에서 제거합니다.
+     *
+     */
+    clear() {
+        this._layerContainer.children.forEach(i => {
+            i.removeChildren();
+        });
+        return this;
+    }
+    /**
+     * 타일셋 이미지에서 특정 영역만 가져와 잘라냅니다.
+     *
+     * @param tileID
+     */
+    getTileCropTexture(tileID) {
+        let texture = pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset);
+        const mapCols = Math.floor(texture.width / this._tileWidth);
+        const mapRows = Math.floor((texture.height) / this._tileHeight);
+        const dx = (tileID % mapCols) * this._tileWidth;
+        const dy = Math.floor(tileID / mapCols) * this._tileHeight;
+        const cropTexture = this.cropTexture(dx, dy, texture);
+        return cropTexture;
+    }
+    /**
+     * 특정 레이어 컨테이너를 화면에서 감추거나 표시합니다.
+     *
+     * @param layerId
+     */
+    toggleLayerVisibility(layerId) {
+        if (!this._layerContainer)
+            return;
+        const children = this._layerContainer.children;
+        children[layerId].visible = !children[layerId].visible;
+    }
+    /**
+     * 레이어의 투명도를 조절합니다.
+     */
+    updateAlphaLayers() {
+        const currentLayer = this._currentLayer;
+        const children = this._layerContainer.children;
+        const layers = children.filter((e, i, a) => {
+            return i !== currentLayer;
+        });
+        layers.forEach(layer => {
+            layer.alpha = 0.25;
+        });
+        children[currentLayer].alpha = 1.0;
+        return this;
+    }
+    draw() {
+        // 화면에 있는 모든 타일 스프라이트를 없앱니다.
+        this.clear();
+        const mapWidth = this._mapWidth;
+        const mapHeight = this._mapHeight;
+        // 레이어 Z부터 반복하여 모든 타일을 반복하여 그립니다.
+        for (let z = 0; z < this._config.LAYERS; z++) {
+            const container = this._layerContainer.children[z];
+            for (let y = 0; y < mapHeight; y++) {
+                for (let x = 0; x < mapWidth; x++) {
+                    const tileID = this.getData(x, y, z);
+                    if (!tileID)
+                        continue;
+                    const sprite = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Sprite"](this.getTileCropTexture(tileID));
+                    sprite.x = x * this._tileWidth;
+                    sprite.y = y * this._tileHeight;
+                    container.addChild(sprite);
+                }
+            }
+        }
+        return this;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/TilesetCanvas.ts":
+/*!***********************************!*\
+  !*** ./packages/TilesetCanvas.ts ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetCanvas; });
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+class TilesetCanvas {
+    constructor(...args) {
+        this.initMembers(...args);
+    }
+    initMembers(...args) {
+        this._config = args[0];
+        this._isReady = false;
+        this._tilesetImgages = this._config.TILESET_IMGAGES;
+    }
+    start(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.loadTilesets();
+        });
+    }
+    loadTilesets() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._tilesets = [];
+            let count = 0;
+            return new Promise((resolve, reject) => {
+                for (let i = 0; i < this._tilesetImgages.length; i++) {
+                    const elem = $("<img>").attr("src", this._tilesetImgages[i]);
+                    elem.on("load", () => {
+                        this._tilesets.push(elem);
+                        ++count;
+                        if (count >= this._tilesetImgages.length) {
+                            console.log(this._tilesetImgages[i]);
+                            this.createCanvas();
+                            resolve(this._tilesetImgages[i]);
+                        }
+                    });
+                    elem.on("error", reject);
+                }
+            });
+        });
+    }
+    /**
+     * 이 메소드는 타일셋을 지우고 다시 처음부터 그립니다.
+     * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
+     */
+    refreshTilesets(newTileset) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._tilesetImgages.push(newTileset);
+            if (this._canvas) {
+                this._canvas.remove();
+            }
+            yield this.start().then((ret) => {
+                window.app.createComponents();
+            });
+        });
+    }
+    createCanvas() {
+        const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
+        const canvasHeight = this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
+        this._parent = $("#view");
+        this._canvas = $("<canvas />", { id: "tileset-canvas" })
+            .attr("width", canvasWidth)
+            .attr("height", canvasHeight)
+            .css({
+            padding: "0",
+            margin: "0",
+        });
+        this._parent.prepend(this._canvas);
+        this._parent.css({
+            width: "100%",
+            height: "60%",
+        });
+        /**
+         * @type {CanvasRenderingContext2D}
+         */
+        this._context = this._canvas.get(0).getContext("2d");
+        const ctx = this._context;
+        let acc = 0;
+        let maxW = 0;
+        let maxH = 0;
+        for (let i = 0; i < this._tilesetImgages.length; i++) {
+            /**
+             * @type {JQuery}
+             */
+            const img = this._tilesets[i];
+            const width = img.get(0).naturalWidth;
+            const height = img.get(0).naturalHeight;
+            if (height > acc + height) {
+                maxH = acc + height;
+                this._canvas.prop("height", maxH);
+            }
+            ctx.setTransform(1, 0, 0, 1, 0, acc);
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img.get(0), 0, 0, width, height);
+            acc += height;
+        }
+        this._isReady = true;
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/WindowCreator.ts":
+/*!***********************************!*\
+  !*** ./packages/WindowCreator.ts ***!
+  \***********************************/
+/*! exports provided: WindowCreator */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WindowCreator", function() { return WindowCreator; });
+/* harmony import */ var _App__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./App */ "./packages/App.ts");
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
+/* harmony import */ var _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./controllers/BaseController */ "./packages/controllers/BaseController.ts");
+/* harmony import */ var _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./controllers/GamePropertiesWindowController */ "./packages/controllers/GamePropertiesWindowController.ts");
+/* harmony import */ var _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./models/GamePropertiesWindow */ "./packages/models/GamePropertiesWindow.ts");
+/* harmony import */ var _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./controllers/TilesetWindowController */ "./packages/controllers/TilesetWindowController.ts");
+/* harmony import */ var _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./models/TilesetWindow */ "./packages/models/TilesetWindow.ts");
+/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./camelCase */ "./packages/camelCase.js");
+
+
+
+
+
+
+
+
+class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"] {
+    /**
+     * @param {App} app
+     */
+    constructor() {
+        super();
+        this._app = _App__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
+        this.cache = {};
+    }
+    /**
+     * This method is called when clicking the file menu.
+     *
+     * 창을 생성한 후 캐시에 저장을 해둡니다.
+     */
+    onFileNew() {
+        // 윈도우를 생성합니다.
+        this._gamePropertiesWindow = new _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__["default"](new _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__["default"]());
+        this._gamePropertiesWindow.render()
+            .then(ret => {
+            const id = "new-window";
+            this.cache[id] = this._gamePropertiesWindow;
+            this._gamePropertiesWindow.setUniqueId(id);
+        })
+            .catch(err => {
+            console.warn(err);
+        });
+    }
+    /**
+     * Open the tools option window.
+     * This window allows you to add a new tile image on the tileset canvas window of this map editor.
+     */
+    onToolsOptions() {
+        this._tilesetWindow = new _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__["default"](new _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__["TilesetWindowModel"]());
+        this._tilesetWindow.render()
+            .then(ret => {
+            const id = "tileset";
+            this.cache[id] = this._tilesetWindow;
+            this._tilesetWindow.setUniqueId(id);
+        })
+            .catch(err => {
+            console.warn(err);
+        });
+    }
+    onFileSave() {
+        window.app.emit("tilemap:save");
+    }
+    /**
+     * This method removes all cache window for some times.
+     */
+    update() {
+        for (let i in this.cache) {
+            if (this.cache[i] instanceof _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+                this.cache[i].remove();
+            }
+        }
+    }
+    /**
+     * Create a certain window.
+     * @param {MouseEvent}
+     */
+    static GrapWindow(ev) {
+        const target = $(ev.currentTarget);
+        if (!target) {
+            return;
+        }
+        const id = target.data("action");
+        const creator = WindowCreator.GetInstance();
+        const type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
+        const methodName = "on" + type;
+        // @ts-ignore
+        const cb = creator[methodName].bind(creator);
+        if (typeof (cb) === "function") {
+            cb();
+        }
+    }
+    /**
+     * Create a specific window as type.
+     * the type name is the same as data-action property.
+     * @param {String} id
+     */
+    static GrapWindowAsType(id) {
+        const creator = WindowCreator.GetInstance();
+        const type = Object(_camelCase__WEBPACK_IMPORTED_MODULE_7__["getClassName"])(id);
+        const methodName = "on" + type;
+        // @ts-ignore
+        const cb = creator[methodName].bind(creator);
+        if (typeof (cb) === "function") {
+            cb();
+        }
+    }
+    /**
+     * Load a window from the cache data.
+     *
+     * @param {HTMLElement} elem
+     * @param {Number} id
+     */
+    static onLoad(elem, id) {
+        const creator = this.GetInstance();
+        // 이미 생성된 창이 있으면 해당 요소의 onLoad 메소드를 호출하여 창을 다시 호출합니다.
+        if (creator.cache[id]) {
+            const self = creator.cache[id];
+            creator.cache[id].onLoad(elem, self);
+        }
+    }
+    /**
+     * Gets a single instance.
+     *
+     * @return {WindowCreator}
+     */
+    static GetInstance() {
+        if (!WindowCreator.Instance) {
+            WindowCreator.Instance = new WindowCreator();
+        }
+        return WindowCreator.Instance;
+    }
+}
+WindowCreator.Instance = null;
+
+
+
+/***/ }),
+
+/***/ "./packages/app.ts":
+/*!*************************!*\
+  !*** ./packages/app.ts ***!
+  \*************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return App; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
+/* harmony import */ var _MenuComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MenuComponent */ "./packages/MenuComponent.ts");
+/* harmony import */ var _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tilesetMarker */ "./packages/tilesetMarker.ts");
+/* harmony import */ var _Tilemap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Tilemap */ "./packages/Tilemap.ts");
+/* harmony import */ var _camelCase__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./camelCase */ "./packages/camelCase.js");
+/* harmony import */ var _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./TilesetCanvas */ "./packages/TilesetCanvas.ts");
+/* harmony import */ var _TileMarker__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./TileMarker */ "./packages/TileMarker.ts");
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./config */ "./packages/config.ts");
+/* harmony import */ var _MenuService__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./MenuService */ "./packages/MenuService.ts");
+/* harmony import */ var _Rectangle__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Rectangle */ "./packages/Rectangle.ts");
+/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./WindowCreator */ "./packages/WindowCreator.ts");
+/* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./packages/schema/EditorSchema.ts");
+/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./packages/ThemeManager.ts");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    /**
+     * 멤버 변수를 초기화합니다.
+     */
+    initMembers() {
+        this.cache = {};
+        this._config = _config__WEBPACK_IMPORTED_MODULE_7__["config"];
+        this._mouse = {
+            x: 0,
+            y: 0,
+            screenX: 0,
+            screenY: 0,
+            buttons: {
+                left: false,
+                leftFire: false,
+            },
+            /**
+             * @type {HTMLElement}
+             */
+            target: null,
+            /**
+             * @type {HTMLElement}
+             */
+            menuTarget: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
+            dragTime: 0,
+        };
+        /**
+         * 사각형 툴을 위한 선택 영역
+         * @link http://jsfiddle.net/qGzkG/2/
+         */
+        this._blockRect = {
+            isDrawing: false,
+            rect: new _Rectangle__WEBPACK_IMPORTED_MODULE_9__["default"](0, 0, 1, 1),
+        };
+        this._now = performance.now();
+        this._isMenuOpen = false;
+        this._tileId = 0;
+        this._isReady = false;
+        // 타이틀을 변경합니다.
+        document.title = "Initial Map Editor";
+        this.emit("ready", JSON.stringify(this));
+        // 맵 설정 파일을 생성합니다.
+        new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](this._config).load("./editor.json").then((data) => {
+            // @ts-ignore
+            const myEditorConfig = JSON.parse(data);
+            const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
+            //@ts-ignore
+            if (myEditorConfig.Theme == 1) {
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "light");
+                themeManager.changeLightTheme();
+            }
+            else {
+                document
+                    .querySelector("body")
+                    .setAttribute("data-theme", "dark");
+                themeManager.changeDarkTheme();
+            }
+        });
+        this.on("save-config", (extraConfig) => {
+            let myConfig = Object.assign(this._config.Editor, extraConfig);
+            this._config.Editor = myConfig;
+            new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__["EditorSchema"](myConfig).toFile("./editor.json").then((ret) => {
+                alert("설정 변경이 완료되었습니다.");
+            });
+        });
+        // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
+        // });
+    }
+    /**
+     * 컴포넌트를 생성합니다.
+     */
+    createComponents() {
+        this._tilemap = new _Tilemap__WEBPACK_IMPORTED_MODULE_3__["default"](this._config);
+        this._components.push((this._tilesetMarker = new _tilesetMarker__WEBPACK_IMPORTED_MODULE_2__["TilesetMarker"](this._config)));
+        this._components.push(this._tilemap);
+        this._components.push((this._tileMarker = new _TileMarker__WEBPACK_IMPORTED_MODULE_6__["default"](this._config)));
+        this._components.forEach((component) => {
+            component.start();
+        });
+        this._tilemap.setTileId(0);
+        // 타일맵 이벤트를 재전파합니다.
+        this.on("tilemap", (...args) => {
+            this._tilemap.emit(args[0], ...args.slice(1));
+        });
+    }
+    /**
+     * 컴포넌트를 초기화합니다.
+     */
+    initWithComponents() {
+        return __awaiter(this, void 0, void 0, function* () {
+            /**
+             * @type {Component[]}
+             */
+            this._components = [];
+            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
+            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
+            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
+            yield this._tilesetCanvas
+                .start()
+                .then((ret) => {
+                this.createComponents();
+            })
+                .then((ret) => {
+                $(".darken, .windows-container").css("left", "-9999px");
+            })
+                .catch((err) => {
+                console.warn(err);
+            });
+        });
+    }
+    toCamelCase() {
+        return Object(_camelCase__WEBPACK_IMPORTED_MODULE_4__["toCamelCase"])();
+    }
+    /**
+     * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
+     * @return {Boolean}
+     */
+    isMobileDevice() {
+        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        return ret;
+    }
+    onMouseTouchMove(ev) {
+        this._mouse.x = ev.layerX;
+        this._mouse.y = ev.layerY;
+        this._mouse.screenX = ev.layerX;
+        this._mouse.screenY = ev.layerY;
+    }
+    /**
+     * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
+     */
+    initWithMouseEvent() {
+        const isMobileDevice = this.isMobileDevice();
+        let events;
+        if (isMobileDevice) {
+            events = {
+                touchmove: (ev) => {
+                    let touchEvent = ev;
+                    if (ev.type.indexOf("touch") >= 0) {
+                        touchEvent = ev.touches[0];
+                    }
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
+                    // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                },
+                "touchstart pointerdown": (ev) => {
+                    let touchEvent = ev;
+                    if (ev.type.indexOf("touch") >= 0) {
+                        touchEvent = ev.touches[0];
+                    }
+                    this._mouse.target = ev.target;
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    const target = this._mouse.target;
+                    const rect = this._mouse.target.getBoundingClientRect();
+                    this._mouse.x = touchEvent.clientX - rect.x;
+                    this._mouse.y = touchEvent.clientY - rect.y;
+                    this._mouse.screenX = touchEvent.screenX;
+                    this._mouse.screenY = touchEvent.screenY;
+                    this._mouse.buttons.left = true;
+                    this._mouse.buttons.leftFire = false;
+                },
+                "touchend pointerup mouseup": (ev) => {
+                    this._mouse.buttons.left = false;
+                    this._mouse.buttons.leftFire = true;
+                },
+            };
+            $(window).on(events);
+        }
+        else {
+            events = {
+                mousemove: (ev) => {
+                    this._mouse.x = ev.layerX;
+                    this._mouse.y = ev.layerY;
+                    this._mouse.screenX = ev.layerX;
+                    this._mouse.screenY = ev.layerY;
+                    if (this._mouse.isDrawing) {
+                        this._mouse.dragTime++;
+                    }
+                },
+                mousedown: (ev) => {
+                    if (ev.button == 0) {
+                        this._mouse.buttons.left = true;
+                        this._mouse.buttons.leftFire = false;
+                        this._mouse.target = ev.target;
+                        this._mouse.isDrawing = true;
+                        // 캔버스
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "crosshair";
+                        const __canvas = document.querySelector("#contents__main-canvas");
+                        const canvasOffset = __canvas.getBoundingClientRect();
+                        const offsetX = parseInt(canvasOffset.left);
+                        const offsetY = parseInt(canvasOffset.top);
+                        this._mouse.startX = parseInt((ev.clientX - offsetX));
+                        this._mouse.startY = parseInt((ev.clientY - offsetY));
+                    }
+                },
+                mouseup: (ev) => {
+                    if (ev.button == 0) {
+                        this._mouse.buttons.left = false;
+                        this._mouse.buttons.leftFire = true;
+                        this._blockRect.isDrawing = false;
+                        this._mouse.isDrawing = false;
+                        const canvas = document.querySelector("#contents__main-canvas");
+                        canvas.style.cursor = "default";
+                        this._mouse.dragTime = 0;
+                    }
+                },
+                mouseover: (ev) => {
+                    if (this._menu._isMenuOpen) {
+                        //@ts-ignore
+                        this._mouse.buttons.menuTarget = ev.target;
+                        //@ts-ignore
+                        this._menu.emit("menu_open", this._mouse.buttons.menuTarget);
+                    }
+                },
+            };
+            for (let k in events) {
+                //@ts-ignore
+                window.addEventListener(k, events[k], false);
+            }
+        }
+    }
+    setTileId(tileId) {
+        if (!this._tilemap)
+            return;
+        this._tilemap.setTileId(tileId);
+    }
+    /**
+     * 레이어를 토글하는 기능을 수행합니다.
+     */
+    initWithMapLayers() {
+        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
+        children.forEach((elem, index) => {
+            elem.onclick = () => {
+                elem.className = elem.className.includes("slash")
+                    ? "far fa-eye"
+                    : "far fa-eye-slash";
+            };
+        });
+        let target = null;
+        // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
+        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
+            const target = $(ev.currentTarget);
+            const parentNode = $(ev.currentTarget).parent();
+            const layerId = parentNode.index();
+            const tilemap = this._tilemap;
+            if (target.hasClass("fa-eye")) {
+                target.removeClass("fa-eye").addClass("fa-eye-slash");
+            }
+            else {
+                target.removeClass("fa-eye-slash").addClass("fa-eye");
+            }
+            tilemap.toggleLayerVisibility(layerId);
+        });
+        // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
+        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
+            const elem = $(ev.currentTarget).css({
+                backgroundColor: "var(--dark-selection-color)",
+            });
+            $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
+                backgroundColor: "rgba(255, 255, 255, 0)",
+            });
+            const layerId = elem.index();
+            const tilemap = this._tilemap;
+            // 타일맵을 지우고 다시 그립니다.
+            tilemap
+                .setCurrentLayerId(layerId)
+                .clear()
+                .draw()
+                .updateAlphaLayers();
+        });
+        $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
+    }
+    start() {
+        this.initMembers();
+        this.initWithMouseEvent();
+        // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
+        this.initWithComponents()
+            .then((ret) => {
+            this.initWithMapLayers();
+            this._isReady = true;
+            this.on("update", (deltaTime) => {
+                this.update(deltaTime);
+            });
+        })
+            .catch((err) => {
+            console.warn(err);
+            this._isReady = false;
+        });
+    }
+    /**
+     * 매 프레임마다 반복 실행되는 메소드입니다.
+     * @param {Number}} deltaTime
+     */
+    update(deltaTime) {
+        if (!this._isReady)
+            return;
+        // 400ms가 지났을 때 마다 무언가를 실행합니다.
+        if (deltaTime - this._now >= 400) {
+            this._now = deltaTime;
+        }
+        this.updateComponents();
+        this._mouse.buttons.leftFire = false;
+    }
+    /**
+     * 메뉴가 열려있을 때 선별적으로 컴포넌트를 업데이트 합니다.
+     */
+    updateComponents() {
+        const target = this._mouse.target;
+        if (!target) {
+            return;
+        }
+        const id = target.id;
+        const mouse = this._mouse;
+        // 메뉴를 업데이트합니다.
+        this._menu.update(target, mouse);
+        // 메뉴가 열리지 않았을 경우
+        if (!this._menu.isMenuOpen()) {
+            switch (id) {
+                case "tileset-canvas":
+                case "view":
+                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
+                    if (this._mouse.buttons.leftFire) {
+                        // 타일셋 마커를 표시합니다.
+                        this._tilesetMarker.update(mouse);
+                    }
+                    break;
+                case "contents__main-canvas":
+                    // * 마우스 왼쪽 버튼을 누르고 있을 때
+                    if (this._mouse.buttons.left) {
+                        // 타일셋을 업데이트합니다.
+                        this._tilemap.update(mouse);
+                    }
+                    // * 마우스 왼쪽 버튼을 눌렀다 뗐을 때
+                    if (this._mouse.buttons.leftFire) {
+                        // 타일 마커의 위치를 변경합니다.
+                        this._tileMarker.update(mouse);
+                    }
+                    break;
+            }
+        }
+    }
+    /**
+     * 이 메소드는 HTML 파일로부터 전역 호출을 받기 위해 존재합니다.
+     * 창을 생성하게 되면 HTML 파일을 AJAX를 이용하여 비동기 적으로 불러오게 됩니다.
+     * 창은 생성 직후, 화면에서 감춰진 상태로 존재하게 됩니다.
+     *
+     * HTML 파일 내부에는 로드가 완료되었음을 감지하는 콜백 함수가 걸려 있습니다.
+     *
+     * 그 콜백 함수가 바로 이 함수이며 이 함수가 실행되면 화면에 창이 보여지게 됩니다.
+     *
+     * 창 생성 요청
+     *              ->  HTML 파일 로드 요청
+     *              ->  로드 시작
+     *              ->  로드 완료
+     *              ->  렌더링 시작
+     *              ->  렌더링 완료 후, 브라우저에 의해 window.app.onLoad 함수가 자동으로 실행됨.
+     *
+     * 창은 특별한(Unique) ID 값에 의해 식별되며 이 값은 문자열입니다.
+     *
+     * @param {HTMLElement} elem
+     * @param {String}} id
+     */
+    onLoad(elem, id) {
+        _WindowCreator__WEBPACK_IMPORTED_MODULE_10__["WindowCreator"].onLoad(elem, id);
+    }
+    /**
+     * 유일한 인스턴스를 반환하는 메소드입니다.
+     * 일렉트론 환경에서는 별도의 전역 변수를 사용하므로 사용되지 않습니다.
+     *
+     * @return {App}
+     */
+    static GetInstance() {
+        if (!App.Instance) {
+            App.Instance = new App();
+        }
+        return App.Instance;
+    }
+}
+App.Instance = null;
+
+
+/***/ }),
+
+/***/ "./packages/camelCase.js":
+/*!*******************************!*\
+  !*** ./packages/camelCase.js ***!
+  \*******************************/
+/*! exports provided: toCamelCase, getClassName */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toCamelCase", function() { return toCamelCase; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getClassName", function() { return getClassName; });
+function toCamelCase(name) {
+    const snake = name || "";
+
+    let nodes = snake.split(/[\s\-]/);
+    let nodesTail = nodes.slice(1);
+    
+    const camel = nodes[0].concat(nodesTail.map( i => {
+        return i[0].toUpperCase() + i.slice(1);
+    }));
+    return camel;
+}
+
+function getClassName(name) {
+    const str = toCamelCase(name);
+    return str.slice(0, 1).toUpperCase() + str.slice(1);
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/config.ts":
+/*!****************************!*\
+  !*** ./packages/config.ts ***!
+  \****************************/
+/*! exports provided: config */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "config", function() { return config; });
+/* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema/EditorSchema */ "./packages/schema/EditorSchema.ts");
+
+const config = {
+    SCREEN_WIDTH: 800,
+    SCREEN_HEIGHT: 600,
+    TILE_WIDTH: 16,
+    TILE_HEIGHT: 16,
+    MAP_COLS: 32,
+    MAP_ROWS: 8,
+    LAYERS: 4,
+    TRANSPARENT_COLOR_GROUP: ["#007575"],
+    TILESET_IMGAGES: [
+        "./images/tiles/tileset16-8x13.png",
+        "./images/tiles/2k_town05.png",
+        "./images/tiles/2k_town05-01.png",
+    ],
+    Editor: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined),
+    Maps: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined),
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/controllers/BaseController.ts":
+/*!************************************************!*\
+  !*** ./packages/controllers/BaseController.ts ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseController; });
+/* harmony import */ var _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/ViewModel */ "./packages/viewmodels/ViewModel.ts");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+/**
+ * @author Eo Jinseok
+ * @class Renderer
+ */
+class BaseController {
+    /**
+     * @param {GamePropertiesWindow} config
+     */
+    constructor(config) {
+        this.createViewModel();
+        this.initMembers(config.data);
+        this.initWithCanvas();
+    }
+    // protected _element: JQuery<HTMLElement>;
+    get config() {
+        return this._config;
+    }
+    createViewModel() {
+        this._view = new _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"](this);
+    }
+    initMembers(config) {
+        /**
+         * 실제 HTML 파일이 있는 위치
+         */
+        this._config = config;
+        this._isValid = false;
+        this._uniqueId = null;
+    }
+    setUniqueId(id) {
+        this._uniqueId = id;
+    }
+    initWithCanvas() {
+        const config = this._config;
+        this._view.emit("create", null, config);
+    }
+    hide() {
+        this._view.onHide();
+    }
+    invalid() {
+        this._isValid = false;
+    }
+    valid() {
+        this._isValid = true;
+    }
+    show() {
+        this._view.emit("show");
+    }
+    remove() {
+        this._view.emit("dispose");
+    }
+    isMobile() {
+        const r = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini/i;
+        return !!navigator.userAgent.match(r);
+    }
+    /**
+     * AJAX를 이용하여 새로 고침 없이 창의 실제 데이터(HTML 파일)을 로드합니다.
+     */
+    load() {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            const path = this._config.path;
+            // 데이터 파일의 경로를 지정합니다.
+            const url = `${location.href.slice(0, location.href.lastIndexOf("/"))}/${path}`;
+            xhr.open("GET", url);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    resolve(xhr.responseText);
+                }
+            };
+            xhr.onerror = reject;
+            xhr.send();
+        });
+    }
+    /**
+     * 비동기적으로 HTML 파일을 시스템으로 불러와 렌더링을 진행하는 메서드입니다.
+     * HTML 파일은 뷰(View)에 해당하며 View 데이터는 뷰 모델(View Model)을 통해서만 접근이 가능합니다.
+     */
+    render() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.load().then((result) => {
+                // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
+                // 창의 렌더링을 진행합니다 (다소의 시간 소요)
+                this._view.emit("render", result);
+            }).catch(err => {
+                console.warn(err);
+            });
+        });
+    }
+    /**
+     * 로드가 완료되면 호출되는 리스너를 지정합니다.
+     *
+     * @param elem
+     * @param self
+     */
+    onLoad(elem, self) {
+        this.addEventHandlers(elem, self);
+    }
+    addEventHandlers(elem, self) {
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/controllers/GamePropertiesWindowController.ts":
+/*!****************************************************************!*\
+  !*** ./packages/controllers/GamePropertiesWindowController.ts ***!
+  \****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePropertiesWindowController; });
+/* harmony import */ var _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/newWindowViewModel */ "./packages/viewmodels/newWindowViewModel.ts");
+/* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BaseController */ "./packages/controllers/BaseController.ts");
+
+
+/**
+ * @author Eo Jinseok
+ * @class Renderer
+ */
+class GamePropertiesWindowController extends _BaseController__WEBPACK_IMPORTED_MODULE_1__["default"] {
+    /**
+     * @param {GamePropertiesWindow} config
+     */
+    constructor(config) {
+        super(config);
+    }
+    /**
+     * 컨트롤러에 있는 뷰 접근 코드를 뷰 모델로 전부 옮깁니다.
+     */
+    createViewModel() {
+        this._view = new _viewmodels_newWindowViewModel__WEBPACK_IMPORTED_MODULE_0__["NewWindowViewModel"](this);
+    }
+    onLoad(elem, self) {
+        super.onLoad(elem, self);
+        const container = $("#newContainer #newWindow");
+        const okButton = container.find("div.panel");
+        okButton.eq(0).on("click", (ev) => {
+            this.onOkButton(ev);
+        });
+        this.show();
+    }
+    onClick(ev) {
+        // 창을 화면에 보이게 합니다.
+        this.show();
+        // 펼쳐진 메뉴를 다시 접습니다.
+        $("#none").prop("checked", true);
+    }
+    onOkButton(ev) {
+        const container = $("#newContainer #newWindow");
+        const inp = container.find("input");
+        const data = {
+            gameName: $(inp[0]).val(),
+            gameFolder: $(inp[1]).val(),
+            author: $(inp[2]).val(),
+        };
+        alert(JSON.stringify(data, null, "\t"));
+        this.remove();
+    }
+    addEventHandlers(elem, self) {
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/controllers/TilesetWindowController.ts":
+/*!*********************************************************!*\
+  !*** ./packages/controllers/TilesetWindowController.ts ***!
+  \*********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetWindowController; });
+/* harmony import */ var _BaseController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseController */ "./packages/controllers/BaseController.ts");
+/* harmony import */ var _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../viewmodels/TilesetWindowViewModel */ "./packages/viewmodels/TilesetWindowViewModel.ts");
+/* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../ThemeManager */ "./packages/ThemeManager.ts");
+
+
+
+var Theme;
+(function (Theme) {
+    Theme[Theme["DARK"] = 0] = "DARK";
+    Theme[Theme["LIGHT"] = 1] = "LIGHT";
+})(Theme || (Theme = {}));
+/**
+ * @author Eo Jinseok
+ * @class Renderer
+ */
+class TilesetWindowController extends _BaseController__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    /**
+     * @param {GamePropertiesWindow} config
+     */
+    constructor(config) {
+        super(config);
+    }
+    createViewModel() {
+        this._view = new _viewmodels_TilesetWindowViewModel__WEBPACK_IMPORTED_MODULE_1__["TilesetWindowViewModel"](this);
+    }
+    onLoad(elem, self) {
+        super.onLoad(elem, self);
+        const parent = elem.parentNode;
+        parent.querySelector(".tilesetWindow__control-box p i").onclick =
+            () => {
+                self.remove();
+            };
+        $(elem.parentNode)
+            .find(".tilesetWindow__panel #ok")
+            .on("click", (ev) => {
+            this.onOk(ev);
+        });
+        $(elem.parentNode)
+            .find(".tilesetWindow__panel #cancel")
+            .on("click", (ev) => {
+            this.onCancel(ev);
+        });
+        /**
+         * @type JQuery<HTMLInputElement>
+         */
+        const inputElement = $("input#image-load-dialog");
+        inputElement.on("change", (ev) => {
+            /**
+             * @type {File[]}
+             */
+            const files = Array.from(ev.target.files);
+            console.log(files[0].name, files[0].path);
+        });
+        this.show();
+    }
+    onOk(ev) {
+        const themeIndex = $("#theme-select-box").prop("selectedIndex");
+        const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_2__["ThemeManager"]();
+        if (themeIndex == Theme.DARK) {
+            $("body").data("theme", "dark");
+            themeManager.changeDarkTheme(true);
+        }
+        else {
+            $("body").data("theme", "light");
+            themeManager.changeLightTheme(true);
+        }
+        this._view.onOk(ev);
+    }
+    onCancel(ev) {
+        ev.preventDefault();
+        this.remove();
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/index.ts":
+/*!***************************!*\
+  !*** ./packages/index.ts ***!
+  \***************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _app__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./app */ "./packages/app.ts");
+/* harmony import */ var _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./toolbar/Toolbar */ "./packages/toolbar/Toolbar.ts");
+/* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ElectronService */ "./packages/ElectronService.ts");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+// 소스 맵 지원을 위한 코드
+__webpack_require__(/*! source-map-support */ "./node_modules/source-map-support/source-map-support.js").install();
+//==========================================================
+// Main
+//==========================================================
+class Main {
+    static start() {
+        $(() => __awaiter(this, void 0, void 0, function* () {
+            window.app = _app__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
+            window.electronService = new _ElectronService__WEBPACK_IMPORTED_MODULE_2__["ElectronService"]();
+            window.ToolbarManager = new _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__["ToolbarManager"]();
+            window.app.start();
+            this.update(1.0);
+        }));
+    }
+    static update(deltaTime) {
+        window.app.emit("update", deltaTime);
+        window.requestAnimationFrame(Main.update);
+    }
+}
+Main.start();
+
+
+/***/ }),
+
+/***/ "./packages/menu/DrawMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/DrawMenu.ts ***!
+  \***********************************/
+/*! exports provided: DrawMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DrawMenu", function() { return DrawMenu; });
+const DrawMenu = {
+    name: "그리기",
+    children: {
+        "draw-pencil": {
+            name: "펜",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "draw-rectangle": {
+            name: "정사각형",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "draw-ellipse": {
+            name: "직사각형",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "draw-flood-fill": {
+            name: "채우기",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "draw-shadow pen": {
+            name: "그림자",
+            children: {},
+            action: (ev) => {
+            },
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/EditMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/EditMenu.ts ***!
+  \***********************************/
+/*! exports provided: EditMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditMenu", function() { return EditMenu; });
+const EditMenu = {
+    name: "편집",
+    children: {
+        "edit-undo": {
+            name: "취소",
+            children: {},
+        },
+        "edit-cut": {
+            name: "자르기",
+            children: {},
+        },
+        "edit-copy": {
+            name: "복사하기",
+            children: {},
+        },
+        "edit-paste": {
+            name: "붙여넣기",
+            children: {},
+        },
+        "edit-delete": {
+            name: "삭제하기",
+            children: {},
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/FileMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/FileMenu.ts ***!
+  \***********************************/
+/*! exports provided: FileMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileMenu", function() { return FileMenu; });
+/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./packages/WindowCreator.ts");
+
+const FileMenu = {
+    name: "파일",
+    children: {
+        "file-new": {
+            name: "새로 만들기",
+            children: {},
+            shortcut: ["ctrl", "n"],
+            action: function (ev) {
+                _WindowCreator__WEBPACK_IMPORTED_MODULE_0__["WindowCreator"].GrapWindow(ev);
+            }
+        },
+        "file-open": {
+            name: "파일 열기",
+            shortcut: ["ctrl", "o"],
+            children: {},
+        },
+        "file-close": {
+            name: "파일 닫기",
+            children: {},
+        },
+        "file-save": {
+            name: "파일 저장",
+            children: {},
+        },
+        "file-preferences": {
+            name: "환경 설정",
+            children: {},
+        },
+        "file-export": {
+            name: "내보내기",
+            children: {},
+        },
+        "file-exit": {
+            name: "프로그램 종료",
+            children: {},
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/GameMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/GameMenu.ts ***!
+  \***********************************/
+/*! exports provided: GameMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GameMenu", function() { return GameMenu; });
+/* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ElectronService */ "./packages/ElectronService.ts");
+
+const GameMenu = {
+    name: "게임",
+    children: {
+        "game-playtest": {
+            name: "플레이 테스트",
+            children: {},
+            action: (ev) => {
+                alert("플레이 테스트 기능을 지원하지 않습니다.");
+            },
+        },
+        "game-fullscreen": {
+            name: "전체 화면",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "game-show-console": {
+            name: "콘솔 표시",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "game-folder-open": {
+            name: "게임 폴더 열기",
+            children: {},
+            action: (ev) => {
+                // @ts-ignore
+                if (platform === "electron") {
+                    const service = new _ElectronService__WEBPACK_IMPORTED_MODULE_0__["ElectronService"]();
+                    service.openFolder(location.href);
+                }
+            },
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/HelpMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/HelpMenu.ts ***!
+  \***********************************/
+/*! exports provided: HelpMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "HelpMenu", function() { return HelpMenu; });
+const HelpMenu = {
+    name: "도움말",
+    children: {
+        "help-contents": {
+            name: "도움말",
+            children: {},
+            action: (ev) => {
+                alert("도움말이 아직 없습니다.");
+            },
+        },
+        "help-about": {
+            name: "버전 정보",
+            children: {},
+            action: (ev) => {
+            },
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/KoreanMenu.ts":
+/*!*************************************!*\
+  !*** ./packages/menu/KoreanMenu.ts ***!
+  \*************************************/
+/*! exports provided: KoreanMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "KoreanMenu", function() { return KoreanMenu; });
+/* harmony import */ var _FileMenu__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FileMenu */ "./packages/menu/FileMenu.ts");
+/* harmony import */ var _EditMenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EditMenu */ "./packages/menu/EditMenu.ts");
+/* harmony import */ var _ModeMenu__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ModeMenu */ "./packages/menu/ModeMenu.ts");
+/* harmony import */ var _DrawMenu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DrawMenu */ "./packages/menu/DrawMenu.ts");
+/* harmony import */ var _ScaleMenu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./ScaleMenu */ "./packages/menu/ScaleMenu.ts");
+/* harmony import */ var _ToolMenu__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./ToolMenu */ "./packages/menu/ToolMenu.ts");
+/* harmony import */ var _GameMenu__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./GameMenu */ "./packages/menu/GameMenu.ts");
+/* harmony import */ var _HelpMenu__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./HelpMenu */ "./packages/menu/HelpMenu.ts");
+
+
+
+
+
+
+
+
+const KoreanMenu = {
+    file: _FileMenu__WEBPACK_IMPORTED_MODULE_0__["FileMenu"],
+    edit: _EditMenu__WEBPACK_IMPORTED_MODULE_1__["EditMenu"],
+    mode: _ModeMenu__WEBPACK_IMPORTED_MODULE_2__["ModeMenu"],
+    draw: _DrawMenu__WEBPACK_IMPORTED_MODULE_3__["DrawMenu"],
+    scale: _ScaleMenu__WEBPACK_IMPORTED_MODULE_4__["ScaleMenu"],
+    tools: _ToolMenu__WEBPACK_IMPORTED_MODULE_5__["ToolMenu"],
+    game: _GameMenu__WEBPACK_IMPORTED_MODULE_6__["GameMenu"],
+    help: _HelpMenu__WEBPACK_IMPORTED_MODULE_7__["HelpMenu"],
+    "$font": {
+        size: "8pt",
+    }
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/ModeMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/ModeMenu.ts ***!
+  \***********************************/
+/*! exports provided: ModeMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModeMenu", function() { return ModeMenu; });
+const ModeMenu = {
+    name: "모드",
+    children: {
+        "mode-map": {
+            name: "맵",
+            children: {},
+        },
+        "mode-event": {
+            name: "이벤트",
+            children: {},
+        },
+        "mode-region": {
+            name: "지역",
+            children: {},
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/ScaleMenu.ts":
+/*!************************************!*\
+  !*** ./packages/menu/ScaleMenu.ts ***!
+  \************************************/
+/*! exports provided: ScaleMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ScaleMenu", function() { return ScaleMenu; });
+const ScaleMenu = {
+    name: "배율",
+    children: {
+        "scale-1x": {
+            name: "실제 비율",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "scale-2x": {
+            name: "2배 축소",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "scale-4x": {
+            name: "4배 축소",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "scale-8x": {
+            name: "8배 축소",
+            children: {},
+            action: (ev) => {
+            },
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/menu/ToolMenu.ts":
+/*!***********************************!*\
+  !*** ./packages/menu/ToolMenu.ts ***!
+  \***********************************/
+/*! exports provided: ToolMenu */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToolMenu", function() { return ToolMenu; });
+/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./packages/WindowCreator.ts");
+
+const ToolMenu = {
+    name: "도구",
+    children: {
+        "tools-database": {
+            name: "데이터베이스",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "tools-resource-manager": {
+            name: "소재 관리자",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "tools-script-eidtor": {
+            name: "스크립트 에디터",
+            children: {},
+            action: (ev) => {
+            },
+        },
+        "tools-sound-test": {
+            name: "사운드 테스트",
+            children: {},
+        },
+        "tools-options": {
+            name: "옵션",
+            children: {},
+            action: function (ev) {
+                _WindowCreator__WEBPACK_IMPORTED_MODULE_0__["WindowCreator"].GrapWindow(ev);
+            }
+        },
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/models/GamePropertiesWindow.ts":
+/*!*************************************************!*\
+  !*** ./packages/models/GamePropertiesWindow.ts ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GamePropertiesWindowModel; });
+/* harmony import */ var _Model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Model */ "./packages/models/Model.ts");
+
+class GamePropertiesWindowModel extends _Model__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    getData() {
+        return {
+            width: "240px",
+            height: "100%",
+            parentId: ".windows-container",
+            id: "newContainer",
+            zIndex: "10",
+            path: "view/windows/newWindow.html",
+            position: "absolute",
+            display: "relative",
+        };
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/models/Model.ts":
+/*!**********************************!*\
+  !*** ./packages/models/Model.ts ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Model; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./packages/EventEmitter.ts");
+
+class Model extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    constructor() {
+        super();
+        // 데이터를 가져옵니다.
+        this._data = this.getData();
+        // 뷰를 가져옵니다.
+        this.VIEW = $(`#${this._data.id}`);
+        this.emit("create", this._data);
+    }
+    /**
+     * @return {{
+     *  width: String,
+     *  height: String,
+     *  parentId: String,
+     *  id: String,
+     *  zIndex: String,
+     *  path: String,
+     * }}
+     */
+    getData() {
+        return {};
+    }
+    get data() {
+        return this._data;
+    }
+    set data(value) {
+        this._data = value;
+        this.emit("change", this._data);
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/models/TilesetWindow.ts":
+/*!******************************************!*\
+  !*** ./packages/models/TilesetWindow.ts ***!
+  \******************************************/
+/*! exports provided: TilesetWindowModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowModel", function() { return TilesetWindowModel; });
+/* harmony import */ var _Model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Model */ "./packages/models/Model.ts");
+
+class TilesetWindowModel extends _Model__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    getData() {
+        return {
+            width: "540px",
+            height: "100%",
+            parentId: ".windows-container",
+            id: "tileset-container",
+            zIndex: "10",
+            path: "view/windows/tilesetWindow.html",
+            opacity: "1.0",
+        };
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/schema/EditorSchema.ts":
+/*!*****************************************!*\
+  !*** ./packages/schema/EditorSchema.ts ***!
+  \*****************************************/
+/*! exports provided: EditorSchema */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditorSchema", function() { return EditorSchema; });
+/* harmony import */ var _Schema__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Schema */ "./packages/schema/Schema.ts");
+
+var Theme;
+(function (Theme) {
+    Theme[Theme["DARK"] = 0] = "DARK";
+    Theme[Theme["LIGHT"] = 1] = "LIGHT";
+})(Theme || (Theme = {}));
+;
+class EditorSchema extends _Schema__WEBPACK_IMPORTED_MODULE_0__["Schema"] {
+    initMembers(config) {
+        this.ProjectPath = "E:\\VS2015\\Projects\\Initial2D";
+        this.TileWidth = 16;
+        this.TileHeight = 16;
+        this.CurrentLayer = 1;
+        this.StartMapId = 1;
+        this.CurrentMapId = 1;
+        this.LayerCount = 4;
+        this.Theme = Theme.DARK;
+        Object.assign(this, config);
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/schema/Schema.ts":
+/*!***********************************!*\
+  !*** ./packages/schema/Schema.ts ***!
+  \***********************************/
+/*! exports provided: Schema */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schema", function() { return Schema; });
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
+
+class Schema {
+    constructor(config) {
+        this.initMembers(config);
+    }
+    initMembers(config) {
+    }
+    /**
+     * 멤버 변수를 JSON 데이터로 변환합니다.
+     */
+    toJson() {
+        return JSON.stringify(this, null, "    ");
+    }
+    load(filename) {
+        if (!filename) {
+            filename = this.constructor.name;
+        }
+        return new Promise((resolve, reject) => {
+            fs__WEBPACK_IMPORTED_MODULE_0__["readFile"](filename, "utf-8", (err, data) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(data);
+            });
+        });
+    }
+    /**
+     * 파일로 내보냅니다 (비동기 방식)
+     *
+     * @param filename
+     */
+    toFile(filename) {
+        const path = __webpack_require__(/*! path */ "path");
+        if (!filename) {
+            filename = this.constructor.name;
+        }
+        const contents = this.toJson();
+        return new Promise((resolve, reject) => {
+            fs__WEBPACK_IMPORTED_MODULE_0__["writeFile"](filename, contents, { encoding: "utf8" }, (err) => {
+                if (err) {
+                    reject(err.message);
+                }
+                resolve();
+            });
+        });
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/tilesetMarker.ts":
+/*!***********************************!*\
+  !*** ./packages/tilesetMarker.ts ***!
+  \***********************************/
+/*! exports provided: TilesetMarker */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetMarker", function() { return TilesetMarker; });
+/* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
+
+/**
+ * @class TilesetMarker
+ */
+class TilesetMarker extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+    initMembers(...args) {
+        this._config = args[0];
+        this._tileWidth = this._config.TILE_WIDTH;
+        this._tileHeight = this._config.TILE_HEIGHT;
+        this._isReady = false;
+        this.initWithElement();
+        this.active();
+    }
+    initWithElement() {
+        const parent = $("#view");
+        let child = null;
+        if ((child = document.querySelector("#tileset-marker"))) {
+            parent.get(0).removeChild(child);
+            return;
+        }
+        this._element = $("<div></div>", { "id": "tileset-marker" })
+            .css({
+            "min-width": `${this._tileWidth}px`,
+            "min-height": `${this._tileHeight}px`,
+            "width": `${this._tileWidth}px`,
+            "height": `${this._tileHeight}px`,
+            "position": "absolute",
+            "top": "0",
+            "left": "0",
+            "margin": "0",
+            "padding": "0",
+            "border": "2px dotted white",
+            "z-index": "50",
+            "box-sizing": "border-box",
+        });
+        this._isReady = true;
+        parent.append(this._element);
+        this._isDraw = false;
+        this._isClicked = false;
+        this._blockSize = new BlockSize(0, 0, this._tileWidth, this._tileHeight);
+        this._blockSize.setParent(this._element);
+        this.touches = [
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+        ];
+        const topY = $("#view").offset().top;
+    }
+    start(...args) {
+        return this;
+    }
+    update(...args) {
+        if (!this._isReady) {
+            return;
+        }
+        const target = args[0].target;
+        const img = $("#view canvas");
+        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
+        const tilesetWidth = img.width();
+        const tilesetHeight = img.height();
+        const topY = 0;
+        const mouse = args[0];
+        const tw = this._tileWidth;
+        const th = this._tileHeight;
+        let nx = Math.floor(mouse.x / tw) * tw;
+        let ny = Math.floor(mouse.y / th) * th;
+        const targetX = nx / tw;
+        const targetY = (ny - topY) / th;
+        if (nx < 0) {
+            nx = 0;
+        }
+        if (nx > tilesetWidth - tw) {
+            nx = tilesetWidth - tw;
+        }
+        if (ny < 0) {
+            ny = 0;
+        }
+        if (ny > tilesetHeight) {
+            ny = tilesetHeight - th + topY;
+        }
+        this._element.css({
+            position: "absolute",
+            left: nx + "px",
+            top: ny - topY + "px",
+        });
+        console.log("타일 ID : " + (targetY * mapCols + targetX));
+        window.app.setTileId((targetY * mapCols + targetX));
+    }
+}
+class BlockSize {
+    constructor(x, y, width, height) {
+        this._x = 0;
+        this._y = 0;
+        this._width = 0;
+        this._height = 0;
+        this._x = x;
+        this._y = y;
+        this._width = width;
+        this._height = height;
+        this._parent = null;
+    }
+    set width(value) {
+        this._width = value;
+    }
+    set height(value) {
+        this._height = value;
+    }
+    get width() {
+        return this._width;
+    }
+    get height() {
+        return this._height;
+    }
+    set x(value) {
+        this._x = value;
+    }
+    set y(value) {
+        this._y = value;
+    }
+    get x() {
+        return this._x;
+    }
+    get y() {
+        return this._y;
+    }
+    setParent(parent) {
+        this._parent = parent;
+    }
+    refresh() {
+        this._parent.css({
+            width: this.width,
+            height: this.height,
+            left: this._x,
+            top: this._y,
+            position: "absolute"
+        });
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/DrawToolbar.ts":
+/*!*****************************************!*\
+  !*** ./packages/toolbar/DrawToolbar.ts ***!
+  \*****************************************/
+/*! exports provided: DrawToolbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DrawToolbar", function() { return DrawToolbar; });
+/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./packages/toolbar/EmptySegment.ts");
+
+const DrawToolbar = [
+    {
+        name: "",
+        children: "draw-pencil",
+        action: (ev) => {
+            window.app.emit("tilemap:drawingType", 0);
+        },
+    },
+    {
+        name: "",
+        children: "draw-rectangle",
+        action: (ev) => {
+            window.app.emit("tilemap:drawingType", 1);
+        },
+    },
+    {
+        name: "",
+        children: "draw-ellipse",
+        action: (ev) => {
+            window.app.emit("tilemap:drawingType", 2);
+        },
+    },
+    {
+        name: "",
+        children: "draw-flood-fill",
+        action: (ev) => {
+            window.app.emit("tilemap:drawingType", 3);
+        },
+    },
+    {
+        name: "",
+        children: "draw-shadow-pen",
+        action: (ev) => {
+        },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+];
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/EditToolbar.ts":
+/*!*****************************************!*\
+  !*** ./packages/toolbar/EditToolbar.ts ***!
+  \*****************************************/
+/*! exports provided: EditToolbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditToolbar", function() { return EditToolbar; });
+/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./packages/toolbar/EmptySegment.ts");
+
+const EditToolbar = [
+    {
+        name: "",
+        children: "edit-cut",
+        action: (ev) => {
+        },
+    },
+    {
+        name: "",
+        children: "edit-copy",
+        action: (ev) => {
+        },
+    },
+    {
+        name: "",
+        children: "edit-paste",
+        action: (ev) => {
+        },
+    },
+    {
+        name: "",
+        children: "edit-delete",
+        action: (ev) => {
+        },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+];
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/EmptySegment.ts":
+/*!******************************************!*\
+  !*** ./packages/toolbar/EmptySegment.ts ***!
+  \******************************************/
+/*! exports provided: EmptySegment */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EmptySegment", function() { return EmptySegment; });
+/**
+ * 비어있는 메뉴
+ */
+const EmptySegment = {
+    name: "toolbar__empty-line--modifier",
+    children: "empty-line",
+    action: (ev) => {
+    },
+};
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/FileToolbar.ts":
+/*!*****************************************!*\
+  !*** ./packages/toolbar/FileToolbar.ts ***!
+  \*****************************************/
+/*! exports provided: FileToolbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileToolbar", function() { return FileToolbar; });
+/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./packages/toolbar/EmptySegment.ts");
+/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../WindowCreator */ "./packages/WindowCreator.ts");
+
+
+const FileToolbar = [
+    {
+        name: "파일 만들기",
+        children: "file-new",
+        action: (ev) => {
+            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
+        },
+    },
+    {
+        name: "파일 열기",
+        children: "file-open",
+        action: (ev) => {
+            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
+        },
+    },
+    {
+        name: "파일 저장",
+        children: "file-save",
+        action: (ev) => {
+            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
+        },
+    },
+    {
+        name: "파일 저장",
+        children: "edit-undo",
+        action: (ev) => {
+            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
+        },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+];
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/ModeToolbar.ts":
+/*!*****************************************!*\
+  !*** ./packages/toolbar/ModeToolbar.ts ***!
+  \*****************************************/
+/*! exports provided: ModeToolbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ModeToolbar", function() { return ModeToolbar; });
+/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./packages/toolbar/EmptySegment.ts");
+
+const ModeToolbar = [
+    {
+        name: "",
+        children: "mode-map",
+        action: (ev) => {
+        },
+    },
+    {
+        name: "",
+        children: "mode-event",
+        action: (ev) => {
+        },
+    },
+    {
+        name: "",
+        children: "mode-region",
+        action: (ev) => {
+        },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+];
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/OtherToolbar.ts":
+/*!******************************************!*\
+  !*** ./packages/toolbar/OtherToolbar.ts ***!
+  \******************************************/
+/*! exports provided: OtherToolbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OtherToolbar", function() { return OtherToolbar; });
+/* harmony import */ var _EmptySegment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EmptySegment */ "./packages/toolbar/EmptySegment.ts");
+/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! electron */ "electron");
+/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+const OtherToolbar = [
+    {
+        name: "",
+        children: "take-screenshot",
+        action: (ev) => {
+            $("#take-screenshot").trigger("click");
+        },
+    },
+    {
+        name: "",
+        children: "tools-resource-manager",
+        action: (ev) => { },
+    },
+    {
+        name: "",
+        children: "tools-script-eidtor",
+        action: (ev) => { },
+    },
+    {
+        name: "",
+        children: "tools-sound-test",
+        action: (ev) => { },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+    {
+        name: "",
+        children: "tools-options",
+        action: (ev) => { },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+    {
+        name: "",
+        children: "game-playtest",
+        action: (ev) => { },
+    },
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+    {
+        name: "",
+        children: "game-folder-open",
+        action: (ev) => {
+            const current = path__WEBPACK_IMPORTED_MODULE_2__["join"](process.cwd().replace(/\\/g, "/"));
+            window.alert(current);
+            electron__WEBPACK_IMPORTED_MODULE_1__["shell"].showItemInFolder(current);
+        },
+    },
+];
+
+
+
+/***/ }),
+
+/***/ "./packages/toolbar/Toolbar.ts":
+/*!*************************************!*\
+  !*** ./packages/toolbar/Toolbar.ts ***!
+  \*************************************/
+/*! exports provided: Toolbar, ToolbarManager */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Toolbar", function() { return Toolbar; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToolbarManager", function() { return ToolbarManager; });
+/* harmony import */ var _FileToolbar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FileToolbar */ "./packages/toolbar/FileToolbar.ts");
+/* harmony import */ var _EditToolbar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EditToolbar */ "./packages/toolbar/EditToolbar.ts");
+/* harmony import */ var _ModeToolbar__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ModeToolbar */ "./packages/toolbar/ModeToolbar.ts");
+/* harmony import */ var _DrawToolbar__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./DrawToolbar */ "./packages/toolbar/DrawToolbar.ts");
+/* harmony import */ var _OtherToolbar__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./OtherToolbar */ "./packages/toolbar/OtherToolbar.ts");
+
+
+
+
+
+// 모든 배열을 하나로 합칩니다.
+const Toolbar = [].concat(_FileToolbar__WEBPACK_IMPORTED_MODULE_0__["FileToolbar"], _EditToolbar__WEBPACK_IMPORTED_MODULE_1__["EditToolbar"], _ModeToolbar__WEBPACK_IMPORTED_MODULE_2__["ModeToolbar"], _DrawToolbar__WEBPACK_IMPORTED_MODULE_3__["DrawToolbar"], _OtherToolbar__WEBPACK_IMPORTED_MODULE_4__["OtherToolbar"]);
+/**
+ * @class ToolbarManager
+ * @description
+ * This class allows you to control the toolbar and hide or show in the current tool.
+ */
+class ToolbarManager {
+    constructor() {
+        this.initMembers();
+        this.create();
+    }
+    initMembers() {
+        this._mainToolbarId = ".toolbar";
+        this._isOpened = false;
+        // Setting up as true this variable, it can't move the toolbar.
+        this._isMovable = false;
+        this.lock();
+        this._originPosition = $(this._mainToolbarId).get(0).getBoundingClientRect();
+    }
+    /**
+     * Shows up the toolbar.
+     */
+    show() {
+        this._isOpened = true;
+        $(this._mainToolbarId)
+            .show();
+    }
+    /**
+     * Hides out the toolbar.
+     */
+    hide() {
+        this._isOpened = false;
+        $(this._mainToolbarId)
+            .hide();
+    }
+    lock() {
+        $(this._mainToolbarId).draggable({ disabled: true });
+    }
+    unlock() {
+        const { x, y } = this._originPosition;
+        $(this._mainToolbarId).css({
+            left: x,
+            top: y,
+        });
+        $(this._mainToolbarId).draggable({ disabled: false });
+    }
+    create() {
+        $(`li`, this._mainToolbarId).each((index, elem) => {
+            console.log(elem, Toolbar[index]);
+        });
+        /**
+         * @type {{name: String, children: String, action: Function}[]}
+         */
+        const items = Toolbar.slice(0);
+        items.forEach((e, i, a) => {
+            const target = $(`li[data-action='${e.children}']:last`);
+            if (target.get()[0]) {
+                target.on("click", (ev) => {
+                    if (typeof (e.action) === "function") {
+                        e.action.call(this, ev);
+                    }
+                });
+            }
+        });
+    }
+}
+
+
+
+/***/ }),
+
+/***/ "./packages/viewmodels/TilesetWindowViewModel.ts":
+/*!*******************************************************!*\
+  !*** ./packages/viewmodels/TilesetWindowViewModel.ts ***!
+  \*******************************************************/
+/*! exports provided: TilesetWindowViewModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TilesetWindowViewModel", function() { return TilesetWindowViewModel; });
+/* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./packages/viewmodels/ViewModel.ts");
+
+class TilesetWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"] {
+    constructor(__controller) {
+        super(__controller);
+    }
+    initMembers() {
+        super.initMembers();
+    }
+    onShow(elem) {
+        super.onShow(elem);
+    }
+    onOk(ev) {
+        this._controller.remove();
+        /**
+         * @type JQuery<HTMLInputElement>
+         */
+        const tilesets = this._element.find("input");
+        const data = {
+            tilesets: {
+                name: $(tilesets[0]).val(),
+                src: $(tilesets[1]).val(),
+            },
+            tile: {
+                width: parseInt($(tilesets[2]).val()),
+                height: parseInt($(tilesets[3]).val()),
+            }
+        };
+        $('form[name="uploadTilesetImage"]').on("submit", function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                cache: false,
+                contentType: false,
+                processData: false,
+                url: $(this).attr('action'),
+                data: new FormData(this),
+                success: function (msg) {
+                    console.log(msg);
+                },
+                error: function (data) {
+                    console.log("error");
+                    console.log(data);
+                }
+            });
+        });
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/viewmodels/ViewModel.ts":
+/*!******************************************!*\
+  !*** ./packages/viewmodels/ViewModel.ts ***!
+  \******************************************/
+/*! exports provided: ViewModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ViewModel", function() { return ViewModel; });
+/* harmony import */ var _EventEmitter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../EventEmitter */ "./packages/EventEmitter.ts");
+
+class StatusProproties {
+    constructor() {
+        this.currentStatus = "NORMAL";
+        this.history = [this.currentStatus];
+    }
+}
+class ViewModel extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
+    /**
+     *
+     */
+    constructor(__controller) {
+        super();
+        this._isReady = false;
+        this._controller = __controller;
+        this._status = new StatusProproties();
+        /**
+         * onCreate() ->
+         * onLoad() ->
+         * onRender() ->
+         * onShow();
+         */
+        // 라이프 싸이클과 관련된 이벤트 선언
+        this.on("create", (elem, ...args) => this.onCreate(...args))
+            .on("update", (elem) => this.onUpdate(elem))
+            .on("stop", (elem) => this.onStop(elem))
+            .on("dispose", (elem) => this.onDispose(elem))
+            .on("render", (result) => this.onRender(result))
+            .on("show", (elem) => this.onShow(elem));
+        this.initMembers();
+    }
+    initMembers() {
+    }
+    onShow(elem) {
+        const element = this._element;
+        const controller = this._controller;
+        const config = controller.config;
+        if (!element)
+            return;
+        // 화면에 창을 표시합니다.
+        element.show();
+        $(config.parentId).show();
+        controller.valid();
+        // 창 뒤에 표시된 라이트 박스를 감춥니다.
+        $(".darken, .windows-container").css("left", "0");
+    }
+    onHide(elem) {
+        const controller = this._controller;
+        const config = controller.config;
+        this._element.hide();
+        controller.invalid();
+    }
+    onNotify(elem) {
+    }
+    onCreate(...args) {
+        const controller = this._controller;
+        const config = args[0];
+        if (!config.parentId || !config.id) {
+            throw new Error("The parent element is not exist!");
+        }
+        // HTMLDivElement를 생성합니다.
+        this._element = $("<div></div>")
+            .css(config)
+            .attr("id", config.id)
+            .draggable({ snap: ".container" });
+        // 화면에서 요소를 감춥니다.
+        this.onHide();
+        // 창의 크기를 조절가능하게 만듭니다.
+        $(`#${config.id}`).resizable({ containment: config.parentId });
+        // 부모 컨테이너에 로드된 창을 추가합니다.
+        $(config.parentId).append(this._element);
+        this._isReady = true;
+    }
+    /**
+     * HTML 파일로부터 도큐먼트를 렌더링합니다.
+     * @param result
+     */
+    onRender(result) {
+        this._element.html(result);
+    }
+    onUpdate(elem, ...args) {
+    }
+    onStop(elem, ...args) {
+    }
+    onDispose(elem, ...args) {
+        this._element.fadeOut(700, () => {
+            this._element.remove();
+        });
+        $(".darken, .windows-container").css("left", "-9999px");
+    }
+}
+
+
+/***/ }),
+
+/***/ "./packages/viewmodels/newWindowViewModel.ts":
+/*!***************************************************!*\
+  !*** ./packages/viewmodels/newWindowViewModel.ts ***!
+  \***************************************************/
+/*! exports provided: NewWindowViewModel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NewWindowViewModel", function() { return NewWindowViewModel; });
+/* harmony import */ var _ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ViewModel */ "./packages/viewmodels/ViewModel.ts");
+
+class NewWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewModel"] {
+    constructor(__controller) {
+        super(__controller);
+    }
+    initMembers() {
+        super.initMembers();
+    }
+    onCreate(...args) {
+        super.onCreate(...args);
+        const config = args[0];
+        this._controller.show();
+        $(".darken, .windows-container").css("left", "0");
+    }
+    onShow(elem) {
+        super.onShow(elem);
+        const parent = this._element.get(0);
+        const child = parent.querySelector(".newWindow__control-box p i");
+        if (child) {
+            child.onclick = () => {
+                this._controller.remove();
+            };
+        }
+    }
+}
 
 
 /***/ }),
