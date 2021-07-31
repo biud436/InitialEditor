@@ -7,36 +7,40 @@ const FileMenu = {
             name: "새로 만들기",
             children: {},
             shortcut: ["ctrl", "n"],
-            action: function(ev: any) {
+            action: function (ev: any) {
                 WindowCreator.GrapWindow(ev);
-            }                    
+            },
         },
         "file-open": {
             name: "파일 열기",
             shortcut: ["ctrl", "o"],
-            children: {}, 
+            children: {},
         },
         "file-close": {
             name: "파일 닫기",
-            children: {}, 
+            children: {},
         },
         "file-save": {
             name: "파일 저장",
-            children: {}, 
+            children: {},
         },
         "file-preferences": {
             name: "환경 설정",
-            children: {}, 
+            children: {},
         },
         "file-export": {
             name: "내보내기",
-            children: {}, 
+            children: {},
         },
         "file-exit": {
             name: "프로그램 종료",
-            children: {}, 
+            children: {},
+            action: function (ev: any) {
+                const { ipcRenderer } = require("electron");
+                ipcRenderer.send("exit");
+            },
         },
     },
 };
 
-export {FileMenu};
+export { FileMenu };

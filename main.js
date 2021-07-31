@@ -27,6 +27,10 @@ function createWindow() {
         win.webContents.send("change-theme");
     });
 
+    ipcMain.on("exit", () => {
+        win.close();
+    });
+
     let restoreSize = [];
 
     ipcMain.on("maximize", () => {

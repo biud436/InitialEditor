@@ -48249,7 +48249,7 @@ const FileMenu = {
             shortcut: ["ctrl", "n"],
             action: function (ev) {
                 _WindowCreator__WEBPACK_IMPORTED_MODULE_0__["WindowCreator"].GrapWindow(ev);
-            }
+            },
         },
         "file-open": {
             name: "파일 열기",
@@ -48275,6 +48275,10 @@ const FileMenu = {
         "file-exit": {
             name: "프로그램 종료",
             children: {},
+            action: function (ev) {
+                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
+                ipcRenderer.send("exit");
+            },
         },
     },
 };
