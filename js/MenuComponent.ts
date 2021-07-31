@@ -1,17 +1,17 @@
-import {Component} from "./Component";
+import { Component } from "./Component";
 
 interface Mouse {
-    x: number,
-    y: number, 
-    screenX : number,
-    screenY : number,
+    x: number;
+    y: number;
+    screenX: number;
+    screenY: number;
     buttons: {
-        left: boolean,
-        leftFire: boolean,
-    },       
-    target: HTMLElement,
-    menuTarget: HTMLElement,
-};
+        left: boolean;
+        leftFire: boolean;
+    };
+    target: HTMLElement;
+    menuTarget: HTMLElement;
+}
 
 /**
  * @class MenuComponent
@@ -19,31 +19,32 @@ interface Mouse {
  * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
  */
 class MenuComponent extends Component {
-
     public _isMenuOpen: boolean;
-    private _originalPos: {x:number, y:number};
+    private _originalPos: { x: number; y: number };
     private _currentTarget: JQuery<HTMLElement>;
 
-    start(...args:any[]) {
+    start(...args: any[]) {
         this._isMenuOpen = false;
 
         // 툴바를 드래그 가능한 상태로 변경합니다.
+        // @ts-ignore
         $(".toolbar").draggable({ snap: ".menu" });
 
         // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
+        // @ts-ignore
         $(".aside__tabs").resizable({
-            containment: "#aside"
+            containment: "#aside",
         });
 
         // 툴바의 크기를 가져옵니다.
         const rect = $(".toolbar").get(0).getBoundingClientRect();
         this._originalPos = {
             x: rect.x,
-            y: rect.y
+            y: rect.y,
         };
 
         this._currentTarget = null;
-        
+
         return this;
     }
 
@@ -53,11 +54,11 @@ class MenuComponent extends Component {
 
     hideMenu() {
         $("#none").prop("checked", true);
-        this._isMenuOpen = false;      
+        this._isMenuOpen = false;
     }
 
     update(target: HTMLElement, mouse: Mouse) {
-        if($(".toolbar").is('.ui-draggable-dragging')) {
+        if ($(".toolbar").is(".ui-draggable-dragging")) {
             const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
 
@@ -67,23 +68,25 @@ class MenuComponent extends Component {
          */
         let parentNode = target.parentNode;
 
-        while(parentNode != null && (<Element>parentNode).className != "menu__main") {
+        while (
+            parentNode != null &&
+            (<Element>parentNode).className != "menu__main"
+        ) {
             parentNode = parentNode.parentNode;
         }
 
         const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
 
         // 최상위 노드가 메인 메뉴라면
-        if(parentNode && (<Element>parentNode).className === "menu__main") {
+        if (parentNode && (<Element>parentNode).className === "menu__main") {
             // 메뉴가 열린 것으로 간주
             this._isMenuOpen = true;
         } else {
-            if(this._isMenuOpen && mouse.buttons.leftFire) {
+            if (this._isMenuOpen && mouse.buttons.leftFire) {
                 this.hideMenu();
-            }                                              
-        }        
-        
+            }
+        }
     }
 }
 
-export {MenuComponent};
+export { MenuComponent };

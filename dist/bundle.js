@@ -332,7 +332,8 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
                         // 캔버스
                         const canvas = document.querySelector("#contents__main-canvas");
                         canvas.style.cursor = "crosshair";
-                        const canvasOffset = $("#contents__main-canvas").offset();
+                        const __canvas = document.querySelector("#contents__main-canvas");
+                        const canvasOffset = __canvas.getBoundingClientRect();
                         const offsetX = parseInt(canvasOffset.left);
                         const offsetY = parseInt(canvasOffset.top);
                         this._mouse.startX = parseInt((ev.clientX - offsetX));
@@ -374,19 +375,15 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
-        const children = $("ul.aside__tabs__maptree-child-tree li i").children();
-        let target = null;
-        // 레이어 항목에서 눈 아이콘을 추가합니다.
-        children.each((index, elem) => {
-            // @ts-ignore
-            const e = e.get(0);
-            // @ts-ignore
-            elem.click(() => {
-                e.className = e.className.includes("slash")
+        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
+        children.forEach((elem, index) => {
+            elem.onclick = () => {
+                elem.className = elem.className.includes("slash")
                     ? "far fa-eye"
                     : "far fa-eye-slash";
-            });
+            };
         });
+        let target = null;
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
         $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
             const target = $(ev.currentTarget);
@@ -721,7 +718,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MenuComponent", function() { return MenuComponent; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./js/Component.ts");
 
-;
 /**
  * @class MenuComponent
  * @description
@@ -731,16 +727,18 @@ class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"]
     start(...args) {
         this._isMenuOpen = false;
         // 툴바를 드래그 가능한 상태로 변경합니다.
+        // @ts-ignore
         $(".toolbar").draggable({ snap: ".menu" });
         // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
+        // @ts-ignore
         $(".aside__tabs").resizable({
-            containment: "#aside"
+            containment: "#aside",
         });
         // 툴바의 크기를 가져옵니다.
         const rect = $(".toolbar").get(0).getBoundingClientRect();
         this._originalPos = {
             x: rect.x,
-            y: rect.y
+            y: rect.y,
         };
         this._currentTarget = null;
         return this;
@@ -753,7 +751,7 @@ class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"]
         this._isMenuOpen = false;
     }
     update(target, mouse) {
-        if ($(".toolbar").is('.ui-draggable-dragging')) {
+        if ($(".toolbar").is(".ui-draggable-dragging")) {
             const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
         // 최상위 노드를 선택합니다.
@@ -761,7 +759,8 @@ class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"]
          * @type {HTMLElement}
          */
         let parentNode = target.parentNode;
-        while (parentNode != null && parentNode.className != "menu__main") {
+        while (parentNode != null &&
+            parentNode.className != "menu__main") {
             parentNode = parentNode.parentNode;
         }
         const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
@@ -797,7 +796,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const menu = {
-    "ko": _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"],
+    ko: _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"],
 };
 class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     initMembers(...args) {
@@ -826,12 +825,13 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
                 const font = res["$font"];
                 parent.text(name);
                 parent.css("font-size", font.size);
-                $(`.menu__${type}-sub li`)
-                    .each((_index, _elem) => {
+                $(`.menu__${type}-sub li`).each((_index, _elem) => {
                     const _node = $(_elem);
                     // 서브 메뉴의 위치를 세밀하게 조정합니다.
                     const menuNode = parent.parent();
-                    _node.parent().css("left", menuNode.get(0).getBoundingClientRect().x + "px");
+                    _node
+                        .parent()
+                        .css("left", menuNode.get(0).getBoundingClientRect().x + "px");
                     const _type = _node.data("action");
                     const _res = data.children[_type];
                     if (_res) {
@@ -840,7 +840,7 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
                             _node.get(0).onclick = _res.action;
                         }
                         const _name = _res.name;
-                        _node.get(0).childNodes.forEach(i => {
+                        _node.get(0).childNodes.forEach((i) => {
                             // 텍스트 노드만 찾습니다.
                             if (i.nodeType == 3) {
                                 i.textContent = _name;
@@ -854,23 +854,25 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     }
     addMenuEventHandlers() {
         // 창 최소화
-        $(".menu .control-box li.minimum").on("click", ev => {
+        document
+            .querySelector(".menu .control-box li.minimum")
+            .addEventListener("click", (ev) => {
             if (platform === "electron") {
                 const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
-                ipcRenderer.send('minimize');
+                ipcRenderer.send("minimize");
                 ev.stopImmediatePropagation();
             }
         });
         // 창 최대화
-        $(".menu .control-box li.maximum").on("click", ev => {
+        $(".menu .control-box li.maximum").on("click", (ev) => {
             if (platform === "electron") {
                 const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
-                ipcRenderer.send('maximize');
+                ipcRenderer.send("maximize");
                 ev.stopImmediatePropagation();
             }
         });
         // 창 닫기
-        $(".menu .control-box li.close").on("click", ev => {
+        $(".menu .control-box li.close").on("click", (ev) => {
             window.close();
             ev.stopImmediatePropagation();
         });
@@ -879,25 +881,23 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
             $(".toolbar i").each((index, elem) => {
-                $(elem)
-                    .addClass("fa-3x")
-                    .css({
-                    "width": "98%",
-                    "height": "98%",
-                    "font-size": "1.25em"
+                $(elem).addClass("fa-3x").css({
+                    width: "98%",
+                    height: "98%",
+                    "font-size": "1.25em",
                 });
             });
         }
         const resizeConfig = {
             ".contents": {
-                "width": "65%",
+                width: "65%",
             },
             ".aside__tabs": {
-                "width": "30%",
+                width: "30%",
             },
             "#contents__main-canvas": {
-                "width": "100%",
-            }
+                width: "100%",
+            },
         };
         $(window).on("resize", () => {
             if ($(window).width() <= 640) {
@@ -906,25 +906,19 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
                     $(i).css(resizeConfig[i]);
                 }
                 $(".toolbar i").each((index, elem) => {
-                    $(elem)
-                        .removeClass("fa-3x")
-                        .addClass("fa-3x")
-                        .css({
-                        "width": "98%",
-                        "height": "98%",
-                        "font-size": "1.25em"
+                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "1.25em",
                     });
                 });
             }
             else {
                 $(".toolbar i").each((index, elem) => {
-                    $(elem)
-                        .removeClass("fa-3x")
-                        .addClass("fa-sm")
-                        .css({
-                        "width": "98%",
-                        "height": "98%",
-                        "font-size": "0.875em"
+                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "0.875em",
                     });
                 });
             }
@@ -2141,7 +2135,8 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
                         // 캔버스
                         const canvas = document.querySelector("#contents__main-canvas");
                         canvas.style.cursor = "crosshair";
-                        const canvasOffset = $("#contents__main-canvas").offset();
+                        const __canvas = document.querySelector("#contents__main-canvas");
+                        const canvasOffset = __canvas.getBoundingClientRect();
                         const offsetX = parseInt(canvasOffset.left);
                         const offsetY = parseInt(canvasOffset.top);
                         this._mouse.startX = parseInt((ev.clientX - offsetX));
@@ -2183,19 +2178,15 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
-        const children = $("ul.aside__tabs__maptree-child-tree li i").children();
-        let target = null;
-        // 레이어 항목에서 눈 아이콘을 추가합니다.
-        children.each((index, elem) => {
-            // @ts-ignore
-            const e = e.get(0);
-            // @ts-ignore
-            elem.click(() => {
-                e.className = e.className.includes("slash")
+        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
+        children.forEach((elem, index) => {
+            elem.onclick = () => {
+                elem.className = elem.className.includes("slash")
                     ? "far fa-eye"
                     : "far fa-eye-slash";
-            });
+            };
         });
+        let target = null;
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
         $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
             const target = $(ev.currentTarget);
