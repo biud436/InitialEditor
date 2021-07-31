@@ -46038,6 +46038,8 @@ class ElectronService extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventE
                 child_process__WEBPACK_IMPORTED_MODULE_2__["spawn"](myPath, ["CabinetWClass"]);
             }
         }
+        else if (process.platform === "darwin") {
+        }
     }
 }
 
@@ -48296,7 +48298,7 @@ const FileMenu = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GameMenu", function() { return GameMenu; });
+/* WEBPACK VAR INJECTION */(function(__dirname) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GameMenu", function() { return GameMenu; });
 /* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../ElectronService */ "./packages/ElectronService.ts");
 
 const GameMenu = {
@@ -48312,14 +48314,12 @@ const GameMenu = {
         "game-fullscreen": {
             name: "전체 화면",
             children: {},
-            action: (ev) => {
-            },
+            action: (ev) => { },
         },
         "game-show-console": {
             name: "콘솔 표시",
             children: {},
-            action: (ev) => {
-            },
+            action: (ev) => { },
         },
         "game-folder-open": {
             name: "게임 폴더 열기",
@@ -48328,7 +48328,12 @@ const GameMenu = {
                 // @ts-ignore
                 if (platform === "electron") {
                     const service = new _ElectronService__WEBPACK_IMPORTED_MODULE_0__["ElectronService"]();
-                    service.openFolder(location.href);
+                    if (process.platform === "darwin") {
+                        service.openFolder(__dirname);
+                    }
+                    else {
+                        service.openFolder(location.href);
+                    }
                 }
             },
         },
@@ -48336,6 +48341,7 @@ const GameMenu = {
 };
 
 
+/* WEBPACK VAR INJECTION */}.call(this, "/"))
 
 /***/ }),
 
