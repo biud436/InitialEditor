@@ -38,6 +38,10 @@ class ElectronService extends EventEmitter {
         } else if (process.platform === "darwin") {
         }
     }
+
+    getWindow() {
+        return require("electron").remote.getCurrentWindow();
+    }
 }
 
 export { ElectronService };

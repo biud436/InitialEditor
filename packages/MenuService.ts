@@ -93,19 +93,23 @@ export default class MenuService extends Component {
             });
 
         // 창 최대화
-        $(".menu .control-box li.maximum").on("click", (ev) => {
-            if (platform === "electron") {
-                const { ipcRenderer } = require("electron");
-                ipcRenderer.send("maximize");
-                ev.stopImmediatePropagation();
-            }
-        });
+        document
+            .querySelector(".menu .control-box li.maximum")
+            .addEventListener("click", (ev) => {
+                if (platform === "electron") {
+                    const { ipcRenderer } = require("electron");
+                    ipcRenderer.send("maximize");
+                    ev.stopImmediatePropagation();
+                }
+            });
 
         // 창 닫기
-        $(".menu .control-box li.close").on("click", (ev) => {
-            window.close();
-            ev.stopImmediatePropagation();
-        });
+        document
+            .querySelector(".menu .control-box li.close")
+            .addEventListener("click", (ev) => {
+                window.close();
+                ev.stopImmediatePropagation();
+            });
     }
 
     changeToolbarIconOnMobileDevice() {
@@ -133,10 +137,15 @@ export default class MenuService extends Component {
         };
 
         $(window).on("resize", () => {
-            if ($(window).width() <= 640) {
+            const width = window.innerWidth;
+            const padding = window.outerWidth - window.innerWidth;
+
+            if (width <= 640) {
                 for (let i in resizeConfig) {
                     //@ts-ignore
                     $(i).css(resizeConfig[i]);
+
+                    const elem = document.querySelector(i) as HTMLDivElement;
                 }
 
                 $(".toolbar i").each((index, elem) => {
