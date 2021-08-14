@@ -43,8 +43,7 @@ you have to run the shell script file such as `build.sh` and execute the command
 
 ```sh
 sudo chmod +x ./build.sh
-./build.sh
-sudo npm run start
+npm run dev
 ```
 
 # Life Time

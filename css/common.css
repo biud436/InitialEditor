@@ -19,13 +19,13 @@ theme[data-theme="dark"] {
 }
 
 theme[data-theme="light"] {
-    --dark-title-color: #DDDDDD;
-    --dark-selection-color: #C6C6C6;
-    --dark-input-background-color: #DDDDDD;
+    --dark-title-color: #dddddd;
+    --dark-selection-color: #c6c6c6;
+    --dark-input-background-color: #dddddd;
     --dark-input-text-color: #000000;
     --dark-text-color: #000000;
-    --dark-shadow-color: #F3F3F3;
-    --dark-border-color: #DDDDDD;
+    --dark-shadow-color: #f3f3f3;
+    --dark-border-color: #dddddd;
 }
 
 .container {
@@ -58,7 +58,7 @@ theme[data-theme="light"] {
     top: 0;
     right: 0;
     bottom: 0;
-    opacity: 1.0;
+    opacity: 1;
     z-index: 99999;
     position: fixed;
 }
@@ -83,7 +83,12 @@ div[id*="Window"] {
 
 div[id*="Window"]::before {
     content: attr(window-name);
-    background: linear-gradient(to bottom, var(--dark-title-color) 0%, var(--dark-shadow-color) 100%) no-repeat;
+    background: linear-gradient(
+            to bottom,
+            var(--dark-title-color) 0%,
+            var(--dark-shadow-color) 100%
+        )
+        no-repeat;
     position: absolute;
     width: 100%;
     box-sizing: border-box;
@@ -97,7 +102,8 @@ div[id*="Window"]::before {
     box-shadow: 1px 1px 1px var(--dark-border-color);
 }
 
-input[type="text"], input[type="file"] {
+input[type="text"],
+input[type="file"] {
     background-color: var(--dark-input-background-color);
     color: var(--dark-input-text-color);
     border: 1px solid var(--dark-border-color);
@@ -105,7 +111,7 @@ input[type="text"], input[type="file"] {
 
 * {
     list-style-type: none;
-    font-family: 'Nanum Gothic', sans-serif;
+    font-family: "Nanum Gothic", sans-serif;
 }
 
 li,
@@ -153,4 +159,11 @@ ul {
 *::-webkit-scrollbar-thumb {
     background-color: var(--dark-text-color);
     outline: 1px solid var(--dark-border-color);
+}
+
+#app {
+    z-index: 10000;
+    position: fixed;
+    left: 0;
+    top: 0;
 }

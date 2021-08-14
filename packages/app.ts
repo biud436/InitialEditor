@@ -16,6 +16,7 @@ import { EditorSchema } from "./schema/EditorSchema";
 import { Mouse } from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
 import * as e from "express";
+import { VueBinder } from "./VueBinder";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -55,6 +56,8 @@ export default class App extends EventEmitter {
     private _menu: MenuComponent;
     private _menuController: MenuService;
     private _tilesetCanvas: TilesetCanvas;
+
+    private _vueBinder: VueBinder;
 
     /**
      * 멤버 변수를 초기화합니다.
@@ -134,6 +137,10 @@ export default class App extends EventEmitter {
 
         // new EditorSchema(this._config).toFile("./editor.json").then(ret => {
         // });
+
+        // 뷰 객체를 생성합니다.
+        this._vueBinder = new VueBinder();
+        this._vueBinder.mount();
     }
 
     /**
