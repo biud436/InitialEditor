@@ -41350,11 +41350,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-/* harmony default export */ __webpack_exports__["default"] = ({});
+/* harmony default export */ __webpack_exports__["default"] = ({
+  methods: {
+    mounted() {
+      // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
+      const newWindow = this.$refs.newWindow;
+      window.app.onLoad(newWindow, "new-window");
+    }
+
+  }
+});
 
 /***/ }),
 
@@ -41754,7 +41759,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n#newWindow input {\n    width: 60%;\n}\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n", "",{"version":3,"sources":["webpack://packages/views/NewWindow.vue"],"names":[],"mappings":";AA0CA;IACA,WAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\n    <div id=\"newWindow\" window-name=\"게임 속성\">\n        <ul>\n            <li>\n                <label for=\"name\">게임명 : </label\n                ><input type=\"text\" placeholder=\"name\" />\n            </li>\n            <li>\n                <label for=\"name\">위치 : </label\n                ><input\n                    type=\"file\"\n                    placeholder=\"\"\n                    webkitdirectory\n                    directory\n                    multiple\n                />\n            </li>\n            <li>\n                <label for=\"name\">작성자 명 : </label\n                ><input type=\"text\" placeholder=\"\" />\n            </li>\n        </ul>\n        <div class=\"newWindow__control-box\">\n            <p>\n                <span\n                    ><i class=\"far fa-window-close\" id=\"action-close\"></i\n                ></span>\n            </p>\n        </div>\n        <div class=\"panel\">\n            <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\n        </div>\n        <img\n            src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\"\n            onload='window.app.onLoad(this, \"new-window\");this.parentNode.removeChild(this);'\n        />\n    </div>\n</template>\n<script>\nexport default {};\n</script>\n<style lang=\"css\">\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n#newWindow input {\n    width: 60%;\n}\n\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n#newWindow input {\n    width: 60%;\n}\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n", "",{"version":3,"sources":["webpack://packages/views/NewWindow.vue"],"names":[],"mappings":";AA8CA;IACA,WAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\n    <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\n        <ul>\n            <li>\n                <label for=\"name\">게임명 : </label\n                ><input type=\"text\" placeholder=\"name\" />\n            </li>\n            <li>\n                <label for=\"name\">위치 : </label\n                ><input\n                    type=\"file\"\n                    placeholder=\"\"\n                    webkitdirectory\n                    directory\n                    multiple\n                />\n            </li>\n            <li>\n                <label for=\"name\">작성자 명 : </label\n                ><input type=\"text\" placeholder=\"\" />\n            </li>\n        </ul>\n        <div class=\"newWindow__control-box\">\n            <p>\n                <span\n                    ><i class=\"far fa-window-close\" id=\"action-close\"></i\n                ></span>\n            </p>\n        </div>\n        <div class=\"panel\">\n            <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\n        </div>\n    </div>\n</template>\n<script>\nexport default {\n    methods: {\n        mounted() {\n            // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.\n            const newWindow = this.$refs.newWindow;\n            window.app.onLoad(newWindow, \"new-window\");\n        }\n    }\n};\n</script>\n<style lang=\"css\">\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n#newWindow input {\n    width: 60%;\n}\n\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n</style>\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -41801,7 +41806,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 ___CSS_LOADER_EXPORT___.i(_node_modules_css_loader_dist_cjs_js_css_main_css__WEBPACK_IMPORTED_MODULE_1__["default"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\n    background-color: transparent;\n}\n", "",{"version":3,"sources":["webpack://packages/views/VueApp.vue"],"names":[],"mappings":";AAmBA;IACA,6BAAA;AACA","sourcesContent":["<template>\n    <div id=\"app\">\n        Vue.js 영역입니다.\n        <new-window />\n    </div>\n</template>\n<script>\nimport NewWindow from \"./NewWindow.vue\";\nimport TilesetWindow from \"./TilesetWindow.vue\";\n\nexport default {\n    components: {\n        NewWindow,\n        TilesetWindow\n    }\n};\n</script>\n<style>\n@import url(\"../../css/main.css\");\n#app {\n    background-color: transparent;\n}\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\n    background-color: transparent;\n}\n", "",{"version":3,"sources":["webpack://packages/views/VueApp.vue"],"names":[],"mappings":";AAmBA;IACA,6BAAA;AACA","sourcesContent":["<template>\n    <div id=\"app\">\n        <!-- 바람이 분다 -->\n        <new-window />\n    </div>\n</template>\n<script>\nimport NewWindow from \"./NewWindow.vue\";\nimport TilesetWindow from \"./TilesetWindow.vue\";\n\nexport default {\n    components: {\n        NewWindow,\n        TilesetWindow\n    }\n};\n</script>\n<style>\n@import url(\"../../css/main.css\");\n#app {\n    background-color: transparent;\n}\n</style>\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -51873,70 +51878,70 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
+  return _c(
+    "div",
+    {
+      ref: "newWindow",
+      attrs: { id: "newWindow", "window-name": "게임 속성" }
+    },
+    [_vm._m(0), _vm._v(" "), _vm._m(1), _vm._v(" "), _vm._m(2)]
+  )
 }
 var staticRenderFns = [
   function() {
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c(
-      "div",
-      { attrs: { id: "newWindow", "window-name": "게임 속성" } },
-      [
-        _c("ul", [
-          _c("li", [
-            _c("label", { attrs: { for: "name" } }, [_vm._v("게임명 : ")]),
-            _c("input", { attrs: { type: "text", placeholder: "name" } })
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "name" } }, [_vm._v("위치 : ")]),
-            _c("input", {
-              attrs: {
-                type: "file",
-                placeholder: "",
-                webkitdirectory: "",
-                directory: "",
-                multiple: ""
-              }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "name" } }, [_vm._v("작성자 명 : ")]),
-            _c("input", { attrs: { type: "text", placeholder: "" } })
-          ])
-        ]),
-        _vm._v(" "),
-        _c("div", { staticClass: "newWindow__control-box" }, [
-          _c("p", [
-            _c("span", [
-              _c("i", {
-                staticClass: "far fa-window-close",
-                attrs: { id: "action-close" }
-              })
-            ])
-          ])
-        ]),
-        _vm._v(" "),
-        _c("div", { staticClass: "panel" }, [
-          _c("button", [
-            _c("i", { staticClass: "fas fa-upload" }),
-            _vm._v("프로젝트 생성")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("img", {
+    return _c("ul", [
+      _c("li", [
+        _c("label", { attrs: { for: "name" } }, [_vm._v("게임명 : ")]),
+        _c("input", { attrs: { type: "text", placeholder: "name" } })
+      ]),
+      _vm._v(" "),
+      _c("li", [
+        _c("label", { attrs: { for: "name" } }, [_vm._v("위치 : ")]),
+        _c("input", {
           attrs: {
-            src:
-              "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-            onload:
-              'window.app.onLoad(this, "new-window");this.parentNode.removeChild(this);'
+            type: "file",
+            placeholder: "",
+            webkitdirectory: "",
+            directory: "",
+            multiple: ""
           }
         })
-      ]
-    )
+      ]),
+      _vm._v(" "),
+      _c("li", [
+        _c("label", { attrs: { for: "name" } }, [_vm._v("작성자 명 : ")]),
+        _c("input", { attrs: { type: "text", placeholder: "" } })
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "newWindow__control-box" }, [
+      _c("p", [
+        _c("span", [
+          _c("i", {
+            staticClass: "far fa-window-close",
+            attrs: { id: "action-close" }
+          })
+        ])
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "panel" }, [
+      _c("button", [
+        _c("i", { staticClass: "fas fa-upload" }),
+        _vm._v("프로젝트 생성")
+      ])
+    ])
   }
 ]
 render._withStripped = true
@@ -52127,12 +52132,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    { attrs: { id: "app" } },
-    [_vm._v("\n    Vue.js 영역입니다.\n    "), _c("new-window")],
-    1
-  )
+  return _c("div", { attrs: { id: "app" } }, [_c("new-window")], 1)
 }
 var staticRenderFns = []
 render._withStripped = true

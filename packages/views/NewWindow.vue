@@ -1,5 +1,5 @@
 <template>
-    <div id="newWindow" window-name="게임 속성">
+    <div id="newWindow" window-name="게임 속성" ref="newWindow">
         <ul>
             <li>
                 <label for="name">게임명 : </label
@@ -30,14 +30,18 @@
         <div class="panel">
             <button><i class="fas fa-upload"></i>프로젝트 생성</button>
         </div>
-        <img
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            onload='window.app.onLoad(this, "new-window");this.parentNode.removeChild(this);'
-        />
     </div>
 </template>
 <script>
-export default {};
+export default {
+    methods: {
+        mounted() {
+            // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
+            const newWindow = this.$refs.newWindow;
+            window.app.onLoad(newWindow, "new-window");
+        }
+    }
+};
 </script>
 <style lang="css">
 #newWindow {
