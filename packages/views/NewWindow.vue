@@ -42,8 +42,14 @@ export default {
         // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
         const newWindow = this.$refs.newWindow;
         window.app.onLoad(newWindow, "new-window");
+
+        // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+        window.app.on("openWindow", this.openWindow);
     },
     methods: {
+        openWindow(route) {
+            this.$router.push(route);
+        },
         close() {
             this.$router.push("home");
         }
