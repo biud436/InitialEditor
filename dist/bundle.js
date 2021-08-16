@@ -41354,11 +41354,11 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   mounted() {
-    // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
-    const newWindow = this.$refs.newWindow;
-    window.app.onLoad(newWindow, "new-window");
+    $(this.$refs.newWindow).draggable();
   },
 
   methods: {
@@ -41476,9 +41476,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -41488,11 +41485,18 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   mounted() {
-    this.$router.push({
-      path: "/newWindow"
-    });
-  }
+    // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+    if (window.app) {
+      window.app.on("openWindow", this.openWindow);
+    }
+  },
 
+  methods: {
+    openWindow(route) {
+      this.$router.push(route);
+    }
+
+  }
 });
 
 /***/ }),
@@ -41776,7 +41780,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n#newWindow input {\n    width: 60%;\n}\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n", "",{"version":3,"sources":["webpack://packages/views/NewWindow.vue"],"names":[],"mappings":";AAqDA;IACA,WAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\n    <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\n        <ul>\n            <li>\n                <label for=\"name\">게임명 : </label\n                ><input type=\"text\" placeholder=\"name\" />\n            </li>\n            <li>\n                <label for=\"name\">위치 : </label\n                ><input\n                    type=\"file\"\n                    placeholder=\"\"\n                    webkitdirectory\n                    directory\n                    multiple\n                />\n            </li>\n            <li>\n                <label for=\"name\">작성자 명 : </label\n                ><input type=\"text\" placeholder=\"\" />\n            </li>\n        </ul>\n        <div class=\"newWindow__control-box\">\n            <p>\n                <span\n                    ><i\n                        class=\"far fa-window-close\"\n                        id=\"action-close\"\n                        @click=\"close\"\n                    ></i\n                ></span>\n            </p>\n        </div>\n        <div class=\"panel\">\n            <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\n        </div>\n    </div>\n</template>\n<script>\nexport default {\n    mounted() {\n        // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.\n        const newWindow = this.$refs.newWindow;\n        window.app.onLoad(newWindow, \"new-window\");\n    },\n    methods: {\n        close() {\n            this.$router.push(\"home\");\n        }\n    }\n};\n</script>\n<style lang=\"css\">\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n#newWindow input {\n    width: 60%;\n}\n\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n#newWindow input {\n    width: 60%;\n}\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n", "",{"version":3,"sources":["webpack://packages/views/NewWindow.vue"],"names":[],"mappings":";AAqDA;IACA,WAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\n    <div class=\"newContainer\">\n        <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\n            <ul>\n                <li>\n                    <label for=\"name\">게임명 : </label\n                    ><input type=\"text\" placeholder=\"name\" />\n                </li>\n                <li>\n                    <label for=\"name\">위치 : </label\n                    ><input\n                        type=\"file\"\n                        placeholder=\"\"\n                        webkitdirectory\n                        directory\n                        multiple\n                    />\n                </li>\n                <li>\n                    <label for=\"name\">작성자 명 : </label\n                    ><input type=\"text\" placeholder=\"\" />\n                </li>\n            </ul>\n            <div class=\"newWindow__control-box\">\n                <p>\n                    <span\n                        ><i\n                            class=\"far fa-window-close\"\n                            id=\"action-close\"\n                            @click=\"close\"\n                        ></i\n                    ></span>\n                </p>\n            </div>\n            <div class=\"panel\">\n                <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\n            </div>\n        </div>\n    </div>\n</template>\n<script>\nexport default {\n    mounted() {\n        $(this.$refs.newWindow).draggable();\n    },\n    methods: {\n        close() {\n            this.$router.push(\"home\");\n        }\n    }\n};\n</script>\n<style lang=\"css\">\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n#newWindow input {\n    width: 60%;\n}\n\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n</style>\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -41823,7 +41827,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 ___CSS_LOADER_EXPORT___.i(_node_modules_css_loader_dist_cjs_js_css_main_css__WEBPACK_IMPORTED_MODULE_1__["default"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\n    background-color: transparent;\n}\n", "",{"version":3,"sources":["webpack://packages/views/VueApp.vue"],"names":[],"mappings":";AAwBA;IACA,6BAAA;AACA","sourcesContent":["<template>\n    <div id=\"app\">\n        <!-- 바람이 분다 -->\n        <!-- <new-window /> -->\n        뷰 라우터 테스트\n        <router-view></router-view>\n    </div>\n</template>\n<script>\nimport NewWindow from \"./NewWindow.vue\";\nimport TilesetWindow from \"./TilesetWindow.vue\";\n\nexport default {\n    components: {\n        NewWindow,\n        TilesetWindow\n    },\n    mounted() {\n        this.$router.push({ path: \"/newWindow\" });\n    }\n};\n</script>\n<style>\n@import url(\"../../css/main.css\");\n#app {\n    background-color: transparent;\n}\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\n    background-color: transparent;\n}\n", "",{"version":3,"sources":["webpack://packages/views/VueApp.vue"],"names":[],"mappings":";AA6BA;IACA,6BAAA;AACA","sourcesContent":["<template>\n    <div id=\"app\">\n        <router-view></router-view>\n    </div>\n</template>\n<script>\nimport NewWindow from \"./NewWindow.vue\";\nimport TilesetWindow from \"./TilesetWindow.vue\";\n\nexport default {\n    components: {\n        NewWindow,\n        TilesetWindow\n    },\n    mounted() {\n        // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.\n        if (window.app) {\n            window.app.on(\"openWindow\", this.openWindow);\n        }\n    },\n    methods: {\n        openWindow(route) {\n            this.$router.push(route);\n        }\n    }\n};\n</script>\n<style>\n@import url(\"../../css/main.css\");\n#app {\n    background-color: transparent;\n}\n</style>\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -51895,30 +51899,32 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    {
-      ref: "newWindow",
-      attrs: { id: "newWindow", "window-name": "게임 속성" }
-    },
-    [
-      _vm._m(0),
-      _vm._v(" "),
-      _c("div", { staticClass: "newWindow__control-box" }, [
-        _c("p", [
-          _c("span", [
-            _c("i", {
-              staticClass: "far fa-window-close",
-              attrs: { id: "action-close" },
-              on: { click: _vm.close }
-            })
+  return _c("div", { staticClass: "newContainer" }, [
+    _c(
+      "div",
+      {
+        ref: "newWindow",
+        attrs: { id: "newWindow", "window-name": "게임 속성" }
+      },
+      [
+        _vm._m(0),
+        _vm._v(" "),
+        _c("div", { staticClass: "newWindow__control-box" }, [
+          _c("p", [
+            _c("span", [
+              _c("i", {
+                staticClass: "far fa-window-close",
+                attrs: { id: "action-close" },
+                on: { click: _vm.close }
+              })
+            ])
           ])
-        ])
-      ]),
-      _vm._v(" "),
-      _vm._m(1)
-    ]
-  )
+        ]),
+        _vm._v(" "),
+        _vm._m(1)
+      ]
+    )
+  ])
 }
 var staticRenderFns = [
   function() {
@@ -52150,12 +52156,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    { attrs: { id: "app" } },
-    [_vm._v("\n    뷰 라우터 테스트\n    "), _c("router-view")],
-    1
-  )
+  return _c("div", { attrs: { id: "app" } }, [_c("router-view")], 1)
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -70362,8 +70363,6 @@ const EditMenu = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileMenu", function() { return FileMenu; });
-/* harmony import */ var _WindowCreator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../WindowCreator */ "./packages/WindowCreator.ts");
-
 const FileMenu = {
     name: "파일",
     children: {
@@ -70372,29 +70371,33 @@ const FileMenu = {
             children: {},
             shortcut: ["ctrl", "n"],
             action: function (ev) {
-                _WindowCreator__WEBPACK_IMPORTED_MODULE_0__["WindowCreator"].GrapWindow(ev);
-            },
+                if (window.app) {
+                    window.app.emit("openWindow", {
+                        path: "/newWindow"
+                    });
+                }
+            }
         },
         "file-open": {
             name: "파일 열기",
             shortcut: ["ctrl", "o"],
-            children: {},
+            children: {}
         },
         "file-close": {
             name: "파일 닫기",
-            children: {},
+            children: {}
         },
         "file-save": {
             name: "파일 저장",
-            children: {},
+            children: {}
         },
         "file-preferences": {
             name: "환경 설정",
-            children: {},
+            children: {}
         },
         "file-export": {
             name: "내보내기",
-            children: {},
+            children: {}
         },
         "file-exit": {
             name: "프로그램 종료",
@@ -70402,9 +70405,9 @@ const FileMenu = {
             action: function (ev) {
                 const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
                 ipcRenderer.send("exit");
-            },
-        },
-    },
+            }
+        }
+    }
 };
 
 
@@ -71172,31 +71175,35 @@ const FileToolbar = [
         name: "파일 만들기",
         children: "file-new",
         action: (ev) => {
-            _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
+            if (window.app) {
+                window.app.emit("openWindow", {
+                    path: "/newWindow"
+                });
+            }
+        }
     },
     {
         name: "파일 열기",
         children: "file-open",
         action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
+        }
     },
     {
         name: "파일 저장",
         children: "file-save",
         action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
+        }
     },
     {
         name: "파일 저장",
         children: "edit-undo",
         action: (ev) => {
             _WindowCreator__WEBPACK_IMPORTED_MODULE_1__["WindowCreator"].GrapWindow(ev);
-        },
+        }
     },
-    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"],
+    _EmptySegment__WEBPACK_IMPORTED_MODULE_0__["EmptySegment"]
 ];
 
 

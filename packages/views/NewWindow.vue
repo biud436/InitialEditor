@@ -1,55 +1,49 @@
 <template>
-    <div id="newWindow" window-name="게임 속성" ref="newWindow">
-        <ul>
-            <li>
-                <label for="name">게임명 : </label
-                ><input type="text" placeholder="name" />
-            </li>
-            <li>
-                <label for="name">위치 : </label
-                ><input
-                    type="file"
-                    placeholder=""
-                    webkitdirectory
-                    directory
-                    multiple
-                />
-            </li>
-            <li>
-                <label for="name">작성자 명 : </label
-                ><input type="text" placeholder="" />
-            </li>
-        </ul>
-        <div class="newWindow__control-box">
-            <p>
-                <span
-                    ><i
-                        class="far fa-window-close"
-                        id="action-close"
-                        @click="close"
-                    ></i
-                ></span>
-            </p>
-        </div>
-        <div class="panel">
-            <button><i class="fas fa-upload"></i>프로젝트 생성</button>
+    <div class="newContainer">
+        <div id="newWindow" window-name="게임 속성" ref="newWindow">
+            <ul>
+                <li>
+                    <label for="name">게임명 : </label
+                    ><input type="text" placeholder="name" />
+                </li>
+                <li>
+                    <label for="name">위치 : </label
+                    ><input
+                        type="file"
+                        placeholder=""
+                        webkitdirectory
+                        directory
+                        multiple
+                    />
+                </li>
+                <li>
+                    <label for="name">작성자 명 : </label
+                    ><input type="text" placeholder="" />
+                </li>
+            </ul>
+            <div class="newWindow__control-box">
+                <p>
+                    <span
+                        ><i
+                            class="far fa-window-close"
+                            id="action-close"
+                            @click="close"
+                        ></i
+                    ></span>
+                </p>
+            </div>
+            <div class="panel">
+                <button><i class="fas fa-upload"></i>프로젝트 생성</button>
+            </div>
         </div>
     </div>
 </template>
 <script>
 export default {
     mounted() {
-        // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
-        const newWindow = this.$refs.newWindow;
-        window.app.onLoad(newWindow, "new-window");
-
-        // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
-        window.app.on("openWindow", this.openWindow);
+        $(this.$refs.newWindow).draggable();
     },
     methods: {
-        openWindow(route) {
-            this.$router.push(route);
-        },
         close() {
             this.$router.push("home");
         }
