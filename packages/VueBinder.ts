@@ -1,6 +1,6 @@
 import Vue from "vue";
 import { EventEmitter } from "./EventEmitter";
-import VueApp from "./VueApp.vue";
+import VueApp from "./views/VueApp.vue";
 
 export class VueBinder extends EventEmitter {
     private vnode: Vue;

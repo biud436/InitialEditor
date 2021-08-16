@@ -72,7 +72,7 @@ export default class App extends EventEmitter {
             screenY: 0,
             buttons: {
                 left: false,
-                leftFire: false,
+                leftFire: false
             },
             /**
              * @type {HTMLElement}
@@ -85,7 +85,7 @@ export default class App extends EventEmitter {
             isDrawing: false,
             startX: 0,
             startY: 0,
-            dragTime: 0,
+            dragTime: 0
         };
 
         /**
@@ -94,7 +94,7 @@ export default class App extends EventEmitter {
          */
         this._blockRect = {
             isDrawing: false,
-            rect: new Rectangle(0, 0, 1, 1),
+            rect: new Rectangle(0, 0, 1, 1)
         };
         this._now = performance.now();
         this._isMenuOpen = false;
@@ -107,7 +107,7 @@ export default class App extends EventEmitter {
         this.emit("ready", JSON.stringify(this));
 
         // 맵 설정 파일을 생성합니다.
-        new EditorSchema(this._config).load("./editor.json").then((data) => {
+        new EditorSchema(this._config).load("./editor.json").then(data => {
             // @ts-ignore
             const myEditorConfig: EditorSchema = JSON.parse(data);
             const themeManager = new ThemeManager();
@@ -130,7 +130,7 @@ export default class App extends EventEmitter {
             let myConfig = Object.assign(this._config.Editor, extraConfig);
             this._config.Editor = myConfig;
 
-            new EditorSchema(myConfig).toFile("./editor.json").then((ret) => {
+            new EditorSchema(myConfig).toFile("./editor.json").then(ret => {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
@@ -156,7 +156,7 @@ export default class App extends EventEmitter {
         this._components.push(
             (this._tileMarker = new TileMarker(this._config))
         );
-        this._components.forEach((component) => {
+        this._components.forEach(component => {
             component.start();
         });
         this._tilemap.setTileId(0);
@@ -183,13 +183,13 @@ export default class App extends EventEmitter {
         this._tilesetCanvas = new TilesetCanvas(this._config);
         await this._tilesetCanvas
             .start()
-            .then((ret) => {
+            .then(ret => {
                 this.createComponents();
             })
-            .then((ret) => {
+            .then(ret => {
                 $(".darken, .windows-container").css("left", "-9999px");
             })
-            .catch((err) => {
+            .catch(err => {
                 console.warn(err);
             });
     }
@@ -203,10 +203,9 @@ export default class App extends EventEmitter {
      * @return {Boolean}
      */
     isMobileDevice(): Boolean {
-        const ret =
-            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                navigator.userAgent
-            );
+        const ret = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+        );
         return ret;
     }
 
@@ -267,7 +266,7 @@ export default class App extends EventEmitter {
                 "touchend pointerup mouseup": (ev: any) => {
                     this._mouse.buttons.left = false;
                     this._mouse.buttons.leftFire = true;
-                },
+                }
             };
 
             $(window).on(events);
@@ -342,7 +341,7 @@ export default class App extends EventEmitter {
                             this._mouse.buttons.menuTarget
                         );
                     }
-                },
+                }
             };
 
             for (let k in events) {
@@ -376,7 +375,7 @@ export default class App extends EventEmitter {
         let target = null;
 
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
-        $("ul.aside__tabs__maptree-child-tree li i").on("click", (ev) => {
+        $("ul.aside__tabs__maptree-child-tree li i").on("click", ev => {
             const target = $(ev.currentTarget);
             const parentNode = $(ev.currentTarget).parent();
             const layerId = parentNode.index();
@@ -392,13 +391,15 @@ export default class App extends EventEmitter {
         });
 
         // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
-        $("ul.aside__tabs__maptree-child-tree li").on("click", (ev) => {
+        $("ul.aside__tabs__maptree-child-tree li").on("click", ev => {
             const elem = $(ev.currentTarget).css({
-                backgroundColor: "var(--dark-selection-color)",
+                backgroundColor: "var(--dark-selection-color)"
             });
-            $("ul.aside__tabs__maptree-child-tree li").not(elem).css({
-                backgroundColor: "rgba(255, 255, 255, 0)",
-            });
+            $("ul.aside__tabs__maptree-child-tree li")
+                .not(elem)
+                .css({
+                    backgroundColor: "rgba(255, 255, 255, 0)"
+                });
 
             const layerId = elem.index();
             const tilemap = this._tilemap;
@@ -420,7 +421,7 @@ export default class App extends EventEmitter {
 
         // 모든 컴포넌트가 초기화된 이후 시점에 특정 작업을 수행합니다.
         this.initWithComponents()
-            .then((ret) => {
+            .then(ret => {
                 this.initWithMapLayers();
                 this._isReady = true;
 
@@ -428,7 +429,7 @@ export default class App extends EventEmitter {
                     this.update(deltaTime);
                 });
             })
-            .catch((err) => {
+            .catch(err => {
                 console.warn(err);
                 this._isReady = false;
             });
