@@ -1,7 +1,7 @@
 <template>
     <div id="app">
-        <!-- 바람이 분다 -->
-        <new-window />
+        <!-- <new-window /> -->
+        <router-view></router-view>
     </div>
 </template>
 <script>
@@ -12,6 +12,10 @@ export default {
     components: {
         NewWindow,
         TilesetWindow
+    },
+    mounted() {
+        // 새 파일 창을 바로 엽니다.
+        this.$router.push({ path: "/newWindow" });
     }
 };
 </script>

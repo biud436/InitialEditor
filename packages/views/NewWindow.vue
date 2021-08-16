@@ -23,7 +23,11 @@
         <div class="newWindow__control-box">
             <p>
                 <span
-                    ><i class="far fa-window-close" id="action-close"></i
+                    ><i
+                        class="far fa-window-close"
+                        id="action-close"
+                        @click="close"
+                    ></i
                 ></span>
             </p>
         </div>
@@ -34,11 +38,14 @@
 </template>
 <script>
 export default {
+    mounted() {
+        // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
+        const newWindow = this.$refs.newWindow;
+        window.app.onLoad(newWindow, "new-window");
+    },
     methods: {
-        mounted() {
-            // 할당된 창을 제어할 수 있게 로드 설정을 해줍니다.
-            const newWindow = this.$refs.newWindow;
-            window.app.onLoad(newWindow, "new-window");
+        close() {
+            this.$router.push("home");
         }
     }
 };
