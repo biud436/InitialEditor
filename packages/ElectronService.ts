@@ -23,7 +23,7 @@ class ElectronService extends EventEmitter {
         this.ipcMain = ipcMain;
     }
 
-    openFolder(folderName: string) {
+    public openFolder(folderName: string) {
         const { shell } = require("electron");
         shell.showItemInFolder(folderName);
 
@@ -39,7 +39,7 @@ class ElectronService extends EventEmitter {
         }
     }
 
-    getWindow() {
+    public getWindow() {
         return require("electron").remote.getCurrentWindow();
     }
 }
