@@ -564,7 +564,7 @@ export default class Tilemap extends Component {
                 break;
             case PenType.FLOOD_FILL:
                 {
-                    const mouse: Mouse = args[0];
+                    const mouse = <Mouse>args[0];
 
                     let mx = Math.floor(this._mouseX / this._tileWidth);
                     let my = Math.floor(this._mouseY / this._tileHeight);
@@ -591,7 +591,7 @@ export default class Tilemap extends Component {
      */
     public clear(): Tilemap {
         this._layerContainer.children.forEach(i => {
-            (i as PIXI.Sprite).removeChildren();
+            (<PIXI.Sprite>i).removeChildren();
         });
 
         return this;
@@ -662,7 +662,7 @@ export default class Tilemap extends Component {
                     );
                     sprite.x = x * this._tileWidth;
                     sprite.y = y * this._tileHeight;
-                    (container as PIXI.Sprite).addChild(sprite);
+                    (<PIXI.Sprite>container).addChild(sprite);
                 }
             }
         }
