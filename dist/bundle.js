@@ -41780,7 +41780,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n#newWindow input {\n    width: 60%;\n}\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n", "",{"version":3,"sources":["webpack://packages/views/NewWindow.vue"],"names":[],"mappings":";AAqDA;IACA,WAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\n    <div class=\"newContainer\">\n        <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\n            <ul>\n                <li>\n                    <label for=\"name\">게임명 : </label\n                    ><input type=\"text\" placeholder=\"name\" />\n                </li>\n                <li>\n                    <label for=\"name\">위치 : </label\n                    ><input\n                        type=\"file\"\n                        placeholder=\"\"\n                        webkitdirectory\n                        directory\n                        multiple\n                    />\n                </li>\n                <li>\n                    <label for=\"name\">작성자 명 : </label\n                    ><input type=\"text\" placeholder=\"\" />\n                </li>\n            </ul>\n            <div class=\"newWindow__control-box\">\n                <p>\n                    <span\n                        ><i\n                            class=\"far fa-window-close\"\n                            id=\"action-close\"\n                            @click=\"close\"\n                        ></i\n                    ></span>\n                </p>\n            </div>\n            <div class=\"panel\">\n                <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\n            </div>\n        </div>\n    </div>\n</template>\n<script>\nexport default {\n    mounted() {\n        $(this.$refs.newWindow).draggable();\n    },\n    methods: {\n        close() {\n            this.$router.push(\"home\");\n        }\n    }\n};\n</script>\n<style lang=\"css\">\n#newWindow {\n    width: 100%;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n#newWindow input {\n    width: 60%;\n}\n\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\n    width: 256px;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n#newWindow input {\n    width: 60%;\n}\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n", "",{"version":3,"sources":["webpack://packages/views/NewWindow.vue"],"names":[],"mappings":";AAqDA;IACA,YAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\n    <div class=\"newContainer\">\n        <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\n            <ul>\n                <li>\n                    <label for=\"name\">게임명 : </label\n                    ><input type=\"text\" placeholder=\"name\" />\n                </li>\n                <li>\n                    <label for=\"name\">위치 : </label\n                    ><input\n                        type=\"file\"\n                        placeholder=\"\"\n                        webkitdirectory\n                        directory\n                        multiple\n                    />\n                </li>\n                <li>\n                    <label for=\"name\">작성자 명 : </label\n                    ><input type=\"text\" placeholder=\"\" />\n                </li>\n            </ul>\n            <div class=\"newWindow__control-box\">\n                <p>\n                    <span\n                        ><i\n                            class=\"far fa-window-close\"\n                            id=\"action-close\"\n                            @click=\"close\"\n                        ></i\n                    ></span>\n                </p>\n            </div>\n            <div class=\"panel\">\n                <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\n            </div>\n        </div>\n    </div>\n</template>\n<script>\nexport default {\n    mounted() {\n        $(this.$refs.newWindow).draggable();\n    },\n    methods: {\n        close() {\n            this.$router.push(\"home\");\n        }\n    }\n};\n</script>\n<style lang=\"css\">\n#newWindow {\n    width: 256px;\n    height: 240px;\n    position: relative;\n    left: 50%;\n    display: flex;\n    align-self: center;\n}\n\n#newWindow ul {\n    margin: 0;\n    padding: 0;\n    padding-top: 12px;\n}\n\n#newWindow ul li {\n    display: inline-block;\n    list-style-type: none;\n}\n\n#newWindow .newWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#newWindow label {\n    font: menu;\n    display: inline-block;\n    width: 64px;\n}\n\n#newWindow .newWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n#newWindow input {\n    width: 60%;\n}\n\n#newWindow .panel {\n    position: absolute;\n    right: 0;\n    bottom: 0;\n    margin-bottom: 20px;\n    margin-right: 20px;\n}\n\n#newWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n</style>\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -67991,6 +67991,12 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
      */
     static GetInstance() {
         if (!App.Instance) {
+            process.on("uncaughtException", (err) => {
+                console.warn(err);
+            });
+            process.on("unhandledRejection", (err) => {
+                console.warn(err);
+            });
             App.Instance = new App();
         }
         return App.Instance;
@@ -68210,13 +68216,15 @@ class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"]
         // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
         // @ts-ignore
         $(".aside__tabs").resizable({
-            containment: "#aside",
+            containment: "#aside"
         });
         // 툴바의 크기를 가져옵니다.
-        const rect = $(".toolbar").get(0).getBoundingClientRect();
+        const rect = $(".toolbar")
+            .get(0)
+            .getBoundingClientRect();
         this._originalPos = {
             x: rect.x,
-            y: rect.y,
+            y: rect.y
         };
         this._currentTarget = null;
         return this;
@@ -68230,7 +68238,9 @@ class MenuComponent extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"]
     }
     update(target, mouse) {
         if ($(".toolbar").is(".ui-draggable-dragging")) {
-            const rect = $(".toolbar").get(0).getBoundingClientRect();
+            const rect = $(".toolbar")
+                .get(0)
+                .getBoundingClientRect();
         }
         // 최상위 노드를 선택합니다.
         /**
@@ -68609,6 +68619,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Tilemap; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
 /* harmony import */ var pixi_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/pixi.es.js");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs */ "fs");
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -68620,6 +68632,12 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 };
 
 
+
+var initial2D;
+(function (initial2D) {
+    initial2D.CANVAS_ID = "#view canvas";
+    initial2D.MAIN_CANVAS_ID = "#contents__main-canvas";
+})(initial2D || (initial2D = {}));
 var PenType;
 (function (PenType) {
     PenType[PenType["PENCIL"] = 0] = "PENCIL";
@@ -68628,11 +68646,14 @@ var PenType;
     PenType[PenType["FLOOD_FILL"] = 3] = "FLOOD_FILL";
     PenType[PenType["SHADOW_PEN"] = 4] = "SHADOW_PEN";
 })(PenType || (PenType = {}));
-;
+/**
+ * @class Tilemap
+ * @author biud436
+ */
 class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     initMembers(...args) {
         this._config = args[0];
-        this._tileset = $("#view canvas").get(0);
+        this._tileset = $(initial2D.CANVAS_ID).get(0);
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
         this._mapCols = this._config.MAP_COLS;
@@ -68652,31 +68673,30 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         /**
          * @type {HTMLCanvasElement}
          */
-        const tilesetImg = $("#view canvas").get(0);
+        const tilesetImg = $(initial2D.CANVAS_ID).get(0);
         if (!tilesetImg) {
             throw new Error("Cant't find tileset");
         }
-        this._mapCols = Math.floor((tilesetImg.width) / this._tileWidth);
-        this._mapRows = Math.floor((tilesetImg.width) / this._tileWidth);
-        // this._tileset.addEventListener("mousemove", (ev:MouseEvent) => {
-        //     console.log(ev);
-        // });
+        this._mapCols = Math.floor(tilesetImg.width / this._tileWidth);
+        this._mapRows = Math.floor(tilesetImg.width / this._tileWidth);
         this.active();
         this.initWithSaveEventListener();
     }
     isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
+    /**
+     * @internal
+     */
     initWithSaveEventListener() {
         this.on("save", () => {
-            const fs = __webpack_require__(/*! fs */ "fs");
             const path = __webpack_require__(/*! path */ "path");
-            const data = this._data.map(i => (!!i) ? i : 0);
+            const data = this._data.map(i => (!!i ? i : 0));
             const layerData = {
-                data,
+                data
             };
             const contents = JSON.stringify(layerData);
-            fs.writeFileSync(path.resolve("tilesets.json"), contents, "utf8");
+            fs__WEBPACK_IMPORTED_MODULE_2__["writeFileSync"](path.resolve("tilesets.json"), contents, "utf8");
             alert("파일 저장이 완료되었습니다.");
         });
     }
@@ -68725,7 +68745,7 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
             x = this._mapWidth - 1;
         y = Math.min(Math.max(0, y), this._mapHeight - 1);
         z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
-        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        const id = this._mapWidth * this._mapHeight * z + this._mapWidth * y + x;
         this._data[id] = tileId;
     }
     getData(x, y, z) {
@@ -68735,7 +68755,7 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
             x = this._mapWidth - 1;
         y = Math.min(Math.max(0, y), this._mapHeight - 1);
         z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
-        const id = (this._mapWidth * this._mapHeight * z) + (this._mapWidth * y) + x;
+        const id = this._mapWidth * this._mapHeight * z + this._mapWidth * y + x;
         return this._data[id] || 0;
     }
     setTileId(tileId) {
@@ -68757,12 +68777,14 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
             height: this._config.SCREEN_HEIGHT,
             backgroundColor: 0x00000000,
             resolution: window.devicePixelRatio || 1,
-            view: $("#contents__main-canvas").get(0),
+            view: $(initial2D.MAIN_CANVAS_ID).get(0),
             autoDensity: true,
-            transparent: false,
+            transparent: false
         };
-        option.height = $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
-        option.width = $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
+        option.height =
+            $(window).innerHeight() - $(".toolbar").innerHeight() - 30;
+        option.width =
+            $(window).innerWidth() - $(".aside__tabs").innerWidth() - 10;
         this._app = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Application"](option);
         // Create layer container.
         this._layerContainer = new pixi_js__WEBPACK_IMPORTED_MODULE_1__["Container"]();
@@ -68777,7 +68799,7 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         this._tilesets = [];
         this._tilesets.push(pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset));
         this.initWithDrawingType();
-        $("#take-screenshot").on("click", (ev) => {
+        $("#take-screenshot").on("click", ev => {
             this.takeScreenshot();
             ev.stopPropagation();
         });
@@ -68786,19 +68808,18 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     get app() {
         return this._app;
     }
-    /**
-     * TODO: 클립보드에 저장하는 방식으로 변환할 것.
-     * @link https://developer.mozilla.org/ko/docs/Web/API/Clipboard/write
-     */
     takeScreenshot() {
         const app = this._app;
         if (!app)
             return;
         app.renderer.extract.canvas(app.stage).toBlob((b) => __awaiter(this, void 0, void 0, function* () {
-            const buffer = Buffer.from(yield b.arrayBuffer());
-            const fs = __webpack_require__(/*! fs */ "fs");
-            fs.writeFile(Date.now() + ".png", buffer, () => console.log('saved!'));
-        }), 'image/png');
+            const arrayBuffer = yield b.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            if (buffer) {
+                const res = yield fs__WEBPACK_IMPORTED_MODULE_2__["promises"].writeFile(Date.now() + ".png", buffer);
+                console.log(res);
+            }
+        }), "image/png");
     }
     onMouseMove(ev) {
         this._mouseX = ev.data.global.x;
@@ -68839,7 +68860,7 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         ];
         bits.forEach((e, i, a) => {
             if (e === true) {
-                mask += (1 << i);
+                mask += 1 << i;
             }
         });
         return mask;
@@ -68899,8 +68920,8 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         const tileID = this._tileId;
         const width = mx + ex;
         const height = my + ey;
-        const centerX = Math.floor(mx + (ex / 2));
-        const centerY = Math.floor(my + (ey / 2));
+        const centerX = Math.floor(mx + ex / 2);
+        const centerY = Math.floor(my + ey / 2);
         const r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
         for (let y = my; y < height; y++) {
             for (let x = mx; x < width; x++) {
@@ -69051,7 +69072,7 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     getTileCropTexture(tileID) {
         let texture = pixi_js__WEBPACK_IMPORTED_MODULE_1__["Texture"].from(this._tileset);
         const mapCols = Math.floor(texture.width / this._tileWidth);
-        const mapRows = Math.floor((texture.height) / this._tileHeight);
+        const mapRows = Math.floor(texture.height / this._tileHeight);
         const dx = (tileID % mapCols) * this._tileWidth;
         const dy = Math.floor(tileID / mapCols) * this._tileHeight;
         const cropTexture = this.cropTexture(dx, dy, texture);
@@ -69864,6 +69885,12 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
      */
     static GetInstance() {
         if (!App.Instance) {
+            process.on("uncaughtException", (err) => {
+                console.warn(err);
+            });
+            process.on("unhandledRejection", (err) => {
+                console.warn(err);
+            });
             App.Instance = new App();
         }
         return App.Instance;
@@ -69928,10 +69955,10 @@ const config = {
     TILESET_IMGAGES: [
         "./images/tiles/tileset16-8x13.png",
         "./images/tiles/2k_town05.png",
-        "./images/tiles/2k_town05-01.png",
+        "./images/tiles/2k_town05-01.png"
     ],
     Editor: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined),
-    Maps: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined),
+    Maps: new _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_0__["EditorSchema"](undefined)
 };
 
 

@@ -33,14 +33,17 @@ class MenuComponent extends Component {
         // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
         // @ts-ignore
         $(".aside__tabs").resizable({
-            containment: "#aside",
+            containment: "#aside"
         });
 
         // 툴바의 크기를 가져옵니다.
-        const rect = $(".toolbar").get(0).getBoundingClientRect();
+        const rect = <DOMRect>$(".toolbar")
+            .get(0)
+            .getBoundingClientRect();
+
         this._originalPos = {
             x: rect.x,
-            y: rect.y,
+            y: rect.y
         };
 
         this._currentTarget = null;
@@ -59,7 +62,9 @@ class MenuComponent extends Component {
 
     update(target: HTMLElement, mouse: Mouse) {
         if ($(".toolbar").is(".ui-draggable-dragging")) {
-            const rect = $(".toolbar").get(0).getBoundingClientRect();
+            const rect = $(".toolbar")
+                .get(0)
+                .getBoundingClientRect();
         }
 
         // 최상위 노드를 선택합니다.

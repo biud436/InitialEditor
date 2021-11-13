@@ -6,7 +6,7 @@ import Tilemap from "./Tilemap";
 import { toCamelCase } from "./camelCase";
 import TilesetCanvas from "./TilesetCanvas";
 import TileMarker from "./TileMarker";
-import { config } from "./config";
+import { config, MyEditorConfig } from "./config";
 import MenuService from "./MenuService";
 import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
@@ -15,7 +15,6 @@ import { ElectronService } from "./ElectronService";
 import { EditorSchema } from "./schema/EditorSchema";
 import { Mouse } from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
-import * as e from "express";
 import { VueBinder } from "./VueBinder";
 
 interface BlockRect {
@@ -27,19 +26,7 @@ export default class App extends EventEmitter {
     public static Instance: App = null;
 
     private cache: {};
-    private _config: {
-        SCREEN_WIDTH: number;
-        SCREEN_HEIGHT: number;
-        TILE_WIDTH: number;
-        TILE_HEIGHT: number;
-        MAP_COLS: number;
-        MAP_ROWS: number;
-        LAYERS: number;
-        TRANSPARENT_COLOR_GROUP: string[];
-        TILESET_IMGAGES: string[];
-        Editor: import("./schema/EditorSchema").EditorSchema;
-        Maps: import("./schema/EditorSchema").EditorSchema;
-    };
+    private _config: MyEditorConfig;
     private _mouse: Mouse;
     private _blockRect: {
         isDrawing: boolean;

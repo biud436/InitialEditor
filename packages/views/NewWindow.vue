@@ -52,7 +52,7 @@ export default {
 </script>
 <style lang="css">
 #newWindow {
-    width: 100%;
+    width: 256px;
     height: 240px;
     position: relative;
     left: 50%;
