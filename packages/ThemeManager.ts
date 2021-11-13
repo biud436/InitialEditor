@@ -1,8 +1,7 @@
 class ThemeManager {
-
-    set(key:string, value:string) {
+    set(key: string, value: string) {
         // document.documentElement.style.setProperty(key, value);
-        $(':root').css(key, value);
+        $(":root").css(key, value);
     }
 
     flush(theme: number) {
@@ -19,7 +18,7 @@ class ThemeManager {
         this.set("--dark-text-color", "rgb(159, 159, 159)");
         this.set("--dark-shadow-color", "rgb(40, 40, 40)");
         this.set("--dark-border-color", "rgb(90, 90, 90)");
-        if(isOption) {
+        if (isOption) {
             this.flush(0);
         }
     }
@@ -33,10 +32,11 @@ class ThemeManager {
         this.set("--dark-shadow-color", "#F3F3F3");
         this.set("--dark-border-color", "#DDDDDD");
 
-        if(isOption) {
+        if (isOption) {
             this.flush(1);
         }
     }
 }
 
-export {ThemeManager};
+export { ThemeManager };
+6;

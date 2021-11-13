@@ -67747,11 +67747,8 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
-                    /**
-                     * @type {HTMLElement}
-                     */
                     const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
+                    const rect = (this._mouse.target.getBoundingClientRect());
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
                     this._mouse.x = touchEvent.clientX - rect.x;
                     this._mouse.y = touchEvent.clientY - rect.y;
@@ -68491,7 +68488,7 @@ __webpack_require__.r(__webpack_exports__);
 class ThemeManager {
     set(key, value) {
         // document.documentElement.style.setProperty(key, value);
-        $(':root').css(key, value);
+        $(":root").css(key, value);
     }
     flush(theme) {
         window.app.emit("save-config", {
@@ -68524,6 +68521,7 @@ class ThemeManager {
     }
 }
 
+6;
 
 
 /***/ }),
@@ -69641,11 +69639,8 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
-                    /**
-                     * @type {HTMLElement}
-                     */
                     const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
+                    const rect = (this._mouse.target.getBoundingClientRect());
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
                     this._mouse.x = touchEvent.clientX - rect.x;
                     this._mouse.y = touchEvent.clientY - rect.y;
@@ -71634,11 +71629,8 @@ class NewWindowViewModel extends _ViewModel__WEBPACK_IMPORTED_MODULE_0__["ViewMo
         super.onShow(elem);
         const parent = this._element.get(0);
         const child = parent.querySelector(".newWindow__control-box p i");
-        if (child) {
-            child.onclick = () => {
-                this._controller.remove();
-            };
-        }
+        if (child)
+            child.onclick = () => this._controller.remove();
     }
 }
 

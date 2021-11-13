@@ -217,11 +217,11 @@ export default class App extends EventEmitter {
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
-                    /**
-                     * @type {HTMLElement}
-                     */
-                    const target = this._mouse.target;
-                    const rect = this._mouse.target.getBoundingClientRect();
+
+                    const target = <HTMLElement>this._mouse.target;
+                    const rect = <DOMRect>(
+                        this._mouse.target.getBoundingClientRect()
+                    );
 
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
                     this._mouse.x = touchEvent.clientX - rect.x;

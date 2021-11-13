@@ -1,4 +1,4 @@
-import {ViewModel} from "./ViewModel";
+import { ViewModel } from "./ViewModel";
 import BaseController from "../controllers/BaseController";
 
 interface Config {
@@ -13,8 +13,7 @@ interface Config {
 }
 
 export class NewWindowViewModel extends ViewModel {
-    
-    constructor(__controller : BaseController) {
+    constructor(__controller: BaseController) {
         super(__controller);
     }
 
@@ -24,8 +23,8 @@ export class NewWindowViewModel extends ViewModel {
 
     onCreate(...args: any[]) {
         super.onCreate(...args);
-        const config : Config = args[0]; 
-  
+        const config = <Config>args[0];
+
         this._controller.show();
         $(".darken, .windows-container").css("left", "0");
     }
@@ -34,12 +33,7 @@ export class NewWindowViewModel extends ViewModel {
         super.onShow(elem);
 
         const parent = this._element.get(0);
-        const child = (parent.querySelector(".newWindow__control-box p i") as any);
-        if(child) {
-            child.onclick = () => {
-                this._controller.remove();
-            };
-        }
+        const child = <any>parent.querySelector(".newWindow__control-box p i");
+        if (child) child.onclick = () => this._controller.remove();
     }
-
 }
