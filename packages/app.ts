@@ -528,6 +528,13 @@ export default class App extends EventEmitter {
      */
     static GetInstance() {
         if (!App.Instance) {
+            process.on("uncaughtException", (err: any) => {
+                console.warn(err);
+            });
+            process.on("unhandledRejection", (err: unknown) => {
+                console.warn(err);
+            });
+
             App.Instance = new App();
         }
 
