@@ -69322,6 +69322,18 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+class CacheManager extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"] {
+    static get(key) {
+        return this.cache[key];
+    }
+    static set(key, value) {
+        this.cache[key] = value;
+    }
+    static clear() {
+        this.cache = {};
+    }
+}
+CacheManager.cache = {};
 class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"] {
     /**
      * @param {App} app
@@ -69329,7 +69341,6 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
     constructor() {
         super();
         this._app = _App__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
-        this.cache = {};
     }
     /**
      * This method is called when clicking the file menu.
@@ -69339,10 +69350,11 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
     onFileNew() {
         // 윈도우를 생성합니다.
         this._gamePropertiesWindow = new _controllers_GamePropertiesWindowController__WEBPACK_IMPORTED_MODULE_3__["default"](new _models_GamePropertiesWindow__WEBPACK_IMPORTED_MODULE_4__["default"]());
-        this._gamePropertiesWindow.render()
+        this._gamePropertiesWindow
+            .render()
             .then(ret => {
             const id = "new-window";
-            this.cache[id] = this._gamePropertiesWindow;
+            CacheManager.set(id, this._gamePropertiesWindow);
             this._gamePropertiesWindow.setUniqueId(id);
         })
             .catch(err => {
@@ -69355,10 +69367,11 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
      */
     onToolsOptions() {
         this._tilesetWindow = new _controllers_TilesetWindowController__WEBPACK_IMPORTED_MODULE_5__["default"](new _models_TilesetWindow__WEBPACK_IMPORTED_MODULE_6__["TilesetWindowModel"]());
-        this._tilesetWindow.render()
+        this._tilesetWindow
+            .render()
             .then(ret => {
             const id = "tileset";
-            this.cache[id] = this._tilesetWindow;
+            CacheManager.set(id, this._tilesetWindow);
             this._tilesetWindow.setUniqueId(id);
         })
             .catch(err => {
@@ -69372,9 +69385,9 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
      * This method removes all cache window for some times.
      */
     update() {
-        for (let i in this.cache) {
-            if (this.cache[i] instanceof _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__["default"]) {
-                this.cache[i].remove();
+        for (let i in CacheManager.cache) {
+            if (CacheManager.get(i) instanceof _controllers_BaseController__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+                CacheManager.get(i).remove();
             }
         }
     }
@@ -69393,7 +69406,7 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
         const methodName = "on" + type;
         // @ts-ignore
         const cb = creator[methodName].bind(creator);
-        if (typeof (cb) === "function") {
+        if (typeof cb === "function") {
             cb();
         }
     }
@@ -69408,7 +69421,7 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
         const methodName = "on" + type;
         // @ts-ignore
         const cb = creator[methodName].bind(creator);
-        if (typeof (cb) === "function") {
+        if (typeof cb === "function") {
             cb();
         }
     }
@@ -69421,9 +69434,9 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
     static onLoad(elem, id) {
         const creator = this.GetInstance();
         // 이미 생성된 창이 있으면 해당 요소의 onLoad 메소드를 호출하여 창을 다시 호출합니다.
-        if (creator.cache[id]) {
-            const self = creator.cache[id];
-            creator.cache[id].onLoad(elem, self);
+        if (CacheManager.get(id)) {
+            const self = CacheManager.get(id);
+            CacheManager.get(id).onLoad(elem, self);
         }
     }
     /**
@@ -69432,13 +69445,13 @@ class WindowCreator extends _EventEmitter__WEBPACK_IMPORTED_MODULE_1__["EventEmi
      * @return {WindowCreator}
      */
     static GetInstance() {
-        if (!WindowCreator.Instance) {
-            WindowCreator.Instance = new WindowCreator();
+        if (!WindowCreator.INSTANCE) {
+            WindowCreator.INSTANCE = new WindowCreator();
         }
-        return WindowCreator.Instance;
+        return WindowCreator.INSTANCE;
     }
 }
-WindowCreator.Instance = null;
+WindowCreator.INSTANCE = null;
 
 
 
@@ -71536,8 +71549,7 @@ class ViewModel extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter
             .on("show", (elem) => this.onShow(elem));
         this.initMembers();
     }
-    initMembers() {
-    }
+    initMembers() { }
     onShow(elem) {
         const element = this._element;
         const controller = this._controller;
@@ -71557,8 +71569,7 @@ class ViewModel extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter
         this._element.hide();
         controller.invalid();
     }
-    onNotify(elem) {
-    }
+    onNotify(elem) { }
     onCreate(...args) {
         const controller = this._controller;
         const config = args[0];
@@ -71585,10 +71596,8 @@ class ViewModel extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter
     onRender(result) {
         this._element.html(result);
     }
-    onUpdate(elem, ...args) {
-    }
-    onStop(elem, ...args) {
-    }
+    onUpdate(elem, ...args) { }
+    onStop(elem, ...args) { }
     onDispose(elem, ...args) {
         this._element.fadeOut(700, () => {
             this._element.remove();

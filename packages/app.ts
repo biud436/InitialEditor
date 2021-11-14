@@ -503,7 +503,7 @@ export default class App extends EventEmitter {
      * @param {HTMLElement} elem
      * @param {String}} id
      */
-    onLoad(elem: HTMLElement, id: String): void {
+    onLoad(elem: HTMLElement, id: string): void {
         WindowCreator.onLoad(elem, id);
     }
 
