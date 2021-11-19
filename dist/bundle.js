@@ -68292,7 +68292,8 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         this._isClickedMenu = false;
     }
     start(...args) {
-        if (process.platform === "win32") {
+        // 맥 OS에서 내부 메뉴를 제거합니다.
+        if (process.platform === "darwin") {
             document.querySelector(".menu").style.display =
                 "none";
         }

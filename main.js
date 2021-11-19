@@ -2,7 +2,9 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 
 function createWindow() {
     // 브라우저 창을 생성합니다.
-    const win = new BrowserWindow({
+
+    const isMacOS = process.platform === "darwin";
+    const options = {
         width: 1280,
         height: 720,
         webPreferences: {
@@ -10,8 +12,10 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false
         },
-        frame: true
-    });
+        frame: isMacOS ? true : false
+    };
+
+    const win = new BrowserWindow(options);
 
     win.setMenuBarVisibility(false);
 
