@@ -10,7 +10,7 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false
         },
-        frame: false
+        frame: true
     });
 
     win.setMenuBarVisibility(false);

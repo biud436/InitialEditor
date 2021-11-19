@@ -1,21 +1,21 @@
-import {FileToolbar} from "./FileToolbar";
-import {EditToolbar} from "./EditToolbar";
-import {ModeToolbar} from "./ModeToolbar";
-import {DrawToolbar} from "./DrawToolbar";
-import {OtherToolbar} from "./OtherToolbar";
+import { FileToolbar } from "./FileToolbar";
+import { EditToolbar } from "./EditToolbar";
+import { ModeToolbar } from "./ModeToolbar";
+import { DrawToolbar } from "./DrawToolbar";
+import { OtherToolbar } from "./OtherToolbar";
 
 // 모든 배열을 하나로 합칩니다.
 const Toolbar = [].concat(
-    FileToolbar, 
-    EditToolbar, 
+    FileToolbar,
+    EditToolbar,
     ModeToolbar,
     DrawToolbar,
-    OtherToolbar,
+    OtherToolbar
 );
 
 /**
  * @class ToolbarManager
- * @description 
+ * @description
  * This class allows you to control the toolbar and hide or show in the current tool.
  */
 class ToolbarManager {
@@ -37,7 +37,9 @@ class ToolbarManager {
         this._isMovable = false;
         this.lock();
 
-        this._originPosition = $(this._mainToolbarId).get(0).getBoundingClientRect();
+        this._originPosition = $(this._mainToolbarId)
+            .get(0)
+            .getBoundingClientRect();
     }
 
     /**
@@ -46,8 +48,7 @@ class ToolbarManager {
     show() {
         this._isOpened = true;
 
-        $(this._mainToolbarId)
-            .show();
+        $(this._mainToolbarId).show();
     }
 
     /**
@@ -56,30 +57,28 @@ class ToolbarManager {
     hide() {
         this._isOpened = false;
 
-        $(this._mainToolbarId)
-            .hide();
-
+        $(this._mainToolbarId).hide();
     }
 
     lock() {
-        $(this._mainToolbarId).draggable({disabled: true});
+        $(this._mainToolbarId).draggable({ disabled: true });
     }
 
     unlock() {
-        const {x, y} = this._originPosition;
+        const { x, y } = this._originPosition;
 
         $(this._mainToolbarId).css({
             left: x,
-            top: y,
+            top: y
         });
 
-        $(this._mainToolbarId).draggable({disabled: false});
+        $(this._mainToolbarId).draggable({ disabled: false });
     }
 
     create() {
         $(`li`, this._mainToolbarId).each((index, elem) => {
             console.log(elem, Toolbar[index]);
-        })
+        });
 
         /**
          * @type {{name: String, children: String, action: Function}[]}
@@ -87,16 +86,15 @@ class ToolbarManager {
         const items = Toolbar.slice(0);
         items.forEach((e, i, a) => {
             const target = $(`li[data-action='${e.children}']:last`);
-            if(target.get()[0]) {
-                target.on("click", (ev:any) => {
-                    if(typeof(e.action) === "function") {
+            if (target.get()[0]) {
+                target.on("click", (ev: any) => {
+                    if (typeof e.action === "function") {
                         e.action.call(this, ev);
                     }
                 });
             }
         });
     }
-    
 }
 
-export {Toolbar, ToolbarManager};
+export { Toolbar, ToolbarManager };

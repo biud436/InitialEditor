@@ -7,13 +7,13 @@ import { WindowCreator } from "./WindowCreator";
 import { KoreanMenu } from "./menu/KoreanMenu";
 
 const menu = {
-    ko: KoreanMenu,
+    ko: KoreanMenu
 };
 
 declare var platform: string;
 
 export default class MenuService extends Component {
-    private _menuComponent: Component;
+    private _menuComponent: MenuComponent;
     private _isClickedMenu: boolean;
 
     initMembers(...args: any[]) {
@@ -25,6 +25,12 @@ export default class MenuService extends Component {
     }
 
     start(...args: any[]) {
+        // 맥 OS에서 내부 메뉴를 제거합니다.
+        if (process.platform === "darwin") {
+            (<HTMLDivElement>document.querySelector(".menu")).style.display =
+                "none";
+        }
+
         this.changeMenuLocaleAsPersonalize();
         this.changeToolbarIconOnMobileDevice();
         this.addMenuEventHandlers();
@@ -67,7 +73,7 @@ export default class MenuService extends Component {
                         }
 
                         const _name = _res.name;
-                        _node.get(0).childNodes.forEach((i) => {
+                        _node.get(0).childNodes.forEach(i => {
                             // 텍스트 노드만 찾습니다.
                             if (i.nodeType == 3) {
                                 i.textContent = _name;
@@ -84,7 +90,7 @@ export default class MenuService extends Component {
         // 창 최소화
         document
             .querySelector(".menu .control-box li.minimum")
-            .addEventListener("click", (ev) => {
+            .addEventListener("click", ev => {
                 if (platform === "electron") {
                     const { ipcRenderer } = require("electron");
                     ipcRenderer.send("minimize");
@@ -95,7 +101,7 @@ export default class MenuService extends Component {
         // 창 최대화
         document
             .querySelector(".menu .control-box li.maximum")
-            .addEventListener("click", (ev) => {
+            .addEventListener("click", ev => {
                 if (platform === "electron") {
                     const { ipcRenderer } = require("electron");
                     ipcRenderer.send("maximize");
@@ -106,7 +112,7 @@ export default class MenuService extends Component {
         // 창 닫기
         document
             .querySelector(".menu .control-box li.close")
-            .addEventListener("click", (ev) => {
+            .addEventListener("click", ev => {
                 window.close();
                 ev.stopImmediatePropagation();
             });
@@ -116,24 +122,26 @@ export default class MenuService extends Component {
         const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
             $(".toolbar i").each((index, elem) => {
-                $(elem).addClass("fa-3x").css({
-                    width: "98%",
-                    height: "98%",
-                    "font-size": "1.25em",
-                });
+                $(elem)
+                    .addClass("fa-3x")
+                    .css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "1.25em"
+                    });
             });
         }
 
         const resizeConfig = {
             ".contents": {
-                width: "65%",
+                width: "65%"
             },
             ".aside__tabs": {
-                width: "30%",
+                width: "30%"
             },
             "#contents__main-canvas": {
-                width: "100%",
-            },
+                width: "100%"
+            }
         };
 
         $(window).on("resize", () => {
@@ -149,19 +157,25 @@ export default class MenuService extends Component {
                 }
 
                 $(".toolbar i").each((index, elem) => {
-                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
-                        width: "98%",
-                        height: "98%",
-                        "font-size": "1.25em",
-                    });
+                    $(elem)
+                        .removeClass("fa-3x")
+                        .addClass("fa-3x")
+                        .css({
+                            width: "98%",
+                            height: "98%",
+                            "font-size": "1.25em"
+                        });
                 });
             } else {
                 $(".toolbar i").each((index, elem) => {
-                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
-                        width: "98%",
-                        height: "98%",
-                        "font-size": "0.875em",
-                    });
+                    $(elem)
+                        .removeClass("fa-3x")
+                        .addClass("fa-sm")
+                        .css({
+                            width: "98%",
+                            height: "98%",
+                            "font-size": "0.875em"
+                        });
                 });
             }
         });

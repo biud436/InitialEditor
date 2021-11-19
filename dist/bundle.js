@@ -68281,7 +68281,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const menu = {
-    ko: _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"],
+    ko: _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"]
 };
 class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     initMembers(...args) {
@@ -68292,6 +68292,10 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         this._isClickedMenu = false;
     }
     start(...args) {
+        if (process.platform === "win32") {
+            document.querySelector(".menu").style.display =
+                "none";
+        }
         this.changeMenuLocaleAsPersonalize();
         this.changeToolbarIconOnMobileDevice();
         this.addMenuEventHandlers();
@@ -68325,7 +68329,7 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
                             _node.get(0).onclick = _res.action;
                         }
                         const _name = _res.name;
-                        _node.get(0).childNodes.forEach((i) => {
+                        _node.get(0).childNodes.forEach(i => {
                             // 텍스트 노드만 찾습니다.
                             if (i.nodeType == 3) {
                                 i.textContent = _name;
@@ -68341,7 +68345,7 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         // 창 최소화
         document
             .querySelector(".menu .control-box li.minimum")
-            .addEventListener("click", (ev) => {
+            .addEventListener("click", ev => {
             if (platform === "electron") {
                 const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
                 ipcRenderer.send("minimize");
@@ -68351,7 +68355,7 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         // 창 최대화
         document
             .querySelector(".menu .control-box li.maximum")
-            .addEventListener("click", (ev) => {
+            .addEventListener("click", ev => {
             if (platform === "electron") {
                 const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
                 ipcRenderer.send("maximize");
@@ -68361,7 +68365,7 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         // 창 닫기
         document
             .querySelector(".menu .control-box li.close")
-            .addEventListener("click", (ev) => {
+            .addEventListener("click", ev => {
             window.close();
             ev.stopImmediatePropagation();
         });
@@ -68370,23 +68374,25 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
             $(".toolbar i").each((index, elem) => {
-                $(elem).addClass("fa-3x").css({
+                $(elem)
+                    .addClass("fa-3x")
+                    .css({
                     width: "98%",
                     height: "98%",
-                    "font-size": "1.25em",
+                    "font-size": "1.25em"
                 });
             });
         }
         const resizeConfig = {
             ".contents": {
-                width: "65%",
+                width: "65%"
             },
             ".aside__tabs": {
-                width: "30%",
+                width: "30%"
             },
             "#contents__main-canvas": {
-                width: "100%",
-            },
+                width: "100%"
+            }
         };
         $(window).on("resize", () => {
             const width = window.innerWidth;
@@ -68398,19 +68404,25 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
                     const elem = document.querySelector(i);
                 }
                 $(".toolbar i").each((index, elem) => {
-                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
+                    $(elem)
+                        .removeClass("fa-3x")
+                        .addClass("fa-3x")
+                        .css({
                         width: "98%",
                         height: "98%",
-                        "font-size": "1.25em",
+                        "font-size": "1.25em"
                     });
                 });
             }
             else {
                 $(".toolbar i").each((index, elem) => {
-                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
+                    $(elem)
+                        .removeClass("fa-3x")
+                        .addClass("fa-sm")
+                        .css({
                         width: "98%",
                         height: "98%",
-                        "font-size": "0.875em",
+                        "font-size": "0.875em"
                     });
                 });
             }
@@ -71391,23 +71403,23 @@ class ToolbarManager {
         // Setting up as true this variable, it can't move the toolbar.
         this._isMovable = false;
         this.lock();
-        this._originPosition = $(this._mainToolbarId).get(0).getBoundingClientRect();
+        this._originPosition = $(this._mainToolbarId)
+            .get(0)
+            .getBoundingClientRect();
     }
     /**
      * Shows up the toolbar.
      */
     show() {
         this._isOpened = true;
-        $(this._mainToolbarId)
-            .show();
+        $(this._mainToolbarId).show();
     }
     /**
      * Hides out the toolbar.
      */
     hide() {
         this._isOpened = false;
-        $(this._mainToolbarId)
-            .hide();
+        $(this._mainToolbarId).hide();
     }
     lock() {
         $(this._mainToolbarId).draggable({ disabled: true });
@@ -71416,7 +71428,7 @@ class ToolbarManager {
         const { x, y } = this._originPosition;
         $(this._mainToolbarId).css({
             left: x,
-            top: y,
+            top: y
         });
         $(this._mainToolbarId).draggable({ disabled: false });
     }
@@ -71432,7 +71444,7 @@ class ToolbarManager {
             const target = $(`li[data-action='${e.children}']:last`);
             if (target.get()[0]) {
                 target.on("click", (ev) => {
-                    if (typeof (e.action) === "function") {
+                    if (typeof e.action === "function") {
                         e.action.call(this, ev);
                     }
                 });
