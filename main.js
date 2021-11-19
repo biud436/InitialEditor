@@ -8,9 +8,9 @@ function createWindow() {
         webPreferences: {
             enableRemoteModule: true,
             nodeIntegration: true,
-            contextIsolation: false,
+            contextIsolation: false
         },
-        frame: false,
+        frame: false
     });
 
     win.setMenuBarVisibility(false);
@@ -27,9 +27,9 @@ function createWindow() {
         win.webContents.send("change-theme");
     });
 
-    ipcMain.on("exit", () => {
-        win.close();
-    });
+    // ipcMain.on("exit", () => {
+    //     win.close();
+    // });
 
     let restoreSize = [];
 
@@ -52,9 +52,7 @@ app.whenReady().then(createWindow);
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+    app.quit();
 });
 
 app.on("activate", () => {
