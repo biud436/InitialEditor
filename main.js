@@ -4,14 +4,19 @@ function createWindow() {
     // 브라우저 창을 생성합니다.
 
     const isMacOS = process.platform === "darwin";
-    const options = {
+    const windowRect = {
         width: 1280,
-        height: 720,
+        height: 720
+    };
+    const options = {
+        ...windowRect,
         webPreferences: {
             enableRemoteModule: true,
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            devTools: true
         },
+        // fullscreen: true,
         frame: isMacOS ? true : false
     };
 
