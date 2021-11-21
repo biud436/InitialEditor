@@ -50,12 +50,6 @@ npm run dev
 
 This tool is under the MIT License.
 
--   jQuery - MIT License.
--   jQuery UI - MIT License.
--   pixi.js - MIT License.
--   prefixfree.min.js - MIT License.
--   Electron - MIT Liccense.
-
 ---
 
 But some icon and javascript and stylesheets and images included at this tool have their own licenses.
