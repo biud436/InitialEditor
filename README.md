@@ -46,6 +46,14 @@ sudo chmod +x ./build.sh
 npm run dev
 ```
 
+# Cli
+
+To use the cli, you must install the `node` package in your system and then next run as below command.
+
+```sh
+npm run cli -- --help
+```
+
 # License
 
 This tool is under the MIT License.
