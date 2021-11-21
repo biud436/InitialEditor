@@ -46,18 +46,6 @@ sudo chmod +x ./build.sh
 npm run dev
 ```
 
-# Life Time
-
-This documentation named 'Life Time' can't be translated yet in English.
-
-![IMG](./Call.png)
-
-This tool includes an event emitter on all sub windows. The window is splitted `Controller` and `View` and `Model`. and the Model has a data only and passed to as `Controller`.
-
-![IMG](./diagram.png)
-
-![IMG](./event.png)
-
 # License
 
 This tool is under the MIT License.
