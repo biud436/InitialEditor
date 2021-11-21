@@ -11,7 +11,7 @@
         "dev": "./build.sh",
         "start": "electron .",
         "compile:build-scripts": "npx tsc ./build/*.ts",
-        "cli": "npx ./build/cli.js"
+        "cli": "npm run compile:build-scripts && npx ./build/cli.js"
     },
     "repository": {
         "type": "git",
