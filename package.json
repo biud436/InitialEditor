@@ -1,5 +1,5 @@
 {
-    "name": "your-app",
+    "name": "initial-editor",
     "version": "0.1.0",
     "description": "This tool allows you to create a multidimensional tilemap without standalone application in the web.",
     "main": "./main.js",
@@ -10,7 +10,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "./build.sh",
         "start": "electron .",
-        "cli": "npx ts-node ./build/cli.ts"
+        "cli": "npx ./build/cli.js"
     },
     "repository": {
         "type": "git",

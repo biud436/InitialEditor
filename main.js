@@ -2,7 +2,6 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 
 function createWindow() {
     // 브라우저 창을 생성합니다.
-
     const isMacOS = process.platform === "darwin";
     const windowRect = {
         width: 1280,
@@ -13,8 +12,7 @@ function createWindow() {
         webPreferences: {
             enableRemoteModule: true,
             nodeIntegration: true,
-            contextIsolation: false,
-            devTools: true
+            contextIsolation: false
         },
         // fullscreen: true,
         frame: isMacOS ? true : false
@@ -57,7 +55,9 @@ app.whenReady().then(createWindow);
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-    app.quit();
+    if (process.platform !== "darwin") {
+        app.quit();
+    }
 });
 
 app.on("activate", () => {
