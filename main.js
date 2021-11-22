@@ -1,69 +1,100 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 
-function createWindow() {
-    // 브라우저 창을 생성합니다.
-    const isMacOS = process.platform === "darwin";
-    const windowRect = {
-        width: 1280,
-        height: 720
-    };
-    const options = {
-        ...windowRect,
-        webPreferences: {
-            enableRemoteModule: true,
-            nodeIntegration: true,
-            contextIsolation: false
-        },
-        // fullscreen: true,
-        frame: isMacOS ? true : false
-    };
+/**
+ * @description This object creates a configuration object for the application.
+ */
+const Config = {
+    get() {
+        // 브라우저 창을 생성합니다.
+        const isMacOS = process.platform === "darwin";
+        const windowRect = {
+            width: 1280,
+            height: 720
+        };
+        const options = {
+            ...windowRect,
+            webPreferences: {
+                enableRemoteModule: true,
+                nodeIntegration: true,
+                contextIsolation: false
+            },
+            frame: isMacOS ? true : false
+        };
 
-    const win = new BrowserWindow(options);
+        return options;
+    }
+};
 
-    win.setMenuBarVisibility(false);
+/**
+ * @description
+ * This class allows you to create a new window that is applied some configuration.
+ */
+class MainWindow extends BrowserWindow {
+    constructor(options) {
+        super(options);
+        this.setConfiguration();
+    }
 
-    win.$ = win.jQuery = require("jquery");
+    setConfiguration() {
+        this.setMenuBarVisibility(false);
+        this.$ = this.jQuery = require("jquery");
+        this.loadURL("file://" + __dirname + "/index.html");
+        this.webContents.once("dom-ready", () => {
+            this.webContents.send("change-theme");
+        });
+    }
 
-    win.loadURL("file://" + __dirname + "/index.html");
+    onMaximize() {
+        let restoreSize = [];
 
-    ipcMain.on("minimize", () => {
-        win.minimize();
-    });
-
-    win.webContents.once("dom-ready", () => {
-        win.webContents.send("change-theme");
-    });
-
-    let restoreSize = [];
-
-    ipcMain.on("maximize", () => {
-        if (!win.isMaximized()) {
-            restoreSize = win.getMaximumSize();
-            win.maximize();
+        if (!this.isMaximized()) {
+            restoreSize = this.getMaximumSize();
+            this.maximize();
         } else {
-            win.unmaximize();
+            this.unmaximize();
         }
-    });
+    }
 }
 
-// 이 메소드는 Electron의 초기화가 완료되고
-// 브라우저 윈도우가 생성될 준비가 되었을때 호출된다.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(createWindow);
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
+/**
+ * @author biud436
+ * @description
+ * This class allows you to create the electron application and start.
+ */
+class EntryPoint {
+    constructor() {
+        this._hostWindow = null;
     }
-});
 
-app.on("activate", () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
+    createWindow() {
+        this._hostWindow = new MainWindow(Config.get());
+        ipcMain.on("minimize", this._hostWindow.minimize);
+        ipcMain.on("maximize", this._hostWindow.onMaximize);
+
+        return this;
     }
-});
+
+    listenOn() {
+        app.whenReady().then(() => {
+            this.createWindow();
+        });
+
+        app.on("window-all-closed", () => {
+            if (process.platform !== "darwin") {
+                app.quit();
+            }
+        });
+
+        app.on("activate", () => {
+            if (BrowserWindow.getAllWindows().length === 0) {
+                this.createWindow();
+            }
+        });
+    }
+
+    static builder() {
+        return new EntryPoint();
+    }
+}
+
+EntryPoint.builder().listenOn();
