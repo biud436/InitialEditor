@@ -1,3 +1,5 @@
+const path = require("path");
+
 const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 
 app.setName("InitialEditor");
@@ -43,7 +45,7 @@ class MainWindow extends BrowserWindow {
     setConfiguration() {
         this.setMenuBarVisibility(false);
         this.$ = this.jQuery = require("jquery");
-        this.loadURL("file://" + __dirname + "/index.html");
+        this.loadURL("file://" + path.join(__dirname, "..", "index.html"));
         this.webContents.once("dom-ready", () => {
             this.webContents.send("change-theme");
         });

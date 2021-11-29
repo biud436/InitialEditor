@@ -2,7 +2,7 @@
     "name": "initial-editor",
     "version": "0.1.0",
     "description": "This tool allows you to create a multidimensional tilemap without standalone application in the web.",
-    "main": "./main.js",
+    "main": "./index.js",
     "directories": {
         "test": "tests"
     },
@@ -26,6 +26,7 @@
     },
     "homepage": "https://github.com/biud436/InitialEditor#readme",
     "devDependencies": {
+        "@types/node": "^14.17.34",
         "babel-loader": "^8.2.2",
         "copyfiles": "^2.4.1",
         "cross-env": "^7.0.3",
@@ -54,7 +55,6 @@
         "@types/jest": "^26.0.23",
         "@types/jquery": "^3.5.3",
         "@types/jqueryui": "^1.12.13",
-        "@types/node": "^14.17.0",
         "@types/react": "^17.0.6",
         "@types/react-dom": "^17.0.5",
         "@typescript-eslint/eslint-plugin": "^4.5.0",
