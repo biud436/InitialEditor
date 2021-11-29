@@ -5,13 +5,68 @@ import GamePropertiesWindowController from "./controllers/GamePropertiesWindowCo
 import GamePropertiesWindow from "./models/GamePropertiesWindow";
 import { WindowCreator } from "./WindowCreator";
 import { KoreanMenu } from "./menu/KoreanMenu";
+import { SIGKILL } from "constants";
 
 const menu = {
     ko: KoreanMenu
 };
 
-declare var platform: string;
+export namespace InitialEditor {
+    export type Platform = NodeJS.Platform | "electron";
+}
 
+/**
+ * @namespace MenuButtonHandlers
+ * @description 메뉴 버튼 핸들러를 정의합니다.
+ */
+namespace MenuButtonHandlers {
+    /**
+     * 창 최소화
+     */
+    export function addMinimizeWindow() {
+        document
+            .querySelector(".menu .control-box li.minimum")
+            .addEventListener("click", ev => {
+                const { ipcRenderer } = require("electron");
+                ipcRenderer.send("minimize");
+                ev.stopImmediatePropagation();
+            });
+
+        return MenuButtonHandlers;
+    }
+
+    /**
+     * 창 최대화
+     */
+    export function addMaximizeWindow() {
+        document
+            .querySelector(".menu .control-box li.maximum")
+            .addEventListener("click", ev => {
+                const { ipcRenderer } = require("electron");
+                ipcRenderer.send("maximize");
+                ev.stopImmediatePropagation();
+            });
+
+        return MenuButtonHandlers;
+    }
+
+    /**
+     * 창 닫기
+     */
+    export function addCloseWindow() {
+        document
+            .querySelector(".menu .control-box li.close")
+            .addEventListener("click", ev => {
+                process.exit(SIGKILL);
+            });
+
+        return MenuButtonHandlers;
+    }
+}
+
+/**
+ * @class MenuService
+ */
 export default class MenuService extends Component {
     private _menuComponent: MenuComponent;
     private _isClickedMenu: boolean;
@@ -87,35 +142,9 @@ export default class MenuService extends Component {
     }
 
     addMenuEventHandlers() {
-        // 창 최소화
-        document
-            .querySelector(".menu .control-box li.minimum")
-            .addEventListener("click", ev => {
-                if (platform === "electron") {
-                    const { ipcRenderer } = require("electron");
-                    ipcRenderer.send("minimize");
-                    ev.stopImmediatePropagation();
-                }
-            });
-
-        // 창 최대화
-        document
-            .querySelector(".menu .control-box li.maximum")
-            .addEventListener("click", ev => {
-                if (platform === "electron") {
-                    const { ipcRenderer } = require("electron");
-                    ipcRenderer.send("maximize");
-                    ev.stopImmediatePropagation();
-                }
-            });
-
-        // 창 닫기
-        document
-            .querySelector(".menu .control-box li.close")
-            .addEventListener("click", ev => {
-                window.close();
-                ev.stopImmediatePropagation();
-            });
+        MenuButtonHandlers.addMinimizeWindow()
+            .addMaximizeWindow()
+            .addCloseWindow();
     }
 
     changeToolbarIconOnMobileDevice() {

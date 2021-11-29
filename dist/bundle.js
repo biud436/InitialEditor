@@ -67599,6 +67599,14 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
+var WindowGroup;
+(function (WindowGroup) {
+    let Theme;
+    (function (Theme) {
+        Theme[Theme["Light"] = 1] = "Light";
+        Theme[Theme["Dark"] = 2] = "Dark";
+    })(Theme = WindowGroup.Theme || (WindowGroup.Theme = {}));
+})(WindowGroup || (WindowGroup = {}));
 class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      * 멤버 변수를 초기화합니다.
@@ -67649,7 +67657,7 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
             const myEditorConfig = JSON.parse(data);
             const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             //@ts-ignore
-            if (myEditorConfig.Theme == 1) {
+            if (myEditorConfig.Theme == WindowGroup.Theme.Light) {
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "light");
@@ -68278,11 +68286,61 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MenuService; });
 /* harmony import */ var _Component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
 /* harmony import */ var _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./menu/KoreanMenu */ "./packages/menu/KoreanMenu.ts");
+/* harmony import */ var constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! constants */ "constants");
+/* harmony import */ var constants__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(constants__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 const menu = {
     ko: _menu_KoreanMenu__WEBPACK_IMPORTED_MODULE_1__["KoreanMenu"]
 };
+/**
+ * @namespace MenuButtonHandlers
+ * @description 메뉴 버튼 핸들러를 정의합니다.
+ */
+var MenuButtonHandlers;
+(function (MenuButtonHandlers) {
+    /**
+     * 창 최소화
+     */
+    function addMinimizeWindow() {
+        document
+            .querySelector(".menu .control-box li.minimum")
+            .addEventListener("click", ev => {
+            const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
+            ipcRenderer.send("minimize");
+            ev.stopImmediatePropagation();
+        });
+    }
+    MenuButtonHandlers.addMinimizeWindow = addMinimizeWindow;
+    /**
+     * 창 최대화
+     */
+    function addMaximizeWindow() {
+        document
+            .querySelector(".menu .control-box li.maximum")
+            .addEventListener("click", ev => {
+            const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
+            ipcRenderer.send("maximize");
+            ev.stopImmediatePropagation();
+        });
+    }
+    MenuButtonHandlers.addMaximizeWindow = addMaximizeWindow;
+    /**
+     * 창 닫기
+     */
+    function addCloseWindow() {
+        document
+            .querySelector(".menu .control-box li.close")
+            .addEventListener("click", ev => {
+            process.exit(constants__WEBPACK_IMPORTED_MODULE_2__["SIGKILL"]);
+        });
+    }
+    MenuButtonHandlers.addCloseWindow = addCloseWindow;
+})(MenuButtonHandlers || (MenuButtonHandlers = {}));
+/**
+ * @class MenuService
+ */
 class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     initMembers(...args) {
         /**
@@ -68344,32 +68402,11 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
     }
     addMenuEventHandlers() {
         // 창 최소화
-        document
-            .querySelector(".menu .control-box li.minimum")
-            .addEventListener("click", ev => {
-            if (platform === "electron") {
-                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
-                ipcRenderer.send("minimize");
-                ev.stopImmediatePropagation();
-            }
-        });
+        MenuButtonHandlers.addMinimizeWindow();
         // 창 최대화
-        document
-            .querySelector(".menu .control-box li.maximum")
-            .addEventListener("click", ev => {
-            if (platform === "electron") {
-                const { ipcRenderer } = __webpack_require__(/*! electron */ "electron");
-                ipcRenderer.send("maximize");
-                ev.stopImmediatePropagation();
-            }
-        });
+        MenuButtonHandlers.addMaximizeWindow();
         // 창 닫기
-        document
-            .querySelector(".menu .control-box li.close")
-            .addEventListener("click", ev => {
-            window.close();
-            ev.stopImmediatePropagation();
-        });
+        MenuButtonHandlers.addCloseWindow();
     }
     changeToolbarIconOnMobileDevice() {
         const media = window.matchMedia("(max-width: 640px)");
@@ -69517,6 +69554,14 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
+var WindowGroup;
+(function (WindowGroup) {
+    let Theme;
+    (function (Theme) {
+        Theme[Theme["Light"] = 1] = "Light";
+        Theme[Theme["Dark"] = 2] = "Dark";
+    })(Theme = WindowGroup.Theme || (WindowGroup.Theme = {}));
+})(WindowGroup || (WindowGroup = {}));
 class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      * 멤버 변수를 초기화합니다.
@@ -69567,7 +69612,7 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
             const myEditorConfig = JSON.parse(data);
             const themeManager = new _ThemeManager__WEBPACK_IMPORTED_MODULE_12__["ThemeManager"]();
             //@ts-ignore
-            if (myEditorConfig.Theme == 1) {
+            if (myEditorConfig.Theme == WindowGroup.Theme.Light) {
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "light");
@@ -71928,6 +71973,17 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports) {
 
 module.exports = require("child_process");
+
+/***/ }),
+
+/***/ "constants":
+/*!****************************!*\
+  !*** external "constants" ***!
+  \****************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("constants");
 
 /***/ }),
 
