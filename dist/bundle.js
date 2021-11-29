@@ -68311,6 +68311,7 @@ var MenuButtonHandlers;
             ipcRenderer.send("minimize");
             ev.stopImmediatePropagation();
         });
+        return MenuButtonHandlers;
     }
     MenuButtonHandlers.addMinimizeWindow = addMinimizeWindow;
     /**
@@ -68324,6 +68325,7 @@ var MenuButtonHandlers;
             ipcRenderer.send("maximize");
             ev.stopImmediatePropagation();
         });
+        return MenuButtonHandlers;
     }
     MenuButtonHandlers.addMaximizeWindow = addMaximizeWindow;
     /**
@@ -68335,6 +68337,7 @@ var MenuButtonHandlers;
             .addEventListener("click", ev => {
             process.exit(constants__WEBPACK_IMPORTED_MODULE_2__["SIGKILL"]);
         });
+        return MenuButtonHandlers;
     }
     MenuButtonHandlers.addCloseWindow = addCloseWindow;
 })(MenuButtonHandlers || (MenuButtonHandlers = {}));
@@ -68401,12 +68404,9 @@ class MenuService extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         });
     }
     addMenuEventHandlers() {
-        // 창 최소화
-        MenuButtonHandlers.addMinimizeWindow();
-        // 창 최대화
-        MenuButtonHandlers.addMaximizeWindow();
-        // 창 닫기
-        MenuButtonHandlers.addCloseWindow();
+        MenuButtonHandlers.addMinimizeWindow()
+            .addMaximizeWindow()
+            .addCloseWindow();
     }
     changeToolbarIconOnMobileDevice() {
         const media = window.matchMedia("(max-width: 640px)");
@@ -70372,34 +70372,29 @@ const DrawMenu = {
         "draw-pencil": {
             name: "펜",
             children: {},
-            action: (ev) => {
-            },
+            action: (ev) => { }
         },
         "draw-rectangle": {
             name: "정사각형",
             children: {},
-            action: (ev) => {
-            },
+            action: (ev) => { }
         },
         "draw-ellipse": {
             name: "직사각형",
             children: {},
-            action: (ev) => {
-            },
+            action: (ev) => { }
         },
         "draw-flood-fill": {
             name: "채우기",
             children: {},
-            action: (ev) => {
-            },
+            action: (ev) => { }
         },
         "draw-shadow pen": {
             name: "그림자",
             children: {},
-            action: (ev) => {
-            },
-        },
-    },
+            action: (ev) => { }
+        }
+    }
 };
 
 
@@ -70456,6 +70451,9 @@ const EditMenu = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FileMenu", function() { return FileMenu; });
+/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! electron */ "electron");
+/* harmony import */ var electron__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(electron__WEBPACK_IMPORTED_MODULE_0__);
+
 const FileMenu = {
     name: "파일",
     children: {
@@ -70502,6 +70500,11 @@ const FileMenu = {
         }
     }
 };
+if (process.platform === "darwin") {
+    electron__WEBPACK_IMPORTED_MODULE_0__["ipcRenderer"].on("new-file", () => {
+        FileMenu.children["file-new"].action(null);
+    });
+}
 
 
 

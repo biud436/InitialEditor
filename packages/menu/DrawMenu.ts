@@ -6,39 +6,29 @@ const DrawMenu = {
         "draw-pencil": {
             name: "펜",
             children: {},
-            action: (ev: any) =>  {
-                
-            },                            
+            action: (ev: any) => {}
         },
         "draw-rectangle": {
             name: "정사각형",
-            children: {}, 
-            action: (ev: any) =>  {
-                
-            },                            
+            children: {},
+            action: (ev: any) => {}
         },
         "draw-ellipse": {
             name: "직사각형",
-            children: {}, 
-            action: (ev: any) =>  {
-                
-            },                            
+            children: {},
+            action: (ev: any) => {}
         },
         "draw-flood-fill": {
             name: "채우기",
-            children: {}, 
-            action: (ev: any) =>  {
-                
-            },                            
+            children: {},
+            action: (ev: any) => {}
         },
         "draw-shadow pen": {
             name: "그림자",
-            children: {}, 
-            action: (ev: any) =>  {
-                
-            },                            
-        },
-    },
-}
+            children: {},
+            action: (ev: any) => {}
+        }
+    }
+};
 
-export {DrawMenu};
+export { DrawMenu };

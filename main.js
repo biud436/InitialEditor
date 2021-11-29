@@ -1,4 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+
+app.setName("InitialEditor");
 
 /**
  * @description This object creates a configuration object for the application.
@@ -71,12 +73,46 @@ class EntryPoint {
         ipcMain.on("minimize", this._hostWindow.minimize);
         ipcMain.on("maximize", this._hostWindow.onMaximize);
 
+        // 이렇게 하면 타입스크립트로 작성된 걸 불러와야 한다.
+        // 잘못된 구조로 짠 듯 싶다.
+        if (process.platform === "darwin") {
+            Menu.setApplicationMenu(
+                Menu.buildFromTemplate([
+                    {
+                        role: "appMenu",
+                        label: "InitialEditor",
+                        submenu: [
+                            {
+                                role: "quit"
+                            }
+                        ]
+                    },
+                    {
+                        label: "파일",
+                        role: "fileMenu",
+                        submenu: [
+                            {
+                                label: "New",
+                                accelerator: "CmdOrCtrl+N",
+                                click: () => {
+                                    this._hostWindow.webContents.send(
+                                        "new-file"
+                                    );
+                                }
+                            }
+                        ]
+                    }
+                ])
+            );
+        }
+
         return this;
     }
 
     listenOn() {
         app.whenReady().then(() => {
             this.createWindow();
+            ipcMain.emit("creatSystemMenu", this._hostWindow);
         });
 
         app.on("window-all-closed", () => {

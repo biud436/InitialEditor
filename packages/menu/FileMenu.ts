@@ -1,4 +1,5 @@
 import { WindowCreator } from "../WindowCreator";
+import * as electron from "electron";
 
 const FileMenu = {
     name: "파일",
@@ -46,5 +47,11 @@ const FileMenu = {
         }
     }
 };
+
+if (process.platform === "darwin") {
+    electron.ipcRenderer.on("new-file", () => {
+        FileMenu.children["file-new"].action(null);
+    });
+}
 
 export { FileMenu };
