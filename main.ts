@@ -32,7 +32,10 @@ const Config = {
  * This class allows you to create a new window that is applied some configuration.
  */
 class MainWindow extends BrowserWindow {
-    constructor(options) {
+    jQuery: any;
+    $: any;
+
+    constructor(options: any) {
         super(options);
         this.setConfiguration();
     }
@@ -64,6 +67,7 @@ class MainWindow extends BrowserWindow {
  * This class allows you to create the electron application and start.
  */
 class EntryPoint {
+    private _hostWindow: any;
     constructor() {
         this._hostWindow = null;
     }

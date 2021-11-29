@@ -11,7 +11,8 @@
         "dev": "./build.sh",
         "start": "electron .",
         "compile:build-scripts": "npx tsc ./build/*.ts",
-        "cli": "npm run compile:build-scripts && npx ./build/cli.js"
+        "cli": "npm run compile:build-scripts && npx ./build/cli.js",
+        "compile": "tsc ./main.ts"
     },
     "repository": {
         "type": "git",
@@ -26,6 +27,8 @@
     "homepage": "https://github.com/biud436/InitialEditor#readme",
     "devDependencies": {
         "babel-loader": "^8.2.2",
+        "copyfiles": "^2.4.1",
+        "cross-env": "^7.0.3",
         "css-loader": "^4.3.0",
         "electron": "^10.1.3",
         "file-loader": "^6.1.0",

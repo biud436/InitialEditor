@@ -67576,15 +67576,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./packages/schema/EditorSchema.ts");
 /* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./packages/ThemeManager.ts");
 /* harmony import */ var _VueBinder__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./VueBinder */ "./packages/VueBinder.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -67703,26 +67694,24 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      * 컴포넌트를 초기화합니다.
      */
-    initWithComponents() {
-        return __awaiter(this, void 0, void 0, function* () {
-            /**
-             * @type {Component[]}
-             */
-            this._components = [];
-            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
-            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
-            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
-            yield this._tilesetCanvas
-                .start()
-                .then(ret => {
-                this.createComponents();
-            })
-                .then(ret => {
-                $(".darken, .windows-container").css("left", "-9999px");
-            })
-                .catch(err => {
-                console.warn(err);
-            });
+    async initWithComponents() {
+        /**
+         * @type {Component[]}
+         */
+        this._components = [];
+        this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
+        this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
+        this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
+        await this._tilesetCanvas
+            .start()
+            .then(ret => {
+            this.createComponents();
+        })
+            .then(ret => {
+            $(".darken, .windows-container").css("left", "-9999px");
+        })
+            .catch(err => {
+            console.warn(err);
         });
     }
     toCamelCase() {
@@ -68669,15 +68658,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var pixi_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/pixi.es.js");
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fs */ "fs");
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -68860,14 +68840,14 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
         const app = this._app;
         if (!app)
             return;
-        app.renderer.extract.canvas(app.stage).toBlob((b) => __awaiter(this, void 0, void 0, function* () {
-            const arrayBuffer = yield b.arrayBuffer();
+        app.renderer.extract.canvas(app.stage).toBlob(async (b) => {
+            const arrayBuffer = await b.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
             if (buffer) {
-                const res = yield fs__WEBPACK_IMPORTED_MODULE_2__["promises"].writeFile(Date.now() + ".png", buffer);
+                const res = await fs__WEBPACK_IMPORTED_MODULE_2__["promises"].writeFile(Date.now() + ".png", buffer);
                 console.log(res);
             }
-        }), "image/png");
+        }, "image/png");
     }
     onMouseMove(ev) {
         this._mouseX = ev.data.global.x;
@@ -68951,7 +68931,7 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
      * @param r
      */
     isInCircle(centerX, centerY, x, y, r) {
-        let dist = Math.sqrt(Math.pow((centerX - x), 2) + Math.pow((centerY - y), 2));
+        let dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
         return dist < r;
     }
     /**
@@ -69189,15 +69169,6 @@ class Tilemap extends _Component__WEBPACK_IMPORTED_MODULE_0__["Component"] {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TilesetCanvas; });
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 class TilesetCanvas {
     constructor(...args) {
         this.initMembers(...args);
@@ -69207,45 +69178,39 @@ class TilesetCanvas {
         this._isReady = false;
         this._tilesetImgages = this._config.TILESET_IMGAGES;
     }
-    start(...args) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.loadTilesets();
-        });
+    async start(...args) {
+        return this.loadTilesets();
     }
-    loadTilesets() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this._tilesets = [];
-            let count = 0;
-            return new Promise((resolve, reject) => {
-                for (let i = 0; i < this._tilesetImgages.length; i++) {
-                    const elem = $("<img>").attr("src", this._tilesetImgages[i]);
-                    elem.on("load", () => {
-                        this._tilesets.push(elem);
-                        ++count;
-                        if (count >= this._tilesetImgages.length) {
-                            console.log(this._tilesetImgages[i]);
-                            this.createCanvas();
-                            resolve(this._tilesetImgages[i]);
-                        }
-                    });
-                    elem.on("error", reject);
-                }
-            });
+    async loadTilesets() {
+        this._tilesets = [];
+        let count = 0;
+        return new Promise((resolve, reject) => {
+            for (let i = 0; i < this._tilesetImgages.length; i++) {
+                const elem = $("<img>").attr("src", this._tilesetImgages[i]);
+                elem.on("load", () => {
+                    this._tilesets.push(elem);
+                    ++count;
+                    if (count >= this._tilesetImgages.length) {
+                        console.log(this._tilesetImgages[i]);
+                        this.createCanvas();
+                        resolve(this._tilesetImgages[i]);
+                    }
+                });
+                elem.on("error", reject);
+            }
         });
     }
     /**
      * 이 메소드는 타일셋을 지우고 다시 처음부터 그립니다.
      * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
      */
-    refreshTilesets(newTileset) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this._tilesetImgages.push(newTileset);
-            if (this._canvas) {
-                this._canvas.remove();
-            }
-            yield this.start().then((ret) => {
-                window.app.createComponents();
-            });
+    async refreshTilesets(newTileset) {
+        this._tilesetImgages.push(newTileset);
+        if (this._canvas) {
+            this._canvas.remove();
+        }
+        await this.start().then((ret) => {
+            window.app.createComponents();
         });
     }
     createCanvas() {
@@ -69531,15 +69496,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _schema_EditorSchema__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./schema/EditorSchema */ "./packages/schema/EditorSchema.ts");
 /* harmony import */ var _ThemeManager__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ThemeManager */ "./packages/ThemeManager.ts");
 /* harmony import */ var _VueBinder__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./VueBinder */ "./packages/VueBinder.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -69658,26 +69614,24 @@ class App extends _EventEmitter__WEBPACK_IMPORTED_MODULE_0__["EventEmitter"] {
     /**
      * 컴포넌트를 초기화합니다.
      */
-    initWithComponents() {
-        return __awaiter(this, void 0, void 0, function* () {
-            /**
-             * @type {Component[]}
-             */
-            this._components = [];
-            this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
-            this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
-            this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
-            yield this._tilesetCanvas
-                .start()
-                .then(ret => {
-                this.createComponents();
-            })
-                .then(ret => {
-                $(".darken, .windows-container").css("left", "-9999px");
-            })
-                .catch(err => {
-                console.warn(err);
-            });
+    async initWithComponents() {
+        /**
+         * @type {Component[]}
+         */
+        this._components = [];
+        this._components.push((this._menu = new _MenuComponent__WEBPACK_IMPORTED_MODULE_1__["MenuComponent"](this._config)));
+        this._components.push((this._menuController = new _MenuService__WEBPACK_IMPORTED_MODULE_8__["default"](this._config, this._menu)));
+        this._tilesetCanvas = new _TilesetCanvas__WEBPACK_IMPORTED_MODULE_5__["default"](this._config);
+        await this._tilesetCanvas
+            .start()
+            .then(ret => {
+            this.createComponents();
+        })
+            .then(ret => {
+            $(".darken, .windows-container").css("left", "-9999px");
+        })
+            .catch(err => {
+            console.warn(err);
         });
     }
     toCamelCase() {
@@ -70042,15 +69996,6 @@ const config = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseController; });
 /* harmony import */ var _viewmodels_ViewModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../viewmodels/ViewModel */ "./packages/viewmodels/ViewModel.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 /**
  * @author Eo Jinseok
@@ -70129,15 +70074,13 @@ class BaseController {
      * 비동기적으로 HTML 파일을 시스템으로 불러와 렌더링을 진행하는 메서드입니다.
      * HTML 파일은 뷰(View)에 해당하며 View 데이터는 뷰 모델(View Model)을 통해서만 접근이 가능합니다.
      */
-    render() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.load().then((result) => {
-                // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
-                // 창의 렌더링을 진행합니다 (다소의 시간 소요)
-                this._view.emit("render", result);
-            }).catch(err => {
-                console.warn(err);
-            });
+    async render() {
+        await this.load().then((result) => {
+            // 로드가 완료되었을 때 호출되는 콜백 함수입니다.
+            // 창의 렌더링을 진행합니다 (다소의 시간 소요)
+            this._view.emit("render", result);
+        }).catch(err => {
+            console.warn(err);
         });
     }
     /**
@@ -70319,15 +70262,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _app__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./app */ "./packages/app.ts");
 /* harmony import */ var _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./toolbar/Toolbar */ "./packages/toolbar/Toolbar.ts");
 /* harmony import */ var _ElectronService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ElectronService */ "./packages/ElectronService.ts");
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -70338,13 +70272,13 @@ __webpack_require__(/*! source-map-support */ "./node_modules/source-map-support
 //==========================================================
 class Main {
     static start() {
-        $(() => __awaiter(this, void 0, void 0, function* () {
+        $(async () => {
             window.app = _app__WEBPACK_IMPORTED_MODULE_0__["default"].GetInstance();
             window.electronService = new _ElectronService__WEBPACK_IMPORTED_MODULE_2__["ElectronService"]();
             window.ToolbarManager = new _toolbar_Toolbar__WEBPACK_IMPORTED_MODULE_1__["ToolbarManager"]();
             window.app.start();
             this.update(1.0);
-        }));
+        });
     }
     static update(deltaTime) {
         window.app.emit("update", deltaTime);
