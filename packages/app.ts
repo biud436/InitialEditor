@@ -22,6 +22,13 @@ interface BlockRect {
     rect: Rectangle;
 }
 
+namespace WindowGroup {
+    export enum Theme {
+        Light = 1,
+        Dark = 2
+    }
+}
+
 export default class App extends EventEmitter {
     public static Instance: App = null;
 
@@ -100,7 +107,7 @@ export default class App extends EventEmitter {
             const themeManager = new ThemeManager();
 
             //@ts-ignore
-            if (myEditorConfig.Theme == 1) {
+            if (myEditorConfig.Theme == WindowGroup.Theme.Light) {
                 document
                     .querySelector("body")
                     .setAttribute("data-theme", "light");
