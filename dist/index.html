@@ -62,7 +62,7 @@
         } else {
             (async function() {
                 window.$ = window.jQuery = require('./libs/jquery-3.5.1.js');
-                loadScript("./bundle.js").then(script => {
+                loadScript("./dist/bundle.js").then(script => {
                     document.body.appendChild(script);
                 }).catch(err => {
                     console.warn(err);
@@ -272,7 +272,7 @@
     <div id="app"></div>
     
     <!-- <script type="module" src="./js/main.js"></script> -->
-    <script src="./bundle.js"></script>
+    <script src="./dist/bundle.js"></script>
 </body>
 
 </html>
