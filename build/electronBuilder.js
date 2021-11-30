@@ -10,3 +10,12 @@ fs.promises
     .catch(e => {
         console.log(e);
     });
+
+fs.promises
+    .copyFile(path.join(root, "index.js"), path.join(root, "dist/index.js"))
+    .then(e => {
+        console.log("index.html copied");
+    })
+    .catch(e => {
+        console.log(e);
+    });
