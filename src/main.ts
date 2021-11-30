@@ -105,6 +105,11 @@ class EntryPoint {
                                         "new-file"
                                     );
                                 }
+                            },
+                            {
+                                label: "프로그램 종료",
+                                accelerator: "CmdOrCtrl+Q",
+                                role: "quit"
                             }
                         ]
                     }
