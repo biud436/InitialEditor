@@ -129,6 +129,9 @@ class EntryPoint {
         app.on("window-all-closed", () => {
             if (process.platform !== "darwin") {
                 app.quit();
+            } else {
+                // 맥에서 아래와 같이 해야 빠른 실행 상태가 되지 않는다.
+                process.exit(0);
             }
         });
 
