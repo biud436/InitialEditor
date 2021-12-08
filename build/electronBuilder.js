@@ -12,7 +12,7 @@ const FILES = {
         INDEX: "index.js"
     },
     DIST: "dist",
-    PLATFORMS: ["darwin", "linux"]
+    UNIX_BASE_PLATFORMS: ["darwin", "linux"]
 };
 
 /**
@@ -57,7 +57,7 @@ class ElectronBuilder extends EventEmitter {
                 })
         ])
             .then(() => {
-                if (FILES.PLATFORMS.includes(process.platform)) {
+                if (FILES.UNIX_BASE_PLATFORMS.includes(process.platform)) {
                     cp.exec(
                         `cp -r ${path.resolve(root, "src")} ${path.resolve(
                             root,
