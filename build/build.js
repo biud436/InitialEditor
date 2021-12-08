@@ -46,10 +46,6 @@ function startBuild() {
                 }
             }
         );
-        sub.on("close", (code, signal) => {
-            console.log("종료되었습니다 (빠른 실행 대기중)");
-            process.exit(0);
-        });
         sub.on("exit", (code, signal) => {
             process.exit(0);
         });
