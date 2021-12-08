@@ -20,15 +20,17 @@ function startBuild() {
 
     let child = cd.exec(
         buildCommand,
-        { cwd: path.join(__dirname, "..") },
-        (err, stdout, stdin) => {
+        { cwd: path.join(__dirname, ".."), shell: true },
+        err => {
             if (err) {
                 throw new Error(err.stack);
             }
         }
     );
 
-    child.stdout.pipe(process.stdout);
+    child.stdout.on("data", data => {
+        console.log(data);
+    });
     child.on("exit", (code, signal) => {
         console.log("빌드가 완료되었습니다.");
         const sub = cd.exec(
