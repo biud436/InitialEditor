@@ -64,6 +64,20 @@ class ElectronBuilder extends EventEmitter {
                             FILES.DIST
                         )}`
                     );
+
+                    fs.readdirSync(path.resolve(root, FILES.DIST)).forEach(
+                        file => {
+                            const filePath = path.resolve(
+                                root,
+                                FILES.DIST,
+                                file
+                            );
+                            console.log(
+                                chalk.yellow(`${filePath} copied`) +
+                                    chalk.reset()
+                            );
+                        }
+                    );
                 }
             })
             .catch(err => {
