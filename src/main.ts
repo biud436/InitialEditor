@@ -1,5 +1,5 @@
 import * as path from "path";
-import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog } from "electron";
 
 app.setName("InitialEditor");
 
@@ -75,6 +75,11 @@ class EntryPoint {
         ipcMain.on("minimize", () => this._hostWindow.minimize());
         ipcMain.on("maximize", () => this._hostWindow.onMaximize());
 
+        ipcMain.on("message_box:error", (event, ...args: any[]) => {
+            const [title, content] = args;
+            dialog.showErrorBox(title, content);
+        });
+
         // 이렇게 하면 타입스크립트로 작성된 걸 불러와야 한다.
         // 잘못된 구조로 짠 듯 싶다.
         if (process.platform === "darwin") {
@@ -122,16 +127,10 @@ class EntryPoint {
             if (process.platform === "darwin") {
                 ipcMain.emit("creatSystemMenu", this._hostWindow);
             }
+
             // open develooper tools
             this._hostWindow.webContents.openDevTools();
         });
-
-        // app.on("ready", () => {
-        //     this.createWindow();
-        //     if (process.platform === "darwin") {
-        //         ipcMain.emit("creatSystemMenu", this._hostWindow);
-        //     }
-        // });
 
         app.on("window-all-closed", () => {
             switch (process.platform) {

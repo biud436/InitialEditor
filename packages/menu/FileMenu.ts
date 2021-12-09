@@ -20,7 +20,13 @@ const FileMenu = {
         "file-open": {
             name: "파일 열기",
             shortcut: ["ctrl", "o"],
-            children: {}
+            children: {},
+            action: function(ev: any) {
+                ElectronService.getInstance().showErrorMessageBox(
+                    "알림",
+                    "아직 지원하지 않는 기능입니다"
+                );
+            }
         },
         "file-close": {
             name: "파일 닫기",

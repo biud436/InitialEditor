@@ -1,8 +1,9 @@
-import { ipcMain, ipcRenderer, IpcRenderer } from "electron";
+import { ipcMain, ipcRenderer, IpcRenderer, dialog } from "electron";
 import { EventEmitter } from "./EventEmitter";
 import * as fs from "fs";
 import * as cp from "child_process";
 import * as path from "path";
+import { Component } from "./Component";
 
 /**
  * @class ElectronService
@@ -80,12 +81,6 @@ class ElectronService extends EventEmitter {
     }
 
     public maximize() {
-        // const currentWindow = this.getWindow();
-        // if (currentWindow.isMaximized()) {
-        //     currentWindow.unmaximize();
-        // } else {
-        //     currentWindow.maximize();
-        // }
         ipcRenderer.send("maximize");
     }
 
@@ -93,11 +88,21 @@ class ElectronService extends EventEmitter {
         this.quit();
     }
 
+    public showErrorMessageBox(title: string, message: string) {
+        MessageBoxComponent.showError(title, message);
+    }
+
     public quit() {
         const currentWindow = this.getWindow();
         if (currentWindow) {
             currentWindow.close();
         }
+    }
+}
+
+class MessageBoxComponent extends Component {
+    public static showError(title: string, message: string) {
+        ipcRenderer.send("message_box:error", title, message);
     }
 }
 

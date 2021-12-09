@@ -68076,6 +68076,7 @@ const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/Eve
 const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
 const cp = __importStar(__webpack_require__(/*! child_process */ "child_process"));
 const path = __importStar(__webpack_require__(/*! path */ "path"));
+const Component_1 = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
 /**
  * @class ElectronService
  * @description
@@ -68138,16 +68139,13 @@ class ElectronService extends EventEmitter_1.EventEmitter {
         return __webpack_require__(/*! electron */ "electron").remote.getCurrentWindow();
     }
     maximize() {
-        // const currentWindow = this.getWindow();
-        // if (currentWindow.isMaximized()) {
-        //     currentWindow.unmaximize();
-        // } else {
-        //     currentWindow.maximize();
-        // }
         electron_1.ipcRenderer.send("maximize");
     }
     close() {
         this.quit();
+    }
+    showErrorMessageBox(title, message) {
+        MessageBoxComponent.showError(title, message);
     }
     quit() {
         const currentWindow = this.getWindow();
@@ -68158,6 +68156,11 @@ class ElectronService extends EventEmitter_1.EventEmitter {
 }
 exports.ElectronService = ElectronService;
 ElectronService.INSTANCE = new ElectronService();
+class MessageBoxComponent extends Component_1.Component {
+    static showError(title, message) {
+        electron_1.ipcRenderer.send("message_box:error", title, message);
+    }
+}
 
 
 /***/ }),
@@ -70515,7 +70518,10 @@ const FileMenu = {
         "file-open": {
             name: "파일 열기",
             shortcut: ["ctrl", "o"],
-            children: {}
+            children: {},
+            action: function (ev) {
+                ElectronService_1.ElectronService.getInstance().showErrorMessageBox("알림", "아직 지원하지 않는 기능입니다");
+            }
         },
         "file-close": {
             name: "파일 닫기",
