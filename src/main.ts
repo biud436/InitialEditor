@@ -1,5 +1,7 @@
 import * as path from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog } from "electron";
+import * as fs from "fs";
+import { app, BrowserWindow, ipcMain, Menu, dialog, screen } from "electron";
+import { AnyTxtRecord } from "dns";
 
 app.setName("InitialEditor");
 
@@ -79,6 +81,22 @@ class EntryPoint {
             const [title, content] = args;
             dialog.showErrorBox(title, content);
         });
+
+        (() => {
+            const data: Record<any, object> = {};
+            const displays = screen.getAllDisplays();
+
+            // 모니터의 갯수입니다.
+            displays.forEach((e, i) => {
+                data[e.id] = {
+                    x: e.bounds.x,
+                    y: e.bounds.y,
+                    width: e.size.width,
+                    height: e.size.height
+                };
+            });
+            fs.writeFileSync("display.json", JSON.stringify(data, null, 4));
+        })();
 
         // 이렇게 하면 타입스크립트로 작성된 걸 불러와야 한다.
         // 잘못된 구조로 짠 듯 싶다.
