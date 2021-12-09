@@ -21,7 +21,7 @@ function startBuild() {
         ? `npx webpack --config=webpack.config.js`
         : `chcp 65001 | npx webpack --config=webpack.config.js`;
 
-    // cd.spawn(preCommand, { cwd: path.join(__dirname, ".."), shell: true });
+    cd.spawnSync(preCommand, { cwd: path.join(__dirname, ".."), shell: true });
 
     let child = cd.exec(
         buildCommand,

@@ -20,7 +20,12 @@ const electronTypeTarget = {
             },
             {
                 test: /\.ts$/,
-                use: "ts-loader",
+                use: {
+                    loader: "ts-loader",
+                    options: {
+                        configFile: "./tsconfig.build.json"
+                    }
+                },
                 exclude: /node_modules/,
                 include: [
                     path.resolve(__dirname, "src"),
