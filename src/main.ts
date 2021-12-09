@@ -1,7 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
 import { app, BrowserWindow, ipcMain, Menu, dialog, screen } from "electron";
-import { AnyTxtRecord } from "dns";
 
 app.setName("InitialEditor");
 
