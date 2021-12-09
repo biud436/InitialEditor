@@ -105,7 +105,7 @@ export default {
     background-color: inherit;
     overflow: hidden;
     background: var(--dark-shadow-color);
-    opacity: 1;
+    opacity: 0.9;
     position: relative;
 }
 
