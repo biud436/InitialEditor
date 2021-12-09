@@ -10,7 +10,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "./build.sh",
         "start": "electron .",
-        "compile:build-scripts": "npx tsc ./build/*.ts",
+        "compile:build-scripts": "npx tsc ./build/cli.ts",
         "cli": "npm run compile:build-scripts && npx ./build/cli.js",
         "compile": "tsc ./main.ts"
     },
