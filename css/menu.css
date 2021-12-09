@@ -27,7 +27,7 @@
     height: 1em;
     background-color: var(--dark-title-color);
     background-image: var(--basic-program-icon);
-    background-size: 16px 16px;
+    background-size: 1em 1em;
     background-repeat: no-repeat;
     background-position: center center;
     -webkit-app-region: drag;
