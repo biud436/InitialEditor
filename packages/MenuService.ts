@@ -38,8 +38,7 @@ namespace MenuButtonHandlers {
                 InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW
             )
             .addEventListener("click", ev => {
-                ipcRenderer.send("minimize");
-                ev.stopImmediatePropagation();
+                ElectronService.getInstance().emit("minimize");
             });
 
         return MenuButtonHandlers;
@@ -54,8 +53,7 @@ namespace MenuButtonHandlers {
                 InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW
             )
             .addEventListener("click", ev => {
-                ipcRenderer.send("maximize");
-                ev.stopImmediatePropagation();
+                ElectronService.getInstance().emit("maximize");
             });
 
         return MenuButtonHandlers;
@@ -90,6 +88,7 @@ namespace MenuButtonHandlers {
 export default class MenuService extends Component {
     private _menuComponent: MenuComponent;
     private _isClickedMenu: boolean;
+    public static isReady: boolean = false;
 
     initMembers(...args: any[]) {
         /**
@@ -97,6 +96,7 @@ export default class MenuService extends Component {
          */
         this._menuComponent = args[1];
         this._isClickedMenu = false;
+        MenuService.isReady = false;
     }
 
     start(...args: any[]) {
@@ -108,7 +108,10 @@ export default class MenuService extends Component {
 
         this.changeMenuLocaleAsPersonalize();
         this.changeToolbarIconOnMobileDevice();
-        this.addMenuEventHandlers();
+        if (!MenuService.isReady) {
+            this.addMenuEventHandlers();
+            MenuService.isReady = true;
+        }
 
         return this;
     }

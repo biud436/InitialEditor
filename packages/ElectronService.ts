@@ -1,6 +1,5 @@
-import { IpcMain } from "electron";
+import { ipcMain, ipcRenderer, IpcRenderer } from "electron";
 import { EventEmitter } from "./EventEmitter";
-const { ipcMain } = require("electron");
 import * as fs from "fs";
 import * as cp from "child_process";
 import * as path from "path";
@@ -21,12 +20,43 @@ class ElectronService extends EventEmitter {
         return ElectronService.INSTANCE;
     }
 
-    public ipcMain: IpcMain;
+    public ipcMain: Electron.IpcMain;
 
     constructor() {
         super();
 
         this.ipcMain = ipcMain;
+        this.listenEvents();
+    }
+
+    public *makeEvents(): IterableIterator<string> {
+        yield "minimize";
+        yield "maximize";
+        yield "restore";
+        yield "close";
+    }
+
+    private listenEvents() {
+        const generator = this.makeEvents();
+
+        while (true) {
+            const event = generator.next();
+            if (event.done) break;
+
+            const value = (<string>event.value).toString();
+            process.stdout.write(`listenEvents: ${value}\n`);
+
+            this.on(value, () => {
+                if (["maximize"].includes(value)) {
+                    this.maximize();
+                    return;
+                }
+                const func = this.getWindow()[value];
+                if (typeof func === "function") {
+                    func();
+                }
+            });
+        }
     }
 
     public openFolder(folderName: string) {
@@ -47,6 +77,16 @@ class ElectronService extends EventEmitter {
 
     public getWindow() {
         return require("electron").remote.getCurrentWindow();
+    }
+
+    public maximize() {
+        // const currentWindow = this.getWindow();
+        // if (currentWindow.isMaximized()) {
+        //     currentWindow.unmaximize();
+        // } else {
+        //     currentWindow.maximize();
+        // }
+        ipcRenderer.send("maximize");
     }
 
     public close() {

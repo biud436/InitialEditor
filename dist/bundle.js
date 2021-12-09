@@ -68068,8 +68068,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ElectronService = void 0;
+const electron_1 = __webpack_require__(/*! electron */ "electron");
 const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
-const { ipcMain } = __webpack_require__(/*! electron */ "electron");
 const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
 const cp = __importStar(__webpack_require__(/*! child_process */ "child_process"));
 const path = __importStar(__webpack_require__(/*! path */ "path"));
@@ -68085,10 +68085,37 @@ const path = __importStar(__webpack_require__(/*! path */ "path"));
 class ElectronService extends EventEmitter_1.EventEmitter {
     constructor() {
         super();
-        this.ipcMain = ipcMain;
+        this.ipcMain = electron_1.ipcMain;
+        this.listenEvents();
     }
     static getInstance() {
         return ElectronService.INSTANCE;
+    }
+    *makeEvents() {
+        yield "minimize";
+        yield "maximize";
+        yield "restore";
+        yield "close";
+    }
+    listenEvents() {
+        const generator = this.makeEvents();
+        while (true) {
+            const event = generator.next();
+            if (event.done)
+                break;
+            const value = event.value.toString();
+            process.stdout.write(`listenEvents: ${value}\n`);
+            this.on(value, () => {
+                if (["maximize"].includes(value)) {
+                    this.maximize();
+                    return;
+                }
+                const func = this.getWindow()[value];
+                if (typeof func === "function") {
+                    func();
+                }
+            });
+        }
     }
     openFolder(folderName) {
         const { shell } = __webpack_require__(/*! electron */ "electron");
@@ -68106,6 +68133,15 @@ class ElectronService extends EventEmitter_1.EventEmitter {
     }
     getWindow() {
         return __webpack_require__(/*! electron */ "electron").remote.getCurrentWindow();
+    }
+    maximize() {
+        // const currentWindow = this.getWindow();
+        // if (currentWindow.isMaximized()) {
+        //     currentWindow.unmaximize();
+        // } else {
+        //     currentWindow.maximize();
+        // }
+        electron_1.ipcRenderer.send("maximize");
     }
     close() {
         this.quit();
@@ -68295,7 +68331,6 @@ const Component_1 = __webpack_require__(/*! ./Component */ "./packages/Component
 const KoreanMenu_1 = __webpack_require__(/*! ./menu/KoreanMenu */ "./packages/menu/KoreanMenu.ts");
 const constants_1 = __webpack_require__(/*! constants */ "constants");
 const ElectronService_1 = __webpack_require__(/*! ./ElectronService */ "./packages/ElectronService.ts");
-const electron_1 = __webpack_require__(/*! electron */ "electron");
 const menu = {
     ko: KoreanMenu_1.KoreanMenu
 };
@@ -68326,8 +68361,7 @@ var MenuButtonHandlers;
         document
             .querySelector(InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW)
             .addEventListener("click", ev => {
-            electron_1.ipcRenderer.send("minimize");
-            ev.stopImmediatePropagation();
+            ElectronService_1.ElectronService.getInstance().emit("minimize");
         });
         return MenuButtonHandlers;
     }
@@ -68339,8 +68373,7 @@ var MenuButtonHandlers;
         document
             .querySelector(InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW)
             .addEventListener("click", ev => {
-            electron_1.ipcRenderer.send("maximize");
-            ev.stopImmediatePropagation();
+            ElectronService_1.ElectronService.getInstance().emit("maximize");
         });
         return MenuButtonHandlers;
     }
@@ -68375,6 +68408,7 @@ class MenuService extends Component_1.Component {
          */
         this._menuComponent = args[1];
         this._isClickedMenu = false;
+        MenuService.isReady = false;
     }
     start(...args) {
         // 맥 OS에서 내부 메뉴를 제거합니다.
@@ -68384,7 +68418,10 @@ class MenuService extends Component_1.Component {
         }
         this.changeMenuLocaleAsPersonalize();
         this.changeToolbarIconOnMobileDevice();
-        this.addMenuEventHandlers();
+        if (!MenuService.isReady) {
+            this.addMenuEventHandlers();
+            MenuService.isReady = true;
+        }
         return this;
     }
     changeMenuLocaleAsPersonalize() {
@@ -68492,6 +68529,7 @@ class MenuService extends Component_1.Component {
     }
 }
 exports.default = MenuService;
+MenuService.isReady = false;
 
 
 /***/ }),

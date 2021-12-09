@@ -36,7 +36,7 @@ class MainWindow extends BrowserWindow {
     jQuery: any;
     $: any;
 
-    constructor(options: any) {
+    constructor(options?: any) {
         super(options);
         this.setConfiguration();
     }
@@ -68,15 +68,12 @@ class MainWindow extends BrowserWindow {
  * This class allows you to create the electron application and start.
  */
 class EntryPoint {
-    private _hostWindow: any;
-    constructor() {
-        this._hostWindow = null;
-    }
+    private _hostWindow: MainWindow;
 
     createWindow() {
         this._hostWindow = new MainWindow(Config.get());
-        ipcMain.on("minimize", this._hostWindow.minimize);
-        ipcMain.on("maximize", this._hostWindow.onMaximize);
+        ipcMain.on("minimize", () => this._hostWindow.minimize());
+        ipcMain.on("maximize", () => this._hostWindow.onMaximize());
 
         // 이렇게 하면 타입스크립트로 작성된 걸 불러와야 한다.
         // 잘못된 구조로 짠 듯 싶다.
@@ -120,11 +117,20 @@ class EntryPoint {
     }
 
     listenOn() {
-        app.whenReady().then(() => {
+        // app.whenReady().then(() => {
+        //     this.createWindow();
+        //     if (process.platform === "darwin") {
+        //         ipcMain.emit("creatSystemMenu", this._hostWindow);
+        //     }
+        // });
+
+        app.on("ready", () => {
             this.createWindow();
             if (process.platform === "darwin") {
                 ipcMain.emit("creatSystemMenu", this._hostWindow);
             }
+            // open develooper tools
+            this._hostWindow.webContents.openDevTools();
         });
 
         app.on("window-all-closed", () => {
