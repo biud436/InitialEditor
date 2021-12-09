@@ -68431,6 +68431,9 @@ class MenuService extends Component_1.Component {
         }
         return this;
     }
+    /**
+     * 맥에서 인라인 메뉴를 제거합니다.
+     */
     hideMenuOnMac() {
         if (process.platform === "darwin") {
             document.querySelector(".menu").style.display =

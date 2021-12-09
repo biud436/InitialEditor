@@ -14,9 +14,14 @@ function startBuild() {
     const isUnixBase =
         process.platform.indexOf("darwin") !== -1 ||
         process.platform.indexOf("linux") !== -1;
+    const preCommand = isUnixBase
+        ? `npx webpack --config=webpack-build.config.js`
+        : `chcp 65001 | npx webpack --config=webpack-build.config.js`;
     const buildCommand = isUnixBase
         ? `npx webpack --config=webpack.config.js`
         : `chcp 65001 | npx webpack --config=webpack.config.js`;
+
+    // cd.spawn(preCommand, { cwd: path.join(__dirname, ".."), shell: true });
 
     let child = cd.exec(
         buildCommand,
