@@ -10,34 +10,40 @@ const OtherToolbar = [
         children: "take-screenshot",
         action: (ev: any) => {
             $("#take-screenshot").trigger("click");
-        },
+        }
     },
     {
         name: "",
         children: "tools-resource-manager",
-        action: (ev: any) => {},
+        action: (ev: any) => {}
     },
     {
         name: "",
         children: "tools-script-eidtor",
-        action: (ev: any) => {},
+        action: (ev: any) => {}
     },
     {
         name: "",
         children: "tools-sound-test",
-        action: (ev: any) => {},
+        action: (ev: any) => {}
     },
     EmptySegment,
     {
         name: "",
         children: "tools-options",
-        action: (ev: any) => {},
+        action: (ev: any) => {
+            if (window.app) {
+                window.app.emit("openWindow", {
+                    path: "/optionWindow"
+                });
+            }
+        }
     },
     EmptySegment,
     {
         name: "",
         children: "game-playtest",
-        action: (ev: any) => {},
+        action: (ev: any) => {}
     },
     EmptySegment,
     {
@@ -47,8 +53,8 @@ const OtherToolbar = [
             const current = path.join(process.cwd().replace(/\\/g, "/"));
             window.alert(current);
             shell.showItemInFolder(current);
-        },
-    },
+        }
+    }
 ];
 
 export { OtherToolbar };

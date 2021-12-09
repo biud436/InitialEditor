@@ -4,6 +4,7 @@ import { EventEmitter } from "./EventEmitter";
 import VueApp from "./views/VueApp.vue";
 import NewWindow from "./views/NewWindow.vue";
 import MainContainer from "./views/MainContainer.vue";
+import TilesetWindow from "./views/TilesetWindow.vue";
 
 export class VueBinder extends EventEmitter {
     private vnode: Vue;
@@ -20,6 +21,11 @@ export class VueBinder extends EventEmitter {
                 path: "/newWindow",
                 name: "newWindow",
                 component: NewWindow
+            },
+            {
+                path: "/optionWindow",
+                name: "optionWindow",
+                component: TilesetWindow
             }
         ];
     }

@@ -19,6 +19,10 @@ const electronTypeTarget = {
                 use: []
             },
             {
+                test: /\.vue$/,
+                loader: "vue-loader"
+            },
+            {
                 test: /\.ts$/,
                 use: "ts-loader",
                 exclude: /node_modules/,
@@ -31,10 +35,6 @@ const electronTypeTarget = {
                     path.resolve(__dirname, "css", "images")
                 ],
                 use: ["file-loader"]
-            },
-            {
-                test: /\.vue$/,
-                loader: "vue-loader"
             },
             {
                 test: /\.js$/,

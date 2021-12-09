@@ -41771,6 +41771,118 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=script&lang=js&":
+/*!*****************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=script&lang=js& ***!
+  \*****************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+const THEME = {
+  DARK: 0,
+  LIGHT: 1
+};
+/* harmony default export */ __webpack_exports__["default"] = ({
+  mounted() {
+    $(this.$refs.tilesetWindow).draggable();
+  },
+
+  methods: {
+    close() {
+      const themeIndex = $("#theme-select-box").prop("selectedIndex");
+      const themeManager = new ThemeManager();
+
+      if (themeIndex == THEME.DARK) {
+        $("body").data("theme", "dark");
+        themeManager.changeDarkTheme(true);
+      } else {
+        $("body").data("theme", "light");
+        themeManager.changeLightTheme(true);
+      }
+
+      this.$router.push("home");
+    }
+
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/buffer-from/index.js":
 /*!*******************************************!*\
   !*** ./node_modules/buffer-from/index.js ***!
@@ -42029,6 +42141,28 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
 ___CSS_LOADER_EXPORT___.push([module.i, ".aside__tabs {\n    width: 25%;\n    min-height: calc(98vh - 48px);\n    height: calc(98vh - 48px);\n    display: block;\n    padding: 0;\n    margin: 0;\n    background: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n    box-shadow: 1px 1px 10px var(--dark-selection-color) inset, 1px 1px 10px var(--dark-shadow-color);\n    position: relative;\n    overflow: hidden;\n    z-index: 1;\n    margin-top: 1px;\n    float:left;\n}\n\n#view {\n    width: 100%;\n    min-height: calc(68% - 32px);\n    height: calc(68% - 32px);\n    overflow: scroll;\n    display: block;\n    background: rgb(50,50,50);    \n    position: relative;\n}\n\n.aside__tabs img {\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    -o-user-select: none;\n    user-select: none;\n    pointer-events: none;    \n    -webkit-user-drag: none;\n    -moz-user-drag: none;\n}\n\n.aside__tabs ul {\n    padding: 0;\n    margin: 0;\n    width: 100%;\n}\n\n.aside__tabs > ul > li {\n    width: calc(90% / 5);\n    display: inline-block;\n}\n\n.aside__tabs > ul > li > ul {\n    width: calc(90% / 5);\n    height: unset;\n    display: inline-block;\n}\n\n.aside__tabs ul li label {\n    width: 100%;\n    height: 100%;\n    display: inline-block;\n    background: var(--dark-title-color);\n    color: var(--dark-text-color);\n    text-align: center;\n    box-shadow: 2px 0px 4px var(--dark-shadow-color);\n    position: relative;\n    border-radius: 0px 0px 5px 5px;\n    display:flex;\n    justify-content: center;\n    align-items: center;\n}\n\n.aside__tabs input[type=\"radio\"] {\n    overflow:hidden;\n    text-overflow: clip;\n    white-space: nowrap;\n    width: 0px;\n    height: 0px;\n    position: fixed;    \n}\n\n.aside__tabs input[id=\"a\"]:checked ~ ul label#tab-a {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"b\"]:checked ~ ul label#tab-b {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"c\"]:checked ~ ul label#tab-c {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"d\"]:checked ~ ul label#tab-d {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"e\"]:checked ~ ul label#tab-e {\n    background: rgb(130,130,130);\n}", "",{"version":3,"sources":["webpack://css/tile.css"],"names":[],"mappings":"AAAA;IACI,UAAU;IACV,6BAA6B;IAC7B,yBAAyB;IACzB,cAAc;IACd,UAAU;IACV,SAAS;IACT,mCAAmC;IACnC,0CAA0C;IAC1C,iGAAiG;IACjG,kBAAkB;IAClB,gBAAgB;IAChB,UAAU;IACV,eAAe;IACf,UAAU;AACd;;AAEA;IACI,WAAW;IACX,4BAA4B;IAC5B,wBAAwB;IACxB,gBAAgB;IAChB,cAAc;IACd,yBAAyB;IACzB,kBAAkB;AACtB;;AAEA;IACI,sBAAsB;IACtB,yBAAyB;IACzB,oBAAoB;IACpB,iBAAiB;IACjB,oBAAoB;IACpB,uBAAuB;IACvB,oBAAoB;AACxB;;AAEA;IACI,UAAU;IACV,SAAS;IACT,WAAW;AACf;;AAEA;IACI,oBAAoB;IACpB,qBAAqB;AACzB;;AAEA;IACI,oBAAoB;IACpB,aAAa;IACb,qBAAqB;AACzB;;AAEA;IACI,WAAW;IACX,YAAY;IACZ,qBAAqB;IACrB,mCAAmC;IACnC,6BAA6B;IAC7B,kBAAkB;IAClB,gDAAgD;IAChD,kBAAkB;IAClB,8BAA8B;IAC9B,YAAY;IACZ,uBAAuB;IACvB,mBAAmB;AACvB;;AAEA;IACI,eAAe;IACf,mBAAmB;IACnB,mBAAmB;IACnB,UAAU;IACV,WAAW;IACX,eAAe;AACnB;;AAEA;IACI,4BAA4B;AAChC;AACA;IACI,4BAA4B;AAChC;AACA;IACI,4BAA4B;AAChC;AACA;IACI,4BAA4B;AAChC;AACA;IACI,4BAA4B;AAChC","sourcesContent":[".aside__tabs {\n    width: 25%;\n    min-height: calc(98vh - 48px);\n    height: calc(98vh - 48px);\n    display: block;\n    padding: 0;\n    margin: 0;\n    background: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n    box-shadow: 1px 1px 10px var(--dark-selection-color) inset, 1px 1px 10px var(--dark-shadow-color);\n    position: relative;\n    overflow: hidden;\n    z-index: 1;\n    margin-top: 1px;\n    float:left;\n}\n\n#view {\n    width: 100%;\n    min-height: calc(68% - 32px);\n    height: calc(68% - 32px);\n    overflow: scroll;\n    display: block;\n    background: rgb(50,50,50);    \n    position: relative;\n}\n\n.aside__tabs img {\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    -o-user-select: none;\n    user-select: none;\n    pointer-events: none;    \n    -webkit-user-drag: none;\n    -moz-user-drag: none;\n}\n\n.aside__tabs ul {\n    padding: 0;\n    margin: 0;\n    width: 100%;\n}\n\n.aside__tabs > ul > li {\n    width: calc(90% / 5);\n    display: inline-block;\n}\n\n.aside__tabs > ul > li > ul {\n    width: calc(90% / 5);\n    height: unset;\n    display: inline-block;\n}\n\n.aside__tabs ul li label {\n    width: 100%;\n    height: 100%;\n    display: inline-block;\n    background: var(--dark-title-color);\n    color: var(--dark-text-color);\n    text-align: center;\n    box-shadow: 2px 0px 4px var(--dark-shadow-color);\n    position: relative;\n    border-radius: 0px 0px 5px 5px;\n    display:flex;\n    justify-content: center;\n    align-items: center;\n}\n\n.aside__tabs input[type=\"radio\"] {\n    overflow:hidden;\n    text-overflow: clip;\n    white-space: nowrap;\n    width: 0px;\n    height: 0px;\n    position: fixed;    \n}\n\n.aside__tabs input[id=\"a\"]:checked ~ ul label#tab-a {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"b\"]:checked ~ ul label#tab-b {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"c\"]:checked ~ ul label#tab-c {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"d\"]:checked ~ ul label#tab-d {\n    background: rgb(130,130,130);\n}\n.aside__tabs input[id=\"e\"]:checked ~ ul label#tab-e {\n    background: rgb(130,130,130);\n}"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
+/*!********************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
+  \********************************************************************************************************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
+// Imports
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
+// Module
+___CSS_LOADER_EXPORT___.push([module.i, "#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 1;\n  position: relative;\n}\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n.tilesetWindow__panel {\n  float: right;\n}\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}", "",{"version":3,"sources":["webpack://packages/views/TilesetWindow.vue","webpack://TilesetWindow.vue"],"names":[],"mappings":"AAsGA;EACI,YAAA;EACA,yBAAA;EACA,gBAAA;EACA,oCAAA;EACA,UAAA;EACA,kBAAA;ACrGJ;ADwGA;EACI,WAAA;EACA,mBAAA;EACA,0CAAA;EACA,oBAAA;EACA,kBAAA;EACA,yBAAA;EACA,kBAAA;EACA,iBAAA;ACrGJ;ADwGA;EACI,uBAAA;EACA,kBAAA;EACA,WAAA;EACA,WAAA;EACA,yBAAA;EACA,6BAAA;EACA,UAAA;ACrGJ;ADwGA;EACI,oBAAA;EACA,UAAA;ACrGJ;ADwGA;EACI,iBAAA;EACA,oDAAA;EACA,mCAAA;EACA,gCAAA;ACrGJ;ADwGA;EACI,aAAA;ACrGJ;ADwGA;EACI,kBAAA;EACA,UAAA;EACA,WAAA;EACA,iBAAA;EACA,WAAA;EACA,YAAA;ACrGJ;ADwGA;EACI,kCAAA;ACrGJ;ADwGA;EACI,YAAA;ACrGJ;ADwGA;EACI,yCAAA;EACA,0CAAA;ACrGJ;ADwGA;;EAEI,aAAA;EACA,6CAAA;ACrGJ;ADwGA;EACI,aAAA;EACA,uCAAA;ACrGJ;ADwGA;EACI,6CAAA;EACA,oCAAA;ACrGJ;ADwGA;EACI,6CAAA;ACrGJ","sourcesContent":["\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n#tilesetWindow {\n    padding: 1em;\n    background-color: inherit;\n    overflow: hidden;\n    background: var(--dark-shadow-color);\n    opacity: 1;\n    position: relative;\n}\n\n.tilesetWindow__tab-border {\n    width: 100%;\n    height: max-content;\n    border: 1px solid var(--dark-border-color);\n    border-radius: 0.4em;\n    position: relative;\n    background-color: inherit;\n    margin-bottom: 1em;\n    margin-top: 1.2em;\n}\n\n.tilesetWindow__tab-border::before {\n    content: attr(tab-name);\n    position: absolute;\n    top: -0.7em;\n    left: 0.8em;\n    background-color: inherit;\n    color: var(--dark-text-color);\n    font: menu;\n}\n\n.tilesetWindow__tab-border ul li {\n    margin-bottom: 0.5em;\n    font: menu;\n}\n\n.tilesetWindow__tab-border input {\n    text-align: right;\n    background-color: var(--dark-input-background-color);\n    color: var(--dark-input-text-color);\n    border: var(--dark-border-color);\n}\n\n.tilesetWindow__tab-border input:focus {\n    outline: none;\n}\n\n#tilesetWindow .tilesetWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#tilesetWindow .tilesetWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n.tilesetWindow__panel {\n    float: right;\n}\n\n#tilesetWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n\n#tilesetWindow button:hover,\nbutton:focus {\n    outline: none;\n    background-color: var(--dark-selection-color);\n}\n\n#tilesetWindow button:active {\n    outline: none;\n    background-color: rgba(60, 60, 60, 0.9);\n}\n\n#tilesetWindow select {\n    background-color: var(--dark-selection-color);\n    color: var(--dark---dark-text-color);\n}\n\n#tilesetWindow button {\n    background-color: var(--dark-selection-color);\n}\n","#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 1;\n  position: relative;\n}\n\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n\n.tilesetWindow__panel {\n  float: right;\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -52860,6 +52994,162 @@ render._withStripped = true
 
 /***/ }),
 
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&":
+/*!*******************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef& ***!
+  \*******************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "div",
+    {
+      ref: "tilesetWindow",
+      attrs: { id: "tilesetWindow", "window-name": "타일셋 창" }
+    },
+    [
+      _vm._m(0),
+      _vm._v(" "),
+      _vm._m(1),
+      _vm._v(" "),
+      _c("div", { staticClass: "tilesetWindow__control-box" }, [
+        _c("p", [
+          _c("span", [
+            _c("i", {
+              staticClass: "far fa-window-close",
+              attrs: { id: "action-close" },
+              on: { click: _vm.close }
+            })
+          ])
+        ])
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "tilesetWindow__panel" }, [
+        _c("button", { attrs: { id: "ok" }, on: { click: _vm.close } }, [
+          _vm._v("확인")
+        ]),
+        _vm._v(" "),
+        _c("button", { attrs: { id: "cancel" }, on: { click: _vm.close } }, [
+          _vm._v("취소")
+        ])
+      ]),
+      _vm._v(" "),
+      _c("img", {
+        attrs: {
+          src:
+            "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+          onload:
+            'window.app.onLoad(this, "tileset");this.parentNode.removeChild(this);'
+        }
+      })
+    ]
+  )
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "div",
+      {
+        staticClass: "tilesetWindow__tileset tilesetWindow__tab-border",
+        attrs: { "tab-name": "타일셋" }
+      },
+      [
+        _c("ul", [
+          _c("li", [
+            _c("label", { attrs: { for: "name" } }, [_vm._v("이름 : ")]),
+            _c("input", {
+              attrs: { type: "text", placeholder: "name", name: "name" }
+            })
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "name" } }, [_vm._v("이미지: ")]),
+            _vm._v(" "),
+            _c("input", {
+              attrs: { type: "file", name: "", id: "image-load-dialog" }
+            })
+          ])
+        ])
+      ]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "div",
+      {
+        staticClass: "tilesetWindow-tile tilesetWindow__tab-border",
+        attrs: { "tab-name": "타일" }
+      },
+      [
+        _c("ul", [
+          _c("li", [
+            _c("label", { attrs: { for: "tile-width" } }, [
+              _vm._v("가로 크기 : ")
+            ]),
+            _c("input", {
+              attrs: {
+                type: "number",
+                id: "tile-width",
+                value: "32",
+                name: "tileWidth"
+              }
+            }),
+            _vm._v("px\n            ")
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "tile-height" } }, [
+              _vm._v("세로 크기 : ")
+            ]),
+            _c("input", {
+              attrs: {
+                type: "number",
+                id: "tile-height",
+                value: "32",
+                name: "tileHeight"
+              }
+            }),
+            _vm._v("px\n            ")
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "theme" } }, [_vm._v("테마 설정 : ")]),
+            _vm._v(" "),
+            _c("select", { attrs: { name: "theme", id: "theme-select-box" } }, [
+              _c("option", { attrs: { value: "dark", selected: "" } }, [
+                _vm._v("다크 테마")
+              ]),
+              _vm._v(" "),
+              _c("option", { attrs: { value: "light" } }, [
+                _vm._v("라이트 테마")
+              ])
+            ])
+          ])
+        ])
+      ]
+    )
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
 /***/ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js":
 /*!********************************************************************!*\
   !*** ./node_modules/vue-loader/lib/runtime/componentNormalizer.js ***!
@@ -55999,6 +56289,28 @@ if (inBrowser && window.Vue) {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (VueRouter);
+
+/***/ }),
+
+/***/ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
+/*!****************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-style-loader!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
+  \****************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(/*! !../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/sass-loader/dist/cjs.js!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=style&index=0&lang=scss& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&");
+if(content.__esModule) content = content.default;
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var add = __webpack_require__(/*! ../../node_modules/vue-style-loader/lib/addStylesClient.js */ "./node_modules/vue-style-loader/lib/addStylesClient.js").default
+var update = add("4248c1b4", content, false, {});
+// Hot Module Replacement
+if(false) {}
 
 /***/ }),
 
@@ -69325,7 +69637,7 @@ class ThemeManager {
     }
 }
 exports.ThemeManager = ThemeManager;
-6;
+window.ThemeManager = ThemeManager;
 
 
 /***/ }),
@@ -70061,6 +70373,7 @@ const vue_router_1 = __importDefault(__webpack_require__(/*! vue-router */ "./no
 const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
 const NewWindow_vue_1 = __importDefault(__webpack_require__(/*! ./views/NewWindow.vue */ "./packages/views/NewWindow.vue"));
 const MainContainer_vue_1 = __importDefault(__webpack_require__(/*! ./views/MainContainer.vue */ "./packages/views/MainContainer.vue"));
+const TilesetWindow_vue_1 = __importDefault(__webpack_require__(/*! ./views/TilesetWindow.vue */ "./packages/views/TilesetWindow.vue"));
 class VueBinder extends EventEmitter_1.EventEmitter {
     constructor() {
         super();
@@ -70072,6 +70385,11 @@ class VueBinder extends EventEmitter_1.EventEmitter {
                 path: "/newWindow",
                 name: "newWindow",
                 component: NewWindow_vue_1.default
+            },
+            {
+                path: "/optionWindow",
+                name: "optionWindow",
+                component: TilesetWindow_vue_1.default
             }
         ];
     }
@@ -72141,34 +72459,40 @@ const OtherToolbar = [
         children: "take-screenshot",
         action: (ev) => {
             $("#take-screenshot").trigger("click");
-        },
+        }
     },
     {
         name: "",
         children: "tools-resource-manager",
-        action: (ev) => { },
+        action: (ev) => { }
     },
     {
         name: "",
         children: "tools-script-eidtor",
-        action: (ev) => { },
+        action: (ev) => { }
     },
     {
         name: "",
         children: "tools-sound-test",
-        action: (ev) => { },
+        action: (ev) => { }
     },
     EmptySegment_1.EmptySegment,
     {
         name: "",
         children: "tools-options",
-        action: (ev) => { },
+        action: (ev) => {
+            if (window.app) {
+                window.app.emit("openWindow", {
+                    path: "/optionWindow"
+                });
+            }
+        }
     },
     EmptySegment_1.EmptySegment,
     {
         name: "",
         children: "game-playtest",
-        action: (ev) => { },
+        action: (ev) => { }
     },
     EmptySegment_1.EmptySegment,
     {
@@ -72178,8 +72502,8 @@ const OtherToolbar = [
             const current = path.join(process.cwd().replace(/\\/g, "/"));
             window.alert(current);
             electron_1.shell.showItemInFolder(current);
-        },
-    },
+        }
+    }
 ];
 exports.OtherToolbar = OtherToolbar;
 
@@ -72648,6 +72972,93 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_template_id_43a1bdca___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_template_id_43a1bdca___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./packages/views/TilesetWindow.vue":
+/*!******************************************!*\
+  !*** ./packages/views/TilesetWindow.vue ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TilesetWindow.vue?vue&type=template&id=77a57fef& */ "./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&");
+/* harmony import */ var _TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TilesetWindow.vue?vue&type=script&lang=js& */ "./packages/views/TilesetWindow.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./TilesetWindow.vue?vue&type=style&index=0&lang=scss& */ "./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
+  _TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "packages/views/TilesetWindow.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./packages/views/TilesetWindow.vue?vue&type=script&lang=js&":
+/*!*******************************************************************!*\
+  !*** ./packages/views/TilesetWindow.vue?vue&type=script&lang=js& ***!
+  \*******************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/babel-loader/lib!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
+/*!****************************************************************************!*\
+  !*** ./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
+  \****************************************************************************/
+/*! no static exports found */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-style-loader!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/sass-loader/dist/cjs.js!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=style&index=0&lang=scss& */ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&");
+/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__) if(["default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+
+
+/***/ }),
+
+/***/ "./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&":
+/*!*************************************************************************!*\
+  !*** ./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef& ***!
+  \*************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=template&id=77a57fef& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 

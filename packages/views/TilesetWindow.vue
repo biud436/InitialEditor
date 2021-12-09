@@ -1,73 +1,70 @@
 <template>
-    <div id="tilesetWindow" window-name="타일셋 창">
-        <form
-            action="http://localhost:3000/upload_images"
-            method="POST"
-            name="uploadTilesetImage"
-            enctype="multipart/form-data"
+    <div id="tilesetWindow" window-name="타일셋 창" ref="tilesetWindow">
+        <div
+            class="tilesetWindow__tileset tilesetWindow__tab-border"
+            tab-name="타일셋"
         >
-            <div
-                class="tilesetWindow__tileset tilesetWindow__tab-border"
-                tab-name="타일셋"
-            >
-                <ul>
-                    <li>
-                        <label for="name">이름 : </label
-                        ><input type="text" placeholder="name" name="name" />
-                    </li>
-                    <li>
-                        <label for="name">이미지: </label>
-                        <input type="file" name="" id="image-load-dialog" />
-                    </li>
-                </ul>
-            </div>
-            <div
-                class="tilesetWindow-tile tilesetWindow__tab-border"
-                tab-name="타일"
-            >
-                <ul>
-                    <li>
-                        <label for="tile-width">가로 크기 : </label
-                        ><input
-                            type="number"
-                            id="tile-width"
-                            value="32"
-                            name="tileWidth"
-                        />px
-                    </li>
-                    <li>
-                        <label for="tile-height">세로 크기 : </label
-                        ><input
-                            type="number"
-                            id="tile-height"
-                            value="32"
-                            name="tileHeight"
-                        />px
-                    </li>
-                    <li>
-                        <label for="theme">테마 설정 : </label>
+            <ul>
+                <li>
+                    <label for="name">이름 : </label
+                    ><input type="text" placeholder="name" name="name" />
+                </li>
+                <li>
+                    <label for="name">이미지: </label>
+                    <input type="file" name="" id="image-load-dialog" />
+                </li>
+            </ul>
+        </div>
+        <div
+            class="tilesetWindow-tile tilesetWindow__tab-border"
+            tab-name="타일"
+        >
+            <ul>
+                <li>
+                    <label for="tile-width">가로 크기 : </label
+                    ><input
+                        type="number"
+                        id="tile-width"
+                        value="32"
+                        name="tileWidth"
+                    />px
+                </li>
+                <li>
+                    <label for="tile-height">세로 크기 : </label
+                    ><input
+                        type="number"
+                        id="tile-height"
+                        value="32"
+                        name="tileHeight"
+                    />px
+                </li>
+                <li>
+                    <label for="theme">테마 설정 : </label>
 
-                        <select name="theme" id="theme-select-box">
-                            <option value="dark" selected>다크 테마</option>
-                            <option value="light">라이트 테마</option>
-                        </select>
-                    </li>
-                </ul>
-            </div>
+                    <select name="theme" id="theme-select-box">
+                        <option value="dark" selected>다크 테마</option>
+                        <option value="light">라이트 테마</option>
+                    </select>
+                </li>
+            </ul>
+        </div>
 
-            <div class="tilesetWindow__control-box">
-                <p>
-                    <span
-                        ><i class="far fa-window-close" id="action-close"></i
-                    ></span>
-                </p>
-            </div>
+        <div class="tilesetWindow__control-box">
+            <p>
+                <span
+                    ><i
+                        class="far fa-window-close"
+                        id="action-close"
+                        @click="close"
+                    ></i
+                ></span>
+            </p>
+        </div>
 
-            <div class="tilesetWindow__panel">
-                <button id="ok">확인</button>
-                <button id="cancel">취소</button>
-            </div>
-        </form>
+        <div class="tilesetWindow__panel">
+            <button id="ok" @click="close">확인</button>
+            <button id="cancel" @click="close">취소</button>
+        </div>
         <img
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             onload='window.app.onLoad(this, "tileset");this.parentNode.removeChild(this);'
@@ -75,7 +72,32 @@
     </div>
 </template>
 <script>
-export default {};
+const THEME = {
+    DARK: 0,
+    LIGHT: 1
+};
+export default {
+    mounted() {
+        $(this.$refs.tilesetWindow).draggable();
+    },
+    methods: {
+        close() {
+            const themeIndex = $("#theme-select-box").prop("selectedIndex");
+
+            const themeManager = new ThemeManager();
+
+            if (themeIndex == THEME.DARK) {
+                $("body").data("theme", "dark");
+                themeManager.changeDarkTheme(true);
+            } else {
+                $("body").data("theme", "light");
+                themeManager.changeLightTheme(true);
+            }
+
+            this.$router.push("home");
+        }
+    }
+};
 </script>
 <style lang="scss">
 #tilesetWindow {
