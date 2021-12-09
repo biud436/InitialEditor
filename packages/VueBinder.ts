@@ -18,6 +18,7 @@ export class VueBinder extends EventEmitter {
             { path: "/", name: "home", component: MainContainer },
             {
                 path: "/newWindow",
+                name: "newWindow",
                 component: NewWindow
             }
         ];

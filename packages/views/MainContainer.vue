@@ -355,29 +355,30 @@
             <div class="contents">
                 <canvas id="contents__main-canvas"> </canvas>
             </div>
-            <div id="app">
-                <new-window></new-window>
-                <tileset-window></tileset-window>
-            </div>
+        </div>
+        <div id="app">
+            <!-- <new-window></new-window>
+            <tileset-window></tileset-window> -->
+            <router-view></router-view>
         </div>
     </div>
 </template>
 <script>
-import NewWindow from "./NewWindow.vue";
-import TilesetWindow from "./TilesetWindow.vue";
+// import NewWindow from "./NewWindow.vue";
+// import TilesetWindow from "./TilesetWindow.vue";
 
 export default {
-    components: {
-        NewWindow,
-        TilesetWindow
-    },
+    // components: {
+    //     NewWindow,
+    //     TilesetWindow
+    // },
     mounted() {
-        window.onMounted();
-
-        // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
-        if (window.app) {
-            window.app.on("openWindow", this.openWindow);
-        }
+        window.onMounted(() => {
+            // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+            if (window.app) {
+                window.app.on("openWindow", this.openWindow);
+            }
+        });
     },
     methods: {
         openWindow(route) {
@@ -390,6 +391,5 @@ export default {
 @import url("../../css/main.css");
 #app {
     background-color: transparent;
-    z-index: 10000;
 }
 </style>

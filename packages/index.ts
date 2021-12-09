@@ -10,12 +10,13 @@ require("source-map-support").install();
 // Main
 //==========================================================
 class Main {
-    static start() {
+    static start(bindFunc: Function) {
         $(async () => {
             window.app = App.GetInstance();
             window.electronService = new ElectronService();
             window.ToolbarManager = new ToolbarManager();
             window.app.start();
+            bindFunc();
             this.update(1.0);
         });
     }
@@ -26,8 +27,8 @@ class Main {
     }
 }
 
-(window as any).onMounted = () => {
-    Main.start();
+(window as any).onMounted = (func: Function) => {
+    Main.start(func);
 };
 
 const vue = new VueBinder();

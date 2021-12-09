@@ -41316,8 +41316,6 @@ function getResolutionOfUrl(url, defaultValue) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _NewWindow_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./NewWindow.vue */ "./packages/views/NewWindow.vue");
-/* harmony import */ var _TilesetWindow_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TilesetWindow.vue */ "./packages/views/TilesetWindow.vue");
 //
 //
 //
@@ -41682,20 +41680,21 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-
-
+//
+// import NewWindow from "./NewWindow.vue";
+// import TilesetWindow from "./TilesetWindow.vue";
 /* harmony default export */ __webpack_exports__["default"] = ({
-  components: {
-    NewWindow: _NewWindow_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
-    TilesetWindow: _TilesetWindow_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
-  },
-
+  // components: {
+  //     NewWindow,
+  //     TilesetWindow
+  // },
   mounted() {
-    window.onMounted(); // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
-
-    if (window.app) {
-      window.app.on("openWindow", this.openWindow);
-    }
+    window.onMounted(() => {
+      // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+      if (window.app) {
+        window.app.on("openWindow", this.openWindow);
+      }
+    });
   },
 
   methods: {
@@ -41769,95 +41768,6 @@ __webpack_require__.r(__webpack_exports__);
 
   }
 });
-
-/***/ }),
-
-/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=script&lang=js&":
-/*!*****************************************************************************************************************************************************!*\
-  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=script&lang=js& ***!
-  \*****************************************************************************************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* harmony default export */ __webpack_exports__["default"] = ({});
 
 /***/ }),
 
@@ -42125,28 +42035,6 @@ ___CSS_LOADER_EXPORT___.push([module.i, ".aside__tabs {\n    width: 25%;\n    mi
 
 /***/ }),
 
-/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
-/*!********************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
-  \********************************************************************************************************************************************************************************************************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
-// Imports
-
-var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
-// Module
-___CSS_LOADER_EXPORT___.push([module.i, "#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 1;\n  position: relative;\n}\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n.tilesetWindow__panel {\n  float: right;\n}\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}", "",{"version":3,"sources":["webpack://packages/views/TilesetWindow.vue","webpack://TilesetWindow.vue"],"names":[],"mappings":"AAgFA;EACI,YAAA;EACA,yBAAA;EACA,gBAAA;EACA,oCAAA;EACA,UAAA;EACA,kBAAA;AC/EJ;ADkFA;EACI,WAAA;EACA,mBAAA;EACA,0CAAA;EACA,oBAAA;EACA,kBAAA;EACA,yBAAA;EACA,kBAAA;EACA,iBAAA;AC/EJ;ADkFA;EACI,uBAAA;EACA,kBAAA;EACA,WAAA;EACA,WAAA;EACA,yBAAA;EACA,6BAAA;EACA,UAAA;AC/EJ;ADkFA;EACI,oBAAA;EACA,UAAA;AC/EJ;ADkFA;EACI,iBAAA;EACA,oDAAA;EACA,mCAAA;EACA,gCAAA;AC/EJ;ADkFA;EACI,aAAA;AC/EJ;ADkFA;EACI,kBAAA;EACA,UAAA;EACA,WAAA;EACA,iBAAA;EACA,WAAA;EACA,YAAA;AC/EJ;ADkFA;EACI,kCAAA;AC/EJ;ADkFA;EACI,YAAA;AC/EJ;ADkFA;EACI,yCAAA;EACA,0CAAA;AC/EJ;ADkFA;;EAEI,aAAA;EACA,6CAAA;AC/EJ;ADkFA;EACI,aAAA;EACA,uCAAA;AC/EJ;ADkFA;EACI,6CAAA;EACA,oCAAA;AC/EJ;ADkFA;EACI,6CAAA;AC/EJ","sourcesContent":["\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n#tilesetWindow {\n    padding: 1em;\n    background-color: inherit;\n    overflow: hidden;\n    background: var(--dark-shadow-color);\n    opacity: 1;\n    position: relative;\n}\n\n.tilesetWindow__tab-border {\n    width: 100%;\n    height: max-content;\n    border: 1px solid var(--dark-border-color);\n    border-radius: 0.4em;\n    position: relative;\n    background-color: inherit;\n    margin-bottom: 1em;\n    margin-top: 1.2em;\n}\n\n.tilesetWindow__tab-border::before {\n    content: attr(tab-name);\n    position: absolute;\n    top: -0.7em;\n    left: 0.8em;\n    background-color: inherit;\n    color: var(--dark-text-color);\n    font: menu;\n}\n\n.tilesetWindow__tab-border ul li {\n    margin-bottom: 0.5em;\n    font: menu;\n}\n\n.tilesetWindow__tab-border input {\n    text-align: right;\n    background-color: var(--dark-input-background-color);\n    color: var(--dark-input-text-color);\n    border: var(--dark-border-color);\n}\n\n.tilesetWindow__tab-border input:focus {\n    outline: none;\n}\n\n#tilesetWindow .tilesetWindow__control-box {\n    position: absolute;\n    top: -16px;\n    right: 10px;\n    text-align: right;\n    width: 24px;\n    height: 24px;\n}\n\n#tilesetWindow .tilesetWindow__control-box i:hover {\n    color: var(--dark-selection-color);\n}\n\n.tilesetWindow__panel {\n    float: right;\n}\n\n#tilesetWindow button {\n    background-color: var(--dark-title-color);\n    border: 1px solid var(--dark-border-color);\n}\n\n#tilesetWindow button:hover,\nbutton:focus {\n    outline: none;\n    background-color: var(--dark-selection-color);\n}\n\n#tilesetWindow button:active {\n    outline: none;\n    background-color: rgba(60, 60, 60, 0.9);\n}\n\n#tilesetWindow select {\n    background-color: var(--dark-selection-color);\n    color: var(--dark---dark-text-color);\n}\n\n#tilesetWindow button {\n    background-color: var(--dark-selection-color);\n}\n","#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 1;\n  position: relative;\n}\n\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n\n.tilesetWindow__panel {\n  float: right;\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}"],"sourceRoot":""}]);
-// Exports
-/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
-
-
-/***/ }),
-
 /***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js?!./packages/views/MainContainer.vue?vue&type=style&index=0&lang=css&":
 /*!****************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/MainContainer.vue?vue&type=style&index=0&lang=css& ***!
@@ -42165,7 +42053,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 ___CSS_LOADER_EXPORT___.i(_node_modules_css_loader_dist_cjs_js_css_main_css__WEBPACK_IMPORTED_MODULE_1__["default"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\n    background-color: transparent;\n    z-index: 10000;\n}\n", "",{"version":3,"sources":["webpack://packages/views/MainContainer.vue"],"names":[],"mappings":";AAsYA;IACA,6BAAA;IACA,cAAA;AACA","sourcesContent":["<template>\n    <div id=\"wrapper\">\n        <div class=\"container\">\n            <div class=\"menu\">\n                <div\n                    class=\"drag-zon\"\n                    window-name=\"Initial Editor - 맵 에디터\"\n                ></div>\n                <!-- \n                다음 <input> 요소는 실제 화면에서 보이지 않습니다. \n                general sibling combinator를 이용하여 메뉴를 토글할 때 사용됩니다.\n                이것은 간단하게 만들 수 있지만 꽤나 강력합니다.\n\n                그러나 실제 메뉴와 달리 다양한 상태에 대응할 수가 없어,\n                일부 동작에서는 매우 부자연스럽습니다.\n\n                예를 들면, 일반적으로 메뉴가 열린 상태에서 우측 메뉴에 마우스를 오버하면\n                즉시 우측에 있는 메뉴가 열려야 합니다만,\n\n                CSS로는 이를 제어할 수가 없기 때문에 자바스크립트 코드가 들어가야 합니다.\n            -->\n                <input type=\"radio\" name=\"menu\" id=\"file\" />\n                <input type=\"radio\" name=\"menu\" id=\"edit\" />\n                <input type=\"radio\" name=\"menu\" id=\"mode\" />\n                <input type=\"radio\" name=\"menu\" id=\"draw\" />\n                <input type=\"radio\" name=\"menu\" id=\"scale\" />\n                <input type=\"radio\" name=\"menu\" id=\"tools\" />\n                <input type=\"radio\" name=\"menu\" id=\"game\" />\n                <input type=\"radio\" name=\"menu\" id=\"help\" />\n                <input type=\"radio\" name=\"menu\" id=\"none\" />\n\n                <!-- 메인 메뉴 -->\n                <ul class=\"menu__main\">\n                    <li class=\"menu__main-program-icon\"></li>\n                    <li class=\"menu__main-file\">\n                        <label for=\"file\" data-action=\"file\">File</label>\n                    </li>\n                    <li><label for=\"edit\" data-action=\"edit\">Edit</label></li>\n                    <li><label for=\"mode\" data-action=\"mode\">Mode</label></li>\n                    <li><label for=\"draw\" data-action=\"draw\">Draw</label></li>\n                    <li>\n                        <label for=\"scale\" data-action=\"scale\">Scale</label>\n                    </li>\n                    <li>\n                        <label for=\"tools\" data-action=\"tools\">Tools</label>\n                    </li>\n                    <li><label for=\"game\" data-action=\"game\">Game</label></li>\n                    <li><label for=\"help\" data-action=\"help\">Help</label></li>\n                    <ul class=\"control-box\">\n                        <li class=\"minimum\" data-action=\"minimum\">\n                            <i class=\"fas fa-minus\"></i>\n                        </li>\n                        <li class=\"maximum\" data-action=\"maximum\">\n                            <i class=\"fas fa-window-maximize\"></i>\n                        </li>\n                        <li class=\"close\" data-action=\"close\">\n                            <i class=\"far fa-window-close\"></i>\n                        </li>\n                    </ul>\n                </ul>\n                <!-- 파일 서브 메뉴 -->\n                <ul class=\"menu__file-sub menu-style\" value=\"File\">\n                    <li data-action=\"file-new\" class=\"file-menu-new-button\">\n                        <i class=\"far fa-file\"></i>New<em>Ctrl+N</em>\n                    </li>\n                    <li data-action=\"file-open\">\n                        <i class=\"far fa-folder-open\"></i>Open<em>Ctrl+O</em>\n                    </li>\n                    <li data-action=\"file-close\">\n                        <i class=\"far fa-window-close\"></i>Close\n                    </li>\n                    <li data-action=\"file-save\">\n                        <i class=\"far fa-save\"></i>Save<em>Ctrl+S</em>\n                    </li>\n                    <li data-action=\"file-preferences\">\n                        <i class=\"fas fa-wrench\"></i>User Preferences<em\n                            >Ctrl+M</em\n                        >\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"file-export\">\n                        <i class=\"fas fa-file-download\"></i>Export\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"file-exit\">\n                        <i class=\"far fa-times-circle\"></i>Exit\n                    </li>\n                </ul>\n                <!-- 편집 서브 메뉴 -->\n                <ul class=\"menu__edit-sub menu-style\" value=\"Edit\">\n                    <li data-action=\"edit-undo\">\n                        <i class=\"fas fa-undo\"></i>Undo\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"edit-cut\">\n                        <i class=\"fas fa-cut\"></i>Cut\n                    </li>\n                    <li data-action=\"edit-copy\">\n                        <i class=\"fas fa-copy\"></i>Copy\n                    </li>\n                    <li data-action=\"edit-paste\">\n                        <i class=\"fas fa-paste\"></i>Paste\n                    </li>\n                    <li data-action=\"edit-delete\">\n                        <i class=\"fas fa-trash-alt\"></i>Delete\n                    </li>\n                </ul>\n                <!-- 모드 서브 메뉴 -->\n                <ul class=\"menu__mode-sub menu-style\" value=\"Mode\">\n                    <li data-action=\"mode-map\">\n                        <i class=\"fas fa-layer-group\"></i>Map\n                    </li>\n                    <li data-action=\"mode-event\">\n                        <i class=\"fas fa-flag-checkered\"></i>Event\n                    </li>\n                    <li data-action=\"mode-region\">\n                        <i class=\"fas fa-map\"></i>Region\n                    </li>\n                </ul>\n                <!-- 드로우 서브 메뉴 -->\n                <ul class=\"menu__draw-sub menu-style\" value=\"Draw\">\n                    <li data-action=\"draw-pencil\">\n                        <i class=\"fas fa-pencil-alt\"></i>Pencil\n                    </li>\n                    <li data-action=\"draw-rectangle\">\n                        <i class=\"fas fa-square-full\"></i>Rectangle\n                    </li>\n                    <li data-action=\"draw-ellipse\">\n                        <i class=\"fas fa-circle\"></i>Ellipse\n                    </li>\n                    <li data-action=\"draw-flood-fill\">\n                        <i class=\"fas fa-fill\"></i>Flood Fill\n                    </li>\n                    <li data-action=\"draw-shadow-pen\">\n                        <i class=\"fas fa-paint-brush\"></i>Shadow Pen\n                    </li>\n                </ul>\n                <!-- 스케일 서브 메뉴 -->\n                <ul class=\"menu__scale-sub menu-style\" value=\"Scale\">\n                    <li data-action=\"scale-1x\">\n                        <i class=\"fas fa-search-plus\"></i>1:1\n                    </li>\n                    <li data-action=\"scale-2x\">\n                        <i class=\"fas fa-search-plus\"></i>1:2\n                    </li>\n                    <li data-action=\"scale-4x\">\n                        <i class=\"fas fa-search-plus\"></i>1:4\n                    </li>\n                    <li data-action=\"scale-8x\">\n                        <i class=\"fas fa-search-plus\"></i>1:8\n                    </li>\n                </ul>\n                <!-- 도구 서브 메뉴 -->\n                <ul class=\"menu__tools-sub menu-style\" value=\"Tools\">\n                    <li data-action=\"tools-database\">\n                        <i class=\"fas fa-book\"></i>Database...<em>F9</em>\n                    </li>\n                    <li data-action=\"tools-resource-manager\">\n                        <i class=\"fas fa-scroll\"></i>Resource Manager\n                    </li>\n                    <li data-action=\"tools-script-eidtor\">\n                        <i class=\"fas fa-toolbox\"></i>Script Editor\n                    </li>\n                    <li data-action=\"tools-sound-test\">\n                        <i class=\"fas fa-music\"></i>Sound Test\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"tools-options\">\n                        <i class=\"fas fa-user-cog\"></i>Options...\n                    </li>\n                </ul>\n                <!-- 게임 서브 메뉴 -->\n                <ul class=\"menu__game-sub menu-style\" value=\"Game\">\n                    <li data-action=\"game-playtest\">\n                        <i class=\"fas fa-gamepad\"></i>Playtest<em>F12</em>\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"game-fullscreen\">Launch in Full Screen</li>\n                    <li data-action=\"game-show-console\">Show Console</li>\n                    <li data-action=\"game-folder-open\">\n                        <i class=\"fas fa-folder-open\"></i>Open Game Folder\n                    </li>\n                </ul>\n                <!-- 도움말 서브 메뉴 -->\n                <ul class=\"menu__help-sub menu-style\" value=\"Help\">\n                    <li data-action=\"help-contents\">\n                        <i class=\"fas fa-question-circle\"></i>Contents<em\n                            >F1</em\n                        >\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"help-about\">\n                        <i class=\"fas fa-info-circle\"></i>About...\n                    </li>\n                </ul>\n            </div>\n            <!-- 툴바 -->\n            <div class=\"toolbar\">\n                <ul>\n                    <!-- 파일 툴바 -->\n                    <li data-action=\"file-new\" class=\"file-menu-new-button\">\n                        <i class=\"far fa-file\" title=\"게임 만들기\"></i>\n                    </li>\n                    <li data-action=\"file-open\">\n                        <i class=\"far fa-folder-open\" title=\"게임 열기\"></i>\n                    </li>\n                    <li data-action=\"file-save\"><i class=\"far fa-save\"></i></li>\n                    <li data-action=\"edit-undo\"><i class=\"fas fa-undo\"></i></li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 편집 툴바 -->\n                    <li data-action=\"edit-cut\"><i class=\"fas fa-cut\"></i></li>\n                    <li data-action=\"edit-copy\"><i class=\"fas fa-copy\"></i></li>\n                    <li data-action=\"edit-paste\">\n                        <i class=\"fas fa-paste\"></i>\n                    </li>\n                    <li data-action=\"edit-delete\">\n                        <i class=\"fas fa-trash-alt\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 모드 툴바 -->\n                    <li data-action=\"mode-map\">\n                        <i class=\"fas fa-layer-group\"></i>\n                    </li>\n                    <li data-action=\"mode-event\">\n                        <i class=\"fas fa-flag-checkered\"></i>\n                    </li>\n                    <li data-action=\"mode-region\">\n                        <i class=\"fas fa-map\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 드로우 툴바 -->\n                    <li data-action=\"draw-pencil\">\n                        <i\n                            id=\"pen-tool\"\n                            class=\"fas fa-pencil-alt\"\n                            title=\"펜\"\n                        ></i>\n                    </li>\n                    <li data-action=\"draw-rectangle\">\n                        <i\n                            id=\"square-tool\"\n                            class=\"fas fa-square-full\"\n                            title=\"사각형\"\n                        ></i>\n                    </li>\n                    <li data-action=\"draw-ellipse\">\n                        <i\n                            id=\"rectangle-tool\"\n                            class=\"fas fa-circle\"\n                            title=\"직사각형\"\n                        ></i>\n                    </li>\n                    <li data-action=\"draw-flood-fill\">\n                        <i id=\"pen-tool\" class=\"fas fa-fill\" title=\"채우기\"></i>\n                    </li>\n                    <li data-action=\"draw-shadow-pen\">\n                        <i\n                            id=\"shadow-tool\"\n                            class=\"fas fa-paint-brush\"\n                            title=\"그림자\"\n                        ></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 기타 툴바 -->\n                    <li data-action=\"take-screenshot\">\n                        <i\n                            id=\"take-screenshot\"\n                            title=\"맵 파일 내보내기\"\n                            class=\"fas fa-book\"\n                        ></i>\n                    </li>\n                    <li data-action=\"tools-resource-manager\">\n                        <i class=\"fas fa-scroll\"></i>\n                    </li>\n                    <li data-action=\"tools-script-eidtor\">\n                        <i class=\"fas fa-toolbox\"></i>\n                    </li>\n                    <li data-action=\"tools-sound-test\">\n                        <i class=\"fas fa-music\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <li data-action=\"tools-options\">\n                        <i class=\"fas fa-user-cog\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <li data-action=\"game-playtest\">\n                        <i class=\"fas fa-gamepad\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <li data-action=\"game-folder-open\">\n                        <i class=\"fas fa-folder-open\"></i>\n                    </li>\n                </ul>\n            </div>\n            <!-- 타일 선택 창 -->\n            <div id=\"aside\">\n                <div class=\"aside__tabs\">\n                    <div id=\"view\" ondragstart=\"return false;\"></div>\n                    <!-- 탭 컨트롤을 위한 체크박스입니다. -->\n                    <input type=\"radio\" name=\"tile\" id=\"a\" checked />\n                    <input type=\"radio\" name=\"tile\" id=\"b\" />\n                    <input type=\"radio\" name=\"tile\" id=\"c\" />\n                    <input type=\"radio\" name=\"tile\" id=\"d\" />\n                    <input type=\"radio\" name=\"tile\" id=\"e\" />\n                    <ul>\n                        <li>\n                            <label for=\"a\" id=\"tab-a\" data-action=\"tab1\"\n                                >A</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"b\" id=\"tab-b\" data-action=\"tab2\"\n                                >B</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"c\" id=\"tab-c\" data-action=\"tab3\"\n                                >C</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"d\" id=\"tab-d\" data-action=\"tab4\"\n                                >D</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"e\" id=\"tab-e\" data-action=\"tab5\"\n                                >E</label\n                            >\n                        </li>\n                    </ul>\n                    <div class=\"aside__tabs__maptree\">\n                        <ul>\n                            <li>\n                                <i class=\"fas fa-folder\"></i>레이어 그룹\n                                <ul class=\"aside__tabs__maptree-child-tree\">\n                                    <li data-action=\"layer1\">\n                                        <i class=\"far fa-eye\"></i>레이어 1\n                                    </li>\n                                    <li data-action=\"layer2\">\n                                        <i class=\"far fa-eye\"></i>레이어 2\n                                    </li>\n                                    <li data-action=\"layer3\">\n                                        <i class=\"far fa-eye\"></i>레이어 3\n                                    </li>\n                                    <li data-action=\"layer4\">\n                                        <i class=\"far fa-eye\"></i>레이어 4\n                                    </li>\n                                </ul>\n                            </li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n            <div class=\"contents\">\n                <canvas id=\"contents__main-canvas\"> </canvas>\n            </div>\n            <div id=\"app\">\n                <new-window></new-window>\n                <tileset-window></tileset-window>\n            </div>\n        </div>\n    </div>\n</template>\n<script>\nimport NewWindow from \"./NewWindow.vue\";\nimport TilesetWindow from \"./TilesetWindow.vue\";\n\nexport default {\n    components: {\n        NewWindow,\n        TilesetWindow\n    },\n    mounted() {\n        window.onMounted();\n\n        // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.\n        if (window.app) {\n            window.app.on(\"openWindow\", this.openWindow);\n        }\n    },\n    methods: {\n        openWindow(route) {\n            this.$router.push(route);\n        }\n    }\n};\n</script>\n<style>\n@import url(\"../../css/main.css\");\n#app {\n    background-color: transparent;\n    z-index: 10000;\n}\n</style>\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\n    background-color: transparent;\n}\n", "",{"version":3,"sources":["webpack://packages/views/MainContainer.vue"],"names":[],"mappings":";AAuYA;IACA,6BAAA;AACA","sourcesContent":["<template>\n    <div id=\"wrapper\">\n        <div class=\"container\">\n            <div class=\"menu\">\n                <div\n                    class=\"drag-zon\"\n                    window-name=\"Initial Editor - 맵 에디터\"\n                ></div>\n                <!-- \n                다음 <input> 요소는 실제 화면에서 보이지 않습니다. \n                general sibling combinator를 이용하여 메뉴를 토글할 때 사용됩니다.\n                이것은 간단하게 만들 수 있지만 꽤나 강력합니다.\n\n                그러나 실제 메뉴와 달리 다양한 상태에 대응할 수가 없어,\n                일부 동작에서는 매우 부자연스럽습니다.\n\n                예를 들면, 일반적으로 메뉴가 열린 상태에서 우측 메뉴에 마우스를 오버하면\n                즉시 우측에 있는 메뉴가 열려야 합니다만,\n\n                CSS로는 이를 제어할 수가 없기 때문에 자바스크립트 코드가 들어가야 합니다.\n            -->\n                <input type=\"radio\" name=\"menu\" id=\"file\" />\n                <input type=\"radio\" name=\"menu\" id=\"edit\" />\n                <input type=\"radio\" name=\"menu\" id=\"mode\" />\n                <input type=\"radio\" name=\"menu\" id=\"draw\" />\n                <input type=\"radio\" name=\"menu\" id=\"scale\" />\n                <input type=\"radio\" name=\"menu\" id=\"tools\" />\n                <input type=\"radio\" name=\"menu\" id=\"game\" />\n                <input type=\"radio\" name=\"menu\" id=\"help\" />\n                <input type=\"radio\" name=\"menu\" id=\"none\" />\n\n                <!-- 메인 메뉴 -->\n                <ul class=\"menu__main\">\n                    <li class=\"menu__main-program-icon\"></li>\n                    <li class=\"menu__main-file\">\n                        <label for=\"file\" data-action=\"file\">File</label>\n                    </li>\n                    <li><label for=\"edit\" data-action=\"edit\">Edit</label></li>\n                    <li><label for=\"mode\" data-action=\"mode\">Mode</label></li>\n                    <li><label for=\"draw\" data-action=\"draw\">Draw</label></li>\n                    <li>\n                        <label for=\"scale\" data-action=\"scale\">Scale</label>\n                    </li>\n                    <li>\n                        <label for=\"tools\" data-action=\"tools\">Tools</label>\n                    </li>\n                    <li><label for=\"game\" data-action=\"game\">Game</label></li>\n                    <li><label for=\"help\" data-action=\"help\">Help</label></li>\n                    <ul class=\"control-box\">\n                        <li class=\"minimum\" data-action=\"minimum\">\n                            <i class=\"fas fa-minus\"></i>\n                        </li>\n                        <li class=\"maximum\" data-action=\"maximum\">\n                            <i class=\"fas fa-window-maximize\"></i>\n                        </li>\n                        <li class=\"close\" data-action=\"close\">\n                            <i class=\"far fa-window-close\"></i>\n                        </li>\n                    </ul>\n                </ul>\n                <!-- 파일 서브 메뉴 -->\n                <ul class=\"menu__file-sub menu-style\" value=\"File\">\n                    <li data-action=\"file-new\" class=\"file-menu-new-button\">\n                        <i class=\"far fa-file\"></i>New<em>Ctrl+N</em>\n                    </li>\n                    <li data-action=\"file-open\">\n                        <i class=\"far fa-folder-open\"></i>Open<em>Ctrl+O</em>\n                    </li>\n                    <li data-action=\"file-close\">\n                        <i class=\"far fa-window-close\"></i>Close\n                    </li>\n                    <li data-action=\"file-save\">\n                        <i class=\"far fa-save\"></i>Save<em>Ctrl+S</em>\n                    </li>\n                    <li data-action=\"file-preferences\">\n                        <i class=\"fas fa-wrench\"></i>User Preferences<em\n                            >Ctrl+M</em\n                        >\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"file-export\">\n                        <i class=\"fas fa-file-download\"></i>Export\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"file-exit\">\n                        <i class=\"far fa-times-circle\"></i>Exit\n                    </li>\n                </ul>\n                <!-- 편집 서브 메뉴 -->\n                <ul class=\"menu__edit-sub menu-style\" value=\"Edit\">\n                    <li data-action=\"edit-undo\">\n                        <i class=\"fas fa-undo\"></i>Undo\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"edit-cut\">\n                        <i class=\"fas fa-cut\"></i>Cut\n                    </li>\n                    <li data-action=\"edit-copy\">\n                        <i class=\"fas fa-copy\"></i>Copy\n                    </li>\n                    <li data-action=\"edit-paste\">\n                        <i class=\"fas fa-paste\"></i>Paste\n                    </li>\n                    <li data-action=\"edit-delete\">\n                        <i class=\"fas fa-trash-alt\"></i>Delete\n                    </li>\n                </ul>\n                <!-- 모드 서브 메뉴 -->\n                <ul class=\"menu__mode-sub menu-style\" value=\"Mode\">\n                    <li data-action=\"mode-map\">\n                        <i class=\"fas fa-layer-group\"></i>Map\n                    </li>\n                    <li data-action=\"mode-event\">\n                        <i class=\"fas fa-flag-checkered\"></i>Event\n                    </li>\n                    <li data-action=\"mode-region\">\n                        <i class=\"fas fa-map\"></i>Region\n                    </li>\n                </ul>\n                <!-- 드로우 서브 메뉴 -->\n                <ul class=\"menu__draw-sub menu-style\" value=\"Draw\">\n                    <li data-action=\"draw-pencil\">\n                        <i class=\"fas fa-pencil-alt\"></i>Pencil\n                    </li>\n                    <li data-action=\"draw-rectangle\">\n                        <i class=\"fas fa-square-full\"></i>Rectangle\n                    </li>\n                    <li data-action=\"draw-ellipse\">\n                        <i class=\"fas fa-circle\"></i>Ellipse\n                    </li>\n                    <li data-action=\"draw-flood-fill\">\n                        <i class=\"fas fa-fill\"></i>Flood Fill\n                    </li>\n                    <li data-action=\"draw-shadow-pen\">\n                        <i class=\"fas fa-paint-brush\"></i>Shadow Pen\n                    </li>\n                </ul>\n                <!-- 스케일 서브 메뉴 -->\n                <ul class=\"menu__scale-sub menu-style\" value=\"Scale\">\n                    <li data-action=\"scale-1x\">\n                        <i class=\"fas fa-search-plus\"></i>1:1\n                    </li>\n                    <li data-action=\"scale-2x\">\n                        <i class=\"fas fa-search-plus\"></i>1:2\n                    </li>\n                    <li data-action=\"scale-4x\">\n                        <i class=\"fas fa-search-plus\"></i>1:4\n                    </li>\n                    <li data-action=\"scale-8x\">\n                        <i class=\"fas fa-search-plus\"></i>1:8\n                    </li>\n                </ul>\n                <!-- 도구 서브 메뉴 -->\n                <ul class=\"menu__tools-sub menu-style\" value=\"Tools\">\n                    <li data-action=\"tools-database\">\n                        <i class=\"fas fa-book\"></i>Database...<em>F9</em>\n                    </li>\n                    <li data-action=\"tools-resource-manager\">\n                        <i class=\"fas fa-scroll\"></i>Resource Manager\n                    </li>\n                    <li data-action=\"tools-script-eidtor\">\n                        <i class=\"fas fa-toolbox\"></i>Script Editor\n                    </li>\n                    <li data-action=\"tools-sound-test\">\n                        <i class=\"fas fa-music\"></i>Sound Test\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"tools-options\">\n                        <i class=\"fas fa-user-cog\"></i>Options...\n                    </li>\n                </ul>\n                <!-- 게임 서브 메뉴 -->\n                <ul class=\"menu__game-sub menu-style\" value=\"Game\">\n                    <li data-action=\"game-playtest\">\n                        <i class=\"fas fa-gamepad\"></i>Playtest<em>F12</em>\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"game-fullscreen\">Launch in Full Screen</li>\n                    <li data-action=\"game-show-console\">Show Console</li>\n                    <li data-action=\"game-folder-open\">\n                        <i class=\"fas fa-folder-open\"></i>Open Game Folder\n                    </li>\n                </ul>\n                <!-- 도움말 서브 메뉴 -->\n                <ul class=\"menu__help-sub menu-style\" value=\"Help\">\n                    <li data-action=\"help-contents\">\n                        <i class=\"fas fa-question-circle\"></i>Contents<em\n                            >F1</em\n                        >\n                    </li>\n                    <li class=\"menu__empty-line\"></li>\n                    <li data-action=\"help-about\">\n                        <i class=\"fas fa-info-circle\"></i>About...\n                    </li>\n                </ul>\n            </div>\n            <!-- 툴바 -->\n            <div class=\"toolbar\">\n                <ul>\n                    <!-- 파일 툴바 -->\n                    <li data-action=\"file-new\" class=\"file-menu-new-button\">\n                        <i class=\"far fa-file\" title=\"게임 만들기\"></i>\n                    </li>\n                    <li data-action=\"file-open\">\n                        <i class=\"far fa-folder-open\" title=\"게임 열기\"></i>\n                    </li>\n                    <li data-action=\"file-save\"><i class=\"far fa-save\"></i></li>\n                    <li data-action=\"edit-undo\"><i class=\"fas fa-undo\"></i></li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 편집 툴바 -->\n                    <li data-action=\"edit-cut\"><i class=\"fas fa-cut\"></i></li>\n                    <li data-action=\"edit-copy\"><i class=\"fas fa-copy\"></i></li>\n                    <li data-action=\"edit-paste\">\n                        <i class=\"fas fa-paste\"></i>\n                    </li>\n                    <li data-action=\"edit-delete\">\n                        <i class=\"fas fa-trash-alt\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 모드 툴바 -->\n                    <li data-action=\"mode-map\">\n                        <i class=\"fas fa-layer-group\"></i>\n                    </li>\n                    <li data-action=\"mode-event\">\n                        <i class=\"fas fa-flag-checkered\"></i>\n                    </li>\n                    <li data-action=\"mode-region\">\n                        <i class=\"fas fa-map\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 드로우 툴바 -->\n                    <li data-action=\"draw-pencil\">\n                        <i\n                            id=\"pen-tool\"\n                            class=\"fas fa-pencil-alt\"\n                            title=\"펜\"\n                        ></i>\n                    </li>\n                    <li data-action=\"draw-rectangle\">\n                        <i\n                            id=\"square-tool\"\n                            class=\"fas fa-square-full\"\n                            title=\"사각형\"\n                        ></i>\n                    </li>\n                    <li data-action=\"draw-ellipse\">\n                        <i\n                            id=\"rectangle-tool\"\n                            class=\"fas fa-circle\"\n                            title=\"직사각형\"\n                        ></i>\n                    </li>\n                    <li data-action=\"draw-flood-fill\">\n                        <i id=\"pen-tool\" class=\"fas fa-fill\" title=\"채우기\"></i>\n                    </li>\n                    <li data-action=\"draw-shadow-pen\">\n                        <i\n                            id=\"shadow-tool\"\n                            class=\"fas fa-paint-brush\"\n                            title=\"그림자\"\n                        ></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <!-- 기타 툴바 -->\n                    <li data-action=\"take-screenshot\">\n                        <i\n                            id=\"take-screenshot\"\n                            title=\"맵 파일 내보내기\"\n                            class=\"fas fa-book\"\n                        ></i>\n                    </li>\n                    <li data-action=\"tools-resource-manager\">\n                        <i class=\"fas fa-scroll\"></i>\n                    </li>\n                    <li data-action=\"tools-script-eidtor\">\n                        <i class=\"fas fa-toolbox\"></i>\n                    </li>\n                    <li data-action=\"tools-sound-test\">\n                        <i class=\"fas fa-music\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <li data-action=\"tools-options\">\n                        <i class=\"fas fa-user-cog\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <li data-action=\"game-playtest\">\n                        <i class=\"fas fa-gamepad\"></i>\n                    </li>\n                    <li class=\"toolbar__empty-line--modifier\"></li>\n                    <li data-action=\"game-folder-open\">\n                        <i class=\"fas fa-folder-open\"></i>\n                    </li>\n                </ul>\n            </div>\n            <!-- 타일 선택 창 -->\n            <div id=\"aside\">\n                <div class=\"aside__tabs\">\n                    <div id=\"view\" ondragstart=\"return false;\"></div>\n                    <!-- 탭 컨트롤을 위한 체크박스입니다. -->\n                    <input type=\"radio\" name=\"tile\" id=\"a\" checked />\n                    <input type=\"radio\" name=\"tile\" id=\"b\" />\n                    <input type=\"radio\" name=\"tile\" id=\"c\" />\n                    <input type=\"radio\" name=\"tile\" id=\"d\" />\n                    <input type=\"radio\" name=\"tile\" id=\"e\" />\n                    <ul>\n                        <li>\n                            <label for=\"a\" id=\"tab-a\" data-action=\"tab1\"\n                                >A</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"b\" id=\"tab-b\" data-action=\"tab2\"\n                                >B</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"c\" id=\"tab-c\" data-action=\"tab3\"\n                                >C</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"d\" id=\"tab-d\" data-action=\"tab4\"\n                                >D</label\n                            >\n                        </li>\n                        <li>\n                            <label for=\"e\" id=\"tab-e\" data-action=\"tab5\"\n                                >E</label\n                            >\n                        </li>\n                    </ul>\n                    <div class=\"aside__tabs__maptree\">\n                        <ul>\n                            <li>\n                                <i class=\"fas fa-folder\"></i>레이어 그룹\n                                <ul class=\"aside__tabs__maptree-child-tree\">\n                                    <li data-action=\"layer1\">\n                                        <i class=\"far fa-eye\"></i>레이어 1\n                                    </li>\n                                    <li data-action=\"layer2\">\n                                        <i class=\"far fa-eye\"></i>레이어 2\n                                    </li>\n                                    <li data-action=\"layer3\">\n                                        <i class=\"far fa-eye\"></i>레이어 3\n                                    </li>\n                                    <li data-action=\"layer4\">\n                                        <i class=\"far fa-eye\"></i>레이어 4\n                                    </li>\n                                </ul>\n                            </li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n            <div class=\"contents\">\n                <canvas id=\"contents__main-canvas\"> </canvas>\n            </div>\n        </div>\n        <div id=\"app\">\n            <!-- <new-window></new-window>\n            <tileset-window></tileset-window> -->\n            <router-view></router-view>\n        </div>\n    </div>\n</template>\n<script>\n// import NewWindow from \"./NewWindow.vue\";\n// import TilesetWindow from \"./TilesetWindow.vue\";\n\nexport default {\n    // components: {\n    //     NewWindow,\n    //     TilesetWindow\n    // },\n    mounted() {\n        window.onMounted(() => {\n            // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.\n            if (window.app) {\n                window.app.on(\"openWindow\", this.openWindow);\n            }\n        });\n    },\n    methods: {\n        openWindow(route) {\n            this.$router.push(route);\n        }\n    }\n};\n</script>\n<style>\n@import url(\"../../css/main.css\");\n#app {\n    background-color: transparent;\n}\n</style>\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -52260,22 +52148,9 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { attrs: { id: "wrapper" } }, [
-    _c("div", { staticClass: "container" }, [
-      _vm._m(0),
-      _vm._v(" "),
-      _vm._m(1),
-      _vm._v(" "),
-      _vm._m(2),
-      _vm._v(" "),
-      _vm._m(3),
-      _vm._v(" "),
-      _c(
-        "div",
-        { attrs: { id: "app" } },
-        [_c("new-window"), _vm._v(" "), _c("tileset-window")],
-        1
-      )
-    ])
+    _vm._m(0),
+    _vm._v(" "),
+    _c("div", { attrs: { id: "app" } }, [_c("router-view")], 1)
   ])
 }
 var staticRenderFns = [
@@ -52283,106 +52158,377 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "menu" }, [
-      _c("div", {
-        staticClass: "drag-zon",
-        attrs: { "window-name": "Initial Editor - 맵 에디터" }
-      }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "file" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "edit" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "mode" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "draw" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "scale" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "tools" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "game" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "help" } }),
-      _vm._v(" "),
-      _c("input", { attrs: { type: "radio", name: "menu", id: "none" } }),
-      _vm._v(" "),
-      _c("ul", { staticClass: "menu__main" }, [
-        _c("li", { staticClass: "menu__main-program-icon" }),
+    return _c("div", { staticClass: "container" }, [
+      _c("div", { staticClass: "menu" }, [
+        _c("div", {
+          staticClass: "drag-zon",
+          attrs: { "window-name": "Initial Editor - 맵 에디터" }
+        }),
         _vm._v(" "),
-        _c("li", { staticClass: "menu__main-file" }, [
-          _c("label", { attrs: { for: "file", "data-action": "file" } }, [
-            _vm._v("File")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "file" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "edit", "data-action": "edit" } }, [
-            _vm._v("Edit")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "edit" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "mode", "data-action": "mode" } }, [
-            _vm._v("Mode")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "mode" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "draw", "data-action": "draw" } }, [
-            _vm._v("Draw")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "draw" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "scale", "data-action": "scale" } }, [
-            _vm._v("Scale")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "scale" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "tools", "data-action": "tools" } }, [
-            _vm._v("Tools")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "tools" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "game", "data-action": "game" } }, [
-            _vm._v("Game")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "game" } }),
         _vm._v(" "),
-        _c("li", [
-          _c("label", { attrs: { for: "help", "data-action": "help" } }, [
-            _vm._v("Help")
-          ])
-        ]),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "help" } }),
         _vm._v(" "),
-        _c("ul", { staticClass: "control-box" }, [
-          _c(
-            "li",
-            { staticClass: "minimum", attrs: { "data-action": "minimum" } },
-            [_c("i", { staticClass: "fas fa-minus" })]
-          ),
+        _c("input", { attrs: { type: "radio", name: "menu", id: "none" } }),
+        _vm._v(" "),
+        _c("ul", { staticClass: "menu__main" }, [
+          _c("li", { staticClass: "menu__main-program-icon" }),
           _vm._v(" "),
-          _c(
-            "li",
-            { staticClass: "maximum", attrs: { "data-action": "maximum" } },
-            [_c("i", { staticClass: "fas fa-window-maximize" })]
-          ),
+          _c("li", { staticClass: "menu__main-file" }, [
+            _c("label", { attrs: { for: "file", "data-action": "file" } }, [
+              _vm._v("File")
+            ])
+          ]),
           _vm._v(" "),
-          _c(
-            "li",
-            { staticClass: "close", attrs: { "data-action": "close" } },
-            [_c("i", { staticClass: "far fa-window-close" })]
-          )
-        ])
+          _c("li", [
+            _c("label", { attrs: { for: "edit", "data-action": "edit" } }, [
+              _vm._v("Edit")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "mode", "data-action": "mode" } }, [
+              _vm._v("Mode")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "draw", "data-action": "draw" } }, [
+              _vm._v("Draw")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "scale", "data-action": "scale" } }, [
+              _vm._v("Scale")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "tools", "data-action": "tools" } }, [
+              _vm._v("Tools")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "game", "data-action": "game" } }, [
+              _vm._v("Game")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "help", "data-action": "help" } }, [
+              _vm._v("Help")
+            ])
+          ]),
+          _vm._v(" "),
+          _c("ul", { staticClass: "control-box" }, [
+            _c(
+              "li",
+              { staticClass: "minimum", attrs: { "data-action": "minimum" } },
+              [_c("i", { staticClass: "fas fa-minus" })]
+            ),
+            _vm._v(" "),
+            _c(
+              "li",
+              { staticClass: "maximum", attrs: { "data-action": "maximum" } },
+              [_c("i", { staticClass: "fas fa-window-maximize" })]
+            ),
+            _vm._v(" "),
+            _c(
+              "li",
+              { staticClass: "close", attrs: { "data-action": "close" } },
+              [_c("i", { staticClass: "far fa-window-close" })]
+            )
+          ])
+        ]),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__file-sub menu-style",
+            attrs: { value: "File" }
+          },
+          [
+            _c(
+              "li",
+              {
+                staticClass: "file-menu-new-button",
+                attrs: { "data-action": "file-new" }
+              },
+              [
+                _c("i", { staticClass: "far fa-file" }),
+                _vm._v("New"),
+                _c("em", [_vm._v("Ctrl+N")])
+              ]
+            ),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "file-open" } }, [
+              _c("i", { staticClass: "far fa-folder-open" }),
+              _vm._v("Open"),
+              _c("em", [_vm._v("Ctrl+O")])
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "file-close" } }, [
+              _c("i", { staticClass: "far fa-window-close" }),
+              _vm._v("Close\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "file-save" } }, [
+              _c("i", { staticClass: "far fa-save" }),
+              _vm._v("Save"),
+              _c("em", [_vm._v("Ctrl+S")])
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "file-preferences" } }, [
+              _c("i", { staticClass: "fas fa-wrench" }),
+              _vm._v("User Preferences"),
+              _c("em", [_vm._v("Ctrl+M")])
+            ]),
+            _vm._v(" "),
+            _c("li", { staticClass: "menu__empty-line" }),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "file-export" } }, [
+              _c("i", { staticClass: "fas fa-file-download" }),
+              _vm._v("Export\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { staticClass: "menu__empty-line" }),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "file-exit" } }, [
+              _c("i", { staticClass: "far fa-times-circle" }),
+              _vm._v("Exit\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__edit-sub menu-style",
+            attrs: { value: "Edit" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "edit-undo" } }, [
+              _c("i", { staticClass: "fas fa-undo" }),
+              _vm._v("Undo\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { staticClass: "menu__empty-line" }),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "edit-cut" } }, [
+              _c("i", { staticClass: "fas fa-cut" }),
+              _vm._v("Cut\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "edit-copy" } }, [
+              _c("i", { staticClass: "fas fa-copy" }),
+              _vm._v("Copy\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "edit-paste" } }, [
+              _c("i", { staticClass: "fas fa-paste" }),
+              _vm._v("Paste\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "edit-delete" } }, [
+              _c("i", { staticClass: "fas fa-trash-alt" }),
+              _vm._v("Delete\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__mode-sub menu-style",
+            attrs: { value: "Mode" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "mode-map" } }, [
+              _c("i", { staticClass: "fas fa-layer-group" }),
+              _vm._v("Map\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "mode-event" } }, [
+              _c("i", { staticClass: "fas fa-flag-checkered" }),
+              _vm._v("Event\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "mode-region" } }, [
+              _c("i", { staticClass: "fas fa-map" }),
+              _vm._v("Region\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__draw-sub menu-style",
+            attrs: { value: "Draw" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "draw-pencil" } }, [
+              _c("i", { staticClass: "fas fa-pencil-alt" }),
+              _vm._v("Pencil\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
+              _c("i", { staticClass: "fas fa-square-full" }),
+              _vm._v("Rectangle\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
+              _c("i", { staticClass: "fas fa-circle" }),
+              _vm._v("Ellipse\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
+              _c("i", { staticClass: "fas fa-fill" }),
+              _vm._v("Flood Fill\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
+              _c("i", { staticClass: "fas fa-paint-brush" }),
+              _vm._v("Shadow Pen\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__scale-sub menu-style",
+            attrs: { value: "Scale" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "scale-1x" } }, [
+              _c("i", { staticClass: "fas fa-search-plus" }),
+              _vm._v("1:1\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "scale-2x" } }, [
+              _c("i", { staticClass: "fas fa-search-plus" }),
+              _vm._v("1:2\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "scale-4x" } }, [
+              _c("i", { staticClass: "fas fa-search-plus" }),
+              _vm._v("1:4\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "scale-8x" } }, [
+              _c("i", { staticClass: "fas fa-search-plus" }),
+              _vm._v("1:8\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__tools-sub menu-style",
+            attrs: { value: "Tools" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "tools-database" } }, [
+              _c("i", { staticClass: "fas fa-book" }),
+              _vm._v("Database..."),
+              _c("em", [_vm._v("F9")])
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
+              _c("i", { staticClass: "fas fa-scroll" }),
+              _vm._v("Resource Manager\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
+              _c("i", { staticClass: "fas fa-toolbox" }),
+              _vm._v("Script Editor\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
+              _c("i", { staticClass: "fas fa-music" }),
+              _vm._v("Sound Test\n                ")
+            ]),
+            _vm._v(" "),
+            _c("li", { staticClass: "menu__empty-line" }),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "tools-options" } }, [
+              _c("i", { staticClass: "fas fa-user-cog" }),
+              _vm._v("Options...\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__game-sub menu-style",
+            attrs: { value: "Game" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "game-playtest" } }, [
+              _c("i", { staticClass: "fas fa-gamepad" }),
+              _vm._v("Playtest"),
+              _c("em", [_vm._v("F12")])
+            ]),
+            _vm._v(" "),
+            _c("li", { staticClass: "menu__empty-line" }),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "game-fullscreen" } }, [
+              _vm._v("Launch in Full Screen")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "game-show-console" } }, [
+              _vm._v("Show Console")
+            ]),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "game-folder-open" } }, [
+              _c("i", { staticClass: "fas fa-folder-open" }),
+              _vm._v("Open Game Folder\n                ")
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c(
+          "ul",
+          {
+            staticClass: "menu__help-sub menu-style",
+            attrs: { value: "Help" }
+          },
+          [
+            _c("li", { attrs: { "data-action": "help-contents" } }, [
+              _c("i", { staticClass: "fas fa-question-circle" }),
+              _vm._v("Contents"),
+              _c("em", [_vm._v("F1")])
+            ]),
+            _vm._v(" "),
+            _c("li", { staticClass: "menu__empty-line" }),
+            _vm._v(" "),
+            _c("li", { attrs: { "data-action": "help-about" } }, [
+              _c("i", { staticClass: "fas fa-info-circle" }),
+              _vm._v("About...\n                ")
+            ])
+          ]
+        )
       ]),
       _vm._v(" "),
-      _c(
-        "ul",
-        { staticClass: "menu__file-sub menu-style", attrs: { value: "File" } },
-        [
+      _c("div", { staticClass: "toolbar" }, [
+        _c("ul", [
           _c(
             "li",
             {
@@ -52390,494 +52536,231 @@ var staticRenderFns = [
               attrs: { "data-action": "file-new" }
             },
             [
-              _c("i", { staticClass: "far fa-file" }),
-              _vm._v("New"),
-              _c("em", [_vm._v("Ctrl+N")])
+              _c("i", {
+                staticClass: "far fa-file",
+                attrs: { title: "게임 만들기" }
+              })
             ]
           ),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "file-open" } }, [
-            _c("i", { staticClass: "far fa-folder-open" }),
-            _vm._v("Open"),
-            _c("em", [_vm._v("Ctrl+O")])
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "file-close" } }, [
-            _c("i", { staticClass: "far fa-window-close" }),
-            _vm._v("Close\n                ")
+            _c("i", {
+              staticClass: "far fa-folder-open",
+              attrs: { title: "게임 열기" }
+            })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "file-save" } }, [
-            _c("i", { staticClass: "far fa-save" }),
-            _vm._v("Save"),
-            _c("em", [_vm._v("Ctrl+S")])
+            _c("i", { staticClass: "far fa-save" })
           ]),
           _vm._v(" "),
-          _c("li", { attrs: { "data-action": "file-preferences" } }, [
-            _c("i", { staticClass: "fas fa-wrench" }),
-            _vm._v("User Preferences"),
-            _c("em", [_vm._v("Ctrl+M")])
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "menu__empty-line" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "file-export" } }, [
-            _c("i", { staticClass: "fas fa-file-download" }),
-            _vm._v("Export\n                ")
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "menu__empty-line" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "file-exit" } }, [
-            _c("i", { staticClass: "far fa-times-circle" }),
-            _vm._v("Exit\n                ")
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        { staticClass: "menu__edit-sub menu-style", attrs: { value: "Edit" } },
-        [
           _c("li", { attrs: { "data-action": "edit-undo" } }, [
-            _c("i", { staticClass: "fas fa-undo" }),
-            _vm._v("Undo\n                ")
+            _c("i", { staticClass: "fas fa-undo" })
           ]),
           _vm._v(" "),
-          _c("li", { staticClass: "menu__empty-line" }),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "edit-cut" } }, [
-            _c("i", { staticClass: "fas fa-cut" }),
-            _vm._v("Cut\n                ")
+            _c("i", { staticClass: "fas fa-cut" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "edit-copy" } }, [
-            _c("i", { staticClass: "fas fa-copy" }),
-            _vm._v("Copy\n                ")
+            _c("i", { staticClass: "fas fa-copy" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "edit-paste" } }, [
-            _c("i", { staticClass: "fas fa-paste" }),
-            _vm._v("Paste\n                ")
+            _c("i", { staticClass: "fas fa-paste" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "edit-delete" } }, [
-            _c("i", { staticClass: "fas fa-trash-alt" }),
-            _vm._v("Delete\n                ")
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        { staticClass: "menu__mode-sub menu-style", attrs: { value: "Mode" } },
-        [
+            _c("i", { staticClass: "fas fa-trash-alt" })
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+          _vm._v(" "),
           _c("li", { attrs: { "data-action": "mode-map" } }, [
-            _c("i", { staticClass: "fas fa-layer-group" }),
-            _vm._v("Map\n                ")
+            _c("i", { staticClass: "fas fa-layer-group" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "mode-event" } }, [
-            _c("i", { staticClass: "fas fa-flag-checkered" }),
-            _vm._v("Event\n                ")
+            _c("i", { staticClass: "fas fa-flag-checkered" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "mode-region" } }, [
-            _c("i", { staticClass: "fas fa-map" }),
-            _vm._v("Region\n                ")
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        { staticClass: "menu__draw-sub menu-style", attrs: { value: "Draw" } },
-        [
+            _c("i", { staticClass: "fas fa-map" })
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+          _vm._v(" "),
           _c("li", { attrs: { "data-action": "draw-pencil" } }, [
-            _c("i", { staticClass: "fas fa-pencil-alt" }),
-            _vm._v("Pencil\n                ")
+            _c("i", {
+              staticClass: "fas fa-pencil-alt",
+              attrs: { id: "pen-tool", title: "펜" }
+            })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
-            _c("i", { staticClass: "fas fa-square-full" }),
-            _vm._v("Rectangle\n                ")
+            _c("i", {
+              staticClass: "fas fa-square-full",
+              attrs: { id: "square-tool", title: "사각형" }
+            })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
-            _c("i", { staticClass: "fas fa-circle" }),
-            _vm._v("Ellipse\n                ")
+            _c("i", {
+              staticClass: "fas fa-circle",
+              attrs: { id: "rectangle-tool", title: "직사각형" }
+            })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
-            _c("i", { staticClass: "fas fa-fill" }),
-            _vm._v("Flood Fill\n                ")
+            _c("i", {
+              staticClass: "fas fa-fill",
+              attrs: { id: "pen-tool", title: "채우기" }
+            })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
-            _c("i", { staticClass: "fas fa-paint-brush" }),
-            _vm._v("Shadow Pen\n                ")
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        {
-          staticClass: "menu__scale-sub menu-style",
-          attrs: { value: "Scale" }
-        },
-        [
-          _c("li", { attrs: { "data-action": "scale-1x" } }, [
-            _c("i", { staticClass: "fas fa-search-plus" }),
-            _vm._v("1:1\n                ")
+            _c("i", {
+              staticClass: "fas fa-paint-brush",
+              attrs: { id: "shadow-tool", title: "그림자" }
+            })
           ]),
           _vm._v(" "),
-          _c("li", { attrs: { "data-action": "scale-2x" } }, [
-            _c("i", { staticClass: "fas fa-search-plus" }),
-            _vm._v("1:2\n                ")
-          ]),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
           _vm._v(" "),
-          _c("li", { attrs: { "data-action": "scale-4x" } }, [
-            _c("i", { staticClass: "fas fa-search-plus" }),
-            _vm._v("1:4\n                ")
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "scale-8x" } }, [
-            _c("i", { staticClass: "fas fa-search-plus" }),
-            _vm._v("1:8\n                ")
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        {
-          staticClass: "menu__tools-sub menu-style",
-          attrs: { value: "Tools" }
-        },
-        [
-          _c("li", { attrs: { "data-action": "tools-database" } }, [
-            _c("i", { staticClass: "fas fa-book" }),
-            _vm._v("Database..."),
-            _c("em", [_vm._v("F9")])
+          _c("li", { attrs: { "data-action": "take-screenshot" } }, [
+            _c("i", {
+              staticClass: "fas fa-book",
+              attrs: { id: "take-screenshot", title: "맵 파일 내보내기" }
+            })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
-            _c("i", { staticClass: "fas fa-scroll" }),
-            _vm._v("Resource Manager\n                ")
+            _c("i", { staticClass: "fas fa-scroll" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
-            _c("i", { staticClass: "fas fa-toolbox" }),
-            _vm._v("Script Editor\n                ")
+            _c("i", { staticClass: "fas fa-toolbox" })
           ]),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
-            _c("i", { staticClass: "fas fa-music" }),
-            _vm._v("Sound Test\n                ")
+            _c("i", { staticClass: "fas fa-music" })
           ]),
           _vm._v(" "),
-          _c("li", { staticClass: "menu__empty-line" }),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "tools-options" } }, [
-            _c("i", { staticClass: "fas fa-user-cog" }),
-            _vm._v("Options...\n                ")
-          ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        { staticClass: "menu__game-sub menu-style", attrs: { value: "Game" } },
-        [
+            _c("i", { staticClass: "fas fa-user-cog" })
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+          _vm._v(" "),
           _c("li", { attrs: { "data-action": "game-playtest" } }, [
-            _c("i", { staticClass: "fas fa-gamepad" }),
-            _vm._v("Playtest"),
-            _c("em", [_vm._v("F12")])
+            _c("i", { staticClass: "fas fa-gamepad" })
           ]),
           _vm._v(" "),
-          _c("li", { staticClass: "menu__empty-line" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "game-fullscreen" } }, [
-            _vm._v("Launch in Full Screen")
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "game-show-console" } }, [
-            _vm._v("Show Console")
-          ]),
+          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
           _vm._v(" "),
           _c("li", { attrs: { "data-action": "game-folder-open" } }, [
-            _c("i", { staticClass: "fas fa-folder-open" }),
-            _vm._v("Open Game Folder\n                ")
+            _c("i", { staticClass: "fas fa-folder-open" })
           ])
-        ]
-      ),
-      _vm._v(" "),
-      _c(
-        "ul",
-        { staticClass: "menu__help-sub menu-style", attrs: { value: "Help" } },
-        [
-          _c("li", { attrs: { "data-action": "help-contents" } }, [
-            _c("i", { staticClass: "fas fa-question-circle" }),
-            _vm._v("Contents"),
-            _c("em", [_vm._v("F1")])
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "menu__empty-line" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "help-about" } }, [
-            _c("i", { staticClass: "fas fa-info-circle" }),
-            _vm._v("About...\n                ")
-          ])
-        ]
-      )
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "toolbar" }, [
-      _c("ul", [
-        _c(
-          "li",
-          {
-            staticClass: "file-menu-new-button",
-            attrs: { "data-action": "file-new" }
-          },
-          [
-            _c("i", {
-              staticClass: "far fa-file",
-              attrs: { title: "게임 만들기" }
-            })
-          ]
-        ),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "file-open" } }, [
-          _c("i", {
-            staticClass: "far fa-folder-open",
-            attrs: { title: "게임 열기" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "file-save" } }, [
-          _c("i", { staticClass: "far fa-save" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "edit-undo" } }, [
-          _c("i", { staticClass: "fas fa-undo" })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "edit-cut" } }, [
-          _c("i", { staticClass: "fas fa-cut" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "edit-copy" } }, [
-          _c("i", { staticClass: "fas fa-copy" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "edit-paste" } }, [
-          _c("i", { staticClass: "fas fa-paste" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "edit-delete" } }, [
-          _c("i", { staticClass: "fas fa-trash-alt" })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "mode-map" } }, [
-          _c("i", { staticClass: "fas fa-layer-group" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "mode-event" } }, [
-          _c("i", { staticClass: "fas fa-flag-checkered" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "mode-region" } }, [
-          _c("i", { staticClass: "fas fa-map" })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "draw-pencil" } }, [
-          _c("i", {
-            staticClass: "fas fa-pencil-alt",
-            attrs: { id: "pen-tool", title: "펜" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
-          _c("i", {
-            staticClass: "fas fa-square-full",
-            attrs: { id: "square-tool", title: "사각형" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
-          _c("i", {
-            staticClass: "fas fa-circle",
-            attrs: { id: "rectangle-tool", title: "직사각형" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
-          _c("i", {
-            staticClass: "fas fa-fill",
-            attrs: { id: "pen-tool", title: "채우기" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
-          _c("i", {
-            staticClass: "fas fa-paint-brush",
-            attrs: { id: "shadow-tool", title: "그림자" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "take-screenshot" } }, [
-          _c("i", {
-            staticClass: "fas fa-book",
-            attrs: { id: "take-screenshot", title: "맵 파일 내보내기" }
-          })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
-          _c("i", { staticClass: "fas fa-scroll" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
-          _c("i", { staticClass: "fas fa-toolbox" })
-        ]),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
-          _c("i", { staticClass: "fas fa-music" })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "tools-options" } }, [
-          _c("i", { staticClass: "fas fa-user-cog" })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "game-playtest" } }, [
-          _c("i", { staticClass: "fas fa-gamepad" })
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-        _vm._v(" "),
-        _c("li", { attrs: { "data-action": "game-folder-open" } }, [
-          _c("i", { staticClass: "fas fa-folder-open" })
         ])
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { attrs: { id: "aside" } }, [
-      _c("div", { staticClass: "aside__tabs" }, [
-        _c("div", { attrs: { id: "view", ondragstart: "return false;" } }),
-        _vm._v(" "),
-        _c("input", {
-          attrs: { type: "radio", name: "tile", id: "a", checked: "" }
-        }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "tile", id: "b" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "tile", id: "c" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "tile", id: "d" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "tile", id: "e" } }),
-        _vm._v(" "),
-        _c("ul", [
-          _c("li", [
-            _c(
-              "label",
-              { attrs: { for: "a", id: "tab-a", "data-action": "tab1" } },
-              [_vm._v("A")]
-            )
-          ]),
+      ]),
+      _vm._v(" "),
+      _c("div", { attrs: { id: "aside" } }, [
+        _c("div", { staticClass: "aside__tabs" }, [
+          _c("div", { attrs: { id: "view", ondragstart: "return false;" } }),
           _vm._v(" "),
-          _c("li", [
-            _c(
-              "label",
-              { attrs: { for: "b", id: "tab-b", "data-action": "tab2" } },
-              [_vm._v("B")]
-            )
-          ]),
+          _c("input", {
+            attrs: { type: "radio", name: "tile", id: "a", checked: "" }
+          }),
           _vm._v(" "),
-          _c("li", [
-            _c(
-              "label",
-              { attrs: { for: "c", id: "tab-c", "data-action": "tab3" } },
-              [_vm._v("C")]
-            )
-          ]),
+          _c("input", { attrs: { type: "radio", name: "tile", id: "b" } }),
           _vm._v(" "),
-          _c("li", [
-            _c(
-              "label",
-              { attrs: { for: "d", id: "tab-d", "data-action": "tab4" } },
-              [_vm._v("D")]
-            )
-          ]),
+          _c("input", { attrs: { type: "radio", name: "tile", id: "c" } }),
           _vm._v(" "),
-          _c("li", [
-            _c(
-              "label",
-              { attrs: { for: "e", id: "tab-e", "data-action": "tab5" } },
-              [_vm._v("E")]
-            )
-          ])
-        ]),
-        _vm._v(" "),
-        _c("div", { staticClass: "aside__tabs__maptree" }, [
+          _c("input", { attrs: { type: "radio", name: "tile", id: "d" } }),
+          _vm._v(" "),
+          _c("input", { attrs: { type: "radio", name: "tile", id: "e" } }),
+          _vm._v(" "),
           _c("ul", [
             _c("li", [
-              _c("i", { staticClass: "fas fa-folder" }),
-              _vm._v("레이어 그룹\n                            "),
-              _c("ul", { staticClass: "aside__tabs__maptree-child-tree" }, [
-                _c("li", { attrs: { "data-action": "layer1" } }, [
-                  _c("i", { staticClass: "far fa-eye" }),
-                  _vm._v("레이어 1\n                                ")
-                ]),
-                _vm._v(" "),
-                _c("li", { attrs: { "data-action": "layer2" } }, [
-                  _c("i", { staticClass: "far fa-eye" }),
-                  _vm._v("레이어 2\n                                ")
-                ]),
-                _vm._v(" "),
-                _c("li", { attrs: { "data-action": "layer3" } }, [
-                  _c("i", { staticClass: "far fa-eye" }),
-                  _vm._v("레이어 3\n                                ")
-                ]),
-                _vm._v(" "),
-                _c("li", { attrs: { "data-action": "layer4" } }, [
-                  _c("i", { staticClass: "far fa-eye" }),
-                  _vm._v("레이어 4\n                                ")
+              _c(
+                "label",
+                { attrs: { for: "a", id: "tab-a", "data-action": "tab1" } },
+                [_vm._v("A")]
+              )
+            ]),
+            _vm._v(" "),
+            _c("li", [
+              _c(
+                "label",
+                { attrs: { for: "b", id: "tab-b", "data-action": "tab2" } },
+                [_vm._v("B")]
+              )
+            ]),
+            _vm._v(" "),
+            _c("li", [
+              _c(
+                "label",
+                { attrs: { for: "c", id: "tab-c", "data-action": "tab3" } },
+                [_vm._v("C")]
+              )
+            ]),
+            _vm._v(" "),
+            _c("li", [
+              _c(
+                "label",
+                { attrs: { for: "d", id: "tab-d", "data-action": "tab4" } },
+                [_vm._v("D")]
+              )
+            ]),
+            _vm._v(" "),
+            _c("li", [
+              _c(
+                "label",
+                { attrs: { for: "e", id: "tab-e", "data-action": "tab5" } },
+                [_vm._v("E")]
+              )
+            ])
+          ]),
+          _vm._v(" "),
+          _c("div", { staticClass: "aside__tabs__maptree" }, [
+            _c("ul", [
+              _c("li", [
+                _c("i", { staticClass: "fas fa-folder" }),
+                _vm._v("레이어 그룹\n                            "),
+                _c("ul", { staticClass: "aside__tabs__maptree-child-tree" }, [
+                  _c("li", { attrs: { "data-action": "layer1" } }, [
+                    _c("i", { staticClass: "far fa-eye" }),
+                    _vm._v("레이어 1\n                                ")
+                  ]),
+                  _vm._v(" "),
+                  _c("li", { attrs: { "data-action": "layer2" } }, [
+                    _c("i", { staticClass: "far fa-eye" }),
+                    _vm._v("레이어 2\n                                ")
+                  ]),
+                  _vm._v(" "),
+                  _c("li", { attrs: { "data-action": "layer3" } }, [
+                    _c("i", { staticClass: "far fa-eye" }),
+                    _vm._v("레이어 3\n                                ")
+                  ]),
+                  _vm._v(" "),
+                  _c("li", { attrs: { "data-action": "layer4" } }, [
+                    _c("i", { staticClass: "far fa-eye" }),
+                    _vm._v("레이어 4\n                                ")
+                  ])
                 ])
               ])
             ])
           ])
         ])
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "contents" }, [
+        _c("canvas", { attrs: { id: "contents__main-canvas" } })
       ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "contents" }, [
-      _c("canvas", { attrs: { id: "contents__main-canvas" } })
     ])
   }
 ]
@@ -52969,173 +52852,6 @@ var staticRenderFns = [
         _vm._v("프로젝트 생성")
       ])
     ])
-  }
-]
-render._withStripped = true
-
-
-
-/***/ }),
-
-/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&":
-/*!*******************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef& ***!
-  \*******************************************************************************************************************************************************************************************************/
-/*! exports provided: render, staticRenderFns */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _vm._m(0)
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c(
-      "div",
-      { attrs: { id: "tilesetWindow", "window-name": "타일셋 창" } },
-      [
-        _c(
-          "form",
-          {
-            attrs: {
-              action: "http://localhost:3000/upload_images",
-              method: "POST",
-              name: "uploadTilesetImage",
-              enctype: "multipart/form-data"
-            }
-          },
-          [
-            _c(
-              "div",
-              {
-                staticClass: "tilesetWindow__tileset tilesetWindow__tab-border",
-                attrs: { "tab-name": "타일셋" }
-              },
-              [
-                _c("ul", [
-                  _c("li", [
-                    _c("label", { attrs: { for: "name" } }, [
-                      _vm._v("이름 : ")
-                    ]),
-                    _c("input", {
-                      attrs: { type: "text", placeholder: "name", name: "name" }
-                    })
-                  ]),
-                  _vm._v(" "),
-                  _c("li", [
-                    _c("label", { attrs: { for: "name" } }, [
-                      _vm._v("이미지: ")
-                    ]),
-                    _vm._v(" "),
-                    _c("input", {
-                      attrs: { type: "file", name: "", id: "image-load-dialog" }
-                    })
-                  ])
-                ])
-              ]
-            ),
-            _vm._v(" "),
-            _c(
-              "div",
-              {
-                staticClass: "tilesetWindow-tile tilesetWindow__tab-border",
-                attrs: { "tab-name": "타일" }
-              },
-              [
-                _c("ul", [
-                  _c("li", [
-                    _c("label", { attrs: { for: "tile-width" } }, [
-                      _vm._v("가로 크기 : ")
-                    ]),
-                    _c("input", {
-                      attrs: {
-                        type: "number",
-                        id: "tile-width",
-                        value: "32",
-                        name: "tileWidth"
-                      }
-                    }),
-                    _vm._v("px\n                ")
-                  ]),
-                  _vm._v(" "),
-                  _c("li", [
-                    _c("label", { attrs: { for: "tile-height" } }, [
-                      _vm._v("세로 크기 : ")
-                    ]),
-                    _c("input", {
-                      attrs: {
-                        type: "number",
-                        id: "tile-height",
-                        value: "32",
-                        name: "tileHeight"
-                      }
-                    }),
-                    _vm._v("px\n                ")
-                  ]),
-                  _vm._v(" "),
-                  _c("li", [
-                    _c("label", { attrs: { for: "theme" } }, [
-                      _vm._v("테마 설정 : ")
-                    ]),
-                    _vm._v(" "),
-                    _c(
-                      "select",
-                      { attrs: { name: "theme", id: "theme-select-box" } },
-                      [
-                        _c(
-                          "option",
-                          { attrs: { value: "dark", selected: "" } },
-                          [_vm._v("다크 테마")]
-                        ),
-                        _vm._v(" "),
-                        _c("option", { attrs: { value: "light" } }, [
-                          _vm._v("라이트 테마")
-                        ])
-                      ]
-                    )
-                  ])
-                ])
-              ]
-            ),
-            _vm._v(" "),
-            _c("div", { staticClass: "tilesetWindow__control-box" }, [
-              _c("p", [
-                _c("span", [
-                  _c("i", {
-                    staticClass: "far fa-window-close",
-                    attrs: { id: "action-close" }
-                  })
-                ])
-              ])
-            ]),
-            _vm._v(" "),
-            _c("div", { staticClass: "tilesetWindow__panel" }, [
-              _c("button", { attrs: { id: "ok" } }, [_vm._v("확인")]),
-              _vm._v(" "),
-              _c("button", { attrs: { id: "cancel" } }, [_vm._v("취소")])
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c("img", {
-          attrs: {
-            src:
-              "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-            onload:
-              'window.app.onLoad(this, "tileset");this.parentNode.removeChild(this);'
-          }
-        })
-      ]
-    )
   }
 ]
 render._withStripped = true
@@ -56283,28 +55999,6 @@ if (inBrowser && window.Vue) {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (VueRouter);
-
-/***/ }),
-
-/***/ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
-/*!****************************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-style-loader!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
-  \****************************************************************************************************************************************************************************************************************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(/*! !../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/sass-loader/dist/cjs.js!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=style&index=0&lang=scss& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&");
-if(content.__esModule) content = content.default;
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var add = __webpack_require__(/*! ../../node_modules/vue-style-loader/lib/addStylesClient.js */ "./node_modules/vue-style-loader/lib/addStylesClient.js").default
-var update = add("4248c1b4", content, false, {});
-// Hot Module Replacement
-if(false) {}
 
 /***/ }),
 
@@ -70376,6 +70070,7 @@ class VueBinder extends EventEmitter_1.EventEmitter {
             { path: "/", name: "home", component: MainContainer_vue_1.default },
             {
                 path: "/newWindow",
+                name: "newWindow",
                 component: NewWindow_vue_1.default
             }
         ];
@@ -71351,12 +71046,13 @@ __webpack_require__(/*! source-map-support */ "./node_modules/source-map-support
 // Main
 //==========================================================
 class Main {
-    static start() {
+    static start(bindFunc) {
         $(async () => {
             window.app = app_1.default.GetInstance();
             window.electronService = new ElectronService_1.ElectronService();
             window.ToolbarManager = new Toolbar_1.ToolbarManager();
             window.app.start();
+            bindFunc();
             this.update(1.0);
         });
     }
@@ -71365,8 +71061,8 @@ class Main {
         window.requestAnimationFrame(Main.update);
     }
 }
-window.onMounted = () => {
-    Main.start();
+window.onMounted = (func) => {
+    Main.start(func);
 };
 const vue = new VueBinder_1.VueBinder();
 vue.mount();
@@ -72952,93 +72648,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_template_id_43a1bdca___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_template_id_43a1bdca___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
-
-
-
-/***/ }),
-
-/***/ "./packages/views/TilesetWindow.vue":
-/*!******************************************!*\
-  !*** ./packages/views/TilesetWindow.vue ***!
-  \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TilesetWindow.vue?vue&type=template&id=77a57fef& */ "./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&");
-/* harmony import */ var _TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TilesetWindow.vue?vue&type=script&lang=js& */ "./packages/views/TilesetWindow.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./TilesetWindow.vue?vue&type=style&index=0&lang=scss& */ "./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&");
-/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
-
-
-
-
-
-
-/* normalize component */
-
-var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
-  _TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
-  _TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["render"],
-  _TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
-  false,
-  null,
-  null,
-  null
-  
-)
-
-/* hot reload */
-if (false) { var api; }
-component.options.__file = "packages/views/TilesetWindow.vue"
-/* harmony default export */ __webpack_exports__["default"] = (component.exports);
-
-/***/ }),
-
-/***/ "./packages/views/TilesetWindow.vue?vue&type=script&lang=js&":
-/*!*******************************************************************!*\
-  !*** ./packages/views/TilesetWindow.vue?vue&type=script&lang=js& ***!
-  \*******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/babel-loader/lib!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
-
-/***/ }),
-
-/***/ "./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
-/*!****************************************************************************!*\
-  !*** ./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
-  \****************************************************************************/
-/*! no static exports found */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-style-loader!../../node_modules/css-loader/dist/cjs.js!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/sass-loader/dist/cjs.js!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=style&index=0&lang=scss& */ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=style&index=0&lang=scss&");
-/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__);
-/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__) if(["default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
-
-
-/***/ }),
-
-/***/ "./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&":
-/*!*************************************************************************!*\
-  !*** ./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef& ***!
-  \*************************************************************************/
-/*! exports provided: render, staticRenderFns */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../node_modules/vue-loader/lib??vue-loader-options!./TilesetWindow.vue?vue&type=template&id=77a57fef& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/TilesetWindow.vue?vue&type=template&id=77a57fef&");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["render"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 
