@@ -30,6 +30,7 @@
     background-size: 16px 16px;
     background-repeat: no-repeat;
     background-position: center center;
+    -webkit-app-region: drag;
 }
 
 .menu .menu__main li {
