@@ -2,7 +2,7 @@
 
 This project allows you to edit multi dimensional tile map on my own game engine. it is worked fine on any platforms such as Linux Desktop, OSX, Windows and so on.
 
-![IMG](https://github.com/biud436/Initial2D/raw/master/docs/img/new_editor.png)
+![IMG](./editor.png)
 
 # Environment
 
