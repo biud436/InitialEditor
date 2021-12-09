@@ -2,13 +2,15 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "noImplicitAny": true,
-        "module": "es6",
-        "target": "es6",
+        "module": "commonjs",
+        "target": "ES2021",
         "allowJs": true,
         "sourceMap": true,
+        "lib": ["ES2017", "DOM"],
         // "emitDeclarationOnly": true,
         // "declaration": true,
         "moduleResolution": "node",
-        "types": ["jquery", "vue", "node", "electron"]
+        "types": ["jquery", "vue", "node", "electron"],
+        "esModuleInterop": true
     }
 }

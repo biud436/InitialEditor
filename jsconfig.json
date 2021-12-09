@@ -6,8 +6,7 @@
         }
     },
     "typeAcquisition": {
-        "include": [
-            "jquery"
-        ]
-    }    
+        "include": ["jquery"]
+    },
+    "exclude": ["node_modules", "**/*.spec.ts"]
 }

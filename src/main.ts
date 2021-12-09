@@ -1,6 +1,5 @@
-const path = require("path");
-
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+import * as path from "path";
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
 
 app.setName("InitialEditor");
 
@@ -123,7 +122,9 @@ class EntryPoint {
     listenOn() {
         app.whenReady().then(() => {
             this.createWindow();
-            ipcMain.emit("creatSystemMenu", this._hostWindow);
+            if (process.platform === "darwin") {
+                ipcMain.emit("creatSystemMenu", this._hostWindow);
+            }
         });
 
         app.on("window-all-closed", () => {

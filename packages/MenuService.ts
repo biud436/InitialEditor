@@ -1,20 +1,24 @@
 import { Component } from "./Component";
 import { MenuComponent } from "./MenuComponent";
-import App from "./App";
-import GamePropertiesWindowController from "./controllers/GamePropertiesWindowController";
-import GamePropertiesWindow from "./models/GamePropertiesWindow";
-import { WindowCreator } from "./WindowCreator";
 import { KoreanMenu } from "./menu/KoreanMenu";
 import { SIGKILL } from "constants";
 import { ElectronService } from "./ElectronService";
+import { ipcRenderer } from "electron";
 
 const menu = {
     ko: KoreanMenu
 };
 
 export namespace InitialEditor {
+    /**
+     * 툴바 셀렉터 정의
+     */
     export namespace MenuButtons {
-        export const CLASSES: Record<string, string> = {};
+        export const CLASSE_SELECTOR: Record<string, string> = {
+            MINIMIZE_WINDOW: ".menu .control-box li.minimum",
+            MAXIMIZE_WINDOW: ".menu .control-box li.maximum",
+            CLOSE_WINDOW: ".menu .control-box li.close"
+        };
     }
 
     export type Platform = NodeJS.Platform | "electron";
@@ -30,9 +34,10 @@ namespace MenuButtonHandlers {
      */
     export function addMinimizeWindow() {
         document
-            .querySelector(".menu .control-box li.minimum")
+            .querySelector(
+                InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW
+            )
             .addEventListener("click", ev => {
-                const { ipcRenderer } = require("electron");
                 ipcRenderer.send("minimize");
                 ev.stopImmediatePropagation();
             });
@@ -45,9 +50,10 @@ namespace MenuButtonHandlers {
      */
     export function addMaximizeWindow() {
         document
-            .querySelector(".menu .control-box li.maximum")
+            .querySelector(
+                InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW
+            )
             .addEventListener("click", ev => {
-                const { ipcRenderer } = require("electron");
                 ipcRenderer.send("maximize");
                 ev.stopImmediatePropagation();
             });
@@ -60,7 +66,9 @@ namespace MenuButtonHandlers {
      */
     export function addCloseWindow() {
         document
-            .querySelector(".menu .control-box li.close")
+            .querySelector(
+                InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW
+            )
             .addEventListener("click", ev => {
                 switch (process.platform) {
                     case "darwin":
