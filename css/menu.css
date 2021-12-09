@@ -17,6 +17,7 @@
     margin: 0;
     list-style-type: none;
     position: relative;
+    top: 5px;
 }
 
 .menu__main-program-icon {
@@ -39,7 +40,8 @@
     display: inline-block;
     font-size: small;
     position: relative;
-    line-height: 10px;
+    line-height: 1em;
+    height: 1em;
     padding-right: 12px;
 }
 
