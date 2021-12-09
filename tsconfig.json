@@ -9,6 +9,6 @@
         // "emitDeclarationOnly": true,
         // "declaration": true,
         "moduleResolution": "node",
-        "types": ["jquery", "vue", "node"]
+        "types": ["jquery", "vue", "node", "electron"]
     }
 }

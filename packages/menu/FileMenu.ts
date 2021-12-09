@@ -1,5 +1,6 @@
 import { WindowCreator } from "../WindowCreator";
 import * as electron from "electron";
+import { ElectronService } from "../ElectronService";
 
 const FileMenu = {
     name: "파일",
@@ -41,8 +42,8 @@ const FileMenu = {
             name: "프로그램 종료",
             children: {},
             action: function(ev: any) {
-                const { ipcRenderer } = require("electron");
-                ipcRenderer.send("exit");
+                const service = ElectronService.getInstance();
+                service.quit();
             }
         }
     }

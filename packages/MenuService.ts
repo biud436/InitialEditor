@@ -6,12 +6,17 @@ import GamePropertiesWindow from "./models/GamePropertiesWindow";
 import { WindowCreator } from "./WindowCreator";
 import { KoreanMenu } from "./menu/KoreanMenu";
 import { SIGKILL } from "constants";
+import { ElectronService } from "./ElectronService";
 
 const menu = {
     ko: KoreanMenu
 };
 
 export namespace InitialEditor {
+    export namespace MenuButtons {
+        export const CLASSES: Record<string, string> = {};
+    }
+
     export type Platform = NodeJS.Platform | "electron";
 }
 
@@ -57,7 +62,14 @@ namespace MenuButtonHandlers {
         document
             .querySelector(".menu .control-box li.close")
             .addEventListener("click", ev => {
-                process.exit(SIGKILL);
+                switch (process.platform) {
+                    case "darwin":
+                        process.exit(SIGKILL);
+                    default:
+                        const electronService = ElectronService.getInstance();
+                        electronService.close();
+                        break;
+                }
             });
 
         return MenuButtonHandlers;

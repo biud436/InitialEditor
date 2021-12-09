@@ -15,6 +15,12 @@ import * as path from "path";
  * 조건 컴파일을 통하여 구현될 예정입니다.
  */
 class ElectronService extends EventEmitter {
+    public static INSTANCE: ElectronService = new ElectronService();
+
+    public static getInstance() {
+        return ElectronService.INSTANCE;
+    }
+
     public ipcMain: IpcMain;
 
     constructor() {
@@ -41,6 +47,17 @@ class ElectronService extends EventEmitter {
 
     public getWindow() {
         return require("electron").remote.getCurrentWindow();
+    }
+
+    public close() {
+        this.quit();
+    }
+
+    public quit() {
+        const currentWindow = this.getWindow();
+        if (currentWindow) {
+            currentWindow.close();
+        }
     }
 }
 
