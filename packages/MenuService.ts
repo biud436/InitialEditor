@@ -106,14 +106,28 @@ export default class MenuService extends Component {
                 "none";
         }
 
-        this.changeMenuLocaleAsPersonalize();
-        this.changeToolbarIconOnMobileDevice();
         if (!MenuService.isReady) {
+            this.hideMenuOnMac();
+            this.changeMenuLocaleAsPersonalize();
+            this.changeToolbarIconOnMobileDevice();
             this.addMenuEventHandlers();
             MenuService.isReady = true;
         }
 
         return this;
+    }
+
+    /**
+     * 맥에서 인라인 메뉴를 제거합니다.
+     */
+    hideMenuOnMac() {
+        if (process.platform === "darwin") {
+            (<HTMLDivElement>document.querySelector(".menu")).style.display =
+                "none";
+            (<HTMLDivElement>(
+                document.querySelector(".toolbar")
+            )).style.marginTop = "0";
+        }
     }
 
     changeMenuLocaleAsPersonalize() {

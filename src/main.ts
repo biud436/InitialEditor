@@ -15,14 +15,17 @@ const Config = {
             width: 1280,
             height: 720
         };
-        const options = {
+        const options: Electron.BrowserWindowConstructorOptions = {
             ...windowRect,
             webPreferences: {
                 enableRemoteModule: true,
                 nodeIntegration: true,
-                contextIsolation: false
+                contextIsolation: false,
+                devTools: true
             },
-            frame: isMacOS ? true : false
+            frame: isMacOS ? true : false,
+            titleBarStyle: isMacOS ? "default" : "hidden",
+            darkTheme: true
         };
 
         return options;
@@ -146,7 +149,9 @@ class EntryPoint {
             }
 
             // open develooper tools
-            this._hostWindow.webContents.openDevTools();
+            this._hostWindow.webContents.openDevTools({
+                mode: "detach"
+            });
         });
 
         app.on("window-all-closed", () => {
