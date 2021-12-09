@@ -77,7 +77,7 @@
 <script>
 export default {};
 </script>
-<style>
+<style lang="scss">
 #tilesetWindow {
     padding: 1em;
     background-color: inherit;

@@ -61,6 +61,7 @@
         "@typescript-eslint/eslint-plugin": "^4.5.0",
         "@typescript-eslint/parser": "^4.5.0",
         "commander": "^8.3.0",
+        "dart-sass": "^1.25.0",
         "esm": "^3.2.25",
         "inquirer": "^8.2.0",
         "jquery": "^3.5.1",
