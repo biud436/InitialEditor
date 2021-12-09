@@ -133,8 +133,8 @@ export default class App extends EventEmitter {
         // });
 
         // 뷰 객체를 생성합니다.
-        this._vueBinder = new VueBinder();
-        this._vueBinder.mount();
+        // this._vueBinder = new VueBinder();
+        // this._vueBinder.mount();
     }
 
     /**

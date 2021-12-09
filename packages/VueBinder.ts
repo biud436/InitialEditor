@@ -3,17 +3,19 @@ import VueRouter from "vue-router";
 import { EventEmitter } from "./EventEmitter";
 import VueApp from "./views/VueApp.vue";
 import NewWindow from "./views/NewWindow.vue";
+import MainContainer from "./views/MainContainer.vue";
 
 export class VueBinder extends EventEmitter {
     private vnode: Vue;
+    private vContainer: Vue;
 
     constructor() {
         super();
     }
 
-    getRoutes(): any {
+    getRoutesForMainContainer(): any {
         return [
-            { path: "/", name: "home", component: VueApp },
+            { path: "/", name: "home", component: MainContainer },
             {
                 path: "/newWindow",
                 component: NewWindow
@@ -25,14 +27,14 @@ export class VueBinder extends EventEmitter {
         // 라우터 사용
         Vue.use(VueRouter);
 
-        const router = new VueRouter({
+        const routerForMainContainer = new VueRouter({
             mode: "history",
-            routes: this.getRoutes()
+            routes: this.getRoutesForMainContainer()
         });
 
-        this.vnode = new Vue({
-            router,
-            render: h => h(VueApp)
-        }).$mount("#app");
+        this.vContainer = new Vue({
+            router: routerForMainContainer,
+            render: h => h(MainContainer)
+        }).$mount("#container");
     }
 }
