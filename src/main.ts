@@ -117,14 +117,7 @@ class EntryPoint {
     }
 
     listenOn() {
-        // app.whenReady().then(() => {
-        //     this.createWindow();
-        //     if (process.platform === "darwin") {
-        //         ipcMain.emit("creatSystemMenu", this._hostWindow);
-        //     }
-        // });
-
-        app.on("ready", () => {
+        app.whenReady().then(() => {
             this.createWindow();
             if (process.platform === "darwin") {
                 ipcMain.emit("creatSystemMenu", this._hostWindow);
@@ -132,6 +125,13 @@ class EntryPoint {
             // open develooper tools
             this._hostWindow.webContents.openDevTools();
         });
+
+        // app.on("ready", () => {
+        //     this.createWindow();
+        //     if (process.platform === "darwin") {
+        //         ipcMain.emit("creatSystemMenu", this._hostWindow);
+        //     }
+        // });
 
         app.on("window-all-closed", () => {
             switch (process.platform) {

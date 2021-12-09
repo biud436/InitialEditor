@@ -360,9 +360,12 @@ export default class App extends EventEmitter {
 
         children.forEach((elem: HTMLLIElement, index: number) => {
             elem.onclick = () => {
-                elem.className = elem.className.includes("slash")
-                    ? "far fa-eye"
-                    : "far fa-eye-slash";
+                const iElement = elem.querySelector("i");
+                if (iElement instanceof HTMLElement) {
+                    iElement.className = iElement.className.includes("slash")
+                        ? "far fa-eye"
+                        : "far fa-eye-slash";
+                }
             };
         });
 

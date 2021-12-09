@@ -67832,9 +67832,12 @@ class App extends EventEmitter_1.EventEmitter {
         const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
         children.forEach((elem, index) => {
             elem.onclick = () => {
-                elem.className = elem.className.includes("slash")
-                    ? "far fa-eye"
-                    : "far fa-eye-slash";
+                const iElement = elem.querySelector("i");
+                if (iElement instanceof HTMLElement) {
+                    iElement.className = iElement.className.includes("slash")
+                        ? "far fa-eye"
+                        : "far fa-eye-slash";
+                }
             };
         });
         let target = null;
@@ -69840,9 +69843,12 @@ class App extends EventEmitter_1.EventEmitter {
         const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
         children.forEach((elem, index) => {
             elem.onclick = () => {
-                elem.className = elem.className.includes("slash")
-                    ? "far fa-eye"
-                    : "far fa-eye-slash";
+                const iElement = elem.querySelector("i");
+                if (iElement instanceof HTMLElement) {
+                    iElement.className = iElement.className.includes("slash")
+                        ? "far fa-eye"
+                        : "far fa-eye-slash";
+                }
             };
         });
         let target = null;
