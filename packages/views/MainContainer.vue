@@ -2,7 +2,7 @@
     <div id="wrapper">
         <div class="container">
             <!-- 메뉴 -->
-            <main-menu />
+            <main-menu-container />
             <!-- 툴바 -->
             <toolbar />
             <!-- 타일 선택 창 -->
@@ -16,14 +16,14 @@
     </div>
 </template>
 <script>
-import MainMenu from "./components/MainMenu.vue";
+import MainMenuContainer from "./components/MainMenuContainer.vue";
 import Tilemap from "./components/Tilemap.vue";
 import TileSelectWindow from "./components/TileSelectWindow.vue";
 import Toolbar from "./components/Toolbar.vue";
 
 export default {
     components: {
-        MainMenu,
+        MainMenuContainer,
         Toolbar,
         TileSelectWindow,
         Tilemap

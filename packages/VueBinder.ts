@@ -1,13 +1,11 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import { EventEmitter } from "./EventEmitter";
-import VueApp from "./views/VueApp.vue";
 import NewWindow from "./views/NewWindow.vue";
 import MainContainer from "./views/MainContainer.vue";
 import TilesetWindow from "./views/TilesetWindow.vue";
 
 export class VueBinder extends EventEmitter {
-    private vnode: Vue;
     private vContainer: Vue;
 
     constructor() {
