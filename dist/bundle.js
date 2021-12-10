@@ -41989,7 +41989,22 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
+  data() {
+    return {
+      title: "",
+      project: {
+        path: [],
+        author: ""
+      }
+    };
+  },
+
   mounted() {
     $(this.$refs.newWindow).draggable();
   },
@@ -41997,6 +42012,11 @@ __webpack_require__.r(__webpack_exports__);
   methods: {
     close() {
       this.$router.push("home");
+    },
+
+    onFileChange(e) {
+      this.project.path = e.target.files;
+      console.log(e.target.files);
     }
 
   }
@@ -42013,6 +42033,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
 //
 //
 //
@@ -42086,19 +42107,39 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+
+const SET_TITLE = "api/setTitle";
+const GET_TITLE = "api/getTitle";
+const SET_THEME = "api/setTheme";
+const GET_THEME = "api/getTheme";
 const THEME = {
-  DARK: 0,
-  LIGHT: 1
+  DARK: "dark",
+  LIGHT: "light"
 };
 /* harmony default export */ __webpack_exports__["default"] = ({
-  mounted() {
-    $(this.$refs.tilesetWindow).draggable();
+  data() {
+    return {
+      selectedIndex: "dark"
+    };
   },
 
+  mounted() {
+    $(this.$refs.tilesetWindow).draggable();
+    this.selectedIndex = this.theme;
+  },
+
+  computed: { ...Object(vuex__WEBPACK_IMPORTED_MODULE_0__["mapGetters"])({
+      theme: [GET_THEME]
+    })
+  },
   methods: {
-    close() {
-      const themeIndex = $("#theme-select-box").prop("selectedIndex");
-      const themeManager = new ThemeManager();
+    applyTheme() {
+      const themeIndex = this.selectedIndex;
+      const themeManager = new window.ThemeManager();
 
       if (themeIndex == THEME.DARK) {
         $("body").data("theme", "dark");
@@ -42108,6 +42149,19 @@ const THEME = {
         themeManager.changeLightTheme(true);
       }
 
+      this.$store.dispatch(SET_THEME, themeIndex);
+      this.returnToMain();
+    },
+
+    ok() {
+      this.applyTheme();
+    },
+
+    close() {
+      this.returnToMain();
+    },
+
+    returnToMain() {
       this.$router.push("home");
     }
 
@@ -42395,7 +42449,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 0.9;\n  position: relative;\n}\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n.tilesetWindow__panel {\n  float: right;\n}\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}", "",{"version":3,"sources":["webpack://packages/views/components/window/TilesetWindow.vue","webpack://TilesetWindow.vue"],"names":[],"mappings":"AAsGA;EACI,YAAA;EACA,yBAAA;EACA,gBAAA;EACA,oCAAA;EACA,YAAA;EACA,kBAAA;ACrGJ;ADwGA;EACI,WAAA;EACA,mBAAA;EACA,0CAAA;EACA,oBAAA;EACA,kBAAA;EACA,yBAAA;EACA,kBAAA;EACA,iBAAA;ACrGJ;ADwGA;EACI,uBAAA;EACA,kBAAA;EACA,WAAA;EACA,WAAA;EACA,yBAAA;EACA,6BAAA;EACA,UAAA;ACrGJ;ADwGA;EACI,oBAAA;EACA,UAAA;ACrGJ;ADwGA;EACI,iBAAA;EACA,oDAAA;EACA,mCAAA;EACA,gCAAA;ACrGJ;ADwGA;EACI,aAAA;ACrGJ;ADwGA;EACI,kBAAA;EACA,UAAA;EACA,WAAA;EACA,iBAAA;EACA,WAAA;EACA,YAAA;ACrGJ;ADwGA;EACI,kCAAA;ACrGJ;ADwGA;EACI,YAAA;ACrGJ;ADwGA;EACI,yCAAA;EACA,0CAAA;ACrGJ;ADwGA;;EAEI,aAAA;EACA,6CAAA;ACrGJ;ADwGA;EACI,aAAA;EACA,uCAAA;ACrGJ;ADwGA;EACI,6CAAA;EACA,oCAAA;ACrGJ;ADwGA;EACI,6CAAA;ACrGJ","sourcesContent":["\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\r\n#tilesetWindow {\r\n    padding: 1em;\r\n    background-color: inherit;\r\n    overflow: hidden;\r\n    background: var(--dark-shadow-color);\r\n    opacity: 0.9;\r\n    position: relative;\r\n}\r\n\r\n.tilesetWindow__tab-border {\r\n    width: 100%;\r\n    height: max-content;\r\n    border: 1px solid var(--dark-border-color);\r\n    border-radius: 0.4em;\r\n    position: relative;\r\n    background-color: inherit;\r\n    margin-bottom: 1em;\r\n    margin-top: 1.2em;\r\n}\r\n\r\n.tilesetWindow__tab-border::before {\r\n    content: attr(tab-name);\r\n    position: absolute;\r\n    top: -0.7em;\r\n    left: 0.8em;\r\n    background-color: inherit;\r\n    color: var(--dark-text-color);\r\n    font: menu;\r\n}\r\n\r\n.tilesetWindow__tab-border ul li {\r\n    margin-bottom: 0.5em;\r\n    font: menu;\r\n}\r\n\r\n.tilesetWindow__tab-border input {\r\n    text-align: right;\r\n    background-color: var(--dark-input-background-color);\r\n    color: var(--dark-input-text-color);\r\n    border: var(--dark-border-color);\r\n}\r\n\r\n.tilesetWindow__tab-border input:focus {\r\n    outline: none;\r\n}\r\n\r\n#tilesetWindow .tilesetWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#tilesetWindow .tilesetWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n.tilesetWindow__panel {\r\n    float: right;\r\n}\r\n\r\n#tilesetWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n\r\n#tilesetWindow button:hover,\r\nbutton:focus {\r\n    outline: none;\r\n    background-color: var(--dark-selection-color);\r\n}\r\n\r\n#tilesetWindow button:active {\r\n    outline: none;\r\n    background-color: rgba(60, 60, 60, 0.9);\r\n}\r\n\r\n#tilesetWindow select {\r\n    background-color: var(--dark-selection-color);\r\n    color: var(--dark---dark-text-color);\r\n}\r\n\r\n#tilesetWindow button {\r\n    background-color: var(--dark-selection-color);\r\n}\r\n","#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 0.9;\n  position: relative;\n}\n\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n\n.tilesetWindow__panel {\n  float: right;\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 0.9;\n  position: relative;\n}\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n.tilesetWindow__panel {\n  float: right;\n}\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}", "",{"version":3,"sources":["webpack://packages/views/components/window/TilesetWindow.vue","webpack://TilesetWindow.vue"],"names":[],"mappings":"AAuIA;EACI,YAAA;EACA,yBAAA;EACA,gBAAA;EACA,oCAAA;EACA,YAAA;EACA,kBAAA;ACtIJ;ADyIA;EACI,WAAA;EACA,mBAAA;EACA,0CAAA;EACA,oBAAA;EACA,kBAAA;EACA,yBAAA;EACA,kBAAA;EACA,iBAAA;ACtIJ;ADyIA;EACI,uBAAA;EACA,kBAAA;EACA,WAAA;EACA,WAAA;EACA,yBAAA;EACA,6BAAA;EACA,UAAA;ACtIJ;ADyIA;EACI,oBAAA;EACA,UAAA;ACtIJ;ADyIA;EACI,iBAAA;EACA,oDAAA;EACA,mCAAA;EACA,gCAAA;ACtIJ;ADyIA;EACI,aAAA;ACtIJ;ADyIA;EACI,kBAAA;EACA,UAAA;EACA,WAAA;EACA,iBAAA;EACA,WAAA;EACA,YAAA;ACtIJ;ADyIA;EACI,kCAAA;ACtIJ;ADyIA;EACI,YAAA;ACtIJ;ADyIA;EACI,yCAAA;EACA,0CAAA;ACtIJ;ADyIA;;EAEI,aAAA;EACA,6CAAA;ACtIJ;ADyIA;EACI,aAAA;EACA,uCAAA;ACtIJ;ADyIA;EACI,6CAAA;EACA,oCAAA;ACtIJ;ADyIA;EACI,6CAAA;ACtIJ","sourcesContent":["\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\r\n#tilesetWindow {\r\n    padding: 1em;\r\n    background-color: inherit;\r\n    overflow: hidden;\r\n    background: var(--dark-shadow-color);\r\n    opacity: 0.9;\r\n    position: relative;\r\n}\r\n\r\n.tilesetWindow__tab-border {\r\n    width: 100%;\r\n    height: max-content;\r\n    border: 1px solid var(--dark-border-color);\r\n    border-radius: 0.4em;\r\n    position: relative;\r\n    background-color: inherit;\r\n    margin-bottom: 1em;\r\n    margin-top: 1.2em;\r\n}\r\n\r\n.tilesetWindow__tab-border::before {\r\n    content: attr(tab-name);\r\n    position: absolute;\r\n    top: -0.7em;\r\n    left: 0.8em;\r\n    background-color: inherit;\r\n    color: var(--dark-text-color);\r\n    font: menu;\r\n}\r\n\r\n.tilesetWindow__tab-border ul li {\r\n    margin-bottom: 0.5em;\r\n    font: menu;\r\n}\r\n\r\n.tilesetWindow__tab-border input {\r\n    text-align: right;\r\n    background-color: var(--dark-input-background-color);\r\n    color: var(--dark-input-text-color);\r\n    border: var(--dark-border-color);\r\n}\r\n\r\n.tilesetWindow__tab-border input:focus {\r\n    outline: none;\r\n}\r\n\r\n#tilesetWindow .tilesetWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#tilesetWindow .tilesetWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n.tilesetWindow__panel {\r\n    float: right;\r\n}\r\n\r\n#tilesetWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n\r\n#tilesetWindow button:hover,\r\nbutton:focus {\r\n    outline: none;\r\n    background-color: var(--dark-selection-color);\r\n}\r\n\r\n#tilesetWindow button:active {\r\n    outline: none;\r\n    background-color: rgba(60, 60, 60, 0.9);\r\n}\r\n\r\n#tilesetWindow select {\r\n    background-color: var(--dark-selection-color);\r\n    color: var(--dark---dark-text-color);\r\n}\r\n\r\n#tilesetWindow button {\r\n    background-color: var(--dark-selection-color);\r\n}\r\n","#tilesetWindow {\n  padding: 1em;\n  background-color: inherit;\n  overflow: hidden;\n  background: var(--dark-shadow-color);\n  opacity: 0.9;\n  position: relative;\n}\n\n.tilesetWindow__tab-border {\n  width: 100%;\n  height: max-content;\n  border: 1px solid var(--dark-border-color);\n  border-radius: 0.4em;\n  position: relative;\n  background-color: inherit;\n  margin-bottom: 1em;\n  margin-top: 1.2em;\n}\n\n.tilesetWindow__tab-border::before {\n  content: attr(tab-name);\n  position: absolute;\n  top: -0.7em;\n  left: 0.8em;\n  background-color: inherit;\n  color: var(--dark-text-color);\n  font: menu;\n}\n\n.tilesetWindow__tab-border ul li {\n  margin-bottom: 0.5em;\n  font: menu;\n}\n\n.tilesetWindow__tab-border input {\n  text-align: right;\n  background-color: var(--dark-input-background-color);\n  color: var(--dark-input-text-color);\n  border: var(--dark-border-color);\n}\n\n.tilesetWindow__tab-border input:focus {\n  outline: none;\n}\n\n#tilesetWindow .tilesetWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n\n#tilesetWindow .tilesetWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n\n.tilesetWindow__panel {\n  float: right;\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}\n\n#tilesetWindow button:hover,\nbutton:focus {\n  outline: none;\n  background-color: var(--dark-selection-color);\n}\n\n#tilesetWindow button:active {\n  outline: none;\n  background-color: rgba(60, 60, 60, 0.9);\n}\n\n#tilesetWindow select {\n  background-color: var(--dark-selection-color);\n  color: var(--dark---dark-text-color);\n}\n\n#tilesetWindow button {\n  background-color: var(--dark-selection-color);\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -42442,7 +42496,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\n}\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\n}\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\n}\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\n}\n#newWindow input {\r\n    width: 60%;\n}\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\n}\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/components/window/NewWindow.vue"],"names":[],"mappings":";AAqDA;IACA,YAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\r\n    <div class=\"newContainer\">\r\n        <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\r\n            <ul>\r\n                <li>\r\n                    <label for=\"name\">게임명 : </label\r\n                    ><input type=\"text\" placeholder=\"name\" />\r\n                </li>\r\n                <li>\r\n                    <label for=\"name\">위치 : </label\r\n                    ><input\r\n                        type=\"file\"\r\n                        placeholder=\"\"\r\n                        webkitdirectory\r\n                        directory\r\n                        multiple\r\n                    />\r\n                </li>\r\n                <li>\r\n                    <label for=\"name\">작성자 명 : </label\r\n                    ><input type=\"text\" placeholder=\"\" />\r\n                </li>\r\n            </ul>\r\n            <div class=\"newWindow__control-box\">\r\n                <p>\r\n                    <span\r\n                        ><i\r\n                            class=\"far fa-window-close\"\r\n                            id=\"action-close\"\r\n                            @click=\"close\"\r\n                        ></i\r\n                    ></span>\r\n                </p>\r\n            </div>\r\n            <div class=\"panel\">\r\n                <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n<script>\r\nexport default {\r\n    mounted() {\r\n        $(this.$refs.newWindow).draggable();\r\n    },\r\n    methods: {\r\n        close() {\r\n            this.$router.push(\"home\");\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style lang=\"css\">\r\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\r\n}\r\n\r\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\r\n}\r\n\r\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\r\n}\r\n\r\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\r\n}\r\n\r\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n#newWindow input {\r\n    width: 60%;\r\n}\r\n\r\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\r\n}\r\n\r\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\n}\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\n}\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\n}\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\n}\n#newWindow input {\r\n    width: 60%;\n}\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\n}\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/components/window/NewWindow.vue"],"names":[],"mappings":";AAuEA;IACA,YAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\r\n    <div class=\"newContainer\">\r\n        <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\r\n            <ul>\r\n                <li>\r\n                    <label for=\"name\">게임명 : </label\r\n                    ><input type=\"text\" placeholder=\"name\" v-model=\"title\" />\r\n                </li>\r\n                <li>\r\n                    <label for=\"name\">위치 : </label\r\n                    ><input\r\n                        type=\"file\"\r\n                        placeholder=\"\"\r\n                        webkitdirectory\r\n                        directory\r\n                        multiple\r\n                        @change=\"onFileChange($event)\"\r\n                    />\r\n                </li>\r\n                <li>\r\n                    <label for=\"name\">작성자 명 : </label\r\n                    ><input\r\n                        type=\"text\"\r\n                        placeholder=\"\"\r\n                        v-model=\"project.author\"\r\n                    />\r\n                </li>\r\n            </ul>\r\n            <div class=\"newWindow__control-box\">\r\n                <p>\r\n                    <span\r\n                        ><i\r\n                            class=\"far fa-window-close\"\r\n                            id=\"action-close\"\r\n                            @click=\"close\"\r\n                        ></i\r\n                    ></span>\r\n                </p>\r\n            </div>\r\n            <div class=\"panel\">\r\n                <button><i class=\"fas fa-upload\"></i>프로젝트 생성</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n<script>\r\nexport default {\r\n    data() {\r\n        return {\r\n            title: \"\",\r\n            project: {\r\n                path: [],\r\n                author: \"\"\r\n            }\r\n        };\r\n    },\r\n    mounted() {\r\n        $(this.$refs.newWindow).draggable();\r\n    },\r\n    methods: {\r\n        close() {\r\n            this.$router.push(\"home\");\r\n        },\r\n        onFileChange(e) {\r\n            this.project.path = e.target.files;\r\n            console.log(e.target.files);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style lang=\"css\">\r\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\r\n}\r\n\r\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\r\n}\r\n\r\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\r\n}\r\n\r\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\r\n}\r\n\r\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n#newWindow input {\r\n    width: 60%;\r\n}\r\n\r\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\r\n}\r\n\r\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -53559,7 +53613,73 @@ var render = function() {
         attrs: { id: "newWindow", "window-name": "게임 속성" }
       },
       [
-        _vm._m(0),
+        _c("ul", [
+          _c("li", [
+            _c("label", { attrs: { for: "name" } }, [_vm._v("게임명 : ")]),
+            _c("input", {
+              directives: [
+                {
+                  name: "model",
+                  rawName: "v-model",
+                  value: _vm.title,
+                  expression: "title"
+                }
+              ],
+              attrs: { type: "text", placeholder: "name" },
+              domProps: { value: _vm.title },
+              on: {
+                input: function($event) {
+                  if ($event.target.composing) {
+                    return
+                  }
+                  _vm.title = $event.target.value
+                }
+              }
+            })
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "name" } }, [_vm._v("위치 : ")]),
+            _c("input", {
+              attrs: {
+                type: "file",
+                placeholder: "",
+                webkitdirectory: "",
+                directory: "",
+                multiple: ""
+              },
+              on: {
+                change: function($event) {
+                  return _vm.onFileChange($event)
+                }
+              }
+            })
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c("label", { attrs: { for: "name" } }, [_vm._v("작성자 명 : ")]),
+            _c("input", {
+              directives: [
+                {
+                  name: "model",
+                  rawName: "v-model",
+                  value: _vm.project.author,
+                  expression: "project.author"
+                }
+              ],
+              attrs: { type: "text", placeholder: "" },
+              domProps: { value: _vm.project.author },
+              on: {
+                input: function($event) {
+                  if ($event.target.composing) {
+                    return
+                  }
+                  _vm.$set(_vm.project, "author", $event.target.value)
+                }
+              }
+            })
+          ])
+        ]),
         _vm._v(" "),
         _c("div", { staticClass: "newWindow__control-box" }, [
           _c("p", [
@@ -53573,41 +53693,12 @@ var render = function() {
           ])
         ]),
         _vm._v(" "),
-        _vm._m(1)
+        _vm._m(0)
       ]
     )
   ])
 }
 var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("ul", [
-      _c("li", [
-        _c("label", { attrs: { for: "name" } }, [_vm._v("게임명 : ")]),
-        _c("input", { attrs: { type: "text", placeholder: "name" } })
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("label", { attrs: { for: "name" } }, [_vm._v("위치 : ")]),
-        _c("input", {
-          attrs: {
-            type: "file",
-            placeholder: "",
-            webkitdirectory: "",
-            directory: "",
-            multiple: ""
-          }
-        })
-      ]),
-      _vm._v(" "),
-      _c("li", [
-        _c("label", { attrs: { for: "name" } }, [_vm._v("작성자 명 : ")]),
-        _c("input", { attrs: { type: "text", placeholder: "" } })
-      ])
-    ])
-  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -53650,7 +53741,65 @@ var render = function() {
     [
       _vm._m(0),
       _vm._v(" "),
-      _vm._m(1),
+      _c(
+        "div",
+        {
+          staticClass: "tilesetWindow-tile tilesetWindow__tab-border",
+          attrs: { "tab-name": "타일" }
+        },
+        [
+          _c("ul", [
+            _vm._m(1),
+            _vm._v(" "),
+            _vm._m(2),
+            _vm._v(" "),
+            _c("li", [
+              _c("label", { attrs: { for: "theme" } }, [
+                _vm._v("테마 설정 : ")
+              ]),
+              _vm._v(" "),
+              _c(
+                "select",
+                {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.selectedIndex,
+                      expression: "selectedIndex"
+                    }
+                  ],
+                  attrs: { name: "theme", id: "theme-select-box" },
+                  on: {
+                    change: function($event) {
+                      var $$selectedVal = Array.prototype.filter
+                        .call($event.target.options, function(o) {
+                          return o.selected
+                        })
+                        .map(function(o) {
+                          var val = "_value" in o ? o._value : o.value
+                          return val
+                        })
+                      _vm.selectedIndex = $event.target.multiple
+                        ? $$selectedVal
+                        : $$selectedVal[0]
+                    }
+                  }
+                },
+                [
+                  _c("option", { attrs: { value: "dark", selected: "" } }, [
+                    _vm._v("다크 테마")
+                  ]),
+                  _vm._v(" "),
+                  _c("option", { attrs: { value: "light" } }, [
+                    _vm._v("라이트 테마")
+                  ])
+                ]
+              )
+            ])
+          ])
+        ]
+      ),
       _vm._v(" "),
       _c("div", { staticClass: "tilesetWindow__control-box" }, [
         _c("p", [
@@ -53665,7 +53814,7 @@ var render = function() {
       ]),
       _vm._v(" "),
       _c("div", { staticClass: "tilesetWindow__panel" }, [
-        _c("button", { attrs: { id: "ok" }, on: { click: _vm.close } }, [
+        _c("button", { attrs: { id: "ok" }, on: { click: _vm.ok } }, [
           _vm._v("확인")
         ]),
         _vm._v(" "),
@@ -53720,60 +53869,35 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c(
-      "div",
-      {
-        staticClass: "tilesetWindow-tile tilesetWindow__tab-border",
-        attrs: { "tab-name": "타일" }
-      },
-      [
-        _c("ul", [
-          _c("li", [
-            _c("label", { attrs: { for: "tile-width" } }, [
-              _vm._v("가로 크기 : ")
-            ]),
-            _c("input", {
-              attrs: {
-                type: "number",
-                id: "tile-width",
-                value: "32",
-                name: "tileWidth"
-              }
-            }),
-            _vm._v("px\n            ")
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "tile-height" } }, [
-              _vm._v("세로 크기 : ")
-            ]),
-            _c("input", {
-              attrs: {
-                type: "number",
-                id: "tile-height",
-                value: "32",
-                name: "tileHeight"
-              }
-            }),
-            _vm._v("px\n            ")
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "theme" } }, [_vm._v("테마 설정 : ")]),
-            _vm._v(" "),
-            _c("select", { attrs: { name: "theme", id: "theme-select-box" } }, [
-              _c("option", { attrs: { value: "dark", selected: "" } }, [
-                _vm._v("다크 테마")
-              ]),
-              _vm._v(" "),
-              _c("option", { attrs: { value: "light" } }, [
-                _vm._v("라이트 테마")
-              ])
-            ])
-          ])
-        ])
-      ]
-    )
+    return _c("li", [
+      _c("label", { attrs: { for: "tile-width" } }, [_vm._v("가로 크기 : ")]),
+      _c("input", {
+        attrs: {
+          type: "number",
+          id: "tile-width",
+          value: "32",
+          name: "tileWidth"
+        }
+      }),
+      _vm._v("px\n            ")
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("li", [
+      _c("label", { attrs: { for: "tile-height" } }, [_vm._v("세로 크기 : ")]),
+      _c("input", {
+        attrs: {
+          type: "number",
+          id: "tile-height",
+          value: "32",
+          name: "tileHeight"
+        }
+      }),
+      _vm._v("px\n            ")
+    ])
   }
 ]
 render._withStripped = true
@@ -74092,24 +74216,34 @@ exports.Schema = Schema;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.actions = exports.getters = exports.mutations = exports.api = exports.state = void 0;
 exports.state = {
-    title: ""
+    title: "",
+    theme: "dark"
 };
 var api;
 (function (api) {
-    api.SET_TITLE = Symbol("api/setTitle");
-    api.GET_TITLE = Symbol("api/getTitle");
+    api.SET_TITLE = "api/setTitle";
+    api.GET_TITLE = "api/getTitle";
+    api.SET_THEME = "api/setTheme";
+    api.GET_THEME = "api/getTheme";
 })(api = exports.api || (exports.api = {}));
 exports.mutations = {
     [api.SET_TITLE](state, title) {
         state.title = title;
+    },
+    [api.SET_THEME](state, theme) {
+        state.theme = theme;
     }
 };
 exports.getters = {
-    [api.GET_TITLE]: (state) => state.title
+    [api.GET_TITLE]: (state) => state.title,
+    [api.GET_THEME]: (state) => state.theme
 };
 exports.actions = {
     [api.SET_TITLE]({ commit, dispatch }, title) {
-        commit("setTitle", title);
+        commit("api/setTitle", title);
+    },
+    [api.SET_THEME]({ commit, dispatch }, theme) {
+        commit("api/setTheme", theme);
     }
 };
 

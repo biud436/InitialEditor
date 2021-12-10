@@ -41,7 +41,11 @@
                 <li>
                     <label for="theme">테마 설정 : </label>
 
-                    <select name="theme" id="theme-select-box">
+                    <select
+                        name="theme"
+                        id="theme-select-box"
+                        v-model="selectedIndex"
+                    >
                         <option value="dark" selected>다크 테마</option>
                         <option value="light">라이트 테마</option>
                     </select>
@@ -62,7 +66,7 @@
         </div>
 
         <div class="tilesetWindow__panel">
-            <button id="ok" @click="close">확인</button>
+            <button id="ok" @click="ok">확인</button>
             <button id="cancel" @click="close">취소</button>
         </div>
         <img
@@ -72,19 +76,37 @@
     </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
+
+const SET_TITLE = "api/setTitle";
+const GET_TITLE = "api/getTitle";
+const SET_THEME = "api/setTheme";
+const GET_THEME = "api/getTheme";
+
 const THEME = {
-    DARK: 0,
-    LIGHT: 1
+    DARK: "dark",
+    LIGHT: "light"
 };
 export default {
+    data() {
+        return {
+            selectedIndex: "dark"
+        };
+    },
     mounted() {
         $(this.$refs.tilesetWindow).draggable();
+        this.selectedIndex = this.theme;
+    },
+    computed: {
+        ...mapGetters({
+            theme: [GET_THEME]
+        })
     },
     methods: {
-        close() {
-            const themeIndex = $("#theme-select-box").prop("selectedIndex");
+        applyTheme() {
+            const themeIndex = this.selectedIndex;
 
-            const themeManager = new ThemeManager();
+            const themeManager = new window.ThemeManager();
 
             if (themeIndex == THEME.DARK) {
                 $("body").data("theme", "dark");
@@ -94,6 +116,17 @@ export default {
                 themeManager.changeLightTheme(true);
             }
 
+            this.$store.dispatch(SET_THEME, themeIndex);
+
+            this.returnToMain();
+        },
+        ok() {
+            this.applyTheme();
+        },
+        close() {
+            this.returnToMain();
+        },
+        returnToMain() {
             this.$router.push("home");
         }
     }

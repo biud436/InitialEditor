@@ -4,7 +4,7 @@
             <ul>
                 <li>
                     <label for="name">게임명 : </label
-                    ><input type="text" placeholder="name" />
+                    ><input type="text" placeholder="name" v-model="title" />
                 </li>
                 <li>
                     <label for="name">위치 : </label
@@ -14,11 +14,16 @@
                         webkitdirectory
                         directory
                         multiple
+                        @change="onFileChange($event)"
                     />
                 </li>
                 <li>
                     <label for="name">작성자 명 : </label
-                    ><input type="text" placeholder="" />
+                    ><input
+                        type="text"
+                        placeholder=""
+                        v-model="project.author"
+                    />
                 </li>
             </ul>
             <div class="newWindow__control-box">
@@ -40,12 +45,25 @@
 </template>
 <script>
 export default {
+    data() {
+        return {
+            title: "",
+            project: {
+                path: [],
+                author: ""
+            }
+        };
+    },
     mounted() {
         $(this.$refs.newWindow).draggable();
     },
     methods: {
         close() {
             this.$router.push("home");
+        },
+        onFileChange(e) {
+            this.project.path = e.target.files;
+            console.log(e.target.files);
         }
     }
 };
