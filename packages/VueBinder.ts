@@ -1,4 +1,5 @@
 import Vue from "vue";
+import Vuex from "vuex";
 import VueRouter from "vue-router";
 import { EventEmitter } from "./EventEmitter";
 import NewWindow from "./views/NewWindow.vue";
@@ -12,6 +13,10 @@ export class VueBinder extends EventEmitter {
         super();
     }
 
+    /**
+     * 메인 컨테이너에서 사용할 라우터 설정
+     * @returns
+     */
     getRoutesForMainContainer(): any {
         return [
             { path: "/", name: "home", component: MainContainer },
@@ -28,17 +33,39 @@ export class VueBinder extends EventEmitter {
         ];
     }
 
+    /**
+     * Vuex 스토어 생성
+     * @returns {Vuex.Store}
+     */
+    initWithVuexStore() {
+        const store = new Vuex.Store({
+            actions: {},
+            modules: {},
+            state: {},
+            getters: {}
+        });
+
+        return store;
+    }
+
+    /**
+     * 뷰 마운트
+     */
     mount() {
-        // 라우터 사용
+        // 미들웨어 사용
+        Vue.use(Vuex);
         Vue.use(VueRouter);
 
+        // 라우터 설정
         const routerForMainContainer = new VueRouter({
             mode: "history",
             routes: this.getRoutesForMainContainer()
         });
 
+        // 컨테이너 생성
         this.vContainer = new Vue({
             router: routerForMainContainer,
+            store: this.initWithVuexStore(),
             render: h => h(MainContainer)
         }).$mount("#container");
     }
