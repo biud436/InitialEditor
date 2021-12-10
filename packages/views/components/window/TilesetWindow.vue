@@ -78,8 +78,6 @@
 <script>
 import { mapGetters } from "vuex";
 
-const SET_TITLE = "api/setTitle";
-const GET_TITLE = "api/getTitle";
 const SET_THEME = "api/setTheme";
 const GET_THEME = "api/getTheme";
 
