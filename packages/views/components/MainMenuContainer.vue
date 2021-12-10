@@ -1,6 +1,6 @@
 <template>
     <div class="menu">
-        <div class="drag-zon" window-name="Initial Editor - 맵 에디터"></div>
+        <window-title-bar></window-title-bar>
         <!-- 
                 다음 <input> 요소는 실제 화면에서 보이지 않습니다. 
                 general sibling combinator를 이용하여 메뉴를 토글할 때 사용됩니다.
@@ -25,158 +25,49 @@
         <input type="radio" name="menu" id="none" />
 
         <!-- 메인 메뉴 -->
-        <ul class="menu__main">
-            <li class="menu__main-program-icon"></li>
-            <li class="menu__main-file">
-                <label for="file" data-action="file">File</label>
-            </li>
-            <li><label for="edit" data-action="edit">Edit</label></li>
-            <li><label for="mode" data-action="mode">Mode</label></li>
-            <li><label for="draw" data-action="draw">Draw</label></li>
-            <li>
-                <label for="scale" data-action="scale">Scale</label>
-            </li>
-            <li>
-                <label for="tools" data-action="tools">Tools</label>
-            </li>
-            <li><label for="game" data-action="game">Game</label></li>
-            <li><label for="help" data-action="help">Help</label></li>
-            <ul class="control-box">
-                <li class="minimum" data-action="minimum">
-                    <i class="fas fa-minus"></i>
-                </li>
-                <li class="maximum" data-action="maximum">
-                    <i class="fas fa-window-maximize"></i>
-                </li>
-                <li class="close" data-action="close">
-                    <i class="far fa-window-close"></i>
-                </li>
-            </ul>
-        </ul>
+        <top-down-navigation-menu></top-down-navigation-menu>
         <!-- 파일 서브 메뉴 -->
-        <ul class="menu__file-sub menu-style" value="File">
-            <li data-action="file-new" class="file-menu-new-button">
-                <i class="far fa-file"></i>New<em>Ctrl+N</em>
-            </li>
-            <li data-action="file-open">
-                <i class="far fa-folder-open"></i>Open<em>Ctrl+O</em>
-            </li>
-            <li data-action="file-close">
-                <i class="far fa-window-close"></i>Close
-            </li>
-            <li data-action="file-save">
-                <i class="far fa-save"></i>Save<em>Ctrl+S</em>
-            </li>
-            <li data-action="file-preferences">
-                <i class="fas fa-wrench"></i>User Preferences<em>Ctrl+M</em>
-            </li>
-            <li class="menu__empty-line"></li>
-            <li data-action="file-export">
-                <i class="fas fa-file-download"></i>Export
-            </li>
-            <li class="menu__empty-line"></li>
-            <li data-action="file-exit">
-                <i class="far fa-times-circle"></i>Exit
-            </li>
-        </ul>
+        <file-menu-item></file-menu-item>
         <!-- 편집 서브 메뉴 -->
-        <ul class="menu__edit-sub menu-style" value="Edit">
-            <li data-action="edit-undo"><i class="fas fa-undo"></i>Undo</li>
-            <li class="menu__empty-line"></li>
-            <li data-action="edit-cut"><i class="fas fa-cut"></i>Cut</li>
-            <li data-action="edit-copy"><i class="fas fa-copy"></i>Copy</li>
-            <li data-action="edit-paste"><i class="fas fa-paste"></i>Paste</li>
-            <li data-action="edit-delete">
-                <i class="fas fa-trash-alt"></i>Delete
-            </li>
-        </ul>
+        <edit-menu-item></edit-menu-item>
         <!-- 모드 서브 메뉴 -->
-        <ul class="menu__mode-sub menu-style" value="Mode">
-            <li data-action="mode-map">
-                <i class="fas fa-layer-group"></i>Map
-            </li>
-            <li data-action="mode-event">
-                <i class="fas fa-flag-checkered"></i>Event
-            </li>
-            <li data-action="mode-region"><i class="fas fa-map"></i>Region</li>
-        </ul>
+        <mode-menu-item></mode-menu-item>
         <!-- 드로우 서브 메뉴 -->
-        <ul class="menu__draw-sub menu-style" value="Draw">
-            <li data-action="draw-pencil">
-                <i class="fas fa-pencil-alt"></i>Pencil
-            </li>
-            <li data-action="draw-rectangle">
-                <i class="fas fa-square-full"></i>Rectangle
-            </li>
-            <li data-action="draw-ellipse">
-                <i class="fas fa-circle"></i>Ellipse
-            </li>
-            <li data-action="draw-flood-fill">
-                <i class="fas fa-fill"></i>Flood Fill
-            </li>
-            <li data-action="draw-shadow-pen">
-                <i class="fas fa-paint-brush"></i>Shadow Pen
-            </li>
-        </ul>
+        <draw-menu-item></draw-menu-item>
         <!-- 스케일 서브 메뉴 -->
-        <ul class="menu__scale-sub menu-style" value="Scale">
-            <li data-action="scale-1x">
-                <i class="fas fa-search-plus"></i>1:1
-            </li>
-            <li data-action="scale-2x">
-                <i class="fas fa-search-plus"></i>1:2
-            </li>
-            <li data-action="scale-4x">
-                <i class="fas fa-search-plus"></i>1:4
-            </li>
-            <li data-action="scale-8x">
-                <i class="fas fa-search-plus"></i>1:8
-            </li>
-        </ul>
+        <scale-menu-item></scale-menu-item>
         <!-- 도구 서브 메뉴 -->
-        <ul class="menu__tools-sub menu-style" value="Tools">
-            <li data-action="tools-database">
-                <i class="fas fa-book"></i>Database...<em>F9</em>
-            </li>
-            <li data-action="tools-resource-manager">
-                <i class="fas fa-scroll"></i>Resource Manager
-            </li>
-            <li data-action="tools-script-eidtor">
-                <i class="fas fa-toolbox"></i>Script Editor
-            </li>
-            <li data-action="tools-sound-test">
-                <i class="fas fa-music"></i>Sound Test
-            </li>
-            <li class="menu__empty-line"></li>
-            <li data-action="tools-options">
-                <i class="fas fa-user-cog"></i>Options...
-            </li>
-        </ul>
+        <tool-menu-item></tool-menu-item>
         <!-- 게임 서브 메뉴 -->
-        <ul class="menu__game-sub menu-style" value="Game">
-            <li data-action="game-playtest">
-                <i class="fas fa-gamepad"></i>Playtest<em>F12</em>
-            </li>
-            <li class="menu__empty-line"></li>
-            <li data-action="game-fullscreen">Launch in Full Screen</li>
-            <li data-action="game-show-console">Show Console</li>
-            <li data-action="game-folder-open">
-                <i class="fas fa-folder-open"></i>Open Game Folder
-            </li>
-        </ul>
+        <game-menu-item></game-menu-item>
         <!-- 도움말 서브 메뉴 -->
-        <ul class="menu__help-sub menu-style" value="Help">
-            <li data-action="help-contents">
-                <i class="fas fa-question-circle"></i>Contents<em>F1</em>
-            </li>
-            <li class="menu__empty-line"></li>
-            <li data-action="help-about">
-                <i class="fas fa-info-circle"></i>About...
-            </li>
-        </ul>
+        <help-menu-item></help-menu-item>
     </div>
 </template>
 <script>
-export default {};
+import DrawMenuItem from "./menu/menuItems/DrawMenuItem.vue";
+import EditMenuItem from "./menu/menuItems/EditMenuItem.vue";
+import FileMenuItem from "./menu/menuItems/FileMenuItem.vue";
+import GameMenuItem from "./menu/menuItems/GameMenuItem.vue";
+import HelpMenuItem from "./menu/menuItems/HelpMenuItem.vue";
+import ModeMenuItem from "./menu/menuItems/ModeMenuItem.vue";
+import ScaleMenuItem from "./menu/menuItems/ScaleMenuItem.vue";
+import ToolMenuItem from "./menu/menuItems/ToolMenuItem.vue";
+import TopDownNavigationMenu from "./menu/menuItems/TopDownNavigationMenu.vue";
+import WindowTitleBar from "./menu/WindowTitleBar.vue";
+
+export default {
+    components: {
+        WindowTitleBar,
+        TopDownNavigationMenu,
+        FileMenuItem,
+        EditMenuItem,
+        ModeMenuItem,
+        DrawMenuItem,
+        ScaleMenuItem,
+        ToolMenuItem,
+        GameMenuItem,
+        HelpMenuItem
+    }
+};
 </script>
-<style></style>
