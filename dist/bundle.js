@@ -71053,8 +71053,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ElectronService = void 0;
 const electron_1 = __webpack_require__(/*! electron */ "electron");
 const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
-const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
-const cp = __importStar(__webpack_require__(/*! child_process */ "child_process"));
 const path = __importStar(__webpack_require__(/*! path */ "path"));
 const Component_1 = __webpack_require__(/*! ./Component */ "./packages/Component.ts");
 /**
@@ -71101,19 +71099,10 @@ class ElectronService extends EventEmitter_1.EventEmitter {
             });
         }
     }
-    openFolder(folderName) {
-        const { shell } = __webpack_require__(/*! electron */ "electron");
-        shell.showItemInFolder(folderName);
-        // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
-        if (process.platform.includes("win")) {
-            // 절대 경로를 가져옵니다.
-            const myPath = path.resolve(`tools/bin/open_folder.exe`);
-            if (fs.existsSync(myPath)) {
-                cp.spawn(myPath, ["CabinetWClass"]);
-            }
-        }
-        else if (process.platform === "darwin") {
-        }
+    openFolder(folderName = process.cwd()) {
+        const current = path.join(folderName.replace(/\\/g, "/"));
+        window.alert(current);
+        electron_1.shell.showItemInFolder(current);
     }
     getWindow() {
         return __webpack_require__(/*! electron */ "electron").remote.getCurrentWindow();
@@ -72365,12 +72354,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VueBinder = void 0;
 const vue_1 = __importDefault(__webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.js"));
-const vuex_1 = __importDefault(__webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js"));
 const vue_router_1 = __importDefault(__webpack_require__(/*! vue-router */ "./node_modules/vue-router/dist/vue-router.esm.js"));
 const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/EventEmitter.ts");
 const NewWindow_vue_1 = __importDefault(__webpack_require__(/*! ./views/NewWindow.vue */ "./packages/views/NewWindow.vue"));
 const MainContainer_vue_1 = __importDefault(__webpack_require__(/*! ./views/MainContainer.vue */ "./packages/views/MainContainer.vue"));
 const TilesetWindow_vue_1 = __importDefault(__webpack_require__(/*! ./views/TilesetWindow.vue */ "./packages/views/TilesetWindow.vue"));
+const store_1 = __webpack_require__(/*! ./store */ "./packages/store/index.ts");
 class VueBinder extends EventEmitter_1.EventEmitter {
     constructor() {
         super();
@@ -72395,24 +72384,10 @@ class VueBinder extends EventEmitter_1.EventEmitter {
         ];
     }
     /**
-     * Vuex 스토어 생성
-     * @returns {Vuex.Store}
-     */
-    initWithVuexStore() {
-        const store = new vuex_1.default.Store({
-            actions: {},
-            modules: {},
-            state: {},
-            getters: {}
-        });
-        return store;
-    }
-    /**
      * 뷰 마운트
      */
     mount() {
         // 미들웨어 사용
-        vue_1.default.use(vuex_1.default);
         vue_1.default.use(vue_router_1.default);
         // 라우터 설정
         const routerForMainContainer = new vue_router_1.default({
@@ -72422,7 +72397,7 @@ class VueBinder extends EventEmitter_1.EventEmitter {
         // 컨테이너 생성
         this.vContainer = new vue_1.default({
             router: routerForMainContainer,
-            store: this.initWithVuexStore(),
+            store: store_1.store,
             render: h => h(MainContainer_vue_1.default)
         }).$mount("#container");
     }
@@ -73607,35 +73582,32 @@ const GameMenu = {
             children: {},
             action: (ev) => {
                 alert("플레이 테스트 기능을 지원하지 않습니다.");
-            },
+            }
         },
         "game-fullscreen": {
             name: "전체 화면",
             children: {},
-            action: (ev) => { },
+            action: (ev) => { }
         },
         "game-show-console": {
             name: "콘솔 표시",
             children: {},
-            action: (ev) => { },
+            action: (ev) => { }
         },
         "game-folder-open": {
             name: "게임 폴더 열기",
             children: {},
             action: (ev) => {
-                // @ts-ignore
-                if (platform === "electron") {
-                    const service = new ElectronService_1.ElectronService();
-                    if (process.platform === "darwin") {
-                        service.openFolder(__dirname);
-                    }
-                    else {
-                        service.openFolder(location.href);
-                    }
+                const service = new ElectronService_1.ElectronService();
+                if (process.platform === "darwin") {
+                    service.openFolder(__dirname);
                 }
-            },
-        },
-    },
+                else {
+                    service.openFolder();
+                }
+            }
+        }
+    }
 };
 exports.GameMenu = GameMenu;
 
@@ -74070,6 +74042,91 @@ class Schema {
     }
 }
 exports.Schema = Schema;
+
+
+/***/ }),
+
+/***/ "./packages/store/api.ts":
+/*!*******************************!*\
+  !*** ./packages/store/api.ts ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.actions = exports.getters = exports.mutations = exports.api = exports.state = void 0;
+exports.state = {
+    title: ""
+};
+var api;
+(function (api) {
+    api.SET_TITLE = Symbol("api/setTitle");
+    api.GET_TITLE = Symbol("api/getTitle");
+})(api = exports.api || (exports.api = {}));
+exports.mutations = {
+    [api.SET_TITLE](state, title) {
+        state.title = title;
+    }
+};
+exports.getters = {
+    [api.GET_TITLE]: (state) => state.title
+};
+exports.actions = {
+    [api.SET_TITLE]({ commit, dispatch }, title) {
+        commit("setTitle", title);
+    }
+};
+
+
+/***/ }),
+
+/***/ "./packages/store/index.ts":
+/*!*********************************!*\
+  !*** ./packages/store/index.ts ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.store = void 0;
+const vue_1 = __importDefault(__webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.js"));
+const vuex_1 = __importDefault(__webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js"));
+const api = __importStar(__webpack_require__(/*! ./api */ "./packages/store/api.ts"));
+vue_1.default.use(vuex_1.default);
+exports.store = new vuex_1.default.Store({
+    actions: {},
+    modules: {
+        api
+    },
+    state: {},
+    getters: {}
+});
 
 
 /***/ }),
@@ -76048,17 +76105,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TopDownNavigationMenu_vue_vue_type_template_id_65b10470___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
-
-/***/ }),
-
-/***/ "child_process":
-/*!********************************!*\
-  !*** external "child_process" ***!
-  \********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("child_process");
 
 /***/ }),
 

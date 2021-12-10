@@ -1,9 +1,10 @@
-import { ipcMain, ipcRenderer, IpcRenderer, dialog } from "electron";
+import { ipcMain, ipcRenderer, IpcRenderer, dialog, shell } from "electron";
 import { EventEmitter } from "./EventEmitter";
 import * as fs from "fs";
 import * as cp from "child_process";
 import * as path from "path";
 import { Component } from "./Component";
+import { Toolbar } from "./toolbar/Toolbar";
 
 /**
  * @class ElectronService
@@ -60,20 +61,10 @@ class ElectronService extends EventEmitter {
         }
     }
 
-    public openFolder(folderName: string) {
-        const { shell } = require("electron");
-        shell.showItemInFolder(folderName);
-
-        // 탐색기에 포커스를 맞춥니다 (외부 프로그램 사용)
-        if (process.platform.includes("win")) {
-            // 절대 경로를 가져옵니다.
-            const myPath = path.resolve(`tools/bin/open_folder.exe`);
-
-            if (fs.existsSync(myPath)) {
-                cp.spawn(myPath, ["CabinetWClass"]);
-            }
-        } else if (process.platform === "darwin") {
-        }
+    public openFolder(folderName: string = process.cwd()) {
+        const current = path.join(folderName.replace(/\\/g, "/"));
+        window.alert(current);
+        shell.showItemInFolder(current);
     }
 
     public getWindow() {

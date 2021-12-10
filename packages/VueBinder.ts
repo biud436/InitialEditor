@@ -5,6 +5,7 @@ import { EventEmitter } from "./EventEmitter";
 import NewWindow from "./views/NewWindow.vue";
 import MainContainer from "./views/MainContainer.vue";
 import TilesetWindow from "./views/TilesetWindow.vue";
+import { store } from "./store";
 
 export class VueBinder extends EventEmitter {
     private vContainer: Vue;
@@ -34,26 +35,10 @@ export class VueBinder extends EventEmitter {
     }
 
     /**
-     * Vuex 스토어 생성
-     * @returns {Vuex.Store}
-     */
-    initWithVuexStore() {
-        const store = new Vuex.Store({
-            actions: {},
-            modules: {},
-            state: {},
-            getters: {}
-        });
-
-        return store;
-    }
-
-    /**
      * 뷰 마운트
      */
     mount() {
         // 미들웨어 사용
-        Vue.use(Vuex);
         Vue.use(VueRouter);
 
         // 라우터 설정
@@ -65,7 +50,7 @@ export class VueBinder extends EventEmitter {
         // 컨테이너 생성
         this.vContainer = new Vue({
             router: routerForMainContainer,
-            store: this.initWithVuexStore(),
+            store,
             render: h => h(MainContainer)
         }).$mount("#container");
     }
