@@ -6,36 +6,34 @@ const ToolMenu = {
         "tools-database": {
             name: "데이터베이스",
             children: {},
-            action: (ev: any) =>  {
-                
-            },                            
+            action: (ev: any) => {}
         },
         "tools-resource-manager": {
             name: "소재 관리자",
-            children: {}, 
-            action: (ev: any) =>  {
-                
-            },                            
+            children: {},
+            action: (ev: any) => {}
         },
         "tools-script-eidtor": {
             name: "스크립트 에디터",
-            children: {}, 
-            action: (ev: any) =>  {
-                
-            },                      
+            children: {},
+            action: (ev: any) => {}
         },
         "tools-sound-test": {
             name: "사운드 테스트",
-            children: {}, 
+            children: {}
         },
         "tools-options": {
             name: "옵션",
-            children: {}, 
+            children: {},
             action: function(ev: any) {
-                WindowCreator.GrapWindow(ev);
+                if (window.app) {
+                    window.app.emit("openWindow", {
+                        path: "/optionWindow"
+                    });
+                }
             }
-        },
-    },
+        }
+    }
 };
 
-export {ToolMenu};
+export { ToolMenu };
