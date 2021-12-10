@@ -16,10 +16,10 @@
     </div>
 </template>
 <script>
-import MainMenuContainer from "./components/MainMenuContainer.vue";
-import Tilemap from "./components/Tilemap.vue";
-import TileSelectWindow from "./components/TileSelectWindow.vue";
-import Toolbar from "./components/Toolbar.vue";
+import MainMenuContainer from "./components/menu/MainMenuContainer.vue";
+import Tilemap from "./components/frame/Tilemap.vue";
+import TileSelectWindow from "./components/frame/TileSelectWindow.vue";
+import Toolbar from "./components/frame/Toolbar.vue";
 
 export default {
     components: {

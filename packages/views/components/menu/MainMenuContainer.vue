@@ -45,16 +45,16 @@
     </div>
 </template>
 <script>
-import DrawMenuItem from "./menu/menuItems/DrawMenuItem.vue";
-import EditMenuItem from "./menu/menuItems/EditMenuItem.vue";
-import FileMenuItem from "./menu/menuItems/FileMenuItem.vue";
-import GameMenuItem from "./menu/menuItems/GameMenuItem.vue";
-import HelpMenuItem from "./menu/menuItems/HelpMenuItem.vue";
-import ModeMenuItem from "./menu/menuItems/ModeMenuItem.vue";
-import ScaleMenuItem from "./menu/menuItems/ScaleMenuItem.vue";
-import ToolMenuItem from "./menu/menuItems/ToolMenuItem.vue";
-import TopDownNavigationMenu from "./menu/menuItems/TopDownNavigationMenu.vue";
-import WindowTitleBar from "./menu/WindowTitleBar.vue";
+import DrawMenuItem from "./menuItems/DrawMenuItem.vue";
+import EditMenuItem from "./menuItems/EditMenuItem.vue";
+import FileMenuItem from "./menuItems/FileMenuItem.vue";
+import GameMenuItem from "./menuItems/GameMenuItem.vue";
+import HelpMenuItem from "./menuItems/HelpMenuItem.vue";
+import ModeMenuItem from "./menuItems/ModeMenuItem.vue";
+import ScaleMenuItem from "./menuItems/ScaleMenuItem.vue";
+import ToolMenuItem from "./menuItems/ToolMenuItem.vue";
+import TopDownNavigationMenu from "./menuItems/TopDownNavigationMenu.vue";
+import WindowTitleBar from "./WindowTitleBar.vue";
 
 export default {
     components: {

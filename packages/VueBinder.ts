@@ -2,9 +2,9 @@ import Vue from "vue";
 import Vuex from "vuex";
 import VueRouter from "vue-router";
 import { EventEmitter } from "./EventEmitter";
-import NewWindow from "./views/NewWindow.vue";
+import NewWindow from "./views/components/window/NewWindow.vue";
 import MainContainer from "./views/MainContainer.vue";
-import TilesetWindow from "./views/TilesetWindow.vue";
+import TilesetWindow from "./views/components/window/TilesetWindow.vue";
 import { store } from "./store";
 
 export class VueBinder extends EventEmitter {
