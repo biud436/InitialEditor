@@ -3,7 +3,7 @@ import { Component } from "./Component";
 import { MenuComponent } from "./MenuComponent";
 import { TilesetMarker } from "./tilesetMarker";
 import Tilemap from "./Tilemap";
-import { toCamelCase } from "./camelCase";
+import { toCamelCase } from "./camelCase2";
 import TilesetCanvas from "./TilesetCanvas";
 import TileMarker from "./TileMarker";
 import { config, MyEditorConfig } from "./config";

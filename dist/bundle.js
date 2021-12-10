@@ -70550,7 +70550,7 @@ const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/Eve
 const MenuComponent_1 = __webpack_require__(/*! ./MenuComponent */ "./packages/MenuComponent.ts");
 const tilesetMarker_1 = __webpack_require__(/*! ./tilesetMarker */ "./packages/tilesetMarker.ts");
 const Tilemap_1 = __importDefault(__webpack_require__(/*! ./Tilemap */ "./packages/Tilemap.ts"));
-const camelCase_1 = __webpack_require__(/*! ./camelCase */ "./packages/camelCase.js");
+const camelCase2_1 = __webpack_require__(/*! ./camelCase2 */ "./packages/camelCase2.ts");
 const TilesetCanvas_1 = __importDefault(__webpack_require__(/*! ./TilesetCanvas */ "./packages/TilesetCanvas.ts"));
 const TileMarker_1 = __importDefault(__webpack_require__(/*! ./TileMarker */ "./packages/TileMarker.ts"));
 const config_1 = __webpack_require__(/*! ./config */ "./packages/config.ts");
@@ -70684,7 +70684,7 @@ class App extends EventEmitter_1.EventEmitter {
         });
     }
     toCamelCase() {
-        return camelCase_1.toCamelCase();
+        return camelCase2_1.toCamelCase();
     }
     /**
      * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
@@ -72581,7 +72581,7 @@ const EventEmitter_1 = __webpack_require__(/*! ./EventEmitter */ "./packages/Eve
 const MenuComponent_1 = __webpack_require__(/*! ./MenuComponent */ "./packages/MenuComponent.ts");
 const tilesetMarker_1 = __webpack_require__(/*! ./tilesetMarker */ "./packages/tilesetMarker.ts");
 const Tilemap_1 = __importDefault(__webpack_require__(/*! ./Tilemap */ "./packages/Tilemap.ts"));
-const camelCase_1 = __webpack_require__(/*! ./camelCase */ "./packages/camelCase.js");
+const camelCase2_1 = __webpack_require__(/*! ./camelCase2 */ "./packages/camelCase2.ts");
 const TilesetCanvas_1 = __importDefault(__webpack_require__(/*! ./TilesetCanvas */ "./packages/TilesetCanvas.ts"));
 const TileMarker_1 = __importDefault(__webpack_require__(/*! ./TileMarker */ "./packages/TileMarker.ts"));
 const config_1 = __webpack_require__(/*! ./config */ "./packages/config.ts");
@@ -72715,7 +72715,7 @@ class App extends EventEmitter_1.EventEmitter {
         });
     }
     toCamelCase() {
-        return camelCase_1.toCamelCase();
+        return camelCase2_1.toCamelCase();
     }
     /**
      * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
@@ -73031,6 +73031,36 @@ function getClassName(name) {
   return str.slice(0, 1).toUpperCase() + str.slice(1);
 }
 
+
+
+/***/ }),
+
+/***/ "./packages/camelCase2.ts":
+/*!********************************!*\
+  !*** ./packages/camelCase2.ts ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getClassName = exports.toCamelCase = void 0;
+function toCamelCase(name = "") {
+    const snake = name || "";
+    let nodes = snake.split(/[\s\-]/);
+    let nodesTail = nodes.slice(1);
+    const camel = nodes[0].concat(nodesTail.map((e) => {
+        return e[0].toUpperCase() + e.slice(1);
+    }));
+    return camel;
+}
+exports.toCamelCase = toCamelCase;
+function getClassName(name) {
+    const str = toCamelCase(name);
+    return str.slice(0, 1).toUpperCase() + str.slice(1);
+}
+exports.getClassName = getClassName;
 
 
 /***/ }),
