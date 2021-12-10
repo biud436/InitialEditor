@@ -41316,6 +41316,10 @@ function getResolutionOfUrl(url, defaultValue) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _components_MainMenu_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/MainMenu.vue */ "./packages/views/components/MainMenu.vue");
+/* harmony import */ var _components_Tilemap_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/Tilemap.vue */ "./packages/views/components/Tilemap.vue");
+/* harmony import */ var _components_TileSelectWindow_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/TileSelectWindow.vue */ "./packages/views/components/TileSelectWindow.vue");
+/* harmony import */ var _components_Toolbar_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components/Toolbar.vue */ "./packages/views/components/Toolbar.vue");
 //
 //
 //
@@ -41333,371 +41337,38 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-// import NewWindow from "./NewWindow.vue";
-// import TilesetWindow from "./TilesetWindow.vue";
+
+
+
+
 /* harmony default export */ __webpack_exports__["default"] = ({
-  // components: {
-  //     NewWindow,
-  //     TilesetWindow
-  // },
+  components: {
+    MainMenu: _components_MainMenu_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
+    Toolbar: _components_Toolbar_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    TileSelectWindow: _components_TileSelectWindow_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    Tilemap: _components_Tilemap_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
+  },
+
   mounted() {
-    window.onMounted(() => {
-      // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
-      if (window.app) {
-        window.app.on("openWindow", this.openWindow);
-      }
-    });
+    this.injectServices();
   },
 
   methods: {
+    /**
+     * TODO: Note that there is a bug of vetur extension when adding component.
+     */
+    injectServices() {
+      window.onMounted(() => {
+        // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+        if (window.app) {
+          window.app.on("openWindow", this.openWindow);
+        }
+      });
+    },
+
+    /**
+     * Open internel modal window for vue.
+     */
     openWindow(route) {
       this.$router.push(route);
     }
@@ -41880,6 +41551,387 @@ const THEME = {
 
   }
 });
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/MainMenu.vue?vue&type=script&lang=js&":
+/*!***********************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/MainMenu.vue?vue&type=script&lang=js& ***!
+  \***********************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/TileSelectWindow.vue?vue&type=script&lang=js&":
+/*!*******************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/TileSelectWindow.vue?vue&type=script&lang=js& ***!
+  \*******************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Tilemap.vue?vue&type=script&lang=js&":
+/*!**********************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/Tilemap.vue?vue&type=script&lang=js& ***!
+  \**********************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Toolbar.vue?vue&type=script&lang=js&":
+/*!**********************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/Toolbar.vue?vue&type=script&lang=js& ***!
+  \**********************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* harmony default export */ __webpack_exports__["default"] = ({});
 
 /***/ }),
 
@@ -42187,7 +42239,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 ___CSS_LOADER_EXPORT___.i(_node_modules_css_loader_dist_cjs_js_css_main_css__WEBPACK_IMPORTED_MODULE_1__["default"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\r\n    background-color: transparent;\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/MainContainer.vue"],"names":[],"mappings":";AAuYA;IACA,6BAAA;AACA","sourcesContent":["<template>\r\n    <div id=\"wrapper\">\r\n        <div class=\"container\">\r\n            <div class=\"menu\">\r\n                <div\r\n                    class=\"drag-zon\"\r\n                    window-name=\"Initial Editor - 맵 에디터\"\r\n                ></div>\r\n                <!-- \r\n                다음 <input> 요소는 실제 화면에서 보이지 않습니다. \r\n                general sibling combinator를 이용하여 메뉴를 토글할 때 사용됩니다.\r\n                이것은 간단하게 만들 수 있지만 꽤나 강력합니다.\r\n\r\n                그러나 실제 메뉴와 달리 다양한 상태에 대응할 수가 없어,\r\n                일부 동작에서는 매우 부자연스럽습니다.\r\n\r\n                예를 들면, 일반적으로 메뉴가 열린 상태에서 우측 메뉴에 마우스를 오버하면\r\n                즉시 우측에 있는 메뉴가 열려야 합니다만,\r\n\r\n                CSS로는 이를 제어할 수가 없기 때문에 자바스크립트 코드가 들어가야 합니다.\r\n            -->\r\n                <input type=\"radio\" name=\"menu\" id=\"file\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"edit\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"mode\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"draw\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"scale\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"tools\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"game\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"help\" />\r\n                <input type=\"radio\" name=\"menu\" id=\"none\" />\r\n\r\n                <!-- 메인 메뉴 -->\r\n                <ul class=\"menu__main\">\r\n                    <li class=\"menu__main-program-icon\"></li>\r\n                    <li class=\"menu__main-file\">\r\n                        <label for=\"file\" data-action=\"file\">File</label>\r\n                    </li>\r\n                    <li><label for=\"edit\" data-action=\"edit\">Edit</label></li>\r\n                    <li><label for=\"mode\" data-action=\"mode\">Mode</label></li>\r\n                    <li><label for=\"draw\" data-action=\"draw\">Draw</label></li>\r\n                    <li>\r\n                        <label for=\"scale\" data-action=\"scale\">Scale</label>\r\n                    </li>\r\n                    <li>\r\n                        <label for=\"tools\" data-action=\"tools\">Tools</label>\r\n                    </li>\r\n                    <li><label for=\"game\" data-action=\"game\">Game</label></li>\r\n                    <li><label for=\"help\" data-action=\"help\">Help</label></li>\r\n                    <ul class=\"control-box\">\r\n                        <li class=\"minimum\" data-action=\"minimum\">\r\n                            <i class=\"fas fa-minus\"></i>\r\n                        </li>\r\n                        <li class=\"maximum\" data-action=\"maximum\">\r\n                            <i class=\"fas fa-window-maximize\"></i>\r\n                        </li>\r\n                        <li class=\"close\" data-action=\"close\">\r\n                            <i class=\"far fa-window-close\"></i>\r\n                        </li>\r\n                    </ul>\r\n                </ul>\r\n                <!-- 파일 서브 메뉴 -->\r\n                <ul class=\"menu__file-sub menu-style\" value=\"File\">\r\n                    <li data-action=\"file-new\" class=\"file-menu-new-button\">\r\n                        <i class=\"far fa-file\"></i>New<em>Ctrl+N</em>\r\n                    </li>\r\n                    <li data-action=\"file-open\">\r\n                        <i class=\"far fa-folder-open\"></i>Open<em>Ctrl+O</em>\r\n                    </li>\r\n                    <li data-action=\"file-close\">\r\n                        <i class=\"far fa-window-close\"></i>Close\r\n                    </li>\r\n                    <li data-action=\"file-save\">\r\n                        <i class=\"far fa-save\"></i>Save<em>Ctrl+S</em>\r\n                    </li>\r\n                    <li data-action=\"file-preferences\">\r\n                        <i class=\"fas fa-wrench\"></i>User Preferences<em\r\n                            >Ctrl+M</em\r\n                        >\r\n                    </li>\r\n                    <li class=\"menu__empty-line\"></li>\r\n                    <li data-action=\"file-export\">\r\n                        <i class=\"fas fa-file-download\"></i>Export\r\n                    </li>\r\n                    <li class=\"menu__empty-line\"></li>\r\n                    <li data-action=\"file-exit\">\r\n                        <i class=\"far fa-times-circle\"></i>Exit\r\n                    </li>\r\n                </ul>\r\n                <!-- 편집 서브 메뉴 -->\r\n                <ul class=\"menu__edit-sub menu-style\" value=\"Edit\">\r\n                    <li data-action=\"edit-undo\">\r\n                        <i class=\"fas fa-undo\"></i>Undo\r\n                    </li>\r\n                    <li class=\"menu__empty-line\"></li>\r\n                    <li data-action=\"edit-cut\">\r\n                        <i class=\"fas fa-cut\"></i>Cut\r\n                    </li>\r\n                    <li data-action=\"edit-copy\">\r\n                        <i class=\"fas fa-copy\"></i>Copy\r\n                    </li>\r\n                    <li data-action=\"edit-paste\">\r\n                        <i class=\"fas fa-paste\"></i>Paste\r\n                    </li>\r\n                    <li data-action=\"edit-delete\">\r\n                        <i class=\"fas fa-trash-alt\"></i>Delete\r\n                    </li>\r\n                </ul>\r\n                <!-- 모드 서브 메뉴 -->\r\n                <ul class=\"menu__mode-sub menu-style\" value=\"Mode\">\r\n                    <li data-action=\"mode-map\">\r\n                        <i class=\"fas fa-layer-group\"></i>Map\r\n                    </li>\r\n                    <li data-action=\"mode-event\">\r\n                        <i class=\"fas fa-flag-checkered\"></i>Event\r\n                    </li>\r\n                    <li data-action=\"mode-region\">\r\n                        <i class=\"fas fa-map\"></i>Region\r\n                    </li>\r\n                </ul>\r\n                <!-- 드로우 서브 메뉴 -->\r\n                <ul class=\"menu__draw-sub menu-style\" value=\"Draw\">\r\n                    <li data-action=\"draw-pencil\">\r\n                        <i class=\"fas fa-pencil-alt\"></i>Pencil\r\n                    </li>\r\n                    <li data-action=\"draw-rectangle\">\r\n                        <i class=\"fas fa-square-full\"></i>Rectangle\r\n                    </li>\r\n                    <li data-action=\"draw-ellipse\">\r\n                        <i class=\"fas fa-circle\"></i>Ellipse\r\n                    </li>\r\n                    <li data-action=\"draw-flood-fill\">\r\n                        <i class=\"fas fa-fill\"></i>Flood Fill\r\n                    </li>\r\n                    <li data-action=\"draw-shadow-pen\">\r\n                        <i class=\"fas fa-paint-brush\"></i>Shadow Pen\r\n                    </li>\r\n                </ul>\r\n                <!-- 스케일 서브 메뉴 -->\r\n                <ul class=\"menu__scale-sub menu-style\" value=\"Scale\">\r\n                    <li data-action=\"scale-1x\">\r\n                        <i class=\"fas fa-search-plus\"></i>1:1\r\n                    </li>\r\n                    <li data-action=\"scale-2x\">\r\n                        <i class=\"fas fa-search-plus\"></i>1:2\r\n                    </li>\r\n                    <li data-action=\"scale-4x\">\r\n                        <i class=\"fas fa-search-plus\"></i>1:4\r\n                    </li>\r\n                    <li data-action=\"scale-8x\">\r\n                        <i class=\"fas fa-search-plus\"></i>1:8\r\n                    </li>\r\n                </ul>\r\n                <!-- 도구 서브 메뉴 -->\r\n                <ul class=\"menu__tools-sub menu-style\" value=\"Tools\">\r\n                    <li data-action=\"tools-database\">\r\n                        <i class=\"fas fa-book\"></i>Database...<em>F9</em>\r\n                    </li>\r\n                    <li data-action=\"tools-resource-manager\">\r\n                        <i class=\"fas fa-scroll\"></i>Resource Manager\r\n                    </li>\r\n                    <li data-action=\"tools-script-eidtor\">\r\n                        <i class=\"fas fa-toolbox\"></i>Script Editor\r\n                    </li>\r\n                    <li data-action=\"tools-sound-test\">\r\n                        <i class=\"fas fa-music\"></i>Sound Test\r\n                    </li>\r\n                    <li class=\"menu__empty-line\"></li>\r\n                    <li data-action=\"tools-options\">\r\n                        <i class=\"fas fa-user-cog\"></i>Options...\r\n                    </li>\r\n                </ul>\r\n                <!-- 게임 서브 메뉴 -->\r\n                <ul class=\"menu__game-sub menu-style\" value=\"Game\">\r\n                    <li data-action=\"game-playtest\">\r\n                        <i class=\"fas fa-gamepad\"></i>Playtest<em>F12</em>\r\n                    </li>\r\n                    <li class=\"menu__empty-line\"></li>\r\n                    <li data-action=\"game-fullscreen\">Launch in Full Screen</li>\r\n                    <li data-action=\"game-show-console\">Show Console</li>\r\n                    <li data-action=\"game-folder-open\">\r\n                        <i class=\"fas fa-folder-open\"></i>Open Game Folder\r\n                    </li>\r\n                </ul>\r\n                <!-- 도움말 서브 메뉴 -->\r\n                <ul class=\"menu__help-sub menu-style\" value=\"Help\">\r\n                    <li data-action=\"help-contents\">\r\n                        <i class=\"fas fa-question-circle\"></i>Contents<em\r\n                            >F1</em\r\n                        >\r\n                    </li>\r\n                    <li class=\"menu__empty-line\"></li>\r\n                    <li data-action=\"help-about\">\r\n                        <i class=\"fas fa-info-circle\"></i>About...\r\n                    </li>\r\n                </ul>\r\n            </div>\r\n            <!-- 툴바 -->\r\n            <div class=\"toolbar\">\r\n                <ul>\r\n                    <!-- 파일 툴바 -->\r\n                    <li data-action=\"file-new\" class=\"file-menu-new-button\">\r\n                        <i class=\"far fa-file\" title=\"게임 만들기\"></i>\r\n                    </li>\r\n                    <li data-action=\"file-open\">\r\n                        <i class=\"far fa-folder-open\" title=\"게임 열기\"></i>\r\n                    </li>\r\n                    <li data-action=\"file-save\"><i class=\"far fa-save\"></i></li>\r\n                    <li data-action=\"edit-undo\"><i class=\"fas fa-undo\"></i></li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <!-- 편집 툴바 -->\r\n                    <li data-action=\"edit-cut\"><i class=\"fas fa-cut\"></i></li>\r\n                    <li data-action=\"edit-copy\"><i class=\"fas fa-copy\"></i></li>\r\n                    <li data-action=\"edit-paste\">\r\n                        <i class=\"fas fa-paste\"></i>\r\n                    </li>\r\n                    <li data-action=\"edit-delete\">\r\n                        <i class=\"fas fa-trash-alt\"></i>\r\n                    </li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <!-- 모드 툴바 -->\r\n                    <li data-action=\"mode-map\">\r\n                        <i class=\"fas fa-layer-group\"></i>\r\n                    </li>\r\n                    <li data-action=\"mode-event\">\r\n                        <i class=\"fas fa-flag-checkered\"></i>\r\n                    </li>\r\n                    <li data-action=\"mode-region\">\r\n                        <i class=\"fas fa-map\"></i>\r\n                    </li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <!-- 드로우 툴바 -->\r\n                    <li data-action=\"draw-pencil\">\r\n                        <i\r\n                            id=\"pen-tool\"\r\n                            class=\"fas fa-pencil-alt\"\r\n                            title=\"펜\"\r\n                        ></i>\r\n                    </li>\r\n                    <li data-action=\"draw-rectangle\">\r\n                        <i\r\n                            id=\"square-tool\"\r\n                            class=\"fas fa-square-full\"\r\n                            title=\"사각형\"\r\n                        ></i>\r\n                    </li>\r\n                    <li data-action=\"draw-ellipse\">\r\n                        <i\r\n                            id=\"rectangle-tool\"\r\n                            class=\"fas fa-circle\"\r\n                            title=\"직사각형\"\r\n                        ></i>\r\n                    </li>\r\n                    <li data-action=\"draw-flood-fill\">\r\n                        <i id=\"pen-tool\" class=\"fas fa-fill\" title=\"채우기\"></i>\r\n                    </li>\r\n                    <li data-action=\"draw-shadow-pen\">\r\n                        <i\r\n                            id=\"shadow-tool\"\r\n                            class=\"fas fa-paint-brush\"\r\n                            title=\"그림자\"\r\n                        ></i>\r\n                    </li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <!-- 기타 툴바 -->\r\n                    <li data-action=\"take-screenshot\">\r\n                        <i\r\n                            id=\"take-screenshot\"\r\n                            title=\"맵 파일 내보내기\"\r\n                            class=\"fas fa-book\"\r\n                        ></i>\r\n                    </li>\r\n                    <li data-action=\"tools-resource-manager\">\r\n                        <i class=\"fas fa-scroll\"></i>\r\n                    </li>\r\n                    <li data-action=\"tools-script-eidtor\">\r\n                        <i class=\"fas fa-toolbox\"></i>\r\n                    </li>\r\n                    <li data-action=\"tools-sound-test\">\r\n                        <i class=\"fas fa-music\"></i>\r\n                    </li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <li data-action=\"tools-options\">\r\n                        <i class=\"fas fa-user-cog\"></i>\r\n                    </li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <li data-action=\"game-playtest\">\r\n                        <i class=\"fas fa-gamepad\"></i>\r\n                    </li>\r\n                    <li class=\"toolbar__empty-line--modifier\"></li>\r\n                    <li data-action=\"game-folder-open\">\r\n                        <i class=\"fas fa-folder-open\"></i>\r\n                    </li>\r\n                </ul>\r\n            </div>\r\n            <!-- 타일 선택 창 -->\r\n            <div id=\"aside\">\r\n                <div class=\"aside__tabs\">\r\n                    <div id=\"view\" ondragstart=\"return false;\"></div>\r\n                    <!-- 탭 컨트롤을 위한 체크박스입니다. -->\r\n                    <input type=\"radio\" name=\"tile\" id=\"a\" checked />\r\n                    <input type=\"radio\" name=\"tile\" id=\"b\" />\r\n                    <input type=\"radio\" name=\"tile\" id=\"c\" />\r\n                    <input type=\"radio\" name=\"tile\" id=\"d\" />\r\n                    <input type=\"radio\" name=\"tile\" id=\"e\" />\r\n                    <ul>\r\n                        <li>\r\n                            <label for=\"a\" id=\"tab-a\" data-action=\"tab1\"\r\n                                >A</label\r\n                            >\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"b\" id=\"tab-b\" data-action=\"tab2\"\r\n                                >B</label\r\n                            >\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"c\" id=\"tab-c\" data-action=\"tab3\"\r\n                                >C</label\r\n                            >\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"d\" id=\"tab-d\" data-action=\"tab4\"\r\n                                >D</label\r\n                            >\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"e\" id=\"tab-e\" data-action=\"tab5\"\r\n                                >E</label\r\n                            >\r\n                        </li>\r\n                    </ul>\r\n                    <div class=\"aside__tabs__maptree\">\r\n                        <ul>\r\n                            <li>\r\n                                <i class=\"fas fa-folder\"></i>레이어 그룹\r\n                                <ul class=\"aside__tabs__maptree-child-tree\">\r\n                                    <li data-action=\"layer1\">\r\n                                        <i class=\"far fa-eye\"></i>레이어 1\r\n                                    </li>\r\n                                    <li data-action=\"layer2\">\r\n                                        <i class=\"far fa-eye\"></i>레이어 2\r\n                                    </li>\r\n                                    <li data-action=\"layer3\">\r\n                                        <i class=\"far fa-eye\"></i>레이어 3\r\n                                    </li>\r\n                                    <li data-action=\"layer4\">\r\n                                        <i class=\"far fa-eye\"></i>레이어 4\r\n                                    </li>\r\n                                </ul>\r\n                            </li>\r\n                        </ul>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"contents\">\r\n                <canvas id=\"contents__main-canvas\"> </canvas>\r\n            </div>\r\n        </div>\r\n        <div id=\"app\">\r\n            <!-- <new-window></new-window>\r\n            <tileset-window></tileset-window> -->\r\n            <router-view></router-view>\r\n        </div>\r\n    </div>\r\n</template>\r\n<script>\r\n// import NewWindow from \"./NewWindow.vue\";\r\n// import TilesetWindow from \"./TilesetWindow.vue\";\r\n\r\nexport default {\r\n    // components: {\r\n    //     NewWindow,\r\n    //     TilesetWindow\r\n    // },\r\n    mounted() {\r\n        window.onMounted(() => {\r\n            // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.\r\n            if (window.app) {\r\n                window.app.on(\"openWindow\", this.openWindow);\r\n            }\r\n        });\r\n    },\r\n    methods: {\r\n        openWindow(route) {\r\n            this.$router.push(route);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style>\r\n@import url(\"../../css/main.css\");\r\n#app {\r\n    background-color: transparent;\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\r\n    background-color: transparent;\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/MainContainer.vue"],"names":[],"mappings":";AAwDA;IACA,6BAAA;AACA","sourcesContent":["<template>\r\n    <div id=\"wrapper\">\r\n        <div class=\"container\">\r\n            <!-- 메뉴 -->\r\n            <main-menu />\r\n            <!-- 툴바 -->\r\n            <toolbar />\r\n            <!-- 타일 선택 창 -->\r\n            <tile-select-window />\r\n            <!-- 타일맵 -->\r\n            <tilemap />\r\n        </div>\r\n        <div id=\"app\">\r\n            <router-view></router-view>\r\n        </div>\r\n    </div>\r\n</template>\r\n<script>\r\nimport MainMenu from \"./components/MainMenu.vue\";\r\nimport Tilemap from \"./components/Tilemap.vue\";\r\nimport TileSelectWindow from \"./components/TileSelectWindow.vue\";\r\nimport Toolbar from \"./components/Toolbar.vue\";\r\n\r\nexport default {\r\n    components: {\r\n        MainMenu,\r\n        Toolbar,\r\n        TileSelectWindow,\r\n        Tilemap\r\n    },\r\n    mounted() {\r\n        this.injectServices();\r\n    },\r\n    methods: {\r\n        /**\r\n         * TODO: Note that there is a bug of vetur extension when adding component.\r\n         */\r\n        injectServices() {\r\n            window.onMounted(() => {\r\n                // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.\r\n                if (window.app) {\r\n                    window.app.on(\"openWindow\", this.openWindow);\r\n                }\r\n            });\r\n        },\r\n        /**\r\n         * Open internel modal window for vue.\r\n         */\r\n        openWindow(route) {\r\n            this.$router.push(route);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style>\r\n@import url(\"../../css/main.css\");\r\n#app {\r\n    background-color: transparent;\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -52282,622 +52334,25 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { attrs: { id: "wrapper" } }, [
-    _vm._m(0),
+    _c(
+      "div",
+      { staticClass: "container" },
+      [
+        _c("main-menu"),
+        _vm._v(" "),
+        _c("toolbar"),
+        _vm._v(" "),
+        _c("tile-select-window"),
+        _vm._v(" "),
+        _c("tilemap")
+      ],
+      1
+    ),
     _vm._v(" "),
     _c("div", { attrs: { id: "app" } }, [_c("router-view")], 1)
   ])
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "container" }, [
-      _c("div", { staticClass: "menu" }, [
-        _c("div", {
-          staticClass: "drag-zon",
-          attrs: { "window-name": "Initial Editor - 맵 에디터" }
-        }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "file" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "edit" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "mode" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "draw" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "scale" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "tools" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "game" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "help" } }),
-        _vm._v(" "),
-        _c("input", { attrs: { type: "radio", name: "menu", id: "none" } }),
-        _vm._v(" "),
-        _c("ul", { staticClass: "menu__main" }, [
-          _c("li", { staticClass: "menu__main-program-icon" }),
-          _vm._v(" "),
-          _c("li", { staticClass: "menu__main-file" }, [
-            _c("label", { attrs: { for: "file", "data-action": "file" } }, [
-              _vm._v("File")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "edit", "data-action": "edit" } }, [
-              _vm._v("Edit")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "mode", "data-action": "mode" } }, [
-              _vm._v("Mode")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "draw", "data-action": "draw" } }, [
-              _vm._v("Draw")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "scale", "data-action": "scale" } }, [
-              _vm._v("Scale")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "tools", "data-action": "tools" } }, [
-              _vm._v("Tools")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "game", "data-action": "game" } }, [
-              _vm._v("Game")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("li", [
-            _c("label", { attrs: { for: "help", "data-action": "help" } }, [
-              _vm._v("Help")
-            ])
-          ]),
-          _vm._v(" "),
-          _c("ul", { staticClass: "control-box" }, [
-            _c(
-              "li",
-              { staticClass: "minimum", attrs: { "data-action": "minimum" } },
-              [_c("i", { staticClass: "fas fa-minus" })]
-            ),
-            _vm._v(" "),
-            _c(
-              "li",
-              { staticClass: "maximum", attrs: { "data-action": "maximum" } },
-              [_c("i", { staticClass: "fas fa-window-maximize" })]
-            ),
-            _vm._v(" "),
-            _c(
-              "li",
-              { staticClass: "close", attrs: { "data-action": "close" } },
-              [_c("i", { staticClass: "far fa-window-close" })]
-            )
-          ])
-        ]),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__file-sub menu-style",
-            attrs: { value: "File" }
-          },
-          [
-            _c(
-              "li",
-              {
-                staticClass: "file-menu-new-button",
-                attrs: { "data-action": "file-new" }
-              },
-              [
-                _c("i", { staticClass: "far fa-file" }),
-                _vm._v("New"),
-                _c("em", [_vm._v("Ctrl+N")])
-              ]
-            ),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "file-open" } }, [
-              _c("i", { staticClass: "far fa-folder-open" }),
-              _vm._v("Open"),
-              _c("em", [_vm._v("Ctrl+O")])
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "file-close" } }, [
-              _c("i", { staticClass: "far fa-window-close" }),
-              _vm._v("Close\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "file-save" } }, [
-              _c("i", { staticClass: "far fa-save" }),
-              _vm._v("Save"),
-              _c("em", [_vm._v("Ctrl+S")])
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "file-preferences" } }, [
-              _c("i", { staticClass: "fas fa-wrench" }),
-              _vm._v("User Preferences"),
-              _c("em", [_vm._v("Ctrl+M")])
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "menu__empty-line" }),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "file-export" } }, [
-              _c("i", { staticClass: "fas fa-file-download" }),
-              _vm._v("Export\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "menu__empty-line" }),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "file-exit" } }, [
-              _c("i", { staticClass: "far fa-times-circle" }),
-              _vm._v("Exit\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__edit-sub menu-style",
-            attrs: { value: "Edit" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "edit-undo" } }, [
-              _c("i", { staticClass: "fas fa-undo" }),
-              _vm._v("Undo\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "menu__empty-line" }),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "edit-cut" } }, [
-              _c("i", { staticClass: "fas fa-cut" }),
-              _vm._v("Cut\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "edit-copy" } }, [
-              _c("i", { staticClass: "fas fa-copy" }),
-              _vm._v("Copy\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "edit-paste" } }, [
-              _c("i", { staticClass: "fas fa-paste" }),
-              _vm._v("Paste\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "edit-delete" } }, [
-              _c("i", { staticClass: "fas fa-trash-alt" }),
-              _vm._v("Delete\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__mode-sub menu-style",
-            attrs: { value: "Mode" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "mode-map" } }, [
-              _c("i", { staticClass: "fas fa-layer-group" }),
-              _vm._v("Map\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "mode-event" } }, [
-              _c("i", { staticClass: "fas fa-flag-checkered" }),
-              _vm._v("Event\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "mode-region" } }, [
-              _c("i", { staticClass: "fas fa-map" }),
-              _vm._v("Region\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__draw-sub menu-style",
-            attrs: { value: "Draw" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "draw-pencil" } }, [
-              _c("i", { staticClass: "fas fa-pencil-alt" }),
-              _vm._v("Pencil\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
-              _c("i", { staticClass: "fas fa-square-full" }),
-              _vm._v("Rectangle\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
-              _c("i", { staticClass: "fas fa-circle" }),
-              _vm._v("Ellipse\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
-              _c("i", { staticClass: "fas fa-fill" }),
-              _vm._v("Flood Fill\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
-              _c("i", { staticClass: "fas fa-paint-brush" }),
-              _vm._v("Shadow Pen\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__scale-sub menu-style",
-            attrs: { value: "Scale" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "scale-1x" } }, [
-              _c("i", { staticClass: "fas fa-search-plus" }),
-              _vm._v("1:1\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "scale-2x" } }, [
-              _c("i", { staticClass: "fas fa-search-plus" }),
-              _vm._v("1:2\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "scale-4x" } }, [
-              _c("i", { staticClass: "fas fa-search-plus" }),
-              _vm._v("1:4\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "scale-8x" } }, [
-              _c("i", { staticClass: "fas fa-search-plus" }),
-              _vm._v("1:8\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__tools-sub menu-style",
-            attrs: { value: "Tools" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "tools-database" } }, [
-              _c("i", { staticClass: "fas fa-book" }),
-              _vm._v("Database..."),
-              _c("em", [_vm._v("F9")])
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
-              _c("i", { staticClass: "fas fa-scroll" }),
-              _vm._v("Resource Manager\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
-              _c("i", { staticClass: "fas fa-toolbox" }),
-              _vm._v("Script Editor\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
-              _c("i", { staticClass: "fas fa-music" }),
-              _vm._v("Sound Test\n                ")
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "menu__empty-line" }),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "tools-options" } }, [
-              _c("i", { staticClass: "fas fa-user-cog" }),
-              _vm._v("Options...\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__game-sub menu-style",
-            attrs: { value: "Game" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "game-playtest" } }, [
-              _c("i", { staticClass: "fas fa-gamepad" }),
-              _vm._v("Playtest"),
-              _c("em", [_vm._v("F12")])
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "menu__empty-line" }),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "game-fullscreen" } }, [
-              _vm._v("Launch in Full Screen")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "game-show-console" } }, [
-              _vm._v("Show Console")
-            ]),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "game-folder-open" } }, [
-              _c("i", { staticClass: "fas fa-folder-open" }),
-              _vm._v("Open Game Folder\n                ")
-            ])
-          ]
-        ),
-        _vm._v(" "),
-        _c(
-          "ul",
-          {
-            staticClass: "menu__help-sub menu-style",
-            attrs: { value: "Help" }
-          },
-          [
-            _c("li", { attrs: { "data-action": "help-contents" } }, [
-              _c("i", { staticClass: "fas fa-question-circle" }),
-              _vm._v("Contents"),
-              _c("em", [_vm._v("F1")])
-            ]),
-            _vm._v(" "),
-            _c("li", { staticClass: "menu__empty-line" }),
-            _vm._v(" "),
-            _c("li", { attrs: { "data-action": "help-about" } }, [
-              _c("i", { staticClass: "fas fa-info-circle" }),
-              _vm._v("About...\n                ")
-            ])
-          ]
-        )
-      ]),
-      _vm._v(" "),
-      _c("div", { staticClass: "toolbar" }, [
-        _c("ul", [
-          _c(
-            "li",
-            {
-              staticClass: "file-menu-new-button",
-              attrs: { "data-action": "file-new" }
-            },
-            [
-              _c("i", {
-                staticClass: "far fa-file",
-                attrs: { title: "게임 만들기" }
-              })
-            ]
-          ),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "file-open" } }, [
-            _c("i", {
-              staticClass: "far fa-folder-open",
-              attrs: { title: "게임 열기" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "file-save" } }, [
-            _c("i", { staticClass: "far fa-save" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "edit-undo" } }, [
-            _c("i", { staticClass: "fas fa-undo" })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "edit-cut" } }, [
-            _c("i", { staticClass: "fas fa-cut" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "edit-copy" } }, [
-            _c("i", { staticClass: "fas fa-copy" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "edit-paste" } }, [
-            _c("i", { staticClass: "fas fa-paste" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "edit-delete" } }, [
-            _c("i", { staticClass: "fas fa-trash-alt" })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "mode-map" } }, [
-            _c("i", { staticClass: "fas fa-layer-group" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "mode-event" } }, [
-            _c("i", { staticClass: "fas fa-flag-checkered" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "mode-region" } }, [
-            _c("i", { staticClass: "fas fa-map" })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "draw-pencil" } }, [
-            _c("i", {
-              staticClass: "fas fa-pencil-alt",
-              attrs: { id: "pen-tool", title: "펜" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
-            _c("i", {
-              staticClass: "fas fa-square-full",
-              attrs: { id: "square-tool", title: "사각형" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
-            _c("i", {
-              staticClass: "fas fa-circle",
-              attrs: { id: "rectangle-tool", title: "직사각형" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
-            _c("i", {
-              staticClass: "fas fa-fill",
-              attrs: { id: "pen-tool", title: "채우기" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
-            _c("i", {
-              staticClass: "fas fa-paint-brush",
-              attrs: { id: "shadow-tool", title: "그림자" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "take-screenshot" } }, [
-            _c("i", {
-              staticClass: "fas fa-book",
-              attrs: { id: "take-screenshot", title: "맵 파일 내보내기" }
-            })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
-            _c("i", { staticClass: "fas fa-scroll" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
-            _c("i", { staticClass: "fas fa-toolbox" })
-          ]),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
-            _c("i", { staticClass: "fas fa-music" })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "tools-options" } }, [
-            _c("i", { staticClass: "fas fa-user-cog" })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "game-playtest" } }, [
-            _c("i", { staticClass: "fas fa-gamepad" })
-          ]),
-          _vm._v(" "),
-          _c("li", { staticClass: "toolbar__empty-line--modifier" }),
-          _vm._v(" "),
-          _c("li", { attrs: { "data-action": "game-folder-open" } }, [
-            _c("i", { staticClass: "fas fa-folder-open" })
-          ])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("div", { attrs: { id: "aside" } }, [
-        _c("div", { staticClass: "aside__tabs" }, [
-          _c("div", { attrs: { id: "view", ondragstart: "return false;" } }),
-          _vm._v(" "),
-          _c("input", {
-            attrs: { type: "radio", name: "tile", id: "a", checked: "" }
-          }),
-          _vm._v(" "),
-          _c("input", { attrs: { type: "radio", name: "tile", id: "b" } }),
-          _vm._v(" "),
-          _c("input", { attrs: { type: "radio", name: "tile", id: "c" } }),
-          _vm._v(" "),
-          _c("input", { attrs: { type: "radio", name: "tile", id: "d" } }),
-          _vm._v(" "),
-          _c("input", { attrs: { type: "radio", name: "tile", id: "e" } }),
-          _vm._v(" "),
-          _c("ul", [
-            _c("li", [
-              _c(
-                "label",
-                { attrs: { for: "a", id: "tab-a", "data-action": "tab1" } },
-                [_vm._v("A")]
-              )
-            ]),
-            _vm._v(" "),
-            _c("li", [
-              _c(
-                "label",
-                { attrs: { for: "b", id: "tab-b", "data-action": "tab2" } },
-                [_vm._v("B")]
-              )
-            ]),
-            _vm._v(" "),
-            _c("li", [
-              _c(
-                "label",
-                { attrs: { for: "c", id: "tab-c", "data-action": "tab3" } },
-                [_vm._v("C")]
-              )
-            ]),
-            _vm._v(" "),
-            _c("li", [
-              _c(
-                "label",
-                { attrs: { for: "d", id: "tab-d", "data-action": "tab4" } },
-                [_vm._v("D")]
-              )
-            ]),
-            _vm._v(" "),
-            _c("li", [
-              _c(
-                "label",
-                { attrs: { for: "e", id: "tab-e", "data-action": "tab5" } },
-                [_vm._v("E")]
-              )
-            ])
-          ]),
-          _vm._v(" "),
-          _c("div", { staticClass: "aside__tabs__maptree" }, [
-            _c("ul", [
-              _c("li", [
-                _c("i", { staticClass: "fas fa-folder" }),
-                _vm._v("레이어 그룹\n                            "),
-                _c("ul", { staticClass: "aside__tabs__maptree-child-tree" }, [
-                  _c("li", { attrs: { "data-action": "layer1" } }, [
-                    _c("i", { staticClass: "far fa-eye" }),
-                    _vm._v("레이어 1\n                                ")
-                  ]),
-                  _vm._v(" "),
-                  _c("li", { attrs: { "data-action": "layer2" } }, [
-                    _c("i", { staticClass: "far fa-eye" }),
-                    _vm._v("레이어 2\n                                ")
-                  ]),
-                  _vm._v(" "),
-                  _c("li", { attrs: { "data-action": "layer3" } }, [
-                    _c("i", { staticClass: "far fa-eye" }),
-                    _vm._v("레이어 3\n                                ")
-                  ]),
-                  _vm._v(" "),
-                  _c("li", { attrs: { "data-action": "layer4" } }, [
-                    _c("i", { staticClass: "far fa-eye" }),
-                    _vm._v("레이어 4\n                                ")
-                  ])
-                ])
-              ])
-            ])
-          ])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("div", { staticClass: "contents" }, [
-        _c("canvas", { attrs: { id: "contents__main-canvas" } })
-      ])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -53142,6 +52597,707 @@ var staticRenderFns = [
         ])
       ]
     )
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/MainMenu.vue?vue&type=template&id=04ab60fc&":
+/*!*************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/MainMenu.vue?vue&type=template&id=04ab60fc& ***!
+  \*************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _vm._m(0)
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "menu" }, [
+      _c("div", {
+        staticClass: "drag-zon",
+        attrs: { "window-name": "Initial Editor - 맵 에디터" }
+      }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "file" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "edit" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "mode" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "draw" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "scale" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "tools" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "game" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "help" } }),
+      _vm._v(" "),
+      _c("input", { attrs: { type: "radio", name: "menu", id: "none" } }),
+      _vm._v(" "),
+      _c("ul", { staticClass: "menu__main" }, [
+        _c("li", { staticClass: "menu__main-program-icon" }),
+        _vm._v(" "),
+        _c("li", { staticClass: "menu__main-file" }, [
+          _c("label", { attrs: { for: "file", "data-action": "file" } }, [
+            _vm._v("File")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "edit", "data-action": "edit" } }, [
+            _vm._v("Edit")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "mode", "data-action": "mode" } }, [
+            _vm._v("Mode")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "draw", "data-action": "draw" } }, [
+            _vm._v("Draw")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "scale", "data-action": "scale" } }, [
+            _vm._v("Scale")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "tools", "data-action": "tools" } }, [
+            _vm._v("Tools")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "game", "data-action": "game" } }, [
+            _vm._v("Game")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("li", [
+          _c("label", { attrs: { for: "help", "data-action": "help" } }, [
+            _vm._v("Help")
+          ])
+        ]),
+        _vm._v(" "),
+        _c("ul", { staticClass: "control-box" }, [
+          _c(
+            "li",
+            { staticClass: "minimum", attrs: { "data-action": "minimum" } },
+            [_c("i", { staticClass: "fas fa-minus" })]
+          ),
+          _vm._v(" "),
+          _c(
+            "li",
+            { staticClass: "maximum", attrs: { "data-action": "maximum" } },
+            [_c("i", { staticClass: "fas fa-window-maximize" })]
+          ),
+          _vm._v(" "),
+          _c(
+            "li",
+            { staticClass: "close", attrs: { "data-action": "close" } },
+            [_c("i", { staticClass: "far fa-window-close" })]
+          )
+        ])
+      ]),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "menu__file-sub menu-style", attrs: { value: "File" } },
+        [
+          _c(
+            "li",
+            {
+              staticClass: "file-menu-new-button",
+              attrs: { "data-action": "file-new" }
+            },
+            [
+              _c("i", { staticClass: "far fa-file" }),
+              _vm._v("New"),
+              _c("em", [_vm._v("Ctrl+N")])
+            ]
+          ),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "file-open" } }, [
+            _c("i", { staticClass: "far fa-folder-open" }),
+            _vm._v("Open"),
+            _c("em", [_vm._v("Ctrl+O")])
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "file-close" } }, [
+            _c("i", { staticClass: "far fa-window-close" }),
+            _vm._v("Close\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "file-save" } }, [
+            _c("i", { staticClass: "far fa-save" }),
+            _vm._v("Save"),
+            _c("em", [_vm._v("Ctrl+S")])
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "file-preferences" } }, [
+            _c("i", { staticClass: "fas fa-wrench" }),
+            _vm._v("User Preferences"),
+            _c("em", [_vm._v("Ctrl+M")])
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "menu__empty-line" }),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "file-export" } }, [
+            _c("i", { staticClass: "fas fa-file-download" }),
+            _vm._v("Export\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "menu__empty-line" }),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "file-exit" } }, [
+            _c("i", { staticClass: "far fa-times-circle" }),
+            _vm._v("Exit\n        ")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "menu__edit-sub menu-style", attrs: { value: "Edit" } },
+        [
+          _c("li", { attrs: { "data-action": "edit-undo" } }, [
+            _c("i", { staticClass: "fas fa-undo" }),
+            _vm._v("Undo")
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "menu__empty-line" }),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "edit-cut" } }, [
+            _c("i", { staticClass: "fas fa-cut" }),
+            _vm._v("Cut")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "edit-copy" } }, [
+            _c("i", { staticClass: "fas fa-copy" }),
+            _vm._v("Copy")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "edit-paste" } }, [
+            _c("i", { staticClass: "fas fa-paste" }),
+            _vm._v("Paste")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "edit-delete" } }, [
+            _c("i", { staticClass: "fas fa-trash-alt" }),
+            _vm._v("Delete\n        ")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "menu__mode-sub menu-style", attrs: { value: "Mode" } },
+        [
+          _c("li", { attrs: { "data-action": "mode-map" } }, [
+            _c("i", { staticClass: "fas fa-layer-group" }),
+            _vm._v("Map\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "mode-event" } }, [
+            _c("i", { staticClass: "fas fa-flag-checkered" }),
+            _vm._v("Event\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "mode-region" } }, [
+            _c("i", { staticClass: "fas fa-map" }),
+            _vm._v("Region")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "menu__draw-sub menu-style", attrs: { value: "Draw" } },
+        [
+          _c("li", { attrs: { "data-action": "draw-pencil" } }, [
+            _c("i", { staticClass: "fas fa-pencil-alt" }),
+            _vm._v("Pencil\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
+            _c("i", { staticClass: "fas fa-square-full" }),
+            _vm._v("Rectangle\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
+            _c("i", { staticClass: "fas fa-circle" }),
+            _vm._v("Ellipse\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
+            _c("i", { staticClass: "fas fa-fill" }),
+            _vm._v("Flood Fill\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
+            _c("i", { staticClass: "fas fa-paint-brush" }),
+            _vm._v("Shadow Pen\n        ")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        {
+          staticClass: "menu__scale-sub menu-style",
+          attrs: { value: "Scale" }
+        },
+        [
+          _c("li", { attrs: { "data-action": "scale-1x" } }, [
+            _c("i", { staticClass: "fas fa-search-plus" }),
+            _vm._v("1:1\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "scale-2x" } }, [
+            _c("i", { staticClass: "fas fa-search-plus" }),
+            _vm._v("1:2\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "scale-4x" } }, [
+            _c("i", { staticClass: "fas fa-search-plus" }),
+            _vm._v("1:4\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "scale-8x" } }, [
+            _c("i", { staticClass: "fas fa-search-plus" }),
+            _vm._v("1:8\n        ")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        {
+          staticClass: "menu__tools-sub menu-style",
+          attrs: { value: "Tools" }
+        },
+        [
+          _c("li", { attrs: { "data-action": "tools-database" } }, [
+            _c("i", { staticClass: "fas fa-book" }),
+            _vm._v("Database..."),
+            _c("em", [_vm._v("F9")])
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
+            _c("i", { staticClass: "fas fa-scroll" }),
+            _vm._v("Resource Manager\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
+            _c("i", { staticClass: "fas fa-toolbox" }),
+            _vm._v("Script Editor\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
+            _c("i", { staticClass: "fas fa-music" }),
+            _vm._v("Sound Test\n        ")
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "menu__empty-line" }),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "tools-options" } }, [
+            _c("i", { staticClass: "fas fa-user-cog" }),
+            _vm._v("Options...\n        ")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "menu__game-sub menu-style", attrs: { value: "Game" } },
+        [
+          _c("li", { attrs: { "data-action": "game-playtest" } }, [
+            _c("i", { staticClass: "fas fa-gamepad" }),
+            _vm._v("Playtest"),
+            _c("em", [_vm._v("F12")])
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "menu__empty-line" }),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "game-fullscreen" } }, [
+            _vm._v("Launch in Full Screen")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "game-show-console" } }, [
+            _vm._v("Show Console")
+          ]),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "game-folder-open" } }, [
+            _c("i", { staticClass: "fas fa-folder-open" }),
+            _vm._v("Open Game Folder\n        ")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "ul",
+        { staticClass: "menu__help-sub menu-style", attrs: { value: "Help" } },
+        [
+          _c("li", { attrs: { "data-action": "help-contents" } }, [
+            _c("i", { staticClass: "fas fa-question-circle" }),
+            _vm._v("Contents"),
+            _c("em", [_vm._v("F1")])
+          ]),
+          _vm._v(" "),
+          _c("li", { staticClass: "menu__empty-line" }),
+          _vm._v(" "),
+          _c("li", { attrs: { "data-action": "help-about" } }, [
+            _c("i", { staticClass: "fas fa-info-circle" }),
+            _vm._v("About...\n        ")
+          ])
+        ]
+      )
+    ])
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/TileSelectWindow.vue?vue&type=template&id=645229c4&":
+/*!*********************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/TileSelectWindow.vue?vue&type=template&id=645229c4& ***!
+  \*********************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _vm._m(0)
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { attrs: { id: "aside" } }, [
+      _c("div", { staticClass: "aside__tabs" }, [
+        _c("div", { attrs: { id: "view", ondragstart: "return false;" } }),
+        _vm._v(" "),
+        _c("input", {
+          attrs: { type: "radio", name: "tile", id: "a", checked: "" }
+        }),
+        _vm._v(" "),
+        _c("input", { attrs: { type: "radio", name: "tile", id: "b" } }),
+        _vm._v(" "),
+        _c("input", { attrs: { type: "radio", name: "tile", id: "c" } }),
+        _vm._v(" "),
+        _c("input", { attrs: { type: "radio", name: "tile", id: "d" } }),
+        _vm._v(" "),
+        _c("input", { attrs: { type: "radio", name: "tile", id: "e" } }),
+        _vm._v(" "),
+        _c("ul", [
+          _c("li", [
+            _c(
+              "label",
+              { attrs: { for: "a", id: "tab-a", "data-action": "tab1" } },
+              [_vm._v("A")]
+            )
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c(
+              "label",
+              { attrs: { for: "b", id: "tab-b", "data-action": "tab2" } },
+              [_vm._v("B")]
+            )
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c(
+              "label",
+              { attrs: { for: "c", id: "tab-c", "data-action": "tab3" } },
+              [_vm._v("C")]
+            )
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c(
+              "label",
+              { attrs: { for: "d", id: "tab-d", "data-action": "tab4" } },
+              [_vm._v("D")]
+            )
+          ]),
+          _vm._v(" "),
+          _c("li", [
+            _c(
+              "label",
+              { attrs: { for: "e", id: "tab-e", "data-action": "tab5" } },
+              [_vm._v("E")]
+            )
+          ])
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "aside__tabs__maptree" }, [
+          _c("ul", [
+            _c("li", [
+              _c("i", { staticClass: "fas fa-folder" }),
+              _vm._v("레이어 그룹\n                    "),
+              _c("ul", { staticClass: "aside__tabs__maptree-child-tree" }, [
+                _c("li", { attrs: { "data-action": "layer1" } }, [
+                  _c("i", { staticClass: "far fa-eye" }),
+                  _vm._v("레이어 1\n                        ")
+                ]),
+                _vm._v(" "),
+                _c("li", { attrs: { "data-action": "layer2" } }, [
+                  _c("i", { staticClass: "far fa-eye" }),
+                  _vm._v("레이어 2\n                        ")
+                ]),
+                _vm._v(" "),
+                _c("li", { attrs: { "data-action": "layer3" } }, [
+                  _c("i", { staticClass: "far fa-eye" }),
+                  _vm._v("레이어 3\n                        ")
+                ]),
+                _vm._v(" "),
+                _c("li", { attrs: { "data-action": "layer4" } }, [
+                  _c("i", { staticClass: "far fa-eye" }),
+                  _vm._v("레이어 4\n                        ")
+                ])
+              ])
+            ])
+          ])
+        ])
+      ])
+    ])
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Tilemap.vue?vue&type=template&id=710ad25a&":
+/*!************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/Tilemap.vue?vue&type=template&id=710ad25a& ***!
+  \************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _vm._m(0)
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "contents" }, [
+      _c("canvas", { attrs: { id: "contents__main-canvas" } })
+    ])
+  }
+]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Toolbar.vue?vue&type=template&id=78f0a367&":
+/*!************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/Toolbar.vue?vue&type=template&id=78f0a367& ***!
+  \************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _vm._m(0)
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "toolbar" }, [
+      _c("ul", [
+        _c(
+          "li",
+          {
+            staticClass: "file-menu-new-button",
+            attrs: { "data-action": "file-new" }
+          },
+          [
+            _c("i", {
+              staticClass: "far fa-file",
+              attrs: { title: "게임 만들기" }
+            })
+          ]
+        ),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "file-open" } }, [
+          _c("i", {
+            staticClass: "far fa-folder-open",
+            attrs: { title: "게임 열기" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "file-save" } }, [
+          _c("i", { staticClass: "far fa-save" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "edit-undo" } }, [
+          _c("i", { staticClass: "fas fa-undo" })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "edit-cut" } }, [
+          _c("i", { staticClass: "fas fa-cut" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "edit-copy" } }, [
+          _c("i", { staticClass: "fas fa-copy" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "edit-paste" } }, [
+          _c("i", { staticClass: "fas fa-paste" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "edit-delete" } }, [
+          _c("i", { staticClass: "fas fa-trash-alt" })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "mode-map" } }, [
+          _c("i", { staticClass: "fas fa-layer-group" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "mode-event" } }, [
+          _c("i", { staticClass: "fas fa-flag-checkered" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "mode-region" } }, [
+          _c("i", { staticClass: "fas fa-map" })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "draw-pencil" } }, [
+          _c("i", {
+            staticClass: "fas fa-pencil-alt",
+            attrs: { id: "pen-tool", title: "펜" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "draw-rectangle" } }, [
+          _c("i", {
+            staticClass: "fas fa-square-full",
+            attrs: { id: "square-tool", title: "사각형" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "draw-ellipse" } }, [
+          _c("i", {
+            staticClass: "fas fa-circle",
+            attrs: { id: "rectangle-tool", title: "직사각형" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "draw-flood-fill" } }, [
+          _c("i", {
+            staticClass: "fas fa-fill",
+            attrs: { id: "pen-tool", title: "채우기" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "draw-shadow-pen" } }, [
+          _c("i", {
+            staticClass: "fas fa-paint-brush",
+            attrs: { id: "shadow-tool", title: "그림자" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "take-screenshot" } }, [
+          _c("i", {
+            staticClass: "fas fa-book",
+            attrs: { id: "take-screenshot", title: "맵 파일 내보내기" }
+          })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "tools-resource-manager" } }, [
+          _c("i", { staticClass: "fas fa-scroll" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "tools-script-eidtor" } }, [
+          _c("i", { staticClass: "fas fa-toolbox" })
+        ]),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "tools-sound-test" } }, [
+          _c("i", { staticClass: "fas fa-music" })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "tools-options" } }, [
+          _c("i", { staticClass: "fas fa-user-cog" })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "game-playtest" } }, [
+          _c("i", { staticClass: "fas fa-gamepad" })
+        ]),
+        _vm._v(" "),
+        _c("li", { staticClass: "toolbar__empty-line--modifier" }),
+        _vm._v(" "),
+        _c("li", { attrs: { "data-action": "game-folder-open" } }, [
+          _c("i", { staticClass: "fas fa-folder-open" })
+        ])
+      ])
+    ])
   }
 ]
 render._withStripped = true
@@ -73059,6 +73215,282 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TilesetWindow_vue_vue_type_template_id_77a57fef___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./packages/views/components/MainMenu.vue":
+/*!************************************************!*\
+  !*** ./packages/views/components/MainMenu.vue ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _MainMenu_vue_vue_type_template_id_04ab60fc___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./MainMenu.vue?vue&type=template&id=04ab60fc& */ "./packages/views/components/MainMenu.vue?vue&type=template&id=04ab60fc&");
+/* harmony import */ var _MainMenu_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MainMenu.vue?vue&type=script&lang=js& */ "./packages/views/components/MainMenu.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _MainMenu_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _MainMenu_vue_vue_type_template_id_04ab60fc___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _MainMenu_vue_vue_type_template_id_04ab60fc___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "packages/views/components/MainMenu.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./packages/views/components/MainMenu.vue?vue&type=script&lang=js&":
+/*!*************************************************************************!*\
+  !*** ./packages/views/components/MainMenu.vue?vue&type=script&lang=js& ***!
+  \*************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_MainMenu_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib!../../../node_modules/vue-loader/lib??vue-loader-options!./MainMenu.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/MainMenu.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_MainMenu_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./packages/views/components/MainMenu.vue?vue&type=template&id=04ab60fc&":
+/*!*******************************************************************************!*\
+  !*** ./packages/views/components/MainMenu.vue?vue&type=template&id=04ab60fc& ***!
+  \*******************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MainMenu_vue_vue_type_template_id_04ab60fc___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./MainMenu.vue?vue&type=template&id=04ab60fc& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/MainMenu.vue?vue&type=template&id=04ab60fc&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MainMenu_vue_vue_type_template_id_04ab60fc___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MainMenu_vue_vue_type_template_id_04ab60fc___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./packages/views/components/TileSelectWindow.vue":
+/*!********************************************************!*\
+  !*** ./packages/views/components/TileSelectWindow.vue ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _TileSelectWindow_vue_vue_type_template_id_645229c4___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TileSelectWindow.vue?vue&type=template&id=645229c4& */ "./packages/views/components/TileSelectWindow.vue?vue&type=template&id=645229c4&");
+/* harmony import */ var _TileSelectWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TileSelectWindow.vue?vue&type=script&lang=js& */ "./packages/views/components/TileSelectWindow.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _TileSelectWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _TileSelectWindow_vue_vue_type_template_id_645229c4___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _TileSelectWindow_vue_vue_type_template_id_645229c4___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "packages/views/components/TileSelectWindow.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./packages/views/components/TileSelectWindow.vue?vue&type=script&lang=js&":
+/*!*********************************************************************************!*\
+  !*** ./packages/views/components/TileSelectWindow.vue?vue&type=script&lang=js& ***!
+  \*********************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TileSelectWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib!../../../node_modules/vue-loader/lib??vue-loader-options!./TileSelectWindow.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/TileSelectWindow.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_TileSelectWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./packages/views/components/TileSelectWindow.vue?vue&type=template&id=645229c4&":
+/*!***************************************************************************************!*\
+  !*** ./packages/views/components/TileSelectWindow.vue?vue&type=template&id=645229c4& ***!
+  \***************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TileSelectWindow_vue_vue_type_template_id_645229c4___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./TileSelectWindow.vue?vue&type=template&id=645229c4& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/TileSelectWindow.vue?vue&type=template&id=645229c4&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TileSelectWindow_vue_vue_type_template_id_645229c4___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_TileSelectWindow_vue_vue_type_template_id_645229c4___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./packages/views/components/Tilemap.vue":
+/*!***********************************************!*\
+  !*** ./packages/views/components/Tilemap.vue ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Tilemap_vue_vue_type_template_id_710ad25a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Tilemap.vue?vue&type=template&id=710ad25a& */ "./packages/views/components/Tilemap.vue?vue&type=template&id=710ad25a&");
+/* harmony import */ var _Tilemap_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Tilemap.vue?vue&type=script&lang=js& */ "./packages/views/components/Tilemap.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _Tilemap_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _Tilemap_vue_vue_type_template_id_710ad25a___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _Tilemap_vue_vue_type_template_id_710ad25a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "packages/views/components/Tilemap.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./packages/views/components/Tilemap.vue?vue&type=script&lang=js&":
+/*!************************************************************************!*\
+  !*** ./packages/views/components/Tilemap.vue?vue&type=script&lang=js& ***!
+  \************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Tilemap_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib!../../../node_modules/vue-loader/lib??vue-loader-options!./Tilemap.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Tilemap.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Tilemap_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./packages/views/components/Tilemap.vue?vue&type=template&id=710ad25a&":
+/*!******************************************************************************!*\
+  !*** ./packages/views/components/Tilemap.vue?vue&type=template&id=710ad25a& ***!
+  \******************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Tilemap_vue_vue_type_template_id_710ad25a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Tilemap.vue?vue&type=template&id=710ad25a& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Tilemap.vue?vue&type=template&id=710ad25a&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Tilemap_vue_vue_type_template_id_710ad25a___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Tilemap_vue_vue_type_template_id_710ad25a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./packages/views/components/Toolbar.vue":
+/*!***********************************************!*\
+  !*** ./packages/views/components/Toolbar.vue ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Toolbar_vue_vue_type_template_id_78f0a367___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Toolbar.vue?vue&type=template&id=78f0a367& */ "./packages/views/components/Toolbar.vue?vue&type=template&id=78f0a367&");
+/* harmony import */ var _Toolbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Toolbar.vue?vue&type=script&lang=js& */ "./packages/views/components/Toolbar.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _Toolbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _Toolbar_vue_vue_type_template_id_78f0a367___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _Toolbar_vue_vue_type_template_id_78f0a367___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "packages/views/components/Toolbar.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./packages/views/components/Toolbar.vue?vue&type=script&lang=js&":
+/*!************************************************************************!*\
+  !*** ./packages/views/components/Toolbar.vue?vue&type=script&lang=js& ***!
+  \************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Toolbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib!../../../node_modules/vue-loader/lib??vue-loader-options!./Toolbar.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Toolbar.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Toolbar_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./packages/views/components/Toolbar.vue?vue&type=template&id=78f0a367&":
+/*!******************************************************************************!*\
+  !*** ./packages/views/components/Toolbar.vue?vue&type=template&id=78f0a367& ***!
+  \******************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Toolbar_vue_vue_type_template_id_78f0a367___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Toolbar.vue?vue&type=template&id=78f0a367& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/components/Toolbar.vue?vue&type=template&id=78f0a367&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Toolbar_vue_vue_type_template_id_78f0a367___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Toolbar_vue_vue_type_template_id_78f0a367___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 

@@ -1,386 +1,51 @@
 <template>
     <div id="wrapper">
         <div class="container">
-            <div class="menu">
-                <div
-                    class="drag-zon"
-                    window-name="Initial Editor - 맵 에디터"
-                ></div>
-                <!-- 
-                다음 <input> 요소는 실제 화면에서 보이지 않습니다. 
-                general sibling combinator를 이용하여 메뉴를 토글할 때 사용됩니다.
-                이것은 간단하게 만들 수 있지만 꽤나 강력합니다.
-
-                그러나 실제 메뉴와 달리 다양한 상태에 대응할 수가 없어,
-                일부 동작에서는 매우 부자연스럽습니다.
-
-                예를 들면, 일반적으로 메뉴가 열린 상태에서 우측 메뉴에 마우스를 오버하면
-                즉시 우측에 있는 메뉴가 열려야 합니다만,
-
-                CSS로는 이를 제어할 수가 없기 때문에 자바스크립트 코드가 들어가야 합니다.
-            -->
-                <input type="radio" name="menu" id="file" />
-                <input type="radio" name="menu" id="edit" />
-                <input type="radio" name="menu" id="mode" />
-                <input type="radio" name="menu" id="draw" />
-                <input type="radio" name="menu" id="scale" />
-                <input type="radio" name="menu" id="tools" />
-                <input type="radio" name="menu" id="game" />
-                <input type="radio" name="menu" id="help" />
-                <input type="radio" name="menu" id="none" />
-
-                <!-- 메인 메뉴 -->
-                <ul class="menu__main">
-                    <li class="menu__main-program-icon"></li>
-                    <li class="menu__main-file">
-                        <label for="file" data-action="file">File</label>
-                    </li>
-                    <li><label for="edit" data-action="edit">Edit</label></li>
-                    <li><label for="mode" data-action="mode">Mode</label></li>
-                    <li><label for="draw" data-action="draw">Draw</label></li>
-                    <li>
-                        <label for="scale" data-action="scale">Scale</label>
-                    </li>
-                    <li>
-                        <label for="tools" data-action="tools">Tools</label>
-                    </li>
-                    <li><label for="game" data-action="game">Game</label></li>
-                    <li><label for="help" data-action="help">Help</label></li>
-                    <ul class="control-box">
-                        <li class="minimum" data-action="minimum">
-                            <i class="fas fa-minus"></i>
-                        </li>
-                        <li class="maximum" data-action="maximum">
-                            <i class="fas fa-window-maximize"></i>
-                        </li>
-                        <li class="close" data-action="close">
-                            <i class="far fa-window-close"></i>
-                        </li>
-                    </ul>
-                </ul>
-                <!-- 파일 서브 메뉴 -->
-                <ul class="menu__file-sub menu-style" value="File">
-                    <li data-action="file-new" class="file-menu-new-button">
-                        <i class="far fa-file"></i>New<em>Ctrl+N</em>
-                    </li>
-                    <li data-action="file-open">
-                        <i class="far fa-folder-open"></i>Open<em>Ctrl+O</em>
-                    </li>
-                    <li data-action="file-close">
-                        <i class="far fa-window-close"></i>Close
-                    </li>
-                    <li data-action="file-save">
-                        <i class="far fa-save"></i>Save<em>Ctrl+S</em>
-                    </li>
-                    <li data-action="file-preferences">
-                        <i class="fas fa-wrench"></i>User Preferences<em
-                            >Ctrl+M</em
-                        >
-                    </li>
-                    <li class="menu__empty-line"></li>
-                    <li data-action="file-export">
-                        <i class="fas fa-file-download"></i>Export
-                    </li>
-                    <li class="menu__empty-line"></li>
-                    <li data-action="file-exit">
-                        <i class="far fa-times-circle"></i>Exit
-                    </li>
-                </ul>
-                <!-- 편집 서브 메뉴 -->
-                <ul class="menu__edit-sub menu-style" value="Edit">
-                    <li data-action="edit-undo">
-                        <i class="fas fa-undo"></i>Undo
-                    </li>
-                    <li class="menu__empty-line"></li>
-                    <li data-action="edit-cut">
-                        <i class="fas fa-cut"></i>Cut
-                    </li>
-                    <li data-action="edit-copy">
-                        <i class="fas fa-copy"></i>Copy
-                    </li>
-                    <li data-action="edit-paste">
-                        <i class="fas fa-paste"></i>Paste
-                    </li>
-                    <li data-action="edit-delete">
-                        <i class="fas fa-trash-alt"></i>Delete
-                    </li>
-                </ul>
-                <!-- 모드 서브 메뉴 -->
-                <ul class="menu__mode-sub menu-style" value="Mode">
-                    <li data-action="mode-map">
-                        <i class="fas fa-layer-group"></i>Map
-                    </li>
-                    <li data-action="mode-event">
-                        <i class="fas fa-flag-checkered"></i>Event
-                    </li>
-                    <li data-action="mode-region">
-                        <i class="fas fa-map"></i>Region
-                    </li>
-                </ul>
-                <!-- 드로우 서브 메뉴 -->
-                <ul class="menu__draw-sub menu-style" value="Draw">
-                    <li data-action="draw-pencil">
-                        <i class="fas fa-pencil-alt"></i>Pencil
-                    </li>
-                    <li data-action="draw-rectangle">
-                        <i class="fas fa-square-full"></i>Rectangle
-                    </li>
-                    <li data-action="draw-ellipse">
-                        <i class="fas fa-circle"></i>Ellipse
-                    </li>
-                    <li data-action="draw-flood-fill">
-                        <i class="fas fa-fill"></i>Flood Fill
-                    </li>
-                    <li data-action="draw-shadow-pen">
-                        <i class="fas fa-paint-brush"></i>Shadow Pen
-                    </li>
-                </ul>
-                <!-- 스케일 서브 메뉴 -->
-                <ul class="menu__scale-sub menu-style" value="Scale">
-                    <li data-action="scale-1x">
-                        <i class="fas fa-search-plus"></i>1:1
-                    </li>
-                    <li data-action="scale-2x">
-                        <i class="fas fa-search-plus"></i>1:2
-                    </li>
-                    <li data-action="scale-4x">
-                        <i class="fas fa-search-plus"></i>1:4
-                    </li>
-                    <li data-action="scale-8x">
-                        <i class="fas fa-search-plus"></i>1:8
-                    </li>
-                </ul>
-                <!-- 도구 서브 메뉴 -->
-                <ul class="menu__tools-sub menu-style" value="Tools">
-                    <li data-action="tools-database">
-                        <i class="fas fa-book"></i>Database...<em>F9</em>
-                    </li>
-                    <li data-action="tools-resource-manager">
-                        <i class="fas fa-scroll"></i>Resource Manager
-                    </li>
-                    <li data-action="tools-script-eidtor">
-                        <i class="fas fa-toolbox"></i>Script Editor
-                    </li>
-                    <li data-action="tools-sound-test">
-                        <i class="fas fa-music"></i>Sound Test
-                    </li>
-                    <li class="menu__empty-line"></li>
-                    <li data-action="tools-options">
-                        <i class="fas fa-user-cog"></i>Options...
-                    </li>
-                </ul>
-                <!-- 게임 서브 메뉴 -->
-                <ul class="menu__game-sub menu-style" value="Game">
-                    <li data-action="game-playtest">
-                        <i class="fas fa-gamepad"></i>Playtest<em>F12</em>
-                    </li>
-                    <li class="menu__empty-line"></li>
-                    <li data-action="game-fullscreen">Launch in Full Screen</li>
-                    <li data-action="game-show-console">Show Console</li>
-                    <li data-action="game-folder-open">
-                        <i class="fas fa-folder-open"></i>Open Game Folder
-                    </li>
-                </ul>
-                <!-- 도움말 서브 메뉴 -->
-                <ul class="menu__help-sub menu-style" value="Help">
-                    <li data-action="help-contents">
-                        <i class="fas fa-question-circle"></i>Contents<em
-                            >F1</em
-                        >
-                    </li>
-                    <li class="menu__empty-line"></li>
-                    <li data-action="help-about">
-                        <i class="fas fa-info-circle"></i>About...
-                    </li>
-                </ul>
-            </div>
+            <!-- 메뉴 -->
+            <main-menu />
             <!-- 툴바 -->
-            <div class="toolbar">
-                <ul>
-                    <!-- 파일 툴바 -->
-                    <li data-action="file-new" class="file-menu-new-button">
-                        <i class="far fa-file" title="게임 만들기"></i>
-                    </li>
-                    <li data-action="file-open">
-                        <i class="far fa-folder-open" title="게임 열기"></i>
-                    </li>
-                    <li data-action="file-save"><i class="far fa-save"></i></li>
-                    <li data-action="edit-undo"><i class="fas fa-undo"></i></li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <!-- 편집 툴바 -->
-                    <li data-action="edit-cut"><i class="fas fa-cut"></i></li>
-                    <li data-action="edit-copy"><i class="fas fa-copy"></i></li>
-                    <li data-action="edit-paste">
-                        <i class="fas fa-paste"></i>
-                    </li>
-                    <li data-action="edit-delete">
-                        <i class="fas fa-trash-alt"></i>
-                    </li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <!-- 모드 툴바 -->
-                    <li data-action="mode-map">
-                        <i class="fas fa-layer-group"></i>
-                    </li>
-                    <li data-action="mode-event">
-                        <i class="fas fa-flag-checkered"></i>
-                    </li>
-                    <li data-action="mode-region">
-                        <i class="fas fa-map"></i>
-                    </li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <!-- 드로우 툴바 -->
-                    <li data-action="draw-pencil">
-                        <i
-                            id="pen-tool"
-                            class="fas fa-pencil-alt"
-                            title="펜"
-                        ></i>
-                    </li>
-                    <li data-action="draw-rectangle">
-                        <i
-                            id="square-tool"
-                            class="fas fa-square-full"
-                            title="사각형"
-                        ></i>
-                    </li>
-                    <li data-action="draw-ellipse">
-                        <i
-                            id="rectangle-tool"
-                            class="fas fa-circle"
-                            title="직사각형"
-                        ></i>
-                    </li>
-                    <li data-action="draw-flood-fill">
-                        <i id="pen-tool" class="fas fa-fill" title="채우기"></i>
-                    </li>
-                    <li data-action="draw-shadow-pen">
-                        <i
-                            id="shadow-tool"
-                            class="fas fa-paint-brush"
-                            title="그림자"
-                        ></i>
-                    </li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <!-- 기타 툴바 -->
-                    <li data-action="take-screenshot">
-                        <i
-                            id="take-screenshot"
-                            title="맵 파일 내보내기"
-                            class="fas fa-book"
-                        ></i>
-                    </li>
-                    <li data-action="tools-resource-manager">
-                        <i class="fas fa-scroll"></i>
-                    </li>
-                    <li data-action="tools-script-eidtor">
-                        <i class="fas fa-toolbox"></i>
-                    </li>
-                    <li data-action="tools-sound-test">
-                        <i class="fas fa-music"></i>
-                    </li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <li data-action="tools-options">
-                        <i class="fas fa-user-cog"></i>
-                    </li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <li data-action="game-playtest">
-                        <i class="fas fa-gamepad"></i>
-                    </li>
-                    <li class="toolbar__empty-line--modifier"></li>
-                    <li data-action="game-folder-open">
-                        <i class="fas fa-folder-open"></i>
-                    </li>
-                </ul>
-            </div>
+            <toolbar />
             <!-- 타일 선택 창 -->
-            <div id="aside">
-                <div class="aside__tabs">
-                    <div id="view" ondragstart="return false;"></div>
-                    <!-- 탭 컨트롤을 위한 체크박스입니다. -->
-                    <input type="radio" name="tile" id="a" checked />
-                    <input type="radio" name="tile" id="b" />
-                    <input type="radio" name="tile" id="c" />
-                    <input type="radio" name="tile" id="d" />
-                    <input type="radio" name="tile" id="e" />
-                    <ul>
-                        <li>
-                            <label for="a" id="tab-a" data-action="tab1"
-                                >A</label
-                            >
-                        </li>
-                        <li>
-                            <label for="b" id="tab-b" data-action="tab2"
-                                >B</label
-                            >
-                        </li>
-                        <li>
-                            <label for="c" id="tab-c" data-action="tab3"
-                                >C</label
-                            >
-                        </li>
-                        <li>
-                            <label for="d" id="tab-d" data-action="tab4"
-                                >D</label
-                            >
-                        </li>
-                        <li>
-                            <label for="e" id="tab-e" data-action="tab5"
-                                >E</label
-                            >
-                        </li>
-                    </ul>
-                    <div class="aside__tabs__maptree">
-                        <ul>
-                            <li>
-                                <i class="fas fa-folder"></i>레이어 그룹
-                                <ul class="aside__tabs__maptree-child-tree">
-                                    <li data-action="layer1">
-                                        <i class="far fa-eye"></i>레이어 1
-                                    </li>
-                                    <li data-action="layer2">
-                                        <i class="far fa-eye"></i>레이어 2
-                                    </li>
-                                    <li data-action="layer3">
-                                        <i class="far fa-eye"></i>레이어 3
-                                    </li>
-                                    <li data-action="layer4">
-                                        <i class="far fa-eye"></i>레이어 4
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="contents">
-                <canvas id="contents__main-canvas"> </canvas>
-            </div>
+            <tile-select-window />
+            <!-- 타일맵 -->
+            <tilemap />
         </div>
         <div id="app">
-            <!-- <new-window></new-window>
-            <tileset-window></tileset-window> -->
             <router-view></router-view>
         </div>
     </div>
 </template>
 <script>
-// import NewWindow from "./NewWindow.vue";
-// import TilesetWindow from "./TilesetWindow.vue";
+import MainMenu from "./components/MainMenu.vue";
+import Tilemap from "./components/Tilemap.vue";
+import TileSelectWindow from "./components/TileSelectWindow.vue";
+import Toolbar from "./components/Toolbar.vue";
 
 export default {
-    // components: {
-    //     NewWindow,
-    //     TilesetWindow
-    // },
+    components: {
+        MainMenu,
+        Toolbar,
+        TileSelectWindow,
+        Tilemap
+    },
     mounted() {
-        window.onMounted(() => {
-            // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
-            if (window.app) {
-                window.app.on("openWindow", this.openWindow);
-            }
-        });
+        this.injectServices();
     },
     methods: {
+        /**
+         * TODO: Note that there is a bug of vetur extension when adding component.
+         */
+        injectServices() {
+            window.onMounted(() => {
+                // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+                if (window.app) {
+                    window.app.on("openWindow", this.openWindow);
+                }
+            });
+        },
+        /**
+         * Open internel modal window for vue.
+         */
         openWindow(route) {
             this.$router.push(route);
         }
