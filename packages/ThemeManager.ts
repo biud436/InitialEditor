@@ -1,4 +1,4 @@
-namespace Theme {
+namespace ThemeColor {
     /**
      * 이렇게 파일 내에 하드 코딩하는 것은 좋지 않습니다.
      * 파일로부터 설정 파일을 로드할 수 있어야 합니다.
@@ -30,6 +30,11 @@ namespace Theme {
     };
 }
 
+enum Theme {
+    DARK = 0,
+    LIGHT = 1
+}
+
 class ThemeManager {
     set(key: string, value: string) {
         // document.documentElement.style.setProperty(key, value);
@@ -43,35 +48,35 @@ class ThemeManager {
     }
 
     changeDarkTheme(isOption: boolean = false) {
-        this.set("--dark-title-color", Theme.DARK.TITLE_COLOR);
-        this.set("--dark-selection-color", Theme.DARK.SELECTION_COLOR);
+        this.set("--dark-title-color", ThemeColor.DARK.TITLE_COLOR);
+        this.set("--dark-selection-color", ThemeColor.DARK.SELECTION_COLOR);
         this.set(
             "--dark-input-background-color",
-            Theme.DARK.INPUT_BACKGROUND_COLOR
+            ThemeColor.DARK.INPUT_BACKGROUND_COLOR
         );
-        this.set("--dark-input-text-color", Theme.DARK.INPUT_TEXT_COLOR);
-        this.set("--dark-text-color", Theme.DARK.TEXT_COLOR);
-        this.set("--dark-shadow-color", Theme.DARK.SHADOW_COLOR);
-        this.set("--dark-border-color", Theme.DARK.BORDER_COLOR);
+        this.set("--dark-input-text-color", ThemeColor.DARK.INPUT_TEXT_COLOR);
+        this.set("--dark-text-color", ThemeColor.DARK.TEXT_COLOR);
+        this.set("--dark-shadow-color", ThemeColor.DARK.SHADOW_COLOR);
+        this.set("--dark-border-color", ThemeColor.DARK.BORDER_COLOR);
         if (isOption) {
-            this.flush(0);
+            this.flush(Theme.DARK);
         }
     }
 
     changeLightTheme(isOption: boolean = false) {
-        this.set("--dark-title-color", Theme.LIGHT.TITLE_COLOR);
-        this.set("--dark-selection-color", Theme.LIGHT.SELECTION_COLOR);
+        this.set("--dark-title-color", ThemeColor.LIGHT.TITLE_COLOR);
+        this.set("--dark-selection-color", ThemeColor.LIGHT.SELECTION_COLOR);
         this.set(
             "--dark-input-background-color",
-            Theme.LIGHT.INPUT_BACKGROUND_COLOR
+            ThemeColor.LIGHT.INPUT_BACKGROUND_COLOR
         );
-        this.set("--dark-input-text-color", Theme.LIGHT.INPUT_TEXT_COLOR);
-        this.set("--dark-text-color", Theme.LIGHT.TEXT_COLOR);
-        this.set("--dark-shadow-color", Theme.LIGHT.SHADOW_COLOR);
-        this.set("--dark-border-color", Theme.LIGHT.BORDER_COLOR);
+        this.set("--dark-input-text-color", ThemeColor.LIGHT.INPUT_TEXT_COLOR);
+        this.set("--dark-text-color", ThemeColor.LIGHT.TEXT_COLOR);
+        this.set("--dark-shadow-color", ThemeColor.LIGHT.SHADOW_COLOR);
+        this.set("--dark-border-color", ThemeColor.LIGHT.BORDER_COLOR);
 
         if (isOption) {
-            this.flush(1);
+            this.flush(Theme.LIGHT);
         }
     }
 }
