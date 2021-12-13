@@ -5,26 +5,7 @@ enum Theme {
     LIGHT = 1
 }
 
-const themeSchema = new ThemeSchema({
-    DARK: {
-        TITLE_COLOR: "rgb(60, 60, 60)",
-        SELECTION_COLOR: "rgb(80, 80, 80)",
-        INPUT_BACKGROUND_COLOR: "rgb(90, 90, 90)",
-        INPUT_TEXT_COLOR: "rgb(194, 194, 194)",
-        TEXT_COLOR: "rgb(159, 159, 159)",
-        SHADOW_COLOR: "rgb(40, 40, 40)",
-        BORDER_COLOR: "rgb(90, 90, 90)"
-    },
-    LIGHT: {
-        TITLE_COLOR: "#DDDDDD",
-        SELECTION_COLOR: "#C6C6C6",
-        INPUT_BACKGROUND_COLOR: "#DDDDDD",
-        INPUT_TEXT_COLOR: "#000000",
-        TEXT_COLOR: "#000000",
-        SHADOW_COLOR: "#F3F3F3",
-        BORDER_COLOR: "#DDDDDD"
-    }
-});
+const themeSchema = new ThemeSchema({});
 const ThemeColor = themeSchema.loadSync("./conf/theme.json");
 
 class ThemeManager {
@@ -34,6 +15,7 @@ class ThemeManager {
         // ? ThemeManager가 한 번만 생성되었나?
         if (ThemeManager.INSTANCE_COUNT === 0) {
             window.app.on("save-config", () => {
+                Object.assign(themeSchema, ThemeColor);
                 themeSchema
                     .toFile("./conf/theme.json")
                     .then(res => {})
