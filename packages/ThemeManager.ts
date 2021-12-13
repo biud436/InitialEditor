@@ -1,17 +1,12 @@
-namespace ThemeColor {
-    /**
-     * 이렇게 파일 내에 하드 코딩하는 것은 좋지 않습니다.
-     * 재컴파일을 해야 하기 때문입니다.
-     *
-     * 파일로부터 설정 파일을 로드할 수 있어야 합니다.
-     * 또한 상수로 설정하는 것도 좋지 않습니다.
-     *
-     * 모든 것을 설정 파일로부터 가져오는 것이 좋습니다.
-     *
-     * TODO : 설정 파일로 디커플링하기
-     *
-     */
-    export const DARK = {
+import { ThemeSchema } from "./schema/ThemeSchema";
+
+enum Theme {
+    DARK = 0,
+    LIGHT = 1
+}
+
+const themeSchema = new ThemeSchema({
+    DARK: {
         TITLE_COLOR: "rgb(60, 60, 60)",
         SELECTION_COLOR: "rgb(80, 80, 80)",
         INPUT_BACKGROUND_COLOR: "rgb(90, 90, 90)",
@@ -19,9 +14,8 @@ namespace ThemeColor {
         TEXT_COLOR: "rgb(159, 159, 159)",
         SHADOW_COLOR: "rgb(40, 40, 40)",
         BORDER_COLOR: "rgb(90, 90, 90)"
-    };
-
-    export const LIGHT = {
+    },
+    LIGHT: {
         TITLE_COLOR: "#DDDDDD",
         SELECTION_COLOR: "#C6C6C6",
         INPUT_BACKGROUND_COLOR: "#DDDDDD",
@@ -29,15 +23,29 @@ namespace ThemeColor {
         TEXT_COLOR: "#000000",
         SHADOW_COLOR: "#F3F3F3",
         BORDER_COLOR: "#DDDDDD"
-    };
-}
-
-enum Theme {
-    DARK = 0,
-    LIGHT = 1
-}
+    }
+});
+const ThemeColor = themeSchema.loadSync("./conf/theme.json");
 
 class ThemeManager {
+    public static INSTANCE_COUNT = 0;
+
+    constructor() {
+        // ? ThemeManager가 한 번만 생성되었나?
+        if (ThemeManager.INSTANCE_COUNT === 0) {
+            window.app.on("save-config", () => {
+                themeSchema
+                    .toFile("./conf/theme.json")
+                    .then(res => {})
+                    .catch(err => {
+                        console.error(err);
+                    });
+            });
+        }
+
+        ThemeManager.INSTANCE_COUNT++;
+    }
+
     set(key: string, value: string) {
         // document.documentElement.style.setProperty(key, value);
         $(":root").css(key, value);
