@@ -1,10 +1,7 @@
 <template>
-    <div class="window-frame-wrapper" :ref="name">
+    <div v-on:class="$style.background" :ref="name">
         <!-- prettier-ignore -->
-        <window-frame-header :theme="{
-            width: width,
-            height: 256,
-            }">
+        <window-frame-header :theme="theme">
             <p>
                 <span>
                     <i class="far fa-window-close" @click="close" />
@@ -27,13 +24,13 @@ import styled from "vue-styled-components";
  * ! 삭제 예정
  */
 const WindowFrameHeader = styled.div`
-    width: ${(props) => props.theme.width}px;
-    height: 200px;
+    width: ${(props) => props.theme.width + "px"};
+    height: ${(props) => props.theme.width + "px"};
     position: relative;
     left: 50%;
     display: flex;
     align-self: center;
-    background-color: #007acc;
+    background-color: #252526;
 `;
 
 export default {
@@ -62,6 +59,10 @@ export default {
         return {
             title: "",
             isActive: true,
+            theme: {
+                width: 256,
+                height: 512,
+            },
         };
     },
     methods: {
@@ -71,4 +72,14 @@ export default {
     },
 };
 </script>
-<style lang="scss"></style>
+<style lang="scss" module scoped>
+.background {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    left: 50%;
+    display: flex;
+    align-self: center;
+    background-color: #252526;
+}
+</style>
