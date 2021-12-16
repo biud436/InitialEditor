@@ -1,5 +1,9 @@
 <template>
-    <base-window-frame name="newFileWindow">
+    <base-window-frame
+        name="newFileWindow"
+        v-bind:width="256"
+        v-bind:height="256"
+    >
         <template #content>
             <div class="newContainer">
                 <div id="newWindow" window-name="게임 속성" ref="newWindow">

@@ -42140,7 +42140,6 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue_styled_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue-styled-components */ "./node_modules/vue-styled-components/dist/vue-styled-components.es.js");
-/* harmony import */ var uuid__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-node/index.js");
 //
 //
 //
@@ -42159,11 +42158,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-
 
 const WindowFrameHeader = vue_styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].div`
-    width: 256px;
-    height: 240px;
+    width: ${props => props.width}px;
+    height: ${props => props.height}px;
     position: relative;
     left: 50%;
     display: flex;
@@ -42178,18 +42176,18 @@ const WindowFrameHeader = vue_styled_components__WEBPACK_IMPORTED_MODULE_0__["de
     name: {
       type: String,
       default: "Window"
+    },
+    width: {
+      type: Number,
+      default: 256
+    },
+    height: {
+      type: Number,
+      default: 256
     }
   },
 
   mounted() {
-    const entry = Object.entries(this.$parent.$refs).find(([key, value]) => value === this);
-
-    if (entry) {
-      this.name = entry[0];
-    } else {
-      this.name = uuid__WEBPACK_IMPORTED_MODULE_1__["v4"]();
-    }
-
     const refName = this.name;
     $(this.$refs[refName]).draggable();
   },
@@ -42221,6 +42219,10 @@ const WindowFrameHeader = vue_styled_components__WEBPACK_IMPORTED_MODULE_0__["de
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _BaseWindowFrame_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BaseWindowFrame.vue */ "./packages/views/components/window/BaseWindowFrame.vue");
+//
+//
+//
+//
 //
 //
 //
@@ -42782,7 +42784,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
 // Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\n}\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\n}\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\n}\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\n}\n#newWindow input {\r\n    width: 60%;\n}\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\n}\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/components/window/NewWindow.vue"],"names":[],"mappings":";AAqFA;IACA,YAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\r\n    <base-window-frame name=\"newFileWindow\">\r\n        <template #content>\r\n            <div class=\"newContainer\">\r\n                <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\r\n                    <ul>\r\n                        <li>\r\n                            <label for=\"name\">게임명 : </label\r\n                            ><input\r\n                                type=\"text\"\r\n                                placeholder=\"name\"\r\n                                v-model=\"title\"\r\n                            />\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"name\">위치 : </label\r\n                            ><input\r\n                                type=\"file\"\r\n                                placeholder=\"\"\r\n                                webkitdirectory\r\n                                directory\r\n                                multiple\r\n                                @change=\"onFileChange($event)\"\r\n                            />\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"name\">작성자 명 : </label\r\n                            ><input\r\n                                type=\"text\"\r\n                                placeholder=\"\"\r\n                                v-model=\"project.author\"\r\n                            />\r\n                        </li>\r\n                    </ul>\r\n                    <div class=\"newWindow__control-box\">\r\n                        <p>\r\n                            <span\r\n                                ><i\r\n                                    class=\"far fa-window-close\"\r\n                                    id=\"action-close\"\r\n                                    @click=\"close\"\r\n                                ></i\r\n                            ></span>\r\n                        </p>\r\n                    </div>\r\n                    <div class=\"panel\">\r\n                        <button>\r\n                            <i class=\"fas fa-upload\"></i>프로젝트 생성\r\n                        </button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </template>\r\n    </base-window-frame>\r\n</template>\r\n<script>\r\nimport BaseWindowFrame from \"./BaseWindowFrame.vue\";\r\nexport default {\r\n    components: {\r\n        BaseWindowFrame\r\n    },\r\n    data() {\r\n        return {\r\n            title: \"\",\r\n            project: {\r\n                path: [],\r\n                author: \"\"\r\n            }\r\n        };\r\n    },\r\n    mounted() {\r\n        $(this.$refs.newWindow).draggable();\r\n    },\r\n    methods: {\r\n        close() {\r\n            this.$router.push(\"home\");\r\n        },\r\n        onFileChange(e) {\r\n            this.project.path = e.target.files;\r\n            console.log(e.target.files);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style lang=\"css\">\r\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\r\n}\r\n\r\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\r\n}\r\n\r\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\r\n}\r\n\r\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\r\n}\r\n\r\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n#newWindow input {\r\n    width: 60%;\r\n}\r\n\r\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\r\n}\r\n\r\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\n}\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\n}\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\n}\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\n}\n#newWindow input {\r\n    width: 60%;\n}\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\n}\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/components/window/NewWindow.vue"],"names":[],"mappings":";AAyFA;IACA,YAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\r\n    <base-window-frame\r\n        name=\"newFileWindow\"\r\n        v-bind:width=\"256\"\r\n        v-bind:height=\"256\"\r\n    >\r\n        <template #content>\r\n            <div class=\"newContainer\">\r\n                <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\r\n                    <ul>\r\n                        <li>\r\n                            <label for=\"name\">게임명 : </label\r\n                            ><input\r\n                                type=\"text\"\r\n                                placeholder=\"name\"\r\n                                v-model=\"title\"\r\n                            />\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"name\">위치 : </label\r\n                            ><input\r\n                                type=\"file\"\r\n                                placeholder=\"\"\r\n                                webkitdirectory\r\n                                directory\r\n                                multiple\r\n                                @change=\"onFileChange($event)\"\r\n                            />\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"name\">작성자 명 : </label\r\n                            ><input\r\n                                type=\"text\"\r\n                                placeholder=\"\"\r\n                                v-model=\"project.author\"\r\n                            />\r\n                        </li>\r\n                    </ul>\r\n                    <div class=\"newWindow__control-box\">\r\n                        <p>\r\n                            <span\r\n                                ><i\r\n                                    class=\"far fa-window-close\"\r\n                                    id=\"action-close\"\r\n                                    @click=\"close\"\r\n                                ></i\r\n                            ></span>\r\n                        </p>\r\n                    </div>\r\n                    <div class=\"panel\">\r\n                        <button>\r\n                            <i class=\"fas fa-upload\"></i>프로젝트 생성\r\n                        </button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </template>\r\n    </base-window-frame>\r\n</template>\r\n<script>\r\nimport BaseWindowFrame from \"./BaseWindowFrame.vue\";\r\nexport default {\r\n    components: {\r\n        BaseWindowFrame\r\n    },\r\n    data() {\r\n        return {\r\n            title: \"\",\r\n            project: {\r\n                path: [],\r\n                author: \"\"\r\n            }\r\n        };\r\n    },\r\n    mounted() {\r\n        $(this.$refs.newWindow).draggable();\r\n    },\r\n    methods: {\r\n        close() {\r\n            this.$router.push(\"home\");\r\n        },\r\n        onFileChange(e) {\r\n            this.project.path = e.target.files;\r\n            console.log(e.target.files);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style lang=\"css\">\r\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\r\n}\r\n\r\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\r\n}\r\n\r\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\r\n}\r\n\r\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\r\n}\r\n\r\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n#newWindow input {\r\n    width: 60%;\r\n}\r\n\r\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\r\n}\r\n\r\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -52865,558 +52867,6 @@ exports.SourceNode = __webpack_require__(/*! ./lib/source-node */ "./node_module
 
 /***/ }),
 
-/***/ "./node_modules/uuid/dist/esm-node/index.js":
-/*!**************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/index.js ***!
-  \**************************************************/
-/*! exports provided: v1, v3, v4, v5, NIL, version, validate, stringify, parse */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v1.js */ "./node_modules/uuid/dist/esm-node/v1.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "v1", function() { return _v1_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _v3_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./v3.js */ "./node_modules/uuid/dist/esm-node/v3.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "v3", function() { return _v3_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _v4_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./v4.js */ "./node_modules/uuid/dist/esm-node/v4.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "v4", function() { return _v4_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
-/* harmony import */ var _v5_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./v5.js */ "./node_modules/uuid/dist/esm-node/v5.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "v5", function() { return _v5_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-/* harmony import */ var _nil_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./nil.js */ "./node_modules/uuid/dist/esm-node/nil.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "NIL", function() { return _nil_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
-/* harmony import */ var _version_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./version.js */ "./node_modules/uuid/dist/esm-node/version.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "version", function() { return _version_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
-
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/esm-node/validate.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "validate", function() { return _validate_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/esm-node/stringify.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stringify", function() { return _stringify_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./parse.js */ "./node_modules/uuid/dist/esm-node/parse.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "parse", function() { return _parse_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
-
-
-
-
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/md5.js":
-/*!************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/md5.js ***!
-  \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! crypto */ "crypto");
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-
-function md5(bytes) {
-  if (Array.isArray(bytes)) {
-    bytes = Buffer.from(bytes);
-  } else if (typeof bytes === 'string') {
-    bytes = Buffer.from(bytes, 'utf8');
-  }
-
-  return crypto__WEBPACK_IMPORTED_MODULE_0___default.a.createHash('md5').update(bytes).digest();
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (md5);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/nil.js":
-/*!************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/nil.js ***!
-  \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ('00000000-0000-0000-0000-000000000000');
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/parse.js":
-/*!**************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/parse.js ***!
-  \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/esm-node/validate.js");
-
-
-function parse(uuid) {
-  if (!Object(_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  let v;
-  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
-
-  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
-  arr[1] = v >>> 16 & 0xff;
-  arr[2] = v >>> 8 & 0xff;
-  arr[3] = v & 0xff; // Parse ........-####-....-....-............
-
-  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
-  arr[5] = v & 0xff; // Parse ........-....-####-....-............
-
-  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
-  arr[7] = v & 0xff; // Parse ........-....-....-####-............
-
-  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
-  arr[9] = v & 0xff; // Parse ........-....-....-....-############
-  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
-
-  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
-  arr[11] = v / 0x100000000 & 0xff;
-  arr[12] = v >>> 24 & 0xff;
-  arr[13] = v >>> 16 & 0xff;
-  arr[14] = v >>> 8 & 0xff;
-  arr[15] = v & 0xff;
-  return arr;
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (parse);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/regex.js":
-/*!**************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/regex.js ***!
-  \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/rng.js":
-/*!************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/rng.js ***!
-  \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return rng; });
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! crypto */ "crypto");
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
-
-let poolPtr = rnds8Pool.length;
-function rng() {
-  if (poolPtr > rnds8Pool.length - 16) {
-    crypto__WEBPACK_IMPORTED_MODULE_0___default.a.randomFillSync(rnds8Pool);
-    poolPtr = 0;
-  }
-
-  return rnds8Pool.slice(poolPtr, poolPtr += 16);
-}
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/sha1.js":
-/*!*************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/sha1.js ***!
-  \*************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! crypto */ "crypto");
-/* harmony import */ var crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-
-function sha1(bytes) {
-  if (Array.isArray(bytes)) {
-    bytes = Buffer.from(bytes);
-  } else if (typeof bytes === 'string') {
-    bytes = Buffer.from(bytes, 'utf8');
-  }
-
-  return crypto__WEBPACK_IMPORTED_MODULE_0___default.a.createHash('sha1').update(bytes).digest();
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (sha1);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/stringify.js":
-/*!******************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/stringify.js ***!
-  \******************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/esm-node/validate.js");
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-
-const byteToHex = [];
-
-for (let i = 0; i < 256; ++i) {
-  byteToHex.push((i + 0x100).toString(16).substr(1));
-}
-
-function stringify(arr, offset = 0) {
-  // Note: Be careful editing this code!  It's been tuned for performance
-  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-  const uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
-  // of the following:
-  // - One or more input array values don't map to a hex octet (leading to
-  // "undefined" in the uuid)
-  // - Invalid input values for the RFC `version` or `variant` fields
-
-  if (!Object(_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
-    throw TypeError('Stringified UUID is invalid');
-  }
-
-  return uuid;
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (stringify);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/v1.js":
-/*!***********************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/v1.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rng.js */ "./node_modules/uuid/dist/esm-node/rng.js");
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/esm-node/stringify.js");
-
- // **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-
-let _nodeId;
-
-let _clockseq; // Previous uuid creation time
-
-
-let _lastMSecs = 0;
-let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
-
-function v1(options, buf, offset) {
-  let i = buf && offset || 0;
-  const b = buf || new Array(16);
-  options = options || {};
-  let node = options.node || _nodeId;
-  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
-  // specified.  We do this lazily to minimize issues related to insufficient
-  // system entropy.  See #189
-
-  if (node == null || clockseq == null) {
-    const seedBytes = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_0__["default"])();
-
-    if (node == null) {
-      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
-    }
-
-    if (clockseq == null) {
-      // Per 4.2.2, randomize (14 bit) clockseq
-      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
-    }
-  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-
-
-  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-
-  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
-
-  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
-
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-
-
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  } // Per 4.2.1.2 Throw error if too many uuids are requested
-
-
-  if (nsecs >= 10000) {
-    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-
-  msecs += 12219292800000; // `time_low`
-
-  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff; // `time_mid`
-
-  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff; // `time_high_and_version`
-
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-
-  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-
-  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
-
-  b[i++] = clockseq & 0xff; // `node`
-
-  for (let n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-
-  return buf || Object(_stringify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(b);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (v1);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/v3.js":
-/*!***********************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/v3.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v35.js */ "./node_modules/uuid/dist/esm-node/v35.js");
-/* harmony import */ var _md5_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./md5.js */ "./node_modules/uuid/dist/esm-node/md5.js");
-
-
-const v3 = Object(_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v3', 0x30, _md5_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
-/* harmony default export */ __webpack_exports__["default"] = (v3);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/v35.js":
-/*!************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/v35.js ***!
-  \************************************************/
-/*! exports provided: DNS, URL, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DNS", function() { return DNS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL", function() { return URL; });
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/esm-node/stringify.js");
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./parse.js */ "./node_modules/uuid/dist/esm-node/parse.js");
-
-
-
-function stringToBytes(str) {
-  str = unescape(encodeURIComponent(str)); // UTF8 escape
-
-  const bytes = [];
-
-  for (let i = 0; i < str.length; ++i) {
-    bytes.push(str.charCodeAt(i));
-  }
-
-  return bytes;
-}
-
-const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-/* harmony default export */ __webpack_exports__["default"] = (function (name, version, hashfunc) {
-  function generateUUID(value, namespace, buf, offset) {
-    if (typeof value === 'string') {
-      value = stringToBytes(value);
-    }
-
-    if (typeof namespace === 'string') {
-      namespace = Object(_parse_js__WEBPACK_IMPORTED_MODULE_1__["default"])(namespace);
-    }
-
-    if (namespace.length !== 16) {
-      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
-    } // Compute hash of namespace and value, Per 4.3
-    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
-    // hashfunc([...namespace, ... value])`
-
-
-    let bytes = new Uint8Array(16 + value.length);
-    bytes.set(namespace);
-    bytes.set(value, namespace.length);
-    bytes = hashfunc(bytes);
-    bytes[6] = bytes[6] & 0x0f | version;
-    bytes[8] = bytes[8] & 0x3f | 0x80;
-
-    if (buf) {
-      offset = offset || 0;
-
-      for (let i = 0; i < 16; ++i) {
-        buf[offset + i] = bytes[i];
-      }
-
-      return buf;
-    }
-
-    return Object(_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(bytes);
-  } // Function#name is not settable on some platforms (#270)
-
-
-  try {
-    generateUUID.name = name; // eslint-disable-next-line no-empty
-  } catch (err) {} // For CommonJS default export support
-
-
-  generateUUID.DNS = DNS;
-  generateUUID.URL = URL;
-  return generateUUID;
-});
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/v4.js":
-/*!***********************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/v4.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rng.js */ "./node_modules/uuid/dist/esm-node/rng.js");
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./stringify.js */ "./node_modules/uuid/dist/esm-node/stringify.js");
-
-
-
-function v4(options, buf, offset) {
-  options = options || {};
-  const rnds = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_0__["default"])(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-
-  rnds[6] = rnds[6] & 0x0f | 0x40;
-  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
-
-  if (buf) {
-    offset = offset || 0;
-
-    for (let i = 0; i < 16; ++i) {
-      buf[offset + i] = rnds[i];
-    }
-
-    return buf;
-  }
-
-  return Object(_stringify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(rnds);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (v4);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/v5.js":
-/*!***********************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/v5.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./v35.js */ "./node_modules/uuid/dist/esm-node/v35.js");
-/* harmony import */ var _sha1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sha1.js */ "./node_modules/uuid/dist/esm-node/sha1.js");
-
-
-const v5 = Object(_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v5', 0x50, _sha1_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
-/* harmony default export */ __webpack_exports__["default"] = (v5);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/validate.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/validate.js ***!
-  \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _regex_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./regex.js */ "./node_modules/uuid/dist/esm-node/regex.js");
-
-
-function validate(uuid) {
-  return typeof uuid === 'string' && _regex_js__WEBPACK_IMPORTED_MODULE_0__["default"].test(uuid);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (validate);
-
-/***/ }),
-
-/***/ "./node_modules/uuid/dist/esm-node/version.js":
-/*!****************************************************!*\
-  !*** ./node_modules/uuid/dist/esm-node/version.js ***!
-  \****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validate.js */ "./node_modules/uuid/dist/esm-node/validate.js");
-
-
-function version(uuid) {
-  if (!Object(_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  return parseInt(uuid.substr(14, 1), 16);
-}
-
-/* harmony default export */ __webpack_exports__["default"] = (version);
-
-/***/ }),
-
 /***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./packages/views/MainContainer.vue?vue&type=template&id=331e40b3&":
 /*!*******************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/MainContainer.vue?vue&type=template&id=331e40b3& ***!
@@ -54473,17 +53923,21 @@ var render = function () {
     "div",
     { ref: _vm.name, staticClass: "window-frame-wrapper" },
     [
-      _c("window-frame-header", [
-        _c("p", [
-          _c("span", [
-            _c("i", {
-              staticClass: "far fa-window-close",
-              on: { click: _vm.close },
-            }),
+      _c(
+        "window-frame-header",
+        { attrs: { width: _vm.width, height: _vm.height } },
+        [
+          _c("p", [
+            _c("span", [
+              _c("i", {
+                staticClass: "far fa-window-close",
+                on: { click: _vm.close },
+              }),
+            ]),
           ]),
-        ]),
-        _vm._v("\n        창의 헤더\n    "),
-      ]),
+          _vm._v("\n        부모 창의 헤더\n    "),
+        ]
+      ),
       _vm._v(" "),
       _c("div", { staticClass: "window-frame-body" }, [_vm._t("content")], 2),
     ],
@@ -54513,7 +53967,7 @@ var render = function () {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("base-window-frame", {
-    attrs: { name: "newFileWindow" },
+    attrs: { name: "newFileWindow", width: 256, height: 256 },
     scopedSlots: _vm._u([
       {
         key: "content",
@@ -80523,17 +79977,6 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports) {
 
 module.exports = require("constants");
-
-/***/ }),
-
-/***/ "crypto":
-/*!*************************!*\
-  !*** external "crypto" ***!
-  \*************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("crypto");
 
 /***/ }),
 

@@ -1,13 +1,13 @@
 <template>
     <div class="window-frame-wrapper" :ref="name">
         <!-- prettier-ignore -->
-        <window-frame-header>
+        <window-frame-header v-bind:width="width" v-bind:height="height">
             <p>
                 <span>
                     <i class="far fa-window-close" @click="close" />
                 </span>
             </p>
-            창의 헤더
+            부모 창의 헤더
         </window-frame-header>
         <div class="window-frame-body">
             <slot name="content">
@@ -18,11 +18,10 @@
 </template>
 <script>
 import styled from "vue-styled-components";
-import * as uuid from "uuid";
 
 const WindowFrameHeader = styled.div`
-    width: 256px;
-    height: 240px;
+    width: ${props => props.width}px;
+    height: ${props => props.height}px;
     position: relative;
     left: 50%;
     display: flex;
@@ -38,6 +37,14 @@ export default {
         name: {
             type: String,
             default: "Window"
+        },
+        width: {
+            type: Number,
+            default: 256
+        },
+        height: {
+            type: Number,
+            default: 256
         }
     },
     mounted() {
