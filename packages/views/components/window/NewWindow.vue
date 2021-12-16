@@ -1,50 +1,64 @@
 <template>
-    <div class="newContainer">
-        <div id="newWindow" window-name="게임 속성" ref="newWindow">
-            <ul>
-                <li>
-                    <label for="name">게임명 : </label
-                    ><input type="text" placeholder="name" v-model="title" />
-                </li>
-                <li>
-                    <label for="name">위치 : </label
-                    ><input
-                        type="file"
-                        placeholder=""
-                        webkitdirectory
-                        directory
-                        multiple
-                        @change="onFileChange($event)"
-                    />
-                </li>
-                <li>
-                    <label for="name">작성자 명 : </label
-                    ><input
-                        type="text"
-                        placeholder=""
-                        v-model="project.author"
-                    />
-                </li>
-            </ul>
-            <div class="newWindow__control-box">
-                <p>
-                    <span
-                        ><i
-                            class="far fa-window-close"
-                            id="action-close"
-                            @click="close"
-                        ></i
-                    ></span>
-                </p>
+    <base-window-frame name="newFileWindow">
+        <template #content>
+            <div class="newContainer">
+                <div id="newWindow" window-name="게임 속성" ref="newWindow">
+                    <ul>
+                        <li>
+                            <label for="name">게임명 : </label
+                            ><input
+                                type="text"
+                                placeholder="name"
+                                v-model="title"
+                            />
+                        </li>
+                        <li>
+                            <label for="name">위치 : </label
+                            ><input
+                                type="file"
+                                placeholder=""
+                                webkitdirectory
+                                directory
+                                multiple
+                                @change="onFileChange($event)"
+                            />
+                        </li>
+                        <li>
+                            <label for="name">작성자 명 : </label
+                            ><input
+                                type="text"
+                                placeholder=""
+                                v-model="project.author"
+                            />
+                        </li>
+                    </ul>
+                    <div class="newWindow__control-box">
+                        <p>
+                            <span
+                                ><i
+                                    class="far fa-window-close"
+                                    id="action-close"
+                                    @click="close"
+                                ></i
+                            ></span>
+                        </p>
+                    </div>
+                    <div class="panel">
+                        <button>
+                            <i class="fas fa-upload"></i>프로젝트 생성
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="panel">
-                <button><i class="fas fa-upload"></i>프로젝트 생성</button>
-            </div>
-        </div>
-    </div>
+        </template>
+    </base-window-frame>
 </template>
 <script>
+import BaseWindowFrame from "./BaseWindowFrame.vue";
 export default {
+    components: {
+        BaseWindowFrame
+    },
     data() {
         return {
             title: "",
