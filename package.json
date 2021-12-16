@@ -70,8 +70,10 @@
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
         "react-scripts": "^4.0.3",
+        "sass-loader": "10",
         "vue": "^2.6.14",
         "vue-router": "^3.5.2",
+        "vue-styled-components": "^1.6.0",
         "vuex": "^3.6.2",
         "web-vitals": "^1.1.2"
     }
