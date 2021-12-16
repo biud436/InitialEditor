@@ -22,8 +22,12 @@
 <script>
 import styled from "vue-styled-components";
 
+/**
+ * TODO: vue-styled-components를 도입하였으나 취약점 및 기타 여러가지 버그가 있어 제어하기 쉽지 않음.
+ * ! 삭제 예정
+ */
 const WindowFrameHeader = styled.div`
-    width: ${props => props.theme.width}px;
+    width: ${(props) => props.theme.width}px;
     height: 200px;
     position: relative;
     left: 50%;
@@ -34,21 +38,21 @@ const WindowFrameHeader = styled.div`
 
 export default {
     components: {
-        WindowFrameHeader
+        WindowFrameHeader,
     },
     props: {
         name: {
             type: String,
-            default: "Window"
+            default: "Window",
         },
         width: {
             type: Number,
-            default: 256
+            default: 256,
         },
         height: {
             type: Number,
-            default: 256
-        }
+            default: 256,
+        },
     },
     mounted() {
         const refName = this.name;
@@ -57,14 +61,14 @@ export default {
     data() {
         return {
             title: "",
-            isActive: true
+            isActive: true,
         };
     },
     methods: {
         close() {
             this.$router.push("home");
-        }
-    }
+        },
+    },
 };
 </script>
 <style lang="scss"></style>
