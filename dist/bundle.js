@@ -42158,10 +42158,13 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
 
 const WindowFrameHeader = vue_styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].div`
-    width: ${props => props.width}px;
-    height: ${props => props.height}px;
+    width: ${props => props.theme.width}px;
+    height: ${props => props.theme.height};
     position: relative;
     left: 50%;
     display: flex;
@@ -53925,7 +53928,14 @@ var render = function () {
     [
       _c(
         "window-frame-header",
-        { attrs: { width: _vm.width, height: _vm.height } },
+        {
+          attrs: {
+            theme: {
+              width: _vm.width,
+              height: 256,
+            },
+          },
+        },
         [
           _c("p", [
             _c("span", [

@@ -1,7 +1,10 @@
 <template>
     <div class="window-frame-wrapper" :ref="name">
         <!-- prettier-ignore -->
-        <window-frame-header v-bind:width="width" v-bind:height="height">
+        <window-frame-header :theme="{
+            width: width,
+            height: 256,
+            }">
             <p>
                 <span>
                     <i class="far fa-window-close" @click="close" />
@@ -20,8 +23,8 @@
 import styled from "vue-styled-components";
 
 const WindowFrameHeader = styled.div`
-    width: ${props => props.width}px;
-    height: ${props => props.height}px;
+    width: ${props => props.theme.width}px;
+    height: 200px;
     position: relative;
     left: 50%;
     display: flex;
