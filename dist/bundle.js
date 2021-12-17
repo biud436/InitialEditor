@@ -42203,7 +42203,7 @@ const WindowFrameHeader = vue_styled_components__WEBPACK_IMPORTED_MODULE_0__["de
       isActive: true,
       theme: {
         width: 256,
-        height: 256
+        height: 512
       }
     };
   },
@@ -42753,6 +42753,28 @@ ___CSS_LOADER_EXPORT___.push([module.i, ".background[data-v-000a9231] {\n  width
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss&":
+/*!**********************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss& ***!
+  \**********************************************************************************************************************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
+// Imports
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
+// Module
+___CSS_LOADER_EXPORT___.push([module.i, "#newWindow {\n  width: 256px;\n  height: 240px;\n  position: relative;\n  left: 50%;\n  display: flex;\n  align-self: center;\n}\n#newWindow ul {\n  margin: 0;\n  padding: 0;\n  padding-top: 12px;\n}\n#newWindow ul li {\n  display: inline-block;\n  list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n#newWindow label {\n  font: menu;\n  display: inline-block;\n  width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n#newWindow input {\n  width: 60%;\n}\n#newWindow .panel {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  margin-bottom: 20px;\n  margin-right: 20px;\n}\n#newWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}", "",{"version":3,"sources":["webpack://packages/views/components/window/NewWindow.vue","webpack://NewWindow.vue"],"names":[],"mappings":"AAyFA;EACI,YAAA;EACA,aAAA;EACA,kBAAA;EACA,SAAA;EACA,aAAA;EACA,kBAAA;ACxFJ;AD0FI;EACI,SAAA;EACA,UAAA;EACA,iBAAA;ACxFR;AD0FQ;EACI,qBAAA;EACA,qBAAA;ACxFZ;AD4FI;EACI,kBAAA;EACA,UAAA;EACA,WAAA;EACA,iBAAA;EACA,WAAA;EACA,YAAA;AC1FR;AD6FI;EACI,UAAA;EACA,qBAAA;EACA,WAAA;AC3FR;AD8FI;EACI,kCAAA;AC5FR;AD+FI;EACI,UAAA;AC7FR;ADgGI;EACI,kBAAA;EACA,QAAA;EACA,SAAA;EACA,mBAAA;EACA,kBAAA;AC9FR;ADgGI;EACI,yCAAA;EACA,0CAAA;AC9FR","sourcesContent":["\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\r\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\r\n\r\n    ul {\r\n        margin: 0;\r\n        padding: 0;\r\n        padding-top: 12px;\r\n\r\n        li {\r\n            display: inline-block;\r\n            list-style-type: none;\r\n        }\r\n    }\r\n\r\n    .newWindow__control-box {\r\n        position: absolute;\r\n        top: -16px;\r\n        right: 10px;\r\n        text-align: right;\r\n        width: 24px;\r\n        height: 24px;\r\n    }\r\n\r\n    label {\r\n        font: menu;\r\n        display: inline-block;\r\n        width: 64px;\r\n    }\r\n\r\n    .newWindow__control-box i:hover {\r\n        color: var(--dark-selection-color);\r\n    }\r\n\r\n    input {\r\n        width: 60%;\r\n    }\r\n\r\n    .panel {\r\n        position: absolute;\r\n        right: 0;\r\n        bottom: 0;\r\n        margin-bottom: 20px;\r\n        margin-right: 20px;\r\n    }\r\n    button {\r\n        background-color: var(--dark-title-color);\r\n        border: 1px solid var(--dark-border-color);\r\n    }\r\n}\r\n","#newWindow {\n  width: 256px;\n  height: 240px;\n  position: relative;\n  left: 50%;\n  display: flex;\n  align-self: center;\n}\n#newWindow ul {\n  margin: 0;\n  padding: 0;\n  padding-top: 12px;\n}\n#newWindow ul li {\n  display: inline-block;\n  list-style-type: none;\n}\n#newWindow .newWindow__control-box {\n  position: absolute;\n  top: -16px;\n  right: 10px;\n  text-align: right;\n  width: 24px;\n  height: 24px;\n}\n#newWindow label {\n  font: menu;\n  display: inline-block;\n  width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\n  color: var(--dark-selection-color);\n}\n#newWindow input {\n  width: 60%;\n}\n#newWindow .panel {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  margin-bottom: 20px;\n  margin-right: 20px;\n}\n#newWindow button {\n  background-color: var(--dark-title-color);\n  border: 1px solid var(--dark-border-color);\n}"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
 /***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
 /*!**************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/window/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
@@ -42794,28 +42816,6 @@ var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBP
 ___CSS_LOADER_EXPORT___.i(_node_modules_css_loader_dist_cjs_js_css_main_css__WEBPACK_IMPORTED_MODULE_1__["default"]);
 // Module
 ___CSS_LOADER_EXPORT___.push([module.i, "\n#app {\r\n    background-color: transparent;\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/MainContainer.vue"],"names":[],"mappings":";AAwDA;IACA,6BAAA;AACA","sourcesContent":["<template>\r\n    <div id=\"wrapper\">\r\n        <div class=\"container\">\r\n            <!-- 메뉴 -->\r\n            <main-menu-container />\r\n            <!-- 툴바 -->\r\n            <toolbar />\r\n            <!-- 타일 선택 창 -->\r\n            <tile-select-window />\r\n            <!-- 타일맵 -->\r\n            <tilemap />\r\n        </div>\r\n        <div id=\"app\">\r\n            <router-view></router-view>\r\n        </div>\r\n    </div>\r\n</template>\r\n<script>\r\nimport MainMenuContainer from \"./components/menu/MainMenuContainer.vue\";\r\nimport Tilemap from \"./components/frame/Tilemap.vue\";\r\nimport TileSelectWindow from \"./components/frame/TileSelectWindow.vue\";\r\nimport Toolbar from \"./components/frame/Toolbar.vue\";\r\n\r\nexport default {\r\n    components: {\r\n        MainMenuContainer,\r\n        Toolbar,\r\n        TileSelectWindow,\r\n        Tilemap\r\n    },\r\n    mounted() {\r\n        this.injectServices();\r\n    },\r\n    methods: {\r\n        /**\r\n         * TODO: Note that there is a bug of vetur extension when adding component.\r\n         */\r\n        injectServices() {\r\n            window.onMounted(() => {\r\n                // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.\r\n                if (window.app) {\r\n                    window.app.on(\"openWindow\", this.openWindow);\r\n                }\r\n            });\r\n        },\r\n        /**\r\n         * Open internel modal window for vue.\r\n         */\r\n        openWindow(route) {\r\n            this.$router.push(route);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style>\r\n@import url(\"../../css/main.css\");\r\n#app {\r\n    background-color: transparent;\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
-// Exports
-/* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
-
-
-/***/ }),
-
-/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css&":
-/*!******************************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css& ***!
-  \******************************************************************************************************************************************************************************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
-/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
-// Imports
-
-var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(true);
-// Module
-___CSS_LOADER_EXPORT___.push([module.i, "\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\n}\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\n}\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\n}\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\n}\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\n}\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\n}\n#newWindow input {\r\n    width: 60%;\n}\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\n}\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\n}\r\n", "",{"version":3,"sources":["webpack://packages/views/components/window/NewWindow.vue"],"names":[],"mappings":";AAyFA;IACA,YAAA;IACA,aAAA;IACA,kBAAA;IACA,SAAA;IACA,aAAA;IACA,kBAAA;AACA;AAEA;IACA,SAAA;IACA,UAAA;IACA,iBAAA;AACA;AAEA;IACA,qBAAA;IACA,qBAAA;AACA;AAEA;IACA,kBAAA;IACA,UAAA;IACA,WAAA;IACA,iBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,UAAA;IACA,qBAAA;IACA,WAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,SAAA;IACA,mBAAA;IACA,kBAAA;AACA;AAEA;IACA,yCAAA;IACA,0CAAA;AACA","sourcesContent":["<template>\r\n    <base-window-frame\r\n        name=\"newFileWindow\"\r\n        v-bind:width=\"256\"\r\n        v-bind:height=\"256\"\r\n    >\r\n        <template #content>\r\n            <div class=\"newContainer\">\r\n                <div id=\"newWindow\" window-name=\"게임 속성\" ref=\"newWindow\">\r\n                    <ul>\r\n                        <li>\r\n                            <label for=\"name\">게임명 : </label\r\n                            ><input\r\n                                type=\"text\"\r\n                                placeholder=\"name\"\r\n                                v-model=\"title\"\r\n                            />\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"name\">위치 : </label\r\n                            ><input\r\n                                type=\"file\"\r\n                                placeholder=\"\"\r\n                                webkitdirectory\r\n                                directory\r\n                                multiple\r\n                                @change=\"onFileChange($event)\"\r\n                            />\r\n                        </li>\r\n                        <li>\r\n                            <label for=\"name\">작성자 명 : </label\r\n                            ><input\r\n                                type=\"text\"\r\n                                placeholder=\"\"\r\n                                v-model=\"project.author\"\r\n                            />\r\n                        </li>\r\n                    </ul>\r\n                    <div class=\"newWindow__control-box\">\r\n                        <p>\r\n                            <span\r\n                                ><i\r\n                                    class=\"far fa-window-close\"\r\n                                    id=\"action-close\"\r\n                                    @click=\"close\"\r\n                                ></i\r\n                            ></span>\r\n                        </p>\r\n                    </div>\r\n                    <div class=\"panel\">\r\n                        <button>\r\n                            <i class=\"fas fa-upload\"></i>프로젝트 생성\r\n                        </button>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </template>\r\n    </base-window-frame>\r\n</template>\r\n<script>\r\nimport BaseWindowFrame from \"./BaseWindowFrame.vue\";\r\nexport default {\r\n    components: {\r\n        BaseWindowFrame\r\n    },\r\n    data() {\r\n        return {\r\n            title: \"\",\r\n            project: {\r\n                path: [],\r\n                author: \"\"\r\n            }\r\n        };\r\n    },\r\n    mounted() {\r\n        $(this.$refs.newWindow).draggable();\r\n    },\r\n    methods: {\r\n        close() {\r\n            this.$router.push(\"home\");\r\n        },\r\n        onFileChange(e) {\r\n            this.project.path = e.target.files;\r\n            console.log(e.target.files);\r\n        }\r\n    }\r\n};\r\n</script>\r\n<style lang=\"css\">\r\n#newWindow {\r\n    width: 256px;\r\n    height: 240px;\r\n    position: relative;\r\n    left: 50%;\r\n    display: flex;\r\n    align-self: center;\r\n}\r\n\r\n#newWindow ul {\r\n    margin: 0;\r\n    padding: 0;\r\n    padding-top: 12px;\r\n}\r\n\r\n#newWindow ul li {\r\n    display: inline-block;\r\n    list-style-type: none;\r\n}\r\n\r\n#newWindow .newWindow__control-box {\r\n    position: absolute;\r\n    top: -16px;\r\n    right: 10px;\r\n    text-align: right;\r\n    width: 24px;\r\n    height: 24px;\r\n}\r\n\r\n#newWindow label {\r\n    font: menu;\r\n    display: inline-block;\r\n    width: 64px;\r\n}\r\n\r\n#newWindow .newWindow__control-box i:hover {\r\n    color: var(--dark-selection-color);\r\n}\r\n\r\n#newWindow input {\r\n    width: 60%;\r\n}\r\n\r\n#newWindow .panel {\r\n    position: absolute;\r\n    right: 0;\r\n    bottom: 0;\r\n    margin-bottom: 20px;\r\n    margin-right: 20px;\r\n}\r\n\r\n#newWindow button {\r\n    background-color: var(--dark-title-color);\r\n    border: 1px solid var(--dark-border-color);\r\n}\r\n</style>\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ __webpack_exports__["default"] = (___CSS_LOADER_EXPORT___);
 
@@ -57482,6 +57482,28 @@ if(false) {}
 
 /***/ }),
 
+/***/ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss&":
+/*!******************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-style-loader!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss& ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/sass-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib??vue-loader-options!./NewWindow.vue?vue&type=style&index=0&lang=scss& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss&");
+if(content.__esModule) content = content.default;
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var add = __webpack_require__(/*! ../../../../node_modules/vue-style-loader/lib/addStylesClient.js */ "./node_modules/vue-style-loader/lib/addStylesClient.js").default
+var update = add("5aef1ca0", content, false, {});
+// Hot Module Replacement
+if(false) {}
+
+/***/ }),
+
 /***/ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/TilesetWindow.vue?vue&type=style&index=0&lang=scss&":
 /*!**********************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/vue-style-loader!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/window/TilesetWindow.vue?vue&type=style&index=0&lang=scss& ***!
@@ -57521,28 +57543,6 @@ if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
 var add = __webpack_require__(/*! ../../node_modules/vue-style-loader/lib/addStylesClient.js */ "./node_modules/vue-style-loader/lib/addStylesClient.js").default
 var update = add("d924d9e4", content, false, {});
-// Hot Module Replacement
-if(false) {}
-
-/***/ }),
-
-/***/ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css&":
-/*!**************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-style-loader!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib??vue-loader-options!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css& ***!
-  \**************************************************************************************************************************************************************************************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(/*! !../../../../node_modules/css-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/vue-loader/lib??vue-loader-options!./NewWindow.vue?vue&type=style&index=0&lang=css& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css&");
-if(content.__esModule) content = content.default;
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var add = __webpack_require__(/*! ../../../../node_modules/vue-style-loader/lib/addStylesClient.js */ "./node_modules/vue-style-loader/lib/addStylesClient.js").default
-var update = add("c76d6010", content, false, {});
 // Hot Module Replacement
 if(false) {}
 
@@ -79932,7 +79932,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _NewWindow_vue_vue_type_template_id_3d459fd5___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./NewWindow.vue?vue&type=template&id=3d459fd5& */ "./packages/views/components/window/NewWindow.vue?vue&type=template&id=3d459fd5&");
 /* harmony import */ var _NewWindow_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./NewWindow.vue?vue&type=script&lang=js& */ "./packages/views/components/window/NewWindow.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _NewWindow_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NewWindow.vue?vue&type=style&index=0&lang=css& */ "./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css&");
+/* empty/unused harmony star reexport *//* harmony import */ var _NewWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NewWindow.vue?vue&type=style&index=0&lang=scss& */ "./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss&");
 /* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
@@ -79974,18 +79974,18 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css&":
-/*!*****************************************************************************************!*\
-  !*** ./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css& ***!
-  \*****************************************************************************************/
+/***/ "./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss&":
+/*!******************************************************************************************!*\
+  !*** ./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss& ***!
+  \******************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-style-loader!../../../../node_modules/css-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/vue-loader/lib??vue-loader-options!./NewWindow.vue?vue&type=style&index=0&lang=css& */ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=css&");
-/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
-/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__) if(["default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-style-loader!../../../../node_modules/css-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/sass-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib??vue-loader-options!./NewWindow.vue?vue&type=style&index=0&lang=scss& */ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./packages/views/components/window/NewWindow.vue?vue&type=style&index=0&lang=scss&");
+/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__) if(["default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_NewWindow_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
 
 
 /***/ }),

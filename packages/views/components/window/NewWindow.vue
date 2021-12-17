@@ -61,15 +61,15 @@
 import BaseWindowFrame from "./BaseWindowFrame.vue";
 export default {
     components: {
-        BaseWindowFrame
+        BaseWindowFrame,
     },
     data() {
         return {
             title: "",
             project: {
                 path: [],
-                author: ""
-            }
+                author: "",
+            },
         };
     },
     mounted() {
@@ -82,11 +82,11 @@ export default {
         onFileChange(e) {
             this.project.path = e.target.files;
             console.log(e.target.files);
-        }
-    }
+        },
+    },
 };
 </script>
-<style lang="css">
+<style lang="scss">
 #newWindow {
     width: 256px;
     height: 240px;
@@ -94,52 +94,51 @@ export default {
     left: 50%;
     display: flex;
     align-self: center;
-}
 
-#newWindow ul {
-    margin: 0;
-    padding: 0;
-    padding-top: 12px;
-}
+    ul {
+        margin: 0;
+        padding: 0;
+        padding-top: 12px;
 
-#newWindow ul li {
-    display: inline-block;
-    list-style-type: none;
-}
+        li {
+            display: inline-block;
+            list-style-type: none;
+        }
+    }
 
-#newWindow .newWindow__control-box {
-    position: absolute;
-    top: -16px;
-    right: 10px;
-    text-align: right;
-    width: 24px;
-    height: 24px;
-}
+    .newWindow__control-box {
+        position: absolute;
+        top: -16px;
+        right: 10px;
+        text-align: right;
+        width: 24px;
+        height: 24px;
+    }
 
-#newWindow label {
-    font: menu;
-    display: inline-block;
-    width: 64px;
-}
+    label {
+        font: menu;
+        display: inline-block;
+        width: 64px;
+    }
 
-#newWindow .newWindow__control-box i:hover {
-    color: var(--dark-selection-color);
-}
+    .newWindow__control-box i:hover {
+        color: var(--dark-selection-color);
+    }
 
-#newWindow input {
-    width: 60%;
-}
+    input {
+        width: 60%;
+    }
 
-#newWindow .panel {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    margin-bottom: 20px;
-    margin-right: 20px;
-}
-
-#newWindow button {
-    background-color: var(--dark-title-color);
-    border: 1px solid var(--dark-border-color);
+    .panel {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        margin-bottom: 20px;
+        margin-right: 20px;
+    }
+    button {
+        background-color: var(--dark-title-color);
+        border: 1px solid var(--dark-border-color);
+    }
 }
 </style>
