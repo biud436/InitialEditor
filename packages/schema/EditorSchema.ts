@@ -3,7 +3,7 @@ import { Schema } from "./Schema";
 enum Theme {
     DARK = 0,
     LIGHT = 1
-};
+}
 
 class EditorSchema extends Schema {
     ProjectPath: string;
@@ -16,7 +16,7 @@ class EditorSchema extends Schema {
     Theme: Theme;
 
     initMembers(config: any) {
-        this.ProjectPath = "E:\\VS2015\\Projects\\Initial2D";
+        this.ProjectPath = "";
         this.TileWidth = 16;
         this.TileHeight = 16;
         this.CurrentLayer = 1;
@@ -29,4 +29,4 @@ class EditorSchema extends Schema {
     }
 }
 
-export {EditorSchema};
+export { EditorSchema };
