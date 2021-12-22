@@ -60,6 +60,7 @@
         "@types/react-dom": "^17.0.5",
         "@typescript-eslint/eslint-plugin": "^4.5.0",
         "@typescript-eslint/parser": "^4.5.0",
+        "axios": "^0.24.0",
         "commander": "^8.3.0",
         "dart-sass": "^1.25.0",
         "esm": "^3.2.25",
