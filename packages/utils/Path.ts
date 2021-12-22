@@ -5,19 +5,19 @@ namespace InitialEditor {
     export class Path {
         public static WORK_DIR = process.cwd();
 
-        join(...paths: string[]): string {
+        public static join(...paths: string[]): string {
             return path.join(...paths);
         }
 
-        resolve(...paths: string[]): string {
+        public static resolve(...paths: string[]): string {
             return path.resolve(...paths);
         }
 
-        get separator(): string {
+        public static get separator(): string {
             return path.sep;
         }
 
-        getWorkDir(): string {
+        public static getWorkDir(): string {
             return Path.WORK_DIR;
         }
     }
