@@ -30,7 +30,7 @@ namespace InitialEditor {
         public static async download(
             url: string,
             filePath: string
-        ): Promise<void> {
+        ): Promise<any> {
             const response = await WebRequest.get(url);
             // content-type
             const contentType = response.headers["content-type"];
