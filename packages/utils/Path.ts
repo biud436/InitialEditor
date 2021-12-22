@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as cp from "child_process";
 
 namespace InitialEditor {
     export class Path {
@@ -19,6 +20,28 @@ namespace InitialEditor {
 
         public static getWorkDir(): string {
             return Path.WORK_DIR;
+        }
+    }
+
+    export class SSHConnection {
+        constructor(private url: string) {}
+
+        public connect(url: string): cp.ChildProcessWithoutNullStreams {
+            return cp.spawn("ssh", [url]);
+        }
+
+        public async exec(command: string): Promise<string> {
+            return new Promise((resolve, reject) => {
+                const ssh = this.connect(this.url);
+                ssh.stdout.on("data", (data: any) => {
+                    resolve(data);
+                });
+                ssh.stderr.on("data", (data: any) => {
+                    reject(data);
+                });
+                ssh.stdin.write(command);
+                ssh.stdin.end();
+            });
         }
     }
 }
