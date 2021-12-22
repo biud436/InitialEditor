@@ -32,7 +32,12 @@ namespace InitialEditor {
             filePath: string
         ): Promise<void> {
             const response = await WebRequest.get(url);
+            // content-type
+            const contentType = response.headers["content-type"];
             const data = response.data;
+            if (contentType.indexOf("application/octet-stream") !== -1) {
+                return await fs.promises.writeFile(filePath, data);
+            }
             const buffer = Buffer.from(data, "binary");
             if (!Buffer.isBuffer(buffer)) {
                 return Promise.reject(new Error("Invalid data"));
