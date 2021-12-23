@@ -2,5 +2,6 @@ import { WebRequest } from "../packages/utils/WebRequest";
 import { jest } from "@jest/globals";
 
 it("wow", () => {
-    expect(WebRequest).toBeTruthy();
+    const response = WebRequest.get("https://www.google.com");
+    expect(response).toBeTruthy();
 });
