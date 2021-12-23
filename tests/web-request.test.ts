@@ -3,5 +3,11 @@ import { jest } from "@jest/globals";
 
 it("WebRequest 유틸 테스트", () => {
     const response = WebRequest.get("https://www.google.com");
-    expect(response).toBeTruthy();
+    response
+        .then((res) => {
+            expect(res.status).toBeTruthy();
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 });
