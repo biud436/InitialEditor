@@ -32,6 +32,11 @@ namespace InitialEditor {
 
         public async exec(command: string): Promise<string> {
             return new Promise((resolve, reject) => {
+                if (process.platform === "win32") {
+                    reject("Not supported on windows");
+                    return;
+                }
+
                 const ssh = this.connect(this.url);
                 ssh.stdout.on("data", (data: any) => {
                     resolve(data);
