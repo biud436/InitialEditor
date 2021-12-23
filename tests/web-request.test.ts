@@ -56,7 +56,7 @@ describe("WebRequest and Regexp Test", () => {
         const response = WebRequest.get("https://www.google.com");
         response
             .then((res) => {
-                expect(res.status).toEqual(true);
+                expect(res).toEqual(true);
             })
             .catch((err) => {
                 console.log(err);
