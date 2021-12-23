@@ -98,7 +98,7 @@ export default {
     ul {
         margin: 0;
         padding: 0;
-        padding-top: 12px;
+        padding-top: 0.75;
 
         li {
             display: inline-block;
@@ -108,17 +108,17 @@ export default {
 
     .newWindow__control-box {
         position: absolute;
-        top: -16px;
-        right: 10px;
+        top: -1em;
+        right: 0.625em;
         text-align: right;
-        width: 24px;
-        height: 24px;
+        width: 1.5em;
+        height: 1.5em;
     }
 
     label {
         font: menu;
         display: inline-block;
-        width: 64px;
+        width: 4em;
     }
 
     .newWindow__control-box i:hover {
@@ -133,8 +133,8 @@ export default {
         position: absolute;
         right: 0;
         bottom: 0;
-        margin-bottom: 20px;
-        margin-right: 20px;
+        margin-bottom: 1.25em;
+        margin-right: 1.25em;
     }
     button {
         background-color: var(--dark-title-color);
