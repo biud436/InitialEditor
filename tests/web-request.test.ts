@@ -46,15 +46,27 @@ import { WebRequest } from "../packages/utils/WebRequest";
 
 // ! test의 별칭이 it이다.
 // test(name, fn, timeout)
-test("WebRequest 유틸 테스트", () => {
-    const response = WebRequest.get("https://www.google.com");
-    response
-        .then((res) => {
-            expect(res.status).toEqual(true);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+
+function getHelloWorld() {
+    return "Hello World";
+}
+
+describe("WebRequest and Regexp Test", () => {
+    test("WebRequest 유틸 테스트", () => {
+        const response = WebRequest.get("https://www.google.com");
+        response
+            .then((res) => {
+                expect(res.status).toEqual(true);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    });
+
+    test("정규표현식 테스트", () => {
+        const result = getHelloWorld();
+        expect(result).toMatch(/Hello World/);
+    });
 });
 
 // 모든 테스트가 끝난 후 실행됩니다.
