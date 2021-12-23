@@ -66,6 +66,7 @@ describe("WebRequest and Regexp Test", () => {
     test("정규표현식 테스트", () => {
         const result = getHelloWorld();
         expect(result).toMatch(/Hello World/);
+        expect(result).toBe(`Hello World`);
     });
 });
 
