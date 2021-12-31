@@ -1,4 +1,4 @@
-import App from "./app";
+import App from "./App";
 import { ToolbarManager } from "./toolbar/Toolbar";
 import { ElectronService } from "./ElectronService";
 import { VueBinder } from "./VueBinder";

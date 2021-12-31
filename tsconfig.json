@@ -6,11 +6,19 @@
         "target": "ES2021",
         "allowJs": true,
         "sourceMap": true,
-        "lib": ["ES2017", "DOM"],
+        "lib": [
+            "ES2017",
+            "DOM",
+            "DOM.Iterable",
+            "ES2018.Promise",
+            "ES2020.string"
+        ],
         // "emitDeclarationOnly": true,
         // "declaration": true,
         "moduleResolution": "node",
         "types": ["jquery", "vue", "node", "electron", "jest"],
         "esModuleInterop": true
-    }
+        // "strict": true
+    },
+    "compileOnSave": true
 }
