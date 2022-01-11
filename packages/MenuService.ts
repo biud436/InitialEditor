@@ -6,7 +6,7 @@ import { ElectronService } from "./ElectronService";
 import { ipcRenderer } from "electron";
 
 const menu = {
-    ko: KoreanMenu
+    ko: KoreanMenu,
 };
 
 export namespace InitialEditor {
@@ -17,7 +17,7 @@ export namespace InitialEditor {
         export const CLASSE_SELECTOR: Record<string, string> = {
             MINIMIZE_WINDOW: ".menu .control-box li.minimum",
             MAXIMIZE_WINDOW: ".menu .control-box li.maximum",
-            CLOSE_WINDOW: ".menu .control-box li.close"
+            CLOSE_WINDOW: ".menu .control-box li.close",
         };
     }
 
@@ -37,7 +37,7 @@ namespace MenuButtonHandlers {
             .querySelector(
                 InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW
             )
-            .addEventListener("click", ev => {
+            .addEventListener("click", (ev) => {
                 ElectronService.getInstance().emit("minimize");
             });
 
@@ -52,7 +52,7 @@ namespace MenuButtonHandlers {
             .querySelector(
                 InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW
             )
-            .addEventListener("click", ev => {
+            .addEventListener("click", (ev) => {
                 ElectronService.getInstance().emit("maximize");
             });
 
@@ -67,7 +67,7 @@ namespace MenuButtonHandlers {
             .querySelector(
                 InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW
             )
-            .addEventListener("click", ev => {
+            .addEventListener("click", (ev) => {
                 switch (process.platform) {
                     case "darwin":
                         process.exit(SIGKILL);
@@ -165,7 +165,7 @@ export default class MenuService extends Component {
                         }
 
                         const _name = _res.name;
-                        _node.get(0).childNodes.forEach(i => {
+                        _node.get(0).childNodes.forEach((i) => {
                             // 텍스트 노드만 찾습니다.
                             if (i.nodeType == 3) {
                                 i.textContent = _name;
@@ -188,26 +188,24 @@ export default class MenuService extends Component {
         const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
             $(".toolbar i").each((index, elem) => {
-                $(elem)
-                    .addClass("fa-3x")
-                    .css({
-                        width: "98%",
-                        height: "98%",
-                        "font-size": "1.25em"
-                    });
+                $(elem).addClass("fa-3x").css({
+                    width: "98%",
+                    height: "98%",
+                    "font-size": "1.25em",
+                });
             });
         }
 
         const resizeConfig = {
             ".contents": {
-                width: "65%"
+                width: "65%",
             },
             ".aside__tabs": {
-                width: "30%"
+                width: "30%",
             },
             "#contents__main-canvas": {
-                width: "100%"
-            }
+                width: "100%",
+            },
         };
 
         $(window).on("resize", () => {
@@ -223,25 +221,19 @@ export default class MenuService extends Component {
                 }
 
                 $(".toolbar i").each((index, elem) => {
-                    $(elem)
-                        .removeClass("fa-3x")
-                        .addClass("fa-3x")
-                        .css({
-                            width: "98%",
-                            height: "98%",
-                            "font-size": "1.25em"
-                        });
+                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "1.25em",
+                    });
                 });
             } else {
                 $(".toolbar i").each((index, elem) => {
-                    $(elem)
-                        .removeClass("fa-3x")
-                        .addClass("fa-sm")
-                        .css({
-                            width: "98%",
-                            height: "98%",
-                            "font-size": "0.875em"
-                        });
+                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
+                        width: "98%",
+                        height: "98%",
+                        "font-size": "0.875em",
+                    });
                 });
             }
         });
