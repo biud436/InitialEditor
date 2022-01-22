@@ -13,6 +13,13 @@ interface Mouse {
     menuTarget: HTMLElement;
 }
 
+export namespace InitialEditor {
+    export interface Point {
+        x: number;
+        y: number;
+    }
+}
+
 /**
  * @class MenuComponent
  * @description
@@ -20,8 +27,8 @@ interface Mouse {
  */
 class MenuComponent extends Component {
     public _isMenuOpen: boolean;
-    private _originalPos: { x: number; y: number };
-    private _currentTarget: JQuery<HTMLElement>;
+    private _originalPos: InitialEditor.Point;
+    private _currentTarget?: JQuery<HTMLElement>;
 
     start(...args: any[]) {
         this._isMenuOpen = false;
@@ -33,17 +40,16 @@ class MenuComponent extends Component {
         // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
         // @ts-ignore
         $(".aside__tabs").resizable({
-            containment: "#aside"
+            containment: "#aside",
         });
 
         // 툴바의 크기를 가져옵니다.
-        const rect = <DOMRect>$(".toolbar")
-            .get(0)
-            .getBoundingClientRect();
+        const rect = <DOMRect>$(".toolbar").get(0).getBoundingClientRect();
+        const { x, y } = rect;
 
-        this._originalPos = {
-            x: rect.x,
-            y: rect.y
+        this._originalPos = <InitialEditor.Point>{
+            x,
+            y,
         };
 
         this._currentTarget = null;
@@ -62,9 +68,7 @@ class MenuComponent extends Component {
 
     update(target: HTMLElement, mouse: Mouse) {
         if ($(".toolbar").is(".ui-draggable-dragging")) {
-            const rect = $(".toolbar")
-                .get(0)
-                .getBoundingClientRect();
+            const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
 
         // 최상위 노드를 선택합니다.
