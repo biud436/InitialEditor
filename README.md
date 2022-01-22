@@ -22,7 +22,7 @@ node -v
 cd ~/Documents
 git clone https://github.com/biud436/InitialEditor.git
 cd InitialEidtor
-sudo npm install -D
+sudo yarn install -D
 ```
 
 In case of platform such as `Windows 10`, try to download the Node.js LTS version in your system manually. and next, if you exist the program called `git` in environment variable named `PATH` of your system, you must just call the command such as `git clone https://github.com/biud436/InitialEditor.git` in desired directory. and next try to below step.
@@ -30,7 +30,7 @@ In case of platform such as `Windows 10`, try to download the Node.js LTS versio
 ```bat
 git clone https://github.com/biud436/InitialEditor.git
 cd InitialEidtor
-npm install -D
+yarn install
 ```
 
 # How to start on Windows 10
@@ -43,15 +43,7 @@ you have to run the shell script file such as `build.sh` and execute the command
 
 ```sh
 sudo chmod +x ./build.sh
-npm run dev
-```
-
-# Cli
-
-To use the cli, you must install the `node` package in your system and then next run as below command.
-
-```sh
-npm run cli -- --help
+yarn dev
 ```
 
 # License

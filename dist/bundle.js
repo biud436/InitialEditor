@@ -74992,15 +74992,14 @@ class MenuComponent extends Component_1.Component {
         // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
         // @ts-ignore
         $(".aside__tabs").resizable({
-            containment: "#aside"
+            containment: "#aside",
         });
         // 툴바의 크기를 가져옵니다.
-        const rect = $(".toolbar")
-            .get(0)
-            .getBoundingClientRect();
+        const rect = $(".toolbar").get(0).getBoundingClientRect();
+        const { x, y } = rect;
         this._originalPos = {
-            x: rect.x,
-            y: rect.y
+            x,
+            y,
         };
         this._currentTarget = null;
         return this;
@@ -75014,9 +75013,7 @@ class MenuComponent extends Component_1.Component {
     }
     update(target, mouse) {
         if ($(".toolbar").is(".ui-draggable-dragging")) {
-            const rect = $(".toolbar")
-                .get(0)
-                .getBoundingClientRect();
+            const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
         // 최상위 노드를 선택합니다.
         /**
@@ -75061,7 +75058,7 @@ const KoreanMenu_1 = __webpack_require__(/*! ./menu/KoreanMenu */ "./packages/me
 const constants_1 = __webpack_require__(/*! constants */ "constants");
 const ElectronService_1 = __webpack_require__(/*! ./ElectronService */ "./packages/ElectronService.ts");
 const menu = {
-    ko: KoreanMenu_1.KoreanMenu
+    ko: KoreanMenu_1.KoreanMenu,
 };
 var InitialEditor;
 (function (InitialEditor) {
@@ -75073,7 +75070,7 @@ var InitialEditor;
         MenuButtons.CLASSE_SELECTOR = {
             MINIMIZE_WINDOW: ".menu .control-box li.minimum",
             MAXIMIZE_WINDOW: ".menu .control-box li.maximum",
-            CLOSE_WINDOW: ".menu .control-box li.close"
+            CLOSE_WINDOW: ".menu .control-box li.close",
         };
     })(MenuButtons = InitialEditor.MenuButtons || (InitialEditor.MenuButtons = {}));
 })(InitialEditor = exports.InitialEditor || (exports.InitialEditor = {}));
@@ -75089,7 +75086,7 @@ var MenuButtonHandlers;
     function addMinimizeWindow() {
         document
             .querySelector(InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW)
-            .addEventListener("click", ev => {
+            .addEventListener("click", (ev) => {
             ElectronService_1.ElectronService.getInstance().emit("minimize");
         });
         return MenuButtonHandlers;
@@ -75101,7 +75098,7 @@ var MenuButtonHandlers;
     function addMaximizeWindow() {
         document
             .querySelector(InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW)
-            .addEventListener("click", ev => {
+            .addEventListener("click", (ev) => {
             ElectronService_1.ElectronService.getInstance().emit("maximize");
         });
         return MenuButtonHandlers;
@@ -75113,7 +75110,7 @@ var MenuButtonHandlers;
     function addCloseWindow() {
         document
             .querySelector(InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW)
-            .addEventListener("click", ev => {
+            .addEventListener("click", (ev) => {
             switch (process.platform) {
                 case "darwin":
                     process.exit(constants_1.SIGKILL);
@@ -75192,7 +75189,7 @@ class MenuService extends Component_1.Component {
                             _node.get(0).onclick = _res.action;
                         }
                         const _name = _res.name;
-                        _node.get(0).childNodes.forEach(i => {
+                        _node.get(0).childNodes.forEach((i) => {
                             // 텍스트 노드만 찾습니다.
                             if (i.nodeType == 3) {
                                 i.textContent = _name;
@@ -75213,25 +75210,23 @@ class MenuService extends Component_1.Component {
         const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
             $(".toolbar i").each((index, elem) => {
-                $(elem)
-                    .addClass("fa-3x")
-                    .css({
+                $(elem).addClass("fa-3x").css({
                     width: "98%",
                     height: "98%",
-                    "font-size": "1.25em"
+                    "font-size": "1.25em",
                 });
             });
         }
         const resizeConfig = {
             ".contents": {
-                width: "65%"
+                width: "65%",
             },
             ".aside__tabs": {
-                width: "30%"
+                width: "30%",
             },
             "#contents__main-canvas": {
-                width: "100%"
-            }
+                width: "100%",
+            },
         };
         $(window).on("resize", () => {
             const width = window.innerWidth;
@@ -75243,25 +75238,19 @@ class MenuService extends Component_1.Component {
                     const elem = document.querySelector(i);
                 }
                 $(".toolbar i").each((index, elem) => {
-                    $(elem)
-                        .removeClass("fa-3x")
-                        .addClass("fa-3x")
-                        .css({
+                    $(elem).removeClass("fa-3x").addClass("fa-3x").css({
                         width: "98%",
                         height: "98%",
-                        "font-size": "1.25em"
+                        "font-size": "1.25em",
                     });
                 });
             }
             else {
                 $(".toolbar i").each((index, elem) => {
-                    $(elem)
-                        .removeClass("fa-3x")
-                        .addClass("fa-sm")
-                        .css({
+                    $(elem).removeClass("fa-3x").addClass("fa-sm").css({
                         width: "98%",
                         height: "98%",
-                        "font-size": "0.875em"
+                        "font-size": "0.875em",
                     });
                 });
             }

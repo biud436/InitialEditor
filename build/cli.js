@@ -51,7 +51,7 @@ var EntryPoint;
         function Logger() {
         }
         Logger.log = function (message) {
-            console.log("" + chalk.yellow("[LOG]") + message + chalk.reset());
+            console.log("".concat(chalk.yellow("[LOG]")).concat(message).concat(chalk.reset()));
         };
         return Logger;
     }());
