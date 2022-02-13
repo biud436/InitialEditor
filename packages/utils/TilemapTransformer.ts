@@ -13,7 +13,6 @@ export namespace InitialEditor {
         A4 = 5888, // (((2 ** 9) << 2) + (2 ** 9) | (2 ** 8)) + ((2 ** 8) << 3) + (2 ** 10)
         MAX = 8192, // (2 ** 13)
     }
-
     export class TilemapTransformer extends Component {
         start(...args: any[]): Component {
             return this;

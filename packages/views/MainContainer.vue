@@ -9,6 +9,9 @@
             <tile-select-window />
             <!-- 타일맵 -->
             <tilemap />
+            <p>
+                {{ version }}
+            </p>
         </div>
         <div id="app">
             <router-view></router-view>
@@ -20,13 +23,21 @@ import MainMenuContainer from "./components/menu/MainMenuContainer.vue";
 import Tilemap from "./components/frame/Tilemap.vue";
 import TileSelectWindow from "./components/frame/TileSelectWindow.vue";
 import Toolbar from "./components/frame/Toolbar.vue";
+import { ref } from "@vue/composition-api";
 
 export default {
     components: {
         MainMenuContainer,
         Toolbar,
         TileSelectWindow,
-        Tilemap
+        Tilemap,
+    },
+    setup() {
+        const version = ref("v0.1.00-alpha");
+
+        return {
+            version,
+        };
     },
     mounted() {
         this.injectServices();
@@ -48,8 +59,8 @@ export default {
          */
         openWindow(route) {
             this.$router.push(route);
-        }
-    }
+        },
+    },
 };
 </script>
 <style>

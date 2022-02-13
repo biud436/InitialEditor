@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import VueRouter from "vue-router";
+import VueCompositionAPI from "@vue/composition-api";
 import { EventEmitter } from "./EventEmitter";
 import NewWindow from "./views/components/window/NewWindow.vue";
 import MainContainer from "./views/MainContainer.vue";
@@ -8,7 +9,7 @@ import TilesetWindow from "./views/components/window/TilesetWindow.vue";
 import { store } from "./store";
 
 export class VueBinder extends EventEmitter {
-    private vContainer: Vue;
+    private app: Vue;
 
     constructor() {
         super();
@@ -24,13 +25,13 @@ export class VueBinder extends EventEmitter {
             {
                 path: "/newWindow",
                 name: "newWindow",
-                component: NewWindow
+                component: NewWindow,
             },
             {
                 path: "/optionWindow",
                 name: "optionWindow",
-                component: TilesetWindow
-            }
+                component: TilesetWindow,
+            },
         ];
     }
 
@@ -40,18 +41,19 @@ export class VueBinder extends EventEmitter {
     mount() {
         // 미들웨어 사용
         Vue.use(VueRouter);
+        Vue.use(VueCompositionAPI);
 
         // 라우터 설정
         const routerForMainContainer = new VueRouter({
             mode: "history",
-            routes: this.getRoutesForMainContainer()
+            routes: this.getRoutesForMainContainer(),
         });
 
         // 컨테이너 생성
-        this.vContainer = new Vue({
+        this.app = new Vue({
             router: routerForMainContainer,
             store,
-            render: h => h(MainContainer)
+            render: (h) => h(MainContainer),
         }).$mount("#container");
     }
 }
