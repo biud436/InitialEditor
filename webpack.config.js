@@ -130,20 +130,6 @@ const electronRendererTypeTarget = {
                 include: [path.resolve(__dirname, "packages")],
                 use: "ts-loader",
             },
-            // {
-            //     test: /\.tsx?$/,
-            //     exclude: /node_modules/,
-            //     include: [path.resolve(__dirname, "packages")],
-            //     use: [
-            //         {
-            //             loader: "awesome-typescript-loader",
-            //             options: {
-            //                 useBabel: false,
-            //                 useCache: true,
-            //             },
-            //         },
-            //     ],
-            // },
             {
                 test: /\.node$/,
                 loader: "awesome-node-loader",
@@ -163,8 +149,6 @@ const electronRendererTypeTarget = {
                 test: /\.js$/,
                 loader: "babel-loader",
             },
-            // this will apply to both plain `.css` files
-            // AND `<style>` blocks in `.vue` files
             {
                 test: /\.css$/,
                 use: ["vue-style-loader", "css-loader"],

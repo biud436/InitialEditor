@@ -13,7 +13,7 @@ const Config = {
         const isMacOS = process.platform === "darwin";
         const windowRect = {
             width: 1280,
-            height: 720
+            height: 720,
         };
         const options: Electron.BrowserWindowConstructorOptions = {
             ...windowRect,
@@ -21,16 +21,39 @@ const Config = {
                 enableRemoteModule: true,
                 nodeIntegration: true,
                 contextIsolation: false,
-                devTools: true
+                devTools: true,
             },
+            show: false,
             frame: isMacOS ? true : false,
             titleBarStyle: isMacOS ? "default" : "hidden",
-            darkTheme: true
+            darkTheme: true,
         };
 
         return options;
-    }
+    },
 };
+
+function showSplashWindow(mainWindow: BrowserWindow): BrowserWindow {
+    const splash: BrowserWindow = new BrowserWindow({
+        width: 500,
+        height: 500,
+        frame: false,
+        alwaysOnTop: true,
+        center: true,
+        modal: true,
+    });
+
+    splash.loadURL(path.join(__dirname, "..", "splash.html"));
+
+    splash.center();
+
+    setTimeout(function () {
+        splash.close();
+        mainWindow.show();
+    }, 5000);
+
+    return splash;
+}
 
 /**
  * @description
@@ -94,7 +117,7 @@ class EntryPoint {
                     x: e.bounds.x,
                     y: e.bounds.y,
                     width: e.size.width,
-                    height: e.size.height
+                    height: e.size.height,
                 };
             });
             fs.writeFileSync("display.json", JSON.stringify(data, null, 4));
@@ -110,9 +133,9 @@ class EntryPoint {
                         label: "InitialEditor",
                         submenu: [
                             {
-                                role: "quit"
-                            }
-                        ]
+                                role: "quit",
+                            },
+                        ],
                     },
                     {
                         label: "파일",
@@ -125,15 +148,15 @@ class EntryPoint {
                                     this._hostWindow.webContents.send(
                                         "new-file"
                                     );
-                                }
+                                },
                             },
                             {
                                 label: "프로그램 종료",
                                 accelerator: "CmdOrCtrl+Q",
-                                role: "quit"
-                            }
-                        ]
-                    }
+                                role: "quit",
+                            },
+                        ],
+                    },
                 ])
             );
         }
@@ -150,8 +173,10 @@ class EntryPoint {
 
             // open develooper tools
             this._hostWindow.webContents.openDevTools({
-                mode: "detach"
+                mode: "detach",
             });
+            this._hostWindow.center();
+            showSplashWindow(this._hostWindow);
         });
 
         app.on("window-all-closed", () => {
