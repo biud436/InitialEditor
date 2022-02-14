@@ -1,6 +1,6 @@
 import App from "./app";
-import {ElectronService} from "./ElectronService";
-import {ToolbarManager} from "./toolbar/Toolbar";
+import { ElectronService } from "./ElectronService";
+import { ToolbarManager } from "./toolbar/Toolbar";
 
 declare const platform: string;
 
@@ -10,5 +10,6 @@ declare global {
         electronService: ElectronService;
         ToolbarManager: ToolbarManager;
         devmode: boolean;
+        onMounted: (mountEvent: () => void) => void;
     }
 }
