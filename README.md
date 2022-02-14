@@ -46,6 +46,17 @@ sudo chmod +x ./build.sh
 yarn dev
 ```
 
+# How to upstream from remote github repository
+
+To upstream from the remote repository, you must call below command.
+
+```bash
+git remote add upstream https://github.com/biud436/InitialEditor.git
+git fetch upstream
+git checkout electron
+git merge upstream/electron
+```
+
 # License
 
 This tool is under the MIT License.
