@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed (from ./node_modules/ts-loader/index.js):\nError: error while parsing tsconfig.json\n    at Object.loader (/Users/u/InitialEditor/node_modules/ts-loader/dist/index.js:18:18)");
+throw new Error("Module build failed (from ./node_modules/ts-loader/index.js):\nError: error while parsing tsconfig.json\n    at Object.loader (E:\\토이_프로젝트\\InitialEditor\\node_modules\\ts-loader\\dist\\index.js:18:18)");
 
 /***/ })
 

@@ -1,3 +1,4 @@
 node_modules
 .DS_Store
 tools/.DS_Store
+display.json
