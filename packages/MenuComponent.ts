@@ -75,7 +75,7 @@ class MenuComponent extends Component {
         /**
          * @type {HTMLElement}
          */
-        let parentNode = target.parentNode;
+        let parentNode = target.parentNode; //
 
         while (
             parentNode != null &&
