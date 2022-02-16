@@ -486,6 +486,8 @@ export default class App extends EventEmitter {
                     if (this._mouse.buttons.leftFire) {
                         // 타일셋 마커를 표시합니다.
                         this._tilesetMarker.update(mouse);
+                    } else if (this._mouse.buttons.left) {
+                        this._tilesetMarker.updateDuringDrag(mouse);
                     }
                     break;
                 case "contents__main-canvas":
