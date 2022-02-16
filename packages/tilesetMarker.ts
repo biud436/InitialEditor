@@ -160,8 +160,9 @@ class TilesetMarker extends Component {
 
     onDragLeave(...args: any[]) {
         const mouse = <Mouse>args[0];
-        if (this._isDragging && mouse.dragTime > 20) {
+        if (this._isDragging) {
             console.log("드래그가 끝났습니다");
+            this._isDragging = false;
         }
     }
 }
