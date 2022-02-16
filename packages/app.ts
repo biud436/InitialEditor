@@ -328,9 +328,7 @@ export default class App extends EventEmitter {
                 },
                 mouseover: (ev: any) => {
                     if (this._menu._isMenuOpen) {
-                        //@ts-ignore
                         this._mouse.buttons.menuTarget = ev.target;
-                        //@ts-ignore
                         this._menu.emit(
                             "menu_open",
                             this._mouse.buttons.menuTarget
