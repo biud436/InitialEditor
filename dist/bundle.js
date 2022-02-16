@@ -76868,8 +76868,56 @@ class App extends EventEmitter_1.EventEmitter {
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
-        const children = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i"));
-        children.forEach((elem, index) => {
+        const li_elements = Array.from(document.querySelectorAll("ul.aside__tabs__maptree-child-tree li"));
+        let length = li_elements.length;
+        for (let i = 0; i < length; i++) {
+            let li_element = li_elements[i];
+            let layerId = i;
+            const tilemap = this._tilemap;
+            li_element.onclick = () => {
+                li_element.style.backgroundColor = "var(--dark-selection-color)";
+                li_elements.filter(obj => obj != li_element).forEach(obj => {
+                    obj.style.backgroundColor = "rgba(255, 255, 255, 0)";
+                });
+                // 타일맵을 지우고 다시 그립니다.
+                tilemap
+                    .setCurrentLayerId(layerId)
+                    .clear()
+                    .draw()
+                    .updateAlphaLayers();
+            };
+            let i_elements = li_element.querySelectorAll("i");
+            let i_elements_length = i_elements.length;
+            for (let k = 0; k < i_elements_length; k++) {
+                let i_element = i_elements[k];
+                i_element.onclick = () => {
+                    let iElement = i_element.querySelector("i");
+                    if (iElement instanceof HTMLElement) {
+                        if (iElement.classList.contains("fa-eye-slash")) {
+                            iElement.classList.replace("fa-eye-slash", "fa-eye");
+                        }
+                        else {
+                            iElement.classList.replace("fa-eye", "fa-eye-slash");
+                        }
+                    }
+                    if (i_element.classList.contains("fa-eye")) {
+                        i_element.classList.replace("fa-eye", "fa-eye-slash");
+                    }
+                    else {
+                        i_element.classList.replace("fa-eye-slash", "fa-eye");
+                    }
+                    tilemap.toggleLayerVisibility(layerId);
+                };
+            }
+        }
+        document.querySelector("ul.aside__tabs__maptree-child-tree li:first-child").click();
+        //$("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
+        /*
+        const children = Array.from(
+            document.querySelectorAll("ul.aside__tabs__maptree-child-tree li i")
+        );
+
+        children.forEach((elem: HTMLLIElement, index: number) => {
             elem.onclick = () => {
                 const iElement = elem.querySelector("i");
                 if (iElement instanceof HTMLElement) {
@@ -76879,21 +76927,26 @@ class App extends EventEmitter_1.EventEmitter {
                 }
             };
         });
+
         let target = null;
+
         // 레이어 항목에서 눈 아이콘을 누르면 눈을 감고 있는 아이콘(슬래쉬가 쳐진 아이콘)으로 토글합니다.
         $("ul.aside__tabs__maptree-child-tree li i").on("click", ev => {
             const target = $(ev.currentTarget);
             const parentNode = $(ev.currentTarget).parent();
             const layerId = parentNode.index();
             const tilemap = this._tilemap;
+
             if (target.hasClass("fa-eye")) {
                 target.removeClass("fa-eye").addClass("fa-eye-slash");
-            }
-            else {
+            } else {
                 target.removeClass("fa-eye-slash").addClass("fa-eye");
             }
+
             tilemap.toggleLayerVisibility(layerId);
         });
+
+        
         // 눈 아이콘을 선택했을 때 선택 영역을 강조하며 선택되지 않은 영역은 강조하지 않습니다.
         $("ul.aside__tabs__maptree-child-tree li").on("click", ev => {
             const elem = $(ev.currentTarget).css({
@@ -76902,10 +76955,12 @@ class App extends EventEmitter_1.EventEmitter {
             $("ul.aside__tabs__maptree-child-tree li")
                 .not(elem)
                 .css({
-                backgroundColor: "rgba(255, 255, 255, 0)"
-            });
+                    backgroundColor: "rgba(255, 255, 255, 0)"
+                });
+
             const layerId = elem.index();
             const tilemap = this._tilemap;
+
             // 타일맵을 지우고 다시 그립니다.
             tilemap
                 .setCurrentLayerId(layerId)
@@ -76913,7 +76968,10 @@ class App extends EventEmitter_1.EventEmitter {
                 .draw()
                 .updateAlphaLayers();
         });
+        
+
         $("ul.aside__tabs__maptree-child-tree li:first-child").trigger("click");
+        */
     }
     start() {
         this.initMembers();
