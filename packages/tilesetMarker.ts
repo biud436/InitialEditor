@@ -2,7 +2,7 @@ import { Component } from "./Component";
 import type { config } from "../types/config";
 import { Mouse } from "./Mouse";
 
-interface MarkerRange {
+export interface MarkerRange {
     lastTileID: number;
     targetX: number;
     targetY: number;
@@ -63,7 +63,7 @@ class TilesetMarker extends Component {
             left: "0",
             margin: "0",
             padding: "0",
-            border: "2px dotted white",
+            border: "2px dotted yellow",
             "z-index": "50",
             "box-sizing": "border-box",
         });
