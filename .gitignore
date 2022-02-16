@@ -2,3 +2,7 @@ node_modules
 .DS_Store
 tools/.DS_Store
 display.json
+dist/bundle.js
+dist/bundle.js.map
+src/index.js
+src/index.js.map
