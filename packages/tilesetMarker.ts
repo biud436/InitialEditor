@@ -2,6 +2,12 @@ import { Component } from "./Component";
 import type { config } from "../types/config";
 import { Mouse } from "./Mouse";
 
+interface MarkerRange {
+    lastTileID: number;
+    targetX: number;
+    targetY: number;
+}
+
 /**
  * @class TilesetMarker
  */
@@ -22,6 +28,9 @@ class TilesetMarker extends Component {
      * 마지막 타일 ID
      */
     protected _lastTileId: number;
+    protected _tiles: number[];
+
+    public static DRAGGING_DELAY = 33;
 
     initMembers(...args: any[]) {
         this._config = args[0];
@@ -30,6 +39,7 @@ class TilesetMarker extends Component {
         this._isReady = false;
         this._isDragging = false;
         this._lastTileId = 0;
+        this._tiles = [];
 
         this.initWithElement();
         this.active();
@@ -79,8 +89,8 @@ class TilesetMarker extends Component {
 
         const topY = $("#view").offset().top;
 
-        this.on("changeTile", (lastTileID: number) =>
-            this.onChangeTileID(lastTileID)
+        this.on("changeTile", (range: MarkerRange) =>
+            this.onChangeTileID(range)
         );
     }
 
@@ -137,13 +147,25 @@ class TilesetMarker extends Component {
         window.app.setTileId(lastTileID);
 
         if (this._lastTileId !== lastTileID) {
-            this.emit("changeTile", lastTileID);
+            this.emit("changeTile", {
+                lastTileID,
+                targetX,
+                targetY,
+            });
         }
         this._lastTileId = lastTileID;
     }
 
-    onChangeTileID(lastTileID: number) {
-        console.log("마지막 타일 ID : " + lastTileID);
+    onChangeTileID(range: MarkerRange) {
+        console.log("마지막 타일 ID : " + range.lastTileID);
+        if (this._isDragging) {
+            this._tiles.push(range.lastTileID);
+
+            const c = this._lastTileId - range.lastTileID;
+            if (c >= 1) {
+                this._blockSize.width = this._tileWidth * c;
+            }
+        }
     }
 
     /**
@@ -155,7 +177,9 @@ class TilesetMarker extends Component {
         console.log("드래깅 시작");
 
         this.update(mouse);
-        this._isDragging = true;
+        if (mouse.dragTime > TilesetMarker.DRAGGING_DELAY) {
+            this._isDragging = true;
+        }
     }
 
     onDragLeave(...args: any[]) {
@@ -163,6 +187,7 @@ class TilesetMarker extends Component {
         if (this._isDragging) {
             console.log("드래그가 끝났습니다");
             this._isDragging = false;
+            this._tiles = [];
         }
     }
 }
