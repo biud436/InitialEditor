@@ -16,11 +16,20 @@ class TilesetMarker extends Component {
     protected _blockSize: BlockSize;
     protected touches: Array<{ x: number; y: number }>;
 
+    protected _isDragging: boolean;
+
+    /**
+     * 마지막 타일 ID
+     */
+    protected _lastTileId: number;
+
     initMembers(...args: any[]) {
         this._config = args[0];
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
         this._isReady = false;
+        this._isDragging = false;
+        this._lastTileId = 0;
 
         this.initWithElement();
         this.active();
@@ -69,6 +78,10 @@ class TilesetMarker extends Component {
         ];
 
         const topY = $("#view").offset().top;
+
+        this.on("changeTile", (lastTileID: number) =>
+            this.onChangeTileID(lastTileID)
+        );
     }
 
     start(...args: any[]) {
@@ -119,17 +132,37 @@ class TilesetMarker extends Component {
 
         console.log("타일 ID : " + (targetY * mapCols + targetX));
 
-        window.app.setTileId(targetY * mapCols + targetX);
+        const lastTileID = targetY * mapCols + targetX;
+
+        window.app.setTileId(lastTileID);
+
+        if (this._lastTileId !== lastTileID) {
+            this.emit("changeTile", lastTileID);
+        }
+        this._lastTileId = lastTileID;
+    }
+
+    onChangeTileID(lastTileID: number) {
+        console.log("마지막 타일 ID : " + lastTileID);
     }
 
     /**
      * 드래그 중인 경우, 여러 타일을 선택합니다.
      * @param args
      */
-    updateDuringDrag(...args: any[]) {
+    onDragEnter(...args: any[]) {
         const mouse = <Mouse>args[0];
+        console.log("드래깅 시작");
 
-        console.log("드래깅 중.....");
+        this.update(mouse);
+        this._isDragging = true;
+    }
+
+    onDragLeave(...args: any[]) {
+        const mouse = <Mouse>args[0];
+        if (this._isDragging && mouse.dragTime > 20) {
+            console.log("드래그가 끝났습니다");
+        }
     }
 }
 
