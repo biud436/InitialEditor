@@ -90,6 +90,11 @@ class TilesetMarker extends Component {
 
         const mouse = <Mouse>args[0];
 
+        // 마우스 왼쪽 버튼을 누르고 있는지 확인합니다.
+        const isDragging = mouse.buttons.left;
+        if (isDragging) {
+        }
+
         const tw = this._tileWidth;
         const th = this._tileHeight;
         let nx = Math.floor(mouse.x / tw) * tw;
