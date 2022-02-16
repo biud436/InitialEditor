@@ -8,7 +8,13 @@ import { MapSchema } from "./schema/MapSchema";
  * @author Jinseok Eo
  */
 interface MyEditorConfig {
+    /**
+     * 화면 가로 크기
+     */
     SCREEN_WIDTH: number;
+    /**
+     * 화면 세로 크기
+     */
     SCREEN_HEIGHT: number;
     TILE_WIDTH: number;
     TILE_HEIGHT: number;
@@ -33,10 +39,10 @@ const config = <MyEditorConfig>{
     TILESET_IMGAGES: [
         "./images/tiles/tileset16-8x13.png",
         "./images/tiles/2k_town05.png",
-        "./images/tiles/2k_town05-01.png"
+        "./images/tiles/2k_town05-01.png",
     ],
     Editor: new EditorSchema(this),
-    Maps: new EditorSchema(this)
+    Maps: new EditorSchema(this),
 };
 
 export { MyEditorConfig, config };

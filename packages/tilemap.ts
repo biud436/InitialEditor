@@ -2,6 +2,7 @@ import { Component } from "./Component";
 import { config } from "./config";
 import * as PIXI from "pixi.js";
 import { Mouse } from "./Mouse";
+import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import * as fs from "fs";
 
 namespace initial2D {
@@ -14,7 +15,7 @@ enum PenType {
     RECTANGLE,
     ELLIPSE,
     FLOOD_FILL,
-    SHADOW_PEN
+    SHADOW_PEN,
 }
 
 interface TilemapPoint {
@@ -57,6 +58,8 @@ export default class Tilemap extends Component {
     private _tilesets: PIXI.Texture[];
     private _dirty: boolean;
 
+    private _semiTransparentOpacity = 0.25;
+
     public initMembers(...args: any[]) {
         this._config = args[0];
         this._tileset = <HTMLCanvasElement>$(initial2D.CANVAS_ID).get(0);
@@ -97,8 +100,35 @@ export default class Tilemap extends Component {
         this._mapCols = Math.floor(tilesetImg.width / this._tileWidth);
         this._mapRows = Math.floor(tilesetImg.width / this._tileWidth);
 
+        Promise.resolve(this.load());
         this.active();
         this.initWithSaveEventListener();
+    }
+
+    public async load() {
+        await this.loadLayersConfig();
+        await this.saveLayersConfig();
+    }
+
+    public async loadLayersConfig() {
+        const data = <string>(
+            await new LayerTreeSchema(this._config).load("./layers.json")
+        );
+        if (!data) {
+            return;
+        }
+
+        const layerConfig: LayerTreeSchema = JSON.parse(data);
+
+        this._semiTransparentOpacity = layerConfig.SemiTransparentOpacity;
+    }
+
+    /**
+     * 레이어 설정 저장
+     */
+    public async saveLayersConfig() {
+        const layersConfig = new LayerTreeSchema(this._config);
+        await layersConfig.toFile("./layers.json");
     }
 
     public isMobileDevice() {
@@ -113,10 +143,10 @@ export default class Tilemap extends Component {
     protected initWithSaveEventListener() {
         this.on("save", () => {
             const path = require("path");
-            const data = this._data.map(i => (!!i ? i : 0));
+            const data = this._data.map((i) => (!!i ? i : 0));
 
             const layerData = {
-                data
+                data,
             };
 
             const contents = JSON.stringify(layerData);
@@ -221,7 +251,7 @@ export default class Tilemap extends Component {
             resolution: window.devicePixelRatio || 1,
             view: <HTMLCanvasElement>$(initial2D.MAIN_CANVAS_ID).get(0),
             autoDensity: true,
-            transparent: false
+            transparent: false,
         };
 
         option.height =
@@ -248,7 +278,7 @@ export default class Tilemap extends Component {
 
         this.initWithDrawingType();
 
-        $("#take-screenshot").on("click", ev => {
+        $("#take-screenshot").on("click", (ev) => {
             this.takeScreenshot();
 
             ev.stopPropagation();
@@ -325,7 +355,7 @@ export default class Tilemap extends Component {
             this.getData(mapX + 0, mapY + 1, layerId) <= 0, // 남
             this.getData(mapX - 1, mapY + 1, layerId) <= 0, // 남서
             this.getData(mapX - 1, mapY + 0, layerId) <= 0, // 서
-            this.getData(mapX - 1, mapY - 1, layerId) <= 0 // 북서
+            this.getData(mapX - 1, mapY - 1, layerId) <= 0, // 북서
         ];
 
         bits.forEach((e, i, a) => {
@@ -590,7 +620,7 @@ export default class Tilemap extends Component {
      *
      */
     public clear(): Tilemap {
-        this._layerContainer.children.forEach(i => {
+        this._layerContainer.children.forEach((i) => {
             (<PIXI.Sprite>i).removeChildren();
         });
 
@@ -603,7 +633,8 @@ export default class Tilemap extends Component {
      * @param tileID
      */
     public getTileCropTexture(tileID: number) {
-        let texture = PIXI.Texture.from(this._tileset);
+        const texture = PIXI.Texture.from(this._tileset);
+
         const mapCols = Math.floor(texture.width / this._tileWidth);
         const mapRows = Math.floor(texture.height / this._tileHeight);
         const dx = (tileID % mapCols) * this._tileWidth;
@@ -633,9 +664,10 @@ export default class Tilemap extends Component {
         const layers = children.filter((e, i, a) => {
             return i !== currentLayer;
         });
+        const semiTransparentOpacity = this._semiTransparentOpacity;
 
-        layers.forEach(layer => {
-            layer.alpha = 0.25;
+        layers.forEach((layer) => {
+            layer.alpha = semiTransparentOpacity;
         });
 
         children[currentLayer].alpha = 1.0;
