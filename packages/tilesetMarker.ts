@@ -182,10 +182,11 @@ class TilesetMarker extends Component {
 
         const sx = mouse.startX;
         const sy = mouse.startY;
-        this.update(mouse);
 
         if (mouse.dragTime && mouse.dragTime > TilesetMarker.DRAGGING_DELAY) {
             this._isDragging = true;
+
+            this.update(mouse);
 
             const lineWidth = Math.abs(mouse.x - mouse.startX);
             const lineHeight = Math.abs(mouse.y - mouse.startY);

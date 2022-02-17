@@ -284,6 +284,8 @@ export default class App extends EventEmitter {
                         this._mouse.target = ev.target;
                         this._mouse.isDrawing = true;
 
+                        const target = <HTMLElement>ev.target;
+
                         // 캔버스
                         const canvas = document.querySelector(
                             "#contents__main-canvas"
@@ -296,7 +298,7 @@ export default class App extends EventEmitter {
                         );
                         const canvasOffset = __canvas.getBoundingClientRect();
 
-                        const offsetX: number = parseInt(
+                        let offsetX: number = parseInt(
                             canvasOffset.left as any
                         );
                         const offsetY: number = parseInt(
@@ -309,6 +311,16 @@ export default class App extends EventEmitter {
                         this._mouse.startY = parseInt(
                             (ev.clientY - offsetY) as any
                         );
+
+                        // 음수일 땐, 메인 캔버스보다 왼쪽이므로 기준 좌표를 타일셋 뷰로 변경합니다.
+                        if (this._mouse.startX < 0) {
+                            offsetX = document
+                                .querySelector("#view canvas")
+                                .getBoundingClientRect().left;
+                            this._mouse.startX = parseInt(
+                                (ev.clientX - offsetX) as any
+                            );
+                        }
                     }
                 },
                 mouseup: (ev: any) => {
