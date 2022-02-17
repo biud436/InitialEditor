@@ -134,11 +134,15 @@ class TilesetMarker extends Component {
             ny = tilesetHeight - th + topY;
         }
 
-        this._element.css({
-            position: "absolute",
-            left: nx + "px",
-            top: ny - topY + "px",
-        });
+        if (!this._isDragging) {
+            this._element.css({
+                position: "absolute",
+                left: nx + "px",
+                top: ny - topY + "px",
+                width: tw + "px",
+                height: th + "px",
+            });
+        }
 
         console.log("타일 ID : " + (targetY * mapCols + targetX));
 
@@ -176,22 +180,37 @@ class TilesetMarker extends Component {
         const mouse = <Mouse>args[0];
         console.log("드래깅 시작");
 
+        const sx = mouse.startX;
+        const sy = mouse.startY;
         this.update(mouse);
-        if (mouse.dragTime > TilesetMarker.DRAGGING_DELAY) {
+
+        if (mouse.dragTime && mouse.dragTime > TilesetMarker.DRAGGING_DELAY) {
             this._isDragging = true;
+
+            const lineWidth = Math.abs(mouse.x - mouse.startX);
+            const lineHeight = Math.abs(mouse.y - mouse.startY);
+            this.updateBlockSize(sx, sy, lineWidth, lineHeight);
         }
+    }
+
+    updateBlockSize(x: number, y: number, width: number, height: number) {
+        this._blockSize.x = Math.floor(x / this._tileWidth) * this._tileWidth;
+        this._blockSize.y = Math.floor(y / this._tileHeight) * this._tileHeight;
+        this._blockSize.width =
+            Math.floor(width / this._tileWidth) * this._tileWidth;
+        this._blockSize.height =
+            Math.floor(height / this._tileHeight) * this._tileHeight;
+        this._blockSize.refresh();
     }
 
     onDragLeave(...args: any[]) {
         const mouse = <Mouse>args[0];
         if (this._isDragging) {
             console.log("드래그가 끝났습니다");
-            const lineX = mouse.x - mouse.startX;
-            const lineY = mouse.y - mouse.startY;
-            console.log(`선분 X : ${lineX}`);
-            console.log(`선분 Y : ${lineY}`);
             this._isDragging = false;
             this._tiles = [];
+            this._blockSize.x = mouse.startX;
+            this._blockSize.y = mouse.startY;
         }
     }
 }
