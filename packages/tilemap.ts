@@ -203,11 +203,15 @@ export default class Tilemap extends Component {
         }
     }
 
+    public clamp(min: number, max: number) {
+        return Math.min(Math.max(0, min), max);
+    }
+
     public setData(x: number, y: number, z: number, tileId: number) {
         if (x < 0) x = 0;
         if (x > this._mapWidth - 1) x = this._mapWidth - 1;
-        y = Math.min(Math.max(0, y), this._mapHeight - 1);
-        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
+        y = this.clamp(y, this._mapHeight - 1);
+        z = this.clamp(z, this._config.LAYERS - 1);
 
         const id = this.getLayeredTileId(x, y, z);
         this._data[id] = tileId;
@@ -216,8 +220,8 @@ export default class Tilemap extends Component {
     public getData(x: number, y: number, z: number) {
         if (x < 0) x = 0;
         if (x > this._mapWidth - 1) x = this._mapWidth - 1;
-        y = Math.min(Math.max(0, y), this._mapHeight - 1);
-        z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
+        y = this.clamp(y, this._mapHeight - 1);
+        z = this.clamp(z, this._config.LAYERS - 1);
 
         const id = this.getLayeredTileId(x, y, z);
         return this._data[id] || 0;
@@ -231,6 +235,13 @@ export default class Tilemap extends Component {
         return this._tileId;
     }
 
+    /**
+     * 레이어의 Tile ID를 구합니다.
+     * @param x
+     * @param y
+     * @param z
+     * @returns
+     */
     public getLayeredTileId(x: number, y: number, z: number) {
         return this._mapWidth * this._mapHeight * z + this._mapWidth * y + x;
     }
