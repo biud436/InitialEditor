@@ -186,6 +186,10 @@ class TilesetMarker extends Component {
         const mouse = <Mouse>args[0];
         if (this._isDragging) {
             console.log("드래그가 끝났습니다");
+            const lineX = mouse.x - mouse.startX;
+            const lineY = mouse.y - mouse.startY;
+            console.log(`선분 X : ${lineX}`);
+            console.log(`선분 Y : ${lineY}`);
             this._isDragging = false;
             this._tiles = [];
         }
