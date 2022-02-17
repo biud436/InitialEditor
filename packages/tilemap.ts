@@ -343,8 +343,8 @@ export default class Tilemap extends Component {
     }
 
     public collectAutoTileID(mx: number, my: number) {
-        const mapX = Math.floor(mx / this._tileWidth);
-        const mapY = Math.floor(my / this._tileHeight);
+        const mapX = this.getMapX(mx);
+        const mapY = this.getMapX(my);
         const layerId = this._currentLayer;
         let mask = 0x00;
         const bits = [
@@ -368,8 +368,8 @@ export default class Tilemap extends Component {
     }
 
     public drawTile(mx: number, my: number, tileID: number) {
-        let mapX = Math.floor(mx / this._tileWidth);
-        let mapY = Math.floor(my / this._tileHeight);
+        let mapX = this.getMapX(mx);
+        let mapY = this.getMapX(my);
 
         console.log(mx, my, mapX, mapY);
 
@@ -388,8 +388,8 @@ export default class Tilemap extends Component {
      * @param {Number} tileID
      */
     public drawRect(sx: number, sy: number, ex: number, ey: number) {
-        let mx = Math.floor(sx / this._tileWidth);
-        let my = Math.floor(sy / this._tileHeight);
+        let mx = this.getMapX(sx);
+        let my = this.getMapY(sy);
 
         const tileID = this._tileId;
 
@@ -433,8 +433,8 @@ export default class Tilemap extends Component {
      * @param ey
      */
     public drawEllipse(sx: number, sy: number, ex: number, ey: number) {
-        let mx = Math.floor(sx / this._tileWidth);
-        let my = Math.floor(sy / this._tileHeight);
+        let mx = this.getMapX(sx);
+        let my = this.getMapY(sy);
 
         const tileID = this._tileId;
 
@@ -546,6 +546,22 @@ export default class Tilemap extends Component {
         }
     }
 
+    public getMapX(value: number | 0) {
+        return Math.floor(value / this._tileWidth);
+    }
+
+    public canvasToMapX(value: number | 0) {
+        return value / this._tileWidth;
+    }
+
+    public getMapY(value: number | 0) {
+        return Math.floor(value / this._tileHeight);
+    }
+
+    public canvasToMapY(value: number | 0) {
+        return value / this._tileHeight;
+    }
+
     /**
      * 업데이트 함수는 마우스 왼쪽 버튼이 눌렸을 때에만 호출됩니다.
      */
@@ -573,8 +589,8 @@ export default class Tilemap extends Component {
                     this.drawRect(
                         mouse.startX,
                         mouse.startY,
-                        (mouse.x - mouse.startX) / this._tileWidth,
-                        (mouse.y - mouse.startY) / this._tileHeight
+                        this.canvasToMapX(mouse.x - mouse.startX),
+                        this.canvasToMapY(mouse.y - mouse.startY)
                     );
                 }
                 break;
@@ -586,8 +602,8 @@ export default class Tilemap extends Component {
                         this.drawEllipse(
                             mouse.startX,
                             mouse.startY,
-                            (mouse.x - mouse.startX) / this._tileWidth,
-                            (mouse.y - mouse.startY) / this._tileHeight
+                            this.canvasToMapX(mouse.x - mouse.startX),
+                            this.canvasToMapY(mouse.y - mouse.startY)
                         );
                     }
                 }
@@ -596,8 +612,8 @@ export default class Tilemap extends Component {
                 {
                     const mouse = <Mouse>args[0];
 
-                    let mx = Math.floor(this._mouseX / this._tileWidth);
-                    let my = Math.floor(this._mouseY / this._tileHeight);
+                    let mx = this.getMapX(this._mouseX);
+                    let my = this.getMapY(this._mouseY);
                     let nodes: TilemapPoint[] = [];
                     this.floodFill(mx, my, -1, nodes, 0);
 
@@ -635,8 +651,8 @@ export default class Tilemap extends Component {
     public getTileCropTexture(tileID: number) {
         const texture = PIXI.Texture.from(this._tileset);
 
-        const mapCols = Math.floor(texture.width / this._tileWidth);
-        const mapRows = Math.floor(texture.height / this._tileHeight);
+        const mapCols = this.getMapX(texture.width);
+        const mapRows = this.getMapY(texture.height);
         const dx = (tileID % mapCols) * this._tileWidth;
         const dy = Math.floor(tileID / mapCols) * this._tileHeight;
         const cropTexture = this.cropTexture(dx, dy, texture);
