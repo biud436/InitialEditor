@@ -101,9 +101,6 @@ export default class Tilemap extends Component {
             throw new Error("Cant't find tileset");
         }
 
-        this._mapCols = Math.floor(tilesetImg.width / this._tileWidth);
-        this._mapRows = Math.floor(tilesetImg.width / this._tileWidth);
-
         Promise.resolve(this.load());
         this.active();
         this.initWithSaveEventListener();
