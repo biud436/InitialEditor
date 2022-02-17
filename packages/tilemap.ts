@@ -209,8 +209,7 @@ export default class Tilemap extends Component {
         y = Math.min(Math.max(0, y), this._mapHeight - 1);
         z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
 
-        const id =
-            this._mapWidth * this._mapHeight * z + this._mapWidth * y + x;
+        const id = this.getLayeredTileId(x, y, z);
         this._data[id] = tileId;
     }
 
@@ -220,8 +219,7 @@ export default class Tilemap extends Component {
         y = Math.min(Math.max(0, y), this._mapHeight - 1);
         z = Math.min(Math.max(0, z), this._config.LAYERS - 1);
 
-        const id =
-            this._mapWidth * this._mapHeight * z + this._mapWidth * y + x;
+        const id = this.getLayeredTileId(x, y, z);
         return this._data[id] || 0;
     }
 
@@ -231,6 +229,10 @@ export default class Tilemap extends Component {
 
     public getTileId() {
         return this._tileId;
+    }
+
+    public getLayeredTileId(x: number, y: number, z: number) {
+        return this._mapWidth * this._mapHeight * z + this._mapWidth * y + x;
     }
 
     public setCurrentLayerId(layerId: number): Tilemap {
