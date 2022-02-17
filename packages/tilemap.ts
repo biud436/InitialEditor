@@ -5,8 +5,8 @@ import { Mouse } from "./Mouse";
 import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import * as fs from "fs";
 
-namespace initial2D {
-    export const CANVAS_ID = "#view canvas";
+export namespace initial2D {
+    export const TILESET_CANVAS_ID = "#view canvas";
     export const MAIN_CANVAS_ID = "#contents__main-canvas";
 }
 
@@ -62,7 +62,9 @@ export default class Tilemap extends Component {
 
     public initMembers(...args: any[]) {
         this._config = args[0];
-        this._tileset = <HTMLCanvasElement>$(initial2D.CANVAS_ID).get(0);
+        this._tileset = <HTMLCanvasElement>(
+            $(initial2D.TILESET_CANVAS_ID).get(0)
+        );
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
         this._mapCols = this._config.MAP_COLS;
@@ -92,7 +94,9 @@ export default class Tilemap extends Component {
         /**
          * @type {HTMLCanvasElement}
          */
-        const tilesetImg = <HTMLCanvasElement>$(initial2D.CANVAS_ID).get(0);
+        const tilesetImg = <HTMLCanvasElement>(
+            $(initial2D.TILESET_CANVAS_ID).get(0)
+        );
         if (!tilesetImg) {
             throw new Error("Cant't find tileset");
         }

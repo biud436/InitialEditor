@@ -2,12 +2,12 @@ import { EventEmitter } from "./EventEmitter";
 import { Component } from "./Component";
 import { MenuComponent } from "./MenuComponent";
 import { TilesetMarker } from "./tilesetMarker";
-import Tilemap from "./Tilemap";
+import Tilemap, { initial2D } from "./Tilemap";
 import { toCamelCase } from "./camelCase2";
 import TilesetCanvas from "./TilesetCanvas";
 import TileMarker from "./TileMarker";
 import { config, MyEditorConfig } from "./config";
-import MenuService from "./MenuService";
+import MenuService, { InitialEditor } from "./MenuService";
 import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
 import { Toolbar, ToolbarManager } from "./toolbar/Toolbar";
@@ -288,13 +288,13 @@ export default class App extends EventEmitter {
 
                         // 캔버스
                         const canvas = document.querySelector(
-                            "#contents__main-canvas"
+                            initial2D.MAIN_CANVAS_ID
                         ) as HTMLCanvasElement;
 
                         canvas.style.cursor = "crosshair";
 
                         const __canvas = document.querySelector(
-                            "#contents__main-canvas"
+                            initial2D.MAIN_CANVAS_ID
                         );
                         const canvasOffset = __canvas.getBoundingClientRect();
 
@@ -314,9 +314,12 @@ export default class App extends EventEmitter {
 
                         // 음수일 땐, 메인 캔버스보다 왼쪽이므로 기준 좌표를 타일셋 뷰로 변경합니다.
                         if (this._mouse.startX < 0) {
-                            offsetX = document
-                                .querySelector("#view canvas")
-                                .getBoundingClientRect().left;
+                            const tilesetCanvas = document.querySelector(
+                                initial2D.TILESET_CANVAS_ID
+                            );
+
+                            offsetX =
+                                tilesetCanvas.getBoundingClientRect().left;
                             this._mouse.startX = parseInt(
                                 (ev.clientX - offsetX) as any
                             );
