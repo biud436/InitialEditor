@@ -1,6 +1,7 @@
 import { Component } from "./Component";
 import type { config } from "../types/config";
 import { Mouse } from "./Mouse";
+import { Ref, ref } from "@vue/composition-api";
 
 export interface MarkerRange {
     lastTileID: number;
@@ -10,10 +11,14 @@ export interface MarkerRange {
 
 /**
  * @class TilesetMarker
+ * @description
+ * This class allows you to select a range of tiles or select a single tile.
  */
 class TilesetMarker extends Component {
     protected _config: any;
+    /** tile width */
     protected _tileWidth: number;
+    /** tile height */
     protected _tileHeight: number;
     protected _isReady: boolean;
     protected _element: JQuery<HTMLElement>;
@@ -27,7 +32,7 @@ class TilesetMarker extends Component {
     /**
      * 마지막 타일 ID
      */
-    protected _lastTileId: number;
+    protected _lastTileId: Ref<number>;
     protected _tiles: number[];
 
     public static DRAGGING_DELAY = 33;
@@ -38,7 +43,7 @@ class TilesetMarker extends Component {
         this._tileHeight = this._config.TILE_HEIGHT;
         this._isReady = false;
         this._isDragging = false;
-        this._lastTileId = 0;
+        this._lastTileId = ref(0);
         this._tiles = [];
 
         this.initWithElement();
@@ -150,14 +155,14 @@ class TilesetMarker extends Component {
 
         window.app.setTileId(lastTileID);
 
-        if (this._lastTileId !== lastTileID) {
+        if (this._lastTileId.value !== lastTileID) {
             this.emit("changeTile", {
                 lastTileID,
                 targetX,
                 targetY,
             });
         }
-        this._lastTileId = lastTileID;
+        this._lastTileId.value = lastTileID;
     }
 
     onChangeTileID(range: MarkerRange) {
@@ -165,7 +170,7 @@ class TilesetMarker extends Component {
         if (this._isDragging) {
             this._tiles.push(range.lastTileID);
 
-            const c = this._lastTileId - range.lastTileID;
+            const c = this._lastTileId.value - range.lastTileID;
             if (c >= 1) {
                 this._blockSize.width = this._tileWidth * c;
             }
