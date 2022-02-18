@@ -181,11 +181,15 @@ export default class App extends EventEmitter {
                 this.createComponents();
             })
             .then((ret) => {
-                Array.from(document.querySelectorAll(".darken, .windows-container")).forEach( obj => {
-                    if( obj instanceof HTMLElement ){
-                        (obj as HTMLElement).style.left = '-9999px';
-                    }
-               })
+                const list = <NodeListOf<HTMLElement>>(
+                    document.querySelectorAll(".darken, .windows-container")
+                );
+                const items = Array.from(list);
+                if (items) {
+                    items.forEach((obj) => {
+                        obj.style.left = "-9999px";
+                    });
+                }
             })
             .catch((err) => {
                 console.warn(err);
