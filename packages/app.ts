@@ -181,7 +181,11 @@ export default class App extends EventEmitter {
                 this.createComponents();
             })
             .then((ret) => {
-                $(".darken, .windows-container").css("left", "-9999px");
+                Array.from(document.querySelectorAll(".darken, .windows-container")).forEach( obj => {
+                    if( obj instanceof HTMLElement ){
+                        (obj as HTMLElement).style.left = '-9999px';
+                    }
+               })
             })
             .catch((err) => {
                 console.warn(err);
