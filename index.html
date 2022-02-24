@@ -20,9 +20,9 @@
             const { ipcRenderer } = require("electron");
             const settings = require("./editor.json");
             ipcRenderer.on("change-theme", () => {
-                const theme = $("<theme>").data("theme", settings.Theme);
-
-                $("body").append(theme);
+                const theme = document.querySelector("theme") != null ? document.querySelector("theme") : document.createElement("theme");
+                theme.dataset.theme = settings.Theme;
+                document.body.append(theme);
             });
 
             let platform = "";
