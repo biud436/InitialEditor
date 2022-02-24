@@ -36,10 +36,7 @@ class ToolbarManager {
         // Setting up as true this variable, it can't move the toolbar.
         this._isMovable = false;
         this.lock();
-
-        this._originPosition = $(this._mainToolbarId)
-            .get(0)
-            .getBoundingClientRect();
+        this._originPosition = document.querySelector(this._mainToolbarId).getBoundingClientRect();
     }
 
     /**
@@ -48,7 +45,7 @@ class ToolbarManager {
     show() {
         this._isOpened = true;
 
-        $(this._mainToolbarId).show();
+        document.querySelectorAll(this._mainToolbarId).forEach( element => (element as HTMLElement).style.display = "block" );
     }
 
     /**
@@ -56,8 +53,7 @@ class ToolbarManager {
      */
     hide() {
         this._isOpened = false;
-
-        $(this._mainToolbarId).hide();
+        document.querySelectorAll(this._mainToolbarId).forEach( element => (element as HTMLElement).style.display = "none" );
     }
 
     lock() {
@@ -66,13 +62,14 @@ class ToolbarManager {
 
     unlock() {
         const { x, y } = this._originPosition;
-
-        $(this._mainToolbarId).css({
-            left: x,
-            top: y
-        });
-
-        $(this._mainToolbarId).draggable({ disabled: false });
+        
+        document.querySelectorAll(this._mainToolbarId).forEach( 
+            element => {
+                (element as HTMLElement).style.left = x + "px";
+                (element as HTMLElement).style.top = y + "px";
+            }
+        );
+       $(this._mainToolbarId).draggable({ disabled: false });
     }
 
     create() {
@@ -83,17 +80,32 @@ class ToolbarManager {
         /**
          * @type {{name: String, children: String, action: Function}[]}
          */
-        const items = Toolbar.slice(0);
-        items.forEach((e, i, a) => {
-            const target = $(`li[data-action='${e.children}']:last`);
-            if (target.get()[0]) {
-                target.on("click", (ev: any) => {
+
+        /*
+        *
+        *   원래 셀렉터 : $(`li[data-action='${e.children}']:last`)
+        *   현재 셀렉터 : `li[data-action='${e.children}']`
+        * 
+        *   :last 
+        *   일치하는 것중에서 마지막요소를 가져옵니다
+        * 
+        *   JQUERY 를 없애고자 JQUERY에서만 쓸 수 있는 css 선택자인 :last를 제거했기때문에
+        *   querySelectorAll 을 통해 전부 불러오고 splice -1 로 마지막 요소를 꺼내는것으로 바꾸었습니다 
+        *   
+        * 
+        */
+        Toolbar.slice(0).forEach( e => {
+            let target = Array.from(document.querySelectorAll(`li[data-action='${e.children}']`)).splice(-1)[0] as HTMLElement;
+            if( target ){
+                target.onclick = (ev:any) => {
                     if (typeof e.action === "function") {
                         e.action.call(this, ev);
                     }
-                });
+                }
             }
-        });
+        } );
+        
+        
     }
 }
 
