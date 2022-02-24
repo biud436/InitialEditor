@@ -271,8 +271,6 @@ export default class App extends EventEmitter {
                     this._mouse.buttons.leftFire = true;
                 },
             };
-
-            $(window).on(events);
         } else {
             events = {
                 mousemove: (ev: any) => {
@@ -359,11 +357,11 @@ export default class App extends EventEmitter {
                     }
                 },
             };
+        }
 
-            for (let k in events) {
-                //@ts-ignore
-                window.addEventListener(k, events[k], false);
-            }
+        for (let k in events) {
+            //@ts-ignore
+            window.addEventListener(k, events[k], false);
         }
     }
 
@@ -456,7 +454,6 @@ export default class App extends EventEmitter {
             .then((ret) => {
                 this.initWithMapLayers();
                 this._isReady = true;
-
                 this.on("update", (deltaTime: number) => {
                     this.update(deltaTime);
                 });
