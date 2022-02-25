@@ -25,7 +25,7 @@ class ToolbarManager {
     _isOpened: boolean;
     _isMovable: boolean;
     _originPosition: DOMRect;
-    container : HTMLElement;
+    _toolbarContainer : HTMLElement;
 
     constructor() {
 
@@ -41,8 +41,8 @@ class ToolbarManager {
         // Setting up as true this variable, it can't move the toolbar.
         this._isMovable = false;
         this.lock();
-        this.container = document.querySelector(this._mainToolbarId);
-        this._originPosition = this.container.getBoundingClientRect();
+        this._toolbarContainer = document.querySelector(this._mainToolbarId);
+        this._originPosition = this._toolbarContainer.getBoundingClientRect();
     }
 
     /**
@@ -50,7 +50,7 @@ class ToolbarManager {
      */
     show() {
         this._isOpened = true;
-        this.container.style.display = "block";
+        this._toolbarContainer.style.display = "block";
     }
 
     /**
@@ -58,7 +58,7 @@ class ToolbarManager {
      */
     hide() {
         this._isOpened = false;
-        this.container.style.display = "none";
+        this._toolbarContainer.style.display = "none";
     }
 
     lock() {
@@ -66,8 +66,8 @@ class ToolbarManager {
     }
 
     unlock() {
-        this.container.style.left = this._originPosition.x + "px";
-        this.container.style.top = this._originPosition.y + "px";
+        this._toolbarContainer.style.left = this._originPosition.x + "px";
+        this._toolbarContainer.style.top = this._originPosition.y + "px";
 
        $(this._mainToolbarId).draggable({ disabled: false });
     }
