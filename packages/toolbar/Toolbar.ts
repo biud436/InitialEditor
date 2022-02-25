@@ -18,15 +18,20 @@ const Toolbar = [].concat(
  * @description
  * This class allows you to control the toolbar and hide or show in the current tool.
  */
+
+
 class ToolbarManager {
     _mainToolbarId: string;
     _isOpened: boolean;
     _isMovable: boolean;
     _originPosition: DOMRect;
+    container : HTMLElement;
 
     constructor() {
+
         this.initMembers();
         this.create();
+
     }
 
     initMembers() {
@@ -36,7 +41,8 @@ class ToolbarManager {
         // Setting up as true this variable, it can't move the toolbar.
         this._isMovable = false;
         this.lock();
-        this._originPosition = document.querySelector(this._mainToolbarId).getBoundingClientRect();
+        this.container = document.querySelector(this._mainToolbarId);
+        this._originPosition = this.container.getBoundingClientRect();
     }
 
     /**
@@ -44,8 +50,7 @@ class ToolbarManager {
      */
     show() {
         this._isOpened = true;
-
-        document.querySelectorAll(this._mainToolbarId).forEach( element => (element as HTMLElement).style.display = "block" );
+        this.container.style.display = "block";
     }
 
     /**
@@ -53,7 +58,7 @@ class ToolbarManager {
      */
     hide() {
         this._isOpened = false;
-        document.querySelectorAll(this._mainToolbarId).forEach( element => (element as HTMLElement).style.display = "none" );
+        this.container.style.display = "none";
     }
 
     lock() {
@@ -61,14 +66,9 @@ class ToolbarManager {
     }
 
     unlock() {
-        const { x, y } = this._originPosition;
-        
-        document.querySelectorAll(this._mainToolbarId).forEach( 
-            element => {
-                (element as HTMLElement).style.left = x + "px";
-                (element as HTMLElement).style.top = y + "px";
-            }
-        );
+        this.container.style.left = this._originPosition.x + "px";
+        this.container.style.top = this._originPosition.y + "px";
+
        $(this._mainToolbarId).draggable({ disabled: false });
     }
 
