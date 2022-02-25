@@ -178,20 +178,25 @@ class TilesetMarker extends Component {
     }
 
     /**
-     * 드래그 중인 경우, 여러 타일을 선택합니다.
+     * 드래그가 시작될 떄 호출됩니다.
      * @param args
      */
     onDragEnter(...args: any[]) {
+        // 마우스 객체를 획득합니다.
         const mouse = <Mouse>args[0];
-        console.log("드래깅 시작");
 
         const sx = mouse.startX;
         const sy = mouse.startY;
 
+        // 드래그 중이라면 타일셋 마커의 크기를 늘립니다.
         if (mouse.dragTime && mouse.dragTime > TilesetMarker.DRAGGING_DELAY) {
             this._isDragging = true;
 
             this.update(mouse);
+
+            // TilesetMarker.DRAGGING_DELAY 만큼 딜레이가 생기게 되므로, 가속도를 보정해야 합니다.
+            // 대각선 방향일 때에는 가속도가 1.4배로 늘어나기 때문에, 가속도를 보정해야 합니다.
+            // sx 및 sy 좌표 보정 필요.
 
             const lineWidth = Math.abs(mouse.x - mouse.startX);
             const lineHeight = Math.abs(mouse.y - mouse.startY);
@@ -209,6 +214,10 @@ class TilesetMarker extends Component {
         this._blockSize.refresh();
     }
 
+    /**
+     * 드래그가 종료될 때 호출됩니다.
+     * @param args
+     */
     onDragLeave(...args: any[]) {
         const mouse = <Mouse>args[0];
         if (this._isDragging) {
