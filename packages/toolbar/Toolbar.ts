@@ -121,6 +121,14 @@ class ToolbarManager implements ToolbarImpl {
         $(this._mainToolbarId).draggable({ disabled: false });
     }
 
+    getElement<T extends Element>(e: ToolbarBase): T {
+        return <T>(
+            Array.from(
+                document.querySelectorAll(`li[data-action='${e.children}']`)
+            ).splice(-1)[0]
+        );
+    }
+
     create() {
         $(`li`, this._mainToolbarId).each((index, elem) => {
             console.log(elem, Toolbar[index]);
@@ -144,9 +152,7 @@ class ToolbarManager implements ToolbarImpl {
          *
          */
         Toolbar.slice(0).forEach((e) => {
-            let target = Array.from(
-                document.querySelectorAll(`li[data-action='${e.children}']`)
-            ).splice(-1)[0] as HTMLElement;
+            let target = this.getElement<HTMLElement>(e);
             if (target) {
                 target.onclick = (ev: any) => {
                     if (typeof e.action === "function") {
