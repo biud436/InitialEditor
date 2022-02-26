@@ -14,6 +14,12 @@ class Schema {
         return JSON.stringify(this, null, "    ");
     }
 
+    /**
+     * 설정 파일을 로드하여 문자열로 반환합니다.
+     *
+     * @param filename
+     * @returns
+     */
     load(filename?: string): Promise<string> {
         if (!filename) {
             filename = this.constructor.name;
