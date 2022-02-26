@@ -3,35 +3,84 @@ import { EditToolbar } from "./EditToolbar";
 import { ModeToolbar } from "./ModeToolbar";
 import { DrawToolbar } from "./DrawToolbar";
 import { OtherToolbar } from "./OtherToolbar";
+import { ToolbarBase } from "./interface/toolbar.dto";
 
 // 모든 배열을 하나로 합칩니다.
-const Toolbar = [].concat(
-    FileToolbar,
-    EditToolbar,
-    ModeToolbar,
-    DrawToolbar,
-    OtherToolbar
+const Toolbar = <ToolbarBase[]>(
+    [].concat(FileToolbar, EditToolbar, ModeToolbar, DrawToolbar, OtherToolbar)
 );
+
+/**
+ * @interface ToolbarImpl
+ */
+interface ToolbarImpl {
+    initMembers(): void;
+    initMembers(selectors?: keyof HTMLElementTagNameMap): void;
+
+    show(): void;
+    hide(): void;
+
+    unlock(): void;
+    unlock(originPosition?: DOMRect): void;
+}
+
+/**
+ * @class ToolbarContainer
+ */
+class ToolbarContainer implements ToolbarImpl {
+    private _element: HTMLElement;
+    private _isReady = false;
+
+    constructor(selectors: keyof HTMLElementTagNameMap | string) {
+        this.initMembers(selectors);
+    }
+
+    initMembers(selectors?: keyof HTMLElementTagNameMap | string): void {
+        if (selectors) {
+            this._element = document.querySelector(selectors);
+            this._isReady = true;
+        }
+    }
+
+    show(): void {
+        if (!this._isReady) return;
+        this._element.style.display = "block";
+    }
+
+    hide(): void {
+        if (!this._isReady) return;
+        this._element.style.display = "none";
+    }
+
+    unlock(originPosition?: DOMRect): void {
+        if (!this._isReady) return;
+        if (originPosition) {
+            this._element.style.left = originPosition.x + "px";
+            this._element.style.top = originPosition.y + "px";
+        }
+    }
+
+    getBoundingClientRect(): DOMRect {
+        if (!this._isReady) return;
+        return this._element.getBoundingClientRect();
+    }
+}
 
 /**
  * @class ToolbarManager
  * @description
  * This class allows you to control the toolbar and hide or show in the current tool.
  */
-
-
-class ToolbarManager {
+class ToolbarManager implements ToolbarImpl {
     _mainToolbarId: string;
     _isOpened: boolean;
     _isMovable: boolean;
     _originPosition: DOMRect;
-    _toolbarContainer : HTMLElement;
+    _toolbarContainer: ToolbarContainer;
 
     constructor() {
-
         this.initMembers();
         this.create();
-
     }
 
     initMembers() {
@@ -41,7 +90,7 @@ class ToolbarManager {
         // Setting up as true this variable, it can't move the toolbar.
         this._isMovable = false;
         this.lock();
-        this._toolbarContainer = document.querySelector(this._mainToolbarId);
+        this._toolbarContainer = new ToolbarContainer(this._mainToolbarId);
         this._originPosition = this._toolbarContainer.getBoundingClientRect();
     }
 
@@ -50,7 +99,7 @@ class ToolbarManager {
      */
     show() {
         this._isOpened = true;
-        this._toolbarContainer.style.display = "block";
+        this._toolbarContainer.show();
     }
 
     /**
@@ -58,7 +107,7 @@ class ToolbarManager {
      */
     hide() {
         this._isOpened = false;
-        this._toolbarContainer.style.display = "none";
+        this._toolbarContainer.hide();
     }
 
     lock() {
@@ -66,10 +115,8 @@ class ToolbarManager {
     }
 
     unlock() {
-        this._toolbarContainer.style.left = this._originPosition.x + "px";
-        this._toolbarContainer.style.top = this._originPosition.y + "px";
-
-       $(this._mainToolbarId).draggable({ disabled: false });
+        this._toolbarContainer.unlock(this._originPosition);
+        $(this._mainToolbarId).draggable({ disabled: false });
     }
 
     create() {
@@ -82,30 +129,30 @@ class ToolbarManager {
          */
 
         /*
-        *
-        *   원래 셀렉터 : $(`li[data-action='${e.children}']:last`)
-        *   현재 셀렉터 : `li[data-action='${e.children}']`
-        * 
-        *   :last 
-        *   일치하는 것중에서 마지막요소를 가져옵니다
-        * 
-        *   JQUERY 를 없애고자 JQUERY에서만 쓸 수 있는 css 선택자인 :last를 제거했기때문에
-        *   querySelectorAll 을 통해 전부 불러오고 splice -1 로 마지막 요소를 꺼내는것으로 바꾸었습니다 
-        *   
-        * 
-        */
-        Toolbar.slice(0).forEach( e => {
-            let target = Array.from(document.querySelectorAll(`li[data-action='${e.children}']`)).splice(-1)[0] as HTMLElement;
-            if( target ){
-                target.onclick = (ev:any) => {
+         *
+         *   원래 셀렉터 : $(`li[data-action='${e.children}']:last`)
+         *   현재 셀렉터 : `li[data-action='${e.children}']`
+         *
+         *   :last
+         *   일치하는 것중에서 마지막요소를 가져옵니다
+         *
+         *   JQUERY 를 없애고자 JQUERY에서만 쓸 수 있는 css 선택자인 :last를 제거했기때문에
+         *   querySelectorAll 을 통해 전부 불러오고 splice -1 로 마지막 요소를 꺼내는것으로 바꾸었습니다
+         *
+         *
+         */
+        Toolbar.slice(0).forEach((e) => {
+            let target = Array.from(
+                document.querySelectorAll(`li[data-action='${e.children}']`)
+            ).splice(-1)[0] as HTMLElement;
+            if (target) {
+                target.onclick = (ev: any) => {
                     if (typeof e.action === "function") {
                         e.action.call(this, ev);
                     }
-                }
+                };
             }
-        } );
-        
-        
+        });
     }
 }
 
