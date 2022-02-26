@@ -32,25 +32,52 @@ namespace WindowGroup {
 export default class App extends EventEmitter {
     public static Instance: App = null;
 
-    private cache: {};
+    /** 에디터 설정 파일 */
     private _config: MyEditorConfig;
+
+    /** 마우스 제어 */
     private _mouse: Mouse;
+
+    /**
+     * 사각형 툴을 위한 제어 객체
+     */
     private _blockRect: {
         isDrawing: boolean;
         rect: Rectangle;
     };
+    /**
+     * 현재 시간
+     */
     private _now: any;
-    private _isMenuOpen: boolean;
-    private _tileId: number;
+
+    /**
+     * 컴포넌트가 초기화되어있는지 여부
+     */
     private _isReady: boolean;
+
+    /**
+     * 타일 선택창
+     */
     private _tilesetMarker: TilesetMarker;
     private _tilemap: Tilemap;
+
+    /**
+     * 타일맵 위에 겹쳐지는 타일 선택창 (오른쪽)
+     */
     private _tileMarker: TileMarker;
+
     private _components: Component[];
+
+    /** 메뉴 컴포넌트 */
     private _menu: MenuComponent;
-    private _menuController: MenuService;
+
+    /** 타일 선택창 묘화 */
     private _tilesetCanvas: TilesetCanvas;
 
+    private cache: {};
+    private _isMenuOpen: boolean;
+    private _tileId: number;
+    private _menuController: MenuService;
     private _vueBinder: VueBinder;
 
     /**
@@ -102,7 +129,6 @@ export default class App extends EventEmitter {
 
         // 맵 설정 파일을 생성합니다.
         new EditorSchema(this._config).load("./editor.json").then((data) => {
-            // @ts-ignore
             const myEditorConfig: EditorSchema = JSON.parse(data);
             const themeManager = new ThemeManager();
 
