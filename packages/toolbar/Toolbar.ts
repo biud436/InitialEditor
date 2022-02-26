@@ -24,6 +24,8 @@ interface ToolbarImpl {
     unlock(originPosition?: DOMRect): void;
 }
 
+type HTMLTagMap = keyof HTMLElementTagNameMap | string;
+
 /**
  * @class ToolbarContainer
  */
@@ -31,11 +33,11 @@ class ToolbarContainer implements ToolbarImpl {
     private _element: HTMLElement;
     private _isReady = false;
 
-    constructor(selectors: keyof HTMLElementTagNameMap | string) {
+    constructor(selectors: HTMLTagMap) {
         this.initMembers(selectors);
     }
 
-    initMembers(selectors?: keyof HTMLElementTagNameMap | string): void {
+    initMembers(selectors?: HTMLTagMap): void {
         if (selectors) {
             this._element = document.querySelector(selectors);
             this._isReady = true;
