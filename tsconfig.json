@@ -18,8 +18,15 @@
         // "declaration": true,
         "moduleResolution": "node",
         "types": ["jquery", "vue", "node", "electron", "jest"],
-        "esModuleInterop": true
+        "esModuleInterop": true,
         // "strict": true
+        "baseUrl": "./",
+        "paths": {
+            "@app": ["packages"],
+            "@app/*": ["packages/*"],
+            "@src": ["src"],
+            "@src/*": ["src/*"]
+        }
     },
     "compileOnSave": true
 }
