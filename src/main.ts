@@ -35,21 +35,24 @@ const Config = {
 
 function showSplashWindow(mainWindow: BrowserWindow): BrowserWindow {
     const splash: BrowserWindow = new BrowserWindow({
-        width: 500,
-        height: 500,
+        width: 1280,
+        height: 640,
         frame: false,
         alwaysOnTop: true,
         center: true,
         modal: true,
     });
 
-    splash.loadURL(path.join(__dirname, "..", "splash.html"));
+    splash.loadURL(path.join(__dirname, "..", "public", "splash.html"));
 
     splash.center();
 
+    splash.on("closed", () => {
+        mainWindow.show();
+    });
+
     setTimeout(function () {
         splash.close();
-        mainWindow.show();
     }, 5000);
 
     return splash;
