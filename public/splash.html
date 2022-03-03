@@ -9,6 +9,9 @@
             body {
                 background-color: #858585;
                 background-image: url("background.jpg");
+                margin: 0;
+                padding: 0;
+                overflow-y: hidden;
             }
 
             .flex {
@@ -59,11 +62,16 @@
                 border: none !important;
                 text-align: center;
             }
+
+            img[alt^="logo"] {
+                width: auto;
+                height: auto;
+            }
         </style>
     </head>
     <body>
-        <!-- https://medium.com/red-buffer/how-to-create-a-splash-screen-for-electron-app-602b4da406d -->
         <div class="flex">
+            <img src="./images/logo.png" alt="logo" />
             <div class="loader"></div>
         </div>
     </body>
