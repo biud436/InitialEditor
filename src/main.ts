@@ -1,131 +1,9 @@
 import * as path from "path";
 import * as fs from "fs";
 import { app, BrowserWindow, ipcMain, Menu, dialog, screen } from "electron";
-
-app.setName("InitialEditor");
-
-type StartingWindowOfMap = "mainWindow" | "splashWindow";
-type ElectronStartingConfig = {
-    [key in StartingWindowOfMap]: {
-        get: () => Electron.BrowserWindowConstructorOptions;
-    };
-};
-
-/**
- * @description This object creates a configuration object for the application.
- */
-const config: ElectronStartingConfig = {
-    mainWindow: {
-        get(): Electron.BrowserWindowConstructorOptions {
-            // 브라우저 창을 생성합니다.
-            const isMacOS = process.platform === "darwin";
-            const windowRect = {
-                width: 1280,
-                height: 720,
-            };
-            const options: Electron.BrowserWindowConstructorOptions = {
-                ...windowRect,
-                webPreferences: {
-                    enableRemoteModule: true,
-                    nodeIntegration: true,
-                    contextIsolation: false,
-                    devTools: true,
-                },
-                show: false,
-                frame: isMacOS ? true : false,
-                titleBarStyle: isMacOS ? "default" : "hidden",
-                darkTheme: true,
-                alwaysOnTop: true,
-            };
-
-            return options;
-        },
-    },
-    splashWindow: {
-        get(): Electron.BrowserWindowConstructorOptions {
-            return {
-                width: 1280,
-                height: 640,
-                frame: false,
-                alwaysOnTop: true,
-                center: true,
-                modal: true,
-            };
-        },
-    },
-};
-
-/**
- * 메인 경로를 반환합니다.
- *
- * @returns
- */
-function getEntryPointPath() {
-    switch (process.platform) {
-        case "darwin":
-            return `file://${path.resolve(
-                __dirname,
-                "..",
-                "public",
-                "splash.html"
-            )}`;
-        default:
-            return path.join(__dirname, "..", "public", "splash.html");
-    }
-}
-
-/**
- * Show up the splash window on the screen.
- *
- * @param mainWindow
- * @returns
- */
-function showSplashWindow(mainWindow: BrowserWindow): BrowserWindow {
-    const url = getEntryPointPath();
-
-    const splash: BrowserWindow = new BrowserWindow(config.splashWindow.get());
-    splash.loadURL(url);
-    splash.center();
-    splash.on("closed", () => mainWindow.show());
-
-    setTimeout(() => splash.close(), 5000);
-
-    return splash;
-}
-
-/**
- * @description
- * This class allows you to create a new window that is applied some configuration.
- */
-class MainWindow extends BrowserWindow {
-    jQuery: any;
-    $: any;
-
-    constructor(options?: any) {
-        super(options);
-        this.setConfiguration();
-    }
-
-    setConfiguration() {
-        this.setMenuBarVisibility(false);
-        this.$ = this.jQuery = require("jquery");
-        this.loadURL("file://" + path.join(__dirname, "..", "index.html"));
-        this.webContents.once("dom-ready", () => {
-            this.webContents.send("change-theme");
-        });
-    }
-
-    onMaximize() {
-        let restoreSize = [];
-
-        if (!this.isMaximized()) {
-            restoreSize = this.getMaximumSize();
-            this.maximize();
-        } else {
-            this.unmaximize();
-        }
-    }
-}
+import { MainWindow } from "./windows/mainWindow";
+import { config } from "./config";
+import { showSplashWindow } from "./windows/splashWindow";
 
 /**
  * @author biud436
@@ -134,6 +12,14 @@ class MainWindow extends BrowserWindow {
  */
 class EntryPoint {
     private _hostWindow: MainWindow;
+
+    constructor() {
+        this.initWithTitle();
+    }
+
+    initWithTitle() {
+        app.setName("InitialEditor");
+    }
 
     createWindow() {
         this._hostWindow = new MainWindow(config.mainWindow.get());
