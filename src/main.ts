@@ -4,62 +4,91 @@ import { app, BrowserWindow, ipcMain, Menu, dialog, screen } from "electron";
 
 app.setName("InitialEditor");
 
+type StartingWindowOfMap = "mainWindow" | "splashWindow";
+type ElectronStartingConfig = {
+    [key in StartingWindowOfMap]: {
+        get: () => Electron.BrowserWindowConstructorOptions;
+    };
+};
+
 /**
  * @description This object creates a configuration object for the application.
  */
-const Config = {
-    get() {
-        // 브라우저 창을 생성합니다.
-        const isMacOS = process.platform === "darwin";
-        const windowRect = {
-            width: 1280,
-            height: 720,
-        };
-        const options: Electron.BrowserWindowConstructorOptions = {
-            ...windowRect,
-            webPreferences: {
-                enableRemoteModule: true,
-                nodeIntegration: true,
-                contextIsolation: false,
-                devTools: true,
-            },
-            show: false,
-            frame: isMacOS ? true : false,
-            titleBarStyle: isMacOS ? "default" : "hidden",
-            darkTheme: true,
-            alwaysOnTop: true,
-        };
+const config: ElectronStartingConfig = {
+    mainWindow: {
+        get(): Electron.BrowserWindowConstructorOptions {
+            // 브라우저 창을 생성합니다.
+            const isMacOS = process.platform === "darwin";
+            const windowRect = {
+                width: 1280,
+                height: 720,
+            };
+            const options: Electron.BrowserWindowConstructorOptions = {
+                ...windowRect,
+                webPreferences: {
+                    enableRemoteModule: true,
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    devTools: true,
+                },
+                show: false,
+                frame: isMacOS ? true : false,
+                titleBarStyle: isMacOS ? "default" : "hidden",
+                darkTheme: true,
+                alwaysOnTop: true,
+            };
 
-        return options;
+            return options;
+        },
+    },
+    splashWindow: {
+        get(): Electron.BrowserWindowConstructorOptions {
+            return {
+                width: 1280,
+                height: 640,
+                frame: false,
+                alwaysOnTop: true,
+                center: true,
+                modal: true,
+            };
+        },
     },
 };
 
+/**
+ * 메인 경로를 반환합니다.
+ *
+ * @returns
+ */
+function getEntryPointPath() {
+    switch (process.platform) {
+        case "darwin":
+            return `file://${path.resolve(
+                __dirname,
+                "..",
+                "public",
+                "splash.html"
+            )}`;
+        default:
+            return path.join(__dirname, "..", "public", "splash.html");
+    }
+}
+
+/**
+ * Show up the splash window on the screen.
+ *
+ * @param mainWindow
+ * @returns
+ */
 function showSplashWindow(mainWindow: BrowserWindow): BrowserWindow {
-    const splash: BrowserWindow = new BrowserWindow({
-        width: 1280,
-        height: 640,
-        frame: false,
-        alwaysOnTop: true,
-        center: true,
-        modal: true,
-    });
+    const url = getEntryPointPath();
 
-    const url =
-        process.platform === "darwin"
-            ? `file://${path.resolve(__dirname, "..", "public", "splash.html")}`
-            : path.join(__dirname, "..", "public", "splash.html");
-
+    const splash: BrowserWindow = new BrowserWindow(config.splashWindow.get());
     splash.loadURL(url);
-
     splash.center();
+    splash.on("closed", () => mainWindow.show());
 
-    splash.on("closed", () => {
-        mainWindow.show();
-    });
-
-    setTimeout(function () {
-        splash.close();
-    }, 5000);
+    setTimeout(() => splash.close(), 5000);
 
     return splash;
 }
@@ -107,7 +136,7 @@ class EntryPoint {
     private _hostWindow: MainWindow;
 
     createWindow() {
-        this._hostWindow = new MainWindow(Config.get());
+        this._hostWindow = new MainWindow(config.mainWindow.get());
         ipcMain.on("minimize", () => this._hostWindow.minimize());
         ipcMain.on("maximize", () => this._hostWindow.onMaximize());
 
