@@ -27,6 +27,7 @@ const Config = {
             frame: isMacOS ? true : false,
             titleBarStyle: isMacOS ? "default" : "hidden",
             darkTheme: true,
+            alwaysOnTop: true,
         };
 
         return options;
