@@ -44,7 +44,12 @@ function showSplashWindow(mainWindow: BrowserWindow): BrowserWindow {
         modal: true,
     });
 
-    splash.loadURL(path.join(__dirname, "..", "public", "splash.html"));
+    const url =
+        process.platform === "darwin"
+            ? `file://${path.resolve(__dirname, "..", "public", "splash.html")}`
+            : path.join(__dirname, "..", "public", "splash.html");
+
+    splash.loadURL(url);
 
     splash.center();
 
