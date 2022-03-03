@@ -9,7 +9,7 @@ export class MainWindow extends BrowserWindow {
     jQuery: any;
     $: any;
 
-    constructor(options?: any) {
+    constructor(options?: Electron.BrowserWindowConstructorOptions) {
         super(options);
         this.setConfiguration();
     }
