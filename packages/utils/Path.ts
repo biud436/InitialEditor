@@ -20,7 +20,7 @@ namespace InitialEditor {
         }
 
         public static getWorkDir(): string {
-            return Path.WORK_DIR;
+            return Path.WORK_DIR.replace(/\\/g, "/");
         }
     }
 
