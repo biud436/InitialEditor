@@ -2,7 +2,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { app, BrowserWindow, ipcMain, Menu, dialog, screen } from "electron";
 import { MainWindow } from "./windows/mainWindow";
-import { config } from "./config";
+import { config, MonitorInfo } from "./config";
 import { showSplashWindow } from "./windows/splashWindow";
 
 /**
@@ -11,44 +11,55 @@ import { showSplashWindow } from "./windows/splashWindow";
  * This class allows you to create the electron application and start.
  */
 class EntryPoint {
-    private _hostWindow: MainWindow;
+    private _hostWindow!: MainWindow;
 
     constructor() {
         this.initWithTitle();
     }
 
+    /**
+     * Sets the title of an application from hard-coded text.
+     */
     initWithTitle() {
         app.setName("InitialEditor");
     }
 
-    createWindow() {
-        this._hostWindow = new MainWindow(config.mainWindow.get());
-        ipcMain.on("minimize", () => this._hostWindow.minimize());
-        ipcMain.on("maximize", () => this._hostWindow.onMaximize());
+    /**
+     * Prints the information of each monitor.
+     * if you are using multiple monitors, you can use this method to print the information of each monitor.
+     */
+    printMonitorInfo() {
+        const data = <MonitorInfo>{};
+        const displays = screen.getAllDisplays();
 
+        // 모니터의 갯수입니다.
+        displays.forEach((e, i) => {
+            const monitorId = e.id;
+
+            data[monitorId] = {
+                x: e.bounds.x,
+                y: e.bounds.y,
+                width: e.size.width,
+                height: e.size.height,
+            };
+        });
+        fs.writeFileSync("display.json", JSON.stringify(data, null, 4));
+    }
+
+    connectIPC(hostWindow: MainWindow) {
+        ipcMain.on("minimize", () => hostWindow.minimize());
+        ipcMain.on("maximize", () => hostWindow.onMaximize());
         ipcMain.on("message_box:error", (event, ...args: any[]) => {
             const [title, content] = args;
             dialog.showErrorBox(title, content);
         });
+    }
 
-        (() => {
-            const data: Record<any, object> = {};
-            const displays = screen.getAllDisplays();
-
-            // 모니터의 갯수입니다.
-            displays.forEach((e, i) => {
-                data[e.id] = {
-                    x: e.bounds.x,
-                    y: e.bounds.y,
-                    width: e.size.width,
-                    height: e.size.height,
-                };
-            });
-            fs.writeFileSync("display.json", JSON.stringify(data, null, 4));
-        })();
-
-        // 이렇게 하면 타입스크립트로 작성된 걸 불러와야 한다.
-        // 잘못된 구조로 짠 듯 싶다.
+    /**
+     * Creates an internal menu on macOS.
+     * However This is not completed development.
+     */
+    createInternalMenuForDarwin() {
         if (process.platform === "darwin") {
             Menu.setApplicationMenu(
                 Menu.buildFromTemplate([
@@ -84,10 +95,28 @@ class EntryPoint {
                 ])
             );
         }
+    }
+
+    /**
+     * Creates a main window of the application.
+     * Host Window means the main window that contains a tile editor that can draw tiles.
+     *
+     * @returns
+     */
+    createWindow() {
+        this.connectIPC(
+            (this._hostWindow = new MainWindow(config.mainWindow.get()))
+        );
+
+        this.printMonitorInfo();
+        this.createInternalMenuForDarwin();
 
         return this;
     }
 
+    /**
+     * Sets event listeners.
+     */
     listenOn() {
         app.whenReady().then(() => {
             this.createWindow();

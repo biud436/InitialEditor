@@ -4,6 +4,15 @@ export type ElectronStartingConfig = {
         get: () => Electron.BrowserWindowConstructorOptions;
     };
 };
+export type MonitorInfo = Record<
+    number,
+    {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }
+>;
 
 /**
  * @description This object creates a configuration object for the application.
