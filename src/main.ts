@@ -59,7 +59,7 @@ class EntryPoint {
      * Creates an internal menu on macOS.
      * However This is not completed development.
      */
-    createInternalMenuForDarwin() {
+    createInternalMenuForDarwin(hostWindow: MainWindow) {
         if (process.platform === "darwin") {
             Menu.setApplicationMenu(
                 Menu.buildFromTemplate([
@@ -80,9 +80,7 @@ class EntryPoint {
                                 label: "새로 만들기",
                                 accelerator: "CmdOrCtrl+N",
                                 click: () => {
-                                    this._hostWindow.webContents.send(
-                                        "new-file"
-                                    );
+                                    hostWindow.webContents.send("new-file");
                                 },
                             },
                             {
@@ -109,7 +107,7 @@ class EntryPoint {
         );
 
         this.printMonitorInfo();
-        this.createInternalMenuForDarwin();
+        this.createInternalMenuForDarwin(this._hostWindow);
 
         return this;
     }
