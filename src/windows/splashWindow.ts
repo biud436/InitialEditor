@@ -1,3 +1,4 @@
+import { Path } from "../utils/Path";
 import { BrowserWindow } from "electron";
 import * as path from "path";
 import { config } from "../config";
@@ -10,13 +11,10 @@ import { config } from "../config";
 export function getEntryPointPath() {
     switch (process.platform) {
         case "darwin":
-            return `file://${path.resolve(
-                __dirname,
-                "..",
-                "..",
-                "public",
-                "splash.html"
-            )}`;
+            return (
+                `file://` +
+                Path.join(Path.getWorkDir(), "public", "splash.html")
+            );
         default:
             return path.join(__dirname, "..", "..", "public", "splash.html");
     }

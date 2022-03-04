@@ -1,3 +1,4 @@
+import { Path } from "../utils/Path";
 import { BrowserWindow } from "electron";
 import * as path from "path";
 
@@ -17,9 +18,7 @@ export class MainWindow extends BrowserWindow {
     setConfiguration() {
         this.setMenuBarVisibility(false);
         this.$ = this.jQuery = require("jquery");
-        this.loadURL(
-            "file://" + path.join(__dirname, "..", "..", "index.html")
-        );
+        this.loadURL("file://" + Path.join(Path.getWorkDir(), "index.html"));
         this.webContents.once("dom-ready", () => {
             this.webContents.send("change-theme");
         });
