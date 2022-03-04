@@ -10,7 +10,7 @@ const OtherToolbar: ToolbarBase[] = [
         name: "",
         children: "take-screenshot",
         action: (ev: any) => {
-            $("#take-screenshot").trigger("click");
+            (document.querySelector("#take-screenshot") as HTMLElement).click();
         },
     },
     {
