@@ -400,14 +400,14 @@ export default class App extends EventEmitter {
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
-        const li_elements = Array.from(
+        const li_elements = Array.from<HTMLElement>(
             document.querySelectorAll("ul.aside__tabs__maptree-child-tree li")
         );
 
         let length = li_elements.length;
 
         for (let i = 0; i < length; i++) {
-            let li_element = li_elements[i] as HTMLElement;
+            let li_element = li_elements[i];
 
             let layerId = i;
 
@@ -419,8 +419,7 @@ export default class App extends EventEmitter {
                 li_elements
                     .filter((obj) => obj != li_element)
                     .forEach((obj) => {
-                        (obj as HTMLElement).style.backgroundColor =
-                            "rgba(255, 255, 255, 0)";
+                        obj.style.backgroundColor = "rgba(255, 255, 255, 0)";
                     });
 
                 // 타일맵을 지우고 다시 그립니다.
