@@ -9,12 +9,7 @@ import { config } from "../config";
  * @returns
  */
 export function getEntryPointPath() {
-    switch (process.platform) {
-        case "darwin":
-            return Path.join(Path.getWorkDir(), "public", "splash.html");
-        default:
-            return path.join(__dirname, "..", "..", "public", "splash.html");
-    }
+    return Path.join(Path.getWorkDir(), "public", "splash.html");
 }
 
 /**
