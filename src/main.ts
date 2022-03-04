@@ -4,6 +4,7 @@ import { app, BrowserWindow, ipcMain, Menu, dialog, screen } from "electron";
 import { MainWindow } from "./windows/mainWindow";
 import { config, MonitorInfo } from "./config";
 import { showSplashWindow } from "./windows/splashWindow";
+import { Path } from "./utils/Path";
 
 /**
  * @author biud436
