@@ -18,7 +18,7 @@ export class MainWindow extends BrowserWindow {
     setConfiguration() {
         this.setMenuBarVisibility(false);
         this.$ = this.jQuery = require("jquery");
-        this.loadURL("file://" + Path.join(Path.getWorkDir(), "index.html"));
+        this.loadURL(Path.join(Path.getWorkDir(), "index.html"));
         this.webContents.once("dom-ready", () => {
             this.webContents.send("change-theme");
         });

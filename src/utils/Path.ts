@@ -1,15 +1,16 @@
 import * as path from "path";
+import * as url from "url";
 
 namespace EntryPoint {
     export class Path {
         public static WORK_DIR = process.cwd();
 
         public static join(...paths: string[]): string {
-            return path.join(...paths);
+            return url.pathToFileURL(path.join(...paths)).href;
         }
 
         public static resolve(...paths: string[]): string {
-            return path.resolve(...paths);
+            return url.pathToFileURL(path.resolve(...paths)).href;
         }
 
         public static get separator(): string {
