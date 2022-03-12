@@ -29,9 +29,9 @@ class Main {
     }
 }
 
-(window as any).onMounted = (func: Function) => {
+window.onMounted = (func: Function) => {
     Main.start(func);
 };
 
-const vue = new VueBinder();
+const vue = Container.get(VueBinder);
 vue.mount();

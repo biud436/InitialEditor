@@ -15,6 +15,7 @@ import { EditorSchema } from "./schema/EditorSchema";
 import { Mouse } from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
 import { VueBinder } from "./VueBinder";
+import { Service } from "typedi";
 
 interface BlockRect {
     isDrawing: boolean;

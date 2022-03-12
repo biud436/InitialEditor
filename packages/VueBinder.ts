@@ -7,7 +7,9 @@ import NewWindow from "./views/components/window/NewWindow.vue";
 import MainContainer from "./views/MainContainer.vue";
 import TilesetWindow from "./views/components/window/TilesetWindow.vue";
 import { store } from "./store";
+import { Service } from "typedi";
 
+@Service()
 export class VueBinder extends EventEmitter {
     private app: Vue;
 
