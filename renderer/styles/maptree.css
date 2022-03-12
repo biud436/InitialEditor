@@ -1,0 +1,21 @@
+.aside__tabs-maptree {
+    width: 100%;
+    min-height: 100%;    
+    height: auto;
+}
+
+.aside__tabs-maptree ul {
+    width: 100%;
+    height: 100%;
+}
+
+.aside__tabs-maptree ul li {
+    width: 100%;
+    display: block;
+    position: relative;
+}
+
+.aside__tabs-maptree-child-tree li {
+    display: block;
+    margin-left: 1em;
+}

@@ -8,12 +8,12 @@
 
 html,
 body {
-  @apply bg-gray-900 text-white;
+    @apply bg-gray-900 text-white;
 }
 
 /* Write your own custom component styles here */
 .btn-blue {
-  @apply px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-600;
+    @apply px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-600;
 }
 
 /* Start purging... */
@@ -21,3 +21,5 @@ body {
 /* Stop purging. */
 
 /* Your own custom utilities */
+
+@import "./main.css";

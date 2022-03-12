@@ -1,0 +1,13 @@
+.contents {
+    width: 50%;
+    min-height: calc(98vh - 48px);
+    height: calc(98vh - 48px);
+    float: left;
+    position: relative;
+}
+
+#contents__main-canvas {
+    background-color: transparent;
+    width: 80%;
+    height: 98%;
+}
