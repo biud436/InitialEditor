@@ -5,6 +5,7 @@ import * as cp from "child_process";
 import * as path from "path";
 import { Component } from "./Component";
 import { Toolbar } from "./toolbar/Toolbar";
+import { Service } from "typedi";
 
 /**
  * @class ElectronService
@@ -15,6 +16,8 @@ import { Toolbar } from "./toolbar/Toolbar";
  *
  * 조건 컴파일을 통하여 구현될 예정입니다.
  */
+
+@Service()
 class ElectronService extends EventEmitter {
     public static INSTANCE: ElectronService = new ElectronService();
 
@@ -31,6 +34,9 @@ class ElectronService extends EventEmitter {
         this.listenEvents();
     }
 
+    /**
+     * 이벤트를 차례대로 접근해 호출합니다.
+     */
     public *makeEvents(): IterableIterator<string> {
         yield "minimize";
         yield "maximize";
@@ -61,9 +67,13 @@ class ElectronService extends EventEmitter {
         }
     }
 
+    /**
+     * 폴더를 엽니다.
+     *
+     * @param folderName
+     */
     public openFolder(folderName: string = process.cwd()) {
         const current = path.join(folderName.replace(/\\/g, "/"));
-        window.alert(current);
         shell.showItemInFolder(current);
     }
 
