@@ -1,5 +1,7 @@
+import { Service } from "typedi";
 import { config } from "./config.js";
 
+@Service()
 export default class TilesetCanvas {
     private _config: any;
     private _isReady: boolean;

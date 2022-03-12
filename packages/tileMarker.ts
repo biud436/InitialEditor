@@ -1,5 +1,7 @@
+import { Service } from "typedi";
 import { MarkerRange, TilesetMarker } from "./tilesetMarker";
 
+@Service()
 export default class TileMarker extends TilesetMarker {
     initWithElement() {
         const parent = $(".contents");

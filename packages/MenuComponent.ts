@@ -1,3 +1,4 @@
+import { Service } from "typedi";
 import { Component } from "./Component";
 
 interface Mouse {
@@ -25,6 +26,7 @@ export namespace InitialEditor {
  * @description
  * 메뉴 컴포넌트 클래스는 메뉴가 열려있는 지 닫혀있는 지 판단합니다.
  */
+@Service()
 class MenuComponent extends Component {
     public _isMenuOpen: boolean;
     private _originalPos: InitialEditor.Point;

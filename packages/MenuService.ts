@@ -4,6 +4,7 @@ import { KoreanMenu } from "./menu/KoreanMenu";
 import { SIGKILL } from "constants";
 import { ElectronService } from "./ElectronService";
 import { ipcRenderer } from "electron";
+import { Service } from "typedi";
 
 const menu = {
     ko: KoreanMenu,
@@ -85,6 +86,7 @@ namespace MenuButtonHandlers {
 /**
  * @class MenuService
  */
+@Service()
 export default class MenuService extends Component {
     private _menuComponent: MenuComponent;
     private _isClickedMenu: boolean;

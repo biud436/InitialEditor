@@ -1,5 +1,6 @@
 import { EventEmitter } from "./EventEmitter";
 import { config } from "./config";
+import { Service } from "typedi";
 
 interface Point {
     x: number;
@@ -16,6 +17,7 @@ interface Tile extends Point {
  * @see
  * <a href="http://www.cr31.co.uk/stagecast/wang/blob.html">reference</a>
  */
+@Service()
 export class AutoTile extends EventEmitter {
     /**
      * Wang Blob 6 x 8 Layout (RM-Custom)
@@ -61,7 +63,7 @@ export class AutoTile extends EventEmitter {
         let target = 0;
         let found: Point = {
             x: 0,
-            y: 0
+            y: 0,
         };
 
         // 일반 타일을 찾습니다.
@@ -75,7 +77,7 @@ export class AutoTile extends EventEmitter {
 
         Object.assign(found, {
             width: config.TILE_WIDTH,
-            height: config.TILE_HEIGHT
+            height: config.TILE_HEIGHT,
         });
 
         return <Tile>found;
@@ -106,7 +108,7 @@ export class AutoTile extends EventEmitter {
                         let type = [];
                         type.push(width % tw === 0);
                         type.push(height % th === 0);
-                        const toArray = type.filter(i => !!i);
+                        const toArray = type.filter((i) => !!i);
 
                         if (toArray.length === 0) {
                             reject(

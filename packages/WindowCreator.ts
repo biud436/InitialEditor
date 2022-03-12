@@ -7,6 +7,7 @@ import TilesetWindowController from "./controllers/TilesetWindowController";
 import { TilesetWindowModel } from "./models/TilesetWindow";
 
 import { getClassName } from "./camelCase";
+import { Service } from "typedi";
 
 namespace WindowManager {
     export interface Cache {
@@ -14,6 +15,7 @@ namespace WindowManager {
     }
 }
 
+@Service()
 class CacheManager extends EventEmitter {
     public static cache: WindowManager.Cache = {};
     public static INSTANCE: CacheManager;
@@ -31,6 +33,7 @@ class CacheManager extends EventEmitter {
     }
 }
 
+@Service()
 class WindowCreator extends EventEmitter {
     public static INSTANCE: WindowCreator = null;
 
@@ -60,12 +63,12 @@ class WindowCreator extends EventEmitter {
 
         this._gamePropertiesWindow
             .render()
-            .then(ret => {
+            .then((ret) => {
                 const id = "new-window";
                 CacheManager.set(id, this._gamePropertiesWindow);
                 this._gamePropertiesWindow.setUniqueId(id);
             })
-            .catch(err => {
+            .catch((err) => {
                 console.warn(err);
             });
     }
@@ -81,12 +84,12 @@ class WindowCreator extends EventEmitter {
 
         this._tilesetWindow
             .render()
-            .then(ret => {
+            .then((ret) => {
                 const id = "tileset";
                 CacheManager.set(id, this._tilesetWindow);
                 this._tilesetWindow.setUniqueId(id);
             })
-            .catch(err => {
+            .catch((err) => {
                 console.warn(err);
             });
     }

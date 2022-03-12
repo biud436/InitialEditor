@@ -2,6 +2,7 @@ import { Component } from "./Component";
 import type { config } from "../types/config";
 import { Mouse } from "./Mouse";
 import { Ref, ref } from "@vue/composition-api";
+import { Service } from "typedi";
 
 export interface MarkerRange {
     lastTileID: number;
@@ -14,6 +15,7 @@ export interface MarkerRange {
  * @description
  * This class allows you to select a range of tiles or select a single tile.
  */
+@Service()
 class TilesetMarker extends Component {
     protected _config: any;
     /** tile width */

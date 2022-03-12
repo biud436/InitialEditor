@@ -4,6 +4,7 @@ import * as PIXI from "pixi.js";
 import { Mouse } from "./Mouse";
 import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import * as fs from "fs";
+import { Service } from "typedi";
 
 export namespace initial2D {
     export const TILESET_CANVAS_ID = "#view canvas";
@@ -27,6 +28,7 @@ interface TilemapPoint {
  * @class Tilemap
  * @author biud436
  */
+@Service()
 export default class Tilemap extends Component {
     private _config: typeof config;
 
@@ -62,7 +64,9 @@ export default class Tilemap extends Component {
 
     public initMembers(...args: any[]) {
         this._config = args[0];
-        this._tileset = document.querySelector(initial2D.TILESET_CANVAS_ID) as HTMLCanvasElement;
+        this._tileset = document.querySelector(
+            initial2D.TILESET_CANVAS_ID
+        ) as HTMLCanvasElement;
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
         this._mapCols = this._config.MAP_COLS;
@@ -92,7 +96,9 @@ export default class Tilemap extends Component {
         /**
          * @type {HTMLCanvasElement}
          */
-        const tilesetImg = (document.querySelector(initial2D.TILESET_CANVAS_ID) as HTMLCanvasElement);
+        const tilesetImg = document.querySelector(
+            initial2D.TILESET_CANVAS_ID
+        ) as HTMLCanvasElement;
 
         if (!tilesetImg) {
             throw new Error("Cant't find tileset");
@@ -260,16 +266,23 @@ export default class Tilemap extends Component {
             height: this._config.SCREEN_HEIGHT,
             backgroundColor: 0x00000000,
             resolution: window.devicePixelRatio || 1,
-            view: document.querySelector(initial2D.MAIN_CANVAS_ID) as HTMLCanvasElement,
+            view: document.querySelector(
+                initial2D.MAIN_CANVAS_ID
+            ) as HTMLCanvasElement,
             autoDensity: true,
             transparent: false,
         };
 
         option.height =
-        window.innerHeight - (document.querySelector(".toolbar") as HTMLElement).clientHeight - 30;
+            window.innerHeight -
+            (document.querySelector(".toolbar") as HTMLElement).clientHeight -
+            30;
 
         option.width =
-        window.innerWidth - (document.querySelector(".aside__tabs") as HTMLElement).clientWidth - 10
+            window.innerWidth -
+            (document.querySelector(".aside__tabs") as HTMLElement)
+                .clientWidth -
+            10;
 
         this._app = new PIXI.Application(option);
 
@@ -290,10 +303,12 @@ export default class Tilemap extends Component {
 
         this.initWithDrawingType();
 
-        (document.querySelector("#take-screenshot") as HTMLElement).onclick = (ev) => {
+        (document.querySelector("#take-screenshot") as HTMLElement).onclick = (
+            ev
+        ) => {
             this.takeScreenshot();
             ev.stopPropagation();
-        }
+        };
 
         return this;
     }
