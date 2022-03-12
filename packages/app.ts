@@ -10,8 +10,7 @@ import { config, MyEditorConfig } from "./config";
 import MenuService, { InitialEditor } from "./MenuService";
 import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
-import { Toolbar, ToolbarManager } from "./toolbar/Toolbar";
-import { ElectronService } from "./ElectronService";
+
 import { EditorSchema } from "./schema/EditorSchema";
 import { Mouse } from "./Mouse";
 import { ThemeManager } from "./ThemeManager";

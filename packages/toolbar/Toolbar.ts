@@ -4,6 +4,7 @@ import { ModeToolbar } from "./ModeToolbar";
 import { DrawToolbar } from "./DrawToolbar";
 import { OtherToolbar } from "./OtherToolbar";
 import { ToolbarBase } from "./interface/toolbar.dto";
+import { Service } from "typedi";
 
 // 모든 배열을 하나로 합칩니다.
 const Toolbar = <ToolbarBase[]>(
@@ -73,6 +74,7 @@ class ToolbarContainer implements ToolbarImpl {
  * @description
  * This class allows you to control the toolbar and hide or show in the current tool.
  */
+@Service()
 class ToolbarManager implements ToolbarImpl {
     _mainToolbarId: string;
     _isOpened: boolean;
