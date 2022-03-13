@@ -32,7 +32,7 @@
         "resolveJsonModule": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "isolatedModules": true,
+        "isolatedModules": false,
         "types": ["jquery", "node", "electron"]
     },
     "include": ["**/*.ts", "**/*.tsx"],

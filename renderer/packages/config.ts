@@ -41,7 +41,11 @@ export const config = <MyEditorConfig>{
         "/images/tiles/2k_town05.png",
         "/images/tiles/2k_town05-01.png",
     ],
-    Editor: new EditorSchema(this),
+    Editor: (() => {
+        const s = new EditorSchema(this);
+        s.initMembers(this);
+        return s;
+    })(),
     Maps: new EditorSchema(this),
 };
 

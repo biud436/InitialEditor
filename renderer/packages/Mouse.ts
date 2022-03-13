@@ -39,7 +39,7 @@ export interface Mouse {
     /**
      * @type {HTMLElement}
      */
-    menuTarget: HTMLElement;
+    menuTarget?: HTMLElement;
     isDrawing: boolean;
     startX: number;
     startY: number;

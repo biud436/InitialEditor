@@ -29,10 +29,10 @@ namespace WindowGroup {
 }
 
 export default class App extends EventEmitter {
-    public static Instance: App = null;
+    public static Instance: App;
 
     /** 에디터 설정 파일 */
-    private _config: MyEditorConfig;
+    private _config: MyEditorConfig = config;
 
     /** 마우스 제어 */
     private _mouse: Mouse;
@@ -40,7 +40,7 @@ export default class App extends EventEmitter {
     /**
      * 사각형 툴을 위한 제어 객체
      */
-    private _blockRect: {
+    private _blockRect?: {
         isDrawing: boolean;
         rect: Rectangle;
     };
@@ -52,31 +52,31 @@ export default class App extends EventEmitter {
     /**
      * 컴포넌트가 초기화되어있는지 여부
      */
-    private _isReady: boolean;
+    private _isReady!: boolean;
 
     /**
      * 타일 선택창
      */
-    private _tilesetMarker: TilesetMarker;
-    private _tilemap: Tilemap;
+    private _tilesetMarker!: TilesetMarker;
+    private _tilemap!: Tilemap;
 
     /**
      * 타일맵 위에 겹쳐지는 타일 선택창 (오른쪽)
      */
-    private _tileMarker: TileMarker;
+    private _tileMarker!: TileMarker;
 
-    private _components: Component[];
+    private _components!: Component[];
 
     /** 메뉴 컴포넌트 */
-    private _menu: MenuComponent;
+    private _menu!: MenuComponent;
 
     /** 타일 선택창 묘화 */
-    private _tilesetCanvas: TilesetCanvas;
+    private _tilesetCanvas!: TilesetCanvas;
 
-    private cache: {};
-    private _isMenuOpen: boolean;
-    private _tileId: number;
-    private _menuController: MenuService;
+    private cache?: {};
+    private _isMenuOpen?: boolean;
+    private _tileId?: number;
+    private _menuController?: MenuService;
 
     /**
      * 멤버 변수를 초기화합니다.
@@ -96,11 +96,11 @@ export default class App extends EventEmitter {
             /**
              * @type {HTMLElement}
              */
-            target: null,
+            target: undefined,
             /**
              * @type {HTMLElement}
              */
-            menuTarget: null,
+            menuTarget: undefined,
             isDrawing: false,
             startX: 0,
             startY: 0,
@@ -133,12 +133,12 @@ export default class App extends EventEmitter {
             //@ts-ignore
             if (myEditorConfig.Theme == WindowGroup.Theme.Light) {
                 document
-                    .querySelector("body")
+                    .querySelector("body")!
                     .setAttribute("data-theme", "light");
                 themeManager.changeLightTheme();
             } else {
                 document
-                    .querySelector("body")
+                    .querySelector("body")!
                     .setAttribute("data-theme", "dark");
                 themeManager.changeDarkTheme();
             }
@@ -238,6 +238,7 @@ export default class App extends EventEmitter {
     }
 
     onMouseTouchMove(ev: any) {
+        if (!this._mouse) return;
         this._mouse.x = ev.layerX;
         this._mouse.y = ev.layerY;
         this._mouse.screenX = ev.layerX;
@@ -258,10 +259,12 @@ export default class App extends EventEmitter {
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
+                    if (!this._mouse) return;
 
                     const target = <HTMLElement>this._mouse.target;
+                    if (!this._mouse.target) return;
                     const rect = <DOMRect>(
-                        this._mouse.target.getBoundingClientRect()
+                        this._mouse.target!.getBoundingClientRect()
                     );
 
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
@@ -275,6 +278,7 @@ export default class App extends EventEmitter {
                     if (ev.type.indexOf("touch") >= 0) {
                         touchEvent = ev.touches[0];
                     }
+                    if (!this._mouse) return;
 
                     this._mouse.target = ev.target;
 
@@ -282,6 +286,7 @@ export default class App extends EventEmitter {
                      * @type {HTMLElement}
                      */
                     const target = this._mouse.target;
+                    if (!this._mouse.target) return;
                     const rect = this._mouse.target.getBoundingClientRect();
 
                     this._mouse.x = touchEvent.clientX - rect.x;
@@ -292,6 +297,7 @@ export default class App extends EventEmitter {
                     this._mouse.buttons.leftFire = false;
                 },
                 "touchend pointerup mouseup": (ev: any) => {
+                    if (!this._mouse) return;
                     this._mouse.buttons.left = false;
                     this._mouse.buttons.leftFire = true;
                 },
@@ -299,6 +305,7 @@ export default class App extends EventEmitter {
         } else {
             events = {
                 mousemove: (ev: any) => {
+                    if (!this._mouse) return;
                     this._mouse.x = ev.layerX;
                     this._mouse.y = ev.layerY;
                     this._mouse.screenX = ev.layerX;
@@ -310,6 +317,7 @@ export default class App extends EventEmitter {
                 },
                 mousedown: (ev: any) => {
                     if (ev.button == 0) {
+                        if (!this._mouse) return;
                         this._mouse.buttons.left = true;
                         this._mouse.buttons.leftFire = false;
                         this._mouse.target = ev.target;
@@ -327,6 +335,7 @@ export default class App extends EventEmitter {
                         const __canvas = document.querySelector(
                             initial2D.MAIN_CANVAS_ID
                         );
+                        if (!__canvas) return;
                         const canvasOffset = __canvas.getBoundingClientRect();
 
                         let offsetX: number = parseInt(
@@ -348,6 +357,7 @@ export default class App extends EventEmitter {
                             const tilesetCanvas = document.querySelector(
                                 initial2D.TILESET_CANVAS_ID
                             );
+                            if (!tilesetCanvas) return;
 
                             offsetX =
                                 tilesetCanvas.getBoundingClientRect().left;
@@ -359,8 +369,10 @@ export default class App extends EventEmitter {
                 },
                 mouseup: (ev: any) => {
                     if (ev.button == 0) {
+                        if (!this._mouse) return;
                         this._mouse.buttons.left = false;
                         this._mouse.buttons.leftFire = true;
+                        if (!this._blockRect) return;
                         this._blockRect.isDrawing = false;
                         this._mouse.isDrawing = false;
 
@@ -374,6 +386,7 @@ export default class App extends EventEmitter {
                 },
                 mouseover: (ev: any) => {
                     if (!this._menu) return;
+                    if (!this._mouse) return;
                     if (this._menu._isMenuOpen) {
                         this._mouse.buttons.menuTarget = ev.target;
                         this._menu.emit(
