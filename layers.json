@@ -1,1 +1,17 @@
-{}
+{
+    "Layers": [
+        {
+            "DefaultOpacity": 1
+        },
+        {
+            "DefaultOpacity": 1
+        },
+        {
+            "DefaultOpacity": 1
+        },
+        {
+            "DefaultOpacity": 1
+        }
+    ],
+    "SemiTransparentOpacity": 0.25
+}

@@ -530,6 +530,10 @@ export default class App extends EventEmitter {
         }
 
         const id = target.id;
+
+        /**
+         * @type {Mouse}
+         */
         const mouse = this._mouse;
 
         // 메뉴를 업데이트합니다.

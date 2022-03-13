@@ -100,7 +100,7 @@ export class AutoTile extends EventEmitter {
                 .add("autotile", filename)
 
                 .load((loader, res) => {
-                    const sprite = PIXI.Sprite.from(res.autotile.texture);
+                    const sprite = PIXI.Sprite.from(res.autotile!.texture);
                     const width = sprite.texture.width;
                     const height = sprite.texture.height;
 

@@ -13,7 +13,7 @@ export interface MouseButton<T extends Element = Element> {
     menuTarget?: T;
 }
 
-export interface Mouse {
+export type Mouse = {
     /**
      * x 좌표
      */
@@ -44,4 +44,4 @@ export interface Mouse {
     startX: number;
     startY: number;
     dragTime: number;
-}
+};

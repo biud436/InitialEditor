@@ -68,7 +68,7 @@ class MenuComponent extends Component {
         this._isMenuOpen = false;
     }
 
-    update(target: HTMLElement, mouse: Mouse) {
+    update<T extends Mouse = Mouse>(target: HTMLElement, mouse: T) {
         if ($(".toolbar").is(".ui-draggable-dragging")) {
             const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
