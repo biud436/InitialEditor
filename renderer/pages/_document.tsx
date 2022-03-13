@@ -5,6 +5,7 @@ import Document, {
     DocumentContext,
 } from "next/document";
 import { ServerStyleSheet } from "styled-components";
+import Script from "next/script";
 
 export default class MyDocument extends Document {
     static async getInitialProps(ctx: DocumentContext) {
@@ -48,8 +49,17 @@ export default class MyDocument extends Document {
                         integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
                         crossOrigin="anonymous"
                     />
+                    <link rel="stylesheet" href="/css/jquery-ui.min.css" />
+                    <script
+                        type="text/javascript"
+                        src="/static/js/jquery-ui.min.js"
+                    ></script>
+                    <script
+                        type="text/javascript"
+                        src="/static/js/pixi.js"
+                    ></script>
                 </Head>
-                <body>
+                <body data-theme="dark">
                     <Main />
                     <NextScript />
                 </body>

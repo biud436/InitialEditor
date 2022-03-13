@@ -4,20 +4,13 @@ import "../styles/globals.css";
 import { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "../styles/global-style";
 import Head from "next/head";
+import Script from "next/script";
 
 function MyApp({ Component, pageProps }: AppProps) {
     return (
         <>
-            <Head>
-                <meta charSet="UTF-8" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1.0"
-                />
-                <title></title>
-            </Head>
-            <GlobalStyle />
             <ThemeProvider theme={{}}>
+                <GlobalStyle />
                 <Component {...pageProps} />
             </ThemeProvider>
         </>
