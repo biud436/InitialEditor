@@ -12,9 +12,9 @@ import Rectangle from "./Rectangle";
 import { WindowCreator } from "./WindowCreator";
 
 import { EditorSchema } from "./schema/EditorSchema";
-import { Mouse } from "./Mouse";
 import { ThemeManager } from "./ThemeManager";
 import { Inject, Service } from "typedi";
+import { Mouse } from "./Mouse";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -35,7 +35,7 @@ export default class App extends EventEmitter {
     private _config: MyEditorConfig = config;
 
     /** 마우스 제어 */
-    private _mouse: Mouse;
+    public _mouse: Mouse;
 
     /**
      * 사각형 툴을 위한 제어 객체
@@ -537,7 +537,7 @@ export default class App extends EventEmitter {
         const mouse = this._mouse;
 
         // 메뉴를 업데이트합니다.
-        this._menu.update(target, mouse);
+        this._menu.update<HTMLElement, any>(target, mouse);
 
         // 메뉴가 열리지 않았을 경우
         if (!this._menu.isMenuOpen()) {
