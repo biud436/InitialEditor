@@ -5,6 +5,7 @@ import { MainWindow } from "./windows/mainWindow";
 import { config, MonitorInfo } from "./config";
 import { showSplashWindow } from "./windows/splashWindow";
 import { EntryPoint as Ep } from "./utils/Path";
+import serve from "electron-serve";
 
 const Path = Ep.Path;
 
@@ -15,9 +16,11 @@ const Path = Ep.Path;
  */
 export class EntryPoint {
     private _hostWindow!: MainWindow;
+    private isProd: boolean = process.env.NODE_ENV === "production";
 
     constructor() {
         this.initWithTitle();
+        this.createUserDataStorage();
     }
 
     /**
@@ -25,6 +28,14 @@ export class EntryPoint {
      */
     initWithTitle() {
         app.setName("InitialEditor");
+    }
+
+    createUserDataStorage() {
+        if (this.isProd) {
+            serve({ directory: "app" });
+        } else {
+            app.setPath("userData", `${app.getPath("userData")} (development)`);
+        }
     }
 
     /**

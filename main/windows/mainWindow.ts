@@ -10,6 +10,8 @@ export class MainWindow extends BrowserWindow {
     jQuery: any;
     $: any;
 
+    private isProd: boolean = process.env.NODE_ENV === "production";
+
     constructor(options?: Electron.BrowserWindowConstructorOptions) {
         super(options);
         this.setConfiguration();
