@@ -1,11 +1,34 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Head from "next/head";
-import Link from "next/link";
-import Script from "next/script";
 
 import { MainContainer } from "../components/MainContainer";
+import { useRouter } from "next/dist/client/router";
+import dynamic from "next/dynamic";
+import jQuery from "jquery";
 
 function Home() {
+    const router = useRouter();
+
+    const openWindow = (route: string) => {
+        router.push(router);
+    };
+
+    useEffect(() => {
+        import("../packages")
+            .then(() => {
+                window.$ = jQuery;
+                window.onMounted(() => {
+                    // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
+                    if (window.app) {
+                        window.app.on("openWindow", openWindow);
+                    }
+                });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    });
+
     return (
         <React.Fragment>
             <Head>

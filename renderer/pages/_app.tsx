@@ -2,18 +2,14 @@ import React from "react";
 import type { AppProps } from "next/app";
 import "../styles/globals.css";
 import { ThemeProvider } from "styled-components";
-import { GlobalStyle } from "../styles/global-style";
-import Head from "next/head";
-import Script from "next/script";
+import { RecoilRoot } from "recoil";
 
-function MyApp({ Component, pageProps }: AppProps) {
+export default function MyApp({ Component, pageProps }: AppProps) {
     return (
-        <>
+        <RecoilRoot>
             <ThemeProvider theme={{}}>
                 <Component {...pageProps} />
             </ThemeProvider>
-        </>
+        </RecoilRoot>
     );
 }
-
-export default MyApp;

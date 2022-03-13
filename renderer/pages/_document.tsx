@@ -40,7 +40,7 @@ export default class MyDocument extends Document {
                 <Head>
                     <title></title>
                     <link
-                        href={`https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap`}
+                        href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
                         rel="stylesheet"
                     />
                     <link
@@ -49,6 +49,10 @@ export default class MyDocument extends Document {
                         integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
                         crossOrigin="anonymous"
                     />
+                    <script
+                        type="text/javascript"
+                        src="/static/js/jquery-3.5.1.js"
+                    ></script>
                     <script
                         type="text/javascript"
                         src="/static/js/pixi.js"
