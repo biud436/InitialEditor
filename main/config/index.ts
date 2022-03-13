@@ -48,6 +48,11 @@ export const config: ElectronStartingConfig = {
             return {
                 width: 1280,
                 height: 640,
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    devTools: true,
+                },
                 frame: false,
                 alwaysOnTop: true,
                 center: true,

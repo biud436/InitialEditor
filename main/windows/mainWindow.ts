@@ -1,5 +1,6 @@
 import { EntryPoint } from "../utils/Path";
 import { BrowserWindow } from "electron";
+import { createWindow } from "../helpers";
 import * as path from "path";
 
 /**
@@ -14,15 +15,23 @@ export class MainWindow extends BrowserWindow {
 
     constructor(options?: Electron.BrowserWindowConstructorOptions) {
         super(options);
-        this.setConfiguration();
+        this.setConfiguration()
+            .then(() => {})
+            .catch((err) => {
+                console.log(err);
+            });
     }
 
-    setConfiguration() {
+    async setConfiguration() {
         this.setMenuBarVisibility(false);
         this.$ = this.jQuery = require("jquery");
-        this.loadURL(
-            EntryPoint.Path.join(EntryPoint.Path.getWorkDir(), "index.html")
-        );
+        if (this.isProd) {
+            await this.loadURL("app://./home.html");
+        } else {
+            const port = process.argv[2];
+            await this.loadURL(`http://localhost:${port}/home`);
+            this.webContents.openDevTools();
+        }
         this.webContents.once("dom-ready", () => {
             this.webContents.send("change-theme");
         });
