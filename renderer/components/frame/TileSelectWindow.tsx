@@ -4,7 +4,7 @@ export function TileSelectWindow() {
             <div className="aside__tabs">
                 <div id="view" onDragStart={() => false}></div>
 
-                <input type="radio" name="tile" id="a" checked />
+                <input type="radio" name="tile" id="a" defaultChecked />
                 <input type="radio" name="tile" id="b" />
                 <input type="radio" name="tile" id="c" />
                 <input type="radio" name="tile" id="d" />

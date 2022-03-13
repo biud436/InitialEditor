@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./BaseWindowFrame.module.css";
+import Draggable from "react-draggable";
 
 export function BaseWindowFrame() {
     const [name, setName] = useState("");
@@ -15,7 +16,11 @@ export function BaseWindowFrame() {
 
     useEffect(() => {});
 
-    return <div className={styles.background}></div>;
+    return (
+        <Draggable grid={[16, 16]}>
+            <div className={styles.background}></div>
+        </Draggable>
+    );
 }
 
 //

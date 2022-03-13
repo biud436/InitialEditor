@@ -1,5 +1,6 @@
 import { WindowTitleBar } from "./WindowTitleBar";
 import * as menu from "./menuItems";
+import Draggable from "react-draggable";
 
 export function MainMenuContainer(children: React.ReactNode) {
     return (

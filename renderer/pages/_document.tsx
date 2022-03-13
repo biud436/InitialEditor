@@ -49,11 +49,6 @@ export default class MyDocument extends Document {
                         integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
                         crossOrigin="anonymous"
                     />
-                    <link rel="stylesheet" href="/css/jquery-ui.min.css" />
-                    <script
-                        type="text/javascript"
-                        src="/static/js/jquery-ui.min.js"
-                    ></script>
                     <script
                         type="text/javascript"
                         src="/static/js/pixi.js"
