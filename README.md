@@ -12,11 +12,9 @@ This project allows you to edit multi dimensional tile map on my own game engine
 
 # Environment
 
-|         Platform Type         |    Status     |
-| :---------------------------: | :-----------: |
-|           Electron            | Stable (100%) |
-| Chrome 85.0.4183.121 (64 Bit) | UnStable (0%) |
-|     Firebox 79.0 (64 Bit)     | UnStable (0%) |
+| Platform Type |    Status     |
+| :-----------: | :-----------: |
+|   Electron    | Stable (100%) |
 
 # How to setup
 
@@ -28,7 +26,7 @@ node -v
 cd ~/Documents
 git clone https://github.com/biud436/InitialEditor.git
 cd InitialEidtor
-sudo yarn install -D
+sudo yarn install
 ```
 
 In case of platform such as `Windows 10`, try to download the Node.js LTS version in your system manually. and next, if you exist the program called `git` in environment variable named `PATH` of your system, you must just call the command such as `git clone https://github.com/biud436/InitialEditor.git` in desired directory. and next try to below step.
@@ -41,14 +39,13 @@ yarn install
 
 # How to start on Windows 10
 
-It is pretty easy. Open the Visual Studio Code and press key called `F5` on platform such as Windows 10. if you can't start the program, you must see the previous step.
+~~It is pretty easy. Open the Visual Studio Code and press key called `F5` on platform such as Windows 10. if you can't start the program, you must see the previous step.~~
 
 # How to start on Mac OSX (Apple Silicon M1)
 
-you have to run the shell script file such as `build.sh` and execute the command such as `npm run start` or `fn + F5`
+you have to run the shell script file such as `build.sh` and execute the command such as `npm run start` ~~or `fn + F5`~~
 
 ```sh
-sudo chmod +x ./build.sh
 yarn dev
 ```
 
