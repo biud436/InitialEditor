@@ -1,7 +1,7 @@
 {
     "private": true,
-    "name": "my-nextron-app",
-    "description": "My application description",
+    "name": "initial-editor",
+    "description": "initial-editor",
     "version": "1.0.0",
     "author": "biud436",
     "main": "app/background.js",

@@ -1,12 +1,12 @@
-appId: com.example.nextron
-productName: My Nextron App
-copyright: Copyright © 2018 Yoshihide Shiono
+appId: com.biud436.initial-editor
+productName: InitialEditor
+copyright: Copyright © 2022 Jinseok Eo
 directories:
-  output: dist
-  buildResources: resources
+    output: dist
+    buildResources: resources
 files:
-  - from: .
-    filter:
-      - package.json
-      - app
+    - from: .
+      filter:
+          - package.json
+          - app
 publish: null
