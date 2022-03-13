@@ -1,3 +1,5 @@
+import { Resizable, ResizableBox } from "react-resizable";
+
 export function TileSelectWindow() {
     return (
         <div id="aside">
