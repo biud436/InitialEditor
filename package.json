@@ -16,6 +16,7 @@
     "jquery": "^3.6.0",
     "next-transpile-modules": "^9.0.0",
     "react-draggable": "^4.4.4",
+    "react-resizable": "^3.0.4",
     "styled-components": "^5.3.3",
     "styled-reset": "^4.3.4"
   },
