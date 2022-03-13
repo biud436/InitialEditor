@@ -17,3 +17,5 @@ export function BaseWindowFrame() {
 
     return <div className={styles.background}></div>;
 }
+
+//
