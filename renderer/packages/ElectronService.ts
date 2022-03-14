@@ -75,7 +75,8 @@ class ElectronService extends EventEmitter {
   }
 
   public getWindow() {
-    // return require("electron").remote.getCurrentWindow();
+    // remote module is deprecated in Electron v14.0
+    // https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-140
   }
 
   public maximize() {

@@ -5,6 +5,9 @@ import { TilesetWindowModel } from "./models/TilesetWindow";
 
 import { getClassName } from "./camelCase";
 import { Service } from "typedi";
+import BaseController from "./controllers/BaseController";
+import GamePropertiesWindowController from "./controllers/GamePropertiesWindowController";
+import TilesetWindowController from "./controllers/TilesetWindowController";
 
 namespace WindowManager {
   export interface Cache {
