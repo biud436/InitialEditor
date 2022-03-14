@@ -70,7 +70,9 @@ export class EntryPoint {
   connectIPC(hostWindow: MainWindow) {
     ipcMain.on("minimize", () => hostWindow.minimize());
     ipcMain.on("maximize", () => hostWindow.onMaximize());
-    ipcMain.on("close", () => app.quit());
+    ipcMain.on("close", () => {
+      hostWindow.close();
+    });
     ipcMain.on("message_box:error", (event, ...args: any[]) => {
       const [title, content] = args;
       dialog.showErrorBox(title, content);
