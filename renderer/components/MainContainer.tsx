@@ -2,17 +2,17 @@ import { MainMenuContainer } from "./menu/MainMenuContainer";
 import * as frame from "./frame";
 import React from "react";
 
-type MyReactNodeProps = { children: React.ReactNode };
+export type MyReactNodeProps = { children: React.ReactNode };
 
-function Wrapper({ children }: MyReactNodeProps) {
+export function Wrapper({ children }: MyReactNodeProps) {
     return <div id="wrapper">{children}</div>;
 }
 
-function Container({ children }: MyReactNodeProps) {
+export function Container({ children }: MyReactNodeProps) {
     return <div id="container">{children}</div>;
 }
 
-function MyApp() {
+export function MyApp() {
     return <div id="app"></div>;
 }
 
