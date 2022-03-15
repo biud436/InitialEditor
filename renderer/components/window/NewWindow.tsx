@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import { BaseWindowFrame } from "./BaseWindowFrame";
 
 type Project = {
@@ -6,11 +6,30 @@ type Project = {
     author: string;
 };
 
-export function NewWindow(children?: React.ReactNode) {
-    const [project, setProject] = useState<Project>({
+type ReactWindowProps = { children: React.ReactNode };
+
+function onFileChangeReducer(
+    state: Project,
+    action: { type: string; payload: any }
+) {
+    switch (action.type) {
+        case "setPath":
+            return { ...state, path: action.payload };
+        case "setAuthor":
+            return { ...state, author: action.payload };
+        default:
+            return state;
+    }
+}
+
+export function NewWindow({ children }: ReactWindowProps) {
+    const initialProject: Project = {
         path: Array.from([])[0],
         author: "",
-    });
+    };
+
+    const [project, setProject] = useState<Project>(initialProject);
+    const [state, dispatch] = useReducer(onFileChangeReducer, initialProject);
 
     const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         project.path = e.target.files;
