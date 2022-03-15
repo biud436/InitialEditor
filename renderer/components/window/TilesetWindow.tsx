@@ -15,9 +15,7 @@ export function TilesetWindow() {
 
     const router = useRouter();
 
-    const returnToMain = () => {
-        router.push("/");
-    };
+    const returnToMain = () => router.push("/");
 
     const ok = () => {};
 
