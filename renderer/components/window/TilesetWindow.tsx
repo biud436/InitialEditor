@@ -19,6 +19,8 @@ export function TilesetWindow() {
         router.push("/");
     };
 
+    const ok = () => {};
+
     const applyTheme = () => {
         const themeIndex = selectedIndex;
         const themeManager = new ThemeManager();
