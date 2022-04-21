@@ -58,7 +58,7 @@ export class AutoTile extends EventEmitter {
         this._filename = filename;
     }
 
-    findNormalTile(): Tile {
+    public findNormalTile(): Tile {
         const data = AutoTile.TABLE;
         let target = 0;
         let found: Point = {
@@ -89,7 +89,7 @@ export class AutoTile extends EventEmitter {
      * @param filename
      * @return Promise<PIXI.Sprite>
      */
-    checkToValidAutoTile(filename: string): Promise<PIXI.Sprite> {
+    public checkToValidAutoTile(filename: string): Promise<PIXI.Sprite> {
         const tw = config.TILE_WIDTH;
         const th = config.TILE_HEIGHT;
 

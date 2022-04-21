@@ -28,18 +28,18 @@ class ThemeManager {
         ThemeManager.INSTANCE_COUNT++;
     }
 
-    set(key: string, value: string) {
+    public set(key: string, value: string) {
         // document.documentElement.style.setProperty(key, value);
         $(":root").css(key, value);
     }
 
-    flush(theme: number) {
+    public flush(theme: number) {
         window.app.emit("save-config", {
             Theme: theme,
         });
     }
 
-    changeDarkTheme(isOption: boolean = false) {
+    public changeDarkTheme(isOption: boolean = false) {
         this.set("--dark-title-color", ThemeColor.DARK.TITLE_COLOR);
         this.set("--dark-selection-color", ThemeColor.DARK.SELECTION_COLOR);
         this.set(
@@ -55,7 +55,7 @@ class ThemeManager {
         }
     }
 
-    changeLightTheme(isOption: boolean = false) {
+    public changeLightTheme(isOption: boolean = false) {
         this.set("--dark-title-color", ThemeColor.LIGHT.TITLE_COLOR);
         this.set("--dark-selection-color", ThemeColor.LIGHT.SELECTION_COLOR);
         this.set(

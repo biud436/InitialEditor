@@ -3,7 +3,7 @@ import { MarkerRange, TilesetMarker } from "./tilesetMarker";
 
 @Service()
 export default class TileMarker extends TilesetMarker {
-    initWithElement() {
+    public initWithElement() {
         const parent = $(".contents");
         let child = null;
         if ((child = document.querySelector("#tile-marker"))) {
@@ -31,7 +31,7 @@ export default class TileMarker extends TilesetMarker {
         parent.append(this._element);
     }
 
-    update(...args: any[]) {
+    public update(...args: any[]) {
         if (!this._isReady) {
             return;
         }

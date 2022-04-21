@@ -1,7 +1,6 @@
-import {EventEmitter} from "./EventEmitter";
+import { EventEmitter } from "./EventEmitter";
 
 class Component extends EventEmitter {
-
     protected _isActiveEvent: boolean;
 
     constructor(...args: any[]) {
@@ -10,29 +9,27 @@ class Component extends EventEmitter {
         this.start(...args);
     }
 
-    initMembers(...args: any[]) {
+    public initMembers(...args: any[]) {
         this._isActiveEvent = false;
     }
 
-    active() {
+    public active() {
         this._isActiveEvent = true;
     }
-    
-    deactive() {
+
+    public deactive() {
         this._isActiveEvent = false;
     }
 
-    isActiveEvent() {
+    public isActiveEvent() {
         return this._isActiveEvent;
     }
 
-    start(...args:any[]): Component {
+    public start(...args: any[]): Component {
         return this;
     }
 
-    update(...args: any[]) {
-
-    }
+    public update(...args: any[]) {}
 }
 
 class BasicComponent extends Component {

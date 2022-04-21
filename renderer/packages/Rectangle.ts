@@ -1,5 +1,4 @@
 export default class Rectangle {
-
     private _x: number;
     private _y: number;
     private _width: number;
@@ -46,12 +45,11 @@ export default class Rectangle {
         this._height = value;
     }
 
-    contains(mx: number, my: number): boolean {
+    public contains(mx: number, my: number): boolean {
         const x = this._x;
         const y = this._y;
         const width = this._width;
         const height = this._height;
-        return mx >= x && mx <= (x + width) && my >= y && my <= (y + height);
+        return mx >= x && mx <= x + width && my >= y && my <= y + height;
     }
 }
-

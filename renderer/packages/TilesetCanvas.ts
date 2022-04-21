@@ -16,17 +16,17 @@ export default class TilesetCanvas {
         this.initMembers(...args);
     }
 
-    initMembers(...args: any[]) {
+    public initMembers(...args: any[]) {
         this._config = args[0];
         this._isReady = false;
         this._tilesetImgages = this._config.TILESET_IMGAGES;
     }
 
-    async start(...args: any[]) {
+    public async start(...args: any[]) {
         return this.loadTilesets();
     }
 
-    async loadTilesets() {
+    public async loadTilesets() {
         this._tilesets = [];
 
         let count = 0;
@@ -54,7 +54,7 @@ export default class TilesetCanvas {
      * 이 메소드는 타일셋을 지우고 다시 처음부터 그립니다.
      * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
      */
-    async refreshTilesets(newTileset: string) {
+    public async refreshTilesets(newTileset: string) {
         this._tilesetImgages.push(newTileset);
 
         if (this._canvas) {
@@ -66,7 +66,7 @@ export default class TilesetCanvas {
         });
     }
 
-    createCanvas() {
+    public createCanvas() {
         const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
         const canvasHeight =
             this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;

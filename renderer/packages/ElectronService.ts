@@ -19,87 +19,87 @@ import { Service } from "typedi";
 
 @Service()
 class ElectronService extends EventEmitter {
-  public static INSTANCE: ElectronService = new ElectronService();
+    public static INSTANCE: ElectronService = new ElectronService();
 
-  public static getInstance() {
-    return ElectronService.INSTANCE;
-  }
-
-  public ipcMain: Electron.IpcMain;
-
-  constructor() {
-    super();
-
-    this.ipcMain = ipcMain;
-    this.listenEvents();
-  }
-
-  /**
-   * 이벤트를 차례대로 접근해 호출합니다.
-   */
-  public *makeEvents(): IterableIterator<string> {
-    yield "minimize";
-    yield "maximize";
-    yield "restore";
-    yield "close";
-  }
-
-  private listenEvents() {
-    const generator = this.makeEvents();
-
-    while (true) {
-      const event = generator.next();
-      if (event.done) break;
-
-      const value = (<string>event.value).toString();
-      process.stdout.write(`listenEvents: ${value}\n`);
-
-      this.on(value, () => {
-        ipcRenderer.send(value);
-        // const func = this.getWindow()[value];
-        // if (typeof func === "function") {
-        //   func();
-        // }
-      });
+    public static getInstance() {
+        return ElectronService.INSTANCE;
     }
-  }
 
-  /**
-   * 폴더를 엽니다.
-   *
-   * @param folderName
-   */
-  public openFolder(folderName: string = process.cwd()) {
-    const current = path.join(folderName.replace(/\\/g, "/"));
-    shell.showItemInFolder(current);
-  }
+    public ipcMain: Electron.IpcMain;
 
-  public getWindow() {
-    // remote module is deprecated in Electron v14.0
-    // https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-140
-  }
+    constructor() {
+        super();
 
-  public maximize() {
-    ipcRenderer.send("maximize");
-  }
+        this.ipcMain = ipcMain;
+        this.listenEvents();
+    }
 
-  public close() {
-    this.quit();
-  }
+    /**
+     * 이벤트를 차례대로 접근해 호출합니다.
+     */
+    public *makeEvents(): IterableIterator<string> {
+        yield "minimize";
+        yield "maximize";
+        yield "restore";
+        yield "close";
+    }
 
-  public showErrorMessageBox(title: string, message: string) {
-    MessageBoxComponent.showError(title, message);
-  }
+    private listenEvents() {
+        const generator = this.makeEvents();
 
-  public quit() {
-    ipcRenderer.sendSync("close");
-  }
+        while (true) {
+            const event = generator.next();
+            if (event.done) break;
+
+            const value = (<string>event.value).toString();
+            process.stdout.write(`listenEvents: ${value}\n`);
+
+            this.on(value, () => {
+                ipcRenderer.send(value);
+                // const func = this.getWindow()[value];
+                // if (typeof func === "function") {
+                //   func();
+                // }
+            });
+        }
+    }
+
+    /**
+     * 폴더를 엽니다.
+     *
+     * @param folderName
+     */
+    public openFolder(folderName: string = process.cwd()): void {
+        const current = path.join(folderName.replace(/\\/g, "/"));
+        shell.showItemInFolder(current);
+    }
+
+    public getWindow(): void {
+        // remote module is deprecated in Electron v14.0
+        // https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-140
+    }
+
+    public maximize(): void {
+        ipcRenderer.send("maximize");
+    }
+
+    public close() {
+        this.quit();
+    }
+
+    public showErrorMessageBox(title: string, message: string): void {
+        MessageBoxComponent.showError(title, message);
+    }
+
+    public quit(): void {
+        ipcRenderer.sendSync("close");
+    }
 }
 
 class MessageBoxComponent extends Component {
-  public static showError(title: string, message: string) {
-    ipcRenderer.send("message_box:error", title, message);
-  }
+    public static showError(title: string, message: string) {
+        ipcRenderer.send("message_box:error", title, message);
+    }
 }
 
 export { ElectronService };

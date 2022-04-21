@@ -22,7 +22,7 @@ export class MainWindow extends BrowserWindow {
             });
     }
 
-    async setConfiguration() {
+    public async setConfiguration() {
         this.setMenuBarVisibility(false);
         this.$ = this.jQuery = require("jquery");
         if (this.isProd) {
@@ -37,7 +37,7 @@ export class MainWindow extends BrowserWindow {
         });
     }
 
-    onMaximize() {
+    public onMaximize() {
         let restoreSize = [];
 
         if (!this.isMaximized()) {
