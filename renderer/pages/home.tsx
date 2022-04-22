@@ -3,14 +3,19 @@ import Head from "next/head";
 
 import { MainContainer } from "../components/MainContainer";
 import { useRouter } from "next/dist/client/router";
-import dynamic from "next/dynamic";
 import jQuery from "jquery";
+import { useRecoilState } from "recoil";
+import { WindowState, WindowType } from "../recoil/window";
+import Widget from "../components/window/Widget";
 
-function Home() {
+export default function Home() {
     const router = useRouter();
+    const [panel, setPanel] = useRecoilState(WindowState);
 
-    const openWindow = (route: string) => {
-        router.push(router);
+    const openWindow = (currentWindow: WindowType) => {
+        setPanel({
+            currentWindow,
+        });
     };
 
     useEffect(() => {
@@ -18,7 +23,6 @@ function Home() {
             .then(() => {
                 window.$ = jQuery;
                 window.onMounted(() => {
-                    // 외부에서 뷰의 라우터를 호출할 수 있는 인터페이스를 선언합니다.
                     if (window.app) {
                         window.app.on("openWindow", openWindow);
                     }
@@ -40,8 +44,7 @@ function Home() {
                 <title></title>
             </Head>
             <MainContainer></MainContainer>
+            <Widget></Widget>
         </React.Fragment>
     );
 }
-
-export default Home;

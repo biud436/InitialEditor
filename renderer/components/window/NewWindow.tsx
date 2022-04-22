@@ -22,23 +22,15 @@ function onFileChangeReducer(
     }
 }
 
-export function NewWindow({ children }: ReactWindowProps) {
-    const initialProject: Project = {
-        path: Array.from([])[0],
-        author: "",
-    };
-
-    const [project, setProject] = useState<Project>(initialProject);
-    const [state, dispatch] = useReducer(onFileChangeReducer, initialProject);
-
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        project.path = e.target.files;
+export default function NewWindow({ children }: ReactWindowProps) {
+    const close = () => {
+        console.log("close");
     };
 
     return (
         <BaseWindowFrame props={{ width: 256, height: 256 }}>
             <div className="newContainer">
-                <div id="newWindow" window-name="게임 속성" ref="newWindow">
+                <div id="newWindow" window-name="게임 속성">
                     <ul>
                         <li>
                             <label htmlFor="name">게임명 : </label>
@@ -50,12 +42,7 @@ export function NewWindow({ children }: ReactWindowProps) {
                         </li>
                         <li>
                             <label htmlFor="name">위치 : </label>
-                            <input
-                                type="file"
-                                placeholder=""
-                                multiple
-                                onChange={onFileChange}
-                            />
+                            <input type="file" placeholder="" multiple />
                         </li>
                         <li>
                             <label htmlFor="name">작성자 명 : </label>
