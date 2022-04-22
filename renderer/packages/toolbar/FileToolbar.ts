@@ -1,6 +1,8 @@
 import { EmptySegment } from "./EmptySegment";
 import { WindowCreator } from "../WindowCreator";
 import { ToolbarBase } from "./interface/toolbar.dto";
+import { useRecoilState } from "recoil";
+import { WindowState } from "../../recoil/window";
 
 const FileToolbar: ToolbarBase[] = [
     {

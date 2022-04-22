@@ -11,6 +11,7 @@ type WidgetLayoutProps = {
 function getCurrentWindow(currentWindow: WindowType) {
     switch (currentWindow) {
         case "none":
+            return <></>;
         case "newWindow":
             return (
                 <NewWindow>

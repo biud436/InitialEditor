@@ -1,4 +1,6 @@
 import { useReducer, useState } from "react";
+import { useRecoilState } from "recoil";
+import { WindowState } from "../../recoil/window";
 import { BaseWindowFrame } from "./BaseWindowFrame";
 
 type Project = {
@@ -23,8 +25,12 @@ function onFileChangeReducer(
 }
 
 export default function NewWindow({ children }: ReactWindowProps) {
+    const [panel, setPanel] = useRecoilState(WindowState);
+
     const close = () => {
-        console.log("close");
+        setPanel({
+            currentWindow: "none",
+        });
     };
 
     return (

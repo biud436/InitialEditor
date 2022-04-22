@@ -12,13 +12,14 @@ export default function Home() {
     const router = useRouter();
     const [panel, setPanel] = useRecoilState(WindowState);
 
-    const openWindow = (currentWindow: WindowType) => {
-        setPanel({
-            currentWindow,
-        });
-    };
-
     useEffect(() => {
+        const openWindow = (route: { path: string }) => {
+            const currentWindow = route.path.slice(1) ?? "none";
+            setPanel({
+                currentWindow: currentWindow as WindowType,
+            });
+        };
+
         import("../packages")
             .then(() => {
                 window.$ = jQuery;
