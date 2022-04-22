@@ -28,6 +28,17 @@ namespace WindowGroup {
   }
 }
 
+type InitialEventListener = Partial<{
+  touchmove: (ev: any) => void;
+  mousemove: (ev: any) => void;
+  mousedown: (ev: any) => void;
+  mouseup: (ev: any) => void;
+  mouseover: (ev: any) => void;
+  "touchstart pointerdown"?: (ev: any) => void;
+  "touchend pointerup mouseup"?: (ev: any) => void;
+  [key: string]: (ev: any) => void;
+}>;
+
 export default class App extends EventEmitter {
   public static Instance: App;
 
@@ -81,7 +92,7 @@ export default class App extends EventEmitter {
   /**
    * 멤버 변수를 초기화합니다.
    */
-  initMembers() {
+  public initMembers() {
     this.cache = {};
     this._config = config;
     this._mouse = {
@@ -161,7 +172,7 @@ export default class App extends EventEmitter {
   /**
    * 컴포넌트를 생성합니다.
    */
-  createComponents() {
+  public createComponents() {
     this._tilemap = new Tilemap(this._config);
 
     this._components.push(
@@ -183,7 +194,7 @@ export default class App extends EventEmitter {
   /**
    * 컴포넌트를 초기화합니다.
    */
-  async initWithComponents(): Promise<void> {
+  public async initWithComponents(): Promise<void> {
     /**
      * @type {Component[]}
      */
@@ -215,7 +226,7 @@ export default class App extends EventEmitter {
       });
   }
 
-  toCamelCase() {
+  public toCamelCase() {
     return toCamelCase();
   }
 
@@ -223,7 +234,7 @@ export default class App extends EventEmitter {
    * 모바일 디바이스에서 실행하고 있는지 여부를 파악합니다.
    * @return {Boolean}
    */
-  isMobileDevice(): Boolean {
+  public isMobileDevice(): Boolean {
     const ret =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
@@ -231,7 +242,7 @@ export default class App extends EventEmitter {
     return ret;
   }
 
-  onMouseTouchMove(ev: any) {
+  public onMouseTouchMove(ev: any) {
     if (!this._mouse) return;
     this._mouse.x = ev.layerX;
     this._mouse.y = ev.layerY;
@@ -242,9 +253,9 @@ export default class App extends EventEmitter {
   /**
    * 마우스 이벤트 및 터치 이벤트를 초기화합니다.
    */
-  initWithMouseEvent() {
+  public initWithMouseEvent() {
     const isMobileDevice = this.isMobileDevice();
-    let events;
+    let events: InitialEventListener;
 
     if (isMobileDevice) {
       events = {
@@ -375,7 +386,6 @@ export default class App extends EventEmitter {
     }
 
     for (let k in events) {
-      //@ts-ignore
       window.addEventListener(k, events[k], false);
     }
   }
