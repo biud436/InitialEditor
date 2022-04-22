@@ -9,11 +9,19 @@ export const DrawMenuNameMap = <const>[
   "draw-shadow pen",
 ];
 
+export const PenTypeNameMap = <const>[
+  "펜",
+  "정사각형",
+  "직사각형",
+  "채우기",
+  "그림자",
+];
+
 export type DrawMenuImpl = {
   name: string;
   children: {
     [key in typeof DrawMenuNameMap[number]]: {
-      name: string;
+      name: typeof PenTypeNameMap[number];
       children: Partial<Record<string, any>>;
       action: (ev: any) => void;
     };
