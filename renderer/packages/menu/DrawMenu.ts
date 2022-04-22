@@ -1,15 +1,18 @@
 import { WindowCreator } from "../WindowCreator";
 
+export const DrawMenuNameMap = <const>[
+  "draw-pencil",
+  "draw-rectangle",
+  "draw-ellipse",
+  "draw-ellipse",
+  "draw-flood-fill",
+  "draw-shadow pen",
+];
+
 export type DrawMenuImpl = {
   name: string;
   children: {
-    [key in
-      | "draw-pencil"
-      | "draw-rectangle"
-      | "draw-ellipse"
-      | "draw-ellipse"
-      | "draw-flood-fill"
-      | "draw-shadow pen"]: {
+    [key in typeof DrawMenuNameMap[number]]: {
       name: string;
       children: Partial<Record<string, any>>;
       action: (ev: any) => void;
