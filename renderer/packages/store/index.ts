@@ -28,10 +28,37 @@ export type InitialAction = (...args: any[]) => void;
  * @class InitialStore
  */
 export class InitialStore {
+    public static INSTANCE: InitialStore;
+    private _app: App;
+
+    public static GetInstance(app?: App): InitialStore {
+        if (!InitialStore.INSTANCE) {
+            InitialStore.INSTANCE = new InitialStore();
+
+            if (!InitialStore.INSTANCE.app) {
+                InitialStore.INSTANCE.app = app;
+            }
+            InitialStore.INSTANCE.app.emit(
+                "store:ready",
+                InitialStore.INSTANCE
+            );
+        }
+
+        return InitialStore.INSTANCE;
+    }
+
     private _fetchStore: Store<InitialAction>;
 
-    constructor(private readonly _app = App.GetInstance()) {
+    constructor() {
         this._fetchStore = new Store();
+    }
+
+    set app(app: App) {
+        this._app = app;
+    }
+
+    get app() {
+        return this._app;
     }
 
     set(key: string, action: InitialAction): InitialStore {
@@ -42,10 +69,10 @@ export class InitialStore {
         return this;
     }
 
-    startHook(): () => void {
+    startHook(app: App): () => void {
         return () => {
             this._fetchStore.forEach((action, key) => {
-                this._app.on(this.getUniqueKey(key), action);
+                app.on(this.getUniqueKey(key), action);
             });
         };
     }

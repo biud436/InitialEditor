@@ -7,6 +7,8 @@ import jQuery from "jquery";
 import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
+import { InitialStore } from "../packages/store";
+import Container from "typedi";
 
 export default function Home() {
     const router = useRouter();
@@ -26,8 +28,15 @@ export default function Home() {
                 window.onMounted(() => {
                     if (window.app) {
                         window.app.on("openWindow", openWindow);
+                        window.app.on("store:ready", (store: InitialStore) => {
+                            const nextHook = store.startHook(window.app);
+                            nextHook();
+                        });
                     }
                 });
+            })
+            .then(() => {
+                const store = InitialStore.GetInstance(window.app);
             })
             .catch((err) => {
                 console.error(err);
