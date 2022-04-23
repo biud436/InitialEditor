@@ -106,12 +106,12 @@ export default class MenuService extends Component {
     public start(...args: any[]) {
         // 맥 OS에서 내부 메뉴를 제거합니다.
         if (process.platform === "darwin") {
-            (<HTMLDivElement>document.querySelector(".menu")).style.display =
-                "none";
+            // (<HTMLDivElement>document.querySelector(".menu")).style.display =
+            //     "none";
         }
 
         if (!MenuService.isReady) {
-            this.hideMenuOnMac();
+            // this.hideMenuOnMac();
             this.changeMenuLocaleAsPersonalize();
             this.changeToolbarIconOnMobileDevice();
             this.addMenuEventHandlers();
