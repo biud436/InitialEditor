@@ -73,6 +73,6 @@ class ThemeManager {
     }
 }
 
-(window as any).ThemeManager = ThemeManager;
+// (window as any).ThemeManager = ThemeManager;
 
 export { ThemeManager };

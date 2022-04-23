@@ -10,7 +10,7 @@ const THEME = {
     LIGHT: "light",
 };
 
-export function TilesetWindow() {
+export default function TilesetWindow() {
     const [selectedIndex, setSelectedIndex] = useState("dark");
 
     const router = useRouter();
@@ -36,7 +36,7 @@ export function TilesetWindow() {
 
     return (
         <Draggable grid={[16, 16]}>
-            <div id="tilesetWindow" window-name="타일셋 창" ref="tilesetWindow">
+            <div id="tilesetWindow" window-name="타일셋 창">
                 <div
                     className="tilesetWindow__tileset tilesetWindow__tab-border"
                     tab-name="타일셋"
@@ -107,20 +107,20 @@ export function TilesetWindow() {
                 </div>
 
                 <div className="tilesetWindow__panel">
-                    <button id="ok" onClick={ok}>
+                    <button className="ok" onClick={ok}>
                         확인
                     </button>
-                    <button id="cancel" onClick={close}>
+                    <button className="cancel" onClick={close}>
                         취소
                     </button>
                 </div>
-                <img
+                {/* <img
                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                     onLoad={() => {
                         window.app.onLoad(this, "tileset");
                         this.parentNode.removeChild(this);
                     }}
-                />
+                /> */}
             </div>
         </Draggable>
     );
