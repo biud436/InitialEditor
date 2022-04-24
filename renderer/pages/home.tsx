@@ -8,7 +8,7 @@ import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
 import { InitialStore } from "../packages/store";
-import Container from "typedi";
+import Script from "next/script";
 
 export default function Home() {
     const router = useRouter();
@@ -39,7 +39,19 @@ export default function Home() {
                 const store = InitialStore.GetInstance(window.app);
             })
             .catch((err) => {
-                console.error(err);
+                return (
+                    <React.Fragment>
+                        <Head>
+                            <title>Error</title>
+                        </Head>
+                        <div>
+                            <p className="text-xl antialiased">
+                                페이지를 렌더링하는 도중에 오류가
+                                발생하였습니다.
+                            </p>
+                        </div>
+                    </React.Fragment>
+                );
             });
     });
 
@@ -53,6 +65,11 @@ export default function Home() {
                 />
                 <title></title>
             </Head>
+            <div className="fixed right-0">
+                <p className="text-xl text-blue-600 opacity-80 bg-white">
+                    테스트 버전입니다.
+                </p>
+            </div>
             <MainContainer></MainContainer>
             <Widget></Widget>
         </React.Fragment>

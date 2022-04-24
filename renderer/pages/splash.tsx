@@ -1,7 +1,6 @@
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
 import React from "react";
-import styled, { createGlobalStyle } from "styled-components";
 import Image from "next/image";
 import logoImage from "../public/images/logo.png";
 import style from "../styles/splash.module.css";

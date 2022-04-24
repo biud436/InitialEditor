@@ -22,7 +22,7 @@ if (isProd) {
  * This class allows you to create the electron application and start.
  */
 export class EntryPoint {
-    private _hostWindow!: MainWindow;
+    private _hostWindow!: MainWindow | null;
     private isProd: boolean = process.env.NODE_ENV === "production";
 
     constructor() {
@@ -148,11 +148,11 @@ export class EntryPoint {
             }
 
             // open develooper tools
-            this._hostWindow.webContents.openDevTools({
+            this._hostWindow!.webContents.openDevTools({
                 mode: "detach",
             });
-            this._hostWindow.center();
-            showSplashWindow(this._hostWindow);
+            this._hostWindow!.center();
+            showSplashWindow(this._hostWindow!);
         });
 
         app.on("window-all-closed", () => {
