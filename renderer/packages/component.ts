@@ -1,7 +1,7 @@
 import { EventEmitter } from "./EventEmitter";
 
 class Component extends EventEmitter {
-    protected _isActiveEvent: boolean;
+    protected _isActiveEvent!: boolean;
 
     constructor(...args: any[]) {
         super();

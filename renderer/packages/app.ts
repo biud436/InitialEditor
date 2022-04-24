@@ -34,8 +34,6 @@ type InitialEventListener = Partial<{
     mousedown: (ev: any) => void;
     mouseup: (ev: any) => void;
     mouseover: (ev: any) => void;
-    "touchstart pointerdown"?: (ev: any) => void;
-    "touchend pointerup mouseup"?: (ev: any) => void;
     [key: string]: (ev: any) => void;
 }>;
 
@@ -46,7 +44,7 @@ export default class App extends EventEmitter {
     private _config: MyEditorConfig = config;
 
     /** 마우스 제어 */
-    public _mouse: Mouse;
+    public _mouse!: Mouse;
 
     /**
      * 사각형 툴을 위한 제어 객체
@@ -410,7 +408,14 @@ export default class App extends EventEmitter {
         }
 
         for (let k in events) {
-            window.addEventListener(k, events[k], false);
+            window.addEventListener(
+                <keyof WindowEventMap>k,
+                events[k] as (
+                    this: Window,
+                    ev: WindowEventMap[keyof WindowEventMap]
+                ) => any,
+                false
+            );
         }
     }
 

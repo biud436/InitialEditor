@@ -6,14 +6,14 @@ enum Theme {
 }
 
 class EditorSchema extends Schema {
-    ProjectPath: string;
-    TileWidth: number;
-    TileHeight: number;
-    CurrentLayer: number;
-    StartMapId: number;
-    CurrentMapId: number;
-    LayerCount: number;
-    Theme: Theme;
+    ProjectPath!: string;
+    TileWidth!: number;
+    TileHeight!: number;
+    CurrentLayer!: number;
+    StartMapId!: number;
+    CurrentMapId!: number;
+    LayerCount!: number;
+    Theme!: Theme;
 
     initMembers(config: any) {
         this.ProjectPath = "";

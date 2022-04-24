@@ -66,20 +66,20 @@ namespace MenuButtonHandlers {
      * 창 닫기
      */
     export function addCloseWindow() {
-        document
-            .querySelector(
-                InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW
-            )
-            .addEventListener("click", (ev) => {
-                switch (process.platform) {
-                    case "darwin":
-                        process.exit(SIGKILL);
-                    default:
-                        const electronService = ElectronService.getInstance();
-                        electronService.close();
-                        break;
-                }
-            });
+        const elem = document.querySelector(
+            InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW
+        );
+
+        elem?.addEventListener("click", (ev) => {
+            switch (process.platform) {
+                case "darwin":
+                    process.exit(SIGKILL);
+                default:
+                    const electronService = ElectronService.getInstance();
+                    electronService.close();
+                    break;
+            }
+        });
 
         return MenuButtonHandlers;
     }
@@ -90,8 +90,8 @@ namespace MenuButtonHandlers {
  */
 @Service()
 export default class MenuService extends Component {
-    private _menuComponent: MenuComponent;
-    private _isClickedMenu: boolean;
+    private _menuComponent!: MenuComponent;
+    private _isClickedMenu!: boolean;
     public static isReady: boolean = false;
 
     public initMembers(...args: any[]) {
@@ -140,51 +140,6 @@ export default class MenuService extends Component {
         const labels = Array.from<HTMLLabelElement>(
             document.querySelectorAll(".menu__main label")
         );
-
-        // $(".menu__main label").each((index, elem) => {
-        //     const parent = $(elem);
-        //     const type = parent.data("action");
-        //     // @ts-ignore
-        //     const res = menu[langCode];
-        //     if (res) {
-        //         const data = res[type];
-        //         const name = data.name;
-        //         const font = res["$font"];
-        //         parent.text(name);
-        //         parent.css("font-size", font.size);
-
-        //         $(`.menu__${type}-sub li`).each((_index, _elem) => {
-        //             const _node = $(_elem);
-
-        //             // 서브 메뉴의 위치를 세밀하게 조정합니다.
-        //             const menuNode = parent.parent();
-        //             _node
-        //                 .parent()
-        //                 .css(
-        //                     "left",
-        //                     menuNode.get(0).getBoundingClientRect().x + "px"
-        //                 );
-
-        //             const _type = _node.data("action");
-        //             const _res = data.children[_type];
-        //             if (_res) {
-        //                 // 메뉴 노드에 메뉴 액션을 등록합니다.
-        //                 if (_res.action) {
-        //                     _node.get(0).onclick = _res.action;
-        //                 }
-
-        //                 const _name = _res.name;
-        //                 _node.get(0).childNodes.forEach((i) => {
-        //                     // 텍스트 노드만 찾습니다.
-        //                     if (i.nodeType == 3) {
-        //                         i.textContent = _name;
-        //                     }
-        //                 });
-        //                 _node.css("font-size", font.size);
-        //             }
-        //         });
-        //     }
-        // });
     }
 
     public addMenuEventHandlers() {
@@ -196,13 +151,6 @@ export default class MenuService extends Component {
     public changeToolbarIconOnMobileDevice() {
         const media = window.matchMedia("(max-width: 640px)");
         if (media.matches) {
-            // $(".toolbar i").each((index, elem) => {
-            //     $(elem).addClass("fa-3x").css({
-            //         width: "98%",
-            //         height: "98%",
-            //         "font-size": "1.25em",
-            //     });
-            // });
         }
 
         const resizeConfig = {
@@ -216,35 +164,5 @@ export default class MenuService extends Component {
                 width: "100%",
             },
         };
-
-        // $(window).on("resize", () => {
-        //     const width = window.innerWidth;
-        //     const padding = window.outerWidth - window.innerWidth;
-
-        //     if (width <= 640) {
-        //         for (let i in resizeConfig) {
-        //             //@ts-ignore
-        //             $(i).css(resizeConfig[i]);
-
-        //             const elem = document.querySelector(i) as HTMLDivElement;
-        //         }
-
-        //         $(".toolbar i").each((index, elem) => {
-        //             $(elem).removeClass("fa-3x").addClass("fa-3x").css({
-        //                 width: "98%",
-        //                 height: "98%",
-        //                 "font-size": "1.25em",
-        //             });
-        //         });
-        //     } else {
-        //         $(".toolbar i").each((index, elem) => {
-        //             $(elem).removeClass("fa-3x").addClass("fa-sm").css({
-        //                 width: "98%",
-        //                 height: "98%",
-        //                 "font-size": "0.875em",
-        //             });
-        //         });
-        //     }
-        // });
     }
 }

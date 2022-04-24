@@ -12,8 +12,8 @@ interface ColorTheme {
 }
 
 export class ThemeSchema extends Schema {
-    DARK: ColorTheme;
-    LIGHT: ColorTheme;
+    DARK!: ColorTheme;
+    LIGHT!: ColorTheme;
 
     initMembers(config?: any) {
         if (!config) {

@@ -35,11 +35,11 @@ class CacheManager extends EventEmitter {
 
 @Service()
 class WindowCreator extends EventEmitter {
-    public static INSTANCE: WindowCreator = null;
+    public static INSTANCE: WindowCreator;
 
     private _app: App;
-    private _gamePropertiesWindow: GamePropertiesWindowController;
-    private _tilesetWindow: TilesetWindowController;
+    private _gamePropertiesWindow!: GamePropertiesWindowController;
+    private _tilesetWindow!: TilesetWindowController;
 
     /**
      * @param {App} app

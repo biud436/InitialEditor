@@ -53,7 +53,7 @@ export class ViewModel
     implements ViewModelImpl, LifeCycle
 {
     protected _controller: BaseController;
-    protected _element: JQuery<HTMLElement>;
+    protected _element!: JQuery<HTMLElement>;
     protected _status: StatusProproties;
 
     private _isReady: boolean;

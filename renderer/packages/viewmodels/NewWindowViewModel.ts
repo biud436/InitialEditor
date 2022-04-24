@@ -32,8 +32,10 @@ export class NewWindowViewModel extends ViewModel {
     onShow(elem?: JQuery<HTMLElement>) {
         super.onShow(elem);
 
-        const parent = this._element.get(0);
-        const child = <any>parent.querySelector(".newWindow__control-box p i");
+        const parent = this._element.get(0)!;
+        const child = <HTMLElement>(
+            parent.querySelector(".newWindow__control-box p i")
+        );
         if (child) child.onclick = () => this._controller.remove();
     }
 }

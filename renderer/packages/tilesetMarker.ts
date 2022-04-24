@@ -17,23 +17,23 @@ export interface MarkerRange {
 class TilesetMarker extends Component {
     protected _config: any;
     /** tile width */
-    protected _tileWidth: number;
+    protected _tileWidth!: number;
     /** tile height */
-    protected _tileHeight: number;
-    protected _isReady: boolean;
-    protected _element: JQuery<HTMLElement>;
-    protected _isDraw: boolean;
-    protected _isClicked: boolean;
-    protected _blockSize: BlockSize;
-    protected touches: Array<{ x: number; y: number }>;
+    protected _tileHeight!: number;
+    protected _isReady!: boolean;
+    protected _element!: JQuery<HTMLElement>;
+    protected _isDraw!: boolean;
+    protected _isClicked!: boolean;
+    protected _blockSize!: BlockSize;
+    protected touches!: Array<{ x: number; y: number }>;
 
-    protected _isDragging: boolean;
+    protected _isDragging!: boolean;
 
     /**
      * 마지막 타일 ID
      */
-    protected _lastTileId: number;
-    protected _tiles: number[];
+    protected _lastTileId!: number;
+    protected _tiles!: number[];
 
     public static DRAGGING_DELAY = 33;
 
@@ -54,7 +54,7 @@ class TilesetMarker extends Component {
         const parent = $("#view");
         let child = null;
         if ((child = document.querySelector("#tileset-marker"))) {
-            parent.get(0).removeChild(child);
+            parent.get(0)?.removeChild(child);
             return;
         }
 
@@ -92,7 +92,7 @@ class TilesetMarker extends Component {
             { x: 0, y: 0 },
         ];
 
-        const topY = $("#view").offset().top;
+        const topY = $("#view").offset()?.top ?? 0;
 
         this.on("changeTile", (range: MarkerRange) =>
             this.onChangeTileID(range)
@@ -111,9 +111,9 @@ class TilesetMarker extends Component {
         const target = args[0].target;
 
         const img = $("#view canvas");
-        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
-        const tilesetWidth = img.width();
-        const tilesetHeight = img.height();
+        const mapCols = Math.floor(img.width()! / this._config.TILE_WIDTH);
+        const tilesetWidth = img.width()!;
+        const tilesetHeight = img.height()!;
         const topY = 0;
 
         const mouse = <Mouse>args[0];
@@ -240,7 +240,7 @@ class BlockSize {
     private _y = 0;
     private _width = 0;
     private _height = 0;
-    private _parent: JQuery<HTMLElement>;
+    private _parent: JQuery<HTMLElement> | null;
 
     constructor(x: number, y: number, width: number, height: number) {
         this._x = x;
@@ -287,7 +287,7 @@ class BlockSize {
     }
 
     public refresh() {
-        this._parent.css({
+        this._parent?.css({
             width: this.width,
             height: this.height,
             left: this._x,

@@ -7,7 +7,7 @@ export default class TileMarker extends TilesetMarker {
         const parent = $(".contents");
         let child = null;
         if ((child = document.querySelector("#tile-marker"))) {
-            parent.get(0).removeChild(child);
+            parent.get(0)?.removeChild(child);
             return;
         }
 
@@ -38,10 +38,10 @@ export default class TileMarker extends TilesetMarker {
 
         const target = args[0].target;
 
-        const img = $("#contents__main-canvas");
-        const mapCols = Math.floor(img.width() / this._config.TILE_WIDTH);
-        const tilesetWidth = img.width();
-        const tilesetHeight = img.height();
+        const img = $("#contents__main-canvas")!;
+        const mapCols = Math.floor(img.width()! / this._config.TILE_WIDTH);
+        const tilesetWidth = img.width()!;
+        const tilesetHeight = img.height()!;
         const topY = 0;
 
         const mouse = args[0];

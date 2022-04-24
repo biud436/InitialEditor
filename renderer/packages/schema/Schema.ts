@@ -26,7 +26,7 @@ class Schema {
         }
 
         return new Promise((resolve, reject) => {
-            fs.readFile(filename, "utf-8", (err, data) => {
+            fs.readFile(filename!, "utf-8", (err, data) => {
                 if (err) {
                     reject(err);
                     return;
@@ -51,7 +51,7 @@ class Schema {
         const contents = this.toJson();
 
         return new Promise((resolve, reject) => {
-            fs.writeFile(filename, contents, { encoding: "utf8" }, (err) => {
+            fs.writeFile(filename!, contents, { encoding: "utf8" }, (err) => {
                 if (err) {
                     reject(err.message);
                 }

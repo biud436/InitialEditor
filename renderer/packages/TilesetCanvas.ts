@@ -5,12 +5,12 @@ import { config } from "./config.js";
 @Service()
 export default class TilesetCanvas {
     private _config: any;
-    private _isReady: boolean;
-    private _tilesetImgages: string[];
-    private _tilesets: Array<any>;
-    private _parent: JQuery<HTMLDivElement>;
-    private _canvas: JQuery<HTMLElement>;
-    private _context: CanvasRenderingContext2D;
+    private _isReady!: boolean;
+    private _tilesetImgages!: string[];
+    private _tilesets!: Array<any>;
+    private _parent!: JQuery<HTMLDivElement>;
+    private _canvas!: JQuery<HTMLElement>;
+    private _context!: CanvasRenderingContext2D;
 
     constructor(...args: any[]) {
         this.initMembers(...args);
@@ -91,7 +91,7 @@ export default class TilesetCanvas {
          */
         this._context = (this._canvas.get(0) as HTMLCanvasElement).getContext(
             "2d"
-        );
+        )!;
         const ctx = this._context;
 
         let acc = 0;

@@ -29,14 +29,14 @@ export type InitialAction = (...args: any[]) => void;
  */
 export class InitialStore {
     public static INSTANCE: InitialStore;
-    private _app: App;
+    private _app!: App;
 
     public static GetInstance(app?: App): InitialStore {
         if (!InitialStore.INSTANCE) {
             InitialStore.INSTANCE = new InitialStore();
 
             if (!InitialStore.INSTANCE.app) {
-                InitialStore.INSTANCE.app = app;
+                InitialStore.INSTANCE.app = <App>app;
             }
             InitialStore.INSTANCE.app.emit(
                 "store:ready",

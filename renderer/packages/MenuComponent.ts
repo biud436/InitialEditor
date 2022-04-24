@@ -28,9 +28,9 @@ export namespace InitialEditor {
  */
 @Service()
 class MenuComponent extends Component {
-    public _isMenuOpen: boolean;
-    private _originalPos: InitialEditor.Point;
-    private _currentTarget?: JQuery<HTMLElement>;
+    public _isMenuOpen!: boolean;
+    private _originalPos!: InitialEditor.Point;
+    private _currentTarget?: JQuery<HTMLElement> | undefined | null;
 
     start(...args: any[]) {
         this._isMenuOpen = false;
@@ -73,7 +73,7 @@ class MenuComponent extends Component {
         mouse: R
     ) {
         if ($(".toolbar").is(".ui-draggable-dragging")) {
-            const rect = $(".toolbar").get(0).getBoundingClientRect();
+            // const rect = $(".toolbar").get(0).getBoundingClientRect();
         }
 
         // 최상위 노드를 선택합니다.

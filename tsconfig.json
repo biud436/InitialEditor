@@ -22,7 +22,7 @@
         "jsx": "preserve",
         "sourceMap": true,
         "noEmit": true,
-        "strict": false,
+        "strict": true,
         // "noImplicitAny": true,
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,

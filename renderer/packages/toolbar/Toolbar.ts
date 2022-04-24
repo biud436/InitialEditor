@@ -8,9 +8,14 @@ import { Service } from "typedi";
 
 // 모든 배열을 하나로 합칩니다.
 const Toolbar = <ToolbarBase[]>(
-    [].concat(FileToolbar, EditToolbar, ModeToolbar, DrawToolbar, OtherToolbar)
+    new Array<ToolbarBase>().concat(
+        FileToolbar,
+        EditToolbar,
+        ModeToolbar,
+        DrawToolbar,
+        OtherToolbar
+    )
 );
-
 /**
  * @interface ToolbarImpl
  */
@@ -31,7 +36,7 @@ type HTMLTagMap = keyof HTMLElementTagNameMap | string;
  * @class ToolbarContainer
  */
 class ToolbarContainer implements ToolbarImpl {
-    private _element: HTMLElement;
+    private _element!: HTMLElement;
     private _isReady = false;
 
     constructor(selectors: HTMLTagMap) {
@@ -40,7 +45,7 @@ class ToolbarContainer implements ToolbarImpl {
 
     initMembers(selectors?: HTMLTagMap): void {
         if (selectors) {
-            this._element = document.querySelector(selectors);
+            this._element = document.querySelector<HTMLElement>(selectors)!;
             this._isReady = true;
         }
     }
@@ -63,7 +68,7 @@ class ToolbarContainer implements ToolbarImpl {
         }
     }
 
-    getBoundingClientRect(): DOMRect {
+    getBoundingClientRect(): DOMRect | void {
         if (!this._isReady) return;
         return this._element.getBoundingClientRect();
     }
@@ -76,11 +81,11 @@ class ToolbarContainer implements ToolbarImpl {
  */
 @Service()
 class ToolbarManager implements ToolbarImpl {
-    _mainToolbarId: string;
-    _isOpened: boolean;
-    _isMovable: boolean;
-    _originPosition: DOMRect;
-    _toolbarContainer: ToolbarContainer;
+    _mainToolbarId!: string;
+    _isOpened!: boolean;
+    _isMovable!: boolean;
+    _originPosition!: DOMRect;
+    _toolbarContainer!: ToolbarContainer;
 
     constructor() {
         this.initMembers();
@@ -95,7 +100,7 @@ class ToolbarManager implements ToolbarImpl {
         this._isMovable = false;
         this.lock();
         this._toolbarContainer = new ToolbarContainer(this._mainToolbarId);
-        this._originPosition = this._toolbarContainer.getBoundingClientRect();
+        this._originPosition = this._toolbarContainer.getBoundingClientRect()!;
     }
 
     /**

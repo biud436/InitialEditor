@@ -35,7 +35,7 @@ export type Mouse = {
     /**
      * @type {HTMLElement}
      */
-    target: HTMLElement;
+    target?: HTMLElement;
     /**
      * @type {HTMLElement}
      */
