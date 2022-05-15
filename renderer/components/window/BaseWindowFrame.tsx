@@ -61,6 +61,19 @@ export function BaseWindowFrame({
                     <div data-name="content">{children}</div>
                 </div>
             </div>
+            {/* <style jsx>
+                {`
+                    .background {
+                        width: 100%;
+                        height: 100%;
+                        position: relative;
+                        left: 50%;
+                        display: flex;
+                        align-self: center;
+                        background-color: #252526;
+                    }
+                `}
+            </style> */}
         </Draggable>
     );
 }
