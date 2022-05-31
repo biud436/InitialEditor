@@ -4,8 +4,9 @@ import React from "react";
 import Image from "next/image";
 import logoImage from "../public/images/logo.png";
 import style from "../styles/splash.module.css";
+import { observer } from "mobx-react";
 
-export default function Splash() {
+const Splash = observer(() => {
     return (
         <React.Fragment>
             <Head>
@@ -25,4 +26,6 @@ export default function Splash() {
             </body>
         </React.Fragment>
     );
-}
+});
+
+export default Splash;

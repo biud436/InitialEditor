@@ -32,7 +32,8 @@
         "resolveJsonModule": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "isolatedModules": false
+        "isolatedModules": false,
+        "useDefineForClassFields": true
     },
     "include": ["**/*.ts", "**/*.tsx"],
     "exclude": ["node_modules", "renderer/next.config.js", "app", "dist"]

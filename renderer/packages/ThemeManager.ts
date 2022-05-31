@@ -1,3 +1,4 @@
+import { makeAutoObservable } from "mobx";
 import { ThemeSchema } from "./schema/ThemeSchema";
 
 enum Theme {

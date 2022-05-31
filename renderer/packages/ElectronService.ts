@@ -6,6 +6,7 @@ import * as path from "path";
 import { Component } from "./component";
 import { Toolbar } from "./toolbar/Toolbar";
 import { Service } from "typedi";
+import { makeAutoObservable } from "mobx";
 
 /**
  * @class ElectronService
@@ -29,7 +30,6 @@ class ElectronService extends EventEmitter {
 
     constructor() {
         super();
-
         this.ipcMain = ipcMain;
         this.listenEvents();
     }

@@ -1,3 +1,4 @@
+import { makeAutoObservable } from "mobx";
 import { EventEmitter } from "./EventEmitter";
 
 class Component extends EventEmitter {

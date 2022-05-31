@@ -36,7 +36,7 @@ type HTMLTagMap = keyof HTMLElementTagNameMap | string;
  * @class ToolbarContainer
  */
 class ToolbarContainer implements ToolbarImpl {
-    private _element!: HTMLElement;
+    private _element?: HTMLElement;
     private _isReady = false;
 
     constructor(selectors: HTMLTagMap) {
@@ -52,16 +52,19 @@ class ToolbarContainer implements ToolbarImpl {
 
     show(): void {
         if (!this._isReady) return;
+        if (!this._element) return;
         this._element.style.display = "block";
     }
 
     hide(): void {
         if (!this._isReady) return;
+        if (!this._element) return;
         this._element.style.display = "none";
     }
 
     unlock(originPosition?: DOMRect): void {
         if (!this._isReady) return;
+        if (!this._element) return;
         if (originPosition) {
             this._element.style.left = originPosition.x + "px";
             this._element.style.top = originPosition.y + "px";
@@ -70,6 +73,7 @@ class ToolbarContainer implements ToolbarImpl {
 
     getBoundingClientRect(): DOMRect | void {
         if (!this._isReady) return;
+        if (!this._element) return;
         return this._element.getBoundingClientRect();
     }
 }

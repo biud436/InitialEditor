@@ -1,3 +1,5 @@
+import { makeAutoObservable } from "mobx";
+
 export default class Rectangle {
     private _x: number;
     private _y: number;
@@ -7,6 +9,7 @@ export default class Rectangle {
     public static EMPTY = new Rectangle(0, 0, 0, 0);
 
     constructor(x: number, y: number, width: number, height: number) {
+        // makeAutoObservable(this);
         this._x = x;
         this._y = y;
         this._width = width;

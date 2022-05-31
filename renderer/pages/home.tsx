@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 
 import { MainContainer } from "../components/MainContainer";
@@ -9,10 +9,20 @@ import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
 import { InitialStore } from "../packages/store";
 import Script from "next/script";
+import styled from "styled-components";
+
+const LoadingBlock = styled.div`
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+`;
 
 export default function Home() {
     const router = useRouter();
     const [panel, setPanel] = useRecoilState(WindowState);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const openWindow = (route: { path: string }) => {
@@ -24,9 +34,11 @@ export default function Home() {
 
         import("../packages")
             .then(() => {
+                setLoading(false);
                 window.$ = jQuery;
                 window.onMounted(() => {
                     if (window.app) {
+                        console.log("bound");
                         window.app.on("openWindow", openWindow);
                         window.app.on("store:ready", (store: InitialStore) => {
                             const nextHook = store.startHook(window.app);
@@ -54,6 +66,16 @@ export default function Home() {
                 );
             });
     });
+
+    if (loading) {
+        return (
+            <>
+                <React.Fragment>
+                    <LoadingBlock>로딩중...</LoadingBlock>
+                </React.Fragment>
+            </>
+        );
+    }
 
     return (
         <React.Fragment>
