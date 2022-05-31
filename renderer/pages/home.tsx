@@ -8,7 +8,6 @@ import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
 import { InitialStore } from "../packages/store";
-import Script from "next/script";
 import styled from "styled-components";
 
 const LoadingBlock = styled.div`
@@ -32,39 +31,39 @@ export default function Home() {
             });
         };
 
-        // import("../packages")
-        //     .then(() => {
-        //         setLoading(false);
-        //         window.$ = jQuery;
-        //         window.onMounted(() => {
-        //             if (window.app) {
-        //                 console.log("bound");
-        //                 window.app.on("openWindow", openWindow);
-        //                 window.app.on("store:ready", (store: InitialStore) => {
-        //                     const nextHook = store.startHook(window.app);
-        //                     nextHook();
-        //                 });
-        //             }
-        //         });
-        //     })
-        //     .then(() => {
-        //         const store = InitialStore.GetInstance(window.app);
-        //     })
-        //     .catch((err) => {
-        //         return (
-        //             <React.Fragment>
-        //                 <Head>
-        //                     <title>Error</title>
-        //                 </Head>
-        //                 <div>
-        //                     <p className="text-xl antialiased">
-        //                         페이지를 렌더링하는 도중에 오류가
-        //                         발생하였습니다.
-        //                     </p>
-        //                 </div>
-        //             </React.Fragment>
-        //         );
-        //     });
+        import("../packages")
+            .then(() => {
+                setLoading(false);
+                window.$ = jQuery;
+                window.onMounted(() => {
+                    if (window.app) {
+                        console.log("bound");
+                        window.app.on("openWindow", openWindow);
+                        window.app.on("store:ready", (store: InitialStore) => {
+                            const nextHook = store.startHook(window.app);
+                            nextHook();
+                        });
+                    }
+                });
+            })
+            .then(() => {
+                const store = InitialStore.GetInstance(window.app);
+            })
+            .catch((err) => {
+                return (
+                    <React.Fragment>
+                        <Head>
+                            <title>Error</title>
+                        </Head>
+                        <div>
+                            <p className="text-xl antialiased">
+                                페이지를 렌더링하는 도중에 오류가
+                                발생하였습니다.
+                            </p>
+                        </div>
+                    </React.Fragment>
+                );
+            });
     });
 
     if (loading) {
