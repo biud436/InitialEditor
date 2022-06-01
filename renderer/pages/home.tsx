@@ -33,6 +33,8 @@ const Home = observer(() => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        tileMarker.ready();
+
         const openWindow = (route: { path: string }) => {
             const currentWindow = route.path.slice(1) ?? "none";
             setPanel({
