@@ -11,6 +11,7 @@ export default class TileMarker extends TilesetMarker {
             return;
         }
 
+        // 스타일드 컴포넌트를 이용하여 생성한 후, 몹엑스 스토어에 준비됐다는 신호를 전달합니다.
         this._element = $("<div></div>", { id: "tile-marker" }).css({
             "min-width": `${this._tileWidth}px`,
             "min-height": `${this._tileHeight}px`,
@@ -26,6 +27,7 @@ export default class TileMarker extends TilesetMarker {
             "box-sizing": "border-box",
         });
 
+        // 요소가 생성될 때 까지 기다리게 해야 합니다.
         this._isReady = true;
 
         parent.append(this._element);
