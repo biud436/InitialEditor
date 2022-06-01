@@ -37,7 +37,6 @@ export default function Home() {
                 window.$ = jQuery;
                 window.onMounted(() => {
                     if (window.app) {
-                        console.log("bound");
                         window.app.on("openWindow", openWindow);
                         window.app.on("store:ready", (store: InitialStore) => {
                             const nextHook = store.startHook(window.app);

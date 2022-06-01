@@ -48,5 +48,3 @@ export const config = <MyEditorConfig>{
     })(),
     Maps: new EditorSchema(this),
 };
-
-console.log(config);

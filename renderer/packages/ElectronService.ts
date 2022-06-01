@@ -56,10 +56,6 @@ class ElectronService extends EventEmitter {
 
             this.on(value, () => {
                 ipcRenderer.send(value);
-                // const func = this.getWindow()[value];
-                // if (typeof func === "function") {
-                //   func();
-                // }
             });
         }
     }

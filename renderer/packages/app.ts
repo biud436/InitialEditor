@@ -13,7 +13,6 @@ import { WindowCreator } from "./WindowCreator";
 
 import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
-import { Inject, Service } from "typedi";
 import { Mouse } from "./Mouse";
 
 interface BlockRect {
@@ -161,14 +160,6 @@ export default class App extends EventEmitter {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
-
-        // new EditorSchema(this._config)
-        //     .toFile("./editor.json")
-        //     .then((ret) => {});
-
-        // 뷰 객체를 생성합니다.
-        // this._vueBinder = new VueBinder();
-        // this._vueBinder.mount();
     }
 
     /**
