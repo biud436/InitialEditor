@@ -22,7 +22,6 @@ export class TileMarkerStore {
 
     /**
      * 컴포넌트 생성을 lazy하게 합니다.
-     * (useMemo 사용 필요)
      *
      * @param tileWidth
      * @param tileHeight
