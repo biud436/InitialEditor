@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 
 import { MainContainer } from "../components/MainContainer";
@@ -8,9 +8,10 @@ import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
 import { InitialStore } from "../packages/store";
-import styled from "styled-components";
+import styled, { CSSObject, StyledComponent } from "styled-components";
 import { observer } from "mobx-react";
 import { fileProvider } from "../store/providers/FileProvider";
+import { tileMarker } from "../store/TileMarkerStore";
 
 const LoadingBlock = styled.div`
     display: flex;
@@ -19,6 +20,13 @@ const LoadingBlock = styled.div`
     justify-content: center;
     align-items: center;
 `;
+
+const TestMarkerComponent = () => {
+    const Component = styled.div(
+        tileMarker.createElement(100, 100) as CSSObject
+    );
+    return <Component />;
+};
 
 const Home = observer(() => {
     const [panel, setPanel] = useRecoilState(WindowState);
@@ -102,6 +110,7 @@ const Home = observer(() => {
             <div className="fixed right-0">
                 <p className="text-xl text-blue-600 opacity-80 bg-white">
                     테스트 버전입니다.
+                    <TestMarkerComponent />
                 </p>
             </div>
             <MainContainer></MainContainer>

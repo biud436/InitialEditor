@@ -1,5 +1,7 @@
 import { makeAutoObservable } from "mobx";
-import styled, { StyledComponent } from "styled-components";
+import React from "react";
+import { forwardRef, ForwardRefExoticComponent } from "react";
+import styled, { CSSObject, StyledComponent } from "styled-components";
 
 export type TileMarkerState = "pending" | "ready" | "error";
 
@@ -26,28 +28,21 @@ export class TileMarkerStore {
      * @param tileHeight
      * @returns
      */
-    createElement(
-        tileWidth: number,
-        tileHeight: number
-    ): StyledComponent<"div", any, {}, never> {
-        const lazyComponent = styled.div`
-        min-width: ${tileWidth}px;
-        min-height: ${tileHeight}px;
-        width: ${tileWidth}px;
-        height: ${tileHeight}px;
-        position: "absolute",
-        top: "0",
-        left: "0",
-        margin: "0",
-        padding: "0",
-        border: "2px dotted white",
-        z-index: "0",
-        box-sizing: "border-box",
-        `;
-
-        this.ready();
-
-        return lazyComponent;
+    createElement(tileWidth: number, tileHeight: number): CSSObject {
+        return {
+            minWidth: `${tileWidth}px`,
+            minHeight: `${tileHeight}px`,
+            width: `${tileWidth}px`,
+            height: `${tileHeight}px`,
+            position: "absolute",
+            top: "0",
+            left: "0",
+            margin: "0",
+            padding: "0",
+            border: "2px dotted white",
+            zIndex: "0",
+            boxSizing: "border-box",
+        };
     }
 }
 
