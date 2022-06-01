@@ -1,5 +1,4 @@
 import { EmptySegment } from "./EmptySegment";
-import { WindowCreator } from "../WindowCreator";
 import { ToolbarBase } from "./interface/toolbar.dto";
 import { useRecoilState } from "recoil";
 import { WindowState } from "../../recoil/window";
@@ -19,23 +18,17 @@ const FileToolbar: ToolbarBase[] = [
     {
         name: "파일 열기",
         children: "file-open",
-        action: (ev: any) => {
-            WindowCreator.GrapWindow(ev);
-        },
+        action: (ev: any) => {},
     },
     {
         name: "파일 저장",
         children: "file-save",
-        action: (ev: any) => {
-            WindowCreator.GrapWindow(ev);
-        },
+        action: (ev: any) => {},
     },
     {
         name: "파일 저장",
         children: "edit-undo",
-        action: (ev: any) => {
-            WindowCreator.GrapWindow(ev);
-        },
+        action: (ev: any) => {},
     },
     EmptySegment,
 ];

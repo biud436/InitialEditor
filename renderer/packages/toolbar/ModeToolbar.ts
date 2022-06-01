@@ -1,5 +1,4 @@
 import { EmptySegment } from "./EmptySegment";
-import { WindowCreator } from "../WindowCreator";
 import { ToolbarBase } from "./interface/toolbar.dto";
 
 const ModeToolbar: ToolbarBase[] = [

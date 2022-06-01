@@ -1,4 +1,3 @@
-import { WindowCreator } from "../WindowCreator";
 import * as electron from "electron";
 import { ElectronService } from "../ElectronService";
 import { useRecoilState } from "recoil";
@@ -20,7 +19,7 @@ export type FileMenuImpl = {
             name: string;
             children: Partial<Record<string, any>>;
             shortcut?: string[];
-            action?: (ev: any) => void;
+            action?: (ev: any) => void | Function;
         };
     };
 };
@@ -80,6 +79,9 @@ export const FileMenu = <Partial<FileMenuImpl>>{
 
 if (process.platform === "darwin") {
     electron.ipcRenderer.on("new-file", () => {
-        FileMenu.children["file-new"].action(null);
+        const children = FileMenu.children;
+        if (children && children["file-new"].action) {
+            children["file-new"].action(null);
+        }
     });
 }

@@ -9,7 +9,6 @@ import TileMarker from "./tileMarker";
 import { config, MyEditorConfig } from "./config";
 import MenuService, { InitialEditor } from "./MenuService";
 import Rectangle from "./Rectangle";
-import { WindowCreator } from "./WindowCreator";
 
 import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
@@ -596,9 +595,7 @@ export default class App extends EventEmitter {
      * @param {HTMLElement} elem
      * @param {String}} id
      */
-    onLoad(elem: HTMLElement, id: string): void {
-        WindowCreator.onLoad(elem, id);
-    }
+    onLoad(elem: HTMLElement, id: string): void {}
 
     /**
      * 유일한 인스턴스를 반환하는 메소드입니다.

@@ -9,6 +9,8 @@ import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
 import { InitialStore } from "../packages/store";
 import styled from "styled-components";
+import { observer } from "mobx-react";
+import { fileProvider } from "../store/providers/FileProvider";
 
 const LoadingBlock = styled.div`
     display: flex;
@@ -18,7 +20,7 @@ const LoadingBlock = styled.div`
     align-items: center;
 `;
 
-export default function Home() {
+const Home = observer(() => {
     const router = useRouter();
     const [panel, setPanel] = useRecoilState(WindowState);
     const [loading, setLoading] = useState(true);
@@ -63,7 +65,10 @@ export default function Home() {
                     </React.Fragment>
                 );
             });
-    });
+
+        // test: file
+        console.log(fileProvider.rootPath);
+    }, []);
 
     if (loading) {
         return (
@@ -94,4 +99,6 @@ export default function Home() {
             <Widget></Widget>
         </React.Fragment>
     );
-}
+});
+
+export default Home;

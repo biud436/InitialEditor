@@ -1,5 +1,4 @@
 import { EmptySegment } from "./EmptySegment";
-import { WindowCreator } from "../WindowCreator";
 import { shell } from "electron";
 import * as fs from "fs";
 import * as path from "path";

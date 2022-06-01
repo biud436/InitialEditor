@@ -1,5 +1,3 @@
-import { makeAutoObservable } from "mobx";
-
 export default class Rectangle {
     private _x: number;
     private _y: number;

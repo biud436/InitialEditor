@@ -3,6 +3,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 export class FileProvider {
+    rootPath: string = path.resolve(process.cwd());
+
     constructor() {
         makeAutoObservable(this);
     }

@@ -1,5 +1,4 @@
 import { EditorSchema } from "./schema/EditorSchema";
-import { MapSchema } from "./schema/MapSchema";
 
 /**
  * @interface MyEditorConfig
