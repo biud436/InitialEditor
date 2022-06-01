@@ -32,6 +32,13 @@ export class FileProvider {
         }
         return fs.promises.readFile(filePath, { encoding });
     }
+
+    readDirectories(rootPath: fs.PathLike): Promise<string[]> {
+        if (!this.isExist(rootPath)) {
+            return Promise.reject();
+        }
+        return fs.promises.readdir(rootPath);
+    }
 }
 
 export const fileProvider = new FileProvider();
