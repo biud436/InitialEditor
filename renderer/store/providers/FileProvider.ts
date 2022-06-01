@@ -13,15 +13,17 @@ export class FileProvider {
         return fs.existsSync(filePath);
     }
 
+    extendPath(filePath: string): string {
+        return path.join(this.rootPath, filePath).replace(/\\/g, "/");
+    }
+
     createFile(
         filePath: fs.PathLike,
         content: string | Uint8Array
     ): Promise<void> {
-        if (!this.isExist(filePath)) {
-            return Promise.reject();
-        }
         return fs.promises.writeFile(filePath, content, {
             encoding: "utf-8",
+            flag: "w+",
         });
     }
 

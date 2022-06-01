@@ -21,7 +21,6 @@ const LoadingBlock = styled.div`
 `;
 
 const Home = observer(() => {
-    const router = useRouter();
     const [panel, setPanel] = useRecoilState(WindowState);
     const [loading, setLoading] = useState(true);
 
@@ -67,7 +66,17 @@ const Home = observer(() => {
             });
 
         // test: file
-        console.log(fileProvider.rootPath);
+        console.log(fileProvider.extendPath("test.txt"));
+
+        // test: file
+        fileProvider
+            .createFile(fileProvider.extendPath("test.txt"), "test")
+            .then((e) => {
+                console.log("OK");
+            })
+            .catch((e) => {
+                console.log(e);
+            });
     }, []);
 
     if (loading) {
