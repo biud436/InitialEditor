@@ -13,6 +13,16 @@ import Rectangle from "./Rectangle";
 import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
+import React, {
+    createRef,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+} from "react";
+import { ElectronService } from "./ElectronService";
+import { ToolbarManager } from "./toolbar/Toolbar";
+import Container from "typedi";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -205,9 +215,9 @@ export default class App extends EventEmitter {
                 this.createComponents();
             })
             .then((ret) => {
-                const list = <NodeListOf<HTMLElement>>(
-                    document.querySelectorAll(".darken, .windows-container")
-                );
+                const list = document.querySelectorAll(
+                    ".darken, .windows-container"
+                ) as NodeListOf<HTMLElement>;
                 const items = Array.from(list);
                 if (items) {
                     items.forEach((obj) => {
@@ -260,11 +270,10 @@ export default class App extends EventEmitter {
                     }
                     if (!this._mouse) return;
 
-                    const target = <HTMLElement>this._mouse.target;
+                    const target = this._mouse.target as HTMLElement;
                     if (!this._mouse.target) return;
-                    const rect = <DOMRect>(
-                        this._mouse.target!.getBoundingClientRect()
-                    );
+                    const rect =
+                        this._mouse.target!.getBoundingClientRect() as DOMRect;
 
                     // 현재 선택된 타겟 요소를 기반으로 마우스의 시작 좌표를 정확히 계산합니다.
                     this._mouse.x = touchEvent.clientX - rect.x;
@@ -322,7 +331,7 @@ export default class App extends EventEmitter {
                         this._mouse.target = ev.target;
                         this._mouse.isDrawing = true;
 
-                        const target = <HTMLElement>ev.target;
+                        const target = ev.target as HTMLElement;
 
                         // 캔버스
                         const canvas = document.querySelector(
@@ -399,7 +408,7 @@ export default class App extends EventEmitter {
 
         for (let k in events) {
             window.addEventListener(
-                <keyof WindowEventMap>k,
+                k as keyof WindowEventMap,
                 events[k] as (
                     this: Window,
                     ev: WindowEventMap[keyof WindowEventMap]
@@ -617,4 +626,54 @@ export default class App extends EventEmitter {
 
         return App.Instance;
     }
+}
+
+export type AppContextType = {
+    app: App;
+    electronService: ElectronService;
+    toolbarManager: ToolbarManager;
+};
+
+export type AppContainerProps = {
+    children: React.ReactNode[];
+};
+export const AppContext = React.createContext<AppContextType>(null!);
+
+export function useApp() {
+    return useContext(AppContext);
+}
+
+export function AppContainer({ children }: AppContainerProps) {
+    const app = useMemo(() => App.GetInstance(), []);
+    const electronService = useMemo(() => Container.get(ElectronService), []);
+    const toolbarManager = useMemo(() => Container.get(ToolbarManager), []);
+    const deltaTimeRef = useRef(0);
+
+    useEffect(() => {
+        app.start();
+
+        deltaTimeRef.current = requestAnimationFrame(update);
+
+        return () => {
+            cancelAnimationFrame(deltaTimeRef.current);
+        };
+    }, [app]);
+
+    const update = (deltaTime: number) => {
+        app.emit("update", deltaTime);
+
+        deltaTimeRef.current = requestAnimationFrame(update);
+    };
+
+    return (
+        <AppContext.Provider
+            value={{
+                electronService,
+                app,
+                toolbarManager,
+            }}
+        >
+            {...children}
+        </AppContext.Provider>
+    );
 }

@@ -1,5 +1,3 @@
-// @ts-check
-
 module.exports = {
     /**
      * @param {import('next').NextConfig} config
