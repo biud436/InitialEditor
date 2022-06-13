@@ -19,10 +19,12 @@ import React, {
     useEffect,
     useMemo,
     useRef,
+    useState,
 } from "react";
 import { ElectronService } from "./ElectronService";
 import { ToolbarManager } from "./toolbar/Toolbar";
 import Container from "typedi";
+import { InitialStore } from "./store";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -407,7 +409,7 @@ export default class App extends EventEmitter {
         }
 
         for (let k in events) {
-            window.addEventListener(
+            window?.addEventListener(
                 k as keyof WindowEventMap,
                 events[k] as (
                     this: Window,
@@ -628,14 +630,17 @@ export default class App extends EventEmitter {
     }
 }
 
+export type Nullable<T> = T | undefined | null;
+
 export type AppContextType = {
-    app: App;
-    electronService: ElectronService;
-    toolbarManager: ToolbarManager;
+    app: Nullable<App>;
+    electronService?: Nullable<ElectronService>;
+    toolbarManager?: Nullable<ToolbarManager>;
+    update: (deltaTime: number) => void;
 };
 
 export type AppContainerProps = {
-    children: React.ReactNode[];
+    children: React.ReactNode;
 };
 export const AppContext = React.createContext<AppContextType>(null!);
 
@@ -644,23 +649,19 @@ export function useApp() {
 }
 
 export function AppContainer({ children }: AppContainerProps) {
-    const app = useMemo(() => App.GetInstance(), []);
-    const electronService = useMemo(() => Container.get(ElectronService), []);
-    const toolbarManager = useMemo(() => Container.get(ToolbarManager), []);
     const deltaTimeRef = useRef(0);
+    const [app, setApp] = useState<App | null>(null);
 
     useEffect(() => {
-        app.start();
-
-        deltaTimeRef.current = requestAnimationFrame(update);
+        setApp(App.GetInstance());
 
         return () => {
             cancelAnimationFrame(deltaTimeRef.current);
         };
-    }, [app]);
+    }, [window]);
 
     const update = (deltaTime: number) => {
-        app.emit("update", deltaTime);
+        app?.emit("update", deltaTime);
 
         deltaTimeRef.current = requestAnimationFrame(update);
     };
@@ -668,12 +669,11 @@ export function AppContainer({ children }: AppContainerProps) {
     return (
         <AppContext.Provider
             value={{
-                electronService,
                 app,
-                toolbarManager,
+                update,
             }}
         >
-            {...children}
+            {children}
         </AppContext.Provider>
     );
 }

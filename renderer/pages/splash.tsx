@@ -1,12 +1,16 @@
 import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import logoImage from "../public/images/logo.png";
 import style from "../styles/splash.module.css";
 import { observer } from "mobx-react";
 
 const Splash = observer(() => {
+    useEffect(() => {
+        console.log("created splash!");
+    }, []);
+
     return (
         <React.Fragment>
             <Head>
@@ -20,7 +24,7 @@ const Splash = observer(() => {
             </Head>
             <body className={style.body_splash}>
                 <div className={style.flex}>
-                    <Image className={style.logo} src={logoImage} alt="logo" />
+                    {/* <Image className={style.logo} src={logoImage} alt="logo" /> */}
                     <div className={style.loader}></div>
                 </div>
             </body>
