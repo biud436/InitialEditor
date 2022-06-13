@@ -56,6 +56,10 @@ export default class MyDocument extends Document {
                         type="text/javascript"
                         src="/static/js/pixi.js"
                     ></script>
+                    <script
+                        type="text/javascript"
+                        src="/static/js/initial-editor.js"
+                    />
                 </Head>
                 <body data-theme="dark">
                     <Main />

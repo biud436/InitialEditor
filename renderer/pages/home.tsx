@@ -2,14 +2,13 @@ import React, { forwardRef, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 
 import { MainContainer } from "../components/MainContainer";
-import { useRouter } from "next/dist/client/router";
 import jQuery from "jquery";
 import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
 import styled, { CSSObject, StyledComponent } from "styled-components";
 import { observer } from "mobx-react";
-import { AppContainer } from "../packages/app";
+import { NextScript } from "next/document";
 
 const LoadingBlock = styled.div`
     display: flex;
@@ -23,8 +22,21 @@ const Home = observer(() => {
     const [panel, setPanel] = useRecoilState(WindowState);
     const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        window.$ = jQuery;
+        window.onMounted(() => {
+            if (window.app) {
+                alert("시작되었습니다");
+                window.app.on("openWindow", openWindow);
+            }
+        });
+    }, []);
+
+    const openWindow = () => {
+        alert("openWindow");
+    };
+
     return (
-        // <AppContainer>
         <React.Fragment>
             <Head>
                 <meta charSet="UTF-8" />
@@ -43,7 +55,6 @@ const Home = observer(() => {
             <MainContainer />
             <Widget />
         </React.Fragment>
-        // </AppContainer>
     );
 });
 

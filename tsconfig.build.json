@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "./src/",
+        "noImplicitAny": true,
+        "module": "commonjs",
+        "target": "ES5",
+        "allowJs": true,
+        "sourceMap": true,
+        "lib": ["ES2017", "DOM"],
+
+        "moduleResolution": "node",
+        "types": ["jquery", "node", "electron"],
+        "esModuleInterop": true,
+        "experimentalDecorators": true
+    },
+    "include": ["packages/**/*.ts"]
+}

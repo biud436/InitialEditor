@@ -3,7 +3,6 @@ import { useState } from "react";
 import Draggable from "react-draggable";
 import "./TilesetWindow.module.css";
 import { ThemeActions } from "../../recoil/theme";
-import { ThemeManager } from "../../packages/ThemeManager";
 
 const THEME = {
     DARK: "dark",
@@ -21,13 +20,13 @@ export default function TilesetWindow() {
 
     const applyTheme = () => {
         const themeIndex = selectedIndex;
-        const themeManager = new ThemeManager();
+        // const themeManager = new ThemeManager();
 
-        if (themeIndex == THEME.DARK) {
-            themeManager.changeDarkTheme(true);
-        } else {
-            themeManager.changeLightTheme(true);
-        }
+        // if (themeIndex == THEME.DARK) {
+        //     themeManager.changeDarkTheme(true);
+        // } else {
+        //     themeManager.changeLightTheme(true);
+        // }
 
         ThemeActions.setTheme(themeIndex);
 

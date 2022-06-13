@@ -1,19 +1,9 @@
 {
-  "extends": "../tsconfig.json",
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "compilerOptions": {
-    "types": [
-      "jquery",
-      "node",
-      "electron"
-    ],
-    "isolatedModules": true
-  }
+    "extends": "../tsconfig.json",
+    "include": ["next-env.d.ts", "types/index.d.ts", "**/*.ts", "**/*.tsx"],
+    "exclude": ["node_modules"],
+    "compilerOptions": {
+        "types": ["jquery", "node", "electron"],
+        "isolatedModules": true
+    }
 }

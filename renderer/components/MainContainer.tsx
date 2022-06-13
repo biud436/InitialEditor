@@ -1,9 +1,6 @@
 import { MainMenuContainer } from "./menu/MainMenuContainer";
 import * as frame from "./frame";
 import React, { useEffect } from "react";
-import { useApp } from "../packages/app";
-import { ElectronService } from "../packages/ElectronService";
-import { ToolbarManager } from "../packages/toolbar/Toolbar";
 
 export type MyReactNodeProps = { children: React.ReactNode };
 

@@ -13,18 +13,6 @@ import Rectangle from "./Rectangle";
 import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
-import React, {
-    createRef,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
-import { ElectronService } from "./ElectronService";
-import { ToolbarManager } from "./toolbar/Toolbar";
-import Container from "typedi";
-import { InitialStore } from "./store";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -630,50 +618,50 @@ export default class App extends EventEmitter {
     }
 }
 
-export type Nullable<T> = T | undefined | null;
+// export type Nullable<T> = T | undefined | null;
 
-export type AppContextType = {
-    app: Nullable<App>;
-    electronService?: Nullable<ElectronService>;
-    toolbarManager?: Nullable<ToolbarManager>;
-    update: (deltaTime: number) => void;
-};
+// export type AppContextType = {
+//     app: Nullable<App>;
+//     electronService?: Nullable<ElectronService>;
+//     toolbarManager?: Nullable<ToolbarManager>;
+//     update: (deltaTime: number) => void;
+// };
 
-export type AppContainerProps = {
-    children: React.ReactNode;
-};
-export const AppContext = React.createContext<AppContextType>(null!);
+// export type AppContainerProps = {
+//     children: React.ReactNode;
+// };
+// export const AppContext = React.createContext<AppContextType>(null!);
 
-export function useApp() {
-    return useContext(AppContext);
-}
+// export function useApp() {
+//     return useContext(AppContext);
+// }
 
-export function AppContainer({ children }: AppContainerProps) {
-    const deltaTimeRef = useRef(0);
-    const [app, setApp] = useState<App | null>(null);
+// export function AppContainer({ children }: AppContainerProps) {
+//     const deltaTimeRef = useRef(0);
+//     const [app, setApp] = useState<App | null>(null);
 
-    useEffect(() => {
-        setApp(App.GetInstance());
+//     useEffect(() => {
+//         setApp(App.GetInstance());
 
-        return () => {
-            cancelAnimationFrame(deltaTimeRef.current);
-        };
-    }, [window]);
+//         return () => {
+//             cancelAnimationFrame(deltaTimeRef.current);
+//         };
+//     }, [window]);
 
-    const update = (deltaTime: number) => {
-        app?.emit("update", deltaTime);
+//     const update = (deltaTime: number) => {
+//         app?.emit("update", deltaTime);
 
-        deltaTimeRef.current = requestAnimationFrame(update);
-    };
+//         deltaTimeRef.current = requestAnimationFrame(update);
+//     };
 
-    return (
-        <AppContext.Provider
-            value={{
-                app,
-                update,
-            }}
-        >
-            {children}
-        </AppContext.Provider>
-    );
-}
+//     return (
+//         <AppContext.Provider
+//             value={{
+//                 app,
+//                 update,
+//             }}
+//         >
+//             {children}
+//         </AppContext.Provider>
+//     );
+// }

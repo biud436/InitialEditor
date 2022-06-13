@@ -104,7 +104,9 @@ class ToolbarManager implements ToolbarImpl {
         this._isMovable = false;
         this.lock();
         this._toolbarContainer = new ToolbarContainer(this._mainToolbarId);
-        this._originPosition = this._toolbarContainer.getBoundingClientRect()!;
+        this._originPosition = <DOMRect>(
+            this._toolbarContainer.getBoundingClientRect()!
+        );
     }
 
     /**

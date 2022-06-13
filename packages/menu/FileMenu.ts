@@ -1,7 +1,5 @@
 import * as electron from "electron";
 import { ElectronService } from "../ElectronService";
-import { useRecoilState } from "recoil";
-import { WindowState } from "../../recoil/window";
 
 export const FileMenuNameMap = <const>[
     "file-new",
