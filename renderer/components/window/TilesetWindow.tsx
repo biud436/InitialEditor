@@ -3,6 +3,7 @@ import { useState } from "react";
 import Draggable from "react-draggable";
 import "./TilesetWindow.module.css";
 import { ThemeActions } from "../../recoil/theme";
+import { useClose } from "../../providers/window.providers";
 
 const THEME = {
     DARK: "dark",
@@ -10,13 +11,12 @@ const THEME = {
 };
 
 export default function TilesetWindow() {
+    const { close } = useClose();
     const [selectedIndex, setSelectedIndex] = useState("dark");
 
-    const router = useRouter();
-
-    const returnToMain = () => router.push("/");
-
-    const ok = () => {};
+    const ok = () => {
+        close();
+    };
 
     const applyTheme = () => {
         const themeIndex = selectedIndex;
@@ -30,7 +30,7 @@ export default function TilesetWindow() {
 
         ThemeActions.setTheme(themeIndex);
 
-        returnToMain();
+        close();
     };
 
     return (

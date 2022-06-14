@@ -4,34 +4,17 @@ import styles from "./Widget.module.css";
 import NewWindow from "./NewWindow";
 import { useRef, useState } from "react";
 import TilesetWindow from "./TilesetWindow";
+import { WidgetProvider } from "../../providers/window.providers";
 
 type WidgetLayoutProps = {
     children?: React.ReactNode;
 };
 
-function getCurrentWindow(currentWindow: WindowType) {
-    switch (currentWindow) {
-        case "none":
-            return <></>;
-        case "newWindow":
-            return (
-                <NewWindow>
-                    <span></span>
-                </NewWindow>
-            );
-        case "tilesetWindow":
-            return <TilesetWindow></TilesetWindow>;
-    }
-}
-
 export default function Widget({ children }: WidgetLayoutProps) {
-    const [panel, setPanel] = useRecoilState(WindowState);
-    const currentWindow = panel.currentWindow;
-
     return (
         <div className={styles.widget}>
             {children}
-            {getCurrentWindow(currentWindow)}
+            <WidgetProvider />
         </div>
     );
 }

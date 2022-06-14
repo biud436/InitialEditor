@@ -1,5 +1,6 @@
 import { useReducer, useState } from "react";
 import { useRecoilState } from "recoil";
+import { useClose as useClose } from "../../providers/window.providers";
 import { WindowState } from "../../recoil/window";
 import { BaseWindowFrame } from "./BaseWindowFrame";
 
@@ -25,13 +26,7 @@ function onFileChangeReducer(
 }
 
 export default function NewWindow({ children }: ReactWindowProps) {
-    const [panel, setPanel] = useRecoilState(WindowState);
-
-    const close = () => {
-        setPanel({
-            currentWindow: "none",
-        });
-    };
+    const { close } = useClose();
 
     return (
         <BaseWindowFrame props={{ width: 256, height: 256 }}>
