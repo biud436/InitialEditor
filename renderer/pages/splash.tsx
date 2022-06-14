@@ -24,7 +24,7 @@ const Splash = observer(() => {
             </Head>
             <body className={style.body_splash}>
                 <div className={style.flex}>
-                    {/* <Image className={style.logo} src={logoImage} alt="logo" /> */}
+                    <Image className={style.logo} src={logoImage} alt="logo" />
                     <div className={style.loader}></div>
                 </div>
             </body>
