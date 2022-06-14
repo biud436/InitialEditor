@@ -6,7 +6,7 @@
     "author": "biud436",
     "main": "app/background.js",
     "scripts": {
-        "dev": "yarn script:build && nextron",
+        "dev": "nextron",
         "build": "nextron build",
         "postinstall": "electron-builder install-app-deps",
         "script:build": "webpack --config=webpack-build.config.js"
