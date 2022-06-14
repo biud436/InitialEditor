@@ -40,11 +40,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
                     <ul>
                         <li>
                             <label htmlFor="name">게임명 : </label>
-                            <input
-                                type="text"
-                                placeholder="name"
-                                v-model="title"
-                            />
+                            <input type="text" placeholder="name" />
                         </li>
                         <li>
                             <label htmlFor="name">위치 : </label>
@@ -52,11 +48,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
                         </li>
                         <li>
                             <label htmlFor="name">작성자 명 : </label>
-                            <input
-                                type="text"
-                                placeholder=""
-                                v-model="project.author"
-                            />
+                            <input type="text" placeholder="" />
                         </li>
                     </ul>
                     <div className="newWindow__control-box">
