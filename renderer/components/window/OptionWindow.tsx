@@ -1,7 +1,7 @@
 import { useRouter } from "next/dist/client/router";
 import { useState } from "react";
 import Draggable from "react-draggable";
-import "./TilesetWindow.module.css";
+import "./OptionWindow.module.css";
 import { ThemeActions } from "../../recoil/theme";
 import { useClose } from "../../providers/window.providers";
 
@@ -10,7 +10,7 @@ const THEME = {
     LIGHT: "light",
 };
 
-export default function TilesetWindow() {
+export default function OptionWindow() {
     const { close } = useClose();
     const [selectedIndex, setSelectedIndex] = useState("dark");
 

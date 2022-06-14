@@ -19,9 +19,9 @@ body {
 /* Start purging... */
 /* @tailwind utilities; */
 
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
 @import "./main.css";
 @import "./windows/tileset-window.css";

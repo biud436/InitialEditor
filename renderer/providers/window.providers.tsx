@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 import { SetterOrUpdater, useRecoilState } from "recoil";
 import NewWindow from "../components/window/NewWindow";
-import TilesetWindow from "../components/window/TilesetWindow";
+import OptionWindow from "../components/window/OptionWindow";
 import { WindowState, WindowStateImpl, WindowType } from "../recoil/window";
 
 export const WindowContext = createContext<{
@@ -27,14 +27,13 @@ export const WidgetProvider = () => {
                         <span></span>
                     </NewWindow>
                 );
-            case "tilesetWindow":
-                return <TilesetWindow></TilesetWindow>;
+            case "optionWindow":
+                return <OptionWindow></OptionWindow>;
         }
     };
 
     return (
         <WindowContext.Provider value={{ close }}>
-            {panel.currentWindow}
             {getCurrentWindow(panel.currentWindow)}
         </WindowContext.Provider>
     );

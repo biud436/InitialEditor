@@ -3,7 +3,7 @@ import { WindowState, WindowType } from "../../recoil/window";
 import styles from "./Widget.module.css";
 import NewWindow from "./NewWindow";
 import { useRef, useState } from "react";
-import TilesetWindow from "./TilesetWindow";
+import OptionWindow from "./OptionWindow";
 import { WidgetProvider } from "../../providers/window.providers";
 
 type WidgetLayoutProps = {

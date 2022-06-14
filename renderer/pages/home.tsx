@@ -48,12 +48,6 @@ const Home = observer(() => {
                 />
                 <title></title>
             </Head>
-            <div className="fixed right-0">
-                <p className="text-xl text-blue-600 opacity-80 bg-white">
-                    테스트 버전입니다.
-                </p>
-            </div>
-
             <MainContainer />
             <Widget />
         </React.Fragment>
