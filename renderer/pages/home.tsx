@@ -26,14 +26,16 @@ const Home = observer(() => {
         window.$ = jQuery;
         window.onMounted(() => {
             if (window.app) {
-                alert("시작되었습니다");
                 window.app.on("openWindow", openWindow);
             }
         });
     }, []);
 
-    const openWindow = () => {
-        alert("openWindow");
+    const openWindow = ({ path }: { path: string }) => {
+        const windowName = path.slice(1);
+        setPanel({
+            currentWindow: windowName as WindowType,
+        });
     };
 
     return (
