@@ -2,6 +2,9 @@ const path = require("path");
 const fs = require("fs");
 const webpack = require("webpack");
 
+/**
+ * @type {webpack.Configuration}
+ */
 const electronTypeTarget = {
     mode: "production", // none' | 'development' | 'production'
     entry: `./packages/index.ts`,
