@@ -2,7 +2,7 @@ import { useRouter } from "next/dist/client/router";
 import { useEffect, useState } from "react";
 import Draggable from "react-draggable";
 import "./OptionWindow.module.css";
-import { ThemeActions, ThemeState } from "../../recoil/theme";
+import { ThemeState } from "../../recoil/theme";
 import { useClose } from "../../providers/window.providers";
 import { useRecoilState } from "recoil";
 

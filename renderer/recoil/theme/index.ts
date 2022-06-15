@@ -6,10 +6,3 @@ export const ThemeState = atom({
         theme: "light",
     },
 });
-
-export const ThemeActions = {
-    setTheme: (themeType: string) => {
-        const [theme, setTheme] = useRecoilState(ThemeState);
-        setTheme({ theme: themeType });
-    },
-};
