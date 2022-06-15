@@ -1,36 +1,47 @@
 import { useRouter } from "next/dist/client/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Draggable from "react-draggable";
 import "./OptionWindow.module.css";
-import { ThemeActions } from "../../recoil/theme";
+import { ThemeActions, ThemeState } from "../../recoil/theme";
 import { useClose } from "../../providers/window.providers";
+import { useRecoilState } from "recoil";
 
 const THEME = {
     DARK: "dark",
     LIGHT: "light",
 };
 
+namespace WindowGroup {
+    export enum Theme {
+        Light = 1,
+        Dark = 2,
+    }
+}
+
 export default function OptionWindow() {
     const { close } = useClose();
     const [selectedIndex, setSelectedIndex] = useState("dark");
+    const [theme, setTheme] = useRecoilState(ThemeState);
 
     const ok = () => {
+        applyTheme();
         close();
     };
 
+    useEffect(() => {
+        setSelectedIndex(theme.theme);
+    }, [theme]);
+
     const applyTheme = () => {
         const themeIndex = selectedIndex;
-        // const themeManager = new ThemeManager();
 
-        // if (themeIndex == THEME.DARK) {
-        //     themeManager.changeDarkTheme(true);
-        // } else {
-        //     themeManager.changeLightTheme(true);
-        // }
+        if (themeIndex == THEME.DARK) {
+            window.app.emit("changeTheme", WindowGroup.Theme.Dark);
+        } else {
+            window.app.emit("changeTheme", WindowGroup.Theme.Light);
+        }
 
-        ThemeActions.setTheme(themeIndex);
-
-        close();
+        setTheme({ theme: themeIndex });
     };
 
     return (
@@ -82,12 +93,24 @@ export default function OptionWindow() {
                             <select
                                 name="theme"
                                 id="theme-select-box"
-                                v-model="selectedIndex"
+                                value={selectedIndex}
+                                onChange={(e) => {
+                                    console.log(e.target.value);
+                                    setSelectedIndex(e.target.value);
+                                }}
                             >
-                                <option value="dark" selected>
+                                <option
+                                    value="dark"
+                                    selected={theme.theme === "dark"}
+                                >
                                     다크 테마
                                 </option>
-                                <option value="light">라이트 테마</option>
+                                <option
+                                    value="light"
+                                    selected={theme.theme === "light"}
+                                >
+                                    라이트 테마
+                                </option>
                             </select>
                         </li>
                     </ul>

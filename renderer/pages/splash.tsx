@@ -3,7 +3,7 @@ import Head from "next/head";
 import React, { useEffect } from "react";
 import Image from "next/image";
 import logoImage from "../public/images/logo.png";
-import style from "../styles/splash.module.css";
+import style from "../styles/splash.module.scss";
 import { observer } from "mobx-react";
 
 const Splash = observer(() => {

@@ -132,13 +132,10 @@ export default class App extends EventEmitter {
 
         this.emit("ready", JSON.stringify(this));
 
-        // 맵 설정 파일을 생성합니다.
-        new EditorSchema(this._config).load("./editor.json").then((data) => {
-            const myEditorConfig: EditorSchema = JSON.parse(data);
-            const themeManager = new ThemeManager();
+        const themeManager = new ThemeManager();
 
-            //@ts-ignore
-            if (myEditorConfig.Theme == WindowGroup.Theme.Light) {
+        this.on("changeTheme", (theme: WindowGroup.Theme) => {
+            if (theme == WindowGroup.Theme.Light) {
                 document
                     .querySelector("body")!
                     .setAttribute("data-theme", "light");
@@ -149,6 +146,13 @@ export default class App extends EventEmitter {
                     .setAttribute("data-theme", "dark");
                 themeManager.changeDarkTheme();
             }
+        });
+
+        // 맵 설정 파일을 생성합니다.
+        new EditorSchema(this._config).load("./editor.json").then((data) => {
+            const myEditorConfig: EditorSchema = JSON.parse(data);
+
+            this.emit("changeTheme", myEditorConfig.Theme);
         });
 
         this.on("save-config", (extraConfig: any) => {

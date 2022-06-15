@@ -1,6 +1,7 @@
 import App from "./app";
 import { ElectronService } from "./ElectronService";
 import { ToolbarManager } from "./toolbar/Toolbar";
+import { ThemeManager } from "./ThemeManager";
 import { JQueryStatic } from "jquery";
 
 declare const platform: string;
