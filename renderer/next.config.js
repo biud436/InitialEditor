@@ -1,3 +1,5 @@
+const path = require("path");
+
 module.exports = {
     /**
      * @param {import('next').NextConfig} config
@@ -11,5 +13,8 @@ module.exports = {
         }
 
         return config;
+    },
+    sassOptions: {
+        includePaths: [path.join(__dirname, "styles")],
     },
 };

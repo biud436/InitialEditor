@@ -1,6 +1,4 @@
-
 @media only screen and (max-width: 640px) {
-
     body {
         overflow: hidden;
     }
@@ -12,7 +10,7 @@
     .menu__main {
         display: none;
     }
-    
+
     .control-box {
         display: none;
     }
@@ -20,7 +18,7 @@
     .ul[class*="sub"] {
         display: none;
     }
-    
+
     input[type="radio"] {
         display: none;
     }
@@ -32,7 +30,7 @@
 
     .toolbar {
         padding-top: 0;
-        overflow:visible;
+        overflow: visible;
         margin-top: 0;
         height: 4em;
     }
@@ -53,7 +51,6 @@
 }
 
 @media only screen and (max-width: 360px) {
-
     .container {
         width: 100%;
         height: 98%;
@@ -78,7 +75,7 @@
     .menu__main {
         display: none;
     }
-    
+
     .control-box {
         display: none;
     }
@@ -86,7 +83,7 @@
     .ul[class*="sub"] {
         display: none;
     }
-    
+
     input[type="radio"] {
         display: none;
     }
@@ -98,7 +95,7 @@
 
     .toolbar {
         padding-top: 0;
-        overflow:visible;
+        overflow: visible;
         margin-top: 0;
         height: 4em;
     }

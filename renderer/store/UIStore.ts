@@ -3,9 +3,10 @@ import { makeAutoObservable } from "mobx";
 
 export class UIStore {
     /**
-     * 창 제목 입니다.
+     * 윈도우 타이틀 바 이름
+     * TODO: 설정 파일로 분리시키는 것이 좋습니다.
      */
-    titleName = "Initial Editor - 맵 에디터";
+    windowTitleBarName = "Initial Editor - 맵 에디터";
 
     constructor() {
         makeAutoObservable(this);

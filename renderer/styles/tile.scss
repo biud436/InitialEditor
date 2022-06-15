@@ -7,12 +7,13 @@
     margin: 0;
     background: var(--dark-title-color);
     border: 1px solid var(--dark-border-color);
-    box-shadow: 1px 1px 10px var(--dark-selection-color) inset, 1px 1px 10px var(--dark-shadow-color);
+    box-shadow: 1px 1px 10px var(--dark-selection-color) inset,
+        1px 1px 10px var(--dark-shadow-color);
     position: relative;
     overflow: hidden;
     z-index: 1;
     margin-top: 1px;
-    float:left;
+    float: left;
 }
 
 #view {
@@ -21,7 +22,7 @@
     height: calc(68% - 32px);
     overflow: scroll;
     display: block;
-    background: rgb(50,50,50);    
+    background: rgb(50, 50, 50);
     position: relative;
 }
 
@@ -30,7 +31,7 @@
     -webkit-user-select: none;
     -o-user-select: none;
     user-select: none;
-    pointer-events: none;    
+    pointer-events: none;
     -webkit-user-drag: none;
     -moz-user-drag: none;
 }
@@ -62,32 +63,32 @@
     box-shadow: 2px 0px 4px var(--dark-shadow-color);
     position: relative;
     border-radius: 0px 0px 5px 5px;
-    display:flex;
+    display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .aside__tabs input[type="radio"] {
-    overflow:hidden;
+    overflow: hidden;
     text-overflow: clip;
     white-space: nowrap;
     width: 0px;
     height: 0px;
-    position: fixed;    
+    position: fixed;
 }
 
 .aside__tabs input[id="a"]:checked ~ ul label#tab-a {
-    background: rgb(130,130,130);
+    background: rgb(130, 130, 130);
 }
 .aside__tabs input[id="b"]:checked ~ ul label#tab-b {
-    background: rgb(130,130,130);
+    background: rgb(130, 130, 130);
 }
 .aside__tabs input[id="c"]:checked ~ ul label#tab-c {
-    background: rgb(130,130,130);
+    background: rgb(130, 130, 130);
 }
 .aside__tabs input[id="d"]:checked ~ ul label#tab-d {
-    background: rgb(130,130,130);
+    background: rgb(130, 130, 130);
 }
 .aside__tabs input[id="e"]:checked ~ ul label#tab-e {
-    background: rgb(130,130,130);
+    background: rgb(130, 130, 130);
 }

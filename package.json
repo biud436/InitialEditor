@@ -33,6 +33,7 @@
         "react-resizable": "^3.0.4",
         "recoil": "^0.6.1",
         "reflect-metadata": "^0.1.13",
+        "sass": "^1.52.3",
         "styled-components": "^5.3.3",
         "styled-reset": "^4.3.4",
         "ts-loader": "^9.3.0",
