@@ -1,8 +1,6 @@
-export function WindowTitleBar() {
-    return (
-        <div
-            className="drag-zon"
-            window-name="Initial Editor - 맵 에디터"
-        ></div>
-    );
-}
+import { observer } from "mobx-react";
+import { uiStore } from "../../store/UIStore";
+
+export const WindowTitleBar = observer(() => {
+    return <div className="drag-zon" window-name={uiStore.titleName}></div>;
+});
