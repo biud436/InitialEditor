@@ -1,10 +1,10 @@
 import { useRouter } from "next/dist/client/router";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Draggable from "react-draggable";
 import "./OptionWindow.module.css";
-import { ThemeState } from "../../recoil/theme";
-import { useClose } from "../../providers/window.providers";
-import { useRecoilState } from "recoil";
+import { SetterOrUpdater, useRecoilState } from "recoil";
+import { useClose } from "../../../providers/window.providers";
+import { ThemeState } from "../../../recoil/theme";
 
 const THEME = {
     DARK: "dark",
@@ -18,7 +18,18 @@ namespace WindowGroup {
     }
 }
 
-export default function OptionWindow() {
+type OptionWindowProps = {
+    close: () => void;
+    selectedIndex: string;
+    setSelectedIndex: Dispatch<SetStateAction<string>>;
+    theme: { theme: string };
+    ok: () => void;
+    setTheme: SetterOrUpdater<{
+        theme: string;
+    }>;
+};
+
+export default function OptionWindowContainer() {
     const { close } = useClose();
     const [selectedIndex, setSelectedIndex] = useState("dark");
     const [theme, setTheme] = useRecoilState(ThemeState);
@@ -44,6 +55,21 @@ export default function OptionWindow() {
         setTheme({ theme: themeIndex });
     };
 
+    return (
+        <OptionWindowPresent
+            {...{ close, selectedIndex, setSelectedIndex, setTheme, ok, theme }}
+        />
+    );
+}
+
+function OptionWindowPresent({
+    close,
+    selectedIndex,
+    setSelectedIndex,
+    setTheme,
+    ok,
+    theme,
+}: OptionWindowProps) {
     return (
         <Draggable grid={[16, 16]}>
             <div id="tilesetWindow" window-name="타일셋 창">
@@ -99,18 +125,16 @@ export default function OptionWindow() {
                                     setSelectedIndex(e.target.value);
                                 }}
                             >
-                                <option
+                                <ThemeOption
                                     value="dark"
-                                    selected={theme.theme === "dark"}
-                                >
-                                    다크 테마
-                                </option>
-                                <option
+                                    selected={theme}
+                                    text="다크 테마"
+                                />
+                                <ThemeOption
                                     value="light"
-                                    selected={theme.theme === "light"}
-                                >
-                                    라이트 테마
-                                </option>
+                                    selected={theme}
+                                    text="라이트 테마"
+                                />
                             </select>
                         </li>
                     </ul>
@@ -136,14 +160,25 @@ export default function OptionWindow() {
                         취소
                     </button>
                 </div>
-                {/* <img
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    onLoad={() => {
-                        window.app.onLoad(this, "tileset");
-                        this.parentNode.removeChild(this);
-                    }}
-                /> */}
             </div>
         </Draggable>
+    );
+}
+
+export function ThemeOption({
+    value,
+    selected,
+    text,
+}: {
+    value: "dark" | "light";
+    selected: {
+        theme: string;
+    };
+    text: string;
+}) {
+    return (
+        <option value={value} selected={selected.theme === value}>
+            {text}
+        </option>
     );
 }
