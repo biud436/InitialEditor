@@ -54,13 +54,13 @@ function OptionWindowPresent({
     theme,
 }: OptionWindowProps) {
     return (
-        <Draggable grid={[16, 16]}>
-            <ContainerWrapper>
+        <Draggable grid={[16, 16]} defaultPosition={{ x: 200, y: 200 }}>
+            <div id="tilesetWindow" window-name="타일셋 창">
                 <ContentHeader />
                 <ContentView {...{ selectedIndex, setSelectedIndex, theme }} />
                 <ClosePanel close={close} />
                 <ConfirmPanel ok={ok} close={close} />
-            </ContainerWrapper>
+            </div>
         </Draggable>
     );
 }

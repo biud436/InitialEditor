@@ -48,16 +48,15 @@ export function ContentView({
                             setSelectedIndex(e.target.value);
                         }}
                     >
-                        <ThemeOption
-                            value="dark"
-                            selected={theme}
-                            text="다크 테마"
-                        />
-                        <ThemeOption
+                        <option value="dark" selected={theme.theme === "dark"}>
+                            다크 테마
+                        </option>
+                        <option
                             value="light"
-                            selected={theme}
-                            text="라이트 테마"
-                        />
+                            selected={theme.theme === "light"}
+                        >
+                            라이트 테마
+                        </option>
                     </select>
                 </li>
             </ul>
