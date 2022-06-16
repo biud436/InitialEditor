@@ -33,8 +33,12 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "isolatedModules": false,
-        "useDefineForClassFields": true
+        "useDefineForClassFields": true,
+        "paths": {
+            "@components": ["./renderer/components"],
+            "@components/*": ["./renderer/components/*"]
+        }
     },
-    "include": ["**/*.ts", "**/*.tsx"],
+    "include": ["**/*.ts", "**/*.tsx", "renderer/**/*.ts", "renderer/**/*.tsx"],
     "exclude": ["node_modules", "renderer/next.config.js", "app", "dist"]
 }
