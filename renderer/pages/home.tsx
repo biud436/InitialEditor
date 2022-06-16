@@ -9,6 +9,7 @@ import Widget from "../components/window/Widget";
 import styled, { CSSObject, StyledComponent } from "styled-components";
 import { observer } from "mobx-react";
 import { NextScript } from "next/document";
+import { AppGuard } from "../providers/app.providers";
 
 const LoadingBlock = styled.div`
     display: flex;
