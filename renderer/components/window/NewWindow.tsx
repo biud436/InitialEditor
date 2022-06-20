@@ -28,6 +28,17 @@ function onFileChangeReducer(
 export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
 
+    const [gameName, setGameName] = useState("");
+    const [fileName, setFileName] = useState("");
+
+    const onChangeGameName = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setGameName(e.target.value);
+    };
+
+    const onChangeFileName = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFileName(e.target.value);
+    };
+
     return (
         <BaseWindowFrame props={{ width: 256, height: 256 }}>
             <div className="newContainer">
@@ -35,15 +46,22 @@ export default function NewWindow({ children }: ReactWindowProps) {
                     <ul>
                         <li>
                             <label htmlFor="name">게임명 : </label>
-                            <input type="text" placeholder="name" />
+                            <input
+                                type="text"
+                                placeholder="name"
+                                value={gameName}
+                                onChange={onChangeGameName}
+                            />
                         </li>
                         <li>
                             <label htmlFor="name">위치 : </label>
-                            <input type="file" placeholder="" multiple />
-                        </li>
-                        <li>
-                            <label htmlFor="name">작성자 명 : </label>
-                            <input type="text" placeholder="" />
+                            <input
+                                type="file"
+                                placeholder=""
+                                multiple
+                                accept="directory"
+                                onChange={onChangeFileName}
+                            />
                         </li>
                     </ul>
                     <div className="newWindow__control-box">
