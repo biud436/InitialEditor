@@ -1,5 +1,11 @@
 import { useRouter } from "next/dist/client/router";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, {
+    Dispatch,
+    memo,
+    SetStateAction,
+    useEffect,
+    useState,
+} from "react";
 import Draggable from "react-draggable";
 import "./OptionWindow.module.css";
 import { useRecoilState } from "recoil";
@@ -45,7 +51,7 @@ export default function OptionWindowContainer() {
     );
 }
 
-function OptionWindowPresent({
+const OptionWindowPresent = memo(function OptionWindowPresent({
     close,
     selectedIndex,
     setSelectedIndex,
@@ -63,4 +69,4 @@ function OptionWindowPresent({
             </div>
         </Draggable>
     );
-}
+});
