@@ -1,3 +1,4 @@
+import electronServe from "electron-serve";
 import { useReducer, useState } from "react";
 import { useRecoilState } from "recoil";
 import { useClose as useClose } from "../../providers/window.providers";
@@ -37,6 +38,10 @@ export default function NewWindow({ children }: ReactWindowProps) {
 
     const onChangeFileName = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFileName(e.target.value);
+    };
+
+    const createNewProject = () => {
+        // Create a new project to a temp folder.
     };
 
     return (
