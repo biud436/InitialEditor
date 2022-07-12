@@ -1,5 +1,5 @@
 import electronServe from "electron-serve";
-import { useReducer, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import { useRecoilState } from "recoil";
 import { useClose as useClose } from "../../providers/window.providers";
 import { WindowState } from "../../recoil/window";
@@ -12,25 +12,18 @@ type Project = {
 
 type ReactWindowProps = { children: React.ReactNode };
 
-function onFileChangeReducer(
-    state: Project,
-    action: { type: string; payload: any }
-) {
-    switch (action.type) {
-        case "setPath":
-            return { ...state, path: action.payload };
-        case "setAuthor":
-            return { ...state, author: action.payload };
-        default:
-            return state;
-    }
-}
-
 export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
 
     const [gameName, setGameName] = useState("");
-    const [fileName, setFileName] = useState("");
+    const [, setFileName] = useState("");
+
+    const windowRect = useMemo(() => {
+        return {
+            width: 256,
+            height: 256,
+        };
+    }, []) as { width: number; height: number };
 
     const onChangeGameName = (e: React.ChangeEvent<HTMLInputElement>) => {
         setGameName(e.target.value);
@@ -45,7 +38,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
     };
 
     return (
-        <BaseWindowFrame props={{ width: 256, height: 256 }}>
+        <BaseWindowFrame props={windowRect}>
             <div className="newContainer">
                 <div id="newWindow" window-name="게임 속성">
                     <ul>
