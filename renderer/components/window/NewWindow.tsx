@@ -4,6 +4,7 @@ import { useRecoilState } from "recoil";
 import { useClose as useClose } from "../../providers/window.providers";
 import { WindowState } from "../../recoil/window";
 import { BaseWindowFrame } from "./BaseWindowFrame";
+import useTranslation from "next-translate/useTranslation";
 
 type Project = {
     path: FileList;
@@ -14,9 +15,9 @@ type ReactWindowProps = { children: React.ReactNode };
 
 export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
-
     const [gameName, setGameName] = useState("");
     const [, setFileName] = useState("");
+    const { t } = useTranslation("common");
 
     const windowRect = useMemo(() => {
         return {
@@ -33,17 +34,13 @@ export default function NewWindow({ children }: ReactWindowProps) {
         setFileName(e.target.value);
     };
 
-    const createNewProject = () => {
-        // Create a new project to a temp folder.
-    };
-
     return (
         <BaseWindowFrame props={windowRect}>
             <div className="newContainer">
                 <div id="newWindow" window-name="게임 속성">
                     <ul>
                         <li>
-                            <label htmlFor="name">게임명 : </label>
+                            <label htmlFor="name">{t("gameName")}</label>
                             <input
                                 type="text"
                                 placeholder="name"
@@ -52,7 +49,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
                             />
                         </li>
                         <li>
-                            <label htmlFor="name">위치 : </label>
+                            <label htmlFor="name">{t("gameFile")}</label>
                             <input
                                 type="file"
                                 placeholder=""
@@ -75,7 +72,8 @@ export default function NewWindow({ children }: ReactWindowProps) {
                     </div>
                     <div className="panel">
                         <button>
-                            <i className="fas fa-upload"></i>프로젝트 생성
+                            <i className="fas fa-upload"></i>
+                            {t("newGame")}
                         </button>
                     </div>
                 </div>

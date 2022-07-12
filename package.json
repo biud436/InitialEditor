@@ -6,7 +6,7 @@
     "author": "biud436",
     "main": "app/background.js",
     "scripts": {
-        "dev": "nextron",
+        "dev": "NEXT_TRANSLATE_PATH=./renderer nextron",
         "build": "nextron build",
         "postinstall": "electron-builder install-app-deps",
         "script:build": "webpack --config=webpack-build.config.js"
@@ -27,6 +27,7 @@
         "jquery": "^3.6.0",
         "mobx": "^6.6.0",
         "mobx-react": "^7.5.0",
+        "next-translate": "^1.5.0",
         "next-transpile-modules": "^9.0.0",
         "pixi.js": "^5",
         "react-draggable": "^4.4.5",

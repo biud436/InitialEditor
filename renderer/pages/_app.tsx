@@ -4,7 +4,7 @@ import "../styles/globals.scss";
 import { ThemeProvider } from "styled-components";
 import { RecoilRoot } from "recoil";
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+export function MyApp({ Component, pageProps }: AppProps) {
     return (
         <RecoilRoot>
             <ThemeProvider theme={{}}>
@@ -13,3 +13,5 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         </RecoilRoot>
     );
 }
+
+export default MyApp;

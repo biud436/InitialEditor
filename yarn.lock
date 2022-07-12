@@ -4750,6 +4750,11 @@ neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
+next-translate@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/next-translate/-/next-translate-1.5.0.tgz#b1e5c4a8e55e31b3ed1b9428529f27c289c6b7bc"
+  integrity sha512-6amnuJWw22XbaM2DVhsYaOXelFLjTbMqTgqvB+h9VfE/H2aQ/edfT06ONQLQbsVV/I7Hn+93LTaV1/qOo6Kf9A==
+
 next-transpile-modules@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/next-transpile-modules/-/next-transpile-modules-9.0.0.tgz#133b1742af082e61cc76b02a0f12ffd40ce2bf90"

@@ -10,6 +10,8 @@ import styled, { CSSObject, StyledComponent } from "styled-components";
 import { observer } from "mobx-react";
 import { NextScript } from "next/document";
 import { AppGuard } from "../providers/app.providers";
+import { GetServerSideProps } from "next";
+import * as path from "path";
 
 const LoadingBlock = styled.div`
     display: flex;
@@ -54,5 +56,11 @@ const Home = observer(() => {
         </React.Fragment>
     );
 });
+
+// export const getServerSideProps = async ({ locale }: any) => ({
+//     props: {
+//         ...(await serverSideTranslations(locale, ["common"])),
+//     },
+// });
 
 export default Home;

@@ -1,6 +1,10 @@
 const path = require("path");
+const nextTranslate = require("next-translate");
 
-module.exports = {
+/**
+ * @type {import('next/config').NextConfig}
+ */
+module.exports = nextTranslate({
     /**
      * @param {import('next').NextConfig} config
      **/
@@ -17,4 +21,4 @@ module.exports = {
     sassOptions: {
         includePaths: [path.join(__dirname, "styles")],
     },
-};
+});
