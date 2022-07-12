@@ -37,7 +37,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
     return (
         <BaseWindowFrame props={windowRect}>
             <div className="newContainer">
-                <div id="newWindow" window-name="게임 속성">
+                <div id="newWindow" window-name={t("gameProperty")}>
                     <ul>
                         <li>
                             <label htmlFor="name">{t("gameName")}</label>
