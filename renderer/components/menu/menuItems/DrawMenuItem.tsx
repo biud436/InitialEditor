@@ -4,10 +4,8 @@ import { ListItem } from "@components/atomics/ListItem";
 
 export function DrawMenuitem() {
     return (
-        <ListContainer
-            className="menu__draw-sub menu-style"
-            defaultValue="Draw"
-        >
+        // 컴포넌트로 선언하면 유니크 클래스 명이 생성되는 듯 하다.
+        <ul className="menu__draw-sub menu-style" defaultValue="Draw">
             <ListItem data-action="draw-pencil">
                 <IconItem className="fas fa-pencil-alt" />
                 Pencil
@@ -28,6 +26,6 @@ export function DrawMenuitem() {
                 <IconItem className="fas fa-paint-brush" />
                 Shadow Pen
             </ListItem>
-        </ListContainer>
+        </ul>
     );
 }
