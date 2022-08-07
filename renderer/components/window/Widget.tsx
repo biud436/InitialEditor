@@ -5,6 +5,7 @@ import NewWindow from "./NewWindow";
 import { useRef, useState } from "react";
 import OptionWindow from "./OptionWindow";
 import { WidgetProvider } from "../../providers/window.providers";
+import { Division } from "@components/atomics/Wrapper";
 
 type WidgetLayoutProps = {
     children?: React.ReactNode;
@@ -12,9 +13,9 @@ type WidgetLayoutProps = {
 
 export default function Widget({ children }: WidgetLayoutProps) {
     return (
-        <div className={styles.widget}>
+        <Division className={styles.widget}>
             {children}
             <WidgetProvider />
-        </div>
+        </Division>
     );
 }

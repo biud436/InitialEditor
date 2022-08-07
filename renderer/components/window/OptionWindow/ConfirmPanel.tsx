@@ -1,3 +1,6 @@
+import { Button } from "@components/atomics/Button";
+import { Division } from "@components/atomics/Wrapper";
+
 export function ConfirmPanel({
     ok,
     close,
@@ -6,13 +9,13 @@ export function ConfirmPanel({
     close: () => void;
 }) {
     return (
-        <div className="tilesetWindow__panel">
-            <button className="ok" onClick={ok}>
+        <Division className="tilesetWindow__panel">
+            <Button className="ok" onClick={ok}>
                 확인
-            </button>
-            <button className="cancel" onClick={close}>
+            </Button>
+            <Button className="cancel" onClick={close}>
                 취소
-            </button>
-        </div>
+            </Button>
+        </Division>
     );
 }

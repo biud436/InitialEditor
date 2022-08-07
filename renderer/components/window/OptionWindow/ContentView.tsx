@@ -1,5 +1,12 @@
 import { ThemeOption } from "./ThemeOption";
 import { OptionWindowProps } from "./THEME";
+import { Division } from "@components/atomics/Wrapper";
+import { ListContainer } from "@components/atomics/ListContainer";
+import { ListItem } from "@components/atomics/ListItem";
+import { Label } from "@components/atomics/Label";
+import { Input } from "@components/atomics/Input";
+import { Select } from "@components/atomics/Select";
+import { OptionItem } from "@components/atomics/OptionItem";
 
 export function ContentView({
     selectedIndex,
@@ -11,35 +18,35 @@ export function ContentView({
     theme: { theme: string };
 }) {
     return (
-        <div
+        <Division
             className="tilesetWindow-tile tilesetWindow__tab-border"
             tab-name="타일"
         >
-            <ul>
-                <li>
-                    <label htmlFor="tile-width">가로 크기: </label>
-                    <input
+            <ListContainer>
+                <ListItem key="tileset-window-tile-width">
+                    <Label htmlFor="tile-width">가로 크기: </Label>
+                    <Input
                         type="number"
                         id="tile-width"
                         value="32"
                         name="tileWidth"
                     />
                     px
-                </li>
-                <li>
-                    <label htmlFor="tile-height">세로 크기: </label>
-                    <input
+                </ListItem>
+                <ListItem key="tileset-window-tile-height">
+                    <Label htmlFor="tile-height">세로 크기: </Label>
+                    <Input
                         type="number"
                         id="tile-height"
                         value="32"
                         name="tileHeight"
                     />
                     px
-                </li>
-                <li>
-                    <label htmlFor="theme">테마 설정: </label>
+                </ListItem>
+                <ListItem key="tileset-window-theme-setting">
+                    <Label htmlFor="theme">테마 설정: </Label>
 
-                    <select
+                    <Select
                         name="theme"
                         id="theme-select-box"
                         value={selectedIndex}
@@ -48,18 +55,21 @@ export function ContentView({
                             setSelectedIndex(e.target.value);
                         }}
                     >
-                        <option value="dark" selected={theme.theme === "dark"}>
+                        <OptionItem
+                            value="dark"
+                            selected={theme.theme === "dark"}
+                        >
                             다크 테마
-                        </option>
-                        <option
+                        </OptionItem>
+                        <OptionItem
                             value="light"
                             selected={theme.theme === "light"}
                         >
                             라이트 테마
-                        </option>
-                    </select>
-                </li>
-            </ul>
-        </div>
+                        </OptionItem>
+                    </Select>
+                </ListItem>
+            </ListContainer>
+        </Division>
     );
 }

@@ -1,29 +1,23 @@
 import { MainMenuContainer } from "./menu/MainMenuContainer";
 import * as frame from "./frame";
 import React, { useEffect } from "react";
+import { Division } from "./atomics/Wrapper";
 
 export type MyReactNodeProps = { children: React.ReactNode };
 
 export function Wrapper({ children }: MyReactNodeProps) {
-    return <div id="wrapper">{children}</div>;
+    return <Division id="wrapper">{children}</Division>;
 }
 
 export function Container({ children }: MyReactNodeProps) {
-    return <div id="container">{children}</div>;
+    return <Division id="container">{children}</Division>;
 }
 
 export function MyApp() {
-    return <div id="app"></div>;
+    return <Division id="app"></Division>;
 }
 
 export function MainContainer() {
-    // const context = useApp();
-
-    // useEffect(() => {
-    //     context.app?.start();
-    //     context.update(1.0);
-    // }, []);
-
     return (
         <Wrapper>
             <Container>

@@ -34,9 +34,12 @@
         "emitDecoratorMetadata": true,
         "isolatedModules": false,
         "useDefineForClassFields": true,
+        "baseUrl": "./renderer",
         "paths": {
-            "@components": ["./renderer/components"],
-            "@components/*": ["./renderer/components/*"]
+            "@components": ["components"],
+            "@components/*": ["components/*"],
+            "@components/atomics": ["components/atomics"],
+            "@components/atomics/*": ["components/atomics/*"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx", "renderer/**/*.ts", "renderer/**/*.tsx"],

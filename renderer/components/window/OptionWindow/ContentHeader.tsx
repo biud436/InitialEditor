@@ -1,19 +1,25 @@
+import { Input } from "@components/atomics/Input";
+import { Label } from "@components/atomics/Label";
+import { ListContainer } from "@components/atomics/ListContainer";
+import { ListItem } from "@components/atomics/ListItem";
+import { Division } from "@components/atomics/Wrapper";
+
 export function ContentHeader() {
     return (
-        <div
+        <Division
             className="tilesetWindow__tileset tilesetWindow__tab-border"
             tab-name="타일셋"
         >
-            <ul>
-                <li>
-                    <label htmlFor="name">이름: </label>
-                    <input type="text" placeholder="name" name="name" />
-                </li>
-                <li>
-                    <label htmlFor="name">이미지: </label>
-                    <input type="file" name="" id="image-load-dialog" />
-                </li>
-            </ul>
-        </div>
+            <ListContainer>
+                <ListItem>
+                    <Label htmlFor="name">이름: </Label>
+                    <Input type="text" placeholder="name" name="name" />
+                </ListItem>
+                <ListItem>
+                    <Label htmlFor="name">이미지: </Label>
+                    <Input type="file" name="" id="image-load-dialog" />
+                </ListItem>
+            </ListContainer>
+        </Division>
     );
 }

@@ -1,9 +1,12 @@
+import { Canvas } from "../atomics/Canvas";
+import { Division } from "../atomics/Wrapper";
+
 export function Tilemap() {
     return (
-        <div className="contents">
-            <canvas id="contents__main-canvas">
+        <Division className="contents">
+            <Canvas id="contents__main-canvas">
                 캔버스를 지원하지 않는 기기입니다.
-            </canvas>
-        </div>
+            </Canvas>
+        </Division>
     );
 }

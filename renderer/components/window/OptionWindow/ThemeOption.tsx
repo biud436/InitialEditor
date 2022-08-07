@@ -1,3 +1,5 @@
+import { OptionItem } from "@components/atomics/OptionItem";
+
 export function ThemeOption({
     value,
     selected,
@@ -10,8 +12,8 @@ export function ThemeOption({
     text: string;
 }) {
     return (
-        <option value={value} selected={selected.theme === value}>
+        <OptionItem value={value} selected={selected.theme === value}>
             {text}
-        </option>
+        </OptionItem>
     );
 }

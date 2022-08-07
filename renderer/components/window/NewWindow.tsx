@@ -1,17 +1,24 @@
-import electronServe from "electron-serve";
-import { useMemo, useReducer, useState } from "react";
-import { useRecoilState } from "recoil";
+import { useMemo, useState } from "react";
 import { useClose as useClose } from "../../providers/window.providers";
-import { WindowState } from "../../recoil/window";
 import { BaseWindowFrame } from "./BaseWindowFrame";
 import useTranslation from "next-translate/useTranslation";
+import styled from "styled-components";
+import { Division } from "@components/atomics/Wrapper";
+import { ListContainer } from "@components/atomics/ListContainer";
+import { ListItem } from "@components/atomics/ListItem";
+import { Button } from "@components/atomics/Button";
+import { Paragraph } from "@components/atomics/Paragraph";
+import { Label } from "@components/atomics/Label";
+import { Input } from "@components/atomics/Input";
+import { Span } from "@components/atomics/Span";
+import { IconItem } from "@components/atomics/IconItem";
 
-type Project = {
+export type Project = {
     path: FileList;
     author: string;
 };
 
-type ReactWindowProps = { children: React.ReactNode };
+export type ReactWindowProps = { children: React.ReactNode };
 
 export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
@@ -36,48 +43,48 @@ export default function NewWindow({ children }: ReactWindowProps) {
 
     return (
         <BaseWindowFrame props={windowRect}>
-            <div className="newContainer">
-                <div id="newWindow" window-name={t("gameProperty")}>
-                    <ul>
-                        <li>
-                            <label htmlFor="name">{t("gameName")}</label>
-                            <input
+            <Division className="newContainer">
+                <Division id="newWindow" window-name={t("gameProperty")}>
+                    <ListContainer>
+                        <ListItem key="583334c93fe9fa509d811fc0b2928056_gameName">
+                            <Label htmlFor="name">{t("gameName")}</Label>
+                            <Input
                                 type="text"
                                 placeholder="name"
                                 value={gameName}
                                 onChange={onChangeGameName}
                             />
-                        </li>
-                        <li>
-                            <label htmlFor="name">{t("gameFile")}</label>
-                            <input
+                        </ListItem>
+                        <ListItem key="583334c93fe9fa509d811fc0b2928056_gameFile">
+                            <Label htmlFor="name">{t("gameFile")}</Label>
+                            <Input
                                 type="file"
                                 placeholder=""
                                 multiple
                                 accept="directory"
                                 onChange={onChangeFileName}
                             />
-                        </li>
-                    </ul>
-                    <div className="newWindow__control-box">
-                        <p>
-                            <span>
-                                <i
+                        </ListItem>
+                    </ListContainer>
+                    <Division className="newWindow__control-box">
+                        <Paragraph>
+                            <Span>
+                                <IconItem
                                     className="far fa-window-close"
                                     id="action-close"
                                     onClick={close}
-                                ></i>
-                            </span>
-                        </p>
-                    </div>
-                    <div className="panel">
-                        <button>
+                                ></IconItem>
+                            </Span>
+                        </Paragraph>
+                    </Division>
+                    <Division className="panel">
+                        <Button>
                             <i className="fas fa-upload"></i>
                             {t("newGame")}
-                        </button>
-                    </div>
-                </div>
-            </div>
+                        </Button>
+                    </Division>
+                </Division>
+            </Division>
         </BaseWindowFrame>
     );
 }

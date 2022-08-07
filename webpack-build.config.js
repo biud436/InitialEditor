@@ -52,6 +52,9 @@ const electronTypeTarget = {
     ],
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
+        alias: {
+            "@components": path.resolve(__dirname, "renderer", "components"),
+        },
     },
 };
 

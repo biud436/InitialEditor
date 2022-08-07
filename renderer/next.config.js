@@ -14,6 +14,10 @@ module.exports = nextTranslate({
             config.node = {
                 __dirname: true,
             };
+
+            // config.resolve.alias = {
+            //     "@components": path.resolve(__dirname, "components"),
+            // };
         }
 
         return config;

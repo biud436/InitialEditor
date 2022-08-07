@@ -1,21 +1,33 @@
+import { IconItem } from "@components/atomics/IconItem";
+import { ListContainer } from "@components/atomics/ListContainer";
+import { ListItem } from "@components/atomics/ListItem";
+
 export function DrawMenuitem() {
     return (
-        <ul className="menu__draw-sub menu-style" defaultValue="Draw">
-            <li data-action="draw-pencil">
-                <i className="fas fa-pencil-alt"></i>Pencil
-            </li>
-            <li data-action="draw-rectangle">
-                <i className="fas fa-square-full"></i>Rectangle
-            </li>
-            <li data-action="draw-ellipse">
-                <i className="fas fa-circle"></i>Ellipse
-            </li>
-            <li data-action="draw-flood-fill">
-                <i className="fas fa-fill"></i>Flood Fill
-            </li>
-            <li data-action="draw-shadow-pen">
-                <i className="fas fa-paint-brush"></i>Shadow Pen
-            </li>
-        </ul>
+        <ListContainer
+            className="menu__draw-sub menu-style"
+            defaultValue="Draw"
+        >
+            <ListItem data-action="draw-pencil">
+                <IconItem className="fas fa-pencil-alt" />
+                Pencil
+            </ListItem>
+            <ListItem data-action="draw-rectangle">
+                <IconItem className="fas fa-square-full" />
+                Rectangle
+            </ListItem>
+            <ListItem data-action="draw-ellipse">
+                <IconItem className="fas fa-circle" />
+                Ellipse
+            </ListItem>
+            <ListItem data-action="draw-flood-fill">
+                <IconItem className="fas fa-fill" />
+                Flood Fill
+            </ListItem>
+            <ListItem data-action="draw-shadow-pen">
+                <IconItem className="fas fa-paint-brush" />
+                Shadow Pen
+            </ListItem>
+        </ListContainer>
     );
 }

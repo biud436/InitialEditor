@@ -5,6 +5,10 @@ import styled from "styled-components";
 import { useRouter } from "next/dist/client/router";
 import { useRecoilState } from "recoil";
 import { WindowState } from "../../recoil/window";
+import { Division } from "@components/atomics/Wrapper";
+import { Paragraph } from "@components/atomics/Paragraph";
+import { Span } from "@components/atomics/Span";
+import { IconItem } from "@components/atomics/IconItem";
 
 const WindowFrameHeader = styled.div`
     width: ${(props) => props.theme.width + "px"};
@@ -46,24 +50,22 @@ export function BaseWindowFrame({
 
     return (
         <Draggable grid={[16, 16]}>
-            <div className={styles.background}>
+            <Division className={styles.background}>
                 <WindowFrameHeader theme={theme}>
-                    <p>
-                        <span>
-                            <i
+                    <Paragraph>
+                        <Span>
+                            <IconItem
                                 className="far fa-window-close"
                                 onClick={close}
                             />
-                        </span>
-                    </p>
+                        </Span>
+                    </Paragraph>
                     부모 창의 헤더
                 </WindowFrameHeader>
-                <div className="window-frame-body">
-                    <div data-name="content">{children}</div>
-                </div>
-            </div>
+                <Division className="window-frame-body">
+                    <Division data-name="content">{children}</Division>
+                </Division>
+            </Division>
         </Draggable>
     );
 }
-
-//

@@ -1,3 +1,4 @@
+import { Division } from "@components/atomics/Wrapper";
 import { observer } from "mobx-react";
 import { uiStore } from "../../store/UIStore";
 
@@ -6,9 +7,9 @@ import { uiStore } from "../../store/UIStore";
  */
 export const WindowTitleBar = observer(() => {
     return (
-        <div
+        <Division
             className="drag-zon"
             window-name={uiStore.windowTitleBarName}
-        ></div>
+        ></Division>
     );
 });

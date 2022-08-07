@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 
 import { MainContainer } from "../components/MainContainer";
@@ -6,12 +6,8 @@ import jQuery from "jquery";
 import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
-import styled, { CSSObject, StyledComponent } from "styled-components";
+import styled from "styled-components";
 import { observer } from "mobx-react";
-import { NextScript } from "next/document";
-import { AppGuard } from "../providers/app.providers";
-import { GetServerSideProps } from "next";
-import * as path from "path";
 
 const LoadingBlock = styled.div`
     display: flex;
@@ -56,11 +52,5 @@ const Home = observer(() => {
         </React.Fragment>
     );
 });
-
-// export const getServerSideProps = async ({ locale }: any) => ({
-//     props: {
-//         ...(await serverSideTranslations(locale, ["common"])),
-//     },
-// });
 
 export default Home;
