@@ -1,3 +1,4 @@
+import { IconItem } from "@components/atomics/IconItem";
 import { Label } from "@components/atomics/Label";
 import { ListContainer } from "@components/atomics/ListContainer";
 import { ListItem } from "@components/atomics/ListItem";
@@ -48,13 +49,13 @@ export function TopDownNavigationMenu() {
             </ListItem>
             <ListContainer className="control-box">
                 <ListItem className="minimum" data-action="minimum">
-                    <i className="fas fa-minus"></i>
+                    <IconItem className="fas fa-minus"></IconItem>
                 </ListItem>
                 <ListItem className="maximum" data-action="maximum">
-                    <i className="fas fa-window-maximize"></i>
+                    <IconItem className="fas fa-window-maximize"></IconItem>
                 </ListItem>
                 <ListItem className="close" data-action="close">
-                    <i className="far fa-window-close"></i>
+                    <IconItem className="far fa-window-close"></IconItem>
                 </ListItem>
             </ListContainer>
         </ListContainer>
