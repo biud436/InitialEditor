@@ -9,7 +9,7 @@ export function TopDownNavigationMenu() {
             <ListItem className="menu__main-program-icon"></ListItem>
             <ListItem className="menu__main-file">
                 <Label htmlFor="file" data-action="file">
-                    File
+                    파일
                 </Label>
             </ListItem>
             <ListItem>
