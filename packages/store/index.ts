@@ -1,28 +1,33 @@
 import App from "../app";
+import Store from "electron-store";
 
 /**
  * @class Store
  */
-export class Store<T = any> {
-    protected data: Record<string, T> = {};
-
-    set(key: string, value: T) {
-        this.data[key] = value;
-    }
-
-    get(key: string): T | undefined {
-        return this.data[key];
-    }
-
+export class DataStore<T = any> extends Store {
     forEach(callback: (value: T, key: string) => void) {
-        const keys = Object.keys(this.data);
+        // const keys = Object.keys(this.data);
+        // keys.forEach((key) => {
+        //     callback(this.data[key], key);
+        // });
+
+        const keys = Object.keys(this.store);
         keys.forEach((key) => {
-            callback(this.data[key], key);
+            callback(this.store[key] as any, key);
         });
     }
 }
 
 export type InitialAction = (...args: any[]) => void;
+export const store = new Store();
+
+/**
+ * 기본 일렉트론 스토어를 반환합니다.
+ * @returns
+ */
+export function useStore() {
+    return store;
+}
 
 /**
  * @class InitialStore
@@ -47,10 +52,10 @@ export class InitialStore {
         return InitialStore.INSTANCE;
     }
 
-    private _fetchStore: Store<InitialAction>;
+    private _fetchStore: DataStore<InitialAction>;
 
     constructor() {
-        this._fetchStore = new Store();
+        this._fetchStore = new DataStore();
     }
 
     set app(app: App) {

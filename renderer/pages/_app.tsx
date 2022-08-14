@@ -1,18 +1,26 @@
 import "reflect-metadata";
-import React from "react";
+import React, { useEffect } from "react";
 import type { AppProps } from "next/app";
 import "../styles/globals.scss";
 import { ThemeProvider } from "styled-components";
 import { RecoilRoot } from "recoil";
+import Store from "electron-store";
 
 export function MyApp({ Component, pageProps }: AppProps) {
-  return (
-    <RecoilRoot>
-      <ThemeProvider theme={{}}>
-        <Component {...pageProps} />
-      </ThemeProvider>
-    </RecoilRoot>
-  );
+    const [store, setStore] = React.useState<Store>(new Store());
+
+    useEffect(() => {
+        console.log("메뉴 커맨드 >> ");
+        console.log(store.get("menuCommands") as any[]);
+    }, []);
+
+    return (
+        <RecoilRoot>
+            <ThemeProvider theme={{}}>
+                <Component {...pageProps} />
+            </ThemeProvider>
+        </RecoilRoot>
+    );
 }
 
 export default MyApp;
