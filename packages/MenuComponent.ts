@@ -29,32 +29,9 @@ export namespace InitialEditor {
 @Service()
 class MenuComponent extends Component {
     public _isMenuOpen!: boolean;
-    private _originalPos!: InitialEditor.Point;
-    private _currentTarget?: JQuery<HTMLElement> | undefined | null;
 
     start(...args: any[]) {
         this._isMenuOpen = false;
-
-        // 툴바를 드래그 가능한 상태로 변경합니다.
-        // @ts-ignore
-        // $(".toolbar").draggable({ snap: ".menu" });
-
-        // 사이드 탭 (타일셋 뷰)의 폭을 조절할 수 있게 합니다.
-        // @ts-ignore
-        // $(".aside__tabs").resizable({
-        //     containment: "#aside",
-        // });
-
-        // 툴바의 크기를 가져옵니다.
-        const rect = <DOMRect>$(".toolbar").get(0).getBoundingClientRect();
-        const { x, y } = rect;
-
-        this._originalPos = <InitialEditor.Point>{
-            x,
-            y,
-        };
-
-        this._currentTarget = null;
 
         return this;
     }
@@ -64,7 +41,9 @@ class MenuComponent extends Component {
     }
 
     public hideMenu() {
-        $("#none").prop("checked", true);
+        document
+            .querySelector<HTMLDivElement>("#none")!
+            .setAttribute("checked", "true");
         this._isMenuOpen = false;
     }
 
@@ -72,33 +51,23 @@ class MenuComponent extends Component {
         target: T,
         mouse: R
     ) {
-        if ($(".toolbar").is(".ui-draggable-dragging")) {
-            // const rect = $(".toolbar").get(0).getBoundingClientRect();
-        }
-
         // 최상위 노드를 선택합니다.
         /**
          * @type {HTMLElement}
          */
         let parentNode = target.parentNode; //
+        const parentClassName = (<Element>parentNode).className;
 
-        while (
-            parentNode != null &&
-            (<Element>parentNode).className != "menu__main"
-        ) {
+        while (parentNode != null && parentClassName !== "menu__main") {
             parentNode = parentNode.parentNode;
         }
 
-        const isSomeMenuOpened = $("ul[class*='sub']").is(":visible");
-
         // 최상위 노드가 메인 메뉴라면
-        if (parentNode && (<Element>parentNode).className === "menu__main") {
+        if (parentNode && parentClassName === "menu__main") {
             // 메뉴가 열린 것으로 간주
             this._isMenuOpen = true;
-        } else {
-            if (this._isMenuOpen && mouse.buttons.leftFire) {
-                this.hideMenu();
-            }
+        } else if (this._isMenuOpen && mouse.buttons.leftFire) {
+            this.hideMenu();
         }
     }
 }
