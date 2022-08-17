@@ -39,6 +39,7 @@
     "styled-components": "^5.3.3",
     "styled-reset": "^4.3.4",
     "ts-loader": "^9.3.0",
+    "tsyringe": "^4.7.0",
     "typedi": "^0.10.0",
     "webpack": "^5.73.0"
   },
