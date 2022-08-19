@@ -1,6 +1,6 @@
 import { MainMenuContainer } from "./menu/MainMenuContainer";
 import * as frame from "./frame";
-import React, { useEffect } from "react";
+import React, { Fragment, useEffect } from "react";
 import { Division } from "./atomics/Wrapper";
 
 export type MyReactNodeProps = { children: React.ReactNode };

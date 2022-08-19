@@ -5,12 +5,14 @@ import { Input } from "../atomics/Input";
 import { ListContainer } from "../atomics/ListContainer";
 import { ListItem } from "../atomics/ListItem";
 import { Division } from "../atomics/Wrapper";
+import { TilesetMarker } from "./TilesetMarker";
 
 export function TileSelectWindow() {
     return (
         <Division id="aside">
             <Division className="aside__tabs">
                 <Division id="view" onDragStart={() => false}></Division>
+                <TilesetMarker />
 
                 <Input type="radio" name="tile" id="a" defaultChecked />
                 <Input type="radio" name="tile" id="b" />
