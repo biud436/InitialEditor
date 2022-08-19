@@ -33,6 +33,7 @@
     "pixi.js": "^5",
     "react-draggable": "^4.4.5",
     "react-resizable": "^3.0.4",
+    "react-use": "^17.4.0",
     "recoil": "^0.6.1",
     "reflect-metadata": "^0.1.13",
     "sass": "^1.52.3",
