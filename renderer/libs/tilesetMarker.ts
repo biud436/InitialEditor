@@ -59,24 +59,24 @@ class TilesetMarker extends Component {
             return;
         }
 
-        this._element = $("<div></div>", { id: "tileset-marker" }).css({
-            "min-width": `${this._tileWidth}px`,
-            "min-height": `${this._tileHeight}px`,
-            width: `${this._tileWidth}px`,
-            height: `${this._tileHeight}px`,
-            position: "absolute",
-            top: "0",
-            left: "0",
-            margin: "0",
-            padding: "0",
-            border: "2px dotted yellow",
-            "z-index": "50",
-            "box-sizing": "border-box",
-        });
+        // this._element = $("<div></div>", { id: "tileset-marker" }).css({
+        //     "min-width": `${this._tileWidth}px`,
+        //     "min-height": `${this._tileHeight}px`,
+        //     width: `${this._tileWidth}px`,
+        //     height: `${this._tileHeight}px`,
+        //     position: "absolute",
+        //     top: "0",
+        //     left: "0",
+        //     margin: "0",
+        //     padding: "0",
+        //     border: "2px dotted yellow",
+        //     "z-index": "50",
+        //     "box-sizing": "border-box",
+        // });
 
         this._isReady = true;
 
-        parent.append(this._element);
+        // parent.append(this._element);
 
         this._isDraw = false;
         this._isClicked = false;
@@ -86,7 +86,7 @@ class TilesetMarker extends Component {
             this._tileWidth,
             this._tileHeight
         );
-        this._blockSize.setParent(this._element);
+        // this._blockSize.setParent(this._element);
 
         this.touches = [
             { x: 0, y: 0 },
@@ -140,15 +140,15 @@ class TilesetMarker extends Component {
             ny = tilesetHeight - th + topY;
         }
 
-        if (!this._isDragging) {
-            this._element.css({
-                position: "absolute",
-                left: nx + "px",
-                top: ny - topY + "px",
-                width: tw + "px",
-                height: th + "px",
-            });
-        }
+        // if (!this._isDragging) {
+        //     this._element.css({
+        //         position: "absolute",
+        //         left: nx + "px",
+        //         top: ny - topY + "px",
+        //         width: tw + "px",
+        //         height: th + "px",
+        //     });
+        // }
 
         console.log("타일 ID : " + (targetY * mapCols + targetX));
 
