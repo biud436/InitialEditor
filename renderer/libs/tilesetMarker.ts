@@ -227,7 +227,6 @@ class TilesetMarker extends Component {
     public onDragLeave(...args: any[]) {
         const mouse = <Mouse>args[0];
         if (this._isDragging) {
-            console.log("드래그가 끝났습니다");
             this._isDragging = false;
             this._tiles = [];
             this._blockSize.x = mouse.startX;
@@ -241,7 +240,7 @@ class BlockSize {
     private _y = 0;
     private _width = 0;
     private _height = 0;
-    private _parent: JQuery<HTMLElement> | null;
+    private _parent?: JQuery<HTMLElement> | null;
 
     constructor(x: number, y: number, width: number, height: number) {
         makeAutoObservable(this);
