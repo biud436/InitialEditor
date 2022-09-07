@@ -11,7 +11,7 @@ class Schema {
      * 멤버 변수를 JSON 데이터로 변환합니다.
      */
     toJson(): string {
-        return JSON.stringify(this, null, "    ");
+        return JSON.stringify(this, null, 2);
     }
 
     /**

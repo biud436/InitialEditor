@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import { SetterOrUpdater, useRecoilState } from "recoil";
 import NewWindow from "../components/window/NewWindow";
 import OptionWindow from "../components/window/OptionWindow";
-import { WindowState, WindowStateImpl, WindowType } from "../recoil/window";
+import { WindowState, WindowType } from "../recoil/window";
 
 export const WindowContext = createContext<{
     close: () => void;
