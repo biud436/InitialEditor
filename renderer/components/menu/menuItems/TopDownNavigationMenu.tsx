@@ -4,60 +4,60 @@ import { ListContainer } from "@components/atomics/ListContainer";
 import { ListItem } from "@components/atomics/ListItem";
 
 export function TopDownNavigationMenu() {
-  return (
-    <ListContainer className="menu__main">
-      <ListItem className="menu__main-program-icon"></ListItem>
-      <ListItem className="menu__main-file">
-        <Label htmlFor="file" data-action="file">
-          File
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="edit" data-action="edit">
-          Edit
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="mode" data-action="mode">
-          Mode
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="draw" data-action="draw">
-          Draw
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="scale" data-action="scale">
-          Scale
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="tools" data-action="tools">
-          Tools
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="game" data-action="game">
-          Game
-        </Label>
-      </ListItem>
-      <ListItem>
-        <Label htmlFor="help" data-action="help">
-          Help
-        </Label>
-      </ListItem>
-      <ListContainer className="control-box">
-        <ListItem className="minimum" data-action="minimum">
-          <IconItem className="fas fa-minus"></IconItem>
-        </ListItem>
-        <ListItem className="maximum" data-action="maximum">
-          <IconItem className="fas fa-window-maximize"></IconItem>
-        </ListItem>
-        <ListItem className="close" data-action="close">
-          <IconItem className="far fa-window-close"></IconItem>
-        </ListItem>
-      </ListContainer>
-    </ListContainer>
-  );
+    return (
+        <ul id="menu__main" className={`menu__main`}>
+            <li className="menu__main-program-icon" />
+            <li className="menu__main-file">
+                <label htmlFor="file" data-action="file">
+                    File
+                </label>
+            </li>
+            <li className="menu__main-edit">
+                <label htmlFor="edit" data-action="edit">
+                    Edit
+                </label>
+            </li>
+            <li className="menu__main-mode">
+                <label htmlFor="mode" data-action="mode">
+                    Mode
+                </label>
+            </li>
+            <li className="menu__main-draw">
+                <label htmlFor="draw" data-action="draw">
+                    Draw
+                </label>
+            </li>
+            <li className="menu__main-scale">
+                <label htmlFor="scale" data-action="scale">
+                    Scale
+                </label>
+            </li>
+            <li className="menu__main-tools">
+                <label htmlFor="tools" data-action="tools">
+                    Tools
+                </label>
+            </li>
+            <li className="menu__main-game">
+                <label htmlFor="game" data-action="game">
+                    Game
+                </label>
+            </li>
+            <li className="menu__main-help">
+                <label htmlFor="help" data-action="help">
+                    Help
+                </label>
+            </li>
+            <ul className="control-box">
+                <li className="minimum" data-action="minimum">
+                    <i className="fas fa-minus"></i>
+                </li>
+                <li className="maximum" data-action="maximum">
+                    <i className="fas fa-window-maximize"></i>
+                </li>
+                <li className="close" data-action="close">
+                    <i className="far fa-window-close"></i>
+                </li>
+            </ul>
+        </ul>
+    );
 }

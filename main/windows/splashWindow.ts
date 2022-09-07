@@ -14,7 +14,9 @@ export async function showSplashWindow(
 ): Promise<BrowserWindow> {
     const isProd: boolean = process.env.NODE_ENV === "production";
 
-    const splash: BrowserWindow = new BrowserWindow(config.splashWindow.get());
+    const options: Electron.BrowserWindowConstructorOptions =
+        config.splashWindow.get();
+    const splash: BrowserWindow = new BrowserWindow(options);
     let url = "";
     if (isProd) {
         url = "app://./splash.html";
@@ -26,7 +28,7 @@ export async function showSplashWindow(
     splash.loadURL(url);
     splash.center();
     splash.on("close", () => mainWindow.show());
-    setTimeout(() => splash.close(), 5000);
+    splash.close();
 
     return splash;
 }

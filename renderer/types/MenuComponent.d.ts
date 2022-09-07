@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { Component } from "./component";
 interface Mouse {
     x: number;
@@ -24,8 +25,6 @@ export declare namespace InitialEditor {
  */
 declare class MenuComponent extends Component {
     _isMenuOpen: boolean;
-    private _originalPos;
-    private _currentTarget?;
     start(...args: any[]): this;
     isMenuOpen(): boolean;
     hideMenu(): void;

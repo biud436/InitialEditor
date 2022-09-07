@@ -1,31 +1,23 @@
-import { Emphasis } from "@components/atomics/Emphasis";
-import { IconItem } from "@components/atomics/IconItem";
-import { ListContainer } from "@components/atomics/ListContainer";
-import { ListItem } from "@components/atomics/ListItem";
-
 export function ToolMenuItem() {
     return (
-        <ListContainer
-            className="menu__tools-sub menu-style"
-            defaultValue="Tools"
-        >
-            <ListItem data-action="tools-database">
-                <IconItem className="fas fa-book"></IconItem>Database...
-                <Emphasis>F9</Emphasis>
-            </ListItem>
-            <ListItem data-action="tools-resource-manager">
-                <IconItem className="fas fa-scroll"></IconItem>Resource Manager
-            </ListItem>
-            <ListItem data-action="tools-script-eidtor">
-                <IconItem className="fas fa-toolbox"></IconItem>Script Editor
-            </ListItem>
-            <ListItem data-action="tools-sound-test">
-                <IconItem className="fas fa-music"></IconItem>Sound Test
-            </ListItem>
-            <ListItem className="menu__empty-line"></ListItem>
-            <ListItem data-action="tools-options">
-                <IconItem className="fas fa-user-cog"></IconItem>Options...
-            </ListItem>
-        </ListContainer>
+        <ul className="menu__tools-sub menu-style" defaultValue="Tools">
+            <li data-action="tools-database">
+                <i className="fas fa-book"></i>Database...
+                <em>F9</em>
+            </li>
+            <li data-action="tools-resource-manager">
+                <i className="fas fa-scroll"></i>Resource Manager
+            </li>
+            <li data-action="tools-script-eidtor">
+                <i className="fas fa-toolbox"></i>Script Editor
+            </li>
+            <li data-action="tools-sound-test">
+                <i className="fas fa-music"></i>Sound Test
+            </li>
+            <li className="menu__empty-line"></li>
+            <li data-action="tools-options">
+                <i className="fas fa-user-cog"></i>Options...
+            </li>
+        </ul>
     );
 }

@@ -1,5 +1,7 @@
-import { Service } from "typedi";
+import "reflect-metadata";
+import { Inject, Service } from "typedi";
 import { Component } from "./component";
+import { Logger } from "./utils/Logger";
 
 interface Mouse {
     x: number;
@@ -41,32 +43,45 @@ class MenuComponent extends Component {
     }
 
     public hideMenu() {
-        document
-            .querySelector<HTMLDivElement>("#none")!
-            .setAttribute("checked", "true");
+        // @ts-ignore
+        document.querySelector("#none")?.checked = true;
+
         this._isMenuOpen = false;
+
+        console.log("실행되었음");
     }
 
     public update<T extends HTMLElement = HTMLElement, R extends Mouse = Mouse>(
         target: T,
         mouse: R
     ) {
-        // 최상위 노드를 선택합니다.
-        /**
-         * @type {HTMLElement}
-         */
+        // // 최상위 노드를 선택합니다.
+        // /**
+        //  * @type {HTMLElement}
+        //  */
         let parentNode = target.parentNode; //
         const parentClassName = (<Element>parentNode).className;
 
-        while (parentNode != null && parentClassName !== "menu__main") {
+        while (
+            parentNode != null &&
+            parentClassName.indexOf("menu__main") === -1
+        ) {
             parentNode = parentNode.parentNode;
         }
 
+        // const isOpenMenu = Array.from(
+        //     document.querySelectorAll<HTMLUListElement>(".menu-style")
+        // ).find((element) => {
+        //     return getComputedStyle(element).display === "block";
+        // });
+
         // 최상위 노드가 메인 메뉴라면
-        if (parentNode && parentClassName === "menu__main") {
+        if (parentNode && parentClassName.indexOf("menu__main") > -1) {
+            // if (isOpenMenu) {
             // 메뉴가 열린 것으로 간주
             this._isMenuOpen = true;
         } else if (this._isMenuOpen && mouse.buttons.leftFire) {
+            console.log("메뉴 닫힘을 호출하였습니다");
             this.hideMenu();
         }
     }

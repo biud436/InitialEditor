@@ -8,15 +8,15 @@ export function MainMenuContainer(children: React.ReactNode) {
     return (
         <Division className="menu">
             <WindowTitleBar></WindowTitleBar>
-            <Input type="radio" name="menu" id="file" />
-            <Input type="radio" name="menu" id="edit" />
-            <Input type="radio" name="menu" id="mode" />
-            <Input type="radio" name="menu" id="draw" />
-            <Input type="radio" name="menu" id="scale" />
-            <Input type="radio" name="menu" id="tools" />
-            <Input type="radio" name="menu" id="game" />
-            <Input type="radio" name="menu" id="help" />
-            <Input type="radio" name="menu" id="none" />
+            <input type="radio" name="menu" id="file" />
+            <input type="radio" name="menu" id="edit" />
+            <input type="radio" name="menu" id="mode" />
+            <input type="radio" name="menu" id="draw" />
+            <input type="radio" name="menu" id="scale" />
+            <input type="radio" name="menu" id="tools" />
+            <input type="radio" name="menu" id="game" />
+            <input type="radio" name="menu" id="help" />
+            <input type="radio" name="menu" id="none" />
 
             <menu.TopDownNavigationMenu />
             <menu.FileMenuItem />
