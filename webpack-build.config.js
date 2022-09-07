@@ -50,6 +50,8 @@ const electronTypeTarget = {
     plugins: [
         // make sure to include the plugin for the magic
     ],
+    // source-map most detailed at the expense of build speed.
+    devtool: "source-map",
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
         alias: {
