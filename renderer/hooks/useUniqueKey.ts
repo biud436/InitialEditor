@@ -4,5 +4,5 @@ export function useUniqueKey(joinableText?: string) {
     const key = uuid();
     const joinable = key.replace(/-/g, "");
 
-    return [key, joinable.concat("_", joinableText)];
+    return [key, joinable.concat("_", joinable)];
 }
