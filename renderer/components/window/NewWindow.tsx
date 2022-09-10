@@ -1,15 +1,6 @@
 import { useMemo, useState } from "react";
 import { useClose as useClose } from "../../providers/window.providers";
 import { BaseWindowFrame } from "./BaseWindowFrame";
-import styled from "styled-components";
-import { Division } from "@components/atomics/Wrapper";
-import { ListContainer } from "@components/atomics/ListContainer";
-import { Button } from "@components/atomics/Button";
-import { Paragraph } from "@components/atomics/Paragraph";
-import { Label } from "@components/atomics/Label";
-import { Input } from "@components/atomics/Input";
-import { Span } from "@components/atomics/Span";
-import { IconItem } from "@components/atomics/IconItem";
 
 export type Project = {
     path: FileList;
