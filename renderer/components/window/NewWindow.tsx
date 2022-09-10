@@ -17,6 +17,11 @@ export type Project = {
 };
 
 export type ReactWindowProps = { children: React.ReactNode };
+export type HTMLInputEvent = React.ChangeEvent<HTMLInputElement>;
+export interface WindowRect {
+    width: number;
+    height: number;
+}
 
 export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
@@ -28,13 +33,13 @@ export default function NewWindow({ children }: ReactWindowProps) {
             width: 256,
             height: 256,
         };
-    }, []) as { width: number; height: number };
+    }, []) as WindowRect;
 
-    const onChangeGameName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onChangeGameName = (e: HTMLInputEvent) => {
         setGameName(e.target.value);
     };
 
-    const onChangeFileName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onChangeFileName = (e: HTMLInputEvent) => {
         setFileName(e.target.value);
     };
 
