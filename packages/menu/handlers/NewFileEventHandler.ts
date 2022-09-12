@@ -6,8 +6,6 @@ export class NewFileEventHandler implements IBaseMenuEventHandler {
     children?: Record<string, any> = {};
     shortcut: string[] = ["ctrl", "n"];
 
-    constructor() {}
-
     @OnMenuClick("file-new")
     action(ev: any) {
         if (window.app) {
