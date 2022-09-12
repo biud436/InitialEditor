@@ -3,6 +3,7 @@ import { ElectronService } from "../ElectronService";
 import "reflect-metadata";
 import { OnMenuClick } from "../decorators/OnMenuClick";
 import { NewFileEventHandler } from "./handlers/NewFileEventHandler";
+import { OpenFileEventHandler } from "./handlers/OpenFileEventHandler";
 
 export const FileMenuNameMap = <const>[
     "file-new",
@@ -29,17 +30,7 @@ export const FileMenu = <Partial<FileMenuImpl>>{
     name: "파일",
     children: {
         "file-new": new NewFileEventHandler(),
-        "file-open": {
-            name: "파일 열기",
-            shortcut: ["ctrl", "o"],
-            children: {},
-            action: function (ev: any) {
-                ElectronService.getInstance().showErrorMessageBox(
-                    "알림",
-                    "아직 지원하지 않는 기능입니다"
-                );
-            },
-        },
+        "file-open": new OpenFileEventHandler(),
         "file-close": {
             name: "파일 닫기",
             children: {},
