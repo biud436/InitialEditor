@@ -8,8 +8,39 @@
 
 This project allows you to edit multi dimensional tile map on my own game engine. it is worked fine on any platforms such as Linux Desktop, OSX, Windows and so on.
 
+## Tilemap
+
 ![IMG](./editor.png)
+
+## Child Window
+
 <img width="1392" alt="image" src="https://user-images.githubusercontent.com/13586185/189561657-2fb02462-0f7e-47ab-bc35-dab68e3a395f.png">
+
+# Usage
+
+## Menu Commands
+
+This stuff is written in a TypeScript. if you want to make a new menu command into the editor, you can add a new command into the `packages/menu/commands` directory, this editor can collect a decorator called `@OnMenuClick('menu-command-key')` and can execute a mapped action to its decorator.
+
+```ts
+import { OnMenuClick } from "../../decorators/OnMenuClick";
+import { IBaseMenuCommand as IBaseMenuCommand } from "./IBaseMenuCommand";
+
+export class NewFileCommand implements IBaseMenuCommand {
+    name: string = "새로 만들기";
+    children?: Record<string, any> = {};
+    shortcut: string[] = ["ctrl", "n"];
+
+    @OnMenuClick("file-new")
+    action(ev: any) {
+        if (window.app) {
+            window.app.emit("openWindow", {
+                path: "/newWindow",
+            });
+        }
+    }
+}
+```
 
 # Environment
 
