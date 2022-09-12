@@ -1,3 +1,4 @@
+import "reflect-metadata";
 export declare const FileMenuNameMap: readonly ["file-new", "file-open", "file-close", "file-save", "file-preferences", "file-exit"];
 export declare type FileMenuImpl = {
     name: string;

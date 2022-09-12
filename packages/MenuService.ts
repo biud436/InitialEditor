@@ -8,7 +8,7 @@ import { Service } from "typedi";
 
 const menu = {
     ko: KoreanMenu,
-};
+} as const;
 
 type MenuType = keyof typeof menu;
 
@@ -115,6 +115,7 @@ export default class MenuService extends Component {
             this.changeMenuLocaleAsPersonalize();
             this.changeToolbarIconOnMobileDevice();
             this.addMenuEventHandlers();
+            this.collectDecorators();
             MenuService.isReady = true;
         }
 
@@ -140,6 +141,21 @@ export default class MenuService extends Component {
         const labels = Array.from<HTMLLabelElement>(
             document.querySelectorAll(".menu__main label")
         );
+    }
+
+    /**
+     * 메소드 데코레이터를 수집합니다.
+     */
+    public collectDecorators() {
+        Object.values(menu.ko).forEach((item) => {
+            if (item.children) {
+                Object.values(item.children).forEach((child: any) => {
+                    if (child.action) {
+                        console.log(child.name);
+                    }
+                });
+            }
+        });
     }
 
     public addMenuEventHandlers() {

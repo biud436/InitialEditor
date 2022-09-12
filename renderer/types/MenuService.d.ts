@@ -23,6 +23,10 @@ export default class MenuService extends Component {
      */
     hideMenuOnMac(): void;
     changeMenuLocaleAsPersonalize(): void;
+    /**
+     * 메소드 데코레이터를 수집합니다.
+     */
+    collectDecorators(): void;
     addMenuEventHandlers(): void;
     changeToolbarIconOnMobileDevice(): void;
 }
