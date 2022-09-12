@@ -1,6 +1,6 @@
 import { uuid } from "uuidv4";
 
-export function useUniqueKey(joinableText?: string) {
+export function useUUID(joinableText?: string) {
     const key = uuid();
     const joinable = key.replace(/-/g, "");
 

@@ -1,3 +1,4 @@
+import { useUUID } from "hooks/useUUID";
 import { useMemo, useState } from "react";
 import { useClose as useClose } from "../../providers/window.providers";
 import { BaseWindowFrame } from "./BaseWindowFrame";
@@ -18,6 +19,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
     const [gameName, setGameName] = useState("");
     const [, setFileName] = useState("");
+    const [listKeys] = useState<string[]>([useUUID()[1], useUUID()[1]]);
 
     const windowRect = useMemo(() => {
         return {
@@ -39,10 +41,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
             <div className="newContainer">
                 <div id="newWindow" window-name={"새로운 프로젝트 생성"}>
                     <ul>
-                        <li
-                            key="583334c93fe9fa509d811fc0b2928056_gameName"
-                            className="title"
-                        >
+                        <li key={listKeys[0]} className="title">
                             <label htmlFor="name">게임 이름</label>
                             <input
                                 type="text"
@@ -51,7 +50,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
                                 onChange={onChangeGameName}
                             />
                         </li>
-                        <li key="583334c93fe9fa509d811fc0b2928056_gameFile">
+                        <li key={listKeys[1]}>
                             <label htmlFor="name">폴더 선택</label>
                             <input
                                 type="file"
