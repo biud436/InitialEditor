@@ -50,7 +50,7 @@ To write a new menu command, you must import an interface named `IBaseMenuComman
 | :-----------: | :-----------: |
 |   Electron    | Stable (100%) |
 
-# How to setup
+## How to setup
 
 In case of platform such as `OSX`, try these steps. First up, you must install node in your system.
 
@@ -71,11 +71,11 @@ cd InitialEidtor
 yarn install
 ```
 
-# How to start on Windows 10
+## How to start on Windows 10
 
 ~~It is pretty easy. Open the Visual Studio Code and press key called `F5` on platform such as Windows 10. if you can't start the program, you must see the previous step.~~
 
-# How to start on Mac OSX (Apple Silicon M1)
+## How to start on Mac OSX (Apple Silicon M1)
 
 you have to run the shell script file such as `build.sh` and execute the command such as `npm run start` ~~or `fn + F5`~~
 
@@ -83,7 +83,7 @@ you have to run the shell script file such as `build.sh` and execute the command
 yarn dev
 ```
 
-# How to upstream from remote github repository
+## How to upstream from remote github repository
 
 To upstream from the remote repository, you must call below command.
 
