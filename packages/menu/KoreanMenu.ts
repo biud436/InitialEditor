@@ -21,4 +21,6 @@ const KoreanMenu = {
     // },
 };
 
+export type MenuKeys = typeof KoreanMenu;
+
 export { KoreanMenu };

@@ -23,14 +23,12 @@ This project allows you to edit multi dimensional tile map on my own game engine
 This stuff is written in a TypeScript. if you want to make a new menu command into the editor, you can add a new command into the `packages/menu/commands` directory, this editor can collect a decorator called `@OnMenuClick('menu-command-key')` and can execute a mapped action to its decorator.
 
 ```ts
+import { MenuCommand } from "../../decorators/MenuCommand";
 import { OnMenuClick } from "../../decorators/OnMenuClick";
-import { IBaseMenuCommand as IBaseMenuCommand } from "./IBaseMenuCommand";
+import { IBaseMenuCommand } from "./IBaseMenuCommand";
 
+@MenuCommand("file", "file-new", "새로 만들기", ["ctrl", "n"])
 export class NewFileCommand implements IBaseMenuCommand {
-    name: string = "새로 만들기";
-    children?: Record<string, any> = {};
-    shortcut: string[] = ["ctrl", "n"];
-
     @OnMenuClick("file-new")
     action(ev: any) {
         if (window.app) {
