@@ -168,8 +168,6 @@ export default class MenuService extends Component {
                     ...items?.children,
                 },
             };
-
-            console.log(items);
         });
     }
 
