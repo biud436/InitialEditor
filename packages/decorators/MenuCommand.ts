@@ -13,17 +13,12 @@ export function MenuCommand(
     shortcut: string[]
 ): ClassDecorator {
     return function (target: any) {
-        Service()(target);
-        const clazz = Container.get(target) as any;
-        clazz.name = description;
-        clazz.shortcut = shortcut;
-
         const TOKEN = `${MENU_COMMAND}_${menuId}-${name}`;
 
-        console.log("TOKEN : %s", TOKEN);
-        console.log(clazz);
+        target.prototype["name"] = description;
+        target.prototype["shortcut"] = shortcut;
 
         const injectableClass = Container.get(MenuInjector);
-        Reflect.set(injectableClass, TOKEN, clazz);
+        Reflect.set(injectableClass, TOKEN, target);
     };
 }
