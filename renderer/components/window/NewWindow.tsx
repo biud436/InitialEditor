@@ -21,8 +21,8 @@ export default function NewWindow({ children }: ReactWindowProps) {
 
     const windowRect = useMemo(() => {
         return {
-            width: 256,
-            height: 256,
+            width: 200,
+            height: 150,
         };
     }, []) as WindowRect;
 
@@ -37,23 +37,25 @@ export default function NewWindow({ children }: ReactWindowProps) {
     return (
         <BaseWindowFrame props={windowRect}>
             <div className="newContainer">
-                <div id="newWindow" window-name={"gameProperty"}>
+                <div id="newWindow" window-name={"새로운 프로젝트 생성"}>
                     <ul>
-                        <li key="583334c93fe9fa509d811fc0b2928056_gameName">
-                            <label htmlFor="name">{gameName}</label>
+                        <li
+                            key="583334c93fe9fa509d811fc0b2928056_gameName"
+                            className="title"
+                        >
+                            <label htmlFor="name">게임 이름</label>
                             <input
                                 type="text"
-                                placeholder="name"
+                                placeholder="게임 이름을 입력하세요."
                                 value={gameName}
                                 onChange={onChangeGameName}
                             />
                         </li>
                         <li key="583334c93fe9fa509d811fc0b2928056_gameFile">
-                            <label htmlFor="name">{"gameFile"}</label>
+                            <label htmlFor="name">폴더 선택</label>
                             <input
                                 type="file"
                                 placeholder=""
-                                multiple
                                 accept="directory"
                                 onChange={onChangeFileName}
                             />
@@ -73,7 +75,7 @@ export default function NewWindow({ children }: ReactWindowProps) {
                     <div className="panel">
                         <button>
                             <i className="fas fa-upload"></i>
-                            {"newGame"}
+                            프로젝트 생성하기
                         </button>
                     </div>
                 </div>

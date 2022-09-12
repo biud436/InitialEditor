@@ -5,5 +5,9 @@
     left: 50%;
     display: flex;
     align-self: center;
-    background-color: #252526;
+}
+
+.windowFrameBody {
+    height: 2.5em;
+    line-height: 2.5em;
 }
