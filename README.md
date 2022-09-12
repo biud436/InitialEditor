@@ -42,6 +42,8 @@ export class NewFileCommand implements IBaseMenuCommand {
 }
 ```
 
+To write a new menu command, you must import an interface named `IBaseMenuCommand` that starts with 'I' like as C# and so on. this interface has a name, children, shortcut properties, and action method. the action method is a function that can be executed when the menu command is clicked.
+
 # Environment
 
 | Platform Type |    Status     |
