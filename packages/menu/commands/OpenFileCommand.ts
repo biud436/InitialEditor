@@ -1,8 +1,8 @@
 import { OnMenuClick } from "../../decorators/OnMenuClick";
 import { ElectronService } from "../../ElectronService";
-import { IBaseMenuEventHandler } from "./IBaseMenuEventHandler";
+import { IBaseMenuCommand as IBaseMenuCommand } from "./IBaseMenuCommand";
 
-export class OpenFileEventHandler implements IBaseMenuEventHandler {
+export class OpenFileCommand implements IBaseMenuCommand {
     public name = "파일 열기";
     public children = {};
     public shortcut = ["ctrl", "o"];
