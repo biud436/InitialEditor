@@ -5,6 +5,7 @@ import { OnMenuClick } from "../decorators/OnMenuClick";
 import { NewFileCommand } from "./commands/NewFileCommand";
 import { OpenFileCommand } from "./commands/OpenFileCommand";
 import { FileExitCommand } from "./commands/FileExitCommand";
+import { IBaseMenuCommand } from "./commands/IBaseMenuCommand";
 
 export const FileMenuNameMap = <const>[
     "file-new",
@@ -19,8 +20,8 @@ export type FileMenuImpl = {
     name: string;
     children: {
         [key in typeof FileMenuNameMap[number]]: {
-            name: string;
-            children: Partial<Record<string, any>>;
+            name?: string;
+            children?: Partial<Record<string, any>>;
             shortcut?: string[];
             action?: (ev: any) => void | Function;
         };

@@ -1,7 +1,6 @@
 export interface IBaseMenuCommand {
-    name: string;
+    name?: string;
     children?: Record<string, any>;
-    shortcut: string[];
-
-    action(ev: any): void;
+    shortcut?: string[];
+    action?(ev: any): void;
 }
