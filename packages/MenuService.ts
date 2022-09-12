@@ -1,6 +1,6 @@
 import { Component } from "./component";
 import { MenuComponent } from "./MenuComponent";
-import { KoreanMenu } from "./menu/KoreanMenu";
+import { KoreanMenu, MenuKeys } from "./menu/KoreanMenu";
 import { SIGKILL } from "constants";
 import { ElectronService } from "./ElectronService";
 import { ipcRenderer } from "electron";
@@ -94,6 +94,15 @@ export default class MenuService extends Component {
     private _isClickedMenu!: boolean;
     public static isReady: boolean = false;
 
+    /**
+     * 메뉴 트리
+     */
+    public static children?: {
+        [key in MenuKeys]: Record<string, any>;
+    };
+
+    public static injectableMenu: Record<string, any> = {};
+
     public initMembers(...args: any[]) {
         /**
          * @type {MenuComponent}
@@ -115,6 +124,7 @@ export default class MenuService extends Component {
             this.changeMenuLocaleAsPersonalize();
             this.changeToolbarIconOnMobileDevice();
             this.addMenuEventHandlers();
+            this.beforeCollectClassDecorators();
             this.collectDecorators();
             MenuService.isReady = true;
         }
@@ -141,6 +151,21 @@ export default class MenuService extends Component {
         const labels = Array.from<HTMLLabelElement>(
             document.querySelectorAll(".menu__main label")
         );
+    }
+
+    /**
+     * 클래스 데코레이터를 수집하고 메뉴 객체를 생성합니다.
+     */
+    public beforeCollectClassDecorators() {
+        // this._tree = {
+        //     file: () => {
+        //         Reflect.getMetadataKeys()
+        //         return {
+        //         };
+        //     }
+        // }
+
+        console.log(MenuService.injectableMenu);
     }
 
     /**

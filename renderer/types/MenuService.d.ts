@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { Component } from "./component";
+import { MenuKeys } from "./menu/KoreanMenu";
 export declare namespace InitialEditor {
     /**
      * 툴바 셀렉터 정의
@@ -16,6 +17,13 @@ export default class MenuService extends Component {
     private _menuComponent;
     private _isClickedMenu;
     static isReady: boolean;
+    /**
+     * 메뉴 트리
+     */
+    static children?: {
+        [key in MenuKeys]: Record<string, any>;
+    };
+    static injectableMenu: Record<string, any>;
     initMembers(...args: any[]): void;
     start(...args: any[]): this;
     /**
@@ -23,6 +31,10 @@ export default class MenuService extends Component {
      */
     hideMenuOnMac(): void;
     changeMenuLocaleAsPersonalize(): void;
+    /**
+     * 클래스 데코레이터를 수집하고 메뉴 객체를 생성합니다.
+     */
+    beforeCollectClassDecorators(): void;
     /**
      * 메소드 데코레이터를 수집합니다.
      */
