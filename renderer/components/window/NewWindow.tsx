@@ -19,7 +19,10 @@ export default function NewWindow({ children }: ReactWindowProps) {
     const { close } = useClose();
     const [gameName, setGameName] = useState("");
     const [, setFileName] = useState("");
-    const [listKeys] = useState<string[]>([useUUID()[1], useUUID()[1]]);
+    const [listKeys] = useState<string[]>([
+        useUUID("newWindow_gameFile")[1],
+        useUUID("newWindow_selectFolder")[1],
+    ]);
 
     const windowRect = useMemo(() => {
         return {

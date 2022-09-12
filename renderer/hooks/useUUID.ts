@@ -4,5 +4,5 @@ export function useUUID(joinableText?: string) {
     const key = uuid();
     const joinable = key.replace(/-/g, "");
 
-    return [key, joinable.concat("_", joinable)];
+    return [key, joinable.concat("_", joinableText ?? "")];
 }
