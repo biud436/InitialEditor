@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { Component } from "./component";
-import { MenuKeys } from "./menu/KoreanMenu";
+import "reflect-metadata";
 export declare namespace InitialEditor {
     /**
      * 툴바 셀렉터 정의
@@ -17,12 +17,6 @@ export default class MenuService extends Component {
     private _menuComponent;
     private _isClickedMenu;
     static isReady: boolean;
-    /**
-     * 메뉴 트리
-     */
-    static children?: {
-        [key in MenuKeys]: Record<string, any>;
-    };
     static injectableMenu: Record<string, any>;
     initMembers(...args: any[]): void;
     start(...args: any[]): this;

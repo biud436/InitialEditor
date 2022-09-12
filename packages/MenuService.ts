@@ -3,8 +3,11 @@ import { MenuComponent } from "./MenuComponent";
 import { KoreanMenu, MenuKeys } from "./menu/KoreanMenu";
 import { SIGKILL } from "constants";
 import { ElectronService } from "./ElectronService";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, Menu } from "electron";
 import { Service } from "typedi";
+import "reflect-metadata";
+import { injectableMenuCommands, MENU_COMMAND } from "./decorators/MenuCommand";
+import { IBaseMenuCommand } from "./menu/commands/IBaseMenuCommand";
 
 const menu = {
     ko: KoreanMenu,
@@ -94,13 +97,6 @@ export default class MenuService extends Component {
     private _isClickedMenu!: boolean;
     public static isReady: boolean = false;
 
-    /**
-     * 메뉴 트리
-     */
-    public static children?: {
-        [key in MenuKeys]: Record<string, any>;
-    };
-
     public static injectableMenu: Record<string, any> = {};
 
     public initMembers(...args: any[]) {
@@ -157,15 +153,24 @@ export default class MenuService extends Component {
      * 클래스 데코레이터를 수집하고 메뉴 객체를 생성합니다.
      */
     public beforeCollectClassDecorators() {
-        // this._tree = {
-        //     file: () => {
-        //         Reflect.getMetadataKeys()
-        //         return {
-        //         };
-        //     }
-        // }
+        const menuKeys = Object.keys(menu.ko);
 
-        console.log(MenuService.injectableMenu);
+        menuKeys.forEach((menuId) => {
+            const items = Reflect.get(
+                window,
+                `${MENU_COMMAND}_${menuId}`,
+                injectableMenuCommands[menuId]
+            );
+
+            menu.ko[menuId as MenuKeys] = {
+                name: "",
+                children: {
+                    ...items?.children,
+                },
+            };
+
+            console.log(items);
+        });
     }
 
     /**

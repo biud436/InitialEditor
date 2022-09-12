@@ -7,6 +7,22 @@ import { ToolMenu } from "./ToolMenu";
 import { GameMenu } from "./GameMenu";
 import { HelpMenu } from "./HelpMenu";
 
+// type MenuType =
+//     | "file"
+//     | "edit"
+//     | "mode"
+//     | "draw"
+//     | "scale"
+//     | "tools"
+//     | "game"
+//     | "help";
+// type InferMenuImpl<T> = Partial<
+//     T extends `${infer String}${infer MenuImpl}` ? `${String}${MenuImpl}` : any
+// >;
+// type Menu = {
+//     [key in MenuType]: InferMenuImpl<`File`>;
+// };
+
 const KoreanMenu = {
     file: FileMenu,
     edit: EditMenu,
