@@ -29,6 +29,6 @@ declare class ElectronService extends EventEmitter {
     maximize(): void;
     close(): void;
     showErrorMessageBox(title: string, message: string): void;
-    quit(): void;
+    quit(): Promise<void>;
 }
 export { ElectronService };

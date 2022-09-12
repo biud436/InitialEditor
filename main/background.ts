@@ -78,6 +78,7 @@ export class EntryPoint {
             const [title, content] = args;
             dialog.showErrorBox(title, content);
         });
+        ipcMain.on("close", () => hostWindow.close());
     }
 
     /**

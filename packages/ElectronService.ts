@@ -87,8 +87,8 @@ class ElectronService extends EventEmitter {
         MessageBoxComponent.showError(title, message);
     }
 
-    public quit(): void {
-        ipcRenderer.sendSync("close");
+    public quit(): Promise<void> {
+        return Promise.resolve(ipcRenderer.send("close"));
     }
 }
 

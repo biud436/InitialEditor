@@ -4,6 +4,7 @@ import "reflect-metadata";
 import { OnMenuClick } from "../decorators/OnMenuClick";
 import { NewFileCommand } from "./commands/NewFileCommand";
 import { OpenFileCommand } from "./commands/OpenFileCommand";
+import { FileExitCommand } from "./commands/FileExitCommand";
 
 export const FileMenuNameMap = <const>[
     "file-new",
@@ -47,14 +48,7 @@ export const FileMenu = <Partial<FileMenuImpl>>{
             name: "내보내기",
             children: {},
         },
-        "file-exit": {
-            name: "프로그램 종료",
-            children: {},
-            action: function (ev: any) {
-                const service = ElectronService.getInstance();
-                service.quit();
-            },
-        },
+        "file-exit": new FileExitCommand(),
     },
 };
 
