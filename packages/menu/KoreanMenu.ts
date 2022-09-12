@@ -16,9 +16,9 @@ const KoreanMenu = {
     tools: ToolMenu,
     game: GameMenu,
     help: HelpMenu,
-    "$font": {
-        size: "8pt",
-    }
+    // $font: {
+    //     size: "8pt",
+    // },
 };
 
-export {KoreanMenu};
+export { KoreanMenu };

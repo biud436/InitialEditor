@@ -7,8 +7,5 @@ declare const KoreanMenu: {
     tools: Partial<import("./ToolMenu").ToolMenuImpl>;
     game: Partial<import("./GameMenu").GameMenuImpl>;
     help: Partial<import("./HelpMenu").HelpMenuImpl>;
-    $font: {
-        size: string;
-    };
 };
 export { KoreanMenu };

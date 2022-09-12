@@ -1,5 +1,8 @@
 import * as electron from "electron";
 import { ElectronService } from "../ElectronService";
+import "reflect-metadata";
+import { OnMenuClick } from "../decorators/OnMenuClick";
+import { NewFileEventHandler } from "./handlers/NewFileEventHandler";
 
 export const FileMenuNameMap = <const>[
     "file-new",
@@ -25,18 +28,7 @@ export type FileMenuImpl = {
 export const FileMenu = <Partial<FileMenuImpl>>{
     name: "파일",
     children: {
-        "file-new": {
-            name: "새로 만들기",
-            children: {},
-            shortcut: ["ctrl", "n"],
-            action: function (ev: any) {
-                if (window.app) {
-                    window.app.emit("openWindow", {
-                        path: "/newWindow",
-                    });
-                }
-            },
-        },
+        "file-new": new NewFileEventHandler(),
         "file-open": {
             name: "파일 열기",
             shortcut: ["ctrl", "o"],
@@ -75,11 +67,11 @@ export const FileMenu = <Partial<FileMenuImpl>>{
     },
 };
 
-if (process.platform === "darwin") {
-    electron.ipcRenderer.on("new-file", () => {
-        const children = FileMenu.children;
-        if (children && children["file-new"].action) {
-            children["file-new"].action(null);
-        }
-    });
-}
+// if (process.platform === "darwin") {
+//     electron.ipcRenderer.on("new-file", () => {
+//         const children = FileMenu.children;
+//         if (children && children["file-new"].action) {
+//             children["file-new"].action(null);
+//         }
+//     });
+// }

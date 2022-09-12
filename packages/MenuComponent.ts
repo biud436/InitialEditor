@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { Inject, Service } from "typedi";
 import { Component } from "./component";
+import { KoreanMenu } from "./menu/KoreanMenu";
 import { Logger } from "./utils/Logger";
 
 interface Mouse {
@@ -47,8 +48,6 @@ class MenuComponent extends Component {
         document.querySelector("#none")?.checked = true;
 
         this._isMenuOpen = false;
-
-        console.log("실행되었음");
     }
 
     public update<T extends HTMLElement = HTMLElement, R extends Mouse = Mouse>(
@@ -83,6 +82,15 @@ class MenuComponent extends Component {
         } else if (this._isMenuOpen && mouse.buttons.leftFire) {
             console.log("메뉴 닫힘을 호출하였습니다");
             this.hideMenu();
+
+            // 마우스가 클릭되었을 때
+            const extractAction = target.dataset.action;
+            if (extractAction) {
+                const action = Reflect.get(window, `MENU_${extractAction}`);
+                if (action) {
+                    action();
+                }
+            }
         }
     }
 }
