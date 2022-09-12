@@ -2,8 +2,8 @@ import * as electron from "electron";
 import { ElectronService } from "../ElectronService";
 import "reflect-metadata";
 import { OnMenuClick } from "../decorators/OnMenuClick";
-import { NewFileEventHandler } from "./handlers/NewFileEventHandler";
-import { OpenFileEventHandler } from "./handlers/OpenFileEventHandler";
+import { NewFileCommand } from "./commands/NewFileCommand";
+import { OpenFileCommand } from "./commands/OpenFileCommand";
 
 export const FileMenuNameMap = <const>[
     "file-new",
@@ -29,8 +29,8 @@ export type FileMenuImpl = {
 export const FileMenu = <Partial<FileMenuImpl>>{
     name: "파일",
     children: {
-        "file-new": new NewFileEventHandler(),
-        "file-open": new OpenFileEventHandler(),
+        "file-new": new NewFileCommand(),
+        "file-open": new OpenFileCommand(),
         "file-close": {
             name: "파일 닫기",
             children: {},
