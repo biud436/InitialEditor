@@ -53,8 +53,6 @@ export const FileMenu = <Partial<FileMenuImpl>>{
     },
 };
 
-console.log(FileMenu);
-
 // if (process.platform === "darwin") {
 //     electron.ipcRenderer.on("new-file", () => {
 //         const children = FileMenu.children;

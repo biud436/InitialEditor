@@ -8,5 +8,5 @@ declare const KoreanMenu: {
     game: Partial<import("./GameMenu").GameMenuImpl>;
     help: Partial<import("./HelpMenu").HelpMenuImpl>;
 };
-export declare type MenuKeys = typeof KoreanMenu;
+export declare type MenuKeys = keyof typeof KoreanMenu;
 export { KoreanMenu };
