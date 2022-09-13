@@ -23,6 +23,7 @@ const LoadingBlock = styled.div`
 const Home = observer(() => {
   const [panel, setPanel] = useRecoilState(WindowState);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     window.$ = jQuery;
