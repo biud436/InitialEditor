@@ -8,6 +8,7 @@ import { Service } from "typedi";
 import "reflect-metadata";
 import { injectableMenuCommands, MENU_COMMAND } from "./decorators/MenuCommand";
 import { IBaseMenuCommand } from "./menu/commands/IBaseMenuCommand";
+import { getMetadataStorage } from "./menu/MeatadataStorage";
 
 const menu = {
   ko: KoreanMenu,
@@ -149,6 +150,10 @@ export default class MenuService extends Component {
   public beforeCollectClassDecorators() {
     const menuKeys = Object.keys(menu.ko);
 
+    /**
+     * 메뉴 재설정 (폐지 예정)
+     * @deprecated
+     */
     menuKeys.forEach((menuId) => {
       const items = Reflect.get(
         window,
@@ -165,6 +170,11 @@ export default class MenuService extends Component {
     console.log(injectableMenuCommands);
     console.log("[before] beforeCollectClassDecorators");
     console.log(menu.ko);
+
+    // 수집된 메뉴 출력
+    getMetadataStorage().menuCommands.forEach((menuCommand) => {
+      console.log(menuCommand);
+    });
   }
 
   /**
