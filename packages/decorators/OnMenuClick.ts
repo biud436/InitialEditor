@@ -1,9 +1,19 @@
 import "reflect-metadata";
+import Container from "typedi";
+import { getMetadataStorage, MetadataStorage } from "../menu/MeatadataStorage";
 
 export function OnMenuClick(name: string): MethodDecorator {
-    return function (target: any, propertyKey, descriptor) {
-        const action = descriptor.value;
+  return function (target: any, propertyKey, descriptor) {
+    const action = descriptor.value as any;
+    const TOKEN = `MENU_${name}`;
 
-        Reflect.set(window, `MENU_${name}`, action);
-    };
+    const metadataStorage = getMetadataStorage();
+    metadataStorage.menuActions.push({
+      name,
+      token: TOKEN,
+      action,
+    });
+
+    Reflect.set(window, TOKEN, action);
+  };
 }
