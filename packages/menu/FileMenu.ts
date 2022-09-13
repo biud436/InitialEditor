@@ -1,11 +1,7 @@
-import * as electron from "electron";
-import { ElectronService } from "../ElectronService";
 import "reflect-metadata";
-import { OnMenuClick } from "../decorators/OnMenuClick";
 import { NewFileCommand } from "./commands/NewFileCommand";
 import { OpenFileCommand } from "./commands/OpenFileCommand";
 import { FileExitCommand } from "./commands/FileExitCommand";
-import { IBaseMenuCommand } from "./commands/IBaseMenuCommand";
 import { FileCloseCommand } from "./commands/FileCloseCommand";
 import { FileSaveCommand } from "./commands/FileSaveCommand";
 import { FilePreferencesCommand } from "./commands/FilePreferencesCommand";
