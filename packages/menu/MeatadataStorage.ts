@@ -2,13 +2,13 @@ import Container, { Service } from "typedi";
 import { IBaseMenuCommand } from "./commands/IBaseMenuCommand";
 import { IMenuItem, MenuType } from "./KoreanMenu";
 
-export type MenuCommandTarget = {
+export interface MenuCommandTarget {
   target: IBaseMenuCommand;
   menuId: string;
   name: string;
   description: string;
   shortcut: string[];
-};
+}
 
 export interface MenuAction {
   name: string;

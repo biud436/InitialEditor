@@ -1,12 +1,12 @@
 import { IBaseMenuCommand } from "./commands/IBaseMenuCommand";
 import { IMenuItem, MenuType } from "./KoreanMenu";
-export declare type MenuCommandTarget = {
+export interface MenuCommandTarget {
     target: IBaseMenuCommand;
     menuId: string;
     name: string;
     description: string;
     shortcut: string[];
-};
+}
 export interface MenuAction {
     name: string;
     token: string;
