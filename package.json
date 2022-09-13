@@ -17,6 +17,7 @@
     "@monaco-editor/react": "^4.4.5",
     "@types/jquery": "^3.5.14",
     "@types/react-resizable": "^1.7.4",
+    "@zeit/next-css": "^1.0.1",
     "axios": "^0.26.1",
     "babel": "^6.23.0",
     "babel-loader": "^8.2.5",
@@ -29,6 +30,8 @@
     "mobx": "^6.6.0",
     "mobx-react": "^7.5.0",
     "mobx-react-lite": "^3.4.0",
+    "monaco-editor-webpack-plugin": "^7.0.1",
+    "next-fonts": "^1.5.1",
     "next-translate": "^1.5.0",
     "next-transpile-modules": "^9.0.0",
     "node-sass": "^7.0.3",
@@ -45,7 +48,8 @@
     "tsyringe": "^4.7.0",
     "typedi": "^0.10.0",
     "uuidv4": "^6.2.13",
-    "webpack": "^5.73.0"
+    "webpack": "^5.73.0",
+    "worker-loader": "^3.0.8"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.17.2",
