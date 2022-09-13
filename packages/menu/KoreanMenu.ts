@@ -6,6 +6,23 @@ import { ScaleMenu } from "./ScaleMenu";
 import { ToolMenu } from "./ToolMenu";
 import { GameMenu } from "./GameMenu";
 import { HelpMenu } from "./HelpMenu";
+import { Optional } from "./MeatadataStorage";
+
+export type IMenuParent = {
+  [key in MenuType]: Optional<IMenuItem>;
+};
+
+export interface IMenuItem {
+  name: string;
+  children: {
+    [key: string]: {
+      name?: string;
+      children?: Partial<Record<string, any>>;
+      shortcut?: string[];
+      action?: (ev: any) => void | Function;
+    };
+  };
+}
 
 export type MenuType =
   | "file"
@@ -16,14 +33,10 @@ export type MenuType =
   | "tools"
   | "game"
   | "help";
-// type InferMenuImpl<T> = Partial<
-//   T extends `${infer String}${infer MenuImpl}` ? `${String}${MenuImpl}` : any
-// >;
-// type Menu = {
-//   [key in MenuType]: InferMenuImpl<`File`>;
-// };
 
-const KoreanMenu = {
+export type MenuKeys = keyof IMenuParent;
+
+const KoreanMenu: IMenuParent = {
   file: FileMenu,
   edit: EditMenu,
   mode: ModeMenu,
@@ -33,7 +46,5 @@ const KoreanMenu = {
   game: GameMenu,
   help: HelpMenu,
 };
-
-export type MenuKeys = keyof typeof KoreanMenu;
 
 export { KoreanMenu };
