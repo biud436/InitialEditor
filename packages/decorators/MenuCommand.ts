@@ -2,7 +2,7 @@ import "reflect-metadata";
 import Container, { Service } from "typedi";
 import { IBaseMenuCommand } from "../menu/commands/IBaseMenuCommand";
 import { MenuKeys } from "../menu/KoreanMenu";
-import { MetadataStorage } from "../menu/MeatadataStorage";
+import { getMetadataStorage, MetadataStorage } from "../menu/MeatadataStorage";
 
 export const MENU_COMMAND = "MENU_COMMAND";
 export type InferMenuName = `${MenuKeys}-${string}`;
@@ -24,7 +24,7 @@ export function MenuCommand(
     target.prototype["name"] = description;
     target.prototype["shortcut"] = shortcut;
 
-    const metadataStorage = Container.get(MetadataStorage);
+    const metadataStorage = getMetadataStorage();
     Reflect.set(metadataStorage, TOKEN, target);
     Reflect.defineMetadata(MENU_COMMAND, TOKEN, target);
 
