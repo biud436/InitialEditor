@@ -2,7 +2,7 @@ import "reflect-metadata";
 import Container, { Service } from "typedi";
 import { IBaseMenuCommand } from "../menu/commands/IBaseMenuCommand";
 import { MenuKeys } from "../menu/KoreanMenu";
-import { MenuInjector } from "../menu/MenuInjector";
+import { MetadataStorage } from "../menu/MeatadataStorage";
 
 export const MENU_COMMAND = "MENU_COMMAND";
 export type InferMenuName = `${MenuKeys}-${string}`;
@@ -24,9 +24,17 @@ export function MenuCommand(
     target.prototype["name"] = description;
     target.prototype["shortcut"] = shortcut;
 
-    const injectableClass = Container.get(MenuInjector);
-    Reflect.set(injectableClass, TOKEN, target);
+    const metadataStorage = Container.get(MetadataStorage);
+    Reflect.set(metadataStorage, TOKEN, target);
     Reflect.defineMetadata(MENU_COMMAND, TOKEN, target);
+
+    metadataStorage.menuCommands.push({
+      target: target,
+      name,
+      description,
+      menuId,
+      shortcut,
+    });
 
     const menu = injectableMenuCommands[menuId];
     if (!menu) {
