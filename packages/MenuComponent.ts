@@ -54,11 +54,18 @@ class MenuComponent extends Component {
         target: T,
         mouse: R
     ) {
-        // // 최상위 노드를 선택합니다.
-        // /**
-        //  * @type {HTMLElement}
-        //  */
-        let parentNode = target.parentNode; //
+        if (!target) {
+            console.warn("target is undefined");
+            return;
+        }
+
+        let parentNode = target.parentNode;
+
+        if (!parentNode) {
+            console.warn("parentNode is undefined");
+            return;
+        }
+
         const parentClassName = (<Element>parentNode).className;
 
         while (
@@ -75,7 +82,7 @@ class MenuComponent extends Component {
         // });
 
         // 최상위 노드가 메인 메뉴라면
-        if (parentNode && parentClassName.indexOf("menu__main") > -1) {
+        if (parentNode && parentClassName?.indexOf("menu__main") > -1) {
             // if (isOpenMenu) {
             // 메뉴가 열린 것으로 간주
             this._isMenuOpen = true;
