@@ -1,3 +1,4 @@
+export declare type MenuType = "file" | "edit" | "mode" | "draw" | "scale" | "tools" | "game" | "help";
 declare const KoreanMenu: {
     file: Partial<import("./FileMenu").FileMenuImpl>;
     edit: Partial<import("./EditMenu").EditMenuImpl>;
