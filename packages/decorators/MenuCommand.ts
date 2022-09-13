@@ -13,33 +13,35 @@ export type InferMenuName = `${MenuKeys}-${string}`;
 export const injectableMenuCommands: Record<string, IBaseMenuCommand> = {};
 
 export function MenuCommand(
-    menuId: MenuKeys,
-    name: InferMenuName,
-    description: string,
-    shortcut: string[]
+  menuId: MenuKeys,
+  name: InferMenuName,
+  description: string,
+  shortcut: string[]
 ): ClassDecorator {
-    return function (target: any) {
-        const TOKEN = `${MENU_COMMAND}_${menuId}_${name}`;
+  return function (target: any) {
+    const TOKEN = `${MENU_COMMAND}_${menuId}_${name}`;
 
-        target.prototype["name"] = description;
-        target.prototype["shortcut"] = shortcut;
+    target.prototype["name"] = description;
+    target.prototype["shortcut"] = shortcut;
 
-        const injectableClass = Container.get(MenuInjector);
-        Reflect.set(injectableClass, TOKEN, target);
-        Reflect.defineMetadata(MENU_COMMAND, TOKEN, target);
+    const injectableClass = Container.get(MenuInjector);
+    Reflect.set(injectableClass, TOKEN, target);
+    Reflect.defineMetadata(MENU_COMMAND, TOKEN, target);
 
-        const menu = injectableMenuCommands[menuId];
-        if (!menu) {
-            injectableMenuCommands[menuId] = {};
-            injectableMenuCommands[menuId].children = {};
-        }
+    const menu = injectableMenuCommands[menuId];
+    if (!menu) {
+      injectableMenuCommands[menuId] = {};
+      injectableMenuCommands[menuId].children = {};
+    }
 
-        injectableMenuCommands[menuId].children![name] = target;
+    injectableMenuCommands[menuId].children![name] = target;
 
-        Reflect.set(
-            window,
-            `${MENU_COMMAND}_${menuId}`,
-            injectableMenuCommands[menuId]
-        );
-    };
+    Reflect.set(
+      window,
+      `${MENU_COMMAND}_${menuId}`,
+      injectableMenuCommands[menuId]
+    );
+
+    return target;
+  };
 }
