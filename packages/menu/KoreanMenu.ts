@@ -7,34 +7,31 @@ import { ToolMenu } from "./ToolMenu";
 import { GameMenu } from "./GameMenu";
 import { HelpMenu } from "./HelpMenu";
 
-// type MenuType =
-//     | "file"
-//     | "edit"
-//     | "mode"
-//     | "draw"
-//     | "scale"
-//     | "tools"
-//     | "game"
-//     | "help";
+export type MenuType =
+  | "file"
+  | "edit"
+  | "mode"
+  | "draw"
+  | "scale"
+  | "tools"
+  | "game"
+  | "help";
 // type InferMenuImpl<T> = Partial<
-//     T extends `${infer String}${infer MenuImpl}` ? `${String}${MenuImpl}` : any
+//   T extends `${infer String}${infer MenuImpl}` ? `${String}${MenuImpl}` : any
 // >;
 // type Menu = {
-//     [key in MenuType]: InferMenuImpl<`File`>;
+//   [key in MenuType]: InferMenuImpl<`File`>;
 // };
 
 const KoreanMenu = {
-    file: FileMenu,
-    edit: EditMenu,
-    mode: ModeMenu,
-    draw: DrawMenu,
-    scale: ScaleMenu,
-    tools: ToolMenu,
-    game: GameMenu,
-    help: HelpMenu,
-    // $font: {
-    //     size: "8pt",
-    // },
+  file: FileMenu,
+  edit: EditMenu,
+  mode: ModeMenu,
+  draw: DrawMenu,
+  scale: ScaleMenu,
+  tools: ToolMenu,
+  game: GameMenu,
+  help: HelpMenu,
 };
 
 export type MenuKeys = keyof typeof KoreanMenu;
