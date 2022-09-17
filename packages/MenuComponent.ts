@@ -70,7 +70,7 @@ class MenuComponent extends Component {
 
         while (
             parentNode != null &&
-            parentClassName.indexOf("menu__main") === -1
+            parentClassName?.indexOf("menu__main") === -1
         ) {
             parentNode = parentNode.parentNode;
         }

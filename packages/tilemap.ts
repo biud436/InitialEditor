@@ -11,7 +11,7 @@ export namespace initial2D {
     export const MAIN_CANVAS_ID = "#contents__main-canvas";
 }
 
-enum PenType {
+export enum PenType {
     PENCIL = 0,
     RECTANGLE,
     ELLIPSE,
