@@ -34,5 +34,4 @@ export default class MenuService extends Component {
      */
     collectDecorators(): void;
     addMenuEventHandlers(): void;
-    changeToolbarIconOnMobileDevice(): void;
 }
