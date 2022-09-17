@@ -1,3 +1,9 @@
+import { EditCopyCommand } from "./commands/EditCopyCommand";
+import { EditCutCommand } from "./commands/EditCutCommand";
+import { EditDeleteCommand } from "./commands/EditDeleteCommand";
+import { EditPasteCommand } from "./commands/EditPasteCommand";
+import { EditUndoCommand } from "./commands/EditUndoCommand";
+
 export const EditMenuNameMap = <const>[
     "edit-undo",
     "edit-cut",
@@ -20,25 +26,10 @@ export type EditMenuImpl = {
 export const EditMenu = <Partial<EditMenuImpl>>{
     name: "편집",
     children: {
-        "edit-undo": {
-            name: "취소",
-            children: {},
-        },
-        "edit-cut": {
-            name: "자르기",
-            children: {},
-        },
-        "edit-copy": {
-            name: "복사하기",
-            children: {},
-        },
-        "edit-paste": {
-            name: "붙여넣기",
-            children: {},
-        },
-        "edit-delete": {
-            name: "삭제하기",
-            children: {},
-        },
+        "edit-undo": new EditUndoCommand(),
+        "edit-cut": new EditCutCommand(),
+        "edit-copy": new EditCopyCommand(),
+        "edit-paste": new EditPasteCommand(),
+        "edit-delete": new EditDeleteCommand(),
     },
 };
