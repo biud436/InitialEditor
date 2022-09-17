@@ -119,7 +119,6 @@ export default class MenuService extends Component {
         if (!MenuService.isReady) {
             // this.hideMenuOnMac();
             this.changeMenuLocaleAsPersonalize();
-            this.changeToolbarIconOnMobileDevice();
             this.addMenuEventHandlers();
             this.beforeCollectClassDecorators();
             this.collectDecorators();
@@ -219,23 +218,5 @@ export default class MenuService extends Component {
         MenuButtonHandlers.addMinimizeWindow()
             .addMaximizeWindow()
             .addCloseWindow();
-    }
-
-    public changeToolbarIconOnMobileDevice() {
-        const media = window.matchMedia("(max-width: 640px)");
-        if (media.matches) {
-        }
-
-        const resizeConfig = {
-            ".contents": {
-                width: "65%",
-            },
-            ".aside__tabs": {
-                width: "30%",
-            },
-            "#contents__main-canvas": {
-                width: "100%",
-            },
-        };
     }
 }
