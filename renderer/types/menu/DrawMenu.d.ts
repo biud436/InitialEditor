@@ -1,5 +1,5 @@
-export declare const DrawMenuNameMap: readonly ["draw-pencil", "draw-rectangle", "draw-ellipse", "draw-ellipse", "draw-flood-fill", "draw-shadow pen"];
-export declare const PenTypeNameMap: readonly ["펜", "정사각형", "직사각형", "채우기", "그림자"];
+export declare const DrawMenuNameMap: readonly ["draw-pencil", "draw-rectangle", "draw-ellipse", "draw-ellipse", "draw-flood-fill", "draw-shadow-pen"];
+export declare const PenTypeNameMap: readonly ["펜", "정사각형", "원형", "채우기", "그림자"];
 export declare type DrawMenuImpl = {
     name: string;
     children: {

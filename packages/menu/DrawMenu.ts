@@ -1,16 +1,18 @@
+import { DrawingCommand } from "./commands/DrawCommand";
+
 export const DrawMenuNameMap = <const>[
     "draw-pencil",
     "draw-rectangle",
     "draw-ellipse",
     "draw-ellipse",
     "draw-flood-fill",
-    "draw-shadow pen",
+    "draw-shadow-pen",
 ];
 
 export const PenTypeNameMap = <const>[
     "펜",
     "정사각형",
-    "직사각형",
+    "원형",
     "채우기",
     "그림자",
 ];
@@ -30,38 +32,10 @@ export type DrawMenuImpl = {
 export const DrawMenu = <Partial<DrawMenuImpl>>{
     name: "그리기",
     children: {
-        "draw-pencil": {
-            name: "펜",
-            children: {},
-            action: (ev: any) => {
-                window.app.emit("tilemap:drawingType", 0);
-            },
-        },
-        "draw-rectangle": {
-            name: "정사각형",
-            children: {},
-            action: (ev: any) => {
-                window.app.emit("tilemap:drawingType", 1);
-            },
-        },
-        "draw-ellipse": {
-            name: "직사각형",
-            children: {},
-            action: (ev: any) => {
-                window.app.emit("tilemap:drawingType", 2);
-            },
-        },
-        "draw-flood-fill": {
-            name: "채우기",
-            children: {},
-            action: (ev: any) => {
-                window.app.emit("tilemap:drawingType", 3);
-            },
-        },
-        "draw-shadow pen": {
-            name: "그림자",
-            children: {},
-            action: (ev: any) => {},
-        },
+        "draw-pencil": new DrawingCommand.DrawPencilCommand(),
+        "draw-rectangle": new DrawingCommand.DrawRectangleCommand(),
+        "draw-ellipse": new DrawingCommand.DrawEllipseCommand(),
+        "draw-flood-fill": new DrawingCommand.DrawFloodFillCommand(),
+        "draw-shadow-pen": new DrawingCommand.DrawShadowPen(),
     },
 };
