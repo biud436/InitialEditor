@@ -36,7 +36,7 @@ export namespace DrawingCommandCollection {
         }
     }
 
-    @MenuCommand("draw", "draw-shadow-pen", "채우기", ["ctrl", "4"])
+    @MenuCommand("draw", "draw-shadow-pen", "채우기", ["ctrl", "5"])
     export class DrawShadowPen implements IBaseMenuCommand {
         @OnMenuClick("draw-shadow-pen")
         action(ev: any): void {
