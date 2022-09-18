@@ -1,4 +1,4 @@
-import { DrawingCommand } from "./commands/DrawCommand";
+import { DrawingCommandCollection } from "./commands/DrawCommandCollection";
 
 export const DrawMenuNameMap = <const>[
     "draw-pencil",
@@ -32,10 +32,10 @@ export type DrawMenuImpl = {
 export const DrawMenu = <Partial<DrawMenuImpl>>{
     name: "그리기",
     children: {
-        "draw-pencil": new DrawingCommand.DrawPencilCommand(),
-        "draw-rectangle": new DrawingCommand.DrawRectangleCommand(),
-        "draw-ellipse": new DrawingCommand.DrawEllipseCommand(),
-        "draw-flood-fill": new DrawingCommand.DrawFloodFillCommand(),
-        "draw-shadow-pen": new DrawingCommand.DrawShadowPen(),
+        "draw-pencil": new DrawingCommandCollection.DrawPencilCommand(),
+        "draw-rectangle": new DrawingCommandCollection.DrawRectangleCommand(),
+        "draw-ellipse": new DrawingCommandCollection.DrawEllipseCommand(),
+        "draw-flood-fill": new DrawingCommandCollection.DrawFloodFillCommand(),
+        "draw-shadow-pen": new DrawingCommandCollection.DrawShadowPen(),
     },
 };

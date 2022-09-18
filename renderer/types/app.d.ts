@@ -103,4 +103,5 @@ export default class App extends EventEmitter {
      * @return {App}
      */
     static GetInstance(): App;
+    test(): void;
 }

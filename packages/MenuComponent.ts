@@ -66,7 +66,7 @@ class MenuComponent extends Component {
             return;
         }
 
-        const parentClassName = (<Element>parentNode).className;
+        const parentClassName = (<Element>parentNode).className ?? "";
 
         while (
             parentNode != null &&
