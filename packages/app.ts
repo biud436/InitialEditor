@@ -13,6 +13,7 @@ import Rectangle from "./Rectangle";
 import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
+import { Shotcut } from "./decorators/Shotcut";
 
 interface BlockRect {
     isDrawing: boolean;
@@ -619,6 +620,11 @@ export default class App extends EventEmitter {
         }
 
         return App.Instance;
+    }
+
+    @Shotcut(["ctrl", "f"])
+    test() {
+        alert("찾기 테스트");
     }
 }
 

@@ -3,7 +3,7 @@ import { OnMenuClick } from "../../decorators/OnMenuClick";
 import { PenType } from "../../tilemap";
 import { IBaseMenuCommand } from "./IBaseMenuCommand";
 
-export namespace DrawingCommand {
+export namespace DrawingCommandCollection {
     @MenuCommand("draw", "draw-pencil", "펜 툴", ["ctrl", "1"])
     export class DrawPencilCommand implements IBaseMenuCommand {
         @OnMenuClick("draw-pencil")

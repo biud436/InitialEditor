@@ -9,6 +9,8 @@ import "reflect-metadata";
 import { injectableMenuCommands, MENU_COMMAND } from "./decorators/MenuCommand";
 import { IBaseMenuCommand } from "./menu/commands/IBaseMenuCommand";
 import { getMetadataStorage, Optional } from "./menu/MeatadataStorage";
+import { getShotcutService } from "./services/ShotcutService";
+import { Shotcut } from "./decorators/Shotcut";
 
 const menu = {
     ko: KoreanMenu,
@@ -203,11 +205,37 @@ export default class MenuService extends Component {
         console.log("[after] collectDecorators");
         console.log(menu.ko);
 
+        const shotcutService = getShotcutService();
+
         Object.values(menu.ko).forEach((item) => {
             if (item.children) {
-                Object.values(item.children).forEach((child: any) => {
-                    if (child.action) {
-                        console.log(child.name);
+                Object.keys(item.children).forEach((key: string) => {
+                    const child = item.children?.[key] as any;
+                    const menuChild =
+                        typeof child === "function" ? child.prototype : child;
+
+                    if (menuChild.action) {
+                        const menuCommand =
+                            getMetadataStorage().menuCommands.find(
+                                (e) => e.name == key
+                            );
+                        const shotcut = menuCommand?.shortcut;
+
+                        if (shotcut) {
+                            const platform = process.platform;
+                            let key: string[] = [];
+
+                            if (platform === "darwin") {
+                                key = shotcut.map((k) =>
+                                    k.replace("ctrl", "command")
+                                );
+                            }
+
+                            shotcutService.bind(
+                                key.join("+"),
+                                menuChild.action
+                            );
+                        }
                     }
                 });
             }
