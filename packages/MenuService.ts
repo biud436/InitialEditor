@@ -8,7 +8,7 @@ import { Service } from "typedi";
 import "reflect-metadata";
 import { injectableMenuCommands, MENU_COMMAND } from "./decorators/MenuCommand";
 import { IBaseMenuCommand } from "./menu/commands/IBaseMenuCommand";
-import { getMetadataStorage, Optional } from "./menu/MeatadataStorage";
+import { getMetadataStorage, Optional } from "./store/MeatadataStorage";
 import { getShotcutService } from "./services/ShotcutService";
 import { Shotcut } from "./decorators/Shotcut";
 

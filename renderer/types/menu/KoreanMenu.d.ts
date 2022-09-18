@@ -1,4 +1,4 @@
-import { Optional } from "./MeatadataStorage";
+import { Optional } from "../store/MeatadataStorage";
 export declare type IMenuParent = {
     [key in MenuType]: Optional<IMenuItem>;
 };

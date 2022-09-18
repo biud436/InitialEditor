@@ -1,14 +1,18 @@
 import App from "../app";
+import Store from "electron-store";
 /**
  * @class Store
  */
-export declare class Store<T = any> {
-    protected data: Record<string, T>;
-    set(key: string, value: T): void;
-    get(key: string): T | undefined;
+export declare class DataStore<T = any> extends Store {
     forEach(callback: (value: T, key: string) => void): void;
 }
 export declare type InitialAction = (...args: any[]) => void;
+export declare const store: Store<Record<string, unknown>>;
+/**
+ * 기본 일렉트론 스토어를 반환합니다.
+ * @returns
+ */
+export declare function useStore(): Store<Record<string, unknown>>;
 /**
  * @class InitialStore
  */
