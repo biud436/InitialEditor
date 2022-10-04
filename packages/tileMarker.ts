@@ -1,9 +1,36 @@
 import { Service } from "typedi";
 import { MarkerRange, TilesetMarker } from "./tilesetMarker";
 
+/**
+ * Sets the starting point, it works in the TileMarker.
+ * However, it didn't be an instance variable in the TilesetMarker.
+ * Basically, because this will be injected from the data store or server or DB in the future.
+ */
+const POSITION = {
+    LEFT_TOP: {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        margin: "0",
+        padding: "0",
+    },
+};
+
+const MARKER_BORDER = {
+    DOTTED: {
+        border: "2px dotted white",
+    },
+};
+
+const FAKE_STYLED = {
+    div: `<div></div>`,
+};
+
 @Service()
 export default class TileMarker extends TilesetMarker {
     public initWithElement() {
+        // In the React library, the class's name may be not match following the name called '.contents',
+        // the react will be created a new unique name for the class.
         const parent = $(".contents");
         let child = null;
         if ((child = document.querySelector("#tile-marker"))) {
@@ -11,23 +38,20 @@ export default class TileMarker extends TilesetMarker {
             return;
         }
 
-        // 스타일드 컴포넌트를 이용하여 생성한 후, 몹엑스 스토어에 준비됐다는 신호를 전달합니다.
-        this._element = $("<div></div>", { id: "tile-marker" }).css({
-            "min-width": `${this._tileWidth}px`,
-            "min-height": `${this._tileHeight}px`,
-            width: `${this._tileWidth}px`,
-            height: `${this._tileHeight}px`,
-            position: "absolute",
-            top: "0",
-            left: "0",
-            margin: "0",
-            padding: "0",
-            border: "2px dotted white",
+        const { _tileWidth: tw, _tileHeight: th } = this;
+
+        // This element will have to be removed it is not fascinating due to using jQuery.
+        this._element = $(FAKE_STYLED.div, { id: "tile-marker" }).css({
+            "min-width": `${tw}px`,
+            "min-height": `${th}px`,
+            width: `${tw}px`,
+            height: `${th}px`,
             "z-index": "0",
             "box-sizing": "border-box",
+            ...MARKER_BORDER.DOTTED,
+            ...POSITION.LEFT_TOP,
         });
 
-        // 요소가 생성될 때 까지 기다리게 해야 합니다.
         this._isReady = true;
 
         parent.append(this._element);
