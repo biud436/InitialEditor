@@ -14,27 +14,7 @@ import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
 import { Shotcut } from "./decorators/Shotcut";
-
-interface BlockRect {
-    isDrawing: boolean;
-    rect: Rectangle;
-}
-
-namespace WindowGroup {
-    export enum Theme {
-        Light = 1,
-        Dark = 2,
-    }
-}
-
-type InitialEventListener = Partial<{
-    touchmove: (ev: any) => void;
-    mousemove: (ev: any) => void;
-    mousedown: (ev: any) => void;
-    mouseup: (ev: any) => void;
-    mouseover: (ev: any) => void;
-    [key: string]: (ev: any) => void;
-}>;
+import { WindowGroup, InitialEventListener } from "./WindowGroup";
 
 export default class App extends EventEmitter {
     public static Instance: App;
@@ -289,8 +269,8 @@ export default class App extends EventEmitter {
                      * @type {HTMLElement}
                      */
                     const target = this._mouse.target;
-                    if (!this._mouse.target) return;
-                    const rect = this._mouse.target.getBoundingClientRect();
+                    if (!target) return;
+                    const rect = target.getBoundingClientRect();
 
                     this._mouse.x = touchEvent.clientX - rect.x;
                     this._mouse.y = touchEvent.clientY - rect.y;
@@ -379,8 +359,8 @@ export default class App extends EventEmitter {
                         this._blockRect.isDrawing = false;
                         this._mouse.isDrawing = false;
 
-                        const canvas = document.querySelector(
-                            "#contents__main-canvas"
+                        const canvas = document.getElementById(
+                            "contents__main-canvas"
                         ) as HTMLCanvasElement;
                         canvas.style.cursor = "default";
 
@@ -627,51 +607,3 @@ export default class App extends EventEmitter {
         alert("찾기 테스트");
     }
 }
-
-// export type Nullable<T> = T | undefined | null;
-
-// export type AppContextType = {
-//     app: Nullable<App>;
-//     electronService?: Nullable<ElectronService>;
-//     toolbarManager?: Nullable<ToolbarManager>;
-//     update: (deltaTime: number) => void;
-// };
-
-// export type AppContainerProps = {
-//     children: React.ReactNode;
-// };
-// export const AppContext = React.createContext<AppContextType>(null!);
-
-// export function useApp() {
-//     return useContext(AppContext);
-// }
-
-// export function AppContainer({ children }: AppContainerProps) {
-//     const deltaTimeRef = useRef(0);
-//     const [app, setApp] = useState<App | null>(null);
-
-//     useEffect(() => {
-//         setApp(App.GetInstance());
-
-//         return () => {
-//             cancelAnimationFrame(deltaTimeRef.current);
-//         };
-//     }, [window]);
-
-//     const update = (deltaTime: number) => {
-//         app?.emit("update", deltaTime);
-
-//         deltaTimeRef.current = requestAnimationFrame(update);
-//     };
-
-//     return (
-//         <AppContext.Provider
-//             value={{
-//                 app,
-//                 update,
-//             }}
-//         >
-//             {children}
-//         </AppContext.Provider>
-//     );
-// }
