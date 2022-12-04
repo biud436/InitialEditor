@@ -402,26 +402,30 @@ export default class App extends EventEmitter {
      * 레이어를 토글하는 기능을 수행합니다.
      */
     initWithMapLayers() {
-        const li_elements = Array.from<HTMLElement>(
+        const listItems = Array.from<HTMLElement>(
             document.querySelectorAll("ul.aside__tabs__maptree-child-tree li")
         );
 
-        let length = li_elements.length;
+        let length = listItems.length;
+
+        const __ICON__ = {
+            INVISIBLE: "fa-eye-slash",
+            VISIBLE: "fa-eye",
+        };
 
         for (let i = 0; i < length; i++) {
-            let li_element = li_elements[i];
+            let list = listItems[i];
 
             let layerId = i;
 
             const tilemap = this._tilemap;
 
-            li_element.onclick = () => {
-                li_element.style.backgroundColor =
-                    "var(--dark-selection-color)";
-                li_elements
-                    .filter((obj) => obj != li_element)
-                    .forEach((obj) => {
-                        obj.style.backgroundColor = "rgba(255, 255, 255, 0)";
+            list.onclick = () => {
+                list.style.backgroundColor = "var(--dark-selection-color)";
+                listItems
+                    .filter((elem) => elem !== list)
+                    .forEach((elem) => {
+                        elem.style.backgroundColor = "rgba(255, 255, 255, 0)";
                     });
 
                 // 타일맵을 지우고 다시 그립니다.
@@ -432,32 +436,38 @@ export default class App extends EventEmitter {
                     .updateAlphaLayers();
             };
 
-            let i_elements = li_element.querySelectorAll("i");
-            let i_elements_length = i_elements.length;
+            let icons = list.querySelectorAll<HTMLElement>("i");
+            for (let k = 0; k < icons.length; k++) {
+                let icon = icons[k];
+                if (!icon) continue;
 
-            for (let k = 0; k < i_elements_length; k++) {
-                let i_element = i_elements[k] as HTMLElement;
+                icon.onclick = () => {
+                    let item = icon.querySelector<HTMLElement>("i");
 
-                i_element.onclick = () => {
-                    let iElement = i_element.querySelector("i");
-                    if (iElement instanceof HTMLElement) {
-                        if (iElement.classList.contains("fa-eye-slash")) {
-                            iElement.classList.replace(
-                                "fa-eye-slash",
-                                "fa-eye"
+                    if (item instanceof HTMLElement) {
+                        if (item.classList.contains(__ICON__.INVISIBLE)) {
+                            item.classList.replace(
+                                __ICON__.INVISIBLE,
+                                __ICON__.VISIBLE
                             );
                         } else {
-                            iElement.classList.replace(
-                                "fa-eye",
-                                "fa-eye-slash"
+                            item.classList.replace(
+                                __ICON__.VISIBLE,
+                                __ICON__.INVISIBLE
                             );
                         }
                     }
 
-                    if (i_element.classList.contains("fa-eye")) {
-                        i_element.classList.replace("fa-eye", "fa-eye-slash");
+                    if (icon.classList.contains(__ICON__.VISIBLE)) {
+                        icon.classList.replace(
+                            __ICON__.VISIBLE,
+                            __ICON__.INVISIBLE
+                        );
                     } else {
-                        i_element.classList.replace("fa-eye-slash", "fa-eye");
+                        icon.classList.replace(
+                            __ICON__.INVISIBLE,
+                            __ICON__.VISIBLE
+                        );
                     }
 
                     tilemap.toggleLayerVisibility(layerId);
@@ -465,11 +475,11 @@ export default class App extends EventEmitter {
             }
         }
 
-        (
-            document.querySelector(
+        document
+            .querySelector<HTMLElement>(
                 "ul.aside__tabs__maptree-child-tree li:first-child"
-            ) as HTMLElement
-        ).click();
+            )
+            ?.click();
     }
 
     start() {

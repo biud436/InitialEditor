@@ -12,10 +12,12 @@ export namespace WindowGroup {
     }
 }
 export type InitialEventListener = Partial<{
-    touchmove: (ev: any) => void;
-    mousemove: (ev: any) => void;
-    mousedown: (ev: any) => void;
-    mouseup: (ev: any) => void;
-    mouseover: (ev: any) => void;
-    [key: string]: (ev: any) => void;
+    touchmove: (ev: any) => void | HTMLElementEventMap["touchmove"];
+    mousemove: (ev: any) => void | HTMLElementEventMap["mousemove"];
+    mousedown: (ev: any) => void | HTMLElementEventMap["mousedown"];
+    mouseup: (ev: any) => void | HTMLElementEventMap["mouseup"];
+    mouseover: (ev: any) => void | HTMLElementEventMap["mouseover"];
+    [key: string]: (
+        ev: any
+    ) => void | HTMLElementEventMap[keyof HTMLElementEventMap];
 }>;
