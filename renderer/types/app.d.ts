@@ -36,6 +36,7 @@ export default class App extends EventEmitter {
     private _isMenuOpen?;
     private _tileId?;
     private _menuController?;
+    private readonly LAYER_ICON;
     /**
      * 멤버 변수를 초기화합니다.
      */

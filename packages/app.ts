@@ -7,7 +7,7 @@ import { toCamelCase } from "./camelCase";
 import TilesetCanvas from "./TilesetCanvas";
 import TileMarker from "./tileMarker";
 import { config, MyEditorConfig } from "./config";
-import MenuService, { InitialEditor } from "./MenuService";
+import MenuService from "./MenuService";
 import Rectangle from "./Rectangle";
 
 import { EditorSchema } from "./schema/EditorSchema";
@@ -15,7 +15,9 @@ import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
 import { Shotcut } from "./decorators/Shotcut";
 import { WindowGroup, InitialEventListener } from "./WindowGroup";
+import { autoInjectable } from "tsyringe";
 
+@autoInjectable()
 export default class App extends EventEmitter {
     public static Instance: App;
 
@@ -65,6 +67,11 @@ export default class App extends EventEmitter {
     private _isMenuOpen?: boolean;
     private _tileId?: number;
     private _menuController?: MenuService;
+
+    private readonly LAYER_ICON = {
+        INVISIBLE: "fa-eye-slash",
+        VISIBLE: "fa-eye",
+    };
 
     /**
      * 멤버 변수를 초기화합니다.
@@ -408,10 +415,7 @@ export default class App extends EventEmitter {
 
         let length = listItems.length;
 
-        const __ICON__ = {
-            INVISIBLE: "fa-eye-slash",
-            VISIBLE: "fa-eye",
-        };
+        const { LAYER_ICON } = this;
 
         for (let i = 0; i < length; i++) {
             let list = listItems[i];
@@ -445,28 +449,28 @@ export default class App extends EventEmitter {
                     let item = icon.querySelector<HTMLElement>("i");
 
                     if (item instanceof HTMLElement) {
-                        if (item.classList.contains(__ICON__.INVISIBLE)) {
+                        if (item.classList.contains(LAYER_ICON.INVISIBLE)) {
                             item.classList.replace(
-                                __ICON__.INVISIBLE,
-                                __ICON__.VISIBLE
+                                LAYER_ICON.INVISIBLE,
+                                LAYER_ICON.VISIBLE
                             );
                         } else {
                             item.classList.replace(
-                                __ICON__.VISIBLE,
-                                __ICON__.INVISIBLE
+                                LAYER_ICON.VISIBLE,
+                                LAYER_ICON.INVISIBLE
                             );
                         }
                     }
 
-                    if (icon.classList.contains(__ICON__.VISIBLE)) {
+                    if (icon.classList.contains(LAYER_ICON.VISIBLE)) {
                         icon.classList.replace(
-                            __ICON__.VISIBLE,
-                            __ICON__.INVISIBLE
+                            LAYER_ICON.VISIBLE,
+                            LAYER_ICON.INVISIBLE
                         );
                     } else {
                         icon.classList.replace(
-                            __ICON__.INVISIBLE,
-                            __ICON__.VISIBLE
+                            LAYER_ICON.INVISIBLE,
+                            LAYER_ICON.VISIBLE
                         );
                     }
 
