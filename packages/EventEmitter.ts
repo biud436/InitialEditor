@@ -51,7 +51,6 @@ class EventEmitter {
 
         // Is it included colon(:)?
         if (name.indexOf(":") >= 0) {
-            console.log("자식 이벤트 방출이 감지되었습니다.");
             const items = name.split(":");
             if (items.length > 0) {
                 const parent = items[0];

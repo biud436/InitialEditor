@@ -44,10 +44,25 @@ class MenuComponent extends Component {
     }
 
     public hideMenu() {
-        // @ts-ignore
-        document.querySelector("#none")?.checked = true;
+        const menu = document.getElementById("none") as HTMLInputElement | null;
 
-        this._isMenuOpen = false;
+        if (menu) {
+            menu.checked = true;
+            this._isMenuOpen = false;
+        }
+    }
+
+    /**
+     * 최상위 노드가 메인 메뉴인지 판단합니다.
+     *
+     * @param node
+     * @returns
+     */
+    private isTopMostMenu(node?: ParentNode | null) {
+        if (!node) return false;
+        const parentClassName = (<Element>node).className ?? "";
+
+        return node && parentClassName?.indexOf("menu__main") > -1;
     }
 
     public update<T extends HTMLElement = HTMLElement, R extends Mouse = Mouse>(
@@ -75,19 +90,9 @@ class MenuComponent extends Component {
             parentNode = parentNode.parentNode;
         }
 
-        // const isOpenMenu = Array.from(
-        //     document.querySelectorAll<HTMLUListElement>(".menu-style")
-        // ).find((element) => {
-        //     return getComputedStyle(element).display === "block";
-        // });
-
-        // 최상위 노드가 메인 메뉴라면
-        if (parentNode && parentClassName?.indexOf("menu__main") > -1) {
-            // if (isOpenMenu) {
-            // 메뉴가 열린 것으로 간주
+        if (this.isTopMostMenu(parentNode)) {
             this._isMenuOpen = true;
         } else if (this._isMenuOpen && mouse.buttons.leftFire) {
-            console.log("메뉴 닫힘을 호출하였습니다");
             this.hideMenu();
 
             // 마우스가 클릭되었을 때

@@ -28,6 +28,7 @@ declare class MenuComponent extends Component {
     start(...args: any[]): this;
     isMenuOpen(): boolean;
     hideMenu(): void;
+    private isTopMostMenu;
     update<T extends HTMLElement = HTMLElement, R extends Mouse = Mouse>(target: T, mouse: R): void;
 }
 export { MenuComponent };

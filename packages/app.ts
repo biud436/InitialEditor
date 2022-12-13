@@ -9,7 +9,6 @@ import TileMarker from "./tileMarker";
 import { config, MyEditorConfig } from "./config";
 import MenuService from "./MenuService";
 import Rectangle from "./Rectangle";
-
 import { EditorSchema } from "./schema/EditorSchema";
 import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
