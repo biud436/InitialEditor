@@ -33,17 +33,17 @@ export namespace InitialEditor {
 class MenuComponent extends Component {
     public _isMenuOpen!: boolean;
 
-    start(...args: any[]) {
+    start(...args: any[]): MenuComponent {
         this._isMenuOpen = false;
 
         return this;
     }
 
-    public isMenuOpen() {
+    public isMenuOpen(): boolean {
         return this._isMenuOpen;
     }
 
-    public hideMenu() {
+    public hideMenu(): void {
         const menu = document.getElementById("none") as HTMLInputElement | null;
 
         if (menu) {
@@ -60,7 +60,7 @@ class MenuComponent extends Component {
      */
     private isTopMostMenu<T extends Element = Element>(
         node?: ParentNode | null
-    ) {
+    ): boolean {
         if (!node) return false;
         const parentClassName = (<T>node).className ?? "";
 
@@ -72,7 +72,7 @@ class MenuComponent extends Component {
      * @param mouse
      * @returns
      */
-    private isLeftMouseButtonOK<R extends Mouse = Mouse>(mouse: R) {
+    private isLeftMouseButtonOK<R extends Mouse = Mouse>(mouse: R): boolean {
         return this._isMenuOpen && mouse.buttons.leftFire;
     }
 
@@ -94,6 +94,7 @@ class MenuComponent extends Component {
 
         const parentClassName = (<Element>parentNode).className ?? "";
 
+        // this code block would be splitted a function named 'findRootMenuItem'
         while (
             parentNode != null &&
             parentClassName?.indexOf("menu__main") === -1
