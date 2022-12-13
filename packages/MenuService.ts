@@ -18,12 +18,21 @@ const menu = {
 
 type MenuType = keyof typeof menu;
 
+export enum MenuButtonsSelector {
+    MINIMIZE_WINDOW,
+    MAXIMIZE_WINDOW,
+    CLOSE_WINDOW,
+}
+
 export namespace InitialEditor {
     /**
      * 툴바 셀렉터 정의
      */
     export namespace MenuButtons {
-        export const CLASSE_SELECTOR: Record<string, string> = {
+        export const CLASSE_SELECTOR: Record<
+            keyof typeof MenuButtonsSelector,
+            string
+        > = {
             MINIMIZE_WINDOW: ".menu .control-box li.minimum",
             MAXIMIZE_WINDOW: ".menu .control-box li.maximum",
             CLOSE_WINDOW: ".menu .control-box li.close",
