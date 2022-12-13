@@ -22,7 +22,7 @@ import { makeAutoObservable } from "mobx";
 class ElectronService extends EventEmitter {
     public static INSTANCE: ElectronService = new ElectronService();
 
-    public static getInstance() {
+    public static getInstance(): ElectronService {
         return ElectronService.INSTANCE;
     }
 
