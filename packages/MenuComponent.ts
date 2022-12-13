@@ -58,11 +58,22 @@ class MenuComponent extends Component {
      * @param node
      * @returns
      */
-    private isTopMostMenu(node?: ParentNode | null) {
+    private isTopMostMenu<T extends Element = Element>(
+        node?: ParentNode | null
+    ) {
         if (!node) return false;
-        const parentClassName = (<Element>node).className ?? "";
+        const parentClassName = (<T>node).className ?? "";
 
         return node && parentClassName?.indexOf("menu__main") > -1;
+    }
+
+    /**
+     * 마우스 왼쪽 버튼이 클릭되었는지 확인합니다.
+     * @param mouse
+     * @returns
+     */
+    private isLeftMouseButtonOK<R extends Mouse = Mouse>(mouse: R) {
+        return this._isMenuOpen && mouse.buttons.leftFire;
     }
 
     public update<T extends HTMLElement = HTMLElement, R extends Mouse = Mouse>(
@@ -92,7 +103,7 @@ class MenuComponent extends Component {
 
         if (this.isTopMostMenu(parentNode)) {
             this._isMenuOpen = true;
-        } else if (this._isMenuOpen && mouse.buttons.leftFire) {
+        } else if (this.isLeftMouseButtonOK(mouse)) {
             this.hideMenu();
 
             // 마우스가 클릭되었을 때
