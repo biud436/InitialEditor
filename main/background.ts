@@ -80,7 +80,7 @@ export class EntryPoint {
             dialog.showErrorBox(title, content);
         });
         ipcMain.on("close", () => hostWindow.close());
-        ipcMain.on("set-resolution", (event, [width, height]) => {
+        ipcMain.on("set-resolution", (event, width, height) => {
             hostWindow.setSize(width, height);
         });
     }

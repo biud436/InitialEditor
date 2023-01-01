@@ -11,6 +11,7 @@ import { observer } from "mobx-react";
 
 // test
 import { useRouter } from "next/router";
+import { setResolution } from "libs/electron/window";
 
 const LoadingBlock = styled.div`
     display: flex;
