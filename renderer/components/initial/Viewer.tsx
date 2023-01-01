@@ -1,7 +1,4 @@
 import React from "react";
-// import { Main } from "types/index.js";
-// import { Main } from "types";
-// import { Main } from "../../../packages/index";
 
 export interface InitialEditorWrapperProps {
     callback: Function;
