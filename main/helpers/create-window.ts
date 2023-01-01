@@ -63,7 +63,7 @@ export default (
         });
     };
 
-    const ensureVisibleOnSomeDisplay = (windowState: any) => {
+    const ensureVisibleOnSomeDisplay = (windowState: RequiredRect) => {
         const visible = screen.getAllDisplays().some((display) => {
             return windowWithinBounds(windowState, display.bounds);
         });
@@ -82,7 +82,7 @@ export default (
         store.set(key, state);
     };
 
-    state = ensureVisibleOnSomeDisplay(restore());
+    state = ensureVisibleOnSomeDisplay(restore() as RequiredRect);
 
     const browserOptions: BrowserWindowConstructorOptions = {
         ...options,
