@@ -40,7 +40,6 @@ export default class MyDocument extends Document {
         return (
             <html>
                 <Head>
-                    <Meta title="Initial Editor" />
                     <link
                         href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
                         rel="stylesheet"

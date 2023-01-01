@@ -40,7 +40,8 @@
             "@components/*": ["components/*"],
             "@components/atomics": ["components/atomics"],
             "@components/atomics/*": ["components/atomics/*"]
-        }
+        },
+        "declaration": true
     },
     "include": ["**/*.ts", "**/*.tsx", "renderer/**/*.ts", "renderer/**/*.tsx"],
     "exclude": ["node_modules", "renderer/next.config.js", "app", "dist"]

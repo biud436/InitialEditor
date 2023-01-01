@@ -10,7 +10,7 @@ require("source-map-support").install();
 //==========================================================
 // Main
 //==========================================================
-class Main {
+export class Main {
     static start(bindFunc: Function): void {
         window.onload = async () => {
             window.app = App.GetInstance();
@@ -28,6 +28,8 @@ class Main {
     }
 }
 
-window.onMounted = (func: Function) => {
-    Main.start(func);
-};
+window.Main = Main;
+
+// window.onMounted = (func: Function) => {
+//     Main.start(func);
+// };

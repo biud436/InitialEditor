@@ -12,6 +12,7 @@ import { observer } from "mobx-react";
 // test
 import { useRouter } from "next/router";
 import { setResolution } from "libs/electron/window";
+import { InitialEditorViewer } from "../components/initial";
 
 const LoadingBlock = styled.div`
     display: flex;
@@ -28,11 +29,11 @@ const Home = observer(() => {
 
     useEffect(() => {
         window.$ = jQuery;
-        window.onMounted(() => {
-            if (window.app) {
-                window.app.on("openWindow", openWindow);
-            }
-        });
+        // window.onMounted(() => {
+        //     if (window.app) {
+        //         window.app.on("openWindow", openWindow);
+        //     }
+        // });
     }, []);
 
     const openWindow = ({ path }: { path: string }) => {
@@ -52,6 +53,13 @@ const Home = observer(() => {
                 />
                 <title></title>
             </Head>
+            <InitialEditorViewer
+                callback={() => {
+                    if (window.app) {
+                        window.app.on("openWindow", openWindow);
+                    }
+                }}
+            />
             <MainContainer />
             <Widget />
         </React.Fragment>
