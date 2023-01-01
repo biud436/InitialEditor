@@ -8,7 +8,7 @@ import Widget from "../components/window/Widget";
 
 import { observer } from "mobx-react";
 
-import { InitialEditorViewer } from "../components/initial";
+import { Viewer } from "../components/initial";
 import { Meta } from "@components/Meta";
 
 const Home = observer(() => {
@@ -28,7 +28,7 @@ const Home = observer(() => {
     return (
         <React.Fragment>
             <Meta title="Initial Editor" />
-            <InitialEditorViewer
+            <Viewer
                 callback={() => {
                     if (window.app) {
                         window.app.on("openWindow", openWindow);

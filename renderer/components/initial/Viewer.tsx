@@ -1,10 +1,10 @@
 import React from "react";
 
-export interface InitialEditorWrapperProps {
+export interface ViewerWrapperProps {
     callback: Function;
 }
 
-export default class InitialEditorWrapper extends React.Component<InitialEditorWrapperProps> {
+export default class ViewerWrapper extends React.Component<ViewerWrapperProps> {
     elem = React.createRef<HTMLDivElement>();
 
     componentDidMount() {

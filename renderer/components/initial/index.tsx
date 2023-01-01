@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
 
-export const InitialEditorViewer = dynamic(() => import("./Viewer"), {
+export const Viewer = dynamic(() => import("./Viewer"), {
     ssr: false,
 });
