@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import { MainContainer } from "../components/MainContainer";
 import jQuery from "jquery";
@@ -25,16 +25,16 @@ const Home = observer(() => {
         });
     };
 
+    const bindFunctions = useCallback(() => {
+        if (window.app) {
+            window.app.on("openWindow", openWindow);
+        }
+    }, []);
+
     return (
         <React.Fragment>
             <Meta title="Initial Editor" />
-            <Viewer
-                callback={() => {
-                    if (window.app) {
-                        window.app.on("openWindow", openWindow);
-                    }
-                }}
-            />
+            <Viewer callback={bindFunctions} />
             <MainContainer />
             <Widget />
         </React.Fragment>
