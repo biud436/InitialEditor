@@ -41,6 +41,7 @@ export default class App extends EventEmitter {
      * 멤버 변수를 초기화합니다.
      */
     initMembers(): void;
+    changeTitle(title: string): void;
     /**
      * 컴포넌트를 생성합니다.
      */

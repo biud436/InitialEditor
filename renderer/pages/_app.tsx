@@ -7,7 +7,7 @@ import { RecoilRoot } from "recoil";
 import Store from "electron-store";
 
 export function MyApp({ Component, pageProps }: AppProps) {
-    const [store, setStore] = React.useState<Store>(new Store());
+    const [store] = React.useState<Store>(new Store());
 
     useEffect(() => {
         console.log("메뉴 커맨드 >> ");

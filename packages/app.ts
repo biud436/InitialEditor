@@ -115,7 +115,7 @@ export default class App extends EventEmitter {
         this._isReady = false;
 
         // 타이틀을 변경합니다.
-        document.title = "Initial Map Editor";
+        this.changeTitle("Initial Map Editor");
 
         this.emit("ready", JSON.stringify(this));
 
@@ -150,6 +150,12 @@ export default class App extends EventEmitter {
                 alert("설정 변경이 완료되었습니다.");
             });
         });
+    }
+
+    changeTitle(title: string) {
+        if (document) {
+            document.title = title;
+        }
     }
 
     /**

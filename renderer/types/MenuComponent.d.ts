@@ -25,10 +25,22 @@ export declare namespace InitialEditor {
  */
 declare class MenuComponent extends Component {
     _isMenuOpen: boolean;
-    start(...args: any[]): this;
+    start(...args: any[]): MenuComponent;
     isMenuOpen(): boolean;
     hideMenu(): void;
+    /**
+     * 최상위 노드가 메인 메뉴인지 판단합니다.
+     *
+     * @param node
+     * @returns
+     */
     private isTopMostMenu;
+    /**
+     * 마우스 왼쪽 버튼이 클릭되었는지 확인합니다.
+     * @param mouse
+     * @returns
+     */
+    private isLeftMouseButtonOK;
     update<T extends HTMLElement = HTMLElement, R extends Mouse = Mouse>(target: T, mouse: R): void;
 }
 export { MenuComponent };

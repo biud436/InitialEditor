@@ -1,12 +1,17 @@
 /// <reference types="node" />
 import { Component } from "./component";
 import "reflect-metadata";
+export declare enum MenuButtonsSelector {
+    MINIMIZE_WINDOW = 0,
+    MAXIMIZE_WINDOW = 1,
+    CLOSE_WINDOW = 2
+}
 export declare namespace InitialEditor {
     /**
      * 툴바 셀렉터 정의
      */
     namespace MenuButtons {
-        const CLASSE_SELECTOR: Record<string, string>;
+        const CLASSE_SELECTOR: Record<keyof typeof MenuButtonsSelector, string>;
     }
     type Platform = NodeJS.Platform | "electron";
 }
