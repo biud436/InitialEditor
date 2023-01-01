@@ -8,8 +8,6 @@ import Widget from "../components/window/Widget";
 
 import { observer } from "mobx-react";
 
-// test
-
 import { InitialEditorViewer } from "../components/initial";
 import { Meta } from "@components/Meta";
 
