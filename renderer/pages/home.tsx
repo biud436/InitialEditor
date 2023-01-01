@@ -1,31 +1,20 @@
-import React, { useEffect, useState } from "react";
-import Head from "next/head";
+import React, { useEffect } from "react";
 
 import { MainContainer } from "../components/MainContainer";
 import jQuery from "jquery";
 import { useRecoilState } from "recoil";
 import { WindowState, WindowType } from "../recoil/window";
 import Widget from "../components/window/Widget";
-import styled from "styled-components";
+
 import { observer } from "mobx-react";
 
 // test
-import { useRouter } from "next/router";
-import { setResolution } from "libs/electron/window";
-import { InitialEditorViewer } from "../components/initial";
 
-const LoadingBlock = styled.div`
-    display: flex;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-`;
+import { InitialEditorViewer } from "../components/initial";
+import { Meta } from "@components/Meta";
 
 const Home = observer(() => {
-    const [panel, setPanel] = useRecoilState(WindowState);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
+    const [, setPanel] = useRecoilState(WindowState);
 
     useEffect(() => {
         window.$ = jQuery;
@@ -40,14 +29,7 @@ const Home = observer(() => {
 
     return (
         <React.Fragment>
-            <Head>
-                <meta charSet="UTF-8" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1.0"
-                />
-                <title></title>
-            </Head>
+            <Meta title="Initial Editor" />
             <InitialEditorViewer
                 callback={() => {
                     if (window.app) {
