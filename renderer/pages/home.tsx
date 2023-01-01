@@ -29,11 +29,6 @@ const Home = observer(() => {
 
     useEffect(() => {
         window.$ = jQuery;
-        // window.onMounted(() => {
-        //     if (window.app) {
-        //         window.app.on("openWindow", openWindow);
-        //     }
-        // });
     }, []);
 
     const openWindow = ({ path }: { path: string }) => {
