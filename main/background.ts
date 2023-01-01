@@ -72,6 +72,7 @@ export class EntryPoint {
             this._hostWindow = null;
         });
 
+        // 별도의 패턴으로 정리해야 할 필요성이 있음.
         ipcMain.on("minimize", () => hostWindow.minimize());
         ipcMain.on("maximize", () => hostWindow.onMaximize());
         ipcMain.on("message_box:error", (event, ...args: any[]) => {
@@ -79,6 +80,9 @@ export class EntryPoint {
             dialog.showErrorBox(title, content);
         });
         ipcMain.on("close", () => hostWindow.close());
+        ipcMain.on("set-resolution", (event, [width, height]) => {
+            hostWindow.setSize(width, height);
+        });
     }
 
     /**

@@ -13,45 +13,48 @@ import { observer } from "mobx-react";
 import { useRouter } from "next/router";
 
 const LoadingBlock = styled.div`
-  display: flex;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
 `;
 
 const Home = observer(() => {
-  const [panel, setPanel] = useRecoilState(WindowState);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+    const [panel, setPanel] = useRecoilState(WindowState);
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
-  useEffect(() => {
-    window.$ = jQuery;
-    window.onMounted(() => {
-      if (window.app) {
-        window.app.on("openWindow", openWindow);
-      }
-    });
-  }, []);
+    useEffect(() => {
+        window.$ = jQuery;
+        window.onMounted(() => {
+            if (window.app) {
+                window.app.on("openWindow", openWindow);
+            }
+        });
+    }, []);
 
-  const openWindow = ({ path }: { path: string }) => {
-    const windowName = path.slice(1);
-    setPanel({
-      currentWindow: windowName as WindowType,
-    });
-  };
+    const openWindow = ({ path }: { path: string }) => {
+        const windowName = path.slice(1);
+        setPanel({
+            currentWindow: windowName as WindowType,
+        });
+    };
 
-  return (
-    <React.Fragment>
-      <Head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title></title>
-      </Head>
-      <MainContainer />
-      <Widget />
-    </React.Fragment>
-  );
+    return (
+        <React.Fragment>
+            <Head>
+                <meta charSet="UTF-8" />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1.0"
+                />
+                <title></title>
+            </Head>
+            <MainContainer />
+            <Widget />
+        </React.Fragment>
+    );
 });
 
 export default Home;

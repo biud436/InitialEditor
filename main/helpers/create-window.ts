@@ -5,6 +5,17 @@ import {
 } from "electron";
 import Store from "electron-store";
 
+type Rect = Pick<
+    BrowserWindowConstructorOptions,
+    "x" | "y" | "width" | "height"
+>;
+
+type RequiredRect = {
+    [K in keyof Rect]-?: Rect[K];
+};
+
+type RequiredSize = Pick<RequiredRect, "width" | "height">;
+
 export default (
     windowName: string,
     options: BrowserWindowConstructorOptions
@@ -12,12 +23,12 @@ export default (
     const key = "window-state";
     const name = `window-state-${windowName}`;
     const store = new Store({ name });
-    const defaultSize = {
-        width: options.width,
-        height: options.height,
+    const defaultSize: RequiredSize = {
+        width: options.width ?? 800,
+        height: options.height ?? 600,
     };
     let state = {};
-    let win;
+    let win: BrowserWindow;
 
     const restore = () => store.get(key, defaultSize);
 
@@ -32,7 +43,10 @@ export default (
         };
     };
 
-    const windowWithinBounds = (windowState, bounds) => {
+    const windowWithinBounds = (
+        windowState: RequiredRect,
+        bounds: RequiredRect
+    ) => {
         return (
             windowState.x >= bounds.x &&
             windowState.y >= bounds.y &&
@@ -49,7 +63,7 @@ export default (
         });
     };
 
-    const ensureVisibleOnSomeDisplay = (windowState) => {
+    const ensureVisibleOnSomeDisplay = (windowState: any) => {
         const visible = screen.getAllDisplays().some((display) => {
             return windowWithinBounds(windowState, display.bounds);
         });

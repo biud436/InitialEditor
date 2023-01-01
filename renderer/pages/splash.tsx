@@ -1,16 +1,11 @@
-import { useRouter } from "next/dist/client/router";
 import Head from "next/head";
-import React, { useEffect } from "react";
+import React from "react";
 import Image from "next/image";
 import logoImage from "../public/images/logo.png";
 import style from "../styles/splash.module.scss";
 import { observer } from "mobx-react";
 
 const Splash = observer(() => {
-    useEffect(() => {
-        console.log("created splash!");
-    }, []);
-
     return (
         <React.Fragment>
             <Head>
