@@ -8,8 +8,9 @@ export default class InitialEditorWrapper extends React.Component<InitialEditorW
     elem = React.createRef<HTMLDivElement>();
 
     componentDidMount() {
+        const { callback } = this.props;
         import("../../static/js/initial-editor.js").then(() => {
-            window.Main.start(this.props.callback);
+            window.Main.start(callback);
         });
     }
 
