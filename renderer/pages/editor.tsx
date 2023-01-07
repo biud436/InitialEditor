@@ -1,13 +1,14 @@
+import ErrorBoundary from "@components/ErrorBoundary";
 import dynamic from "next/dynamic";
 
 const CodeEditor = dynamic(() => import("components/CodeEditor"), {
-  ssr: false,
+    ssr: false,
 });
 
 export default function CodeEditorPage() {
-  return (
-    <>
-      <CodeEditor />
-    </>
-  );
+    return (
+        <ErrorBoundary>
+            <CodeEditor />
+        </ErrorBoundary>
+    );
 }
