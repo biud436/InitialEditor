@@ -8,14 +8,13 @@ export type Project = {
     author: string;
 };
 
-export type ReactWindowProps = { children: React.ReactNode };
 export type HTMLInputEvent = React.ChangeEvent<HTMLInputElement>;
 export interface WindowRect {
     width: number;
     height: number;
 }
 
-export default function NewWindow({ children }: ReactWindowProps) {
+export default function NewWindow() {
     const { close } = useClose();
     const [gameName, setGameName] = useState("");
     const [, setFileName] = useState("");

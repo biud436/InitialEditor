@@ -15,8 +15,6 @@ const CodeEditor = () => {
                 theme={"github"}
                 name={"blah2"}
                 fontSize={14}
-                showPrintMargin={true}
-                showGutter={true}
                 highlightActiveLine={true}
                 value={""}
                 setOptions={{
@@ -24,7 +22,6 @@ const CodeEditor = () => {
                     enableLiveAutocompletion: true,
                     enableSnippets: true,
                     showLineNumbers: true,
-                    tabSize: 4,
                 }}
             />
         </div>

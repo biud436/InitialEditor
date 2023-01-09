@@ -23,13 +23,9 @@ export const WidgetProvider = () => {
             case "none":
                 return <></>;
             case "newWindow":
-                return (
-                    <NewWindow>
-                        <span></span>
-                    </NewWindow>
-                );
+                return <NewWindow />;
             case "optionWindow":
-                return <OptionWindow></OptionWindow>;
+                return <OptionWindow />;
             case "scriptEditor":
                 return <LuaEditor />;
         }
