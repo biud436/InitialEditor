@@ -1,21 +1,28 @@
-import { useRecoilState } from "recoil";
-import { WindowState, WindowType } from "../../recoil/window";
-import styles from "./Widget.module.css";
-import NewWindow from "./NewWindow";
-import { useRef, useState } from "react";
-import OptionWindow from "./OptionWindow";
 import { WidgetProvider } from "../../providers/window.providers";
 import { Division } from "@components/atomics/Wrapper";
+import styled from "styled-components";
+import classnames from "classnames";
 
 type WidgetLayoutProps = {
     children?: React.ReactNode;
 };
 
+const WidgetWrapper = styled.div`
+    .widget {
+        z-index: 1;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+`;
+
 export default function Widget({ children }: WidgetLayoutProps) {
     return (
-        <Division className={styles.widget}>
-            {children}
-            <WidgetProvider />
-        </Division>
+        <WidgetWrapper>
+            <Division className={classnames("widget")}>
+                {children}
+                <WidgetProvider />
+            </Division>
+        </WidgetWrapper>
     );
 }

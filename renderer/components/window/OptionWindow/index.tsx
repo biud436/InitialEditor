@@ -7,7 +7,6 @@ import React, {
     useState,
 } from "react";
 import Draggable from "react-draggable";
-import "./OptionWindow.module.css";
 import { useRecoilState } from "recoil";
 import { useClose } from "../../../providers/window.providers";
 import { ThemeState } from "../../../recoil/theme";
