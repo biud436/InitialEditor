@@ -20,7 +20,13 @@ const OtherToolbar: ToolbarBase[] = [
     {
         name: "",
         children: "tools-script-eidtor",
-        action: (ev: any) => {},
+        action: (ev: any) => {
+            if (window.app) {
+                window.app.emit("openWindow", {
+                    path: "/scriptEditor",
+                });
+            }
+        },
     },
     {
         name: "",

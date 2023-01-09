@@ -1,6 +1,11 @@
 import { atom, RecoilState, useRecoilState } from "recoil";
 
-export const WindowStateMap = <const>["none", "newWindow", "optionWindow"];
+export const WindowStateMap = <const>[
+    "none",
+    "newWindow",
+    "optionWindow",
+    "scriptEditor",
+];
 export type WindowType = typeof WindowStateMap[number];
 export type WindowStateImpl = {
     currentWindow: typeof WindowStateMap[number];

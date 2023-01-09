@@ -1,4 +1,5 @@
-import { createContext, useContext } from "react";
+import { LuaEditor } from "@components/window/LuaEditor";
+import { createContext, useCallback, useContext } from "react";
 import { SetterOrUpdater, useRecoilState } from "recoil";
 import NewWindow from "../components/window/NewWindow";
 import OptionWindow from "../components/window/OptionWindow";
@@ -17,7 +18,7 @@ export const WidgetProvider = () => {
         });
     };
 
-    const getCurrentWindow = (currentWindow: WindowType) => {
+    const getCurrentWindow = useCallback((currentWindow: WindowType) => {
         switch (currentWindow) {
             case "none":
                 return <></>;
@@ -29,8 +30,10 @@ export const WidgetProvider = () => {
                 );
             case "optionWindow":
                 return <OptionWindow></OptionWindow>;
+            case "scriptEditor":
+                return <LuaEditor />;
         }
-    };
+    }, []);
 
     return (
         <WindowContext.Provider value={{ close }}>

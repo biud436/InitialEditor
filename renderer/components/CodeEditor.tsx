@@ -1,16 +1,34 @@
-import Editor, { DiffEditor, useMonaco, loader } from "@monaco-editor/react";
+import AceEditor from "react-ace";
+
+import "ace-builds/src-noconflict/mode-lua";
+import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/ext-language_tools";
+
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 
 const CodeEditor = () => {
-    useEffect(() => {
-        loader.config({
-            paths: {
-                vs: "https:/cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs",
-            },
-        });
-    }, []);
-
-    return <Editor defaultLanguage="javascript" />;
+    return (
+        <div>
+            <AceEditor
+                mode={"lua"}
+                theme={"github"}
+                name={"blah2"}
+                fontSize={14}
+                showPrintMargin={true}
+                showGutter={true}
+                highlightActiveLine={true}
+                value={""}
+                setOptions={{
+                    enableBasicAutocompletion: true,
+                    enableLiveAutocompletion: true,
+                    enableSnippets: true,
+                    showLineNumbers: true,
+                    tabSize: 4,
+                }}
+            />
+        </div>
+    );
 };
 
 export default CodeEditor;
