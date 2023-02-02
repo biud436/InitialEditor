@@ -5,12 +5,14 @@ export const THEME = {
     DARK: "dark",
     LIGHT: "light",
 };
+
 export namespace WindowGroup {
     export enum Theme {
         Light = 1,
         Dark = 2,
     }
 }
+
 export type OptionWindowProps = {
     close: () => void;
     selectedIndex: string;

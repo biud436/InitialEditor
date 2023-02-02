@@ -7,6 +7,7 @@ import { Label } from "@components/atomics/Label";
 import { Input } from "@components/atomics/Input";
 import { Select } from "@components/atomics/Select";
 import { OptionItem } from "@components/atomics/OptionItem";
+import classNames from "classnames";
 
 export function ContentView({
     selectedIndex,
@@ -19,7 +20,10 @@ export function ContentView({
 }) {
     return (
         <Division
-            className="tilesetWindow-tile tilesetWindow__tab-border"
+            className={classNames(
+                "tilesetWindow-tile",
+                "tilesetWindow__tab-border"
+            )}
             tab-name="타일"
         >
             <ListContainer>
