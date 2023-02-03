@@ -4,11 +4,11 @@
 
 </div>
 
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![Electron.js](https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=Electron&logoColor=white)
-![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-![Styled Components](https://img.shields.io/badge/styled--components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white)
+![typescript](https://img.shields.io/badge/typescript-4.6.2-green.svg?logo=typescript&style=for-the-badge)
+![electron](https://img.shields.io/badge/electron-16.0.7-green.svg?logo=electron&style=for-the-badge)
+![react](https://img.shields.io/badge/react-17.0.2-green.svg?logo=react&style=for-the-badge)
+![next](https://img.shields.io/badge/next-11.1.3-green.svg?logo=next.js&style=for-the-badge)
+![styled-components](https://img.shields.io/badge/styled--components-5.3.3-green.svg?logo=styled-components&style=for-the-badge)
 
 # Introduction
 
