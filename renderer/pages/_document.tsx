@@ -3,6 +3,7 @@ import Document, {
     Main,
     NextScript,
     DocumentContext,
+    Html,
 } from "next/document";
 import { ServerStyleSheet } from "styled-components";
 import Script from "next/script";
@@ -38,7 +39,7 @@ export default class MyDocument extends Document {
 
     render() {
         return (
-            <html>
+            <Html>
                 <Head>
                     <link
                         href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap"
@@ -59,13 +60,12 @@ export default class MyDocument extends Document {
                         type="text/javascript"
                         src="/static/js/initial-editor.js"
                     ></script>
-                    {/* <style>{`body { display: block !important }`}</style> */}
                 </Head>
                 <body data-theme="dark">
                     <Main />
                     <NextScript />
                 </body>
-            </html>
+            </Html>
         );
     }
 }
