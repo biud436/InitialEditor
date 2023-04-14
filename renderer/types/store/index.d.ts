@@ -6,7 +6,7 @@ import Store from "electron-store";
 export declare class DataStore<T = any> extends Store {
     forEach(callback: (value: T, key: string) => void): void;
 }
-export declare type InitialAction = (...args: any[]) => void;
+export type InitialAction = (...args: any[]) => void;
 export declare const store: Store<Record<string, unknown>>;
 /**
  * 기본 일렉트론 스토어를 반환합니다.

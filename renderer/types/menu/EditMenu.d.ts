@@ -1,5 +1,5 @@
 export declare const EditMenuNameMap: readonly ["edit-undo", "edit-cut", "edit-copy", "edit-paste", "edit-delete"];
-export declare type EditMenuImpl = {
+export type EditMenuImpl = {
     name: string;
     children: {
         [key in typeof EditMenuNameMap[number]]: {

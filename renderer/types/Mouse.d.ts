@@ -12,7 +12,7 @@ export interface MouseButton<T extends Element = Element> {
      */
     menuTarget?: T;
 }
-export declare type Mouse = {
+export type Mouse = {
     /**
      * x 좌표
      */

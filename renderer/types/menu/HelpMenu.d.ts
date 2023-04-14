@@ -1,5 +1,5 @@
 export declare const HelpMenuNameMap: readonly ["help-contents", "help-about"];
-export declare type HelpMenuImpl = {
+export type HelpMenuImpl = {
     name: string;
     children: {
         [key in typeof HelpMenuNameMap[number]]: {

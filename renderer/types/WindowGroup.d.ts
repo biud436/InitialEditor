@@ -9,7 +9,7 @@ export declare namespace WindowGroup {
         Dark = 2
     }
 }
-export declare type InitialEventListener = Partial<{
+export type InitialEventListener = Partial<{
     touchmove: (ev: any) => void | HTMLElementEventMap["touchmove"];
     mousemove: (ev: any) => void | HTMLElementEventMap["mousemove"];
     mousedown: (ev: any) => void | HTMLElementEventMap["mousedown"];

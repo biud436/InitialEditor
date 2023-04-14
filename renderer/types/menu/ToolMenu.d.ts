@@ -1,5 +1,5 @@
 export declare const ToolMenuNameMap: readonly ["tools-database", "tools-resource-manager", "tools-script-eidtor", "tools-sound-test", "tools-options"];
-export declare type ToolMenuImpl = {
+export type ToolMenuImpl = {
     name: string;
     children: {
         [key in typeof ToolMenuNameMap[number]]: {

@@ -59,6 +59,7 @@ export default class MyDocument extends Document {
                         type="text/javascript"
                         src="/static/js/initial-editor.js"
                     ></script>
+                    {/* <style>{`body { display: block !important }`}</style> */}
                 </Head>
                 <body data-theme="dark">
                     <Main />

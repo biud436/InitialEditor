@@ -36,7 +36,7 @@ const Home = observer(() => {
 
     return (
         <React.Fragment>
-            <Meta title="Initial Editor" />
+            <Meta title="Initial Editor2" />
             <Viewer callback={bindFunctions} />
             <MainContainer />
             <Widget />

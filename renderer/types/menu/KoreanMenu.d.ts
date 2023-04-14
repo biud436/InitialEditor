@@ -1,5 +1,5 @@
 import { Optional } from "../store/MeatadataStorage";
-export declare type IMenuParent = {
+export type IMenuParent = {
     [key in MenuType]: Optional<IMenuItem>;
 };
 export interface IMenuItem {
@@ -13,7 +13,7 @@ export interface IMenuItem {
         };
     };
 }
-export declare type MenuType = "file" | "edit" | "mode" | "draw" | "scale" | "tools" | "game" | "help";
-export declare type MenuKeys = keyof IMenuParent;
+export type MenuType = "file" | "edit" | "mode" | "draw" | "scale" | "tools" | "game" | "help";
+export type MenuKeys = keyof IMenuParent;
 declare const KoreanMenu: IMenuParent;
 export { KoreanMenu };

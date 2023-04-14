@@ -1,4 +1,5 @@
 /// <reference types="jquery" />
+/// <reference types="jquery" />
 import { Component } from "./component";
 export interface MarkerRange {
     lastTileID: number;

@@ -11,7 +11,7 @@ interface ToolbarImpl {
     unlock(): void;
     unlock(originPosition?: DOMRect): void;
 }
-declare type HTMLTagMap = keyof HTMLElementTagNameMap | string;
+type HTMLTagMap = keyof HTMLElementTagNameMap | string;
 /**
  * @class ToolbarContainer
  */

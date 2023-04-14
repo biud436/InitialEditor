@@ -1,5 +1,5 @@
 export declare const GameMenuNameMap: readonly ["game-playtest", "game-fullscreen", "game-show-console", "game-folder-open"];
-export declare type GameMenuImpl = {
+export type GameMenuImpl = {
     name: string;
     children: {
         [key in typeof GameMenuNameMap[number]]: {
