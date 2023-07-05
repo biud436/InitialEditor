@@ -12,14 +12,12 @@ require("source-map-support").install();
 //==========================================================
 export class Main {
     static start(bindFunc: Function): void {
-        window.onload = async () => {
-            window.app = App.GetInstance();
-            window.electronService = Container.get(ElectronService);
-            window.ToolbarManager = Container.get(ToolbarManager);
-            window.app.start();
-            bindFunc();
-            this.update(1.0);
-        };
+        window.app = App.GetInstance();
+        window.electronService = Container.get(ElectronService);
+        window.ToolbarManager = Container.get(ToolbarManager);
+        window.app.start();
+        bindFunc();
+        this.update(1.0);
     }
 
     static update(deltaTime: number) {

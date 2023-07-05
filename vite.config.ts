@@ -22,6 +22,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
         preview: {
             port: 3000,
         },
+        publicDir: path.resolve(__dirname, "renderer", "public"),
         resolve: {
             alias: [
                 { find: "@", replacement: path.resolve(__dirname, "renderer") },
