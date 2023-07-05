@@ -3,6 +3,8 @@ import { BrowserWindow } from "electron";
 import { createWindow } from "../helpers";
 import * as path from "path";
 
+const isDev = process.env.IS_DEV == "true" ? true : false;
+
 /**
  * @description
  * This class allows you to create a new window that is applied some configuration.
@@ -29,7 +31,8 @@ export class MainWindow extends BrowserWindow {
             await this.loadURL("app://./home.html");
         } else {
             const port = process.argv[2];
-            await this.loadURL(`http://localhost:${port}/home`);
+            // await this.loadURL(`http://localhost:${port}/home`);
+            await this.loadURL(`http://localhost:8080/home`);
             this.webContents.openDevTools();
         }
         this.webContents.once("dom-ready", () => {

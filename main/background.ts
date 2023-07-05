@@ -7,6 +7,9 @@ import { showSplashWindow } from "./windows/splashWindow";
 import { EntryPoint as Ep } from "./utils/Path";
 import serve from "electron-serve";
 
+const remote = require("@electron/remote/main");
+remote.initialize();
+
 const Path = Ep.Path;
 
 const isProd: boolean = process.env.NODE_ENV === "production";

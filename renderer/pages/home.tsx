@@ -10,11 +10,9 @@ import { observer } from "mobx-react";
 
 import { Viewer } from "../components/initial";
 import { Meta } from "@components/Meta";
-import { useRouter } from "next/dist/client/router";
-import dynamic from "next/dynamic";
 
 const Home = observer(() => {
-    const router = useRouter();
+    // const router = useRouter();
     const [, setPanel] = useRecoilState(WindowState);
 
     useEffect(() => {

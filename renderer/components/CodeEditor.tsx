@@ -4,9 +4,6 @@ import "ace-builds/src-noconflict/mode-lua";
 import "ace-builds/src-noconflict/theme-github";
 import "ace-builds/src-noconflict/ext-language_tools";
 
-import { useEffect } from "react";
-import dynamic from "next/dynamic";
-
 const CodeEditor = () => {
     return (
         <div>
