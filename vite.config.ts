@@ -2,6 +2,7 @@ import { UserConfigExport, defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import * as path from "path";
 import { compression } from "vite-plugin-compression2";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ command, mode, ssrBuild }) => {
     const defaultConfig = {
@@ -11,6 +12,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
                 include: ["**/*.{js,css,html}"],
                 threshold: 1400,
             }),
+            tsconfigPaths(),
         ],
         server: {
             port: 3000,
@@ -23,7 +25,14 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
         resolve: {
             alias: [
                 { find: "@", replacement: path.resolve(__dirname, "renderer") },
+                {
+                    find: "@components",
+                    replacement: path.resolve(__dirname, "renderer/components"),
+                },
             ],
+        },
+        define: {
+            "process.env": {},
         },
     } as UserConfigExport;
 

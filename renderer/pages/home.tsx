@@ -8,8 +8,7 @@ import Widget from "../components/window/Widget";
 
 import { observer } from "mobx-react";
 
-import { Viewer } from "../components/initial";
-import { Meta } from "@components/Meta";
+import Viewer from "../components/initial/Viewer";
 
 const Home = observer(() => {
     // const router = useRouter();
@@ -34,7 +33,6 @@ const Home = observer(() => {
 
     return (
         <React.Fragment>
-            <Meta title="Initial Editor" />
             <Viewer callback={bindFunctions} />
             <MainContainer />
             <Widget />

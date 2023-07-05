@@ -1,13 +1,10 @@
-import dynamic from "next/dynamic";
 import { useClose } from "providers/window.providers";
 import { useMemo } from "react";
 import styled from "styled-components";
 import { BaseWindowFrame } from "./BaseWindowFrame";
+import React from "react";
 
-const CodeEditor = dynamic(() => import("components/CodeEditor"), {
-    ssr: false,
-});
-
+const CodeEditor = React.lazy(() => import("../CodeEditor"));
 interface WindowRect {
     width: number;
     height: number;
