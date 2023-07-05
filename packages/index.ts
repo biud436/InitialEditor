@@ -30,6 +30,6 @@ export class Main {
 
 window.Main = Main;
 
-// window.onMounted = (func: Function) => {
-//     Main.start(func);
-// };
+window.onMounted = (func: Function) => {
+    Main.start(func);
+};

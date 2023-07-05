@@ -1,9 +1,9 @@
 import { Division } from "@components/atomics/Wrapper";
-import { MarkerRange } from "libs/tilesetMarker";
+import { MarkerRange } from "libs/initial/tilesetMarker";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { BlockSize } from "../../libs/BlockSize";
+import { BlockSize } from "../../libs/initial/BlockSize";
 import { useRaf, useRafLoop, useUpdate } from "react-use";
 
 interface TilesetMarkerPureProps {
