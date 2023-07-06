@@ -5,7 +5,14 @@ import { Division } from "@components/atomics/Wrapper";
 
 export function ClosePanel({ close }: { close: () => void }) {
     return (
-        <Division className="tilesetWindow__control-box">
+        <Division
+            className="tilesetWindow__control-box"
+            style={{
+                alignSelf: "flex-end",
+                position: "absolute",
+                top: "-0.2rem",
+            }}
+        >
             <Paragraph>
                 <Span>
                     <IconItem

@@ -19,10 +19,6 @@ export function ContentHeader() {
                     <Label htmlFor="name">이름: </Label>
                     <Input type="text" placeholder="name" name="name" />
                 </ListItem>
-                <ListItem>
-                    <Label htmlFor="name">이미지: </Label>
-                    <Input type="file" name="" id="image-load-dialog" />
-                </ListItem>
             </ListContainer>
         </Division>
     );

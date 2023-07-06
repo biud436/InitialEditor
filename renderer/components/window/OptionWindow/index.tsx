@@ -16,6 +16,7 @@ import { ContentView } from "./ContentView";
 import { ContentHeader } from "./ContentHeader";
 import { ContainerWrapper } from "./ContainerWrapper";
 import { Division } from "@components/atomics/Wrapper";
+import styled from "styled-components";
 
 export default function OptionWindowContainer() {
     const { close } = useClose();
@@ -50,6 +51,12 @@ export default function OptionWindowContainer() {
     );
 }
 
+const OptionWindowPresentDiv = styled(Division)`
+    display: flex;
+    flex-direction: column;
+    line-height: 1.5;
+`;
+
 const OptionWindowPresent = memo(function OptionWindowPresent({
     close,
     selectedIndex,
@@ -60,12 +67,12 @@ const OptionWindowPresent = memo(function OptionWindowPresent({
 }: OptionWindowProps) {
     return (
         <Draggable grid={[16, 16]} defaultPosition={{ x: 200, y: 200 }}>
-            <Division id="tilesetWindow" window-name="타일셋 창2">
+            <OptionWindowPresentDiv id="tilesetWindow" window-name="타일셋 창2">
+                <ClosePanel close={close} />
                 <ContentHeader />
                 <ContentView {...{ selectedIndex, setSelectedIndex, theme }} />
-                <ClosePanel close={close} />
                 <ConfirmPanel ok={ok} close={close} />
-            </Division>
+            </OptionWindowPresentDiv>
         </Draggable>
     );
 });

@@ -8,6 +8,21 @@ import { Input } from "@components/atomics/Input";
 import { Select } from "@components/atomics/Select";
 import { OptionItem } from "@components/atomics/OptionItem";
 import classNames from "classnames";
+import { styled } from "styled-components";
+
+const ContentViewContainer = styled(ListContainer)`
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+
+    input {
+        background: var(--dark-input-background-color);
+    }
+
+    select {
+        background: var(--dark-input-background-color);
+    }
+`;
 
 export function ContentView({
     selectedIndex,
@@ -26,7 +41,7 @@ export function ContentView({
             )}
             tab-name="타일"
         >
-            <ListContainer>
+            <ContentViewContainer>
                 <ListItem key="tileset-window-tile-width">
                     <Label htmlFor="tile-width">가로 크기: </Label>
                     <Input
@@ -72,7 +87,7 @@ export function ContentView({
                         </OptionItem>
                     </Select>
                 </ListItem>
-            </ListContainer>
+            </ContentViewContainer>
         </Division>
     );
 }
