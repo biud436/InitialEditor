@@ -54,9 +54,8 @@ export function ContentView({
                         name="theme"
                         id="theme-select-box"
                         value={selectedIndex}
-                        onChange={(e) => {
-                            console.log(e.target.value);
-                            setSelectedIndex(e.target.value);
+                        onChange={(e: any) => {
+                            setSelectedIndex(e?.target.value);
                         }}
                     >
                         <OptionItem

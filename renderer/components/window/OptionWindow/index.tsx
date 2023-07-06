@@ -1,4 +1,3 @@
-import { useRouter } from "next/dist/client/router";
 import React, {
     Dispatch,
     memo,
@@ -61,7 +60,7 @@ const OptionWindowPresent = memo(function OptionWindowPresent({
 }: OptionWindowProps) {
     return (
         <Draggable grid={[16, 16]} defaultPosition={{ x: 200, y: 200 }}>
-            <Division id="tilesetWindow" window-name="타일셋 창">
+            <Division id="tilesetWindow" window-name="타일셋 창2">
                 <ContentHeader />
                 <ContentView {...{ selectedIndex, setSelectedIndex, theme }} />
                 <ClosePanel close={close} />
