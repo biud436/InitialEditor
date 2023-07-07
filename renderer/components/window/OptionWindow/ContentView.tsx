@@ -10,26 +10,6 @@ import { OptionItem } from "@components/atomics/OptionItem";
 import classNames from "classnames";
 import { styled } from "styled-components";
 
-const ContentViewContainer = styled(ListContainer)`
-    display: flex;
-    flex-direction: column;
-    gap: 0.4em;
-
-    input {
-        background: var(--dark-input-background-color);
-        color: var(--dark-text-color);
-        border: 1px solid var(--dark-border-color);
-        border-radius: 4px;
-    }
-
-    select {
-        background: var(--dark-input-background-color);
-        color: var(--dark-text-color);
-        border: 1px solid var(--dark-border-color);
-        border-radius: 4px;
-    }
-`;
-
 interface ContentViewProps {
     selectedIndex: string;
     setSelectedIndex: OptionWindowProps["setSelectedIndex"];
@@ -99,3 +79,23 @@ export function ContentView({
         </Division>
     );
 }
+
+const ContentViewContainer = styled(ListContainer)`
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+
+    input {
+        background: var(--dark-input-background-color);
+        color: var(--dark-text-color);
+        border: 1px solid var(--dark-border-color);
+        border-radius: 4px;
+    }
+
+    select {
+        background: var(--dark-input-background-color);
+        color: var(--dark-text-color);
+        border: 1px solid var(--dark-border-color);
+        border-radius: 4px;
+    }
+`;
