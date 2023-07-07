@@ -16,15 +16,12 @@ export function ContentHeader() {
             tab-name="타일셋"
         >
             <ListContainer>
-                <ListItem>
-                    <Label htmlFor="name">이름: </Label>
-                    <Input type="text" placeholder="name" name="name" />
-                </ListItem>
+                <ListItem></ListItem>
             </ListContainer>
         </ContentHeaderWrapper>
     );
 }
 
 const ContentHeaderWrapper = styled(Division)`
-    margin-top: 1rem;
+    margin-top: 0rem;
 `;
