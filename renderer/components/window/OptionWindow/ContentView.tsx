@@ -17,22 +17,30 @@ const ContentViewContainer = styled(ListContainer)`
 
     input {
         background: var(--dark-input-background-color);
+        color: var(--dark-text-color);
+        border: 1px solid var(--dark-border-color);
+        border-radius: 4px;
     }
 
     select {
         background: var(--dark-input-background-color);
+        color: var(--dark-text-color);
+        border: 1px solid var(--dark-border-color);
+        border-radius: 4px;
     }
 `;
+
+interface ContentViewProps {
+    selectedIndex: string;
+    setSelectedIndex: OptionWindowProps["setSelectedIndex"];
+    theme: { theme: string };
+}
 
 export function ContentView({
     selectedIndex,
     setSelectedIndex,
     theme,
-}: {
-    selectedIndex: string;
-    setSelectedIndex: OptionWindowProps["setSelectedIndex"];
-    theme: { theme: string };
-}) {
+}: ContentViewProps) {
     return (
         <Division
             className={classNames(

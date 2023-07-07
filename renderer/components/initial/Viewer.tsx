@@ -11,7 +11,6 @@ export default class ViewerWrapper extends React.Component<ViewerWrapperProps> {
         const { callback } = this.props;
         import("../../static/js/initial-editor.js").then(() => {
             window.Main.start(callback);
-            alert("시작되었습니다.");
         });
     }
 

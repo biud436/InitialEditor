@@ -1,10 +1,12 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const isDev = require("electron-is-dev");
+const { platform } = require("os");
 
 let mainWindow;
 
 function createWindow() {
+    const isMacOS = platform === "darwin";
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 720,
@@ -14,6 +16,7 @@ function createWindow() {
             contextIsolation: false,
             devTools: isDev,
         },
+        frame: isMacOS ? true : false,
     });
 
     mainWindow.loadURL(

@@ -4,10 +4,11 @@ import { ListContainer } from "@components/atomics/ListContainer";
 import { ListItem } from "@components/atomics/ListItem";
 import { Division } from "@components/atomics/Wrapper";
 import classNames from "classnames";
+import { styled } from "styled-components";
 
 export function ContentHeader() {
     return (
-        <Division
+        <ContentHeaderWrapper
             className={classNames(
                 "tilesetWindow__tileset",
                 "tilesetWindow__tab-border"
@@ -20,6 +21,10 @@ export function ContentHeader() {
                     <Input type="text" placeholder="name" name="name" />
                 </ListItem>
             </ListContainer>
-        </Division>
+        </ContentHeaderWrapper>
     );
 }
+
+const ContentHeaderWrapper = styled(Division)`
+    margin-top: 1rem;
+`;

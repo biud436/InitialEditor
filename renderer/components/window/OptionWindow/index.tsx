@@ -51,12 +51,6 @@ export default function OptionWindowContainer() {
     );
 }
 
-const OptionWindowPresentDiv = styled(Division)`
-    display: flex;
-    flex-direction: column;
-    line-height: 1.5;
-`;
-
 const OptionWindowPresent = memo(function OptionWindowPresent({
     close,
     selectedIndex,
@@ -67,7 +61,7 @@ const OptionWindowPresent = memo(function OptionWindowPresent({
 }: OptionWindowProps) {
     return (
         <Draggable grid={[16, 16]} defaultPosition={{ x: 200, y: 200 }}>
-            <OptionWindowPresentDiv id="tilesetWindow" window-name="타일셋 창2">
+            <OptionWindowPresentDiv id="tilesetWindow" window-name="타일셋">
                 <ClosePanel close={close} />
                 <ContentHeader />
                 <ContentView {...{ selectedIndex, setSelectedIndex, theme }} />
@@ -76,3 +70,11 @@ const OptionWindowPresent = memo(function OptionWindowPresent({
         </Draggable>
     );
 });
+
+const OptionWindowPresentDiv = styled(Division)`
+    display: flex;
+    flex-direction: column;
+    line-height: 1.5;
+    gap: 1.2em;
+    padding: 1rem;
+`;
