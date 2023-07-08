@@ -12,6 +12,7 @@
         "preview": "vite preview",
         "build:report": "tsc && vite build --report",
         "script:build": "webpack --config=webpack-build.config.js",
+        "electron:build": "cd main && webpack --config webpack.config.electron.js",
         "electron:dev": "concurrently -k \"cross-env BROWSER=none yarn dev\" \"yarn electron:start\"",
         "electron:start": "wait-on tcp:3000 && cross-env IS_DEV=true electron ."
     },
@@ -59,6 +60,7 @@
         "styled-components": "^6.0.2",
         "styled-reset": "^4.3.4",
         "ts-loader": "^9.3.0",
+        "tsconfig-paths-webpack-plugin": "^4.0.1",
         "tsyringe": "^4.7.0",
         "typedi": "^0.10.0",
         "uuid": "^9.0.0",
