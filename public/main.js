@@ -31,7 +31,12 @@ function createWindow() {
 
     mainWindow.setResizable(true);
     mainWindow.on("closed", () => (mainWindow = null));
+
     mainWindow.focus();
+}
+
+function activate() {
+    app.setName("InitialEditor");
 }
 
 app.on("ready", createWindow);
@@ -45,5 +50,6 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
     if (mainWindow === null) {
         createWindow();
+        activate();
     }
 });
