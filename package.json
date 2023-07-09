@@ -12,7 +12,7 @@
         "preview": "vite preview",
         "build:report": "tsc && vite build --report",
         "script:build": "webpack --config=webpack-build.config.js",
-        "electron:build": "cd main && webpack --config webpack.config.electron.js",
+        "electron:build": "webpack --config=./main/webpack.config.electron.js",
         "electron:dev": "concurrently -k \"cross-env BROWSER=none yarn dev\" \"yarn electron:start\"",
         "electron:start": "wait-on tcp:3000 && cross-env IS_DEV=true electron ."
     },

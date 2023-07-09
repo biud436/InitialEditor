@@ -1,5 +1,6 @@
 const path = require("path");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
+const webpack = require("webpack");
 
 /**
  * @type {import("webpack").Configuration}
@@ -25,9 +26,16 @@ module.exports = {
             {
                 test: /\.ts$/,
                 use: "ts-loader",
-                exclude: [/node_modules/],
-                // tsconfig.json
+                exclude: [/node_modules/, /renderer/, /packages/],
             },
         ],
     },
+    plugins: [
+        new webpack.EnvironmentPlugin({
+            NODE_ENV: "development",
+            IS_DEV: true,
+        }),
+    ],
+    devtool: "source-map",
+    stats: "normal",
 };

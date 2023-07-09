@@ -1,7 +1,4 @@
-import { EntryPoint } from "../utils/Path";
 import { BrowserWindow } from "electron";
-import { createWindow } from "../helpers";
-import * as path from "path";
 
 const isDev = process.env.IS_DEV == "true" ? true : false;
 
