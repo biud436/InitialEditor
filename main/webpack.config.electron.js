@@ -8,6 +8,9 @@ const webpack = require("webpack");
 module.exports = {
     mode: "development",
     target: "node",
+    node: {
+        __dirname: true,
+    },
     entry: path.resolve(__dirname, "background.ts"),
     output: {
         path: path.resolve(__dirname, "..", "public"),
