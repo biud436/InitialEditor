@@ -12,6 +12,34 @@ class InitialDOM {
     ): HTMLElementTagNameMap[K] {
         return document.createElement(tagName, options);
     }
+
+    /**
+     * 리액트 스타일의 css 바인딩을 사용할 수 있습니다.
+     *
+     * @param strings
+     * @param values
+     * @returns
+     */
+    css(strings: TemplateStringsArray, ...values: any[]) {
+        const str = strings.reduce((acc, cur, idx) => {
+            return acc + cur + (values[idx] || "");
+        }, "");
+
+        const uniqueClassName = `css-${Math.random().toString(36).slice(2)}`;
+
+        document.head.insertAdjacentHTML(
+            "beforeend",
+            `
+            <style>
+                .${uniqueClassName} {
+                    ${str}
+                }
+            </style>
+            `
+        );
+
+        return uniqueClassName;
+    }
 }
 
 export default Container.get(InitialDOM);

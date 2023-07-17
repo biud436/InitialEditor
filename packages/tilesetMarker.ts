@@ -1,6 +1,8 @@
+import { css } from "@emotion/css";
 import { Component } from "./component";
 import { Mouse } from "./Mouse";
 import { Service } from "typedi";
+import InitialDOM from "./utils/InitialDOM";
 
 export interface MarkerRange {
     lastTileID: number;
@@ -21,7 +23,7 @@ class TilesetMarker extends Component {
     /** tile height */
     protected _tileHeight!: number;
     protected _isReady!: boolean;
-    protected _element!: JQuery<HTMLElement>;
+    protected _element!: HTMLDivElement;
     protected _isDraw!: boolean;
     protected _isClicked!: boolean;
     protected _blockSize!: BlockSize;
@@ -51,31 +53,34 @@ class TilesetMarker extends Component {
     }
 
     public initWithElement() {
-        const parent = $("#view");
+        const parent = InitialDOM.query("#view");
         let child = null;
-        if ((child = document.querySelector("#tileset-marker"))) {
-            parent.get(0)?.removeChild(child);
+        if ((child = InitialDOM.query("#tileset-marker"))) {
+            parent?.removeChild(child);
             return;
         }
 
-        this._element = $("<div></div>", { id: "tileset-marker" }).css({
-            "min-width": `${this._tileWidth}px`,
-            "min-height": `${this._tileHeight}px`,
-            width: `${this._tileWidth}px`,
-            height: `${this._tileHeight}px`,
-            position: "absolute",
-            top: "0",
-            left: "0",
-            margin: "0",
-            padding: "0",
-            border: "2px dotted yellow",
-            "z-index": "50",
-            "box-sizing": "border-box",
-        });
+        this._element = InitialDOM.fetch("div");
+        this._element.id = "tileset-marker";
+        this._element.className = InitialDOM.css`
+            min-width: ${this._tileWidth}px;
+            min-height: ${this._tileHeight}px;
+            width: ${this._tileWidth}px;
+            height: ${this._tileHeight}px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+            border: 2px dotted yellow;
+            z-index: 50;
+            box-sizing: border-box;
+        `;
+        ``;
 
         this._isReady = true;
 
-        parent.append(this._element);
+        parent?.appendChild(this._element);
 
         this._isDraw = false;
         this._isClicked = false;
@@ -92,8 +97,6 @@ class TilesetMarker extends Component {
             { x: 0, y: 0 },
         ];
 
-        const topY = $("#view").offset()?.top ?? 0;
-
         this.on("changeTile", (range: MarkerRange) =>
             this.onChangeTileID(range)
         );
@@ -108,12 +111,17 @@ class TilesetMarker extends Component {
             return;
         }
 
-        const target = args[0].target;
+        const img = InitialDOM.query<HTMLCanvasElement>("#view canvas");
+        if (!img) {
+            return;
+        }
 
-        const img = $("#view canvas");
-        const mapCols = Math.floor(img.width()! / this._config.TILE_WIDTH);
-        const tilesetWidth = img.width()!;
-        const tilesetHeight = img.height()!;
+        const imageWidth = img.width;
+        const imageHeight = img.height;
+
+        const mapCols = Math.floor(imageWidth / this._config.TILE_WIDTH);
+        const tilesetWidth = imageWidth;
+        const tilesetHeight = imageHeight;
         const topY = 0;
 
         const mouse = <Mouse>args[0];
@@ -140,13 +148,11 @@ class TilesetMarker extends Component {
         }
 
         if (!this._isDragging) {
-            this._element.css({
-                position: "absolute",
-                left: nx + "px",
-                top: ny - topY + "px",
-                width: tw + "px",
-                height: th + "px",
-            });
+            this._element.style.position = "absolute";
+            this._element.style.left = nx + "px";
+            this._element.style.top = ny - topY + "px";
+            this._element.style.width = tw + "px";
+            this._element.style.height = th + "px";
         }
 
         console.log("타일 ID : " + (targetY * mapCols + targetX));
@@ -240,7 +246,7 @@ class BlockSize {
     private _y = 0;
     private _width = 0;
     private _height = 0;
-    private _parent: JQuery<HTMLElement> | null;
+    private _parent: HTMLDivElement | null;
 
     constructor(x: number, y: number, width: number, height: number) {
         this._x = x;
@@ -282,18 +288,20 @@ class BlockSize {
         return this._y;
     }
 
-    public setParent(parent: JQuery<HTMLElement>) {
+    public setParent(parent: HTMLDivElement) {
         this._parent = parent;
     }
 
     public refresh() {
-        this._parent?.css({
-            width: this.width,
-            height: this.height,
-            left: this._x,
-            top: this._y,
-            position: "absolute",
-        });
+        const elem = this._parent;
+
+        if (elem) {
+            elem.style.width = this.width + "px";
+            elem.style.height = this.height + "px";
+            elem.style.left = this.x + "px";
+            elem.style.top = this.y + "px";
+            elem.style.position = "absolute";
+        }
     }
 }
 

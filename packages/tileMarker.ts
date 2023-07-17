@@ -1,5 +1,6 @@
 import { Service } from "typedi";
 import { MarkerRange, TilesetMarker } from "./tilesetMarker";
+import InitialDOM from "./utils/InitialDOM";
 
 /**
  * Sets the starting point, it works in the TileMarker.
@@ -31,30 +32,32 @@ export default class TileMarker extends TilesetMarker {
     public initWithElement() {
         // In the React library, the class's name may be not match following the name called '.contents',
         // the react will be created a new unique name for the class.
-        const parent = $(".contents");
+        const parent = InitialDOM.query(".contents");
         let child = null;
-        if ((child = document.querySelector("#tile-marker"))) {
-            parent.get(0)?.removeChild(child);
+        if ((child = InitialDOM.query("#tile-marker"))) {
+            parent?.removeChild(child);
             return;
         }
 
         const { _tileWidth: tw, _tileHeight: th } = this;
 
-        // This element will have to be removed it is not fascinating due to using jQuery.
-        this._element = $(FAKE_STYLED.div, { id: "tile-marker" }).css({
-            "min-width": `${tw}px`,
-            "min-height": `${th}px`,
-            width: `${tw}px`,
-            height: `${th}px`,
-            "z-index": "0",
-            "box-sizing": "border-box",
-            ...MARKER_BORDER.DOTTED,
-            ...POSITION.LEFT_TOP,
-        });
+        this._element = InitialDOM.fetch("div");
+        this._element.id = "tile-marker";
+        this._element.className = InitialDOM.css`
+            min-width: ${tw}px;
+            min-height: ${th}px;
+            width: ${tw}px;
+            height: ${th}px;
+            z-index: 0;
+            box-sizing: border-box;
+            ${MARKER_BORDER.DOTTED}
+            ${POSITION.LEFT_TOP}
+        `;
+        ``;
 
         this._isReady = true;
 
-        parent.append(this._element);
+        parent?.appendChild(this._element);
     }
 
     public update(...args: any[]) {
@@ -64,10 +67,19 @@ export default class TileMarker extends TilesetMarker {
 
         const target = args[0].target;
 
-        const img = $("#contents__main-canvas")!;
-        const mapCols = Math.floor(img.width()! / this._config.TILE_WIDTH);
-        const tilesetWidth = img.width()!;
-        const tilesetHeight = img.height()!;
+        const img = InitialDOM.query<HTMLCanvasElement>(
+            "#contents__main-canvas"
+        )!;
+        if (!img) {
+            return;
+        }
+
+        const imageWidth = img.width;
+        const imageHeight = img.height;
+
+        const mapCols = Math.floor(imageWidth / this._config.TILE_WIDTH);
+        const tilesetWidth = imageWidth;
+        const tilesetHeight = imageHeight;
         const topY = 0;
 
         const mouse = args[0];
@@ -93,11 +105,9 @@ export default class TileMarker extends TilesetMarker {
             ny = tilesetHeight - th + topY;
         }
 
-        this._element.css({
-            position: "absolute",
-            left: nx + "px",
-            top: ny - topY + "px",
-        });
+        this._element.style.position = "absolute";
+        this._element.style.left = nx + "px";
+        this._element.style.top = ny - topY + "px";
 
         return this;
     }

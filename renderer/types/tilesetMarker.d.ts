@@ -1,4 +1,3 @@
-/// <reference types="jquery" />
 import { Component } from "./component";
 export interface MarkerRange {
     lastTileID: number;
@@ -17,7 +16,7 @@ declare class TilesetMarker extends Component {
     /** tile height */
     protected _tileHeight: number;
     protected _isReady: boolean;
-    protected _element: JQuery<HTMLElement>;
+    protected _element: HTMLDivElement;
     protected _isDraw: boolean;
     protected _isClicked: boolean;
     protected _blockSize: BlockSize;
@@ -64,7 +63,7 @@ declare class BlockSize {
     set y(value: number);
     get x(): number;
     get y(): number;
-    setParent(parent: JQuery<HTMLElement>): void;
+    setParent(parent: HTMLDivElement): void;
     refresh(): void;
 }
 export { TilesetMarker };
