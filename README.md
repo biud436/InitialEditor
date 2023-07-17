@@ -48,6 +48,38 @@ export class NewFileCommand implements IBaseMenuCommand {
 
 To write a new menu command, you must import an interface named `IBaseMenuCommand` that starts with 'I' like as C# and so on. this interface has a name, children, shortcut properties, and action method. the action method is a function that can be executed when the menu command is clicked.
 
+## InitialDOM
+
+To create a new element, you can use the `InitialDOM` class. this class is a wrapper class of the `document` object. this class has a static method called `query` and `fetch`. the `query` method is a wrapper method of the `document.querySelector` method. the `fetch` method is a wrapper method of the `document.createElement` method. the `css` method creates a new style sheet to the `head` element and returns class name.
+
+```ts
+const parent = InitialDOM.query("#view");
+let child = null;
+if ((child = InitialDOM.query("#tileset-marker"))) {
+    parent?.removeChild(child);
+    return;
+}
+
+this._element = InitialDOM.fetch("div");
+this._element.id = "tileset-marker";
+this._element.className = InitialDOM.css`
+        min-width: ${this._tileWidth}px;
+        min-height: ${this._tileHeight}px;
+        width: ${this._tileWidth}px;
+        height: ${this._tileHeight}px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        border: 2px dotted yellow;
+        z-index: 50;
+        box-sizing: border-box;
+    `;
+```
+
+Why the wrapper class is needed? In this way, it will be possible to change this class to another framework such as React, Vue, Angular and so on easily. so I wrote it like this way.
+
 # Environment
 
 | Platform Type |    Status     |
