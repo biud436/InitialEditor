@@ -107,16 +107,13 @@ cd InitialEidtor
 yarn install
 ```
 
-## How to start on Windows 10
+## How to start on Mac OSX or Windows
 
-~~It is pretty easy. Open the Visual Studio Code and press key called `F5` on platform such as Windows 10. if you can't start the program, you must see the previous step.~~
-
-## How to start on Mac OSX (Apple Silicon M1)
-
-you have to run the shell script file such as `build.sh` and execute the command such as `npm run start` ~~or `fn + F5`~~
+you have to run the following command in the terminal.
 
 ```sh
-yarn dev
+yarn script:build
+yarn electron:dev
 ```
 
 ## How to upstream from remote github repository
