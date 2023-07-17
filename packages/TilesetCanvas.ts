@@ -8,8 +8,8 @@ export default class TilesetCanvas {
     private _isReady!: boolean;
     private _tilesetImgages!: string[];
     private _tilesets!: Array<any>;
-    private _parent!: JQuery<HTMLDivElement>;
-    private _canvas!: JQuery<HTMLElement>;
+    private _parent!: HTMLDivElement;
+    private _canvas!: HTMLCanvasElement;
     private _context!: CanvasRenderingContext2D;
 
     constructor(...args: any[]) {
@@ -33,8 +33,9 @@ export default class TilesetCanvas {
 
         return new Promise((resolve, reject) => {
             for (let i = 0; i < this._tilesetImgages.length; i++) {
-                const elem = $("<img>").attr("src", this._tilesetImgages[i]);
-                elem.on("load", () => {
+                const elem = document.createElement("img");
+                elem.src = this._tilesetImgages[i];
+                elem.onload = () => {
                     this._tilesets.push(elem);
 
                     ++count;
@@ -44,8 +45,9 @@ export default class TilesetCanvas {
                         this.createCanvas();
                         resolve(this._tilesetImgages[i]);
                     }
-                });
-                elem.on("error", reject);
+                };
+
+                elem.onerror = reject;
             }
         });
     }
@@ -71,27 +73,20 @@ export default class TilesetCanvas {
         const canvasHeight =
             this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
 
-        this._parent = $("#view");
-        this._canvas = $("<canvas />", { id: "tileset-canvas" })
-            .attr("width", canvasWidth)
-            .attr("height", canvasHeight)
-            .css({
-                padding: "0",
-                margin: "0",
-            });
+        this._parent = document.querySelector("#view")!;
+        this._canvas = document.createElement("canvas");
+        this._canvas.id = "tileset-canvas";
+        this._canvas.width = canvasWidth;
+        this._canvas.height = canvasHeight;
+        this._canvas.style.padding = "0";
+        this._canvas.style.margin = "0";
 
-        this._parent.prepend(this._canvas);
-        this._parent.css({
-            width: "100%",
-            height: "60%",
-        });
+        this._parent.appendChild(this._canvas);
 
         /**
          * @type {CanvasRenderingContext2D}
          */
-        this._context = (this._canvas.get(0) as HTMLCanvasElement).getContext(
-            "2d"
-        )!;
+        this._context = this._canvas.getContext("2d")!;
         const ctx = this._context;
 
         let acc = 0;
@@ -100,21 +95,18 @@ export default class TilesetCanvas {
         let maxH = 0;
 
         for (let i = 0; i < this._tilesetImgages.length; i++) {
-            /**
-             * @type {JQuery}
-             */
             const img = this._tilesets[i];
-            const width = img.get(0).naturalWidth;
-            const height = img.get(0).naturalHeight;
+            const width = img.naturalWidth;
+            const height = img.naturalHeight;
 
             if (height > acc + height) {
                 maxH = acc + height;
-                this._canvas.prop("height", maxH);
+                this._canvas.height = maxH;
             }
 
             ctx.setTransform(1, 0, 0, 1, 0, acc);
             ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(img.get(0), 0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
             acc += height;
         }
 
