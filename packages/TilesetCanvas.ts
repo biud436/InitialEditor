@@ -27,12 +27,14 @@ export default class TilesetCanvas {
     }
 
     public async loadTilesets() {
+        const lenOfTileset = this._tilesetImgages.length;
+
         this._tilesets = [];
 
         let count = 0;
 
         return new Promise((resolve, reject) => {
-            for (let i = 0; i < this._tilesetImgages.length; i++) {
+            for (let i = 0; i < lenOfTileset; i++) {
                 const elem = document.createElement("img");
                 elem.src = this._tilesetImgages[i];
                 elem.onload = () => {
@@ -40,7 +42,7 @@ export default class TilesetCanvas {
 
                     ++count;
 
-                    if (count >= this._tilesetImgages.length) {
+                    if (count >= lenOfTileset) {
                         console.log(this._tilesetImgages[i]);
                         this.createCanvas();
                         resolve(this._tilesetImgages[i]);
@@ -69,9 +71,10 @@ export default class TilesetCanvas {
     }
 
     public createCanvas() {
-        const canvasWidth = this._config.TILE_WIDTH * this._config.MAP_COLS;
-        const canvasHeight =
-            this._config.TILE_HEIGHT * this._config.MAP_ROWS * 4;
+        const { TILE_WIDTH, MAP_COLS, TILE_HEIGHT, MAP_ROWS } = this._config;
+
+        const canvasWidth = TILE_WIDTH * MAP_COLS;
+        const canvasHeight = TILE_HEIGHT * MAP_ROWS * 4;
 
         this._parent = document.querySelector("#view")!;
         this._canvas = document.createElement("canvas");
@@ -90,11 +93,11 @@ export default class TilesetCanvas {
         const ctx = this._context;
 
         let acc = 0;
-
-        let maxW = 0;
         let maxH = 0;
 
-        for (let i = 0; i < this._tilesetImgages.length; i++) {
+        const lenOfTileset = this._tilesetImgages.length;
+
+        for (let i = 0; i < lenOfTileset; i++) {
             const img = this._tilesets[i];
             const width = img.naturalWidth;
             const height = img.naturalHeight;
