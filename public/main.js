@@ -5,6 +5,13 @@ const { platform } = require("os");
 
 let mainWindow;
 
+const DEV_SERVER_URL = "http://localhost:3000";
+
+/**
+ * Create the main window for the application.
+ *
+ * @returns {void}
+ */
 function createWindow() {
     const isMacOS = platform === "darwin";
     mainWindow = new BrowserWindow({
@@ -21,7 +28,7 @@ function createWindow() {
 
     mainWindow.loadURL(
         isDev
-            ? "http://localhost:3000"
+            ? DEV_SERVER_URL
             : `file://${path.join(__dirname, "../build/index.html")}`
     );
 
