@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { Service } from "typedi";
 import { config } from "./config.js";
+import InitialDOM from "./utils/InitialDOM";
 
 @Service()
 export default class TilesetCanvas {
@@ -35,7 +36,7 @@ export default class TilesetCanvas {
 
         return new Promise((resolve, reject) => {
             for (let i = 0; i < lenOfTileset; i++) {
-                const elem = document.createElement("img");
+                const elem = InitialDOM.fetch("img");
                 elem.src = this._tilesetImgages[i];
                 elem.onload = () => {
                     this._tilesets.push(elem);
@@ -43,7 +44,6 @@ export default class TilesetCanvas {
                     ++count;
 
                     if (count >= lenOfTileset) {
-                        console.log(this._tilesetImgages[i]);
                         this.createCanvas();
                         resolve(this._tilesetImgages[i]);
                     }
@@ -76,8 +76,8 @@ export default class TilesetCanvas {
         const canvasWidth = TILE_WIDTH * MAP_COLS;
         const canvasHeight = TILE_HEIGHT * MAP_ROWS * 4;
 
-        this._parent = document.querySelector("#view")!;
-        this._canvas = document.createElement("canvas");
+        this._parent = InitialDOM.query("#view")!;
+        this._canvas = InitialDOM.fetch("canvas");
         this._canvas.id = "tileset-canvas";
         this._canvas.width = canvasWidth;
         this._canvas.height = canvasHeight;
