@@ -6,6 +6,10 @@ class InitialDOM {
         return document.querySelector<T>(selectors);
     }
 
+    queryAll<T extends Element = Element>(selectors: string): NodeListOf<T> {
+        return document.querySelectorAll<T>(selectors);
+    }
+
     fetch<K extends keyof HTMLElementTagNameMap>(
         tagName: K,
         options?: ElementCreationOptions

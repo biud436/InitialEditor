@@ -15,6 +15,7 @@ import { Mouse } from "./Mouse";
 import { Shotcut } from "./decorators/Shotcut";
 import { WindowGroup, InitialEventListener } from "./WindowGroup";
 import { autoInjectable } from "tsyringe";
+import InitialDOM from "./utils/InitialDOM";
 
 @autoInjectable()
 export default class App extends EventEmitter {
@@ -415,7 +416,7 @@ export default class App extends EventEmitter {
      */
     initWithMapLayers() {
         const listItems = Array.from<HTMLElement>(
-            document.querySelectorAll("ul.aside__tabs__maptree-child-tree li")
+            InitialDOM.queryAll("ul.aside__tabs__maptree-child-tree li")
         );
 
         let length = listItems.length;
