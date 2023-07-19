@@ -37,7 +37,7 @@ export default class App extends EventEmitter {
     /**
      * 현재 시간
      */
-    private _now: any;
+    private _now = 0;
 
     /**
      * 컴포넌트가 초기화되어있는지 여부
