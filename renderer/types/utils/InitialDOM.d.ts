@@ -1,5 +1,6 @@
 declare class InitialDOM {
     query<T extends Element = Element>(selectors: string): T | null;
+    queryAll<T extends Element = Element>(selectors: string): NodeListOf<T>;
     fetch<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K];
     /**
      * 리액트 스타일의 css 바인딩을 사용할 수 있습니다.

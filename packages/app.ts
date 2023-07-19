@@ -203,7 +203,7 @@ export default class App extends EventEmitter {
                 this.createComponents();
             })
             .then((ret) => {
-                const list = document.querySelectorAll(
+                const list = InitialDOM.queryAll(
                     ".darken, .windows-container"
                 ) as NodeListOf<HTMLElement>;
                 const items = Array.from(list);
@@ -322,13 +322,13 @@ export default class App extends EventEmitter {
                         const target = ev.target as HTMLElement;
 
                         // 캔버스
-                        const canvas = document.querySelector(
+                        const canvas = InitialDOM.query(
                             initial2D.MAIN_CANVAS_ID
                         ) as HTMLCanvasElement;
 
                         canvas.style.cursor = "crosshair";
 
-                        const __canvas = document.querySelector(
+                        const __canvas = InitialDOM.query(
                             initial2D.MAIN_CANVAS_ID
                         );
                         if (!__canvas) return;
@@ -350,7 +350,7 @@ export default class App extends EventEmitter {
 
                         // 음수일 땐, 메인 캔버스보다 왼쪽이므로 기준 좌표를 타일셋 뷰로 변경합니다.
                         if (this._mouse.startX < 0) {
-                            const tilesetCanvas = document.querySelector(
+                            const tilesetCanvas = InitialDOM.query(
                                 initial2D.TILESET_CANVAS_ID
                             );
                             if (!tilesetCanvas) return;
@@ -372,8 +372,8 @@ export default class App extends EventEmitter {
                         this._blockRect.isDrawing = false;
                         this._mouse.isDrawing = false;
 
-                        const canvas = document.getElementById(
-                            "contents__main-canvas"
+                        const canvas = InitialDOM.query(
+                            "#contents__main-canvas"
                         ) as HTMLCanvasElement;
                         canvas.style.cursor = "default";
 

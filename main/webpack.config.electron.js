@@ -1,11 +1,13 @@
 const path = require("path");
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 const webpack = require("webpack");
+const dependencies = require("../package.json").dependencies;
 
 /**
  * @type {import("webpack").Configuration}
  */
 module.exports = {
+    externals: [...Object.keys(dependencies || {})],
     mode: "development",
     target: "node",
     node: {
@@ -15,9 +17,14 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, "..", "public"),
         filename: "bundle.js",
+        // https://github.com/webpack/webpack/issues/1114
+        library: {
+            type: "commonjs2",
+        },
     },
     resolve: {
         extensions: [".ts", ".js"],
+        modules: ["node_modules"],
         plugins: [
             new TsconfigPathsPlugin({
                 configFile: path.resolve(__dirname, "tsconfig.json"),
@@ -27,9 +34,18 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.ts$/,
-                use: "ts-loader",
-                exclude: [/node_modules/, /renderer/, /packages/],
+                test: /\.[jt]sx?$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "ts-loader",
+                    options: {
+                        // Remove this line to enable type checking in webpack builds
+                        transpileOnly: true,
+                        compilerOptions: {
+                            module: "esnext",
+                        },
+                    },
+                },
             },
         ],
     },
@@ -41,4 +57,8 @@ module.exports = {
     ],
     devtool: "source-map",
     stats: "normal",
+    node: {
+        __dirname: false,
+        __filename: false,
+    },
 };
