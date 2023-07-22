@@ -26,6 +26,7 @@ export type MyEditorConfig = {
     Maps: EditorSchema;
 };
 
+// TODO: 데이터를 추가하거나 변경할 수 있도록 해야 합니다.
 export const config = <MyEditorConfig>{
     SCREEN_WIDTH: 800,
     SCREEN_HEIGHT: 600,

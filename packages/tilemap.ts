@@ -5,6 +5,7 @@ import { Mouse } from "./Mouse";
 import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import * as fs from "fs";
 import { Service } from "typedi";
+import InitialDOM from "./utils/InitialDOM";
 
 export namespace initial2D {
     export const TILESET_CANVAS_ID = "#view canvas";
@@ -97,9 +98,9 @@ export default class Tilemap extends Component {
         /**
          * @type {HTMLCanvasElement}
          */
-        const tilesetImg = document.querySelector(
+        const tilesetImg = InitialDOM.query<HTMLCanvasElement>(
             initial2D.TILESET_CANVAS_ID
-        ) as HTMLCanvasElement;
+        );
 
         if (!tilesetImg) {
             throw new Error("Cant't find tileset");
@@ -267,25 +268,22 @@ export default class Tilemap extends Component {
             height: this._config.SCREEN_HEIGHT,
             backgroundColor: 0x00000000,
             resolution: window.devicePixelRatio || 1,
-            view: document.querySelector(
-                initial2D.MAIN_CANVAS_ID
-            ) as HTMLCanvasElement,
+            view: InitialDOM.query<HTMLCanvasElement>(initial2D.MAIN_CANVAS_ID),
             autoDensity: true,
             transparent: false,
         };
 
         option.height =
             window.innerHeight -
-            (document.querySelector(".toolbar") as HTMLElement).clientHeight -
+            (InitialDOM.query(".toolbar") as HTMLElement).clientHeight -
             30;
 
         option.width =
             window.innerWidth -
-            (document.querySelector(".aside__tabs") as HTMLElement)
-                .clientWidth -
+            InitialDOM.query<HTMLElement>(".aside__tabs")!.clientWidth -
             10;
 
-        this._app = new PIXI.Application(option);
+        this._app = new PIXI.Application(option as any);
 
         // Create layer container.
         this._layerContainer = new PIXI.Container();
@@ -304,7 +302,7 @@ export default class Tilemap extends Component {
 
         this.initWithDrawingType();
 
-        (document.querySelector("#take-screenshot") as HTMLElement).onclick = (
+        (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
             ev
         ) => {
             this.takeScreenshot();
