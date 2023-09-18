@@ -12,7 +12,7 @@ export default class ViewerWrapper extends React.Component<ViewerWrapperProps> {
     componentDidMount() {
         const { callback } = this.props;
         // @ts-ignore
-        import('../../static/js/initial-editor.js').then(() => {
+        import('../../public/js/initial-editor.js').then(() => {
             window.Main.start(callback);
         });
     }

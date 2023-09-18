@@ -11,6 +11,7 @@ module.exports = {
         '.eslintrc.cjs',
         'tailwind.config.js',
         'postcss.config.js',
+        'public/*',
     ],
     parser: '@typescript-eslint/parser',
     plugins: ['react-refresh'],

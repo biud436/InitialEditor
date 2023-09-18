@@ -13,4 +13,10 @@ export default defineConfig({
     define: {
         'process.env': {},
     },
+    // 빌드 폴더 경로 변경
+    build: {
+        outDir: path.resolve(__dirname, '..', '..', 'dist'),
+        copyPublicDir: true,
+    },
+    root: './',
 });
