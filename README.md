@@ -4,11 +4,11 @@
 
 </div>
 
-![typescript](https://img.shields.io/badge/typescript-4.6.2-green.svg?logo=typescript&style=for-the-badge)
+<!-- ![typescript](https://img.shields.io/badge/typescript-4.6.2-green.svg?logo=typescript&style=for-the-badge)
 ![electron](https://img.shields.io/badge/electron-16.0.7-green.svg?logo=electron&style=for-the-badge)
 ![react](https://img.shields.io/badge/react-17.0.2-green.svg?logo=react&style=for-the-badge)
 ![next](https://img.shields.io/badge/next-11.1.3-green.svg?logo=next.js&style=for-the-badge)
-![styled-components](https://img.shields.io/badge/styled--components-5.3.3-green.svg?logo=styled-components&style=for-the-badge)
+![styled-components](https://img.shields.io/badge/styled--components-5.3.3-green.svg?logo=styled-components&style=for-the-badge) -->
 
 # Introduction
 
