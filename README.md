@@ -16,7 +16,7 @@ This project allows you to edit multi dimensional tile map on my own game engine
 
 ## Tilemap
 
-![IMG](./editor.png)
+![IMG](./packages/initial-editor/editor.png)
 
 ## Child Window
 
@@ -35,14 +35,14 @@ import { IBaseMenuCommand } from "./IBaseMenuCommand";
 
 @MenuCommand("file", "file-new", "새로 만들기", ["ctrl", "n"])
 export class NewFileCommand implements IBaseMenuCommand {
-    @OnMenuClick("file-new")
-    action(ev: any) {
-        if (window.app) {
-            window.app.emit("openWindow", {
-                path: "/newWindow",
-            });
-        }
+  @OnMenuClick("file-new")
+  action(ev: any) {
+    if (window.app) {
+      window.app.emit("openWindow", {
+        path: "/newWindow",
+      });
     }
+  }
 }
 ```
 
@@ -56,8 +56,8 @@ To create a new element, you can use the `InitialDOM` class. this class is a wra
 const parent = InitialDOM.query("#view");
 let child = null;
 if ((child = InitialDOM.query("#tileset-marker"))) {
-    parent?.removeChild(child);
-    return;
+  parent?.removeChild(child);
+  return;
 }
 
 this._element = InitialDOM.fetch("div");
@@ -135,7 +135,7 @@ This tool is under the MIT License.
 
 But some icon and javascript and stylesheets and images included at this tool have their own licenses.
 
--   Font Awesome Free - https://fontawesome.com/license/free
--   FSM Tile (2k_town05.png) - http://refmap-l.blog.jp/archives/8632768.html
--   FSM Tile (2k_town05-01.png) - http://refmap-l.blog.jp/archives/8632768.html
--   Tuxemon Tileset - https://opengameart.org/content/tuxemon-tileset
+- Font Awesome Free - https://fontawesome.com/license/free
+- FSM Tile (2k_town05.png) - http://refmap-l.blog.jp/archives/8632768.html
+- FSM Tile (2k_town05-01.png) - http://refmap-l.blog.jp/archives/8632768.html
+- Tuxemon Tileset - https://opengameart.org/content/tuxemon-tileset
