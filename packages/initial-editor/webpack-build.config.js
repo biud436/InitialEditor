@@ -9,7 +9,7 @@ const electronTypeTarget = {
     mode: "production", // none' | 'development' | 'production'
     entry: `./src/index.ts`,
     output: {
-        path: path.resolve(__dirname, "..", "renderer", "public", "js"),
+        path: path.resolve(__dirname, "..", "renderer", "src", "public", "js"),
         filename: `initial-editor.js`,
     },
     target: "web",
