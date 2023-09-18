@@ -2,6 +2,9 @@
 
 ![LOGO](https://repository-images.githubusercontent.com/294916739/2f3b679c-ef74-43a7-9d9d-9c08982e3db1)
 
+![typescript](https://img.shields.io/badge/typescript-5.2.2-green.svg?logo=typescript&style=for-the-badge)
+![react](https://img.shields.io/badge/react-18.2.0-green.svg?logo=react&style=for-the-badge)
+
 </div>
 
 # Introduction
