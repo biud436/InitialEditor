@@ -101,13 +101,13 @@ cd InitialEidtor
 yarn install
 ```
 
-## How to start on Mac OSX or Windows
+## How to start
 
 you have to run the following command in the terminal.
 
 ```sh
 yarn script:build
-yarn electron:dev
+yarn start:dev
 ```
 
 ## How to upstream from remote github repository
@@ -117,8 +117,8 @@ To upstream from the remote repository, you must call below command.
 ```bash
 git remote add upstream https://github.com/biud436/InitialEditor.git
 git fetch upstream
-git checkout next
-git merge upstream/next
+git checkout main
+git merge upstream/main
 ```
 
 # License
