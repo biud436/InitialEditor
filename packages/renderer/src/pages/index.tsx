@@ -1,7 +1,7 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { GlobalStyle } from "../styles/global-style";
-import Home from "./home";
-import { URL_MAP } from "common/URL";
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { GlobalStyle } from '../styles/global-style';
+import Home from './home';
+import { URL_MAP } from '@common/URL';
 
 export function Routers() {
     return (
