@@ -1,21 +1,23 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/ban-types */
-import React from "react";
+import React from 'react';
 
 export interface ViewerWrapperProps {
-  callback: Function;
+    callback: Function;
 }
 
 export default class ViewerWrapper extends React.Component<ViewerWrapperProps> {
-  elem = React.createRef<HTMLDivElement>();
+    elem = React.createRef<HTMLDivElement>();
 
-  componentDidMount() {
-    const { callback } = this.props;
-    import("../../static/js/initial-editor.js").then(() => {
-      window.Main.start(callback);
-    });
-  }
+    componentDidMount() {
+        const { callback } = this.props;
+        // @ts-ignore
+        import('../../static/js/initial-editor.js').then(() => {
+            window.Main.start(callback);
+        });
+    }
 
-  render() {
-    return <div ref={this.elem} />;
-  }
+    render() {
+        return <div ref={this.elem} />;
+    }
 }
