@@ -24,6 +24,10 @@ export function MenuCommand(
         target.prototype["shortcut"] = shortcut;
 
         const metadataStorage = getMetadataStorage();
+
+        /**
+         * TODO: 2023.09.18) 부적절한 구현으로 보입니다.
+         */
         Reflect.set(metadataStorage, TOKEN, target);
         Reflect.defineMetadata(MENU_COMMAND, TOKEN, target);
 
