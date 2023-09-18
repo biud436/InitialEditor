@@ -1,5 +1,5 @@
 const path = require("path");
-const fs = require("fs");
+// const fs = require("fs");
 const webpack = require("webpack");
 
 /**
@@ -7,12 +7,13 @@ const webpack = require("webpack");
  */
 const electronTypeTarget = {
     mode: "production", // none' | 'development' | 'production'
-    entry: `./packages/index.ts`,
+    entry: `./src/index.ts`,
     output: {
-        path: path.resolve(__dirname, "renderer", "static", "js"),
+        path: path.resolve(__dirname, "..", "renderer", "src", "static", "js"),
         filename: `initial-editor.js`,
     },
-    target: "electron-main",
+    target: "web",
+    devtool: "inline-source-map",
     module: {
         rules: [
             {
@@ -24,7 +25,7 @@ const electronTypeTarget = {
                     },
                 },
                 exclude: /node_modules/,
-                include: [path.resolve(__dirname, "packages")],
+                include: [path.resolve(__dirname, "src")],
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,
@@ -43,12 +44,16 @@ const electronTypeTarget = {
     plugins: [
         // make sure to include the plugin for the magic
     ],
-    // source-map most detailed at the expense of build speed.
-    devtool: "source-map",
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
         alias: {
-            "@components": path.resolve(__dirname, "renderer", "components"),
+            "@components": path.resolve(
+                __dirname,
+                "..",
+                "renderer",
+                "src",
+                "components",
+            ),
         },
     },
 };

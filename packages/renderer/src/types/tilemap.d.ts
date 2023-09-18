@@ -39,6 +39,7 @@ export default class Tilemap extends Component {
     private _tilesets;
     private _dirty;
     private _semiTransparentOpacity;
+    private readonly fileProvider;
     initMembers(...args: any[]): void;
     load(): Promise<void>;
     loadLayersConfig(): Promise<void>;

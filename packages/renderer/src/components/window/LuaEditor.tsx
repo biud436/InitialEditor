@@ -1,10 +1,10 @@
-import { useClose } from "providers/window.providers";
-import { useMemo } from "react";
-import styled from "styled-components";
-import { BaseWindowFrame } from "./BaseWindowFrame";
-import React from "react";
+import { useMemo } from 'react';
+import styled from 'styled-components';
+import { BaseWindowFrame } from './BaseWindowFrame';
+import React from 'react';
+import { useClose } from '@hooks/useClose';
 
-const CodeEditor = React.lazy(() => import("../CodeEditor"));
+const CodeEditor = React.lazy(() => import('../CodeEditor'));
 interface WindowRect {
     width: number;
     height: number;

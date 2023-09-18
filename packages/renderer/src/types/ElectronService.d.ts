@@ -1,7 +1,7 @@
-/// <reference types="electron" />
 import { EventEmitter } from "./EventEmitter";
 /**
  * @class ElectronService
+ * @deprecated
  * @description
  * 일렉트론과 IPC를 하기 위해 만든 클래스입니다.
  *
@@ -12,7 +12,6 @@ import { EventEmitter } from "./EventEmitter";
 declare class ElectronService extends EventEmitter {
     static INSTANCE: ElectronService;
     static getInstance(): ElectronService;
-    ipcMain: Electron.IpcMain;
     constructor();
     /**
      * 이벤트를 차례대로 접근해 호출합니다.

@@ -1,8 +1,8 @@
 export declare const EditMenuNameMap: readonly ["edit-undo", "edit-cut", "edit-copy", "edit-paste", "edit-delete"];
-export declare type EditMenuImpl = {
+export type EditMenuImpl = {
     name: string;
     children: {
-        [key in typeof EditMenuNameMap[number]]: {
+        [key in (typeof EditMenuNameMap)[number]]: {
             name: string;
             children: Partial<Record<string, any>>;
             action: (ev: any) => void;

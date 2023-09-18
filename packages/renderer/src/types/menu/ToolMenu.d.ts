@@ -1,8 +1,8 @@
 export declare const ToolMenuNameMap: readonly ["tools-database", "tools-resource-manager", "tools-script-eidtor", "tools-sound-test", "tools-options"];
-export declare type ToolMenuImpl = {
+export type ToolMenuImpl = {
     name: string;
     children: {
-        [key in typeof ToolMenuNameMap[number]]: {
+        [key in (typeof ToolMenuNameMap)[number]]: {
             name: string;
             children: Partial<Record<string, any>>;
             action: (ev: any) => void;

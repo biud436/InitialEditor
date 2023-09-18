@@ -7,5 +7,9 @@
   "private": true,
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "script:build": "yarn workspace initial-editor run script:build",
+    "start:dev": "yarn workspace renderer run dev"
+  }
 }

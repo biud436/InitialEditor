@@ -8,11 +8,12 @@
         "sourceMap": true,
         "lib": ["es2017", "dom"],
         "moduleResolution": "node",
-        "types": ["jquery", "node", "electron"],
+        "types": ["jquery", "node"],
         "esModuleInterop": true,
         "experimentalDecorators": true,
         "declaration": true,
-        "declarationDir": "./renderer/types"
+        "declarationDir": "../renderer/src/types"
     },
-    "include": ["packages/**/*.ts"]
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "src/**/*.spec.ts"]
 }

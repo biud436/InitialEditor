@@ -5,7 +5,7 @@ import { EditorSchema } from "./schema/EditorSchema";
  * This interface allows user to set the configuration for the editor.
  * @author Jinseok Eo
  */
-export declare type MyEditorConfig = {
+export type MyEditorConfig = {
     /**
      * 화면 가로 크기
      */

@@ -1,4 +1,4 @@
-import { Schema } from "./Schema.js";
+import { Schema } from "./Schema";
 declare class MapSchema extends Schema {
     Name: string;
     Id: number;

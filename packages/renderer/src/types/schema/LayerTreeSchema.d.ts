@@ -2,7 +2,7 @@ import { Schema } from "./Schema";
 export interface Layer {
     DefaultOpacity: number;
 }
-export declare type LayerCollection = [Layer, Layer, Layer, Layer];
+export type LayerCollection = [Layer, Layer, Layer, Layer];
 /**
  * @class LayerTreeSchema
  */

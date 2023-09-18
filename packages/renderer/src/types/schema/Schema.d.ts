@@ -1,4 +1,6 @@
+import { FileProvider } from "./FileProvider";
 declare class Schema {
+    protected fileProvider: FileProvider;
     constructor(config: any);
     initMembers(config: any): void;
     /**

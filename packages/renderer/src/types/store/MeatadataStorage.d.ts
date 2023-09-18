@@ -12,7 +12,7 @@ export interface MenuAction {
     token: string;
     action<T = any>(ev: T): void;
 }
-export declare type Optional<T> = {
+export type Optional<T> = {
     [P in keyof T]?: T[P];
 };
 /**
