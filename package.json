@@ -1,5 +1,5 @@
 {
-  "name": "initial-editor",
+  "name": "initial-editor-main",
   "version": "1.0.0",
   "repository": "https://github.com/biud436/InitialEditor.git",
   "author": "biud436 <biud436@gmail.com>",
@@ -13,5 +13,6 @@
     "dev": "yarn workspace renderer run dev",
     "build": "yarn workspace renderer run build",
     "start": "yarn workspace renderer run start"
-  }
+  },
+  "packageManager": "yarn@1.22.19"
 }
