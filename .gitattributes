@@ -1,5 +1,6 @@
 src/* linguist-documentation
 packages/renderer/src/public/js/* linguist-documentation
+packages/renderer/src/public/css/*.css linguist-documentation
 packages/renderer/src/styles/*.scss linguist-documentation
 *       text    eol=lf
 *.exe   binary
