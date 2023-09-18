@@ -1,13 +1,11 @@
 {
   "name": "initial-editor",
   "version": "1.0.0",
-  "main": "index.js",
   "repository": "https://github.com/biud436/InitialEditor.git",
   "author": "biud436 <biud436@gmail.com>",
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "packages/initial-editor",
-    "packages/renderer"
+    "packages/*"
   ]
 }
