@@ -110,7 +110,7 @@ you have to run the following command in the terminal.
 
 ```sh
 yarn script:build
-yarn start:dev
+yarn dev
 ```
 
 ## How to upstream from remote github repository
