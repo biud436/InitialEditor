@@ -1,5 +1,5 @@
 import { Button } from '@components/atomics/Button';
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 import { styled } from 'styled-components';
 
 interface HorizontalStackProps {
@@ -12,15 +12,14 @@ export const HorizontalStack = styled.div<HorizontalStackProps>`
     gap: ${props => props.gap};
 `;
 
-export function ConfirmPanel({
-    ok,
-    close,
-}: {
+interface ConfirmPanelProps {
     ok: () => void;
     close: () => void;
-}) {
+}
+
+export function ConfirmPanel({ ok, close }: ConfirmPanelProps) {
     return (
-        <Division className="tilesetWindow__panel">
+        <Box className="tilesetWindow__panel">
             <HorizontalStack gap="0.5rem">
                 <Button className="ok" onClick={ok}>
                     확인
@@ -29,6 +28,6 @@ export function ConfirmPanel({
                     취소
                 </Button>
             </HorizontalStack>
-        </Division>
+        </Box>
     );
 }

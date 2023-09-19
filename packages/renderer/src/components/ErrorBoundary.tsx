@@ -2,20 +2,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 
-interface ErrorBoundaryProps {
+interface ErrorBoundaryStates {
     hasError: boolean;
 }
 
+interface ErrorBoundaryProps {
+    children: React.ReactNode;
+}
+
 export default class ErrorBoundary extends React.Component<
-    { children: React.ReactNode },
-    ErrorBoundaryProps
+    ErrorBoundaryProps,
+    ErrorBoundaryStates
 > {
     constructor(props: any) {
         super(props);
         this.state = { hasError: false };
     }
 
-    static getDerivedStateFromError(_error: any): ErrorBoundaryProps {
+    static getDerivedStateFromError(_error: any): ErrorBoundaryStates {
         return { hasError: true };
     }
 

@@ -1,13 +1,13 @@
-import { useState } from "react";
-import Draggable from "react-draggable";
-import styled from "styled-components";
-import { Division } from "@components/atomics/Wrapper";
-import { Paragraph } from "@components/atomics/Paragraph";
-import classNames from "classnames";
+import { useState } from 'react';
+import Draggable from 'react-draggable';
+import styled from 'styled-components';
+import { Box } from '@components/atomics/Box';
+import { Paragraph } from '@components/atomics/Paragraph';
+import classNames from 'classnames';
 
 const WindowFrameHeader = styled.div`
-    width: ${(props) => props.theme.width + "px"};
-    height: ${(props) => props.theme.height + "px"};
+    width: ${props => props.theme.width + 'px'};
+    height: ${props => props.theme.height + 'px'};
     position: relative;
     left: 50%;
     display: flex;
@@ -50,14 +50,14 @@ export function BaseWindowFrame({
     return (
         <BaseWindowFrameWrapper>
             <Draggable grid={[16, 16]}>
-                <Division className={classNames(`background`)}>
+                <Box className={classNames(`background`)}>
                     <WindowFrameHeader theme={theme}>
                         <Paragraph></Paragraph>
                     </WindowFrameHeader>
-                    <Division className={classNames("windowFrameBody")}>
-                        <Division data-name="content">{children}</Division>
-                    </Division>
-                </Division>
+                    <Box className={classNames('windowFrameBody')}>
+                        <Box data-name="content">{children}</Box>
+                    </Box>
+                </Box>
             </Draggable>
         </BaseWindowFrameWrapper>
     );

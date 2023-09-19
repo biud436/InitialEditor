@@ -1,4 +1,4 @@
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 import React from 'react';
 
 interface ContainerWrapperProps {
@@ -7,8 +7,8 @@ interface ContainerWrapperProps {
 
 export function ContainerWrapper({ children }: ContainerWrapperProps) {
     return (
-        <Division id="tilesetWindow" window-name="타일셋 창">
+        <Box id="tilesetWindow" window-name="타일셋 창">
             {children}
-        </Division>
+        </Box>
     );
 }

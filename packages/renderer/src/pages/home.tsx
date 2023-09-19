@@ -8,7 +8,7 @@ import Widget from '../components/window/Widget';
 
 import { observer } from 'mobx-react';
 
-import Viewer from '../components/initial/Viewer';
+import Viewer from '../components/initial/InitialViewer';
 import { WindowState, WindowType } from '@store/window';
 
 const Home = observer(() => {

@@ -7,7 +7,7 @@ import { ConfirmPanel } from './ConfirmPanel';
 import { ClosePanel } from './ClosePanel';
 import { ContentView } from './ContentView';
 import { ContentHeader } from './ContentHeader';
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 import styled from 'styled-components';
 import { ThemeState } from '@store/theme';
 import { useClose } from '@hooks/useClose';
@@ -35,7 +35,7 @@ const OptionWindowPresent = memo(
     },
 );
 
-const OptionWindowPresentDiv = styled(Division)`
+const OptionWindowPresentDiv = styled(Box)`
     display: flex;
     flex-direction: column;
     line-height: 1.5;

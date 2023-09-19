@@ -1,8 +1,12 @@
 import { ListContainer } from '@components/atomics/ListContainer';
 import { ListItem } from '@components/atomics/ListItem';
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 import classNames from 'classnames';
 import { styled } from 'styled-components';
+
+const ContentHeaderWrapper = styled(Box)`
+    margin-top: 0rem;
+`;
 
 export function ContentHeader() {
     return (
@@ -19,7 +23,3 @@ export function ContentHeader() {
         </ContentHeaderWrapper>
     );
 }
-
-const ContentHeaderWrapper = styled(Division)`
-    margin-top: 0rem;
-`;

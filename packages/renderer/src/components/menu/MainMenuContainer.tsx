@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { WindowTitleBar } from './WindowTitleBar';
 import * as menu from './menuItems';
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 
 export function MainMenuContainer() {
     return (
-        <Division className="menu">
-            <WindowTitleBar></WindowTitleBar>
+        <Box className="menu">
+            <WindowTitleBar />
             <input type="radio" name="menu" id="file" />
             <input type="radio" name="menu" id="edit" />
             <input type="radio" name="menu" id="mode" />
@@ -26,6 +26,6 @@ export function MainMenuContainer() {
             <menu.ToolMenuItem />
             <menu.GameMenuItem />
             <menu.HelpMenuItem />
-        </Division>
+        </Box>
     );
 }

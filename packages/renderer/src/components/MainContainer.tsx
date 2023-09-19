@@ -1,20 +1,12 @@
 import React from 'react';
 import { MainMenuContainer } from './menu/MainMenuContainer';
 import * as frame from './frame';
-import { Division } from './atomics/Wrapper';
+import { Wrapper } from './Wrapper';
+import { Container } from './Container';
+import { MyApp } from './MyApp';
 
-export type MyReactNodeProps = { children: React.ReactNode };
-
-export function Wrapper({ children }: MyReactNodeProps) {
-    return <Division id="wrapper">{children}</Division>;
-}
-
-export function Container({ children }: MyReactNodeProps) {
-    return <Division id="container">{children}</Division>;
-}
-
-export function MyApp() {
-    return <Division id="app"></Division>;
+export interface MyReactNodeProps {
+    children: React.ReactNode;
 }
 
 export function MainContainer() {

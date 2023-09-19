@@ -6,7 +6,7 @@ export interface ViewerWrapperProps {
     callback: Function;
 }
 
-export default class ViewerWrapper extends React.Component<ViewerWrapperProps> {
+export default class InitialViewerWrapper extends React.Component<ViewerWrapperProps> {
     elem = React.createRef<HTMLDivElement>();
 
     componentDidMount() {

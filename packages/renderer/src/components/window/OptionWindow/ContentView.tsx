@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OptionWindowProps } from './Theme';
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 import { ListContainer } from '@components/atomics/ListContainer';
 import { ListItem } from '@components/atomics/ListItem';
 import { Label } from '@components/atomics/Label';
@@ -22,7 +22,7 @@ export function ContentView({
     theme,
 }: ContentViewProps) {
     return (
-        <Division
+        <Box
             className={classNames(
                 'tilesetWindow-tile',
                 'tilesetWindow__tab-border',
@@ -76,7 +76,7 @@ export function ContentView({
                     </Select>
                 </ListItem>
             </ContentViewContainer>
-        </Division>
+        </Box>
     );
 }
 

@@ -1,11 +1,11 @@
-import { IconItem } from "../atomics/IconItem";
-import { ListContainer } from "../atomics/ListContainer";
-import { ListItem } from "../atomics/ListItem";
-import { Division } from "../atomics/Wrapper";
+import { IconItem } from '../atomics/IconItem';
+import { ListContainer } from '../atomics/ListContainer';
+import { ListItem } from '../atomics/ListItem';
+import { Box } from '../atomics/Box';
 
 export function Toolbar() {
     return (
-        <Division className="toolbar">
+        <Box className="toolbar">
             <ListContainer>
                 <ListItem
                     data-action="file-new"
@@ -114,6 +114,6 @@ export function Toolbar() {
                     <IconItem className="fas fa-folder-open" />
                 </ListItem>
             </ListContainer>
-        </Division>
+        </Box>
     );
 }

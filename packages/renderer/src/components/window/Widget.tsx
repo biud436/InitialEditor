@@ -1,4 +1,4 @@
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 import styled from 'styled-components';
 import classnames from 'classnames';
 import { WidgetProvider } from '@context/window.providers';
@@ -19,10 +19,10 @@ const WidgetWrapper = styled.div`
 export default function Widget({ children }: WidgetLayoutProps) {
     return (
         <WidgetWrapper>
-            <Division className={classnames('widget')}>
+            <Box className={classnames('widget')}>
                 {children}
                 <WidgetProvider />
-            </Division>
+            </Box>
         </WidgetWrapper>
     );
 }

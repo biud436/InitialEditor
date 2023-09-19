@@ -1,11 +1,15 @@
 import { IconItem } from '@components/atomics/IconItem';
 import { Paragraph } from '@components/atomics/Paragraph';
 import { Span } from '@components/atomics/Span';
-import { Division } from '@components/atomics/Wrapper';
+import { Box } from '@components/atomics/Box';
 
-export function ClosePanel({ close }: { close: () => void }) {
+interface ClosePanelProps {
+    close: () => void;
+}
+
+export function ClosePanel({ close }: ClosePanelProps) {
     return (
-        <Division
+        <Box
             className="tilesetWindow__control-box"
             style={{
                 alignSelf: 'flex-end',
@@ -22,6 +26,6 @@ export function ClosePanel({ close }: { close: () => void }) {
                     ></IconItem>
                 </Span>
             </Paragraph>
-        </Division>
+        </Box>
     );
 }

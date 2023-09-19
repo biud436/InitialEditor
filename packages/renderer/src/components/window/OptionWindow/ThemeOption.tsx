@@ -1,16 +1,14 @@
-import { OptionItem } from "@components/atomics/OptionItem";
+import { OptionItem } from '@components/atomics/OptionItem';
 
-export function ThemeOption({
-    value,
-    selected,
-    text,
-}: {
-    value: "dark" | "light";
+interface ThemeOptionProps {
+    value: 'dark' | 'light';
     selected: {
         theme: string;
     };
     text: string;
-}) {
+}
+
+export function ThemeOption({ value, selected, text }: ThemeOptionProps) {
     return (
         <OptionItem value={value} selected={selected.theme === value}>
             {text}
