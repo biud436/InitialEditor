@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useClose as useClose } from '@hooks/useClose';
 import { BaseWindowFrame } from './BaseWindowFrame';
 import { useUUID } from '@hooks/useUUID';
+import styled from 'styled-components';
 
 export type Project = {
     path: FileList;
@@ -13,6 +14,12 @@ export interface WindowRect {
     width: number;
     height: number;
 }
+
+const ControlBox = styled.div`
+    position: absolute;
+    top: -1.5em;
+    right: 0;
+`;
 
 export default function NewWindow() {
     const { close } = useClose();
@@ -62,7 +69,7 @@ export default function NewWindow() {
                             />
                         </li>
                     </ul>
-                    <div className="newWindow__control-box">
+                    <ControlBox>
                         <p>
                             <span>
                                 <i
@@ -72,7 +79,7 @@ export default function NewWindow() {
                                 ></i>
                             </span>
                         </p>
-                    </div>
+                    </ControlBox>
                     <div className="panel">
                         <button>
                             <i className="fas fa-upload"></i>
