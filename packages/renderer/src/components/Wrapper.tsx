@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box } from './atomics/Box';
 import { MyReactNodeProps } from './MainContainer';
 
