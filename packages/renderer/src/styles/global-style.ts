@@ -118,6 +118,32 @@ const style = <MapEditorStyle>{
         font: menu;
         box-shadow: 1px 1px 1px var(--dark-border-color);
     }
+
+    div[id*='Window'] button {
+        background-color: var(--dark-title-color);
+        color: var(--dark-text-color);
+        border: 1px solid var(--dark-border-color);
+        box-shadow: 1px 1px 1px var(--dark-border-color);
+        font-family: menu;
+        font-size: 1em;
+        padding: 5px;
+        margin: 5px;
+        cursor: pointer;
+        outline: none;
+    }    
+
+    div[id*='Window'] input {
+        background-color: var(--dark-input-background-color);
+        color: var(--dark-input-text-color);
+        border: 1px solid var(--dark-border-color);
+        box-shadow: 1px 1px 1px var(--dark-border-color);
+        border-radius: 5px;
+        font-family: menu;
+        font-size: 1em;
+        padding: 5px;
+        margin: 5px;
+        outline: none;
+    }    
     
     input[type="text"],
     input[type="file"] {

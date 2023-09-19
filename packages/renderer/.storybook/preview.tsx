@@ -4,6 +4,8 @@ import { RecoilRoot } from 'recoil';
 import { GlobalStyle } from '../src/styles/global-style';
 import { withThemeFromJSXProvider } from '@storybook/addon-styling';
 
+import '../src/styles/main.scss';
+
 const preview: Preview = {
     parameters: {
         actions: { argTypesRegex: '^on[A-Z].*' },
@@ -15,9 +17,9 @@ const preview: Preview = {
         },
     },
     decorators: [
-        withThemeFromJSXProvider({
-            GlobalStyles: GlobalStyle,
-        }),
+        // withThemeFromJSXProvider({
+        //     GlobalStyles: GlobalStyle,
+        // }),
         Story => (
             <RecoilRoot>
                 <Story />
