@@ -61,7 +61,11 @@ class TilesetMarker extends Component {
 
         this._element = InitialDOM.fetch("div");
         this._element.id = "tileset-marker";
-        this._element.className = InitialDOM.css`
+
+        // prettier-ignore
+        // vscode-styled-components가 이를 인식하여 문제를 일으키기 때문에 Enter를 눌러 줄을 바꿔줘야 합니다.
+        this._element.className = InitialDOM.css
+        `
             min-width: ${this._tileWidth}px;
             min-height: ${this._tileHeight}px;
             width: ${this._tileWidth}px;
@@ -73,7 +77,7 @@ class TilesetMarker extends Component {
             padding: 0;
             border: 2px dotted yellow;
             z-index: 50;
-            box-sizing: border-box;
+            box-sizing: border-box
         `;
 
         this._isReady = true;
@@ -90,14 +94,14 @@ class TilesetMarker extends Component {
         );
         this._blockSize.setParent(this._element);
 
+        this.on("changeTile", (range: MarkerRange) =>
+            this.onChangeTileID(range)
+        );
+
         this.touches = [
             { x: 0, y: 0 },
             { x: 0, y: 0 },
         ];
-
-        this.on("changeTile", (range: MarkerRange) =>
-            this.onChangeTileID(range)
-        );
     }
 
     public start(...args: any[]) {
