@@ -29,8 +29,10 @@ class ThemeManager {
     }
 
     public set(key: string, value: string) {
-        // document.documentElement.style.setProperty(key, value);
-        $(":root").css(key, value);
+        const root = document.querySelector<HTMLElement>(":root");
+        if (root) {
+            root.style.setProperty(key, value);
+        }
     }
 
     public flush(theme: number) {
