@@ -21,7 +21,6 @@ export function ClosePanel({ close }: ClosePanelProps) {
                 <Span>
                     <IconItem
                         className="far fa-window-close"
-                        id="action-close"
                         onClick={close}
                     ></IconItem>
                 </Span>

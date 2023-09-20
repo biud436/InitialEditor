@@ -3,6 +3,8 @@ import { useClose as useClose } from '@hooks/useClose';
 import { BaseWindowFrame } from './BaseWindowFrame';
 import { useUUID } from '@hooks/useUUID';
 import styled from 'styled-components';
+import { Button } from '@components/atomics/Button';
+import { CloseButton } from './CloseButton';
 
 export type Project = {
     path: FileList;
@@ -17,7 +19,7 @@ export interface WindowRect {
 
 const ControlBox = styled.div`
     position: absolute;
-    top: -1.5em;
+    top: 0em;
     right: 0;
 `;
 
@@ -70,21 +72,14 @@ export default function NewWindow() {
                         </li>
                     </ul>
                     <ControlBox>
-                        <p>
-                            <span>
-                                <i
-                                    className="far fa-window-close"
-                                    id="action-close"
-                                    onClick={close}
-                                ></i>
-                            </span>
-                        </p>
+                        <CloseButton />
                     </ControlBox>
                     <div className="panel">
-                        <button>
+                        <Button>
                             <i className="fas fa-upload"></i>
                             프로젝트 생성하기
-                        </button>
+                        </Button>
+                        <Button onClick={close}>취소</Button>
                     </div>
                 </div>
             </div>

@@ -1,3 +1,5 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
-export const IconItem = styled.i``;
+export const IconItem = styled.i`
+    cursor: pointer;
+`;

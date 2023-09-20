@@ -50,7 +50,12 @@ export function BaseWindowFrame({
     const ref = useRef<HTMLDivElement>(null);
 
     return (
-        <BaseWindowFrameWrapper ref={ref}>
+        <BaseWindowFrameWrapper
+            style={{
+                width: props.width + 'px',
+                height: props.height + 'px',
+            }}
+        >
             <Draggable
                 grid={[16, 16]}
                 defaultPosition={getWindowCenterPosition(ref)}
@@ -60,7 +65,9 @@ export function BaseWindowFrame({
                         <Paragraph></Paragraph>
                     </WindowFrameHeader>
                     <Box className={classNames('windowFrameBody')}>
-                        <Box data-name="content">{children}</Box>
+                        <Box data-name="content" ref={ref}>
+                            {children}
+                        </Box>
                     </Box>
                 </Box>
             </Draggable>

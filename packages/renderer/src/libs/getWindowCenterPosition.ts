@@ -1,7 +1,7 @@
 import { RefObject } from 'react';
 
 export function getWindowCenterPosition(ref: RefObject<HTMLDivElement>) {
-    let width = window.innerWidth / 6;
+    let width = window.innerWidth / 2;
     let height = window.innerHeight / 2 - 100;
 
     if (ref) {
