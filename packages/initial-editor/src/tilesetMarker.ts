@@ -75,7 +75,6 @@ class TilesetMarker extends Component {
             z-index: 50;
             box-sizing: border-box;
         `;
-        ``;
 
         this._isReady = true;
 
@@ -87,7 +86,7 @@ class TilesetMarker extends Component {
             0,
             0,
             this._tileWidth,
-            this._tileHeight,
+            this._tileHeight
         );
         this._blockSize.setParent(this._element);
 
@@ -97,7 +96,7 @@ class TilesetMarker extends Component {
         ];
 
         this.on("changeTile", (range: MarkerRange) =>
-            this.onChangeTileID(range),
+            this.onChangeTileID(range)
         );
     }
 
@@ -213,7 +212,7 @@ class TilesetMarker extends Component {
         x: number,
         y: number,
         width: number,
-        height: number,
+        height: number
     ) {
         this._blockSize.x = Math.floor(x / this._tileWidth) * this._tileWidth;
         this._blockSize.y = Math.floor(y / this._tileHeight) * this._tileHeight;
