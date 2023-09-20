@@ -38,6 +38,10 @@ export default class Tilemap extends Component {
     private _layerContainer;
     private _tilesets;
     private _dirty;
+    /**
+     * 맵 레이어가 바뀌었을 때, 다른 레이어를 반투명하게 처리할 때 사용합니다.
+     * 1.0 이면 불투명이며, 0.25 이면 반투명입니다.
+     */
     private _semiTransparentOpacity;
     private readonly fileProvider;
     initMembers(...args: any[]): void;

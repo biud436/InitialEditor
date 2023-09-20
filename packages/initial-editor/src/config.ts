@@ -33,7 +33,7 @@ export const config = <MyEditorConfig>{
     TILE_WIDTH: 16,
     TILE_HEIGHT: 16,
     MAP_COLS: 32,
-    MAP_ROWS: 8,
+    MAP_ROWS: 16,
     LAYERS: 4,
     TRANSPARENT_COLOR_GROUP: ["#007575"],
     TILESET_IMGAGES: [

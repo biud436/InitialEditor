@@ -126,8 +126,12 @@ class TilesetMarker extends Component {
 
         const tw = this._tileWidth;
         const th = this._tileHeight;
-        let nx = Math.floor(mouse.x / tw) * tw;
-        let ny = Math.floor(mouse.y / th) * th;
+        const scrollTop = InitialDOM.query("#view")?.scrollTop || 0;
+        const scrollLeft = InitialDOM.query("#view")?.scrollLeft || 0;
+        const mouseX = mouse.x + scrollLeft;
+        const mouseY = mouse.y + scrollTop;
+        let nx = Math.floor(mouseX / tw) * tw;
+        let ny = Math.floor(mouseY / th) * th;
 
         const targetX = nx / tw;
         const targetY = (ny - topY) / th;
