@@ -15,11 +15,12 @@ export function MenuCommand(
     menuId: MenuKeys,
     name: InferMenuName,
     description: string,
-    shortcut: string[],
+    shortcut: string[]
 ): ClassDecorator {
     return function (target: any) {
         const TOKEN = `${MENU_COMMAND}_${menuId}_${name}`;
 
+        // TODO: 심볼 공간을 만들어서 관리하는 것이 좋을 것 같습니다.
         target.prototype["name"] = description;
         target.prototype["shortcut"] = shortcut;
 
@@ -50,7 +51,7 @@ export function MenuCommand(
         Reflect.set(
             window,
             `${MENU_COMMAND}_${menuId}`,
-            injectableMenuCommands[menuId],
+            injectableMenuCommands[menuId]
         );
 
         return target;
