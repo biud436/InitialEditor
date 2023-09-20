@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import styled from 'styled-components';
 import { Box } from '@components/atomics/Box';
 import { Paragraph } from '@components/atomics/Paragraph';
 import classNames from 'classnames';
+import { getWindowCenterPosition } from '@libs/getWindowCenterPosition';
 
 const WindowFrameHeader = styled.div`
     width: ${props => props.theme.width + 'px'};
@@ -46,10 +47,14 @@ export function BaseWindowFrame({
         width: props.width,
         height: props.height,
     });
+    const ref = useRef<HTMLDivElement>(null);
 
     return (
-        <BaseWindowFrameWrapper>
-            <Draggable grid={[16, 16]}>
+        <BaseWindowFrameWrapper ref={ref}>
+            <Draggable
+                grid={[16, 16]}
+                defaultPosition={getWindowCenterPosition(ref)}
+            >
                 <Box className={classNames(`background`)}>
                     <WindowFrameHeader theme={theme}>
                         <Paragraph></Paragraph>

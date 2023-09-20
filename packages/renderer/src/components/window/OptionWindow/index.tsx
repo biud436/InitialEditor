@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { useRecoilState } from 'recoil';
 import { THEME, WindowGroup, OptionWindowProps } from './Theme';
@@ -11,6 +11,7 @@ import { Box } from '@components/atomics/Box';
 import styled from 'styled-components';
 import { ThemeState } from '@store/theme';
 import { useClose } from '@hooks/useClose';
+import { getWindowCenterPosition } from '@libs/getWindowCenterPosition';
 
 const OptionWindowPresent = memo(
     ({
@@ -20,9 +21,18 @@ const OptionWindowPresent = memo(
         ok,
         theme,
     }: OptionWindowProps) => {
+        const ref = useRef<HTMLDivElement>(null);
+
         return (
-            <Draggable grid={[16, 16]} defaultPosition={{ x: 200, y: 200 }}>
-                <OptionWindowPresentDiv id="tilesetWindow" window-name="타일셋">
+            <Draggable
+                grid={[16, 16]}
+                defaultPosition={getWindowCenterPosition(ref)}
+            >
+                <OptionWindowPresentDiv
+                    id="tilesetWindow"
+                    window-name="타일셋"
+                    ref={ref}
+                >
                     <ClosePanel close={close} />
                     <ContentHeader />
                     <ContentView
