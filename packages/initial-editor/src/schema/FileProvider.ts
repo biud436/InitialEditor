@@ -1,5 +1,3 @@
-import { get } from "jquery";
-
 interface DataProviderFileOption {
     encoding: string;
 }
@@ -15,7 +13,7 @@ export class FileProvider {
     public readFile(
         filename: string,
         encoding: string,
-        callback: DataProviderCallback,
+        callback: DataProviderCallback
     ) {
         const retFileName = this.getFilename(filename);
 
@@ -32,7 +30,7 @@ export class FileProvider {
         filename: string,
         content: string,
         option: DataProviderFileOption,
-        callback: DataProviderCallback,
+        callback: DataProviderCallback
     ) {
         if (!option) {
             return callback(new Error("Invalid option"));

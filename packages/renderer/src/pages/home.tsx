@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 
 import { MainContainer } from '../components/MainContainer';
-import jQuery from 'jquery';
 import { useRecoilState } from 'recoil';
 import Widget from '../components/window/Widget';
 
@@ -13,10 +12,6 @@ import { WindowState, WindowType } from '@store/window';
 
 const Home = observer(() => {
     const [, setPanel] = useRecoilState(WindowState);
-
-    useEffect(() => {
-        window.$ = jQuery;
-    }, []);
 
     const openWindow = ({ path }: { path: string }) => {
         const windowName = path.slice(1);

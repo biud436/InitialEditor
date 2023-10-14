@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BlockSize } from '@libs/BlockSize';
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import styled from 'styled-components';
@@ -12,21 +11,6 @@ interface TilesetMarkerPureProps {
 }
 
 export const DRAGGING_DELAY = 33;
-
-export interface TilesetMarkerProps {
-    config: any;
-    width: number;
-    height: number;
-    isReady: boolean;
-    element?: JQuery<HTMLElement>;
-    isDraw: boolean;
-    isClicked: boolean;
-    blockSize: BlockSize;
-    touches: Array<{ x: number; y: number }>;
-    isDragging: boolean;
-    lastTileId: number;
-    tiles: number[];
-}
 
 export const TilesetMarkerPureElement = styled.div<TilesetMarkerPureProps>`
     min-width: ${props => props.width}px;
