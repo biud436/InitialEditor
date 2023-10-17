@@ -77,7 +77,7 @@ export default class Tilemap extends Component {
     setCurrentLayerId(layerId: number): Tilemap;
     getCurrentLayerId(): number;
     start(...args: any[]): this;
-    get app(): PIXI.Application;
+    get app(): PIXI.Application<PIXI.ICanvas>;
     takeScreenshot(): void;
     private onMouseMove;
     /**

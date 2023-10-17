@@ -271,12 +271,14 @@ export default class Tilemap extends Component {
         let option = {
             width: this._config.SCREEN_WIDTH,
             height: this._config.SCREEN_HEIGHT,
-            backgroundColor: 0x00000000,
+            // backgroundColor: 0x00000000,
+
             resolution: window.devicePixelRatio || 1,
             view: InitialDOM.query<HTMLCanvasElement>(initial2D.MAIN_CANVAS_ID),
             autoDensity: true,
             transparent: false,
-        };
+            backgroundColor: 0x222222,
+        } as Partial<PIXI.IApplicationOptions>;
 
         option.height =
             window.innerHeight -
@@ -290,12 +292,28 @@ export default class Tilemap extends Component {
 
         this._app = new PIXI.Application(option as any);
 
+        (globalThis as any).__PIXI_APP__ = this._app;
+
+        // Graphcs
+        const graphics = new PIXI.Graphics();
+        // Rectangle
+        graphics.beginFill(0x000000);
+        graphics.drawRect(
+            0,
+            0,
+            this._mapWidth * this._tileWidth,
+            this._mapHeight * this._tileHeight
+        );
+        graphics.endFill();
+
         // Create layer container.
         this._layerContainer = new PIXI.Container();
         this._layerContainer.interactive = true;
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
         this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
         this.app.stage.addChild(this._layerContainer);
+
+        this._layerContainer.addChild(graphics);
 
         for (let i = 0; i < this._config.LAYERS; i++) {
             this._layerContainer.addChild(new PIXI.Container());
