@@ -77,6 +77,7 @@ export default class Tilemap extends Component {
     setCurrentLayerId(layerId: number): Tilemap;
     getCurrentLayerId(): number;
     start(...args: any[]): this;
+    private createOption;
     /**
      * 디버그 모드를 활성화합니다.
      *
