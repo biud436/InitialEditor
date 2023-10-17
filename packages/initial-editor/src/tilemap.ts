@@ -305,6 +305,8 @@ export default class Tilemap extends Component {
             window.innerWidth -
             InitialDOM.query<HTMLElement>(".aside__tabs")!.clientWidth -
             10;
+
+        return option;
     }
 
     /**
