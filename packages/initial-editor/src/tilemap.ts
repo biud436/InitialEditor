@@ -268,7 +268,7 @@ export default class Tilemap extends Component {
     }
 
     public start(...args: any[]) {
-        this._app = new PIXI.Application(this.createOption() as any);
+        this._app = new PIXI.Application(this.createOption());
 
         this.useDebugMode();
         this.createLayerContainer();
@@ -285,7 +285,7 @@ export default class Tilemap extends Component {
         return this;
     }
 
-    private createOption() {
+    private createOption(): Partial<PIXI.IApplicationOptions> {
         let option = {
             width: this._config.SCREEN_WIDTH,
             height: this._config.SCREEN_HEIGHT,
