@@ -4,6 +4,7 @@
 
 ![typescript](https://img.shields.io/badge/typescript-5.2.2-green.svg?logo=typescript&style=for-the-badge)
 ![react](https://img.shields.io/badge/react-18.2.0-green.svg?logo=react&style=for-the-badge)
+![pixi.js](https://img.shields.io/badge/pixi.js-7.3.1-green.svg?logo=pixi.js&style=for-the-badge)
 
 </div>
 
