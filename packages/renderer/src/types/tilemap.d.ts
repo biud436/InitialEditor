@@ -77,6 +77,31 @@ export default class Tilemap extends Component {
     setCurrentLayerId(layerId: number): Tilemap;
     getCurrentLayerId(): number;
     start(...args: any[]): this;
+    /**
+     * 디버그 모드를 활성화합니다.
+     *
+     * 확장 툴을 받으면 개발자 도구에서 pixi.js 객체를 디버깅 할 수 있습니다.
+     */
+    private useDebugMode;
+    /**
+     * 레이어 컨테이너를 생성합니다.
+     */
+    private createLayerContainer;
+    /**
+     * 타일셋 텍스쳐를 생성합니다.
+     */
+    private createTilesetTexture;
+    /**
+     * 빈 검정 타일맵을 생성합니다.
+     *
+     * pixi.js@^5 와 pixi.js@^6에서는 빈 타일맵을 생성하지 않아도 그려집니다.
+     * 하지만 pixi.js@^7는 달랐습니다.
+     *
+     * 컨테이너에는 컨텐츠가 있어야 width와 height가 설정되는 것 같습니다.
+     *
+     * 따라서 빈 그래픽을 그려서 컨테이너의 크기를 설정하였습니다.
+     */
+    private createEmptyTilemap;
     get app(): PIXI.Application<PIXI.ICanvas>;
     takeScreenshot(): void;
     private onMouseMove;

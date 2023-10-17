@@ -292,37 +292,9 @@ export default class Tilemap extends Component {
 
         this._app = new PIXI.Application(option as any);
 
-        (globalThis as any).__PIXI_APP__ = this._app;
-
-        // Graphcs
-        const graphics = new PIXI.Graphics();
-        // Rectangle
-        graphics.beginFill(0x000000);
-        graphics.drawRect(
-            0,
-            0,
-            this._mapWidth * this._tileWidth,
-            this._mapHeight * this._tileHeight
-        );
-        graphics.endFill();
-
-        // Create layer container.
-        this._layerContainer = new PIXI.Container();
-        this._layerContainer.interactive = true;
-        this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
-        this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
-        this.app.stage.addChild(this._layerContainer);
-
-        this._layerContainer.addChild(graphics);
-
-        for (let i = 0; i < this._config.LAYERS; i++) {
-            this._layerContainer.addChild(new PIXI.Container());
-        }
-
-        // 메인 타일셋
-        this._tilesets = [];
-        this._tilesets.push(PIXI.Texture.from(this._tileset));
-
+        this.useDebugMode();
+        this.createLayerContainer();
+        this.createTilesetTexture();
         this.initWithDrawingType();
 
         (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
@@ -333,6 +305,65 @@ export default class Tilemap extends Component {
         };
 
         return this;
+    }
+
+    /**
+     * 디버그 모드를 활성화합니다.
+     *
+     * 확장 툴을 받으면 개발자 도구에서 pixi.js 객체를 디버깅 할 수 있습니다.
+     */
+    private useDebugMode() {
+        (globalThis as any).__PIXI_APP__ = this._app;
+    }
+
+    /**
+     * 레이어 컨테이너를 생성합니다.
+     */
+    private createLayerContainer() {
+        this._layerContainer = new PIXI.Container();
+        this._layerContainer.interactive = true;
+        this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
+        this._layerContainer.on("pointermove", this.onMouseMove.bind(this));
+        this.app.stage.addChild(this._layerContainer);
+
+        this.createEmptyTilemap();
+
+        for (let i = 0; i < this._config.LAYERS; i++) {
+            this._layerContainer.addChild(new PIXI.Container());
+        }
+    }
+
+    /**
+     * 타일셋 텍스쳐를 생성합니다.
+     */
+    private createTilesetTexture() {
+        // 메인 타일셋
+        this._tilesets = [];
+        this._tilesets.push(PIXI.Texture.from(this._tileset));
+    }
+
+    /**
+     * 빈 검정 타일맵을 생성합니다.
+     *
+     * pixi.js@^5 와 pixi.js@^6에서는 빈 타일맵을 생성하지 않아도 그려집니다.
+     * 하지만 pixi.js@^7는 달랐습니다.
+     *
+     * 컨테이너에는 컨텐츠가 있어야 width와 height가 설정되는 것 같습니다.
+     *
+     * 따라서 빈 그래픽을 그려서 컨테이너의 크기를 설정하였습니다.
+     */
+    private createEmptyTilemap() {
+        const defaultBackgroundColor = 0x000000;
+        const realCanvasWidth = this._mapWidth * this._tileWidth;
+        const realCanvasHeight = this._mapHeight * this._tileHeight;
+
+        // Graphcs
+        const graphics = new PIXI.Graphics();
+        graphics.beginFill(defaultBackgroundColor);
+        graphics.drawRect(0, 0, realCanvasWidth, realCanvasHeight);
+        graphics.endFill();
+
+        this._layerContainer.addChild(graphics);
     }
 
     get app() {
