@@ -1,6 +1,7 @@
 import { EventEmitter } from "./EventEmitter";
 import { config } from "./config";
 import { Service } from "typedi";
+import * as PIXI from "pixi.js";
 
 interface Point {
     x: number;
@@ -94,35 +95,30 @@ export class AutoTile extends EventEmitter {
         const th = config.TILE_HEIGHT;
 
         return new Promise((resolve, reject) => {
-            const loader = new PIXI.Loader();
-
-            loader
-                .add("autotile", filename)
-
-                .load((loader, res) => {
-                    const sprite = PIXI.Sprite.from(res.autotile!.texture);
-                    const width = sprite.texture.width;
-                    const height = sprite.texture.height;
-
-                    if (width > height) {
-                        let type = [];
-                        type.push(width % tw === 0);
-                        type.push(height % th === 0);
-                        const toArray = type.filter((i) => !!i);
-
-                        if (toArray.length === 0) {
-                            reject(
-                                "오토 타일이 잘못되었습니다. 사이즈를 제대로 확인하십시오."
-                            );
-                        }
-
-                        resolve(sprite);
-                    } else if (width < height) {
-                        reject("6 x 8 레이아웃이 아닙니다.");
-                    } else {
-                        reject("정방형 오토타일은 사용할 수 없습니다.");
-                    }
-                });
+            // const loader = new PIXI.Loader();
+            // loader
+            //     .add("autotile", filename)
+            //     .load((loader, res) => {
+            //         const sprite = PIXI.Sprite.from(res.autotile!.texture);
+            //         const width = sprite.texture.width;
+            //         const height = sprite.texture.height;
+            //         if (width > height) {
+            //             let type = [];
+            //             type.push(width % tw === 0);
+            //             type.push(height % th === 0);
+            //             const toArray = type.filter((i) => !!i);
+            //             if (toArray.length === 0) {
+            //                 reject(
+            //                     "오토 타일이 잘못되었습니다. 사이즈를 제대로 확인하십시오."
+            //                 );
+            //             }
+            //             resolve(sprite);
+            //         } else if (width < height) {
+            //             reject("6 x 8 레이아웃이 아닙니다.");
+            //         } else {
+            //             reject("정방형 오토타일은 사용할 수 없습니다.");
+            //         }
+            //     });
         });
     }
 }

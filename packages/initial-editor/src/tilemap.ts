@@ -325,7 +325,7 @@ export default class Tilemap extends Component {
         const app = this._app;
         if (!app) return;
 
-        app.renderer.extract.canvas(app.stage).toBlob(
+        app.renderer.plugins.extract.canvas(app.stage).toBlob(
             <BlobCallback>(async (b: Blob) => {
                 const arrayBuffer = await b.arrayBuffer();
                 const buffer = Buffer.from(arrayBuffer);

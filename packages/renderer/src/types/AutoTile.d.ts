@@ -1,4 +1,5 @@
 import { EventEmitter } from "./EventEmitter";
+import * as PIXI from "pixi.js";
 interface Point {
     x: number;
     y: number;
