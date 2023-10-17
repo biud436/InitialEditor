@@ -268,11 +268,27 @@ export default class Tilemap extends Component {
     }
 
     public start(...args: any[]) {
+        this._app = new PIXI.Application(this.createOption() as any);
+
+        this.useDebugMode();
+        this.createLayerContainer();
+        this.createTilesetTexture();
+        this.initWithDrawingType();
+
+        (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
+            ev
+        ) => {
+            this.takeScreenshot();
+            ev.stopPropagation();
+        };
+
+        return this;
+    }
+
+    private createOption() {
         let option = {
             width: this._config.SCREEN_WIDTH,
             height: this._config.SCREEN_HEIGHT,
-            // backgroundColor: 0x00000000,
-
             resolution: window.devicePixelRatio || 1,
             view: InitialDOM.query<HTMLCanvasElement>(initial2D.MAIN_CANVAS_ID),
             autoDensity: true,
@@ -289,22 +305,6 @@ export default class Tilemap extends Component {
             window.innerWidth -
             InitialDOM.query<HTMLElement>(".aside__tabs")!.clientWidth -
             10;
-
-        this._app = new PIXI.Application(option as any);
-
-        this.useDebugMode();
-        this.createLayerContainer();
-        this.createTilesetTexture();
-        this.initWithDrawingType();
-
-        (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
-            ev
-        ) => {
-            this.takeScreenshot();
-            ev.stopPropagation();
-        };
-
-        return this;
     }
 
     /**
