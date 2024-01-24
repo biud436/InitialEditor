@@ -1,11 +1,11 @@
 import "reflect-metadata";
-import { NewFileCommand } from "./commands/NewFileCommand";
-import { OpenFileCommand } from "./commands/OpenFileCommand";
-import { FileExitCommand } from "./commands/FileExitCommand";
-import { FileCloseCommand } from "./commands/FileCloseCommand";
-import { FileSaveCommand } from "./commands/FileSaveCommand";
-import { FilePreferencesCommand } from "./commands/FilePreferencesCommand";
-import { FileExportCommand } from "./commands/FileExportCommand";
+import { NewFileCommand } from "./commands/file/NewFileCommand";
+import { OpenFileCommand } from "./commands/file/OpenFileCommand";
+import { FileExitCommand } from "./commands/file/FileExitCommand";
+import { FileCloseCommand } from "./commands/file/FileCloseCommand";
+import { FileSaveCommand } from "./commands/file/FileSaveCommand";
+import { FilePreferencesCommand } from "./commands/file/FilePreferencesCommand";
+import { FileExportCommand } from "./commands/file/FileExportCommand";
 
 export const FileMenuNameMap = <const>[
     "file-new",

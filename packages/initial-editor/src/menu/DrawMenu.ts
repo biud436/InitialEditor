@@ -1,4 +1,4 @@
-import { DrawingCommandCollection } from "./commands/DrawCommandCollection";
+import { DrawingCommandCollection } from "./commands/draw/DrawCommandCollection";
 
 export const DrawMenuNameMap = <const>[
     "draw-pencil",

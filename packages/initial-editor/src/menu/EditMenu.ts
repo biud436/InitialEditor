@@ -1,8 +1,8 @@
-import { EditCopyCommand } from "./commands/EditCopyCommand";
-import { EditCutCommand } from "./commands/EditCutCommand";
-import { EditDeleteCommand } from "./commands/EditDeleteCommand";
-import { EditPasteCommand } from "./commands/EditPasteCommand";
-import { EditUndoCommand } from "./commands/EditUndoCommand";
+import { EditCopyCommand } from "./commands/edit/EditCopyCommand";
+import { EditCutCommand } from "./commands/edit/EditCutCommand";
+import { EditDeleteCommand } from "./commands/edit/EditDeleteCommand";
+import { EditPasteCommand } from "./commands/edit/EditPasteCommand";
+import { EditUndoCommand } from "./commands/edit/EditUndoCommand";
 
 export const EditMenuNameMap = <const>[
     "edit-undo",
