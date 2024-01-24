@@ -14,7 +14,7 @@
   "dependencies": {
     "ace-builds": "^1.26.0",
     "autoprefixer": "^10.4.15",
-    "classnames": "^2.3.2",
+    "classnames": "^2.5.1",
     "mobx": "^6.10.2",
     "mobx-react": "^9.0.1",
     "mobx-react-lite": "^4.0.4",
@@ -31,7 +31,7 @@
     "styled-reset": "^4.5.1",
     "tailwindcss": "^3.3.3",
     "uuid": "^9.0.1",
-    "vite": "^4.4.11"
+    "vite": "^5.0.12"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "7.4.2",

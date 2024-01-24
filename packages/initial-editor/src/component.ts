@@ -4,13 +4,13 @@ import { EventEmitter } from "./EventEmitter";
 class Component extends EventEmitter {
     protected _isActiveEvent!: boolean;
 
-    constructor(...args: any[]) {
+    constructor(...args: unknown[]) {
         super();
         this.initMembers(...args);
         this.start(...args);
     }
 
-    public initMembers(...args: any[]) {
+    public initMembers(...args: unknown[]) {
         this._isActiveEvent = false;
     }
 
@@ -26,11 +26,11 @@ class Component extends EventEmitter {
         return this._isActiveEvent;
     }
 
-    public start(...args: any[]): Component {
+    public start(...args: unknown[]): Component {
         return this;
     }
 
-    public update(...args: any[]) {}
+    public update(...args: unknown[]) {}
 }
 
 class BasicComponent extends Component {

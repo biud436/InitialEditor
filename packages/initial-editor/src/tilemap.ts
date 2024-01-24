@@ -498,7 +498,7 @@ export default class Tilemap extends Component {
         y: number,
         r: number
     ) {
-        let dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
+        const dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
         return dist < r;
     }
 
@@ -511,8 +511,8 @@ export default class Tilemap extends Component {
      * @param ey
      */
     public drawEllipse(sx: number, sy: number, ex: number, ey: number) {
-        let mx = this.getMapX(sx);
-        let my = this.getMapY(sy);
+        const mx = this.getMapX(sx);
+        const my = this.getMapY(sy);
 
         const tileID = this._tileId;
 
