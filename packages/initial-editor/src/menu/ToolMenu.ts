@@ -1,3 +1,5 @@
+import { ToolsOptionsCommand } from "./commands/ToolsOptionsCommand";
+
 export const ToolMenuNameMap = <const>[
     "tools-database",
     "tools-resource-manager",
@@ -39,16 +41,6 @@ export const ToolMenu = <Partial<ToolMenuImpl>>{
             name: "사운드 테스트",
             children: {},
         },
-        "tools-options": {
-            name: "옵션",
-            children: {},
-            action: function (ev: any) {
-                if (window.app) {
-                    window.app.emit("openWindow", {
-                        path: "/optionWindow",
-                    });
-                }
-            },
-        },
+        "tools-options": new ToolsOptionsCommand(),
     },
 };

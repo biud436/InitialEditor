@@ -1,3 +1,6 @@
+import { HelpAboutCommand } from "./commands/HelpAboutCommand";
+import { HelpContentsCommand } from "./commands/HelpContentsCommand";
+
 export const HelpMenuNameMap = <const>["help-contents", "help-about"];
 
 export type HelpMenuImpl = {
@@ -14,17 +17,7 @@ export type HelpMenuImpl = {
 export const HelpMenu = <Partial<HelpMenuImpl>>{
     name: "도움말",
     children: {
-        "help-contents": {
-            name: "도움말",
-            children: {},
-            action: (ev: any) => {
-                alert("도움말이 아직 없습니다.");
-            },
-        },
-        "help-about": {
-            name: "버전 정보",
-            children: {},
-            action: (ev: any) => {},
-        },
+        "help-contents": new HelpContentsCommand(),
+        "help-about": new HelpAboutCommand(),
     },
 };
