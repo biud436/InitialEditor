@@ -95,7 +95,7 @@ export function Toolbar() {
                 <ListItem data-action="tools-resource-manager">
                     <IconItem className="fas fa-scroll" />
                 </ListItem>
-                <ListItem data-action="tools-script-eidtor">
+                <ListItem data-action="tools-script-editor">
                     <IconItem className="fas fa-toolbox" />
                 </ListItem>
                 <ListItem data-action="tools-sound-test">

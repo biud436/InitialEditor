@@ -1,9 +1,13 @@
 import { ToolsOptionsCommand } from "./commands/ToolsOptionsCommand";
+import { ToolsSoundTestCommand } from "./commands/tools/ToolsSoundTestCommand";
+import { ToolsScriptEditorCommand } from "./commands/tools/ToolsScriptEditorCommand";
+import { ToolsResourceManagerCommand } from "./commands/tools/ToolsResourceManagerCommand";
+import { ToolsDatabaseCommand } from "./commands/tools/ToolsDatabaseCommand";
 
 export const ToolMenuNameMap = <const>[
     "tools-database",
     "tools-resource-manager",
-    "tools-script-eidtor",
+    "tools-script-editor",
     "tools-sound-test",
     "tools-options",
 ];
@@ -22,25 +26,10 @@ export type ToolMenuImpl = {
 export const ToolMenu = <Partial<ToolMenuImpl>>{
     name: "도구",
     children: {
-        "tools-database": {
-            name: "데이터베이스",
-            children: {},
-            action: (ev: any) => {},
-        },
-        "tools-resource-manager": {
-            name: "소재 관리자",
-            children: {},
-            action: (ev: any) => {},
-        },
-        "tools-script-eidtor": {
-            name: "스크립트 에디터",
-            children: {},
-            action: (ev: any) => {},
-        },
-        "tools-sound-test": {
-            name: "사운드 테스트",
-            children: {},
-        },
+        "tools-database": new ToolsDatabaseCommand(),
+        "tools-resource-manager": new ToolsResourceManagerCommand(),
+        "tools-script-editor": new ToolsScriptEditorCommand(),
+        "tools-sound-test": new ToolsSoundTestCommand(),
         "tools-options": new ToolsOptionsCommand(),
     },
 };

@@ -5,6 +5,7 @@ export type ModeMenuImpl = {
         [key in (typeof ModeMenuNameMap)[number]]: {
             name: string;
             children: Partial<Record<string, any>>;
+            action?: (ev: any) => void;
         };
     };
 };

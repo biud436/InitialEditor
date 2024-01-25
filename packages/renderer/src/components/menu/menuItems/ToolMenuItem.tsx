@@ -8,7 +8,7 @@ export function ToolMenuItem() {
             <li data-action="tools-resource-manager">
                 <i className="fas fa-scroll"></i>Resource Manager
             </li>
-            <li data-action="tools-script-eidtor">
+            <li data-action="tools-script-editor">
                 <i className="fas fa-toolbox"></i>Script Editor
             </li>
             <li data-action="tools-sound-test">

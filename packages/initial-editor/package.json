@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@babel/plugin-proposal-class-properties": "^7.16.7",
+        "@hyrious/marshal": "^0.3.2",
         "@types/jquery": "^3.5.14",
         "@types/mousetrap": "^1.6.9",
         "axios": "^1.5.1",

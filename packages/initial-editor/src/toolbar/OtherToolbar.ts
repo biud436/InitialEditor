@@ -16,7 +16,7 @@ const OtherToolbar: ToolbarBase[] = [
     },
     {
         name: "",
-        children: "tools-script-eidtor",
+        children: "tools-script-editor",
         action: (ev: any) => {
             if (window.app) {
                 window.app.emit("openWindow", {

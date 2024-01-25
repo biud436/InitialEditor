@@ -1707,6 +1707,11 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
+"@hyrious/marshal@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@hyrious/marshal/-/marshal-0.3.2.tgz#b719908ec6d45a942622e69677a57c67a4fbb368"
+  integrity sha512-KhxiVDZ7Nisv/gShWHQjl7CsY9lUdGpHGdvafgS0RUIRssbYDJ9Y3jz/h5TQ1DnWmdTuANCEDRdoGK7XAFCzkQ==
+
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@isaacs/cliui/-/cliui-8.0.2.tgz#b37667b7bc181c168782259bab42474fbf52b550"

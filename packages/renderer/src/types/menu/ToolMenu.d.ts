@@ -1,4 +1,4 @@
-export declare const ToolMenuNameMap: readonly ["tools-database", "tools-resource-manager", "tools-script-eidtor", "tools-sound-test", "tools-options"];
+export declare const ToolMenuNameMap: readonly ["tools-database", "tools-resource-manager", "tools-script-editor", "tools-sound-test", "tools-options"];
 export type ToolMenuImpl = {
     name: string;
     children: {

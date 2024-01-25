@@ -1,3 +1,7 @@
+import { ModeEventCommand } from "./commands/mode/ModeEventCommand";
+import { ModeMapCommand } from "./commands/mode/ModeMapCommand";
+import { ModeRegionCommand } from "./commands/mode/ModeRegionCommand";
+
 export const ModeMenuNameMap = <const>["mode-map", "mode-event", "mode-region"];
 
 export type ModeMenuImpl = {
@@ -6,6 +10,7 @@ export type ModeMenuImpl = {
         [key in (typeof ModeMenuNameMap)[number]]: {
             name: string;
             children: Partial<Record<string, any>>;
+            action?: (ev: any) => void;
         };
     };
 };
@@ -13,17 +18,8 @@ export type ModeMenuImpl = {
 export const ModeMenu = <Partial<ModeMenuImpl>>{
     name: "모드",
     children: {
-        "mode-map": {
-            name: "맵",
-            children: {},
-        },
-        "mode-event": {
-            name: "이벤트",
-            children: {},
-        },
-        "mode-region": {
-            name: "지역",
-            children: {},
-        },
+        "mode-map": new ModeMapCommand(),
+        "mode-event": new ModeEventCommand(),
+        "mode-region": new ModeRegionCommand(),
     },
 };
