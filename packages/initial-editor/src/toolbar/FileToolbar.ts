@@ -5,7 +5,7 @@ const FileToolbar: ToolbarBase[] = [
     {
         name: "파일 만들기",
         children: "file-new",
-        action: (ev: any) => {
+        action: (ev: unknown) => {
             if (window.app) {
                 window.app.emit("openWindow", {
                     path: "/newWindow",
@@ -16,17 +16,17 @@ const FileToolbar: ToolbarBase[] = [
     {
         name: "파일 열기",
         children: "file-open",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "파일 저장",
         children: "file-save",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "파일 저장",
         children: "edit-undo",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     EmptySegment,
 ];

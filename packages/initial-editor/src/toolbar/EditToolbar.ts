@@ -5,22 +5,22 @@ const EditToolbar: ToolbarBase[] = [
     {
         name: "",
         children: "edit-cut",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "",
         children: "edit-copy",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "",
         children: "edit-paste",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "",
         children: "edit-delete",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     EmptySegment,
 ];

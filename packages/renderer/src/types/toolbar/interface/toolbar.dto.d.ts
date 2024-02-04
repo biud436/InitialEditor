@@ -1,5 +1,5 @@
 export interface ToolbarBase {
     name: string;
     children: string;
-    action: (ev: any) => void;
+    action: (ev: unknown) => void;
 }

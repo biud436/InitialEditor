@@ -1,30 +1,8 @@
 import { ToolbarBase } from "./interface/toolbar.dto";
+import { ToolbarContainer } from "./ToolbarContainer";
+import { ToolbarImpl } from "./ToolbarImpl";
 declare const Toolbar: ToolbarBase[];
-/**
- * @interface ToolbarImpl
- */
-interface ToolbarImpl {
-    initMembers(): void;
-    initMembers(selectors?: keyof HTMLElementTagNameMap): void;
-    show(): void;
-    hide(): void;
-    unlock(): void;
-    unlock(originPosition?: DOMRect): void;
-}
-type HTMLTagMap = keyof HTMLElementTagNameMap | string;
-/**
- * @class ToolbarContainer
- */
-declare class ToolbarContainer implements ToolbarImpl {
-    private _element?;
-    private _isReady;
-    constructor(selectors: HTMLTagMap);
-    initMembers(selectors?: HTMLTagMap): void;
-    show(): void;
-    hide(): void;
-    unlock(originPosition?: DOMRect): void;
-    getBoundingClientRect(): DOMRect | void;
-}
+export type HTMLTagMap = keyof HTMLElementTagNameMap | string;
 /**
  * @class ToolbarManager
  * @description

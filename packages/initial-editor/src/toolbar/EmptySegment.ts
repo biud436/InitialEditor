@@ -6,7 +6,7 @@ import { ToolbarBase } from "./interface/toolbar.dto";
 const EmptySegment: ToolbarBase = {
     name: "toolbar__empty-line--modifier",
     children: "empty-line",
-    action: (ev: any) => {},
+    action: (ev: unknown) => {},
 };
 
 export { EmptySegment };

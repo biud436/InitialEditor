@@ -5,17 +5,17 @@ const ModeToolbar: ToolbarBase[] = [
     {
         name: "",
         children: "mode-map",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "",
         children: "mode-event",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "",
         children: "mode-region",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     EmptySegment,
 ];

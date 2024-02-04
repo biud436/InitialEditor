@@ -5,6 +5,8 @@ import { DrawToolbar } from "./DrawToolbar";
 import { OtherToolbar } from "./OtherToolbar";
 import { ToolbarBase } from "./interface/toolbar.dto";
 import { Service } from "typedi";
+import { ToolbarContainer } from "./ToolbarContainer";
+import { ToolbarImpl } from "./ToolbarImpl";
 
 // 모든 배열을 하나로 합칩니다.
 const Toolbar = <ToolbarBase[]>(
@@ -16,67 +18,7 @@ const Toolbar = <ToolbarBase[]>(
         OtherToolbar
     )
 );
-/**
- * @interface ToolbarImpl
- */
-interface ToolbarImpl {
-    initMembers(): void;
-    initMembers(selectors?: keyof HTMLElementTagNameMap): void;
-
-    show(): void;
-    hide(): void;
-
-    unlock(): void;
-    unlock(originPosition?: DOMRect): void;
-}
-
-type HTMLTagMap = keyof HTMLElementTagNameMap | string;
-
-/**
- * @class ToolbarContainer
- */
-class ToolbarContainer implements ToolbarImpl {
-    private _element?: HTMLElement;
-    private _isReady = false;
-
-    constructor(selectors: HTMLTagMap) {
-        this.initMembers(selectors);
-    }
-
-    initMembers(selectors?: HTMLTagMap): void {
-        if (selectors) {
-            this._element = document.querySelector<HTMLElement>(selectors)!;
-            this._isReady = true;
-        }
-    }
-
-    show(): void {
-        if (!this._isReady) return;
-        if (!this._element) return;
-        this._element.style.display = "block";
-    }
-
-    hide(): void {
-        if (!this._isReady) return;
-        if (!this._element) return;
-        this._element.style.display = "none";
-    }
-
-    unlock(originPosition?: DOMRect): void {
-        if (!this._isReady) return;
-        if (!this._element) return;
-        if (originPosition) {
-            this._element.style.left = originPosition.x + "px";
-            this._element.style.top = originPosition.y + "px";
-        }
-    }
-
-    getBoundingClientRect(): DOMRect | void {
-        if (!this._isReady) return;
-        if (!this._element) return;
-        return this._element.getBoundingClientRect();
-    }
-}
+export type HTMLTagMap = keyof HTMLElementTagNameMap | string;
 
 /**
  * @class ToolbarManager

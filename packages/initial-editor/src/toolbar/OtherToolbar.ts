@@ -5,19 +5,19 @@ const OtherToolbar: ToolbarBase[] = [
     {
         name: "",
         children: "take-screenshot",
-        action: (ev: any) => {
+        action: (ev: unknown) => {
             (document.querySelector("#take-screenshot") as HTMLElement).click();
         },
     },
     {
         name: "",
         children: "tools-resource-manager",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     {
         name: "",
         children: "tools-script-editor",
-        action: (ev: any) => {
+        action: (ev: unknown) => {
             if (window.app) {
                 window.app.emit("openWindow", {
                     path: "/scriptEditor",
@@ -28,13 +28,13 @@ const OtherToolbar: ToolbarBase[] = [
     {
         name: "",
         children: "tools-sound-test",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     EmptySegment,
     {
         name: "",
         children: "tools-options",
-        action: (ev: any) => {
+        action: (ev: unknown) => {
             if (window.app) {
                 window.app.emit("openWindow", {
                     path: "/optionWindow",
@@ -46,13 +46,13 @@ const OtherToolbar: ToolbarBase[] = [
     {
         name: "",
         children: "game-playtest",
-        action: (ev: any) => {},
+        action: (ev: unknown) => {},
     },
     EmptySegment,
     {
         name: "",
         children: "game-folder-open",
-        action: (ev: any) => {
+        action: (ev: unknown) => {
             alert("폴더 열기는 웹 버전에선 지원하지 않습니다.");
         },
     },
