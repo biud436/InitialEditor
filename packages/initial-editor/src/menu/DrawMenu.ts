@@ -22,11 +22,11 @@ export type DrawMenuImpl = {
     children: {
         [key in (typeof DrawMenuNameMap)[number]]: {
             name: (typeof PenTypeNameMap)[number];
-            children: Partial<Record<string, any>>;
-            action: (ev: any) => void;
+            children: Partial<Record<string, unknown>>;
+            action: (ev: unknown) => void;
         };
     };
-    [key: string]: any;
+    [key: string]: unknown;
 };
 
 export const DrawMenu = <Partial<DrawMenuImpl>>{

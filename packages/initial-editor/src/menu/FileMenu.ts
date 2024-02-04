@@ -21,9 +21,9 @@ export type FileMenuImpl = {
     children: {
         [key in (typeof FileMenuNameMap)[number]]: {
             name?: string;
-            children?: Partial<Record<string, any>>;
+            children?: Partial<Record<string, unknown>>;
             shortcut?: string[];
-            action?: (ev: any) => void | Function;
+            action?: (ev: unknown) => void | Function;
         };
     };
 };

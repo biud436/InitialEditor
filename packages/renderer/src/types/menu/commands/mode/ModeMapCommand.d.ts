@@ -1,4 +1,4 @@
 import { IBaseMenuCommand } from "../IBaseMenuCommand";
 export declare class ModeMapCommand implements IBaseMenuCommand {
-    action(ev: any): void;
+    action(ev: unknown): void;
 }

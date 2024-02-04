@@ -10,8 +10,8 @@ export type ScaleMenuImpl = {
     children: {
         [key in (typeof ScaleMenuNameMap)[number]]: {
             name: string;
-            children: Partial<Record<string, any>>;
-            action: (ev: any) => void;
+            children: Partial<Record<string, unknown>>;
+            action: (ev: unknown) => void;
         };
     };
 };

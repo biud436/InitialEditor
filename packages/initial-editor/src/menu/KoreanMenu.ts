@@ -7,7 +7,6 @@ import { ToolMenu } from "./ToolMenu";
 import { GameMenu } from "./GameMenu";
 import { HelpMenu } from "./HelpMenu";
 import { Optional } from "../store/MeatadataStorage";
-import { Shotcut } from "../decorators/Shotcut";
 
 export type IMenuParent = {
     [key in MenuType]: Optional<IMenuItem>;

@@ -23,7 +23,7 @@ function toggleFullscreen() {
 @MenuCommand("game", "game-fullscreen", "전체 화면", ["f11"])
 export class FullscreenCommand implements IBaseMenuCommand {
     @OnMenuClick("game-fullscreen")
-    action(ev: any) {
+    action(ev: unknown) {
         toggleFullscreen();
     }
 }
