@@ -1,10 +1,12 @@
 export declare const HelpMenuNameMap: readonly ["help-contents", "help-about"];
+export type HelpMenuName = (typeof HelpMenuNameMap)[number];
+export type HelpMenuChildren = Partial<Record<string, unknown>>;
 export type HelpMenuImpl = {
     name: string;
     children: {
-        [key in (typeof HelpMenuNameMap)[number]]: {
+        [key in HelpMenuName]: {
             name: string;
-            children: Partial<Record<string, unknown>>;
+            children: HelpMenuChildren;
             action: (ev: unknown) => void;
         };
     };
