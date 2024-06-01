@@ -29,7 +29,7 @@ class InitialDOM {
             return acc + cur + (values[idx] || "");
         }, "");
 
-        const uniqueClassName = `css-${Math.random().toString(36).slice(2)}`;
+        const uniqueClassName = this.createStyleTagName();
 
         document.head.insertAdjacentHTML(
             "beforeend",
@@ -43,6 +43,10 @@ class InitialDOM {
         );
 
         return uniqueClassName;
+    }
+
+    private createStyleTagName() {
+        return `css-${Math.random().toString(36).slice(2)}`;
     }
 }
 
