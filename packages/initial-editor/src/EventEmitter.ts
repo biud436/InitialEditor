@@ -43,13 +43,11 @@ class EventEmitter {
     }
 
     public emit(name: string, ...args: any[]): void {
-        if (!this._events[name]) {
-            this._events[name] = [];
-        }
+        this.initIfNotEvent(name);
 
         // Is it included colon(:)?
-        if (name.indexOf(":") >= 0) {
-            const items = name.split(":");
+        if (this.isIncludeSubEvent(name)) {
+            const items = this.getSubEventItems(name);
             if (items.length > 0) {
                 const parent = items[0];
                 const child = items[1];
@@ -57,8 +55,6 @@ class EventEmitter {
                 // 콜론이 있다면 매개변수를 대체합니다.
                 name = parent;
                 args = [child, ...args];
-
-                console.log(name, args);
             }
         }
 
@@ -71,6 +67,20 @@ class EventEmitter {
                 func(...args);
             }
         });
+    }
+
+    private initIfNotEvent(name: string) {
+        if (!this._events[name]) {
+            this._events[name] = [];
+        }
+    }
+
+    private getSubEventItems(name: string) {
+        return name.split(":");
+    }
+
+    private isIncludeSubEvent(name: string) {
+        return name.indexOf(":") >= 0;
     }
 }
 
