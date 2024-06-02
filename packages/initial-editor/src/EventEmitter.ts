@@ -18,9 +18,7 @@ class EventEmitter {
     }
 
     public on(name: string, lsn: Function): EventEmitter {
-        if (!this._events[name]) {
-            this._events[name] = [];
-        }
+        this.initIfNotEvent(name);
 
         this._events[name].push(lsn);
 
