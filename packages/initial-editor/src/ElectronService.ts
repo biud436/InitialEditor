@@ -44,7 +44,6 @@ class ElectronService extends EventEmitter {
             if (event.done) break;
 
             const value = (<string>event.value).toString();
-            // process.stdout.write(`listenEvents: ${value}\n`);
 
             this.on(value, () => {
                 // ipcRenderer.send(value);

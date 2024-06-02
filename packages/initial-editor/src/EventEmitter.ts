@@ -1,3 +1,5 @@
+import { NotFoundEvent } from "./errors/NotFoundEvent";
+
 /**
  * @class EventEmitter
  * @description
@@ -31,7 +33,7 @@ class EventEmitter {
      * @param {String} name
      */
     public off(name: string): void {
-        if (!this._events[name]) {
+        if (this.isInvalidEvent(name)) {
             return;
         }
 
@@ -57,7 +59,7 @@ class EventEmitter {
         }
 
         if (!this._events[name]) {
-            throw new Error(`${name}이 없습니다.`);
+            throw new NotFoundEvent(name);
         }
 
         this._events[name].forEach((func) => {
@@ -67,8 +69,12 @@ class EventEmitter {
         });
     }
 
+    private isInvalidEvent(name: string) {
+        return !this._events[name];
+    }
+
     private initIfNotEvent(name: string) {
-        if (!this._events[name]) {
+        if (this.isInvalidEvent(name)) {
             this._events[name] = [];
         }
     }

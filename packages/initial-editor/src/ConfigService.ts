@@ -1,5 +1,7 @@
 import { EventEmitter } from "./EventEmitter";
 import { MyEditorConfig, config } from "./config";
+import { InvalidTilesetImage } from "./errors/InvalidTilesetImage";
+import { NotFoundImage } from "./errors/NotFoundImage";
 import { FileProvider } from "./schema";
 
 export class ConfigService extends EventEmitter {
@@ -12,21 +14,26 @@ export class ConfigService extends EventEmitter {
     }
 
     public addTilesetImages(images: string[]) {
-        const isValid = images.every((image) => {
-            return (
-                this.config.TILESET_IMGAGES.indexOf(image) === -1 &&
-                image.length > 0
-                // && this.fileProvider.existsSync(image)
-            );
-        });
+        if (!images || !Array.isArray(images)) {
+            throw new NotFoundImage();
+        }
+
+        const isValid = images.every((image) => this.isValidImagePath(image));
 
         if (!isValid) {
-            throw new Error("can't add tileset images");
+            throw new InvalidTilesetImage();
         }
 
         this.config.TILESET_IMGAGES =
             this.config.TILESET_IMGAGES.concat(images);
 
         this.emit("change", this.config);
+    }
+
+    private isValidImagePath(image: string): unknown {
+        return (
+            this.config.TILESET_IMGAGES.indexOf(image) === -1 &&
+            image.length > 0
+        );
     }
 }
