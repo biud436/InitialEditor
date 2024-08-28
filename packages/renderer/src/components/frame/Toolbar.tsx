@@ -2,11 +2,42 @@ import { IconItem } from '../atomics/IconItem';
 import { ListContainer } from '../atomics/ListContainer';
 import { ListItem } from '../atomics/ListItem';
 import { Box } from '../atomics/Box';
+import styled from 'styled-components';
+
+const ToolbarListContainer = styled(ListContainer)`
+    li {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        cursor: pointer;
+
+        border-radius: 4px;
+
+        padding-left: 4px;
+        padding-right: 4px;
+
+        i {
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            font-size: 14px;
+
+            color: var(--dark-text-color);
+
+            &:hover {
+                color: var(--dark-shadow-color);
+            }
+        }
+    }
+`;
 
 export function Toolbar() {
     return (
         <Box className="toolbar">
-            <ListContainer>
+            <ToolbarListContainer>
                 <ListItem
                     data-action="file-new"
                     className="file-menu-new-button"
@@ -113,7 +144,7 @@ export function Toolbar() {
                 <ListItem data-action="game-folder-open">
                     <IconItem className="fas fa-folder-open" />
                 </ListItem>
-            </ListContainer>
+            </ToolbarListContainer>
         </Box>
     );
 }
