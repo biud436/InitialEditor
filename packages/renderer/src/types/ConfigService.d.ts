@@ -4,4 +4,5 @@ export declare class ConfigService extends EventEmitter {
     private readonly fileProvider;
     constructor();
     addTilesetImages(images: string[]): void;
+    private isValidImagePath;
 }

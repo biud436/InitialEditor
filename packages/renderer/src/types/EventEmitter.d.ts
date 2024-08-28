@@ -18,5 +18,9 @@ declare class EventEmitter {
      */
     off(name: string): void;
     emit(name: string, ...args: any[]): void;
+    private isInvalidEvent;
+    private initIfNotEvent;
+    private getSubEventItems;
+    private isIncludeSubEvent;
 }
 export { EventEmitter };

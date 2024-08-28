@@ -10,6 +10,7 @@ declare class InitialDOM {
      * @returns
      */
     css(strings: TemplateStringsArray, ...values: any[]): string;
+    private createStyleTagName;
 }
 declare const _default: InitialDOM;
 export default _default;
