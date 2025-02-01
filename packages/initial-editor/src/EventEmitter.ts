@@ -6,8 +6,11 @@ import { NotFoundEvent } from "./errors/NotFoundEvent";
  * 이 클래스는 이벤트 큐를 위해 존재합니다.
  * on 과 emit로 이벤트를 설정하거나 실행할 수 있습니다.
  */
+export type EventLambda = (...args: any[]) => void;
+export type EventList = { [eventName: string]: Array<EventLambda> };
+
 class EventEmitter {
-    protected _events: { [eventName: string]: Array<Function> };
+    protected _events: EventList;
 
     constructor() {
         this._events = {};
@@ -19,7 +22,7 @@ class EventEmitter {
         }
     }
 
-    public on(name: string, lsn: Function): EventEmitter {
+    public on(name: string, lsn: EventLambda): EventEmitter {
         this.initIfNotEvent(name);
 
         this._events[name].push(lsn);
