@@ -69,7 +69,7 @@ export function Toolbar() {
                 <ListItem data-action="edit-delete">
                     <IconItem className="fas fa-trash-alt" />
                 </ListItem>
-                <ListItem className="toolbar__empty-line--modifier"></ListItem>
+                {/* <ListItem className="toolbar__empty-line--modifier"></ListItem>
                 <ListItem data-action="mode-map">
                     <IconItem className="fas fa-layer-group" />
                 </ListItem>
@@ -78,7 +78,7 @@ export function Toolbar() {
                 </ListItem>
                 <ListItem data-action="mode-region">
                     <IconItem className="fas fa-map" />
-                </ListItem>
+                </ListItem> */}
                 <ListItem className="toolbar__empty-line--modifier"></ListItem>
                 <ListItem data-action="draw-pencil">
                     <IconItem
@@ -115,7 +115,7 @@ export function Toolbar() {
                         title="그림자"
                     />
                 </ListItem>
-                <ListItem className="toolbar__empty-line--modifier"></ListItem>
+                {/* <ListItem className="toolbar__empty-line--modifier"></ListItem>
                 <ListItem data-action="take-screenshot">
                     <IconItem
                         id="take-screenshot"
@@ -143,7 +143,7 @@ export function Toolbar() {
                 <ListItem className="toolbar__empty-line--modifier"></ListItem>
                 <ListItem data-action="game-folder-open">
                     <IconItem className="fas fa-folder-open" />
-                </ListItem>
+                </ListItem> */}
             </ToolbarListContainer>
         </Box>
     );
