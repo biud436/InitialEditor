@@ -3,21 +3,21 @@
 import React from 'react';
 
 export interface ViewerWrapperProps {
-    callback: Function;
+  callback: Function;
 }
 
 export default class InitialViewerWrapper extends React.Component<ViewerWrapperProps> {
-    elem = React.createRef<HTMLDivElement>();
+  elem = React.createRef<HTMLDivElement>();
 
-    componentDidMount() {
-        const { callback } = this.props;
-        // @ts-ignore
-        import('../../public/js/initial-editor.js').then(() => {
-            window.Main.start(callback);
-        });
-    }
+  componentDidMount() {
+    const { callback } = this.props;
+    // @ts-ignore
+    import('../../public/js/initial-editor.js').then(() => {
+      window.Main.start(callback);
+    });
+  }
 
-    render() {
-        return <div ref={this.elem} />;
-    }
+  render() {
+    return <div ref={this.elem} />;
+  }
 }

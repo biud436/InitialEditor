@@ -6,19 +6,19 @@ import { Container } from './Container';
 import { MyApp } from './MyApp';
 
 export interface MyReactNodeProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export function MainContainer() {
-    return (
-        <Wrapper>
-            <Container>
-                <MainMenuContainer />
-                <frame.Toolbar />
-                <frame.TileSelectWindow />
-                <frame.Tilemap />
-            </Container>
-            <MyApp></MyApp>
-        </Wrapper>
-    );
+  return (
+    <Wrapper>
+      <Container>
+        <MainMenuContainer />
+        <frame.Toolbar />
+        <frame.TileSelectWindow />
+        <frame.Tilemap />
+      </Container>
+      <MyApp></MyApp>
+    </Wrapper>
+  );
 }

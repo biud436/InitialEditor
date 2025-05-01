@@ -6,24 +6,24 @@ import styled from 'styled-components';
 
 const Wrapper = styled.div``;
 const CodeEditor = () => {
-    return (
-        <Wrapper>
-            <AceEditor
-                mode={'lua'}
-                theme={'github'}
-                name={'blah2'}
-                fontSize={14}
-                highlightActiveLine={true}
-                value={''}
-                setOptions={{
-                    enableBasicAutocompletion: true,
-                    enableLiveAutocompletion: true,
-                    enableSnippets: true,
-                    showLineNumbers: true,
-                }}
-            />
-        </Wrapper>
-    );
+  return (
+    <Wrapper>
+      <AceEditor
+        mode={'lua'}
+        theme={'github'}
+        name={'blah2'}
+        fontSize={14}
+        highlightActiveLine={true}
+        value={''}
+        setOptions={{
+          enableBasicAutocompletion: true,
+          enableLiveAutocompletion: true,
+          enableSnippets: true,
+          showLineNumbers: true,
+        }}
+      />
+    </Wrapper>
+  );
 };
 
 export default CodeEditor;

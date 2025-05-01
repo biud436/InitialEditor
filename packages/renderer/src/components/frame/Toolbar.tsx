@@ -115,7 +115,7 @@ export function Toolbar() {
                         title="그림자"
                     />
                 </ListItem>
-                <ListItem className="toolbar__empty-line--modifier"></ListItem>
+                <ListItem className="toolbar__empty-line--modifier" />
                 <ListItem data-action="take-screenshot">
                     <IconItem
                         id="take-screenshot"
@@ -132,15 +132,15 @@ export function Toolbar() {
                 <ListItem data-action="tools-sound-test">
                     <IconItem className="fas fa-music" />
                 </ListItem>
-                <ListItem className="toolbar__empty-line--modifier"></ListItem>
+                <ListItem className="toolbar__empty-line--modifier" />
                 <ListItem data-action="tools-options">
                     <IconItem className="fas fa-user-cog" />
                 </ListItem>
-                <ListItem className="toolbar__empty-line--modifier"></ListItem>
+                <ListItem className="toolbar__empty-line--modifier" />
                 <ListItem data-action="game-playtest">
                     <IconItem className="fas fa-gamepad" />
                 </ListItem>
-                <ListItem className="toolbar__empty-line--modifier"></ListItem>
+                <ListItem className="toolbar__empty-line--modifier" />
                 <ListItem data-action="game-folder-open">
                     <IconItem className="fas fa-folder-open" />
                 </ListItem>

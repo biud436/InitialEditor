@@ -14,74 +14,69 @@ import { useClose } from '@hooks/useClose';
 import { getWindowCenterPosition } from '@libs/getWindowCenterPosition';
 
 const OptionWindowPresent = memo(
-    ({
-        close,
-        selectedIndex,
-        setSelectedIndex,
-        ok,
-        theme,
-    }: OptionWindowProps) => {
-        const ref = useRef<HTMLDivElement>(null);
+  ({
+    close,
+    selectedIndex,
+    setSelectedIndex,
+    ok,
+    theme,
+  }: OptionWindowProps) => {
+    const ref = useRef<HTMLDivElement>(null);
 
-        return (
-            <Draggable
-                grid={[16, 16]}
-                defaultPosition={getWindowCenterPosition(ref)}
-            >
-                <OptionWindowPresentDiv
-                    id="tilesetWindow"
-                    window-name="타일셋"
-                    ref={ref}
-                >
-                    <ClosePanel close={close} />
-                    <ContentHeader />
-                    <ContentView
-                        {...{ selectedIndex, setSelectedIndex, theme }}
-                    />
-                    <ConfirmPanel ok={ok} close={close} />
-                </OptionWindowPresentDiv>
-            </Draggable>
-        );
-    },
+    return (
+      <Draggable grid={[16, 16]} defaultPosition={getWindowCenterPosition(ref)}>
+        <OptionWindowPresentDiv
+          id="tilesetWindow"
+          window-name="타일셋"
+          ref={ref}
+        >
+          <ClosePanel close={close} />
+          <ContentHeader />
+          <ContentView {...{ selectedIndex, setSelectedIndex, theme }} />
+          <ConfirmPanel ok={ok} close={close} />
+        </OptionWindowPresentDiv>
+      </Draggable>
+    );
+  },
 );
 
 const OptionWindowPresentDiv = styled(Box)`
-    display: flex;
-    flex-direction: column;
-    line-height: 1.5;
-    gap: 1.2em;
-    padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  gap: 1.2em;
+  padding: 1rem;
 `;
 
 export default function OptionWindowContainer() {
-    const { close } = useClose();
-    const [selectedIndex, setSelectedIndex] = useState('dark');
-    const [theme, setTheme] = useRecoilState(ThemeState);
+  const { close } = useClose();
+  const [selectedIndex, setSelectedIndex] = useState('dark');
+  const [theme, setTheme] = useRecoilState(ThemeState);
 
-    const ok = () => {
-        applyTheme();
-        close();
-    };
+  const ok = () => {
+    applyTheme();
+    close();
+  };
 
-    useEffect(() => {
-        setSelectedIndex(theme.theme);
-    }, [theme]);
+  useEffect(() => {
+    setSelectedIndex(theme.theme);
+  }, [theme]);
 
-    const applyTheme = () => {
-        const themeIndex = selectedIndex;
+  const applyTheme = () => {
+    const themeIndex = selectedIndex;
 
-        if (themeIndex == THEME.DARK) {
-            window.app.emit('changeTheme', WindowGroup.Theme.Dark);
-        } else {
-            window.app.emit('changeTheme', WindowGroup.Theme.Light);
-        }
+    if (themeIndex == THEME.DARK) {
+      window.app.emit('changeTheme', WindowGroup.Theme.Dark);
+    } else {
+      window.app.emit('changeTheme', WindowGroup.Theme.Light);
+    }
 
-        setTheme({ theme: themeIndex });
-    };
+    setTheme({ theme: themeIndex });
+  };
 
-    return (
-        <OptionWindowPresent
-            {...{ close, selectedIndex, setSelectedIndex, setTheme, ok, theme }}
-        />
-    );
+  return (
+    <OptionWindowPresent
+      {...{ close, selectedIndex, setSelectedIndex, setTheme, ok, theme }}
+    />
+  );
 }
