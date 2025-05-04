@@ -6,9 +6,9 @@ import { Paragraph } from '@components/atomics/Paragraph';
 import classNames from 'classnames';
 import { getWindowCenterPosition } from '@libs/getWindowCenterPosition';
 
-const WindowFrameHeader = styled.div`
-  width: ${props => props.theme.width + 'px'};
-  height: ${props => props.theme.height + 'px'};
+const WindowFrameHeader = styled.div<{ width: number; height: number }>`
+  width: ${props => props.width + 'px'};
+  height: ${props => props.height + 'px'};
   position: relative;
   left: 50%;
   display: flex;
@@ -58,7 +58,7 @@ export function BaseWindowFrame({
     >
       <Draggable grid={[16, 16]} defaultPosition={getWindowCenterPosition(ref)}>
         <Box className={classNames(`background`)}>
-          <WindowFrameHeader theme={theme}>
+          <WindowFrameHeader width={theme.width} height={theme.height}>
             <Paragraph></Paragraph>
           </WindowFrameHeader>
           <Box className={classNames('windowFrameBody')}>
