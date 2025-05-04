@@ -11,7 +11,9 @@
   "scripts": {
     "script:build": "yarn workspace initial-editor run script:build",
     "dev": "yarn workspace renderer run dev",
-    "build": "yarn workspace renderer run build",
+    "build:editor": "yarn workspace initial-editor run build",
+    "build:renderer": "yarn workspace renderer run build",
+    "build": "yarn build:editor && yarn build:renderer",
     "start": "yarn workspace renderer run start"
   },
   "packageManager": "yarn@4.9.1",
