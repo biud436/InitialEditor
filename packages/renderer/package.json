@@ -15,7 +15,7 @@
     "ace-builds": "^1.26.0",
     "autoprefixer": "^10.4.15",
     "classnames": "^2.5.1",
-    "initial-editor": "workspace:*",
+    "initial-editor": "1.0.0",
     "mobx": "^6.10.2",
     "mobx-react": "^9.0.1",
     "mobx-react-lite": "^4.0.4",
