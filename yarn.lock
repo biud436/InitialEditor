@@ -9353,7 +9353,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"initial-editor@workspace:*, initial-editor@workspace:packages/initial-editor":
+"initial-editor@npm:1.0.0, initial-editor@workspace:packages/initial-editor":
   version: 0.0.0-use.local
   resolution: "initial-editor@workspace:packages/initial-editor"
   dependencies:
@@ -12618,7 +12618,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^4.6.0"
     eslint-plugin-react-refresh: "npm:^0.4.3"
     eslint-plugin-storybook: "npm:^0.6.13"
-    initial-editor: "workspace:*"
+    initial-editor: "npm:1.0.0"
     mobx: "npm:^6.10.2"
     mobx-react: "npm:^9.0.1"
     mobx-react-lite: "npm:^4.0.4"
