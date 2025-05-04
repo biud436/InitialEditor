@@ -1,19 +1,19 @@
 {
-    "compilerOptions": {
-        "outDir": "./src/",
-        "noImplicitAny": true,
-        "module": "commonjs",
-        "target": "es5",
-        "allowJs": true,
-        "sourceMap": true,
-        "lib": ["es2017", "dom"],
-        "moduleResolution": "node",
-        "types": ["jquery", "node"],
-        "esModuleInterop": true,
-        "experimentalDecorators": true,
-        "declaration": true,
-        "declarationDir": "../renderer/src/types"
-    },
-    "include": ["src/**/*.ts"],
-    "exclude": ["node_modules", "src/**/*.spec.ts"]
+  "compilerOptions": {
+    "outDir": "./src/",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es5",
+    "allowJs": true,
+    "sourceMap": true,
+    "lib": ["es2017", "dom"],
+    "moduleResolution": "node",
+    "types": ["jquery", "node"],
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "declaration": true,
+    "declarationDir": "../renderer/src/types"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "src/**/*.spec.ts"]
 }

@@ -1,3 +1,4 @@
+import App from "../app";
 import { EmptySegment } from "./EmptySegment";
 import { ToolbarBase } from "./interface/toolbar.dto";
 
@@ -18,8 +19,8 @@ const OtherToolbar: ToolbarBase[] = [
         name: "",
         children: "tools-script-editor",
         action: (ev: unknown) => {
-            if (window.app) {
-                window.app.emit("openWindow", {
+            if (App.GetInstance()) {
+                App.GetInstance().emit("openWindow", {
                     path: "/scriptEditor",
                 });
             }
@@ -35,8 +36,8 @@ const OtherToolbar: ToolbarBase[] = [
         name: "",
         children: "tools-options",
         action: (ev: unknown) => {
-            if (window.app) {
-                window.app.emit("openWindow", {
+            if (App.GetInstance()) {
+                App.GetInstance().emit("openWindow", {
                     path: "/optionWindow",
                 });
             }

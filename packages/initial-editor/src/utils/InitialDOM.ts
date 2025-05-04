@@ -1,18 +1,19 @@
 import Container, { Service } from "typedi";
 
-@Service()
 class InitialDOM {
-    query<T extends Element = Element>(selectors: string): T | null {
+    static query<T extends Element = Element>(selectors: string): T | null {
         return document.querySelector<T>(selectors);
     }
 
-    queryAll<T extends Element = Element>(selectors: string): NodeListOf<T> {
+    static queryAll<T extends Element = Element>(
+        selectors: string,
+    ): NodeListOf<T> {
         return document.querySelectorAll<T>(selectors);
     }
 
-    fetch<K extends keyof HTMLElementTagNameMap>(
+    static fetch<K extends keyof HTMLElementTagNameMap>(
         tagName: K,
-        options?: ElementCreationOptions
+        options?: ElementCreationOptions,
     ): HTMLElementTagNameMap[K] {
         return document.createElement(tagName, options);
     }
@@ -24,7 +25,7 @@ class InitialDOM {
      * @param values
      * @returns
      */
-    css(strings: TemplateStringsArray, ...values: any[]) {
+    static css(strings: TemplateStringsArray, ...values: any[]) {
         const str = strings.reduce((acc, cur, idx) => {
             return acc + cur + (values[idx] || "");
         }, "");
@@ -39,15 +40,15 @@ class InitialDOM {
                     ${str}
                 }
             </style>
-            `
+            `,
         );
 
         return uniqueClassName;
     }
 
-    private createStyleTagName() {
+    static createStyleTagName() {
         return `css-${Math.random().toString(36).slice(2)}`;
     }
 }
 
-export default Container.get(InitialDOM);
+export default InitialDOM;

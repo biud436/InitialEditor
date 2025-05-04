@@ -2,8 +2,12 @@ import "reflect-metadata";
 import { getMetadataStorage } from "../store/MeatadataStorage";
 
 export const ON_MENU_CLICK_TOKEN = "ON_MENU_CLICK";
-export function OnMenuClick(name: string): MethodDecorator {
-    return function (target: any, propertyKey, descriptor) {
+export function OnMenuClick(name: string) {
+    return function (
+        target: Object,
+        propertyKey: string,
+        descriptor: TypedPropertyDescriptor<any>,
+    ) {
         const action = descriptor.value as any;
         const TOKEN = `MENU_${name}`;
 
@@ -16,5 +20,7 @@ export function OnMenuClick(name: string): MethodDecorator {
 
         Reflect.set(window, TOKEN, action);
         Reflect.defineMetadata(ON_MENU_CLICK_TOKEN, true, target, propertyKey);
+
+        return descriptor;
     };
 }

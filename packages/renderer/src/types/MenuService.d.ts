@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Component } from "./component";
 import "reflect-metadata";
 export declare enum MenuButtonsSelector {

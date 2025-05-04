@@ -103,14 +103,14 @@ export default class Tilemap extends Component {
      * 따라서 빈 그래픽을 그려서 컨테이너의 크기를 설정하였습니다.
      */
     private createEmptyTilemap;
-    get app(): PIXI.Application<PIXI.ICanvas>;
+    get app(): PIXI.Application;
     takeScreenshot(): void;
     private onMouseMove;
     /**
      * Get a tileset image from the tileset collection.
      */
     getTileset(): HTMLCanvasElement;
-    cropTexture(dx: number, dy: number, texture: PIXI.Texture): PIXI.Texture<PIXI.Resource>;
+    cropTexture(dx: number, dy: number, texture: PIXI.Texture): any;
     collectAutoTileID(mx: number, my: number): number;
     drawTile(mx: number, my: number, tileID: number): void;
     /**
@@ -185,7 +185,7 @@ export default class Tilemap extends Component {
      *
      * @param tileID
      */
-    getTileCropTexture(tileID: number): PIXI.Texture<PIXI.Resource>;
+    getTileCropTexture(tileID: number): any;
     /**
      * 특정 레이어 컨테이너를 화면에서 감추거나 표시합니다.
      *

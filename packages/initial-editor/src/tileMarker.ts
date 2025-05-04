@@ -62,6 +62,7 @@ export default class TileMarker extends TilesetMarker {
 
     public update(...args: any[]) {
         if (!this._isReady) {
+            console.error("TileMarker is not ready");
             return;
         }
 

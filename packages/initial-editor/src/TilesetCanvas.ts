@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { Service } from "typedi";
 import InitialDOM from "./utils/InitialDOM";
+import App from "./app";
 
 export type ColorRGBFormat = [number, number, number];
 export type InitialTexture = {
@@ -76,7 +77,7 @@ export default class TilesetCanvas {
         }
 
         await this.start().then((ret) => {
-            window.app.createComponents();
+            App.GetInstance().createComponents();
         });
     }
 
@@ -119,11 +120,11 @@ export default class TilesetCanvas {
         width: number,
         height: number,
         targetColor = "#ffffff",
-        isAlpha = true
+        isAlpha = true,
     ): ImageData | undefined {
         // 색상을 RGB로 변환합니다.
         const targetTransparentColor = this.hexToRgb(
-            targetColor
+            targetColor,
         ) satisfies ColorRGBFormat;
 
         const { data } = imageData;
@@ -230,7 +231,7 @@ export default class TilesetCanvas {
                 tileset.width,
                 tileset.height,
                 "#007575",
-                true
+                true,
             );
 
             if (!texture) {

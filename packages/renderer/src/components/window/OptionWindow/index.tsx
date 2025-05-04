@@ -12,6 +12,7 @@ import styled from 'styled-components';
 import { ThemeState } from '@store/theme';
 import { useClose } from '@hooks/useClose';
 import { getWindowCenterPosition } from '@libs/getWindowCenterPosition';
+import App from 'initial-editor/dist/app';
 
 const OptionWindowPresent = memo(
   ({
@@ -66,9 +67,9 @@ export default function OptionWindowContainer() {
     const themeIndex = selectedIndex;
 
     if (themeIndex == THEME.DARK) {
-      window.app.emit('changeTheme', WindowGroup.Theme.Dark);
+      App.GetInstance().emit('changeTheme', WindowGroup.Theme.Dark);
     } else {
-      window.app.emit('changeTheme', WindowGroup.Theme.Light);
+      App.GetInstance().emit('changeTheme', WindowGroup.Theme.Light);
     }
 
     setTheme({ theme: themeIndex });

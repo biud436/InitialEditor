@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { EventEmitter } from "./EventEmitter";
 import { Component } from "./component";
 import { MenuComponent } from "./MenuComponent";
@@ -14,10 +15,8 @@ import { ThemeManager } from "./ThemeManager";
 import { Mouse } from "./Mouse";
 import { Shotcut } from "./decorators/Shotcut";
 import { WindowGroup, InitialEventListener } from "./WindowGroup";
-import { autoInjectable } from "tsyringe";
 import InitialDOM from "./utils/InitialDOM";
 
-@autoInjectable()
 export default class App extends EventEmitter {
     public static Instance: App;
 
@@ -102,10 +101,6 @@ export default class App extends EventEmitter {
             dragTime: 0,
         };
 
-        /**
-         * 사각형 툴을 위한 선택 영역
-         * @link http://jsfiddle.net/qGzkG/2/
-         */
         this._blockRect = {
             isDrawing: false,
             rect: new Rectangle(0, 0, 1, 1),
@@ -136,12 +131,17 @@ export default class App extends EventEmitter {
             }
         });
 
-        // 맵 설정 파일을 생성합니다.
-        new EditorSchema(this._config).load("./editor.json").then((data) => {
-            const myEditorConfig: EditorSchema = JSON.parse(data);
-
-            this.emit("changeTheme", myEditorConfig.Theme);
+        const schema = new EditorSchema({
+            ProjectPath: "",
+            TileWidth: 16,
+            TileHeight: 16,
+            CurrentLayer: 1,
+            StartMapId: 1,
+            CurrentMapId: 1,
+            LayerCount: 4,
+            Theme: 0,
         });
+        this.emit("changeTheme", schema.Theme);
 
         this.on("save-config", (extraConfig: any) => {
             let myConfig = Object.assign(this._config.Editor, extraConfig);
@@ -164,17 +164,18 @@ export default class App extends EventEmitter {
      */
     public createComponents() {
         this._tilemap = new Tilemap(this._config);
-
-        this._components.push(
-            (this._tilesetMarker = new TilesetMarker(this._config)),
-        );
+        this._tilesetMarker = new TilesetMarker(this._config);
         this._components.push(this._tilemap);
+        this._components.push(this._tilesetMarker);
+
         this._components.push(
             (this._tileMarker = new TileMarker(this._config)),
         );
-        this._components.forEach((component) => {
+
+        for (const component of this._components) {
             component.start();
-        });
+        }
+
         this._tilemap.setTileId(0);
 
         // 타일맵 이벤트를 재전파합니다.
@@ -200,7 +201,9 @@ export default class App extends EventEmitter {
         await this._tilesetCanvas
             .start()
             .then((ret) => {
+                console.log("this.createComponents() pre()");
                 this.createComponents();
+                console.log("this.createComponents() after()");
             })
             .then((ret) => {
                 const list = InitialDOM.queryAll(
@@ -212,6 +215,8 @@ export default class App extends EventEmitter {
                         obj.style.left = "-9999px";
                     });
                 }
+
+                console.log("타일셋 캔버스가 초기화되었습니다.");
             })
             .catch((err) => {
                 console.warn(err);
@@ -500,6 +505,9 @@ export default class App extends EventEmitter {
         this.initWithComponents()
             .then((ret) => {
                 this.initWithMapLayers();
+
+                console.log("모든 컴포넌트가 초기화되었습니다.");
+
                 this._isReady = true;
                 this.on("update", (deltaTime: number) => {
                     this.update(deltaTime);

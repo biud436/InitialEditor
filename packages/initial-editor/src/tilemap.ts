@@ -70,10 +70,9 @@ export default class Tilemap extends Component {
     private readonly fileProvider: FileProvider = new FileProvider();
 
     public initMembers(...args: any[]) {
-        console.log(...args);
         this._config = args[0];
         this._tileset = document.querySelector(
-            initial2D.TILESET_CANVAS_ID
+            initial2D.TILESET_CANVAS_ID,
         ) as HTMLCanvasElement;
         this._tileWidth = this._config.TILE_WIDTH;
         this._tileHeight = this._config.TILE_HEIGHT;
@@ -90,22 +89,22 @@ export default class Tilemap extends Component {
         this._tileType = 0;
 
         this._mapWidth = Math.round(
-            this._config.SCREEN_WIDTH / this._tileWidth
+            this._config.SCREEN_WIDTH / this._tileWidth,
         );
         this._mapHeight = Math.round(
-            this._config.SCREEN_HEIGHT / this._tileHeight
+            this._config.SCREEN_HEIGHT / this._tileHeight,
         );
         this._layerCount = this._config.LAYERS;
 
         this._data = new Array(
-            this._mapWidth * this._mapHeight * this._config.LAYERS
+            this._mapWidth * this._mapHeight * this._config.LAYERS,
         );
 
         /**
          * @type {HTMLCanvasElement}
          */
         const tilesetImg = InitialDOM.query<HTMLCanvasElement>(
-            initial2D.TILESET_CANVAS_ID
+            initial2D.TILESET_CANVAS_ID,
         );
 
         if (!tilesetImg) {
@@ -127,6 +126,7 @@ export default class Tilemap extends Component {
             await new LayerTreeSchema(this._config).load("./layers.json")
         );
         if (!data) {
+            console.error("Failed to load layers.json");
             return;
         }
 
@@ -145,7 +145,7 @@ export default class Tilemap extends Component {
 
     public isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
+            navigator.userAgent,
         );
     }
 
@@ -199,10 +199,10 @@ export default class Tilemap extends Component {
     public initWithLayers() {
         const maxZ = this._config.LAYERS;
         const maxWidth = Math.round(
-            this._config.SCREEN_WIDTH / this._tileWidth
+            this._config.SCREEN_WIDTH / this._tileWidth,
         );
         const maxHeight = Math.round(
-            this._config.SCREEN_HEIGHT / this._tileHeight
+            this._config.SCREEN_HEIGHT / this._tileHeight,
         );
 
         for (let z = 0; z < maxZ; z++) {
@@ -267,25 +267,7 @@ export default class Tilemap extends Component {
         return this._currentLayer;
     }
 
-    public start(...args: any[]) {
-        this._app = new PIXI.Application(this.createOption());
-
-        this.useDebugMode();
-        this.createLayerContainer();
-        this.createTilesetTexture();
-        this.initWithDrawingType();
-
-        (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
-            ev
-        ) => {
-            this.takeScreenshot();
-            ev.stopPropagation();
-        };
-
-        return this;
-    }
-
-    private createOption(): Partial<PIXI.IApplicationOptions> {
+    createOption(): Partial<PIXI.IApplicationOptions> {
         let option = {
             width: this._config.SCREEN_WIDTH,
             height: this._config.SCREEN_HEIGHT,
@@ -307,6 +289,26 @@ export default class Tilemap extends Component {
             10;
 
         return option;
+    }
+
+    public start(...args: any[]) {
+        console.log("this._config", this._config);
+        const option = this.createOption();
+        this._app = new PIXI.Application(option);
+
+        this.useDebugMode();
+        this.createLayerContainer();
+        this.createTilesetTexture();
+        this.initWithDrawingType();
+
+        (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
+            ev,
+        ) => {
+            this.takeScreenshot();
+            ev.stopPropagation();
+        };
+
+        return this;
     }
 
     /**
@@ -384,7 +386,7 @@ export default class Tilemap extends Component {
                     // TODO: 파일 저장
                 }
             }),
-            "image/png"
+            "image/png",
         );
     }
 
@@ -415,7 +417,7 @@ export default class Tilemap extends Component {
             dx,
             dy,
             this._tileWidth,
-            this._tileHeight
+            this._tileHeight,
         );
         const cropTexture = new PIXI.Texture(texture.baseTexture, crop);
 
@@ -496,7 +498,7 @@ export default class Tilemap extends Component {
         centerY: number,
         x: number,
         y: number,
-        r: number
+        r: number,
     ) {
         const dist = Math.sqrt((centerX - x) ** 2 + (centerY - y) ** 2);
         return dist < r;
@@ -521,7 +523,7 @@ export default class Tilemap extends Component {
         const centerX = Math.floor(mx + ex / 2);
         const centerY = Math.floor(my + ey / 2);
         const r = Math.sqrt(
-            Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2)
+            Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2),
         );
 
         for (let y = my; y < height; y++) {
@@ -558,7 +560,7 @@ export default class Tilemap extends Component {
         x: number,
         y: number,
         srcColor: number,
-        tgtColor: number
+        tgtColor: number,
     ) {
         if (y < 0) return false;
         if (x < 0) return false;
@@ -589,7 +591,7 @@ export default class Tilemap extends Component {
         y: number,
         startTileId: number,
         nodes: any[],
-        stack: number
+        stack: number,
     ) {
         const hits: boolean[][] = [];
 
@@ -668,7 +670,7 @@ export default class Tilemap extends Component {
                         mouse.startX,
                         mouse.startY,
                         this.canvasToMapX(mouse.x - mouse.startX),
-                        this.canvasToMapY(mouse.y - mouse.startY)
+                        this.canvasToMapY(mouse.y - mouse.startY),
                     );
                 }
                 break;
@@ -681,7 +683,7 @@ export default class Tilemap extends Component {
                             mouse.startX,
                             mouse.startY,
                             this.canvasToMapX(mouse.x - mouse.startX),
-                            this.canvasToMapY(mouse.y - mouse.startY)
+                            this.canvasToMapY(mouse.y - mouse.startY),
                         );
                     }
                 }
@@ -788,7 +790,7 @@ export default class Tilemap extends Component {
                     const tileID = this.getData(x, y, z);
                     if (!tileID) continue;
                     const sprite = new PIXI.Sprite(
-                        this.getTileCropTexture(tileID)
+                        this.getTileCropTexture(tileID),
                     );
                     sprite.x = x * this._tileWidth;
                     sprite.y = y * this._tileHeight;

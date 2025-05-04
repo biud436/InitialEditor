@@ -14,7 +14,7 @@ interface Mouse {
     menuTarget: HTMLElement;
 }
 
-export namespace InitialEditor {
+namespace InitialEditor {
     export interface Point {
         x: number;
         y: number;

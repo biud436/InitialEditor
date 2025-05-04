@@ -1,3 +1,4 @@
+import App from "../../../app";
 import { MenuCommand } from "../../../decorators/MenuCommand";
 import { OnMenuClick } from "../../../decorators/OnMenuClick";
 import { IBaseMenuCommand } from "../IBaseMenuCommand";
@@ -6,8 +7,8 @@ import { IBaseMenuCommand } from "../IBaseMenuCommand";
 export class NewFileCommand implements IBaseMenuCommand {
     @OnMenuClick("file-new")
     action(ev: any) {
-        if (window.app) {
-            window.app.emit("openWindow", {
+        if (App.GetInstance()) {
+            App.GetInstance().emit("openWindow", {
                 path: "/newWindow",
             });
         }

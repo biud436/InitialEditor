@@ -1,3 +1,4 @@
+import App from "./app";
 import { ThemeSchema } from "./schema/ThemeSchema";
 
 enum Theme {
@@ -14,7 +15,7 @@ class ThemeManager {
     constructor() {
         // ? ThemeManager가 한 번만 생성되었나?
         if (ThemeManager.INSTANCE_COUNT === 0) {
-            window.app.on("save-config", () => {
+            App.GetInstance().on("save-config", () => {
                 Object.assign(themeSchema, ThemeColor);
                 themeSchema
                     .toFile("./conf/theme.json")
@@ -36,7 +37,7 @@ class ThemeManager {
     }
 
     public flush(theme: number) {
-        window.app.emit("save-config", {
+        App.GetInstance().emit("save-config", {
             Theme: theme,
         });
     }
@@ -46,7 +47,7 @@ class ThemeManager {
         this.set("--dark-selection-color", ThemeColor.DARK.SELECTION_COLOR);
         this.set(
             "--dark-input-background-color",
-            ThemeColor.DARK.INPUT_BACKGROUND_COLOR
+            ThemeColor.DARK.INPUT_BACKGROUND_COLOR,
         );
         this.set("--dark-input-text-color", ThemeColor.DARK.INPUT_TEXT_COLOR);
         this.set("--dark-text-color", ThemeColor.DARK.TEXT_COLOR);
@@ -62,7 +63,7 @@ class ThemeManager {
         this.set("--dark-selection-color", ThemeColor.LIGHT.SELECTION_COLOR);
         this.set(
             "--dark-input-background-color",
-            ThemeColor.LIGHT.INPUT_BACKGROUND_COLOR
+            ThemeColor.LIGHT.INPUT_BACKGROUND_COLOR,
         );
         this.set("--dark-input-text-color", ThemeColor.LIGHT.INPUT_TEXT_COLOR);
         this.set("--dark-text-color", ThemeColor.LIGHT.TEXT_COLOR);

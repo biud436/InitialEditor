@@ -9,6 +9,7 @@ import { observer } from 'mobx-react';
 
 import Viewer from '../components/initial/InitialViewer';
 import { WindowState, WindowType } from '@store/window';
+import App from 'initial-editor/dist/app';
 
 const Home = observer(() => {
   const [, setPanel] = useRecoilState(WindowState);
@@ -21,8 +22,8 @@ const Home = observer(() => {
   };
 
   const bindFunctions = useCallback(() => {
-    if (window.app) {
-      window.app.on('openWindow', openWindow);
+    if (App.GetInstance()) {
+      App.GetInstance().on('openWindow', openWindow);
     }
   }, []);
 

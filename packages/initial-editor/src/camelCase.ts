@@ -7,7 +7,7 @@ export function toCamelCase(name?: string) {
     const camel = nodes[0].concat(
         ...nodesTail.map((e) => {
             return e[0].toUpperCase() + e.slice(1);
-        })
+        }),
     );
     return camel;
 }

@@ -2,6 +2,7 @@ import { Component } from "./component";
 import { Mouse } from "./Mouse";
 import { Service } from "typedi";
 import InitialDOM from "./utils/InitialDOM";
+import App from "./app";
 
 export interface MarkerRange {
     lastTileID: number;
@@ -49,6 +50,8 @@ class TilesetMarker extends Component {
 
         this.initWithElement();
         this.active();
+
+        console.log("TilesetMarker.initMembers()");
     }
 
     public initWithElement() {
@@ -90,12 +93,12 @@ class TilesetMarker extends Component {
             0,
             0,
             this._tileWidth,
-            this._tileHeight
+            this._tileHeight,
         );
         this._blockSize.setParent(this._element);
 
         this.on("changeTile", (range: MarkerRange) =>
-            this.onChangeTileID(range)
+            this.onChangeTileID(range),
         );
 
         this.touches = [
@@ -110,11 +113,14 @@ class TilesetMarker extends Component {
 
     public update(...args: any[]) {
         if (!this._isReady) {
+            console.log("TilesetMarker is not ready");
             return;
         }
 
         const img = InitialDOM.query<HTMLCanvasElement>("#view canvas");
+        console.log(img);
         if (!img) {
+            console.log("TilesetMarker img is not ready");
             return;
         }
 
@@ -165,7 +171,7 @@ class TilesetMarker extends Component {
 
         const lastTileID = targetY * mapCols + targetX;
 
-        window.app.setTileId(lastTileID);
+        App.GetInstance().setTileId(lastTileID);
 
         if (this._lastTileId !== lastTileID) {
             this.emit("changeTile", {
@@ -220,7 +226,7 @@ class TilesetMarker extends Component {
         x: number,
         y: number,
         width: number,
-        height: number
+        height: number,
     ) {
         this._blockSize.x = Math.floor(x / this._tileWidth) * this._tileWidth;
         this._blockSize.y = Math.floor(y / this._tileHeight) * this._tileHeight;
