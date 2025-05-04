@@ -1,0 +1,1 @@
+{"version":3,"file":"EditPasteCommand.d.ts","sourceRoot":"","sources":["../../../../src/menu/commands/edit/EditPasteCommand.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,gBAAgB,EAAE,MAAM,qBAAqB,CAAC;AAEvD,qBACa,gBAAiB,YAAW,gBAAgB;IAErD,MAAM,CAAC,EAAE,EAAE,GAAG,GAAG,IAAI;CAMxB"}

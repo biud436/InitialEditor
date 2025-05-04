@@ -1,0 +1,1 @@
+{"version":3,"file":"IBaseMenuCommand.d.ts","sourceRoot":"","sources":["../../../src/menu/commands/IBaseMenuCommand.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,gBAAgB;IAC7B,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,GAAG,CAAC,CAAC;IAC/B,QAAQ,CAAC,EAAE,MAAM,EAAE,CAAC;IACpB,MAAM,CAAC,CAAC,EAAE,EAAE,OAAO,GAAG,IAAI,CAAC;CAC9B"}

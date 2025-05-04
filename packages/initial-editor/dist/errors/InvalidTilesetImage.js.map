@@ -1,0 +1,1 @@
+{"version":3,"file":"InvalidTilesetImage.js","sourceRoot":"","sources":["../../src/errors/InvalidTilesetImage.ts"],"names":[],"mappings":"AAAA,MAAM,OAAO,mBAAoB,SAAQ,KAAK;IAC1C;QACI,KAAK,CAAC,0BAA0B,CAAC,CAAC;IACtC,CAAC;CACJ"}
