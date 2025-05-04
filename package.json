@@ -16,7 +16,7 @@
     "build": "yarn build:editor && yarn build:renderer",
     "start": "yarn workspace renderer run start"
   },
-  "packageManager": "yarn@4.9.1",
+  "packageManager": "yarn@1.22.19",
   "dependencies": {
     "@changesets/cli": "^2.26.2",
     "ultra-runner": "^3.10.5"
