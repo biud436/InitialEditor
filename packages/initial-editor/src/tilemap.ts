@@ -324,6 +324,7 @@ export default class Tilemap extends Component {
      * 레이어 컨테이너를 생성합니다.
      */
     private createLayerContainer() {
+        // PIXI.Container는 어댑터 패턴으로 분리 필요
         this._layerContainer = new PIXI.Container();
         this._layerContainer.interactive = true;
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
