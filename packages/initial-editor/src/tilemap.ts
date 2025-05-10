@@ -301,9 +301,9 @@ export default class Tilemap extends Component {
         this.createTilesetTexture();
         this.initWithDrawingType();
 
-        (InitialDOM.query("#take-screenshot") as HTMLElement).onclick = (
-            ev,
-        ) => {
+        const elem = InitialDOM.query("#take-screenshot") as HTMLElement;
+
+        elem.onclick = (ev) => {
             this.takeScreenshot();
             ev.stopPropagation();
         };
