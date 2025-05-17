@@ -1,7 +1,7 @@
 import App from "../../../app";
 import { MenuCommand } from "../../../decorators/MenuCommand";
 import { OnMenuClick } from "../../../decorators/OnMenuClick";
-import { PenType } from "../../../tilemap";
+import { PenType } from "src/PenType";
 import { IBaseMenuCommand } from "../IBaseMenuCommand";
 
 export namespace DrawingCommandCollection {

@@ -6,18 +6,11 @@ import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import { Service } from "typedi";
 import InitialDOM from "./utils/InitialDOM";
 import { FileProvider } from "./schema";
+import { PenType } from "./PenType";
 
 export namespace initial2D {
     export const TILESET_CANVAS_ID = "#view canvas";
     export const MAIN_CANVAS_ID = "#contents__main-canvas";
-}
-
-export enum PenType {
-    PENCIL = 0,
-    RECTANGLE,
-    ELLIPSE,
-    FLOOD_FILL,
-    SHADOW_PEN,
 }
 
 interface TilemapPoint {
