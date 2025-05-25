@@ -1,4 +1,2 @@
-/**
- * PIXI에 의존성이 있는 코드들을 어댑터 패턴으로 감싸서 분리합니다.
- * 이렇게 하면 추후, PIXI를 다른 라이브러리로 교체할 때 또는 버전 업데이트를 할 때 수월해집니다.
- */
+export * from "./ApplicationFactory";
+export * from "./TextureWrapper";

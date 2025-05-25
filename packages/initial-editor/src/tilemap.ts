@@ -7,6 +7,7 @@ import { Service } from "typedi";
 import InitialDOM from "./utils/InitialDOM";
 import { FileProvider } from "./schema";
 import { PenType } from "./PenType";
+import { ApplicationFactory } from "./graphics/ApplicationFactory";
 
 export namespace initial2D {
     export const TILESET_CANVAS_ID = "#view canvas";
@@ -287,7 +288,7 @@ export default class Tilemap extends Component {
     public start(...args: any[]) {
         console.log("this._config", this._config);
         const option = this.createOption();
-        this._app = new PIXI.Application(option);
+        this._app = ApplicationFactory.create(option);
 
         this.useDebugMode();
         this.createLayerContainer();
