@@ -1,2 +1,2 @@
 export * from "./ApplicationFactory";
-export * from "./TextureWrapper";
+export * from "./TextureContainer";
