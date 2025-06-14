@@ -6,4 +6,12 @@ export class TextureContainer {
     constructor(texture: PIXI.Texture) {
         this._texture = texture;
     }
+
+    get texture(): PIXI.Texture {
+        return this._texture;
+    }
+
+    set texture(value: PIXI.Texture) {
+        this._texture = value;
+    }
 }
