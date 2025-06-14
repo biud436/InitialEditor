@@ -14,4 +14,13 @@ export class TextureContainer {
     set texture(value: PIXI.Texture) {
         this._texture = value;
     }
+
+    public static fromImage(
+        imageUrl: string,
+        options: PIXI.IBaseTextureOptions,
+    ): TextureContainer {
+        const texture = PIXI.Texture.from(imageUrl, options);
+
+        return new TextureContainer(texture);
+    }
 }
