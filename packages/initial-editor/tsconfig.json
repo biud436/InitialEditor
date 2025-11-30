@@ -22,7 +22,8 @@
     "baseUrl": "./",
     "declaration": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["node", "jquery", "mousetrap", "uuid"]
   },
   "include": ["**/*.ts", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
