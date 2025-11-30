@@ -12,12 +12,6 @@ interface Mouse {
     target: HTMLElement;
     menuTarget: HTMLElement;
 }
-export declare namespace InitialEditor {
-    interface Point {
-        x: number;
-        y: number;
-    }
-}
 /**
  * @class MenuComponent
  * @description

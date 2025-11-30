@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { EventEmitter } from "./EventEmitter";
 import { Mouse } from "./Mouse";
 export default class App extends EventEmitter {

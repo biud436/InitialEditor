@@ -59,7 +59,7 @@ namespace MenuButtonHandlers {
     export function addMinimizeWindow() {
         document
             .querySelector(
-                InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW
+                InitialEditor.MenuButtons.CLASSE_SELECTOR.MINIMIZE_WINDOW,
             )!
             .addEventListener("click", (ev) => {
                 ElectronService.getInstance().emit("minimize");
@@ -74,7 +74,7 @@ namespace MenuButtonHandlers {
     export function addMaximizeWindow() {
         document
             .querySelector(
-                InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW
+                InitialEditor.MenuButtons.CLASSE_SELECTOR.MAXIMIZE_WINDOW,
             )!
             .addEventListener("click", (ev) => {
                 ElectronService.getInstance().emit("maximize");
@@ -88,7 +88,7 @@ namespace MenuButtonHandlers {
      */
     export function addCloseWindow() {
         const elem = document.querySelector(
-            InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW
+            InitialEditor.MenuButtons.CLASSE_SELECTOR.CLOSE_WINDOW,
         );
 
         elem?.addEventListener("click", (ev) => {});
@@ -147,7 +147,7 @@ export default class MenuService extends Component {
         const langCode = navigator.language.slice(0, 2);
 
         const labels = Array.from<HTMLLabelElement>(
-            document.querySelectorAll(".menu__main label")
+            document.querySelectorAll(".menu__main label"),
         );
     }
 
@@ -165,7 +165,7 @@ export default class MenuService extends Component {
             const items = Reflect.get(
                 window,
                 `${MENU_COMMAND}_${menuId}`,
-                injectableMenuCommands[menuId]
+                injectableMenuCommands[menuId],
             );
 
             menu.ko[menuId as MenuKeys] = {
@@ -173,10 +173,6 @@ export default class MenuService extends Component {
                 children: items?.children,
             };
         });
-
-        console.log(injectableMenuCommands);
-        console.log("[before] beforeCollectClassDecorators");
-        console.log(menu.ko);
 
         // 수집된 메뉴 출력
         getMetadataStorage().menuCommands.forEach((menuCommand) => {
@@ -186,7 +182,7 @@ export default class MenuService extends Component {
             const items = Reflect.get(
                 window,
                 `${MENU_COMMAND}_${menuId}`,
-                injectableMenuCommands[menuId]
+                injectableMenuCommands[menuId],
             );
 
             menu.ko[id] = {
@@ -217,7 +213,7 @@ export default class MenuService extends Component {
                     if (menuChild.action) {
                         const menuCommand =
                             getMetadataStorage().menuCommands.find(
-                                (e) => e.name == key
+                                (e) => e.name == key,
                             );
                         const shotcut = menuCommand?.shortcut;
 
@@ -230,13 +226,13 @@ export default class MenuService extends Component {
 
                             if (platform === "darwin") {
                                 key = shotcut.map((k) =>
-                                    k.replace("ctrl", "command")
+                                    k.replace("ctrl", "command"),
                                 );
                             }
 
                             shotcutService.bind(
                                 key.join("+"),
-                                menuChild.action
+                                menuChild.action,
                             );
                         }
                     }

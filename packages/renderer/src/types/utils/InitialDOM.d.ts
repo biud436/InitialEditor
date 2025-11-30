@@ -1,7 +1,7 @@
 declare class InitialDOM {
-    query<T extends Element = Element>(selectors: string): T | null;
-    queryAll<T extends Element = Element>(selectors: string): NodeListOf<T>;
-    fetch<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K];
+    static query<T extends Element = Element>(selectors: string): T | null;
+    static queryAll<T extends Element = Element>(selectors: string): NodeListOf<T>;
+    static fetch<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K];
     /**
      * 리액트 스타일의 css 바인딩을 사용할 수 있습니다.
      *
@@ -9,8 +9,7 @@ declare class InitialDOM {
      * @param values
      * @returns
      */
-    css(strings: TemplateStringsArray, ...values: any[]): string;
-    private createStyleTagName;
+    static css(strings: TemplateStringsArray, ...values: any[]): string;
+    static createStyleTagName(): string;
 }
-declare const _default: InitialDOM;
-export default _default;
+export default InitialDOM;

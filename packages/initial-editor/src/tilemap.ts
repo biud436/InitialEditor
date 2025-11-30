@@ -516,17 +516,33 @@ export default class Tilemap extends Component {
 
         const tileID = this._tileId;
 
-        const width = mx + ex;
-        const height = my + ey;
-        const centerX = Math.floor(mx + ex / 2);
-        const centerY = Math.floor(my + ey / 2);
-        const r = Math.sqrt(
-            Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2),
-        );
+        const width = Math.abs(ex);
+        const height = Math.abs(ey);
 
-        for (let y = my; y < height; y++) {
-            for (let x = mx; x < width; x++) {
-                if (this.isInCircle(centerX, centerY, x, y, r)) {
+        // 중심점 계산 (실제 타일 좌표)
+        const centerX = mx + width / 2;
+        const centerY = my + height / 2;
+
+        // 타원의 반지름 (x축, y축)
+        const radiusX = width / 2;
+        const radiusY = height / 2;
+
+        // 타일 범위 계산
+        const startX = mx;
+        const startY = my;
+        const endX = mx + width;
+        const endY = my + height;
+
+        for (let y = startY; y <= endY; y++) {
+            for (let x = startX; x <= endX; x++) {
+                // 타원 방정식: ((x - centerX) / radiusX)^2 + ((y - centerY) / radiusY)^2 <= 1
+                const normalizedX = (x + 0.5 - centerX) / radiusX;
+                const normalizedY = (y + 0.5 - centerY) / radiusY;
+
+                if (
+                    normalizedX * normalizedX + normalizedY * normalizedY <=
+                    1
+                ) {
                     this.setData(x, y, this._currentLayer, tileID);
                 }
             }

@@ -4,13 +4,6 @@ export declare namespace initial2D {
     const TILESET_CANVAS_ID = "#view canvas";
     const MAIN_CANVAS_ID = "#contents__main-canvas";
 }
-export declare enum PenType {
-    PENCIL = 0,
-    RECTANGLE = 1,
-    ELLIPSE = 2,
-    FLOOD_FILL = 3,
-    SHADOW_PEN = 4
-}
 /**
  * @class Tilemap
  * @author biud436
@@ -76,8 +69,8 @@ export default class Tilemap extends Component {
     getLayeredTileId(x: number, y: number, z: number): number;
     setCurrentLayerId(layerId: number): Tilemap;
     getCurrentLayerId(): number;
+    createOption(): Partial<PIXI.IApplicationOptions>;
     start(...args: any[]): this;
-    private createOption;
     /**
      * 디버그 모드를 활성화합니다.
      *
@@ -103,14 +96,14 @@ export default class Tilemap extends Component {
      * 따라서 빈 그래픽을 그려서 컨테이너의 크기를 설정하였습니다.
      */
     private createEmptyTilemap;
-    get app(): PIXI.Application;
+    get app(): PIXI.Application<PIXI.ICanvas>;
     takeScreenshot(): void;
     private onMouseMove;
     /**
      * Get a tileset image from the tileset collection.
      */
     getTileset(): HTMLCanvasElement;
-    cropTexture(dx: number, dy: number, texture: PIXI.Texture): any;
+    cropTexture(dx: number, dy: number, texture: PIXI.Texture): PIXI.Texture<PIXI.Resource>;
     collectAutoTileID(mx: number, my: number): number;
     drawTile(mx: number, my: number, tileID: number): void;
     /**
@@ -185,7 +178,7 @@ export default class Tilemap extends Component {
      *
      * @param tileID
      */
-    getTileCropTexture(tileID: number): any;
+    getTileCropTexture(tileID: number): PIXI.Texture<PIXI.Resource>;
     /**
      * 특정 레이어 컨테이너를 화면에서 감추거나 표시합니다.
      *

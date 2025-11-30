@@ -1,5 +1,13 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import * as fs from "fs";
+
+// fs 모듈은 Node.js 환경에서만 사용 가능
+let fs: any;
+try {
+    fs = require("fs");
+} catch (e) {
+    // 브라우저 환경에서는 fs를 사용할 수 없음
+    fs = null;
+}
 
 namespace InitialEditor {
     /*
@@ -9,14 +17,14 @@ namespace InitialEditor {
     export class WebRequest {
         public static async get(
             url: string,
-            config?: AxiosRequestConfig<any>
+            config?: AxiosRequestConfig<any>,
         ): Promise<AxiosResponse<any, any>> {
             return axios.get(url, config);
         }
 
         public static async post(
             url: string,
-            data?: any
+            data?: any,
         ): Promise<AxiosResponse<any, any>> {
             return axios.post(url, data);
         }
@@ -32,8 +40,15 @@ namespace InitialEditor {
     export class WebDownloader {
         public static async download(
             url: string,
-            filePath: string
+            filePath: string,
         ): Promise<any> {
+            if (!fs) {
+                return Promise.reject(
+                    new Error(
+                        "fs module is not available in browser environment",
+                    ),
+                );
+            }
             const response = await WebRequest.get(url);
             // content-type
             const contentType = response.headers["content-type"];
