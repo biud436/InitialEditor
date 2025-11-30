@@ -8,6 +8,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "script:build": "yarn workspace initial-editor run script:build",
     "dev": "yarn workspace renderer run dev",
