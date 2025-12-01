@@ -485,7 +485,13 @@ export default class App extends EventEmitter {
         return App.Instance;
     }
     test() {
-        alert("찾기 테스트");
+        alert("찾기 테스트 2");
+    }
+    undo() {
+        alert("되돌리기 테스트");
+    }
+    undo2() {
+        alert("되돌리기 테스트");
     }
 }
 __decorate([
@@ -494,4 +500,16 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], App.prototype, "test", null);
+__decorate([
+    Shotcut(["ctrl", "z"]),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], App.prototype, "undo", null);
+__decorate([
+    Shotcut(["shift", "1"]),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], App.prototype, "undo2", null);
 //# sourceMappingURL=app.js.map

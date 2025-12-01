@@ -1,1 +1,0 @@
-{"version":3,"file":"ThemeManager.d.ts","sourceRoot":"","sources":["../src/ThemeManager.ts"],"names":[],"mappings":"AAUA,cAAM,YAAY;IACd,OAAc,cAAc,SAAK;;IAmB1B,GAAG,CAAC,GAAG,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM;IAO9B,KAAK,CAAC,KAAK,EAAE,MAAM;IAMnB,eAAe,CAAC,QAAQ,GAAE,OAAe;IAgBzC,gBAAgB,CAAC,QAAQ,GAAE,OAAe;CAgBpD;AAED,OAAO,EAAE,YAAY,EAAE,CAAC"}

@@ -13,7 +13,7 @@ let ShotcutService = class ShotcutService {
     constructor() {
         this.mousetrap = new Mousetrap();
     }
-    bind(key, callback) {
+    bindEx(key, callback) {
         this.mousetrap.bind(key, callback);
     }
 };

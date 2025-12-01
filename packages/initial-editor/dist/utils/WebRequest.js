@@ -1,5 +1,4 @@
 import axios from "axios";
-import * as fs from "fs";
 var InitialEditor;
 (function (InitialEditor) {
     /*
@@ -23,18 +22,7 @@ var InitialEditor;
     InitialEditor.WebRequest = WebRequest;
     class WebDownloader {
         static async download(url, filePath) {
-            const response = await WebRequest.get(url);
-            // content-type
-            const contentType = response.headers["content-type"];
-            const data = response.data;
-            if (contentType.indexOf("application/octet-stream") !== -1) {
-                return await fs.promises.writeFile(filePath, data);
-            }
-            const buffer = Buffer.from(data, "binary");
-            if (!Buffer.isBuffer(buffer)) {
-                return Promise.reject(new Error("Invalid data"));
-            }
-            return await fs.promises.writeFile(filePath, data);
+            return Promise.reject("Not implemented");
         }
     }
     InitialEditor.WebDownloader = WebDownloader;

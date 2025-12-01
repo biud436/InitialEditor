@@ -4,13 +4,6 @@ export declare namespace initial2D {
     const TILESET_CANVAS_ID = "#view canvas";
     const MAIN_CANVAS_ID = "#contents__main-canvas";
 }
-export declare enum PenType {
-    PENCIL = 0,
-    RECTANGLE = 1,
-    ELLIPSE = 2,
-    FLOOD_FILL = 3,
-    SHADOW_PEN = 4
-}
 /**
  * @class Tilemap
  * @author biud436
@@ -38,6 +31,8 @@ export default class Tilemap extends Component {
     private _layerContainer;
     private _tilesets;
     private _dirty;
+    private _history;
+    private _isHistoryEnabled;
     /**
      * 맵 레이어가 바뀌었을 때, 다른 레이어를 반투명하게 처리할 때 사용합니다.
      * 1.0 이면 불투명이며, 0.25 이면 반투명입니다.
@@ -62,6 +57,26 @@ export default class Tilemap extends Component {
     initWithDrawingType(): void;
     initWithLayers(): void;
     clamp(min: number, max: number): number;
+    /**
+     * 현재 타일맵 상태를 히스토리에 저장합니다.
+     */
+    private saveHistory;
+    /**
+     * 이전 상태로 되돌립니다.
+     */
+    undo(): boolean;
+    /**
+     * 다시 실행합니다.
+     */
+    redo(): boolean;
+    /**
+     * Undo가 가능한지 확인합니다.
+     */
+    canUndo(): boolean;
+    /**
+     * Redo가 가능한지 확인합니다.
+     */
+    canRedo(): boolean;
     setData(x: number, y: number, z: number, tileId: number): void;
     getData(x: number, y: number, z: number): number;
     setTileId(tileId: number): void;

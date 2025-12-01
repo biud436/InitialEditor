@@ -6,23 +6,18 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { Component } from "./component";
 import * as PIXI from "pixi.js";
+import { TilemapHistory } from "./TilemapHistory";
 import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import { Service } from "typedi";
 import InitialDOM from "./utils/InitialDOM";
 import { FileProvider } from "./schema";
+import { PenType } from "./PenType";
+import { ApplicationFactory } from "./graphics/ApplicationFactory";
 export var initial2D;
 (function (initial2D) {
     initial2D.TILESET_CANVAS_ID = "#view canvas";
     initial2D.MAIN_CANVAS_ID = "#contents__main-canvas";
 })(initial2D || (initial2D = {}));
-export var PenType;
-(function (PenType) {
-    PenType[PenType["PENCIL"] = 0] = "PENCIL";
-    PenType[PenType["RECTANGLE"] = 1] = "RECTANGLE";
-    PenType[PenType["ELLIPSE"] = 2] = "ELLIPSE";
-    PenType[PenType["FLOOD_FILL"] = 3] = "FLOOD_FILL";
-    PenType[PenType["SHADOW_PEN"] = 4] = "SHADOW_PEN";
-})(PenType || (PenType = {}));
 /**
  * @class Tilemap
  * @author biud436
@@ -30,6 +25,7 @@ export var PenType;
 let Tilemap = class Tilemap extends Component {
     constructor() {
         super(...arguments);
+        this._isHistoryEnabled = true;
         /**
          * 맵 레이어가 바뀌었을 때, 다른 레이어를 반투명하게 처리할 때 사용합니다.
          * 1.0 이면 불투명이며, 0.25 이면 반투명입니다.
@@ -56,6 +52,8 @@ let Tilemap = class Tilemap extends Component {
         this._mapHeight = Math.round(this._config.SCREEN_HEIGHT / this._tileHeight);
         this._layerCount = this._config.LAYERS;
         this._data = new Array(this._mapWidth * this._mapHeight * this._config.LAYERS);
+        // 히스토리 초기화
+        this._history = new TilemapHistory(50);
         /**
          * @type {HTMLCanvasElement}
          */
@@ -141,9 +139,61 @@ let Tilemap = class Tilemap extends Component {
                 }
             }
         }
+        // 초기 상태를 히스토리에 저장
+        this.saveHistory();
     }
     clamp(min, max) {
         return Math.min(Math.max(0, min), max);
+    }
+    /**
+     * 현재 타일맵 상태를 히스토리에 저장합니다.
+     */
+    saveHistory() {
+        if (this._isHistoryEnabled) {
+            this._history.push(this._data);
+        }
+    }
+    /**
+     * 이전 상태로 되돌립니다.
+     */
+    undo() {
+        const prevState = this._history.undo();
+        if (prevState) {
+            this._isHistoryEnabled = false;
+            this._data = prevState;
+            this._dirty = true;
+            this.draw();
+            this._isHistoryEnabled = true;
+            return true;
+        }
+        return false;
+    }
+    /**
+     * 다시 실행합니다.
+     */
+    redo() {
+        const nextState = this._history.redo();
+        if (nextState) {
+            this._isHistoryEnabled = false;
+            this._data = nextState;
+            this._dirty = true;
+            this.draw();
+            this._isHistoryEnabled = true;
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Undo가 가능한지 확인합니다.
+     */
+    canUndo() {
+        return this._history.canUndo();
+    }
+    /**
+     * Redo가 가능한지 확인합니다.
+     */
+    canRedo() {
+        return this._history.canRedo();
     }
     setData(x, y, z, tileId) {
         if (x < 0)
@@ -211,12 +261,13 @@ let Tilemap = class Tilemap extends Component {
     start(...args) {
         console.log("this._config", this._config);
         const option = this.createOption();
-        this._app = new PIXI.Application(option);
+        this._app = ApplicationFactory.create(option);
         this.useDebugMode();
         this.createLayerContainer();
         this.createTilesetTexture();
         this.initWithDrawingType();
-        InitialDOM.query("#take-screenshot").onclick = (ev) => {
+        const elem = InitialDOM.query("#take-screenshot");
+        elem.onclick = (ev) => {
             this.takeScreenshot();
             ev.stopPropagation();
         };
@@ -234,6 +285,7 @@ let Tilemap = class Tilemap extends Component {
      * 레이어 컨테이너를 생성합니다.
      */
     createLayerContainer() {
+        // PIXI.Container는 어댑터 패턴으로 분리 필요
         this._layerContainer = new PIXI.Container();
         this._layerContainer.interactive = true;
         this._layerContainer.on("mousemove", this.onMouseMove.bind(this));
@@ -280,6 +332,9 @@ let Tilemap = class Tilemap extends Component {
         const app = this._app;
         if (!app)
             return;
+        /**
+         * TODO: PIXI 의존성 분리 필요
+         */
         app.renderer.plugins.extract.canvas(app.stage).toBlob((async (b) => {
             const arrayBuffer = await b.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
@@ -384,14 +439,26 @@ let Tilemap = class Tilemap extends Component {
         const mx = this.getMapX(sx);
         const my = this.getMapY(sy);
         const tileID = this._tileId;
-        const width = mx + ex;
-        const height = my + ey;
-        const centerX = Math.floor(mx + ex / 2);
-        const centerY = Math.floor(my + ey / 2);
-        const r = Math.sqrt(Math.pow(ex - centerX, 2) + Math.pow(ey - centerY, 2));
-        for (let y = my; y < height; y++) {
-            for (let x = mx; x < width; x++) {
-                if (this.isInCircle(centerX, centerY, x, y, r)) {
+        const width = Math.abs(ex);
+        const height = Math.abs(ey);
+        // 중심점 계산 (실제 타일 좌표)
+        const centerX = mx + width / 2;
+        const centerY = my + height / 2;
+        // 타원의 반지름 (x축, y축)
+        const radiusX = width / 2;
+        const radiusY = height / 2;
+        // 타일 범위 계산
+        const startX = mx;
+        const startY = my;
+        const endX = mx + width;
+        const endY = my + height;
+        for (let y = startY; y <= endY; y++) {
+            for (let x = startX; x <= endX; x++) {
+                // 타원 방정식: ((x - centerX) / radiusX)^2 + ((y - centerY) / radiusY)^2 <= 1
+                const normalizedX = (x + 0.5 - centerX) / radiusX;
+                const normalizedY = (y + 0.5 - centerY) / radiusY;
+                if (normalizedX * normalizedX + normalizedY * normalizedY <=
+                    1) {
                     this.setData(x, y, this._currentLayer, tileID);
                 }
             }

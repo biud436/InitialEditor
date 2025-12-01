@@ -625,6 +625,16 @@ export default class App extends EventEmitter {
 
     @Shotcut(["ctrl", "f"])
     test() {
-        alert("찾기 테스트");
+        alert("찾기 테스트 2");
+    }
+
+    @Shotcut(["ctrl", "z"])
+    undo() {
+        alert("되돌리기 테스트");
+    }
+
+    @Shotcut(["shift", "1"])
+    undo2() {
+        alert("되돌리기 테스트");
     }
 }

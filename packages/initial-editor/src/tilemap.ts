@@ -1,6 +1,7 @@
 import { Component } from "./component";
 import { config } from "./config";
 import * as PIXI from "pixi.js";
+import { TilemapHistory } from "./TilemapHistory";
 import { Mouse } from "./Mouse";
 import { LayerTreeSchema } from "./schema/LayerTreeSchema";
 import { Service } from "typedi";
@@ -54,6 +55,8 @@ export default class Tilemap extends Component {
     private _layerContainer!: PIXI.Container;
     private _tilesets!: PIXI.Texture[];
     private _dirty!: boolean;
+    private _history!: TilemapHistory;
+    private _isHistoryEnabled: boolean = true;
 
     /**
      * 맵 레이어가 바뀌었을 때, 다른 레이어를 반투명하게 처리할 때 사용합니다.
@@ -93,6 +96,9 @@ export default class Tilemap extends Component {
         this._data = new Array(
             this._mapWidth * this._mapHeight * this._config.LAYERS,
         );
+
+        // 히스토리 초기화
+        this._history = new TilemapHistory(50);
 
         /**
          * @type {HTMLCanvasElement}
@@ -206,10 +212,68 @@ export default class Tilemap extends Component {
                 }
             }
         }
+
+        // 초기 상태를 히스토리에 저장
+        this.saveHistory();
     }
 
     public clamp(min: number, max: number) {
         return Math.min(Math.max(0, min), max);
+    }
+
+    /**
+     * 현재 타일맵 상태를 히스토리에 저장합니다.
+     */
+    private saveHistory(): void {
+        if (this._isHistoryEnabled) {
+            this._history.push(this._data);
+        }
+    }
+
+    /**
+     * 이전 상태로 되돌립니다.
+     */
+    public undo(): boolean {
+        const prevState = this._history.undo();
+        if (prevState) {
+            this._isHistoryEnabled = false;
+            this._data = prevState;
+            this._dirty = true;
+            this.draw();
+            this._isHistoryEnabled = true;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 다시 실행합니다.
+     */
+    public redo(): boolean {
+        const nextState = this._history.redo();
+        if (nextState) {
+            this._isHistoryEnabled = false;
+            this._data = nextState;
+            this._dirty = true;
+            this.draw();
+            this._isHistoryEnabled = true;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Undo가 가능한지 확인합니다.
+     */
+    public canUndo(): boolean {
+        return this._history.canUndo();
+    }
+
+    /**
+     * Redo가 가능한지 확인합니다.
+     */
+    public canRedo(): boolean {
+        return this._history.canRedo();
     }
 
     public setData(x: number, y: number, z: number, tileId: number) {

@@ -10,6 +10,6 @@ export function Shotcut(key: string[]): MethodDecorator {
         const action = descriptor.value as any;
         const shotcutService = getShotcutService();
 
-        shotcutService.bind(key.join("+"), action);
+        shotcutService.bindEx(key.join("+"), action);
     };
 }

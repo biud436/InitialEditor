@@ -1,5 +1,3 @@
-import Container, { Service } from "typedi";
-
 class InitialDOM {
     static query<T extends Element = Element>(selectors: string): T | null {
         return document.querySelector<T>(selectors);

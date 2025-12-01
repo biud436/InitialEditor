@@ -26,4 +26,5 @@ export * from "./services";
 export * from "./store";
 export * from "./toolbar";
 export * from "./utils";
+export * from "./TilemapHistory";
 //# sourceMappingURL=index.js.map

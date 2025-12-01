@@ -141,9 +141,6 @@ let MenuService = MenuService_1 = class MenuService extends Component {
                 children: items?.children,
             };
         });
-        console.log(injectableMenuCommands);
-        console.log("[before] beforeCollectClassDecorators");
-        console.log(menu.ko);
         // 수집된 메뉴 출력
         getMetadataStorage().menuCommands.forEach((menuCommand) => {
             const { menuId } = menuCommand;
@@ -180,7 +177,7 @@ let MenuService = MenuService_1 = class MenuService extends Component {
                             if (platform === "darwin") {
                                 key = shotcut.map((k) => k.replace("ctrl", "command"));
                             }
-                            shotcutService.bind(key.join("+"), menuChild.action);
+                            shotcutService.bindEx(key.join("+"), menuChild.action);
                         }
                     }
                 });

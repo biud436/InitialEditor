@@ -107,4 +107,6 @@ export default class App extends EventEmitter {
      */
     static GetInstance(): App;
     test(): void;
+    undo(): void;
+    undo2(): void;
 }

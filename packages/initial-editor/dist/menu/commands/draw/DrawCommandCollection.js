@@ -7,10 +7,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+import { PenType } from "../../../PenType";
 import App from "../../../app";
 import { MenuCommand } from "../../../decorators/MenuCommand";
 import { OnMenuClick } from "../../../decorators/OnMenuClick";
-import { PenType } from "../../../tilemap";
 export var DrawingCommandCollection;
 (function (DrawingCommandCollection) {
     let DrawPencilCommand = class DrawPencilCommand {

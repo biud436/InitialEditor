@@ -8,7 +8,7 @@ export function Shotcut(key) {
     return function (target, propertyKey, descriptor) {
         const action = descriptor.value;
         const shotcutService = getShotcutService();
-        shotcutService.bind(key.join("+"), action);
+        shotcutService.bindEx(key.join("+"), action);
     };
 }
 //# sourceMappingURL=Shotcut.js.map

@@ -230,7 +230,7 @@ export default class MenuService extends Component {
                                 );
                             }
 
-                            shotcutService.bind(
+                            shotcutService.bindEx(
                                 key.join("+"),
                                 menuChild.action,
                             );

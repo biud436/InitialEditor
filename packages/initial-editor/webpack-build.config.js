@@ -55,10 +55,10 @@ const electronTypeTarget = {
         "components",
       ),
     },
-    fallback: {
-      fs: false,
-      path: false,
-    },
+    // fallback: {
+    //   fs: false,
+    //   path: false,
+    // },
   },
 };
 

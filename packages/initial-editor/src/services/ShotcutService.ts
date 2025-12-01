@@ -9,7 +9,7 @@ export class ShotcutService {
         this.mousetrap = new Mousetrap();
     }
 
-    public bind(key: string, callback: () => void) {
+    public bindEx(key: string, callback: () => void) {
         this.mousetrap.bind(key, callback);
     }
 }
