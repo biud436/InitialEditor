@@ -7,12 +7,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+import App from "../../../app";
 import { MenuCommand } from "../../../decorators/MenuCommand";
 import { OnMenuClick } from "../../../decorators/OnMenuClick";
-import { ElectronService } from "../../../ElectronService";
+/**
+ * 맵 열기 (Ctrl+O): 프로젝트의 resources/maps/*.json 목록에서 골라 불러온다.
+ */
 let OpenFileCommand = class OpenFileCommand {
     action(ev) {
-        ElectronService.getInstance().showErrorMessageBox("알림", "아직 지원하지 않는 기능입니다");
+        App.GetInstance().emit("openWindow", { path: "/openMap" });
     }
 };
 __decorate([

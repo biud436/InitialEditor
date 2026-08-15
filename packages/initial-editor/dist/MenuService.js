@@ -13,7 +13,6 @@ import "reflect-metadata";
 import { injectableMenuCommands, MENU_COMMAND } from "./decorators/MenuCommand";
 import { getMetadataStorage } from "./store/MeatadataStorage";
 import { getShotcutService } from "./services/ShotcutService";
-import { Platform } from "./utils/Platform";
 const menu = {
     ko: KoreanMenu,
 };
@@ -89,6 +88,15 @@ var MenuButtonHandlers;
 /**
  * @class MenuService
  */
+/**
+ * 전역 키보드 단축키를 실제로 묶는 메뉴 명령. 나머지 명령은 메뉴 클릭으로만 실행된다.
+ * (브라우저 예약 조합과 스텁 명령을 전역에 묶지 않기 위한 허용 목록)
+ */
+export const BINDABLE_MENU_SHORTCUTS = new Set([
+    "file-save",
+    "file-open",
+    "file-export",
+]);
 let MenuService = MenuService_1 = class MenuService extends Component {
     initMembers(...args) {
         /**
@@ -169,15 +177,24 @@ let MenuService = MenuService_1 = class MenuService extends Component {
                     if (menuChild.action) {
                         const menuCommand = getMetadataStorage().menuCommands.find((e) => e.name == key);
                         const shotcut = menuCommand?.shortcut;
-                        if (shotcut) {
-                            const platform = Platform.isElectron()
-                                ? "electron"
-                                : "web";
-                            let key = [];
-                            if (platform === "darwin") {
-                                key = shotcut.map((k) => k.replace("ctrl", "command"));
+                        if (shotcut && shotcut.length > 0) {
+                            // "ctrl" 은 Mousetrap 의 "mod" 로 (macOS 는 Cmd, 그 외는 Ctrl).
+                            // 브라우저가 가로채는 조합(Cmd+N/W/Q/T)이나 아직 스텁인 명령
+                            // (복사/붙여넣기 등)까지 전역으로 묶으면 브라우저 기본 동작만 빼앗으므로
+                            // 실제로 구현된 명령만 묶는다 (BINDABLE_MENU_SHORTCUTS).
+                            if (!BINDABLE_MENU_SHORTCUTS.has(key)) {
+                                return;
                             }
-                            shotcutService.bindEx(key.join("+"), menuChild.action);
+                            const combo = shotcut
+                                .map((k) => (k === "ctrl" ? "mod" : k))
+                                .join("+");
+                            const action = menuChild.action;
+                            shotcutService.bindEx(combo, (ev) => {
+                                action(ev);
+                                // false 를 돌려주면 Mousetrap 이 preventDefault 한다
+                                // (브라우저의 "페이지 저장" 같은 기본 동작 차단)
+                                return false;
+                            });
                         }
                     }
                 });

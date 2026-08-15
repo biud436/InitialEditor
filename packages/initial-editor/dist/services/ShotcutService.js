@@ -13,6 +13,9 @@ let ShotcutService = class ShotcutService {
     constructor() {
         this.mousetrap = new Mousetrap();
     }
+    /**
+     * 콜백이 false 를 돌려주면 Mousetrap 이 브라우저 기본 동작을 막는다 (preventDefault).
+     */
     bindEx(key, callback) {
         this.mousetrap.bind(key, callback);
     }

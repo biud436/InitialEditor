@@ -75,6 +75,12 @@ export declare class BridgeClient {
     readBinary(path: string): Promise<ArrayBuffer>;
     readJson<T = unknown>(path: string): Promise<T>;
     writeText(path: string, content: string): Promise<BridgeWriteResult>;
+    writeBinary(path: string, data: ArrayBuffer | Blob | Uint8Array): Promise<BridgeWriteResult>;
+    /**
+     * 파일 존재 여부. HEAD 를 먼저 쓰고, HEAD 를 모르는 옛 브리지(405)면 GET 으로 확인한다
+     * (두 저장소가 따로 배포되므로 버전이 어긋날 수 있다).
+     */
+    exists(path: string): Promise<boolean>;
     writeJson(path: string, value: unknown, pretty?: boolean): Promise<BridgeWriteResult>;
     remove(path: string): Promise<{
         ok: boolean;

@@ -5,6 +5,9 @@ export const WindowStateMap = <const>[
     'newWindow',
     'optionWindow',
     'scriptEditor',
+    'newMap',
+    'openMap',
+    'exportMap',
 ];
 export type WindowType = (typeof WindowStateMap)[number];
 export type WindowStateImpl = {

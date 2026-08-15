@@ -47,11 +47,27 @@ node tools/bridge/server.js --project ~/mygame
 yarn build && yarn dev                 # open http://localhost:5173
 ```
 
-- **Tools → Script Editor** lists `scripts/**/*.lua` from the project. Open a file, edit it, and
-  press **Ctrl+S / Cmd+S** to save. With "저장 시 게임 리로드" checked (default) the bridge pushes
-  the scripts to the running game right after each save. Files changed by other editors are
-  reloaded automatically (or flagged when you have unsaved edits).
+| What | How | Result |
+|---|---|---|
+| Edit scripts | Tools → Script Editor | Opens `scripts/**/*.lua`; **Ctrl+S** saves and (by default) hot-reloads the running game. Files changed by other editors are reloaded automatically, or flagged when you have unsaved edits. |
+| Export a map | **Ctrl+E** | Writes map format v1 to `resources/maps/<name>.json` and copies any tileset image the project is missing. |
+| Open a map | **Ctrl+O** | Loads a map from `resources/maps/*.json` into the editor. |
+| Save a map | **Ctrl+S** | Rewrites the map at its current path (falls back to the export dialog for a new map). |
+| New map | **Ctrl+N** | Creates an empty map with the name, id and size you choose. |
+
+Notes:
+
 - The bridge URL can be changed with `localStorage['initial-editor.bridge-url']`.
+- Data the editor cannot edit yet (the collision layer, layer names) is carried through open → save
+  untouched, so exporting a map the engine authored does not throw that data away.
+- Tile id `0` means "empty" everywhere in the editor, so the very first tile of the first tileset has
+  no id. Opening a map that uses it blanks those cells and tells you how many.
+
+## Tests
+
+```sh
+yarn test     # builds initial-editor, then runs the map-format unit tests (node --test)
+```
 
 ## How to upstream from remote github repository
 

@@ -1,6 +1,7 @@
 export * from "./app";
 export * from "./AutoTile";
 export * from "./bridge";
+export * from "./map";
 export * from "./camelCase";
 export * from "./component";
 export * from "./config";

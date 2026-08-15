@@ -17,6 +17,11 @@ export declare namespace InitialEditor {
 /**
  * @class MenuService
  */
+/**
+ * 전역 키보드 단축키를 실제로 묶는 메뉴 명령. 나머지 명령은 메뉴 클릭으로만 실행된다.
+ * (브라우저 예약 조합과 스텁 명령을 전역에 묶지 않기 위한 허용 목록)
+ */
+export declare const BINDABLE_MENU_SHORTCUTS: Set<string>;
 export default class MenuService extends Component {
     private _menuComponent;
     private _isClickedMenu;

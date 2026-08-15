@@ -2,6 +2,7 @@ import { Box } from '@components/atomics/Box';
 import styled from 'styled-components';
 import classnames from 'classnames';
 import { WidgetProvider } from '@context/window.providers';
+import { Toast } from '@components/Toast';
 
 type WidgetLayoutProps = {
   children?: React.ReactNode;
@@ -22,6 +23,7 @@ export default function Widget({ children }: WidgetLayoutProps) {
       <Box className={classnames('widget')}>
         {children}
         <WidgetProvider />
+        <Toast />
       </Box>
     </WidgetWrapper>
   );

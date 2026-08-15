@@ -11,6 +11,7 @@ import "reflect-metadata";
 import { Service } from "typedi";
 import InitialDOM from "./utils/InitialDOM";
 import App from "./app";
+import { basenameOf } from "./map/MapFormat";
 let TilesetCanvas = class TilesetCanvas {
     constructor(...args) {
         this.initMembers(...args);
@@ -32,7 +33,9 @@ let TilesetCanvas = class TilesetCanvas {
                 const elem = InitialDOM.fetch("img");
                 elem.src = this._tilesetImgages[i];
                 elem.onload = () => {
-                    this._tilesets.push(elem);
+                    // 합성 순서(= 전역 타일 ID)는 로드 완료 순서가 아니라 설정 순서를 따라야 한다.
+                    // push 하면 이미지 크기에 따라 순서가 뒤바뀌어 저장한 맵의 타일 ID 가 어긋난다.
+                    this._tilesets[i] = elem;
                     ++count;
                     if (count >= lenOfTileset) {
                         this.createCanvas()
@@ -60,6 +63,36 @@ let TilesetCanvas = class TilesetCanvas {
         await this.start().then((ret) => {
             App.GetInstance().createComponents();
         });
+    }
+    get isReady() {
+        return this._isReady;
+    }
+    /**
+     * 합성 캔버스의 배치(어느 이미지가 어느 세로 구간을 차지하는지)를 돌려준다.
+     * createCanvas 와 같은 규칙(설정 순서대로 위에서 아래로, 각 이미지의 naturalHeight 만큼)이므로
+     * 맵 내보내기와 불러오기(map/MapFormat.ts)가 전역 타일 ID 를 타일셋별 지역 ID 로 바꿀 때 쓴다.
+     */
+    getLayout() {
+        const { TILE_WIDTH, TILE_HEIGHT, MAP_COLS } = this._config;
+        const tilesets = [];
+        let acc = 0;
+        for (const img of this._tilesets || []) {
+            if (!img)
+                continue;
+            const width = img.naturalWidth;
+            const height = img.naturalHeight;
+            tilesets.push({
+                name: basenameOf(img.getAttribute("src") || img.src),
+                src: img.src,
+                y0: acc,
+                width,
+                height,
+                columns: Math.floor(width / TILE_WIDTH),
+                rows: Math.floor(height / TILE_HEIGHT),
+            });
+            acc += height;
+        }
+        return { columns: MAP_COLS, tileWidth: TILE_WIDTH, tileHeight: TILE_HEIGHT, tilesets };
     }
     /**
      * HEX 컬러를 웹 색상으로 변환합니다.

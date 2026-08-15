@@ -39,6 +39,50 @@ export default class Tilemap extends Component {
      */
     private _semiTransparentOpacity;
     private readonly fileProvider;
+    /** 현재 편집 중인 맵 문서의 메타데이터 (맵 포맷 v1 의 name, id 와 저장 경로) */
+    private _mapName;
+    private _mapId;
+    private _mapPath;
+    private _backgroundGraphics;
+    /**
+     * 아직 에디터가 편집하지 못하지만 맵 파일에는 있는 데이터.
+     * 불러온 그대로 들고 있다가 저장할 때 되돌려준다 (편집 못 한다고 지워버리면 데이터 손실이다).
+     */
+    private _collision;
+    private _layerNames;
+    get mapWidth(): number;
+    get mapHeight(): number;
+    get layerCount(): number;
+    get tileWidth(): number;
+    get tileHeight(): number;
+    get mapName(): string;
+    set mapName(value: string);
+    get mapId(): number;
+    set mapId(value: number);
+    /** 브리지로 저장한(또는 불러온) 프로젝트 상대 경로. 아직 저장한 적이 없으면 null */
+    get mapPath(): string | null;
+    set mapPath(value: string | null);
+    /** 평탄한 맵 데이터 원본 (data[z*W*H + y*W + x]). 내보내기 전용 — 수정하지 말 것 */
+    getRawData(): ReadonlyArray<number>;
+    /** 통행 레이어 (에디터는 아직 편집하지 못하고 보존만 한다). 길이는 width*height */
+    getCollision(): number[] | null;
+    setCollision(collision: number[] | null): void;
+    /** 맵 파일의 레이어 이름 (없으면 빈 배열 → 저장할 때 layer1.. 로 채운다) */
+    getLayerNames(): string[];
+    setLayerNames(names: string[]): void;
+    /**
+     * 맵 크기를 바꾼다. 겹치는 영역의 타일은 유지하고 새 영역은 빈 칸(0)이 된다.
+     * 히스토리는 새 크기 기준으로 다시 시작한다.
+     */
+    resize(width: number, height: number): Tilemap;
+    /**
+     * 맵 전체를 새 데이터로 바꾼다 (불러오기, 새 맵). data 길이는 width*height*LAYERS 여야 한다.
+     */
+    setRawData(width: number, height: number, data: number[]): Tilemap;
+    /** 맵을 빈 칸으로 채운다 (새 맵) */
+    clearMap(): Tilemap;
+    /** 맵 크기가 바뀌면 검정 배경(컨테이너 크기 기준)을 다시 그린다 */
+    private refreshBackground;
     initMembers(...args: any[]): void;
     load(): Promise<void>;
     loadLayersConfig(): Promise<void>;

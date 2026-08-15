@@ -136,6 +136,33 @@ export class BridgeClient {
         });
     }
 
+    public async writeBinary(path: string, data: ArrayBuffer | Blob | Uint8Array): Promise<BridgeWriteResult> {
+        return this.json<BridgeWriteResult>("PUT", `/api/files/${encodePath(path)}`, {
+            body: data as BodyInit,
+            headers: { "Content-Type": "application/octet-stream" },
+        });
+    }
+
+    /**
+     * 파일 존재 여부. HEAD 를 먼저 쓰고, HEAD 를 모르는 옛 브리지(405)면 GET 으로 확인한다
+     * (두 저장소가 따로 배포되므로 버전이 어긋날 수 있다).
+     */
+    public async exists(path: string): Promise<boolean> {
+        const url = `${this.baseUrl}/api/files/${encodePath(path)}`;
+        let res: Response;
+        try {
+            res = await fetch(url, { method: "HEAD" });
+            if (res.status === 405 || res.status === 501) {
+                res = await fetch(url, { method: "GET" });
+            }
+        } catch {
+            throw new BridgeError(0, `브리지 서버(${this.baseUrl})에 연결할 수 없습니다.`);
+        }
+        if (res.status === 404) return false;
+        if (!res.ok) throw new BridgeError(res.status, `${res.status} ${res.statusText}`);
+        return true;
+    }
+
     public async writeJson(path: string, value: unknown, pretty = true): Promise<BridgeWriteResult> {
         const text = pretty ? JSON.stringify(value, null, 2) + "\n" : JSON.stringify(value);
         return this.json<BridgeWriteResult>("PUT", `/api/files/${encodePath(path)}`, {

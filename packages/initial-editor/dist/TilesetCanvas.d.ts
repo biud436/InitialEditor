@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { CompositeLayout } from "./map/MapFormat";
 export type ColorRGBFormat = [number, number, number];
 export type InitialTexture = {
     naturalWidth: number;
@@ -22,6 +23,13 @@ export default class TilesetCanvas {
      * 새로운 이미지가 있으면 맨 아래에 추가됩니다.
      */
     refreshTilesets(newTileset: string): Promise<void>;
+    get isReady(): boolean;
+    /**
+     * 합성 캔버스의 배치(어느 이미지가 어느 세로 구간을 차지하는지)를 돌려준다.
+     * createCanvas 와 같은 규칙(설정 순서대로 위에서 아래로, 각 이미지의 naturalHeight 만큼)이므로
+     * 맵 내보내기와 불러오기(map/MapFormat.ts)가 전역 타일 ID 를 타일셋별 지역 ID 로 바꿀 때 쓴다.
+     */
+    getLayout(): CompositeLayout;
     /**
      * HEX 컬러를 웹 색상으로 변환합니다.
      * @param hex

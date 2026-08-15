@@ -32,6 +32,151 @@ let Tilemap = class Tilemap extends Component {
          */
         this._semiTransparentOpacity = 1.0;
         this.fileProvider = new FileProvider();
+        /** 현재 편집 중인 맵 문서의 메타데이터 (맵 포맷 v1 의 name, id 와 저장 경로) */
+        this._mapName = "map1";
+        this._mapId = 1;
+        this._mapPath = null;
+        this._backgroundGraphics = null;
+        /**
+         * 아직 에디터가 편집하지 못하지만 맵 파일에는 있는 데이터.
+         * 불러온 그대로 들고 있다가 저장할 때 되돌려준다 (편집 못 한다고 지워버리면 데이터 손실이다).
+         */
+        this._collision = null;
+        this._layerNames = [];
+    }
+    get mapWidth() {
+        return this._mapWidth;
+    }
+    get mapHeight() {
+        return this._mapHeight;
+    }
+    get layerCount() {
+        return this._layerCount;
+    }
+    get tileWidth() {
+        return this._tileWidth;
+    }
+    get tileHeight() {
+        return this._tileHeight;
+    }
+    get mapName() {
+        return this._mapName;
+    }
+    set mapName(value) {
+        this._mapName = value;
+    }
+    get mapId() {
+        return this._mapId;
+    }
+    set mapId(value) {
+        this._mapId = value;
+    }
+    /** 브리지로 저장한(또는 불러온) 프로젝트 상대 경로. 아직 저장한 적이 없으면 null */
+    get mapPath() {
+        return this._mapPath;
+    }
+    set mapPath(value) {
+        this._mapPath = value;
+    }
+    /** 평탄한 맵 데이터 원본 (data[z*W*H + y*W + x]). 내보내기 전용 — 수정하지 말 것 */
+    getRawData() {
+        return this._data;
+    }
+    /** 통행 레이어 (에디터는 아직 편집하지 못하고 보존만 한다). 길이는 width*height */
+    getCollision() {
+        return this._collision;
+    }
+    setCollision(collision) {
+        this._collision =
+            collision && collision.length === this._mapWidth * this._mapHeight
+                ? collision.slice()
+                : null;
+    }
+    /** 맵 파일의 레이어 이름 (없으면 빈 배열 → 저장할 때 layer1.. 로 채운다) */
+    getLayerNames() {
+        return this._layerNames;
+    }
+    setLayerNames(names) {
+        this._layerNames = names.slice(0, this._config.LAYERS);
+    }
+    /**
+     * 맵 크기를 바꾼다. 겹치는 영역의 타일은 유지하고 새 영역은 빈 칸(0)이 된다.
+     * 히스토리는 새 크기 기준으로 다시 시작한다.
+     */
+    resize(width, height) {
+        width = Math.max(1, Math.floor(width));
+        height = Math.max(1, Math.floor(height));
+        if (width === this._mapWidth && height === this._mapHeight)
+            return this;
+        const layers = this._config.LAYERS;
+        const next = new Array(width * height * layers).fill(0);
+        const copyW = Math.min(width, this._mapWidth);
+        const copyH = Math.min(height, this._mapHeight);
+        for (let z = 0; z < layers; z++) {
+            for (let y = 0; y < copyH; y++) {
+                for (let x = 0; x < copyW; x++) {
+                    next[width * height * z + width * y + x] = this.getData(x, y, z);
+                }
+            }
+        }
+        // 통행 레이어도 겹치는 영역만 옮긴다 (에디터가 편집하진 않지만 버리지도 않는다)
+        let nextCollision = null;
+        if (this._collision) {
+            nextCollision = new Array(width * height).fill(0);
+            for (let y = 0; y < copyH; y++) {
+                for (let x = 0; x < copyW; x++) {
+                    nextCollision[width * y + x] =
+                        this._collision[this._mapWidth * y + x] ?? 0;
+                }
+            }
+        }
+        this._mapWidth = width;
+        this._mapHeight = height;
+        this._data = next;
+        this._collision = nextCollision;
+        this._history = new TilemapHistory(50);
+        this.saveHistory();
+        this.refreshBackground();
+        this._dirty = true;
+        return this;
+    }
+    /**
+     * 맵 전체를 새 데이터로 바꾼다 (불러오기, 새 맵). data 길이는 width*height*LAYERS 여야 한다.
+     */
+    setRawData(width, height, data) {
+        const layers = this._config.LAYERS;
+        if (data.length !== width * height * layers) {
+            throw new Error(`map data length ${data.length} != ${width}*${height}*${layers}`);
+        }
+        this._mapWidth = Math.max(1, Math.floor(width));
+        this._mapHeight = Math.max(1, Math.floor(height));
+        this._data = data.slice();
+        // 새 데이터의 크기에 맞지 않는 통행 레이어와 레이어 이름은 호출자가 다시 넣는다
+        this._collision = null;
+        this._layerNames = [];
+        this._history = new TilemapHistory(50);
+        this.saveHistory();
+        this.refreshBackground();
+        this._dirty = true;
+        return this;
+    }
+    /** 맵을 빈 칸으로 채운다 (새 맵) */
+    clearMap() {
+        this._data.fill(0);
+        this._history = new TilemapHistory(50);
+        this.saveHistory();
+        this._dirty = true;
+        return this;
+    }
+    /** 맵 크기가 바뀌면 검정 배경(컨테이너 크기 기준)을 다시 그린다 */
+    refreshBackground() {
+        if (!this._backgroundGraphics)
+            return;
+        const g = this._backgroundGraphics;
+        g.clear();
+        g.beginFill(0x000000);
+        g.drawRect(0, 0, this._mapWidth * this._tileWidth, this._mapHeight * this._tileHeight);
+        g.endFill();
     }
     initMembers(...args) {
         this._config = args[0];
@@ -324,6 +469,7 @@ let Tilemap = class Tilemap extends Component {
         graphics.drawRect(0, 0, realCanvasWidth, realCanvasHeight);
         graphics.endFill();
         this._layerContainer.addChild(graphics);
+        this._backgroundGraphics = graphics;
     }
     get app() {
         return this._app;
@@ -367,7 +513,7 @@ let Tilemap = class Tilemap extends Component {
     }
     collectAutoTileID(mx, my) {
         const mapX = this.getMapX(mx);
-        const mapY = this.getMapX(my);
+        const mapY = this.getMapY(my);
         const layerId = this._currentLayer;
         let mask = 0x00;
         const bits = [
@@ -389,7 +535,7 @@ let Tilemap = class Tilemap extends Component {
     }
     drawTile(mx, my, tileID) {
         let mapX = this.getMapX(mx);
-        let mapY = this.getMapX(my);
+        let mapY = this.getMapY(my);
         this.setData(mapX, mapY, this._currentLayer, tileID);
         this._dirty = true;
     }

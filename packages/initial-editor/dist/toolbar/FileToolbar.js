@@ -2,25 +2,35 @@ import App from "../app";
 import { EmptySegment } from "./EmptySegment";
 const FileToolbar = [
     {
-        name: "파일 만들기",
+        name: "새 맵",
         children: "file-new",
         action: (ev) => {
             if (App.GetInstance()) {
                 App.GetInstance().emit("openWindow", {
-                    path: "/newWindow",
+                    path: "/newMap",
                 });
             }
         },
     },
     {
-        name: "파일 열기",
+        name: "맵 열기",
         children: "file-open",
-        action: (ev) => { },
+        action: (ev) => {
+            if (App.GetInstance()) {
+                App.GetInstance().emit("openWindow", {
+                    path: "/openMap",
+                });
+            }
+        },
     },
     {
-        name: "파일 저장",
+        name: "맵 저장",
         children: "file-save",
-        action: (ev) => { },
+        action: (ev) => {
+            if (App.GetInstance()) {
+                App.GetInstance().emit("saveMap");
+            }
+        },
     },
     {
         name: "파일 저장",

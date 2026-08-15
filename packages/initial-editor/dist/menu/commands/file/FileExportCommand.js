@@ -7,12 +7,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { ElectronService } from "../../../ElectronService";
-import { OnMenuClick } from "../../../decorators/OnMenuClick";
+import App from "../../../app";
 import { MenuCommand } from "../../../decorators/MenuCommand";
+import { OnMenuClick } from "../../../decorators/OnMenuClick";
+/**
+ * 맵 내보내기 (Ctrl+E): 경로와 이름, ID 를 정하는 대화상자를 연다.
+ * 실제 쓰기는 MapDocumentService.exportTo 가 브리지 서버로 한다 (맵 포맷 v1).
+ */
 let FileExportCommand = class FileExportCommand {
     action(ev) {
-        ElectronService.getInstance().showErrorMessageBox("알림", "파일 내보내기 기능은 아직 지원되지 않습니다.");
+        App.GetInstance().emit("openWindow", { path: "/exportMap" });
     }
 };
 __decorate([

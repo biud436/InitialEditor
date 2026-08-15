@@ -115,6 +115,14 @@ export default class App extends EventEmitter {
             document.title = title;
         }
     }
+    /** 현재 타일맵 컴포넌트 (맵 문서 서비스가 내보내기와 불러오기에 쓴다) */
+    get tilemap() {
+        return this._tilemap;
+    }
+    /** 합성 타일셋 캔버스 (전역 타일 ID ↔ 타일셋별 지역 ID 변환 근거) */
+    get tilesetCanvas() {
+        return this._tilesetCanvas;
+    }
     /**
      * 컴포넌트를 생성합니다.
      */

@@ -4,6 +4,9 @@ import { createContext, useCallback } from 'react';
 import { useRecoilState } from 'recoil';
 import NewWindow from '../components/window/NewWindow';
 import OptionWindow from '../components/window/OptionWindow';
+import NewMapWindow from '../components/window/map/NewMapWindow';
+import OpenMapWindow from '../components/window/map/OpenMapWindow';
+import ExportMapWindow from '../components/window/map/ExportMapWindow';
 import { WindowState, WindowType } from '@store/window';
 
 export const WindowContext = createContext<{
@@ -29,6 +32,12 @@ export const WidgetProvider = () => {
                 return <OptionWindow />;
             case 'scriptEditor':
                 return <LuaEditor />;
+            case 'newMap':
+                return <NewMapWindow />;
+            case 'openMap':
+                return <OpenMapWindow />;
+            case 'exportMap':
+                return <ExportMapWindow />;
         }
     }, []);
 
