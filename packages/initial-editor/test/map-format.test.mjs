@@ -294,3 +294,48 @@ describe('path helpers', () => {
     assert.equal(defaultImagePath({ name: 'a.png' }), 'resources/tiles/a.png');
   });
 });
+
+describe('shared map format contract (Initial2D tests/fixtures/maps/sample_v1.json)', () => {
+  // 엔진 저장소의 계약 픽스처를 그대로 복사한 파일이다 (docs/plans/09-testing.md 3.5절).
+  // 엔진은 같은 파일로 로더 계약을 검증하므로, 양쪽이 같은 파일을 읽는 것이 포맷 합의의 증거다.
+  const fixture = JSON.parse(
+    fs.readFileSync(path.join(here, 'fixtures', 'map_v1_contract.json'), 'utf8'),
+  );
+
+  it('is a valid v1 map', () => {
+    assert.doesNotThrow(() => assertMapFileV1(fixture));
+  });
+
+  it('imports into the editor and exports back without losing anything but the id-0 tile', () => {
+    const layerCount = 4; // 에디터의 레이어 수
+    const imported = importMapV1(fixture, LAYOUT, layerCount);
+    assert.equal(imported.name, '소형');
+    assert.equal(imported.id, 99);
+    assert.equal(imported.width, 4);
+    assert.equal(imported.height, 3);
+    assert.deepEqual(imported.collision, fixture.collision);
+    assert.deepEqual(imported.unknownTilesets, []);
+    // gid 1 = 첫 타일셋의 첫 타일 → 에디터의 빈 칸 ID 와 겹쳐 한 칸만 사라진다
+    assert.equal(imported.unrepresentableTiles, 1);
+
+    const { map } = exportMapV1({
+      name: imported.name,
+      id: imported.id,
+      width: imported.width,
+      height: imported.height,
+      layerCount,
+      data: imported.data,
+      layout: LAYOUT,
+      layerNames: fixture.layers.map(l => l.name),
+      collision: imported.collision,
+    });
+
+    assert.equal(map.version, fixture.version);
+    assert.deepEqual(map.tilesets, fixture.tilesets);
+    assert.deepEqual(map.collision, fixture.collision);
+    assert.deepEqual(map.layers.map(l => l.name), ['ground', 'deco']);
+    assert.deepEqual(map.layers[1].data, fixture.layers[1].data);
+    // ground 는 첫 칸(gid 1)만 0 이 되고 나머지는 그대로다
+    assert.deepEqual(map.layers[0].data, [0, ...fixture.layers[0].data.slice(1)]);
+  });
+});
