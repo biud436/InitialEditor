@@ -7,10 +7,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+import App from "../../../app";
 import { MenuCommand, OnMenuClick } from "../../../decorators";
+/**
+ * 스크립트 편집기 창을 연다. 실제 편집기(React, LuaEditor)는 Initial2D 브리지 서버를 통해
+ * 게임 프로젝트의 scripts/*.lua 를 읽고 쓴다.
+ */
 let ToolsScriptEditorCommand = class ToolsScriptEditorCommand {
     action(ev) {
-        alert("스크립트 편집기를 아직 지원하지 않습니다.");
+        App.GetInstance().emit("openWindow", { path: "/scriptEditor" });
     }
 };
 __decorate([

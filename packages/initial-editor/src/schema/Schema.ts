@@ -1,7 +1,8 @@
 import { FileProvider } from "./FileProvider";
+import { IFileProvider } from "./IFileProvider";
 
 class Schema {
-    protected fileProvider: FileProvider = new FileProvider();
+    protected fileProvider: IFileProvider = new FileProvider();
 
     constructor(config: any) {
         this.initMembers(config);

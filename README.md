@@ -29,6 +29,30 @@ yarn build
 yarn dev
 ```
 
+## Working with an Initial2D project (bridge server)
+
+The editor is a plain web app, so it reaches your local game project through a small
+bridge server that ships with the [Initial2D](https://github.com/biud436/Initial2D) engine
+(`tools/bridge/server.js`, Node 20+, no dependencies). The bridge exposes `scripts/` and
+`resources/` of the game project over `http://127.0.0.1:5960` and can push scripts to the
+running game (hot reload).
+
+```sh
+# in the Initial2D repository
+INITIAL2D_HMR=1 ./build/Initial2D      # run the game with hot reload enabled
+node tools/bridge/server.js            # serve this repository as the project (127.0.0.1:5960)
+node tools/bridge/server.js --project ~/mygame
+
+# in this repository
+yarn build && yarn dev                 # open http://localhost:5173
+```
+
+- **Tools → Script Editor** lists `scripts/**/*.lua` from the project. Open a file, edit it, and
+  press **Ctrl+S / Cmd+S** to save. With "저장 시 게임 리로드" checked (default) the bridge pushes
+  the scripts to the running game right after each save. Files changed by other editors are
+  reloaded automatically (or flagged when you have unsaved edits).
+- The bridge URL can be changed with `localStorage['initial-editor.bridge-url']`.
+
 ## How to upstream from remote github repository
 
 To upstream from the remote repository, you must call below command.

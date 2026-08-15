@@ -1,11 +1,16 @@
-interface DataProviderFileOption {
-    encoding: string;
-}
+import {
+    DataProviderCallback,
+    DataProviderFileOption,
+    IFileProvider,
+} from "./IFileProvider";
 
 const PREFIX_TOKEN = "initial-editor-fs:///";
-type DataProviderCallback = (err?: Error | null, data?: unknown) => void;
 
-export class FileProvider {
+/**
+ * localStorage 기반 파일 제공자. 에디터 자체 설정(테마, 레이어 구성)처럼 브라우저에
+ * 남겨도 되는 것에 쓴다. 게임 프로젝트 파일은 BridgeFileProvider 를 쓴다.
+ */
+export class FileProvider implements IFileProvider {
     private getFilename(filename: string) {
         return PREFIX_TOKEN + filename;
     }

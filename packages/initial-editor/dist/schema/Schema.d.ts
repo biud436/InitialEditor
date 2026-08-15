@@ -1,6 +1,6 @@
-import { FileProvider } from "./FileProvider";
+import { IFileProvider } from "./IFileProvider";
 declare class Schema {
-    protected fileProvider: FileProvider;
+    protected fileProvider: IFileProvider;
     constructor(config: any);
     initMembers(config: any): void;
     /**

@@ -1,6 +1,4 @@
-import { FileProvider } from "./FileProvider";
 import { Schema } from "./Schema";
-import * as fs from "fs";
 
 interface ColorTheme {
     TITLE_COLOR: string;
