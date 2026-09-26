@@ -77,11 +77,14 @@ INITIAL_EDITOR_OPEN=~/mygame yarn tauri dev   # 시작하자마자 그 폴더를
 F5 는 늘 이쪽이고, Tauri 앱은 설정의 **실행 방식**(프로세스, 에디터 안)으로 고릅니다. 상태 바의 엔진 칸에 방식이 붙습니다.
 
 - F5 를 누르면 게임 탭이 열리고 `game.json`, `scripts/`, `resources/` 를 웹 엔진의 가상 파일 시스템에 올린 뒤 엔진이 뜹니다. `resources/rtp/`, `resources/aldebaran/src/`, `*.zip`, `*.psd`, 32 MB 를 넘는 파일은 올리지 않습니다. canvas 는 `game.json` 의 창 크기이고 탭에 맞춰 정수 배율로 커집니다 (탭이 작으면 줄인다).
-- 게임 탭을 누르면 키가 게임으로 갑니다. F5, Shift+F5 같은 실행 단축키는 그때도 에디터가 받습니다. 브라우저는 누르기 전에는 소리를 내지 않아서, 소리가 멈춰 있으면 "소리 켜기"가 뜹니다 (게임 화면을 눌러도 켜진다).
+- 게임 탭은 처음에 문서 영역 오른쪽의 새 그룹에 열려서 스크립트를 고치는 동안에도 보입니다. 탭을 다른 자리로 끌어 두면 닫았다 다시 열어도 그 자리에 열립니다 (에디터를 새로 고치면 처음 자리로).
+- 게임 탭을 누르면 (이미 앞에 있어도) 키가 게임으로 갑니다. F5, Shift+F5, Ctrl+F5, 리로드는 게임이나 스크립트 편집기나 입력 칸에 초점이 있어도 에디터가 받고, 브라우저의 새로 고침으로 가지 않습니다. 브라우저 모드에서 저장하지 않은 문서가 있으면 페이지를 새로 고치거나 닫기 전에 묻습니다. 브라우저는 누르기 전에는 소리를 내지 않아서, 소리가 멈춰 있으면 "소리 켜기"가 뜹니다 (게임 화면을 눌러도 켜진다).
 - 출력(Lua `print`, 엔진 로그)은 콘솔에 오고 오류 줄은 링크입니다. 스크립트, 씬, 맵을 저장하면 그 파일만 다시 올리고 VM 을 다시 시작합니다 (콘솔에 "핫 리로드: 에디터 안 엔진"). 정지하거나 게임 탭을 닫으면 엔진 인스턴스와 WebGL 컨텍스트를 버리고, 다시 실행하면 새로 띄웁니다.
-- 웹 엔진은 Lua 만 돕니다. `game.json` 의 `script` 가 `mruby` 면 띄우지 않고 이유를 알립니다.
-- 엔진 파일은 `packages/app/public/engine/` 에 든 엔진 저장소 웹 빌드의 사본이고 Cloudflare Pages 빌드에 그대로 실립니다. 엔진을 고쳤으면 엔진 저장소에서 `tools/build_web.sh` 를 돌린 뒤 `INITIAL2D_DIR=../Initial2D yarn sync:engine-web` 으로 다시 복사합니다. `MANIFEST.json` 에 엔진 커밋과 sha256 이 적히고 단위 테스트가 파일과 대조합니다.
-- e2e 는 `tests/e2e/game-view.spec.ts` 입니다 (메모리 모드 샘플, 그리고 엔진 저장소가 있으면 알데바란 사본을 브리지 모드로). `GAME_VIEW_SCREENSHOT=<png 경로>` 를 주면 게임 탭을 찍어 둡니다.
+- 스크립트 오류는 네이티브 엔진과 같은 줄(`Lua error in update: ./scripts/lua/main.lua:5: ...`, Ruby 는 `mruby: uncaught exception in update` 와 역추적)로 콘솔에 오고, 줄을 누르면 그 파일 그 줄로 갑니다. 끝나는 모양도 네이티브와 같습니다. 시작 때나 `Update`, `Render` 의 오류는 게임이 종료 코드 1 로 끝나고 (게임 탭 상태 띠 "오류로 끝남 (종료 코드 1)", 상태 바 "종료 코드 1"), 실행 중 저장한 스크립트의 오류는 스크립트만 멈추고 게임 탭은 살아 있어서 고쳐 저장하면 다시 그립니다 (콘솔에 경고). 예외가 엔진 밖으로 나오면(엔진이 죽었다) 콘솔에 `fatal:` 줄이 찍히고 종료 코드 1 로 끝납니다. 이 판단과 FPS(엔진이 돈 프레임 수)는 엔진 로더의 `onExit`, `frames()`, `errorText()` 를 쓰고, 그것이 없는 옛 엔진 빌드에서는 줄과 window 오류로 알아내고 FPS 는 페이지의 프레임 수입니다.
+- 웹 엔진 빌드에 mruby 가 들었으면(`MANIFEST.json` 의 기능이 `lua mruby wasm`) `game.json` 의 `script` 가 `mruby` 인 게임도 게임 탭에서 돕니다. mruby 없이 만든 빌드면 띄우지 않고 이유를 알립니다.
+- 엔진 파일은 `packages/app/public/engine/` 에 든 엔진 저장소 웹 빌드의 사본이고 Cloudflare Pages 빌드에 그대로 실립니다. 엔진을 고쳤으면 엔진 저장소에서 `tools/build_web.sh` 를 돌린 뒤 `INITIAL2D_DIR=../Initial2D yarn sync:engine-web` 으로 다시 복사합니다. `MANIFEST.json` 에 엔진 커밋, 커밋 안 된 변경이 있었는지, sha256, 기능(wasm 에 libmruby 가 링크되었으면 `mruby`)이 적히고 단위 테스트가 파일과 대조합니다 (`INITIAL2D_DIR` 의 `build-web/site/` 와도).
+- e2e 는 `tests/e2e/game-view.spec.ts` 입니다. 메모리 모드 샘플(Lua 와 Ruby, Lua 오류 둘)과, 엔진 저장소(`INITIAL2D_DIR`)가 있으면 알데바란 사본을 브리지 모드(포트 6073)로 Lua 와 Ruby 두 판 돌립니다. `GAME_VIEW_SCREENSHOT=<png 경로>` 를 주면 게임 탭을 찍어 둡니다.
+- 같은 화면인지: 같은 e2e 가 엔진의 인수 씬(알데바란 타이틀, `INITIAL2D_ALDEBARAN_STOP=title`)을 같은 파일로 네이티브 엔진(헤드리스, 프로세스 실행과 같은 실행 파일)과 게임 탭에서 돌려 20 프레임째를 견줍니다. 규칙은 엔진의 골든 검사와 같습니다 (채널 차이 24 초과면 다른 픽셀, 다른 픽셀 2% 까지). 네이티브 실행 파일은 `INITIAL2D_NATIVE` (기본 `<엔진 저장소>/build/Initial2D`)이고, 없으면 엔진 저장소의 골든 `tests/golden/aldebaran_title.png` 와 견줍니다. 잰 값은 `docs/plans/e4-embedded-play.md` 에 있습니다.
 
 ## 씬 편집 (E2)
 
