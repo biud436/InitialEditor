@@ -103,6 +103,24 @@ test.describe("메모리 모드 스모크", () => {
     await expect(page.getByTestId("toolbar").locator(".toolbar-tip").first()).toHaveAttribute("title", /브라우저 모드에서는 엔진을 띄울 수 없다/);
   });
 
+  test("오른쪽 클릭 메뉴는 누른 자리에 뜬다", async ({ page }) => {
+    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    const row = page.getByTestId("project-tree").locator('[data-path="scripts"]');
+    await expect(row).toBeVisible();
+    const box = (await row.boundingBox())!;
+    const x = Math.round(box.x + 30);
+    const y = Math.round(box.y + box.height / 2);
+    await page.mouse.click(x, y, { button: "right" });
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    const m = (await menu.boundingBox())!;
+    // 도킹 영역은 메뉴 바와 툴바만큼 아래에서 시작한다. 그만큼 밀려 뜨면 안 된다
+    expect(Math.abs(m.x - x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.y - y)).toBeLessThanOrEqual(1);
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+  });
+
   test("미리보기가 없는 파일은 토스트로 알린다", async ({ page }) => {
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     const tree = page.getByTestId("project-tree");
