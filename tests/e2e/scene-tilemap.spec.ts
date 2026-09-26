@@ -207,6 +207,8 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     // 씬 탭으로 돌아와도 맵이 그려져 있다
     await page.getByTestId("doc-tab").filter({ hasText: "tiles.json" }).click();
     await expect(view).toHaveAttribute("data-ready", "true");
+    // 맵 탭을 열면 맵 패널이 더해져 씬 뷰가 좁아질 수 있다. 카메라에 맞춘 뒤 본다 (보는 점이 캔버스 안에 들어온다)
+    expect(await ev<boolean>(page, "(e) => e.commands.execute('scene.fitCamera')")).toBe(true);
     await expect.poll(async () => isGrass(await pixel(page, view, grassAt))).toBe(true);
 
     // 저장: 씬 파일에 타일맵 오브젝트와 props
