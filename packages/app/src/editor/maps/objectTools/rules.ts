@@ -1,9 +1,10 @@
 // 맵 오브젝트 편집의 순수 규칙. DOM, MobX, 에디터를 모르므로 Node에서 테스트한다 (rules.test.ts).
 //   - 목록 묶음: 스키마의 타입 순서대로, 스키마에 없는 타입은 맨 뒤 한 묶음
 //   - 한 줄 요약: 첫 enum 칸의 값, 띠는 x..x+width, 사각형은 크기
-//   - 새 오브젝트: unique 타입 거부, defaultProps, 띠와 사각형의 기본 크기, 겹치지 않는 id
+//   - 새 오브젝트: unique 타입 거부, defaultProps, 띠와 사각형의 기본 크기, 겹치지 않는 id,
+//     범위 칸(rangeMin/rangeMax)은 스키마 기본값이 없으면 x 기준 ±PATROL_RADIUS
 //   - 복제: 새 id, 16px 옆, unique 타입은 건너뛴다
-//   - 여기서 실행의 위치와 환경 변수
+//   - 여기서 실행의 위치(맵 안으로 자른다)와 환경 변수
 
 import {
   cloneObject,
@@ -22,6 +23,10 @@ export const UNKNOWN_GROUP_LABEL = "스키마에 없음";
 export const FALLBACK_SIZE_TILES = 2;
 export const DUPLICATE_OFFSET = 16;
 export const PATROL_RADIUS = 64;
+/** 여기서 실행: 순찰 범위가 있는 오브젝트를 고르면 범위 왼끝에서 이만큼 왼쪽에서 시작한다 */
+export const PLAY_RANGE_GAP = 48;
+/** 여기서 실행: 순찰 범위 기준으로 정한 x의 아래 한계 */
+export const PLAY_MIN_X = 16;
 
 export interface Point {
   x: number;
@@ -77,7 +82,15 @@ export function planNewObject(schema: MapObjectSchema | null, type: string, obje
   if (!spec) return { ok: false, reason: `스키마에 없는 타입이다: ${type}` };
   if (spec.unique && objects.some((o) => o.type === type)) return { ok: false, reason: `${spec.label} 은(는) 하나만 둘 수 있다` };
   const id = uniqueMapObjectId(type, objects.map((o) => o.id));
-  const obj: MapObject = { id, type, x: Math.round(at.x), y: Math.round(at.y), props: defaultProps(spec), extra: {} };
+  // 점은 맵 안에 놓는다 (뷰 가운데가 맵 밖일 수 있다)
+  const obj: MapObject = {
+    id,
+    type,
+    x: clamp(Math.round(at.x), 0, Math.max(0, geometry.pixelWidth - 1)),
+    y: clamp(Math.round(at.y), 0, Math.max(0, geometry.pixelHeight - 1)),
+    props: defaultProps(spec),
+    extra: {},
+  };
   if (spec.shape === "band" || spec.shape === "rect") {
     const width = spec.defaultWidth ?? geometry.tileWidth * FALLBACK_SIZE_TILES;
     obj.width = width;
@@ -90,7 +103,19 @@ export function planNewObject(schema: MapObjectSchema | null, type: string, obje
       obj.y = 0;
     }
   }
+  const range = rangeFields(spec);
+  if (range) {
+    const around = rangeAround(obj.x, geometry.pixelWidth);
+    if (range.min.default === undefined) obj.props[range.min.name] = around.min;
+    if (range.max.default === undefined) obj.props[range.max.name] = around.max;
+  }
   return { ok: true, object: obj };
+}
+
+/** x 기준 ±radius 범위. 맵 폭 안으로 자른다 (새 오브젝트와 "현재 위치 기준" 버튼이 같이 쓴다) */
+export function rangeAround(x: number, pixelWidth: number, radius = PATROL_RADIUS): { min: number; max: number } {
+  const cx = clamp(Math.round(x), 0, Math.max(0, pixelWidth));
+  return { min: Math.max(0, Math.round(cx - radius)), max: Math.min(pixelWidth, Math.round(cx + radius)) };
 }
 
 export interface DuplicatePlan {
@@ -153,9 +178,12 @@ export const PLAY_SOURCE_LABELS: Record<PlaySource, string> = {
 export interface PlayPositionInput {
   objects: readonly MapObject[];
   selectedIds: readonly string[];
+  /** 이 맵의 뷰에 남은 커서. 맵 밖이면 쓰지 않는다 */
   cursor: Point | null | undefined;
   viewCenter: Point | null | undefined;
   geometry: MapGeometry;
+  /** 범위 칸(rangeMin)을 찾는 데 쓴다 */
+  schema?: MapObjectSchema | null;
   /** 시작 지점으로 볼 타입 (기본 start) */
   startType?: string;
 }
@@ -163,23 +191,49 @@ export interface PlayPositionInput {
 export interface PlayPosition extends Point {
   source: PlaySource;
   objectId?: string;
+  /** 위치를 옮긴 이유 (기록용) */
+  note?: string;
 }
+
+/** 여기서 실행의 위치 규칙 (메뉴 안내) */
+export const PLAY_POSITION_RULE = `위치는 하나만 고른 오브젝트 (순찰 범위가 있으면 왼끝에서 ${PLAY_RANGE_GAP}px 왼쪽, ${PLAY_MIN_X} 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서로 정하고 맵 안으로 자른다`;
 
 function isPoint(p: Point | null | undefined): p is Point {
   return !!p && Number.isFinite(p.x) && Number.isFinite(p.y);
 }
 
-/** 실행 위치: 하나만 고른 오브젝트, 커서, 화면 가운데, 시작 지점, 맵 가운데 순서 */
+function insideMap(p: Point, g: MapGeometry): boolean {
+  return p.x >= 0 && p.x < g.pixelWidth && p.y >= 0 && p.y < g.pixelHeight;
+}
+
+/**
+ * 실행 위치: 하나만 고른 오브젝트, 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서. 결과는 맵 안으로 자른다.
+ * 고른 오브젝트에 순찰 범위가 있으면 범위 왼끝에서 PLAY_RANGE_GAP 왼쪽(PLAY_MIN_X 이상)에서 시작한다.
+ * 범위 왼끝 값이 없으면 엔진처럼 x - PATROL_RADIUS로 본다.
+ */
 export function playPosition(input: PlayPositionInput): PlayPosition {
+  const g = input.geometry;
+  const fit = (p: PlayPosition): PlayPosition => ({
+    ...p,
+    x: clamp(Math.round(p.x), 0, Math.max(0, g.pixelWidth - 1)),
+    y: clamp(Math.round(p.y), 0, Math.max(0, g.pixelHeight - 1)),
+  });
   if (input.selectedIds.length === 1) {
     const o = input.objects.find((x) => x.id === input.selectedIds[0]);
-    if (o) return { x: Math.round(o.x), y: Math.round(o.y), source: "selection", objectId: o.id };
+    const range = o ? rangeFields(typeOf(input.schema ?? null, o.type)) : null;
+    if (o && range) {
+      const v = o.props[range.min.name];
+      const min = typeof v === "number" && Number.isFinite(v) ? v : o.x - PATROL_RADIUS;
+      const x = Math.max(PLAY_MIN_X, min - PLAY_RANGE_GAP);
+      return fit({ x, y: o.y, source: "selection", objectId: o.id, note: `순찰 범위 왼끝 ${Math.round(min)}에서 ${PLAY_RANGE_GAP}px 왼쪽` });
+    }
+    if (o) return fit({ x: o.x, y: o.y, source: "selection", objectId: o.id });
   }
-  if (isPoint(input.cursor)) return { x: Math.round(input.cursor.x), y: Math.round(input.cursor.y), source: "cursor" };
-  if (isPoint(input.viewCenter)) return { x: Math.round(input.viewCenter.x), y: Math.round(input.viewCenter.y), source: "view" };
+  if (isPoint(input.cursor) && insideMap(input.cursor, g)) return fit({ x: input.cursor.x, y: input.cursor.y, source: "cursor" });
+  if (isPoint(input.viewCenter)) return fit({ x: input.viewCenter.x, y: input.viewCenter.y, source: "view" });
   const start = input.objects.find((o) => o.type === (input.startType ?? "start"));
-  if (start) return { x: Math.round(start.x), y: Math.round(start.y), source: "start", objectId: start.id };
-  return { x: Math.round(input.geometry.pixelWidth / 2), y: Math.round(input.geometry.pixelHeight / 2), source: "center" };
+  if (start) return fit({ x: start.x, y: start.y, source: "start", objectId: start.id });
+  return fit({ x: g.pixelWidth / 2, y: g.pixelHeight / 2, source: "center" });
 }
 
 /** 맵 이름: 파일의 name, 비었으면 파일 이름에서 .json을 뺀 것 */

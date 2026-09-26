@@ -1,16 +1,17 @@
 // 여기서 실행: 활성 맵의 한 자리에서 엔진을 띄운다. 환경 변수는 스키마의 play.env가 정하고
 // ({map.name}, {map.file}, {x}, {y}), 러너의 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT) 뒤에 덧씌운다.
-// 위치 규칙은 rules.ts의 playPosition이다. 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
+// 위치 규칙은 rules.ts의 playPosition이다. 커서는 이 맵의 뷰에 남은 것만 쓴다.
+// 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
 
 import type { Document, DocumentRegistry } from "@initial-editor/core";
 import type { MapDocument, MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import type { ConfirmOptions } from "../../modals";
 import { asMapDocument } from "../schemaStore";
-import { cursorOf, geometryOf, viewCenterOf, type MapObjectHost } from "./actions";
-import { buildPlayEnv, mapNameFor, NO_PLAY_HINT, PLAY_SOURCE_LABELS, playPosition, type PlayPosition } from "./rules";
+import { cursorOf, geometryOf, mapSupportOf, viewCenterOf, type MapObjectHost } from "./actions";
+import { buildPlayEnv, mapNameFor, NO_PLAY_HINT, PLAY_POSITION_RULE, PLAY_SOURCE_LABELS, playPosition, type PlayPosition, type Point } from "./rules";
 
 const LOG = "maps";
-export const NEED_MAP_TAB = "맵 탭이 활성일 때 그 맵에서 실행한다";
+export const NEED_MAP_TAB = `맵 탭이 활성일 때 그 맵에서 실행한다. ${PLAY_POSITION_RULE}`;
 
 export interface PlayHost extends MapObjectHost {
   readonly documents: DocumentRegistry;
@@ -42,14 +43,26 @@ export function playHereHint(host: PlayHost): string | undefined {
   return host.runner.startHint;
 }
 
+/**
+ * 이 문서의 맵 뷰에 남은 커서. 맵 뷰의 활성 맵이 다른 문서면 null.
+ * 커서는 활성 맵의 뷰만 남기고 활성 맵이 바뀌면 비워지므로(MapSupport) 활성 맵이 곧 커서의 문서다.
+ */
+export function cursorFor(host: { mapSupport?: unknown }, doc: MapDocument): Point | null {
+  const s = mapSupportOf(host);
+  if (!s) return null;
+  if ("activeMap" in s && s.activeMap !== doc) return null;
+  return cursorOf(host);
+}
+
 /** 지금 실행하면 쓸 위치 */
 export function playPositionFor(host: PlayHost, doc: MapDocument): PlayPosition {
   return playPosition({
     objects: doc.model.objects,
     selectedIds: doc.selectedIds,
-    cursor: cursorOf(host),
+    cursor: cursorFor(host, doc),
     viewCenter: viewCenterOf(host),
     geometry: geometryOf(doc),
+    schema: schemaOf(host, doc),
   });
 }
 
@@ -89,7 +102,7 @@ export async function playHere(host: PlayHost): Promise<boolean> {
     host.toasts.warn(NO_PLAY_HINT);
     return false;
   }
-  const where = at.objectId ? `${PLAY_SOURCE_LABELS[at.source]} ${at.objectId}` : PLAY_SOURCE_LABELS[at.source];
+  const where = [at.objectId ? `${PLAY_SOURCE_LABELS[at.source]} ${at.objectId}` : PLAY_SOURCE_LABELS[at.source], at.note].filter(Boolean).join(", ");
   const vars = Object.entries(env)
     .map(([k, v]) => `${k}=${v}`)
     .join(" ");

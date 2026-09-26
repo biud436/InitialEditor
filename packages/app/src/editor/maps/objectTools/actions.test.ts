@@ -52,10 +52,29 @@ const SCHEMA = parseObjectSchema(
   }),
 );
 
-async function setup(center: { x: number; y: number } | null = null) {
+// resources/schema/map-objects.json처럼 순찰 범위 칸이 필수이고 기본값이 없다
+const REQUIRED_RANGE = parseObjectSchema(
+  JSON.stringify({
+    version: 1,
+    types: [
+      {
+        type: "spawn",
+        label: "몬스터",
+        fields: [
+          { name: "species", type: "enum", values: ["slime", "bat"], required: true, label: "종" },
+          { name: "minX", type: "number", role: "rangeMin", required: true, label: "순찰 왼끝" },
+          { name: "maxX", type: "number", role: "rangeMax", required: true, label: "순찰 오른끝" },
+        ],
+      },
+      { type: "start", label: "시작 지점", unique: true },
+    ],
+  }),
+);
+
+async function setup(center: { x: number; y: number } | null = null, schema = SCHEMA) {
   const mem = new MemoryBackend({ [MAP_PATH]: MAP });
   await mem.open("/p");
-  const doc = await MapDocument.open(mem, MAP_PATH, SCHEMA);
+  const doc = await MapDocument.open(mem, MAP_PATH, schema);
   const toasts: string[] = [];
   const focused: string[] = [];
   const toast = (level: string) => (text: string) => void toasts.push(`${level}: ${text}`);
@@ -81,6 +100,18 @@ describe("맵 오브젝트 조작", () => {
     const noView = await setup(null);
     expect(spawnPointFor(noView.host, noView.doc)).toEqual({ x: 160, y: 96 });
     expect(spawnPointFor({}, noView.doc)).toEqual({ x: 160, y: 96 });
+  });
+
+  it("추가한 몬스터는 순찰 범위가 제자리 기준 ±64이고 검사에 걸리지 않는다", async () => {
+    const { doc, host } = await setup({ x: 250, y: 100 }, REQUIRED_RANGE);
+    const before = doc.problems.length;
+    const spawn = addMapObject(host, doc, "spawn");
+    expect(spawn?.props).toEqual({ species: "slime", minX: 186, maxX: 314 });
+    expect(doc.problems.filter((p) => p.objectId === spawn?.id)).toEqual([]);
+    expect(doc.problems).toHaveLength(before);
+    // 맵 끝 가까이면 맵 폭(320) 안으로 자른다
+    const edge = addMapObject(host, doc, "spawn", { x: 300, y: 100 });
+    expect(edge?.props).toMatchObject({ minX: 236, maxX: 320 });
   });
 
   it("unique 타입은 둘째를 토스트로 거부한다", async () => {
@@ -144,5 +175,25 @@ describe("맵 오브젝트 조작", () => {
     selectProblem(host, doc, problem!);
     expect(doc.selectedIds).toEqual(["slime_1"]);
     expect(focused).toEqual(["slime_1"]);
+  });
+});
+
+describe("인스펙터로 x 를 고치면 순찰 범위도 같이 간다", () => {
+  it("타이핑 한 세션이 되돌리기 한 단계이고 범위가 같은 만큼 움직인다", async () => {
+    const { MapDocument, parseMap, parseObjectSchema } = await import("@initial-editor/ext-tilemap/model");
+    const { MemoryBackend } = await import("@initial-editor/core/testing");
+    const { setObjectGeometry } = await import("./actions");
+    const schema = parseObjectSchema(JSON.stringify({ version: 1, types: [{ type: "spawn", fields: [{ name: "minX", type: "number", role: "rangeMin" }, { name: "maxX", type: "number", role: "rangeMax" }] }] }));
+    const map = parseMap(JSON.stringify({ version: 2, name: "m", width: 20, height: 4, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "g", data: new Array(80).fill(0) }], objects: [{ id: "w", type: "spawn", x: 100, y: 32, props: { minX: 60, maxX: 140 } }] }));
+    const doc = new MapDocument(new MemoryBackend(), "resources/maps/m.json", map, schema);
+    setObjectGeometry(doc, "w", "x", 1, "typing");
+    setObjectGeometry(doc, "w", "x", 12, "typing");
+    setObjectGeometry(doc, "w", "x", 120, "typing");
+    expect(doc.model.findObject("w")).toMatchObject({ x: 120, props: { minX: 80, maxX: 160 } });
+    expect(doc.undo.depth).toBe(1);
+    doc.undo.undo();
+    expect(doc.model.findObject("w")).toMatchObject({ x: 100, props: { minX: 60, maxX: 140 } });
+    doc.undo.redo();
+    expect(doc.model.findObject("w")).toMatchObject({ x: 120, props: { minX: 80, maxX: 160 } });
   });
 });
