@@ -120,6 +120,10 @@ async function drag(page: Page, from: Point, to: Point) {
 }
 
 test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
+  // 픽셀을 100% 줌으로 본다 (1 아래로 줄이면 타일 가장자리가 섞인다). 맵 탭이 맵 패널을 더해도 보는 점이
+  // 씬 뷰 캔버스 안에 남도록 창을 넉넉히 쓴다
+  test.use({ viewport: { width: 1600, height: 1000 } });
+
   test("추가와 검사, 맵 고르기, 씬 뷰에 맵의 타일, 파일이 바뀌면 다시 그리기, 인스펙터로 맵 열기, 저장, 맵 비우기", async ({ page }) => {
     const view = await newSceneInSample(page, "tiles");
     const grassAt = at(88, 24); // 칸 (5,1)
@@ -207,8 +211,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     // 씬 탭으로 돌아와도 맵이 그려져 있다
     await page.getByTestId("doc-tab").filter({ hasText: "tiles.json" }).click();
     await expect(view).toHaveAttribute("data-ready", "true");
-    // 맵 탭을 열면 맵 패널이 더해져 씬 뷰가 좁아질 수 있다. 카메라에 맞춘 뒤 본다 (보는 점이 캔버스 안에 들어온다)
-    expect(await ev<boolean>(page, "(e) => e.commands.execute('scene.fitCamera')")).toBe(true);
+    // 맵 탭을 열면 맵 패널이 더해져 씬 뷰가 좁아진다 (그래서 이 파일은 창을 크게 쓴다)
     await expect.poll(async () => isGrass(await pixel(page, view, grassAt))).toBe(true);
 
     // 저장: 씬 파일에 타일맵 오브젝트와 props
