@@ -9,14 +9,16 @@
 //   되돌리기 한 번에 끌기 전으로 돌아간다. 선택은 document.select / clearSelection.
 // 좌표 계산은 geometry.ts (순수 함수) 에 있고 여기는 PIXI 와 DOM 이벤트만 다룬다.
 //
-// 근사인 것: 글자는 시스템 글꼴(게임은 BMFont), 스프라이트는 시작 프레임 한 장, 회전과 배율은 엔진처럼 왼쪽 위 기준.
-// 게임 뷰가 진실이다.
+// 근사인 것: 글자는 시스템 글꼴(게임은 BMFont), 스프라이트는 시작 프레임 한 장, 회전과 배율은 엔진처럼 왼쪽 위 기준,
+// 타일맵은 레이어를 모두 오브젝트 순서 자리에 그린다(게임은 groundLayers 위의 레이어를 다른 오브젝트 위에). 게임 뷰가 진실이다.
+// 확장 타입은 등록된 createSceneNode가 만든 노드를 그린다 (타일맵은 tilemapNode.ts).
 
 import type { ObjectTypeSpec, SceneDocument, SceneObject } from "@initial-editor/core";
 import { autorun, comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, Sprite, Text, Texture } from "pixi.js";
 import type { SceneColors, SceneFonts } from "./colors";
 import {
+  backgroundAt,
   clickSelection,
   dragPositions,
   fitRect,
@@ -45,6 +47,13 @@ export interface SceneNodeContext {
   colors: SceneColors;
   fonts: SceneFonts;
   document: SceneDocument;
+  /** 줌과 상관없이 화면에서 같은 크기로 보이는 이름표. 노드 안에 붙여 쓴다 */
+  makeLabel(text: string, color: number): Container;
+  /**
+   * 노드의 경계 (오브젝트 위치 기준, 월드 단위). 고르기와 선택 상자가 쓴다. 비동기로 다 그린 뒤에도 부를 수 있다.
+   * background면 배경 대상이다 (geometry.ts HitTarget.background: 누르면 상자 선택, 움직이지 않고 놓으면 고른다)
+   */
+  setBounds(bounds: Rect, opts?: { background?: boolean }): void;
 }
 
 export interface SceneTheme {
@@ -69,6 +78,8 @@ interface NodeEntry {
   size: Rect;
   /** 화면 크기를 유지할 글자들 (줌의 역수로 배율) */
   labels: Container[];
+  /** 배경 대상 (setBounds의 background) */
+  background: boolean;
   imagePath: string | null;
   spec: ObjectTypeSpec | undefined;
   /** 비동기 로드가 늦게 끝나 옛 노드를 건드리지 않게 */
@@ -79,7 +90,7 @@ type PointerState =
   | { kind: "pan"; last: Point }
   | { kind: "maybeDrag"; start: Point; worldStart: Point; primary: string; starts: DragStart[] }
   | { kind: "drag"; worldStart: Point; primary: string; starts: DragStart[]; key: string; last: string }
-  | { kind: "band"; start: Point; current: Point; additive: boolean };
+  | { kind: "band"; start: Point; current: Point; additive: boolean; screenStart: Point; background: string | null };
 
 /** BMFont hangul.fnt (size 32, lineHeight 32) 의 근사 */
 const TEXT_FONT_SIZE = 28;
@@ -210,7 +221,7 @@ export class SceneRenderer {
     const t = this.transform;
     this.world.scale.set(t.zoom);
     this.world.position.set(t.panX, t.panY);
-    for (const entry of this.nodes.values()) for (const label of entry.labels) label.scale.set(1 / t.zoom);
+    for (const entry of this.nodes.values()) for (const label of entry.labels) if (!label.destroyed) label.scale.set(1 / t.zoom);
     this.redrawGrid();
     this.redrawCamera();
     this.redrawSelection();
@@ -311,7 +322,7 @@ export class SceneRenderer {
     for (const o of this.document.scene.objects) {
       const entry = this.nodes.get(o.id);
       if (!entry) continue;
-      out.push({ id: o.id, bounds: { x: o.x + entry.size.x, y: o.y + entry.size.y, w: entry.size.w, h: entry.size.h } });
+      out.push({ id: o.id, bounds: { x: o.x + entry.size.x, y: o.y + entry.size.y, w: entry.size.w, h: entry.size.h }, background: entry.background });
     }
     return out;
   }
@@ -331,11 +342,13 @@ export class SceneRenderer {
     if (e.button !== 0) return;
     const doc = this.document;
     const world = screenToWorld(this.transform, screen);
-    const hit = hitTest(this.hitTargets(), world);
+    const targets = this.hitTargets();
+    const hit = hitTest(targets, world, doc.selection);
     const next = clickSelection(doc.selection, hit, e.shiftKey);
     doc.select(next);
     if (hit === null) {
-      this.pointer = { kind: "band", start: world, current: world, additive: e.shiftKey };
+      // 고르지 않은 배경 위면 상자 선택으로 시작하고, 움직이지 않고 놓으면 그 배경을 고른다
+      this.pointer = { kind: "band", start: world, current: world, additive: e.shiftKey, screenStart: screen, background: backgroundAt(targets, world) };
       return;
     }
     if (e.shiftKey) return; // Shift 는 토글만, 끌지 않는다
@@ -386,6 +399,10 @@ export class SceneRenderer {
     if (this.app?.canvas.hasPointerCapture(e.pointerId)) this.app.canvas.releasePointerCapture(e.pointerId);
     if (p.kind === "band") {
       this.bandLayer.clear();
+      if (p.background !== null && !movedEnough(p.screenStart, this.screenPoint(e))) {
+        this.document.select(clickSelection(this.document.selection, p.background, p.additive));
+        return;
+      }
       const band = rectFromPoints(p.start, p.current);
       if (band.w === 0 && band.h === 0) return; // 빈 곳 클릭은 pointerdown 에서 이미 비웠다
       const hits = rubberBandSelect(this.hitTargets(), band);
@@ -535,12 +552,12 @@ export class SceneRenderer {
     node.label = o.id;
     node.position.set(o.x, o.y);
     node.alpha = o.visible ? 1 : HIDDEN_ALPHA;
-    const entry: NodeEntry = { object: o, node, size: { x: 0, y: 0, w: 0, h: 0 }, labels: [], imagePath: null, spec, run: 0 };
+    const entry: NodeEntry = { object: o, node, size: { x: 0, y: 0, w: 0, h: 0 }, labels: [], background: false, imagePath: null, spec, run: 0 };
     if (o.type === "sprite") this.buildSprite(entry);
     else if (o.type === "text") this.buildText(entry);
     else if (o.type === "node") this.buildNode(entry);
     else this.buildExtension(entry, spec);
-    for (const label of entry.labels) label.scale.set(1 / this.transform.zoom);
+    for (const label of entry.labels) if (!label.destroyed) label.scale.set(1 / this.transform.zoom);
     return entry;
   }
 
@@ -642,18 +659,45 @@ export class SceneRenderer {
   private buildExtension(entry: NodeEntry, spec: ObjectTypeSpec | undefined): void {
     const o = entry.object;
     if (spec?.createSceneNode) {
-      const ctx: SceneNodeContext = { loadTexture: (p) => this.deps.textures.load(p), colors: this.theme.colors, fonts: this.theme.fonts, document: this.document };
+      let bounded = false;
+      let failed = false;
+      const ctx: SceneNodeContext = {
+        loadTexture: (p) => this.deps.textures.load(p),
+        colors: this.theme.colors,
+        fonts: this.theme.fonts,
+        document: this.document,
+        makeLabel: (text, color) => {
+          const label = this.makeLabel(text, color);
+          label.scale.set(1 / this.transform.zoom);
+          if (!failed) entry.labels.push(label);
+          return label;
+        },
+        setBounds: (b, opts) => {
+          bounded = true;
+          if (failed || entry.run === -1 || this.disposed) return;
+          entry.size = { x: b.x, y: b.y, w: Math.max(1, b.w), h: Math.max(1, b.h) };
+          entry.background = opts?.background === true;
+          entry.labels = entry.labels.filter((label) => !label.destroyed);
+          this.redrawSelection();
+        },
+      };
       try {
         const made = spec.createSceneNode(o, ctx);
         if (made instanceof Container) {
           entry.node.addChild(made);
-          const b = made.getLocalBounds();
-          entry.size = { x: b.x, y: b.y, w: Math.max(1, b.width), h: Math.max(1, b.height) };
+          if (!bounded) {
+            const b = made.getLocalBounds();
+            entry.size = { x: b.x, y: b.y, w: Math.max(1, b.width), h: Math.max(1, b.height) };
+          }
           return;
         }
       } catch {
-        // 확장이 실패하면 아래의 이름표 상자로
+        // 아래의 이름표 상자로
       }
+      // 확장이 노드를 만들지 못했다: 만든 이름표를 치우고 이름표 상자를 그린다
+      failed = true;
+      for (const label of entry.labels) if (!label.destroyed) label.destroy();
+      entry.labels = [];
     }
     const color = this.theme.colors["fg-muted"];
     const size = 48;

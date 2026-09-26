@@ -1,13 +1,77 @@
-// 타일맵 확장 (docs/plans/e3-tilemap.md). E0 에서는 껍데기만 있다: 활성화되지만 아무것도 등록하지 않는다.
-// E3 에서 오브젝트 타입 tilemap, 타일셋 자산, 팔레트와 레이어 패널, 도구, 맵 v2 변환이 들어온다.
+// 타일맵 확장 (docs/plans/04-extensions-and-tilemap.md 4절, docs/plans/e3-tilemap.md).
+// 씬에 놓는 오브젝트 타입 "tilemap"을 등록한다. 맵 데이터는 씬이 아니라 props.map이 가리키는 맵 파일
+// (resources/maps/*.json, 엔진 맵 포맷 v2)에 있다. 게임 안에서는 런타임 짝(scene_types/tilemap)이 그 파일을
+// Tilemap.load로 열고, groundLayers 개의 레이어를 다른 오브젝트 아래에, 나머지를 위에 그린다.
+// 씬 뷰 노드와 인스펙터는 앱이 붙인다 (확장 API에 UI 등록이 아직 없다).
+// 검사기는 엔진 런타임 짝의 validate와 같은 규칙으로 씬의 타일맵 오브젝트를 검사한다.
 
-import type { Extension, ExtensionApi } from "@initial-editor/core";
+import type { Extension, ExtensionApi, ObjectTypeSpec, ValidationProblem } from "@initial-editor/core";
+
+export const TILEMAP_TYPE = "tilemap";
+
+export const TILEMAP_RUNTIME = {
+  lua: "scripts/lua/scene_types/tilemap.lua",
+  ruby: "scripts/ruby/scene_types/tilemap.rb",
+} as const;
+
+/** 타일맵 오브젝트의 props. map은 프로젝트 루트 기준 맵 파일 경로 */
+export interface TilemapProps {
+  map: string;
+  groundLayers: number;
+}
+
+export const TILEMAP_DEFAULTS: Readonly<TilemapProps> = { map: "", groundLayers: 1 };
+
+/** 등록할 오브젝트 타입 명세 (부를 때마다 새 객체) */
+export function tilemapObjectType(): ObjectTypeSpec {
+  return {
+    type: TILEMAP_TYPE,
+    label: "타일맵",
+    icon: "tilemap",
+    defaults: { ...TILEMAP_DEFAULTS },
+    runtime: { ...TILEMAP_RUNTIME },
+  };
+}
+
+/** props를 읽는다. 모양이 어긋난 값은 기본값으로 (groundLayers는 0 이상의 정수) */
+export function readTilemapProps(props: Record<string, unknown>): TilemapProps {
+  const map = typeof props.map === "string" ? props.map : "";
+  const g = props.groundLayers;
+  const groundLayers = typeof g === "number" && Number.isFinite(g) && g >= 0 ? Math.floor(g) : TILEMAP_DEFAULTS.groundLayers;
+  return { map, groundLayers };
+}
+
+/**
+ * 씬 데이터의 타일맵 오브젝트 검사. 엔진 scene_types/tilemap.lua의 M.validate와 같은 규칙이다:
+ * props.map은 비지 않은 문자열, groundLayers는 없거나 0 이상의 수. 씬이 아닌 값이면 빈 목록
+ */
+export function validateTilemapObjects(scene: unknown): ValidationProblem[] {
+  const objects = (scene as { objects?: unknown } | null)?.objects;
+  if (!Array.isArray(objects)) return [];
+  const problems: ValidationProblem[] = [];
+  objects.forEach((o: unknown, i) => {
+    const obj = o as { id?: unknown; type?: unknown; props?: unknown } | null;
+    if (!obj || obj.type !== TILEMAP_TYPE) return;
+    const id = typeof obj.id === "string" ? obj.id : `#${i}`;
+    const props = (obj.props && typeof obj.props === "object" ? obj.props : {}) as Record<string, unknown>;
+    const where = `objects[${i}].props`;
+    if (typeof props.map !== "string" || props.map === "") {
+      problems.push({ severity: "error", message: `타일맵 ${id}에 맵 파일(props.map)이 없다. 엔진이 씬을 거부한다`, location: `${where}.map` });
+    }
+    const g = props.groundLayers;
+    if (g !== undefined && (typeof g !== "number" || !Number.isFinite(g) || g < 0)) {
+      problems.push({ severity: "error", message: `타일맵 ${id}의 groundLayers는 0 이상의 수여야 한다: ${JSON.stringify(g)}`, location: `${where}.groundLayers` });
+    }
+  });
+  return problems;
+}
 
 export const tilemapExtension: Extension = {
   id: "tilemap",
   name: "타일맵",
-  activate(_api: ExtensionApi) {
-    // E3 에서 채운다
+  activate(api: ExtensionApi) {
+    api.registerObjectType(tilemapObjectType());
+    api.registerValidator(validateTilemapObjects);
   },
 };
 

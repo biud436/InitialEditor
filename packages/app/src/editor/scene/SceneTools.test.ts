@@ -19,6 +19,7 @@ interface Harness {
   be: MemoryBackend;
   documents: DocumentRegistry;
   project: Project;
+  registries: ExtensionRegistries;
   toasts: string[];
   prompts: string[];
   promptAnswer: string | null;
@@ -66,6 +67,7 @@ async function make(files: Record<string, string> = {}): Promise<Harness> {
     be,
     documents,
     project,
+    registries,
     toasts,
     prompts,
     opened,
@@ -227,6 +229,13 @@ describe("SceneTools", () => {
     h.documents.activate(h.doc);
     expect(await h.tools.openScene("resources/scenes/stage1.json")).toBe(doc);
     expect(h.opened.length).toBe(1);
+  });
+
+  it("openScene 이 직접 연 씬에도 확장의 검사기가 돈다", async () => {
+    const h = await make({ "resources/scenes/other.json": '{ "version": 1, "name": "other", "objects": [{ "id": "a", "type": "node" }] }' });
+    h.registries.validators.push((data) => (data as { objects: Array<{ id: string }> }).objects.map((o) => ({ severity: "warning" as const, message: `검사 ${o.id}` })));
+    const doc = await h.tools.openScene("resources/scenes/other.json");
+    expect(doc?.problems.map((p) => p.message)).toEqual(["검사 a"]);
   });
 
   it("setStartScene: 활성 씬 이름을 game.json 에 쓴다", async () => {

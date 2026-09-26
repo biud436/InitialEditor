@@ -3,12 +3,17 @@
 //     먼저 가로채므로 씬 파일이 Monaco 로 열리지 않는다)
 //   - 보기 설정(격자, 스냅, 줌, SceneViewState) 과 그 커맨드와 메뉴 (viewCommands.ts)
 //   - 렌더러들이 함께 쓰는 텍스처 캐시. 이미지 파일이 바뀌면 버린다
+//   - 타일맵 오브젝트의 씬 노드 (타일맵 확장이 등록한 타입에 붙인다)와 그 맵 파일 캐시. 파일이 바뀌면 알린다
 //   - 열린 렌더러 목록 (카메라 맞추기 커맨드가 활성 탭의 것을 찾는다)
 
-import { CORE_OBJECT_TYPES, SceneDocument, SCENES_DIR } from "@initial-editor/core";
+import { CORE_OBJECT_TYPES, SceneDocument, SCENES_DIR, type SceneObject } from "@initial-editor/core";
+import { TILEMAP_TYPE } from "@initial-editor/ext-tilemap";
 import { computed, makeObservable } from "mobx";
 import type { Editor } from "../Editor";
-import type { SceneRenderer } from "./SceneRenderer";
+import { MapFileCache } from "./mapFiles";
+import { attachObjectTypeParts } from "./objectTypeParts";
+import type { SceneNodeContext, SceneRenderer } from "./SceneRenderer";
+import { createTilemapNode } from "./tilemapNode";
 import { TextureCache } from "./textures";
 import { registerViewCommands } from "./viewCommands";
 import { SceneViewState } from "./viewState";
@@ -22,12 +27,15 @@ export function isScenePath(path: string): boolean {
 export class SceneSupport {
   readonly view: SceneViewState;
   readonly textures: TextureCache;
+  /** 타일맵 오브젝트가 가리키는 맵 파일 (씬 노드와 인스펙터가 읽는다) */
+  readonly maps: MapFileCache;
   private readonly renderers = new Map<SceneDocument, Set<SceneRenderer>>();
   private disposers: Array<() => void> = [];
 
   constructor(private readonly editor: Editor) {
     this.view = new SceneViewState(safeLocalStorage());
     this.textures = new TextureCache(() => editor.backend);
+    this.maps = new MapFileCache(() => editor.backend);
     makeObservable(this, { openCount: computed, activeScene: computed });
   }
 
@@ -44,6 +52,9 @@ export class SceneSupport {
 
   /** 검증이 아는 타입: 코어 셋과 확장이 등록한 것 */
   readonly knownTypes = (): ReadonlySet<string> => new Set<string>([...CORE_OBJECT_TYPES, ...this.editor.registries.objectTypes.keys()]);
+
+  /** 확장이 등록한 검사기 */
+  readonly validators = () => this.editor.registries.validators;
 
   /** game.json 의 논리 해상도 (창 크기 / renderScale). 씬 좌표는 이 단위다 */
   gameSize(): { width: number; height: number } {
@@ -64,10 +75,16 @@ export class SceneSupport {
     });
     this.disposers.push(registerViewCommands(editor, this));
     this.disposers.push(
+      attachObjectTypeParts(editor.registries.objectTypes, TILEMAP_TYPE, {
+        createSceneNode: (object, ctx) => createTilemapNode({ maps: this.maps }, object as SceneObject, ctx as SceneNodeContext),
+      }),
+    );
+    this.disposers.push(
       editor.events.on("projectOpened", () => this.watchProject()),
       editor.events.on("projectClosed", () => {
         this.unwatchProject();
         this.textures.clear();
+        this.maps.clear();
       }),
     );
     if (editor.project.isOpen) this.watchProject();
@@ -82,7 +99,7 @@ export class SceneSupport {
       return existing instanceof SceneDocument ? existing : null;
     }
     try {
-      const doc = await SceneDocument.open(editor.backend, path, this.knownTypes);
+      const doc = await SceneDocument.open(editor.backend, path, this.knownTypes, this.validators);
       const opened = editor.documents.open(doc);
       if (opened !== doc) return opened instanceof SceneDocument ? opened : null;
       const errors = doc.problems.filter((p) => p.severity === "error");
@@ -129,11 +146,15 @@ export class SceneSupport {
 
   private projectDisposer: (() => void) | null = null;
 
-  /** 이미지가 바뀌면(밖에서든 에디터가 썼든) 텍스처를 버린다. 렌더러는 invalidated 를 듣고 다시 만든다 */
+  /**
+   * 파일이 바뀌면(밖에서든 에디터가 썼든) 그 텍스처를 버리고(렌더러는 invalidated를 듣고 다시 만든다), 맵 파일 캐시에
+   * 알린다 (타일맵 노드는 제 맵 파일이나 타일셋 그림이면 다시 그린다). 텍스처를 먼저 버려야 노드가 새 그림을 읽는다
+   */
   private watchProject(): void {
     this.unwatchProject();
     this.projectDisposer = this.editor.project.events.on("change", (e) => {
       if (this.textures.has(e.path)) this.textures.invalidate(e.path);
+      this.maps.fileChanged(e.path);
     });
   }
 
@@ -147,6 +168,7 @@ export class SceneSupport {
     for (const d of this.disposers.reverse()) d();
     this.disposers = [];
     this.textures.dispose();
+    this.maps.clear();
     this.view.dispose();
   }
 }
