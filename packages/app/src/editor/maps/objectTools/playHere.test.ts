@@ -181,6 +181,30 @@ describe("여기서 실행", () => {
     expect(f.doc.dirty).toBe(true);
   });
 
+  it("밖에서 바뀐 맵의 저장 충돌 모달에서 취소하면 디스크를 두고 실행하지 않는다", async () => {
+    const f = await fake();
+    f.doc.apply(f.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
+    const outside = MAP.replace('"x":700', '"x":745');
+    expect(outside).not.toBe(MAP);
+    f.mem.simulateExternalChange(MAP_PATH, "modify", outside);
+    const asked: string[] = [];
+    f.host.saveDocument = (d) =>
+      d.saveChecked({
+        readText: (p) => f.mem.readText(p),
+        askConflict: async (_doc, conflict) => {
+          asked.push(conflict.kind);
+          return "cancel";
+        },
+        confirmDiscard: async () => true,
+      });
+    expect(await playHere(f.host)).toBe(false);
+    expect(asked).toEqual(["changed"]);
+    expect(f.starts).toEqual([]);
+    expect(await f.mem.readText(MAP_PATH)).toBe(outside);
+    expect(f.doc.dirty).toBe(true);
+    expect(f.toasts).toEqual([]);
+  });
+
   it("브라우저 모드는 러너의 이유, 맵 탭이 아니면 맵 안내, 스키마에 play 가 없으면 더하는 법", async () => {
     const browser = await fake({ reason: "브라우저 모드에서는 엔진을 띄울 수 없다" });
     expect(playHereHint(browser.host)).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");

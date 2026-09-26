@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { type Command, Document, DocumentRegistry, UndoStack } from "./document";
+import { BackendError } from "./backend";
+import { type Command, Document, DocumentRegistry, type SaveConflict, type SaveConflictChoice, type SaveGuard, UndoStack } from "./document";
 import { CORE_DEFAULT_PROPS, makeObject } from "./scene";
 import { SceneDocument } from "./sceneDocument";
 import { MemoryBackend } from "./testing/memory-backend";
@@ -282,5 +283,210 @@ describe("DocumentRegistry", () => {
     expect(r.active).toBe(b);
     r.close(b);
     expect(r.active).toBe(null);
+  });
+});
+
+// 저장 직전 확인 (03-project-and-runtime.md 파일 규칙 4): 파일이 밖에서 바뀌었으면 모달로 묻는다
+describe("저장 충돌", () => {
+  const PATH = "resources/scenes/x.json";
+  const DISK = '{"version": 1, "objects": []}';
+
+  /** 묻는 것을 기록하고 정해 둔 답을 차례로 준다 */
+  function guardFor(be: MemoryBackend, answers: { choices?: SaveConflictChoice[]; discard?: boolean[] } = {}) {
+    const asked: SaveConflict[] = [];
+    const discards: string[] = [];
+    const choices = [...(answers.choices ?? [])];
+    const discard = [...(answers.discard ?? [])];
+    const guard: SaveGuard = {
+      readText: (p) => be.readText(p),
+      askConflict: async (_doc, conflict) => {
+        asked.push(conflict);
+        return choices.shift() ?? "cancel";
+      },
+      confirmDiscard: async (doc) => {
+        discards.push(doc.title);
+        return discard.shift() ?? false;
+      },
+    };
+    return { guard, asked, discards };
+  }
+
+  async function openScene(text = DISK) {
+    const be = new MemoryBackend({ [PATH]: text });
+    await be.open("/mem");
+    const doc = await SceneDocument.open(be, PATH, () => new Set(["node"]));
+    doc.apply(doc.scene.addObject(makeObject("node", "mine", {})));
+    return { be, doc };
+  }
+
+  const OUTSIDE = '{"version": 1, "objects": [{"id": "outside", "type": "node", "x": 0, "y": 0}]}';
+
+  it("디스크가 연 때와 같으면 묻지 않고 저장하고, 저장한 뒤 다시 저장해도 묻지 않는다", async () => {
+    const { be, doc } = await openScene();
+    const { guard, asked } = guardFor(be);
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(await be.readText(PATH)).toContain('"mine"');
+    doc.apply(doc.scene.addObject(makeObject("node", "second", {})));
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toEqual([]);
+  });
+
+  it("알림이 오기 전이라도 저장 직전에 디스크가 바뀌었으면 묻고, 취소하면 디스크와 내 수정을 둔다", async () => {
+    const { be, doc } = await openScene();
+    // 알림 없이 바뀐 디스크 (감시가 아직 알리지 않았다)
+    await be.writeText(PATH, OUTSIDE);
+    expect(doc.externallyChanged).toBe(false);
+    const { guard, asked } = guardFor(be, { choices: ["cancel"] });
+    expect(await doc.saveChecked(guard)).toBe("cancelled");
+    expect(asked).toEqual([{ kind: "changed" }]);
+    expect(await be.readText(PATH)).toBe(OUTSIDE);
+    expect(doc.dirty).toBe(true);
+    expect(doc.scene.objects.map((o) => o.id)).toEqual(["mine"]);
+  });
+
+  it("덮어쓰기는 내 것을 쓰고 배너를 거두며, 그 뒤의 저장은 다시 묻지 않는다", async () => {
+    const { be, doc } = await openScene();
+    be.simulateExternalChange(PATH, "modify", OUTSIDE);
+    doc.externallyChanged = true; // 수정 중이라 에디터가 배너를 띄운 상태
+    const { guard, asked } = guardFor(be, { choices: ["overwrite"] });
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toEqual([{ kind: "changed" }]);
+    expect(JSON.parse(await be.readText(PATH)).objects.map((o: { id: string }) => o.id)).toEqual(["mine"]);
+    expect(doc.dirty).toBe(false);
+    expect(doc.externallyChanged).toBe(false);
+    doc.apply(doc.scene.addObject(makeObject("node", "later", {})));
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toHaveLength(1);
+  });
+
+  it("다시 읽기는 수정 중이면 한 번 더 묻고, 거절하면 취소, 받아들이면 디스크 내용으로 바꾼다", async () => {
+    const { be, doc } = await openScene();
+    be.simulateExternalChange(PATH, "modify", OUTSIDE);
+    const { guard, asked, discards } = guardFor(be, { choices: ["reload", "reload"], discard: [false, true] });
+    expect(await doc.saveChecked(guard)).toBe("cancelled");
+    expect(discards).toEqual(["x.json"]);
+    expect(doc.dirty).toBe(true);
+    expect(doc.scene.objects.map((o) => o.id)).toEqual(["mine"]);
+    expect(await be.readText(PATH)).toBe(OUTSIDE);
+
+    expect(await doc.saveChecked(guard)).toBe("reloaded");
+    expect(asked).toHaveLength(2);
+    expect(discards).toHaveLength(2);
+    expect(doc.scene.objects.map((o) => o.id)).toEqual(["outside"]);
+    expect(doc.dirty).toBe(false);
+    expect(await be.readText(PATH)).toBe(OUTSIDE);
+    // 다시 읽은 내용이 새 기준이다
+    doc.apply(doc.scene.addObject(makeObject("node", "after", {})));
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toHaveLength(2);
+  });
+
+  it("수정 중이 아니면 다시 읽기를 한 번 더 묻지 않는다", async () => {
+    const { be, doc } = await openScene();
+    await doc.save();
+    expect(doc.dirty).toBe(false);
+    be.simulateExternalChange(PATH, "modify", OUTSIDE);
+    const { guard, discards } = guardFor(be, { choices: ["reload"] });
+    expect(await doc.saveChecked(guard)).toBe("reloaded");
+    expect(discards).toEqual([]);
+    expect(doc.scene.objects.map((o) => o.id)).toEqual(["outside"]);
+  });
+
+  it("내용이 같은 외부 변경은 배너가 떠 있어도 묻지 않는다", async () => {
+    const { be, doc } = await openScene();
+    be.simulateExternalChange(PATH, "modify", DISK);
+    doc.externallyChanged = true;
+    const { guard, asked } = guardFor(be);
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toEqual([]);
+    expect(doc.externallyChanged).toBe(false);
+  });
+
+  it("지워진 파일은 missing으로 묻고, 덮어쓰면 다시 만든다", async () => {
+    const { be, doc } = await openScene();
+    be.simulateExternalChange(PATH, "delete");
+    const { guard, asked } = guardFor(be, { choices: ["cancel", "overwrite"] });
+    expect(await doc.saveChecked(guard)).toBe("cancelled");
+    expect(await be.exists(PATH)).toBe(false);
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toEqual([{ kind: "missing" }, { kind: "missing" }]);
+    expect(await be.readText(PATH)).toContain('"mine"');
+  });
+
+  it("다시 읽지 못한 문서는 unreadable로 이유와 함께 묻고, 덮어쓰기를 고르면 막힘을 풀고 쓴다", async () => {
+    const { be, doc } = await openScene();
+    const broken = '{"version": 1, "objects": [';
+    be.simulateExternalChange(PATH, "modify", broken);
+    await expect(doc.reloadFromDisk()).rejects.toThrow();
+    const reason = doc.reloadError!;
+    const { guard, asked } = guardFor(be, { choices: ["cancel", "overwrite"] });
+    expect(await doc.saveChecked(guard)).toBe("cancelled");
+    expect(await be.readText(PATH)).toBe(broken);
+    expect(doc.saveBlocked).toBe(true);
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toEqual([
+      { kind: "unreadable", reason },
+      { kind: "unreadable", reason },
+    ]);
+    expect(doc.saveBlocked).toBe(false);
+    expect(JSON.parse(await be.readText(PATH)).objects.map((o: { id: string }) => o.id)).toEqual(["mine"]);
+  });
+
+  it("배너의 내 것으로 덮어쓰기(allowOverwrite) 뒤의 저장은 묻지 않고 쓴다", async () => {
+    const { be, doc } = await openScene();
+    be.simulateExternalChange(PATH, "modify", '{"version": 1, "objects": [');
+    await expect(doc.reloadFromDisk()).rejects.toThrow();
+    doc.allowOverwrite();
+    const { guard, asked } = guardFor(be);
+    expect(await doc.saveChecked(guard)).toBe("saved");
+    expect(asked).toEqual([]);
+    expect(await be.readText(PATH)).toContain('"mine"');
+  });
+
+  it("덮어쓰기를 고른 뒤 다시 읽기에 실패하면 다시 묻는다", async () => {
+    const { be, doc } = await openScene();
+    doc.allowOverwrite();
+    be.simulateExternalChange(PATH, "modify", "{");
+    await expect(doc.reloadFromDisk()).rejects.toThrow();
+    const { guard, asked } = guardFor(be, { choices: ["cancel"] });
+    expect(await doc.saveChecked(guard)).toBe("cancelled");
+    expect(asked.map((c) => c.kind)).toEqual(["unreadable"]);
+  });
+
+  it("디스크를 읽지 못하면 저장하지 않고 이유를 던진다", async () => {
+    const { be, doc } = await openScene();
+    const guard: SaveGuard = {
+      readText: async () => {
+        throw new BackendError("연결이 끊겼다", "network");
+      },
+      askConflict: async () => "overwrite",
+      confirmDiscard: async () => true,
+    };
+    await expect(doc.saveChecked(guard)).rejects.toThrow("디스크의 파일을 확인하지 못해 저장하지 않았다: 연결이 끊겼다");
+    expect(await be.readText(PATH)).toBe(DISK);
+    expect(doc.dirty).toBe(true);
+  });
+
+  it("디스크와 맞춘 내용을 모르는 문서는 배너만 보고, 없는 파일은 새로 만든다", async () => {
+    const be = new MemoryBackend();
+    await be.open("/mem");
+    const doc = new TestDoc();
+    const { guard, asked } = guardFor(be, { choices: ["cancel"] });
+    expect(await doc.findSaveConflict((p) => be.readText(p))).toBeNull();
+    await be.writeText("a.txt", "밖");
+    expect(await doc.findSaveConflict((p) => be.readText(p))).toBeNull();
+    doc.externallyChanged = true;
+    expect(await doc.saveChecked(guard)).toBe("cancelled");
+    expect(asked).toEqual([{ kind: "changed" }]);
+    expect(doc.saved).toBe(0);
+    doc.noteDiskText("밖");
+    expect(await doc.findSaveConflict((p) => be.readText(p))).toBeNull();
+  });
+
+  it("경로가 없는 문서는 확인하지 않는다", async () => {
+    const doc = new TestDoc();
+    doc.path = null;
+    doc.externallyChanged = true;
+    expect(await doc.findSaveConflict(() => Promise.reject(new Error("읽으면 안 된다")))).toBeNull();
   });
 });

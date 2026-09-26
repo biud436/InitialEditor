@@ -12,6 +12,7 @@ import {
   LogStore,
   MenuRegistry,
   Project,
+  type SaveOutcome,
   SettingsStore,
   type Platform,
   type ProjectBackend,
@@ -44,6 +45,7 @@ import type { KeyValueStorage } from "./LocalStorageSettingsStorage";
 import { ModalStore } from "./modals";
 import { ProjectTreeModel } from "./projectTree";
 import { installRecentProjectsMenu } from "./recentProjects";
+import { modalSaveGuard } from "./SaveConflictDialog";
 import { ToastStore } from "./toasts";
 
 export interface EditorOptions {
@@ -103,6 +105,8 @@ export class Editor {
   private readonly checkedProviders = new Map<string, () => boolean>();
   private projectDisposers: Array<() => void> = [];
   private disposers: Array<() => void> = [];
+  /** 진행 중인 저장 (문서마다 하나) */
+  private readonly saving = new Map<Document, Promise<SaveOutcome>>();
   private readonly autoOpenRoot: string | undefined;
 
   constructor(opts: EditorOptions) {
@@ -162,12 +166,25 @@ export class Editor {
     if (this.autoOpenRoot) void this.openProject(this.autoOpenRoot);
   }
 
-  /** 문서를 저장하고 documentSaved 를 알린다 (저장 시 핫 리로드가 여기에 붙는다) */
-  async saveDocument(doc: Document): Promise<void> {
-    // 다시 읽지 못한 문서는 저장하지 않는다 (배너에서 다시 읽기나 덮어쓰기를 고를 때까지)
-    doc.assertCanSave();
-    await doc.save();
-    this.events.emit("documentSaved", doc);
+  /**
+   * 문서를 저장하고 documentSaved를 알린다 (저장 시 핫 리로드가 여기에 붙는다). 모든 저장이 여기를 지난다.
+   * 파일이 밖에서 바뀌었거나 지워졌거나 다시 읽지 못했으면 모달로 묻는다 (03-project-and-runtime.md 파일 규칙 4).
+   * 결과는 저장함, 다시 읽음, 취소 중 하나다. 같은 문서의 저장이 진행 중이면 그 결과를 함께 기다린다
+   */
+  saveDocument(doc: Document): Promise<SaveOutcome> {
+    const running = this.saving.get(doc);
+    if (running) return running;
+    const task = this.runSave(doc).finally(() => this.saving.delete(doc));
+    this.saving.set(doc, task);
+    return task;
+  }
+
+  private async runSave(doc: Document): Promise<SaveOutcome> {
+    const outcome = await doc.saveChecked(modalSaveGuard(this.modals, (path) => this.backend.readText(path)));
+    if (outcome === "saved") this.events.emit("documentSaved", doc);
+    else if (outcome === "reloaded") this.log.info("editor", `저장하지 않고 디스크 내용으로 다시 읽었다: ${doc.path ?? doc.title}`);
+    else this.log.info("editor", `저장을 취소했다: ${doc.path ?? doc.title}`);
+    return outcome;
   }
 
   /** 프로젝트를 연다. game.json 이 없으면 만들 것인지 묻는다 */

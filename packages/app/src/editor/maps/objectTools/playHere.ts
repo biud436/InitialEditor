@@ -3,7 +3,7 @@
 // 위치 규칙은 rules.ts의 playPosition이다. 커서는 이 맵의 뷰에 남은 것만 쓴다.
 // 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
 
-import type { Document, DocumentRegistry } from "@initial-editor/core";
+import type { Document, DocumentRegistry, SaveOutcome } from "@initial-editor/core";
 import type { MapDocument, MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import type { ConfirmOptions } from "../../modals";
 import { asMapDocument } from "../schemaStore";
@@ -22,7 +22,7 @@ export interface PlayHost extends MapObjectHost {
   };
   readonly modals: { confirm(options: ConfirmOptions): Promise<boolean> };
   readonly mapSchema?: { readonly current: MapObjectSchema | null };
-  saveDocument(doc: Document): Promise<void>;
+  saveDocument(doc: Document): Promise<SaveOutcome | void>;
 }
 
 export function activeMapOf(host: { documents: DocumentRegistry }): MapDocument | null {
@@ -88,7 +88,8 @@ export async function playHere(host: PlayHost): Promise<boolean> {
     });
     if (!ok) return false;
     try {
-      await host.saveDocument(doc);
+      // 저장 충돌 모달에서 취소하면 실행하지 않는다. 다시 읽기를 골랐으면 디스크 내용 그대로 실행한다
+      if ((await host.saveDocument(doc)) === "cancelled") return false;
     } catch (e) {
       const message = `${doc.title} 을(를) 저장하지 못해 실행하지 않았다: ${(e as Error).message}`;
       host.log.error(LOG, message);

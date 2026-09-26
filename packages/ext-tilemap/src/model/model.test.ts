@@ -360,4 +360,26 @@ describe("MapDocument", () => {
     expect(doc.tool).toBe("pen");
     expect(doc.target).toEqual({ kind: "layer", index: 0 });
   });
+
+  it("저장 직전 확인: 연 내용, 저장한 내용, 다시 읽은 내용을 기준으로 밖에서 바뀐 것을 잡는다", async () => {
+    const path = "resources/maps/tiny.json";
+    const be = new MemoryBackend({ [path]: serializeMap(tiny()) });
+    await be.open("/mem");
+    const doc = await MapDocument.open(be, path);
+    const read = (p: string) => be.readText(p);
+    doc.apply(doc.model.paintCells(0, [{ index: 0, value: 3 }]));
+    expect(await doc.findSaveConflict(read)).toBeNull();
+    // 맵 생성기가 밖에서 다시 쓴 맵
+    const regenerated = serializeMap({ ...tiny(), name: "regenerated" });
+    be.simulateExternalChange(path, "modify", regenerated);
+    expect(await doc.findSaveConflict(read)).toEqual({ kind: "changed" });
+    await doc.reloadFromDisk();
+    expect(doc.model.name).toBe("regenerated");
+    expect(await doc.findSaveConflict(read)).toBeNull();
+    doc.apply(doc.model.paintCells(0, [{ index: 1, value: 4 }]));
+    await doc.save();
+    expect(await doc.findSaveConflict(read)).toBeNull();
+    be.simulateExternalChange(path, "delete");
+    expect(await doc.findSaveConflict(read)).toEqual({ kind: "missing" });
+  });
 });
