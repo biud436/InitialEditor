@@ -6,6 +6,7 @@
 //           luaL_dofile 의 반환값을 보지 않으므로 문법 오류는 따로 찍히지 않고 "attempt to call a nil value" 로 나타난다.
 //         scripts/lua/games/flappy.lua:12: attempt to index a nil value      error() 나 pcall 뒤 print 한 메시지
 //         [string "scripts/lua/x.lua"]:3: unexpected symbol                 loadstring 계열. 청크 이름이 경로일 때만 링크
+//         Lua error in update: ./scripts/lua/main.lua:23: boom              src/lua_prot.cpp Lua_ReportIfError (VM 만 멈춘다)
 //   Ruby  mruby: uncaught exception in update                                src/mrb_prot.cpp ReportError
 //         trace (most recent call last):                                     mrb_print_error 의 백트레이스
 //         \t[1] scripts/ruby/main.rb:8:in update
@@ -59,13 +60,25 @@ export function parseErrorLinks(line: string): ErrorLink[] {
   return out;
 }
 
+// 스크립트가 멈췄다고 알리는 첫 줄: Lua 오류(src/lua_prot.cpp), Ruby 예외(src/mrb_prot.cpp), 옛 엔진의 Lua PANIC,
+// mruby 가 없는 빌드(src/ScriptRuntime.cpp), 재시작 중의 C++ 예외(같은 파일의 Script_Restart). 역추적 줄은 세지 않는다
+const SCRIPT_ERROR_PATTERN = /^Lua error in |^mruby: uncaught exception in |^PANIC: |^mruby: this build has no mruby|^script restart failed: /;
+
+/**
+ * 엔진이 스크립트 오류를 알리는 첫 줄인가. 콘솔의 오류 줄(classifyEngineLine 의 error)보다 좁다: 스크립트가 그 자리에서
+ * 멈춘 것만이고, 역추적 줄, 자원을 읽지 못한 줄, 게임이 찍은 글("error" 가 든 것)은 아니다
+ */
+export function isScriptErrorLine(line: string): boolean {
+  return SCRIPT_ERROR_PATTERN.test(line);
+}
+
 // 오류: Lua PANIC, 예외와 백트레이스, 실패 보고, 웹 엔진의 치명적 오류(fatal:). 경고: warning, SDL_LogWarn 의 WARN, 자원을 못 찾았지만 계속 도는 경우
 const ERROR_PATTERN = /PANIC|error|uncaught exception|attempt to |undefined method|stack traceback|most recent call last|\bfailed\b|cannot open|^\s*\[\d+\] |^fatal:/i;
 const WARN_PATTERN = /warning|\bWARN\b|cannot load|cannot write/i;
 
 /** 엔진 출력 한 줄의 콘솔 수준. stderr 인지가 아니라 내용으로 정한다 (SDL_Log 는 전부 stderr 로 간다) */
 export function classifyEngineLine(line: string): Extract<LogLevel, "error" | "warn" | "info"> {
-  if (ERROR_PATTERN.test(line)) return "error";
+  if (ERROR_PATTERN.test(line) || isScriptErrorLine(line)) return "error";
   if (WARN_PATTERN.test(line)) return "warn";
   return "info";
 }

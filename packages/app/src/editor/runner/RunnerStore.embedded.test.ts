@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   browserRunNotice,
   EMBEDDED_HINT,
+  ENDED_RELOAD_DROPPED,
   HMR_NO_ENGINE_SKIPPED,
   RunnerStore,
   START_ENDED_RELOAD_DROPPED,
@@ -57,8 +58,8 @@ class FakeEmbedded implements EmbeddedEngine {
   /** 있으면 loadFeatures 나 launch 가 이것을 던진다 */
   featuresError: { value: unknown } | null = null;
   launchError: { value: unknown } | null = null;
-  /** reload 의 결과: 스크립트 오류, 또는 던질 값 (던지면 게임 뷰처럼 세션을 종료 코드 1 로 끝낸다) */
-  reloadResult: "ok" | "scriptError" | { throws: unknown } = "ok";
+  /** reload 의 결과: 스크립트 오류, 게임이 끝나는 중이라 올리지 않음, 또는 던질 값 (던지면 게임 뷰처럼 세션을 종료 코드 1 로 끝낸다) */
+  reloadResult: "ok" | "scriptError" | "dropped" | { throws: unknown } = "ok";
   /** whenStepped의 결과 (기본은 바로 true: 첫 프레임을 돌았다). 약속이면 그것을 기다린다 */
   stepped: boolean | Promise<boolean> = true;
   steppedFor: RunHandle[] = [];
@@ -93,6 +94,7 @@ class FakeEmbedded implements EmbeddedEngine {
       this.handles.at(-1)?.exit(1);
       throw result.throws;
     }
+    if (result === "dropped") return { count: 0, scriptsFailed: false, dropped: true };
     return { count: paths?.length ?? 5, scriptsFailed: result === "scriptError" };
   }
 }
@@ -443,6 +445,29 @@ describe("RunnerStore 실행 방식", () => {
       expect(embedded.reloads, order).toEqual([]);
       await runner.stop();
     }
+  });
+
+  it("게임 뷰가 게임이 끝나는 중이라 올리지 않은 리로드는 정보 한 줄만 남긴다: 뜨는 중에 모은 것은 뜨는 중에 끝났다는 줄, 그 밖은 끝났다는 줄", async () => {
+    const { runner, embedded, mem, log, toasts } = await setup({ memory: true });
+    let open!: () => void;
+    embedded.gate = new Promise((r) => (open = r));
+    embedded.reloadResult = "dropped";
+    const starting = runner.start();
+    await vi.waitFor(() => expect(embedded.launches).toHaveLength(1));
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    open();
+    await starting;
+    // 첫 프레임은 돌았지만 올리려는 사이 끝나는 중이 되었다
+    await vi.waitFor(() => expect(embedded.reloads).toEqual([["scripts/lua/main.lua"]]));
+    await vi.waitFor(() => expect(texts(log)).toContainEqual(`info/runner: ${START_ENDED_RELOAD_DROPPED}`));
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(await runner.reload()).toBeNull();
+    expect(texts(log).filter((l) => l === `info/runner: ${ENDED_RELOAD_DROPPED}`)).toHaveLength(2);
+    expect(texts(log).filter((l) => l === `info/runner: ${START_ENDED_RELOAD_DROPPED}`)).toHaveLength(1);
+    expect(runner.lastReload).toBeNull();
+    expect(texts(log).some((l) => l.includes("다시 올렸다") || l.includes("핫 리로드 실패"))).toBe(false);
+    expect(toasts).toEqual([]);
+    expect(mem.pushed).toEqual([]);
   });
 
   it("모아 둔 리로드가 없으면 첫 프레임 전에 끝나도 줄을 남기지 않는다", async () => {

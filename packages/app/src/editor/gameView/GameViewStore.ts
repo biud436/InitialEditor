@@ -11,6 +11,7 @@
 // 엔진이 죽는 것을 아는 길: 로더의 onExit(있을 때), 루프가 멈춘 줄, 실행 중 window 까지 올라온 엔진의 오류와
 // 처리되지 않은 거부(예외가 wasm 밖으로 나왔다: 세션을 종료 코드 1 로 끝낸다), reload 가 던짐(같다).
 // reload 가 false 를 돌려주면 스크립트 오류다. 오류 줄은 이미 콘솔에 있고 엔진은 네이티브처럼 계속 돈다.
+// 세션이 끝났거나 끝나는 중(reload 밖의 스크립트 오류, GameSession.ending)이면 reload 하지 않고 dropped 로 답한다.
 
 import type { DocumentRegistry, LogStore, Project, ProjectBackend, RunHandle } from "@initial-editor/core";
 import { action, makeObservable, observable, runInAction } from "mobx";
@@ -47,6 +48,8 @@ export interface GameViewOptions {
 const LOG = "runner";
 export const CANVAS_ID = "canvas";
 const DEFAULT_ATTACH_TIMEOUT_MS = 5000;
+/** 게임이 끝났거나 끝나는 중이라 올리지 않은 리로드 */
+const DROPPED_RELOAD: EmbeddedReload = { count: 0, scriptsFailed: false, dropped: true };
 
 export class GameViewStore {
   phase: GamePhase = "idle";
@@ -211,12 +214,14 @@ export class GameViewStore {
 
   /**
    * paths 를 다시 올리고 VM 을 다시 시작한다. paths 가 없으면 scripts 와 씬과 맵 전부. 올린 파일 수와 스크립트 오류 여부.
+   * 세션이 끝났거나 끝나는 중이면(파일을 읽는 사이에 그렇게 되었어도) 올리지 않고 dropped 로 답한다.
    * 엔진이 예외를 던지면 세션을 종료 코드 1 로 끝내고 읽는 글로 던진다
    */
   async reload(paths?: readonly string[]): Promise<EmbeddedReload> {
     const session = this.session;
     const game = session?.game;
     if (!session || !game || this.phase !== "running") throw new Error("에디터 안 엔진이 실행 중이 아니다");
+    if (session.ending) return DROPPED_RELOAD;
     const { backend } = this.editor;
     let entries: StageEntry[];
     if (paths) {
@@ -228,10 +233,10 @@ export class GameViewStore {
       entries = (await listStageFiles(backend, RELOAD_ON_SAVE_DIRS)).files;
     }
     const read = await readStageFiles(backend, entries, { concurrency: this.concurrency });
-    if (this.session !== session || session.game !== game || session.dead) throw new Error("그사이 게임이 끝났다");
+    if (this.session !== session || session.game !== game || session.ending) return DROPPED_RELOAD;
     let result: boolean | void;
     try {
-      result = game.reload(read.files);
+      result = session.reloadWith(() => game.reload(read.files));
     } catch (e) {
       session.crash(e);
       throw new Error(`엔진이 예외로 멈췄다: ${session.crashText ?? errorText(e, game)}`);
@@ -240,7 +245,7 @@ export class GameViewStore {
     return { count: Object.keys(read.files).length, scriptsFailed: result === false };
   }
 
-  /** launch가 돌려준 실행의 엔진이 첫 프레임을 돌았고 아직 돌면 true, 그 전에 끝나면 false (GameSession.whenStepped) */
+  /** launch가 돌려준 실행의 엔진이 첫 프레임을 돌았고 끝나는 중이 아니면 true, 그 전에 끝나는 중이 되면 false (GameSession.whenStepped) */
   whenStepped(handle: RunHandle): Promise<boolean> {
     return handle instanceof GameSession ? handle.whenStepped() : Promise.resolve(false);
   }

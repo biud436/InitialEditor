@@ -8,14 +8,19 @@
 //      없으면 루프가 멈춘 줄로 알고 스크립트 오류 줄이 있었으면 1, 아니면 0
 //   3. 예외가 wasm 밖으로 나옴(crash): 읽는 글로 "fatal:" 줄을 찍고 종료 코드 1
 //   4. 부팅 실패나 abort: fail(code)
+//
+// 엔진은 reload 밖(init, update, render)의 스크립트 오류를 stderr 에 알리고 루프에 종료를 요청해 둔다 (네이티브와 같다).
+// 루프는 다음 프레임에 멈추고, 그 사이의 reload 는 요청을 지우지 못한다. 그 줄이 오면 세션은 끝나는 중(ending)이다.
+// reload 가 도는 동안 찍힌 오류 줄은 리로드의 실패이고 게임은 계속 돈다.
 
-import type { OutputStream, RunHandle } from "@initial-editor/core";
+import { isScriptErrorLine, type OutputStream, type RunHandle } from "@initial-editor/core";
 import type { EngineGame } from "./engineAssets";
 import { errorText } from "./errorText";
 
 /** 엔진(WebMain.cpp)이 루프를 내리고 정리한 뒤 찍는 줄 */
 export const LOOP_STOPPED_LINE = "Initial2D web: main loop stopped";
-const SCRIPT_ERROR = /^Lua error in |^mruby: uncaught exception|PANIC|^Aborted\(|^fatal:/;
+/** 스크립트 오류 줄 말고 엔진이 죽을 때 찍는 줄 (Emscripten 의 abort, 엔진 밖으로 나온 예외) */
+const ENGINE_DEATH = /^Aborted\(|^fatal:/;
 const DEFAULT_QUIT_TIMEOUT_MS = 1500;
 /** quit 뒤 프레임 수가 이만큼 그대로면 루프가 이미 죽은 것으로 본다 (살아 있는 루프는 다음 프레임에 멈춘다) */
 const STALL_MS = 200;
@@ -48,6 +53,10 @@ export class GameSession implements RunHandle {
   private loopStopped = false;
   private loopWaiters: Array<() => void> = [];
   private scriptFailed = false;
+  /** game.reload 를 부르는 중이다 (reloadWith) */
+  private inReload = false;
+  /** reload 밖에서 스크립트 오류 줄이 왔다: 엔진이 루프에 종료를 요청해 두었다 */
+  private quitRequested = false;
   /** 로더의 onExit 가 준 코드 (onExit 를 부르지 않는 로더면 undefined) */
   private engineExit: number | undefined = undefined;
   private endScheduled = false;
@@ -80,6 +89,14 @@ export class GameSession implements RunHandle {
   /** 루프가 멈췄거나 예외로 죽었다 (quit 을 불러도 답할 엔진이 없다) */
   get dead(): boolean {
     return this.loopStopped || this.crashText !== null;
+  }
+
+  /**
+   * 끝났거나 끝나는 중이다: 루프가 멈췄거나 예외로 죽었거나, reload 밖에서 스크립트 오류 줄이 왔다 (엔진이 종료를 요청해
+   * 두어 다음 프레임에 루프가 멈춘다). 이때 올린 파일은 받아들여지고도 게임과 함께 끝나므로 리로드하지 않는다
+   */
+  get ending(): boolean {
+    return this.result !== null || this.dead || this.quitRequested;
   }
 
   attach(game: EngineGame): void {
@@ -137,14 +154,14 @@ export class GameSession implements RunHandle {
   }
 
   /**
-   * 엔진이 프레임을 하나 이상 돌았고 아직 돌면 true, 그 전에 루프가 멈추거나 세션이 끝나면 false.
-   * 엔진은 프레임 콜백 안에서 프레임 수를 올린 뒤 같은 콜백에서 루프를 내리므로, 수가 1 이상인데 루프가 멈추지 않았으면
-   * 시작 때 걸어 둔 종료 요청(시작 스크립트의 오류)은 없다. frames()가 없는 로더는 알 수 없어서 바로 true
+   * 엔진이 프레임을 하나 이상 돌았고 끝나는 중이 아니면 true, 그 전에 끝나는 중(ending)이 되면 false.
+   * 시작 스크립트의 오류 줄은 부팅 중에, 첫 update 와 render 의 오류 줄은 그 프레임 콜백 안에서 오므로, 수가 1 이상일 때
+   * 그 프레임의 오류는 이미 보인다. frames()가 없는 로더는 오류 줄만 보고 바로 답한다
    */
   whenStepped(pollMs = STEP_POLL_MS): Promise<boolean> {
     return new Promise((resolve) => {
       const check = () => {
-        if (this.result || this.dead || !this.game) {
+        if (this.ending || !this.game) {
           resolve(false);
           return;
         }
@@ -154,6 +171,16 @@ export class GameSession implements RunHandle {
       };
       check();
     });
+  }
+
+  /** game.reload 를 부른다. 그 사이 찍힌 스크립트 오류 줄은 리로드의 실패라 끝나는 중으로 보지 않는다 (엔진은 계속 돈다) */
+  reloadWith<T>(reload: () => T): T {
+    this.inReload = true;
+    try {
+      return reload();
+    } finally {
+      this.inReload = false;
+    }
   }
 
   /** reload 의 결과. 스크립트가 깨끗이 다시 떴으면 이전 스크립트 오류는 잊는다 */
@@ -200,7 +227,11 @@ export class GameSession implements RunHandle {
   }
 
   private line(text: string, stream: OutputStream): void {
-    if (SCRIPT_ERROR.test(text)) this.scriptFailed = true;
+    // 엔진의 오류는 stderr 로 온다. 게임이 print 한 글(stdout)은 무엇이든 오류로 보지 않는다
+    if (stream === "stderr" && (isScriptErrorLine(text) || ENGINE_DEATH.test(text))) {
+      this.scriptFailed = true;
+      if (!this.inReload) this.quitRequested = true;
+    }
     if (this.outputs.size === 0) this.buffered.push([text, stream]);
     else for (const cb of this.outputs) cb(text, stream);
     if (text.includes(LOOP_STOPPED_LINE)) this.onLoopStopped();

@@ -44,6 +44,8 @@ export interface EmbeddedReload {
   count: number;
   /** 스크립트 오류로 VM 이 다시 뜨지 못했다 (오류 줄은 이미 콘솔에 있고 엔진은 계속 돈다) */
   scriptsFailed: boolean;
+  /** 게임이 끝났거나 끝나는 중이라(reload 밖의 스크립트 오류가 종료를 요청해 두었다) 올리지 않았다 */
+  dropped?: boolean;
 }
 
 /** 에디터 안 실행 (게임 탭의 웹 엔진) */
@@ -54,11 +56,14 @@ export interface EmbeddedEngine {
   launch(opts: { env: Record<string, string> }): Promise<RunHandle>;
   /** 시작 중(파일 올리는 중)이면 그만둔다 */
   abort(): void;
-  /** paths(없으면 scripts 와 씬과 맵 전부)를 다시 올리고 VM 을 다시 시작한다. 엔진이 예외로 죽으면 던진다 */
+  /**
+   * paths(없으면 scripts 와 씬과 맵 전부)를 다시 올리고 VM 을 다시 시작한다. 게임이 끝났거나 끝나는 중이면 올리지 않고
+   * dropped 로 답한다. 엔진이 예외로 죽으면 던진다
+   */
   reload(paths?: readonly string[]): Promise<EmbeddedReload>;
   /**
-   * launch가 돌려준 실행의 엔진이 프레임을 하나 이상 돌았고 아직 돌면 true, 그 전에 끝나면 false 로 풀린다.
-   * 시작 스크립트의 오류는 루프에 종료를 요청해 두므로, 첫 프레임 전에 올린 고침은 받아들여지고도 게임이 끝난다
+   * launch가 돌려준 실행의 엔진이 프레임을 하나 이상 돌았고 끝나는 중이 아니면 true, 그 전에 끝나거나 끝나는 중이면 false.
+   * 시작 스크립트나 첫 프레임의 오류는 루프에 종료를 요청해 두므로, 그 뒤에 올린 고침은 받아들여지고도 게임이 끝난다
    */
   whenStepped(handle: RunHandle): Promise<boolean>;
   /** 상태 바 툴팁 (웹 엔진의 기능과 커밋) */
@@ -110,6 +115,7 @@ export const RUN_MODE_LABELS: Record<RunMode, string> = { process: "프로세스
 export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
 export const HMR_NO_ENGINE_SKIPPED = "엔진이 떠 있지 않아 리로드를 건너뛰었다";
 export const START_ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
+export const ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
 const LOG_SOURCE = "runner";
 const DEFAULT_STOP_TIMEOUT_MS = 4000;
 
@@ -472,8 +478,8 @@ export class RunnerStore {
   }
 
   /**
-   * 뜨는 중에 모아 둔 리로드는 엔진이 첫 프레임을 돌고 아직 돌 때 올린다. 시작 스크립트가 오류로 끝나면 엔진은 이미
-   * 종료를 요청해 두어서 그 전에 올린 고침도 다음 프레임에 함께 끝난다. 그 전에 끝나면 버리고 한 줄 남긴다 (F5가 저장한 글로 돈다)
+   * 뜨는 중에 모아 둔 리로드는 엔진이 첫 프레임을 돌고 끝나는 중이 아닐 때 올린다. 시작 스크립트나 첫 프레임이 오류로 끝나면
+   * 엔진은 이미 종료를 요청해 두어서 그 뒤에 올린 고침도 다음 프레임에 함께 끝난다. 그러면 버리고 한 줄 남긴다 (F5가 저장한 글로 돈다)
    */
   private async reloadQueuedAfterFirstFrame(handle: RunHandle): Promise<void> {
     const stepped = await this.embedded!.whenStepped(handle);
@@ -485,7 +491,7 @@ export class RunnerStore {
     this.awaitingFrame = null;
     const queued = this.queuedReload;
     this.queuedReload = null;
-    if (queued) await this.reloadEmbedded(queued === "all" ? undefined : [...queued]);
+    if (queued) await this.reloadEmbedded(queued === "all" ? undefined : [...queued], START_ENDED_RELOAD_DROPPED);
   }
 
   /** 첫 프레임 전에 게임이 끝났다. 모아 둔 리로드가 있으면 버리고 한 줄 남긴다 */
@@ -704,12 +710,17 @@ export class RunnerStore {
 
   /**
    * 에디터 안 엔진: 바뀐 파일(없으면 scripts 와 씬과 맵)을 다시 올리고 VM 을 다시 시작한다.
-   * 스크립트 오류면 경고만 하고 게임은 계속 돈다. 엔진이 예외로 죽었으면 세션은 이미 끝났고 종료 알림이 토스트를 띄운다
+   * 스크립트 오류면 경고만 하고 게임은 계속 돈다. 게임이 끝났거나 끝나는 중이라 올리지 않았으면 droppedLine 한 줄만 남긴다.
+   * 엔진이 예외로 죽었으면 세션은 이미 끝났고 종료 알림이 토스트를 띄운다
    */
-  private async reloadEmbedded(paths?: readonly string[]): Promise<{ count: number } | null> {
+  private async reloadEmbedded(paths?: readonly string[], droppedLine = ENDED_RELOAD_DROPPED): Promise<{ count: number } | null> {
     const { log, toasts } = this.host;
     try {
-      const { count, scriptsFailed } = await this.embedded!.reload(paths);
+      const { count, scriptsFailed, dropped } = await this.embedded!.reload(paths);
+      if (dropped) {
+        log.info(LOG_SOURCE, droppedLine);
+        return null;
+      }
       runInAction(() => (this.lastReload = { count, at: this.clock() }));
       if (scriptsFailed) {
         log.warn(LOG_SOURCE, `핫 리로드: 에디터 안 엔진, ${count}개 파일을 다시 올렸지만 스크립트 오류로 VM 이 다시 뜨지 못했다. 위의 오류 줄을 누르면 그 자리로 간다`);
