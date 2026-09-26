@@ -14,10 +14,14 @@ vi.hoisted(() => {
 const MAP_PATH = "resources/maps/a.json";
 const SCENE_PATH = "resources/scenes/s.json";
 const SCENE = JSON.stringify({ version: 1, name: "s", objects: [{ id: "tm", type: "tilemap", props: { map: "", groundLayers: 1 } }] });
-const MAP = JSON.stringify({ version: 2, width: 1, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "g", data: [0] }] });
+const TILES = "resources/tiles/t.png";
+const MAP = JSON.stringify({
+  version: 2, width: 1, height: 1, tileWidth: 16, tileHeight: 16,
+  tilesets: [{ image: TILES, firstGid: 1, columns: 1 }], layers: [{ name: "g", data: [0] }],
+});
 
 async function setup(scene = SCENE) {
-  const backend = new MemoryBackend({ [MAP_PATH]: MAP, [SCENE_PATH]: scene });
+  const backend = new MemoryBackend({ [MAP_PATH]: MAP, [SCENE_PATH]: scene, [TILES]: "png" });
   const project = new Project(backend);
   await project.open("/p");
   const registries = new ExtensionRegistries();

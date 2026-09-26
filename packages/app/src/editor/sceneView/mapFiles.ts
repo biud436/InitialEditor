@@ -1,11 +1,12 @@
 // 씬 뷰의 맵 파일 캐시. 타일맵 오브젝트가 가리키는 맵 파일(resources/maps/*.json)을 경로마다 한 번 읽어 해석한다.
 // 프로젝트 파일이 바뀌면 SceneSupport가 fileChanged로 알린다: 읽어 둔 맵이면 버리고, 어느 경로든 changed를
 // 내보낸다. 타일맵 노드는 제 맵 파일이나 타일셋 그림이 바뀌었을 때 다시 그린다.
-// MapFileCheck는 맵 파일이 있고 맵으로 읽히는지를 기억해 씬 검사(맵 파일이 없거나 깨진 타일맵)가 동기로 읽게 한다.
+// MapFileCheck는 맵 파일을 엔진이 열 수 있는지(엔진의 Tilemap::load 규칙과 타일셋 그림이 있는지)를 기억해
+// 씬 검사(엔진이 거부할 타일맵)가 동기로 읽게 한다.
 
 import { BackendError, Emitter, type ProjectBackend } from "@initial-editor/core";
 import type { MapFileProblem } from "@initial-editor/ext-tilemap";
-import { parseMap, type MapData } from "@initial-editor/ext-tilemap/model";
+import { checkEngineMap, parseMap, type MapData } from "@initial-editor/ext-tilemap/model";
 
 export class MapFileCache {
   private readonly entries = new Map<string, Promise<MapData>>();
@@ -43,7 +44,7 @@ export class MapFileCache {
   }
 }
 
-/** 맵 파일의 상태: 있고 맵으로 읽힌다(ok), 없다(missing), 있지만 맵으로 읽히지 않는다(invalid) */
+/** 맵 파일의 상태: 엔진이 연다(ok), 없다(missing), 있지만 엔진이 열지 못한다(invalid) */
 export type MapFileStatus = { kind: "ok" } | MapFileProblem;
 
 const OK: MapFileStatus = { kind: "ok" };
@@ -55,18 +56,19 @@ function sameStatus(a: MapFileStatus | null | undefined, b: MapFileStatus | null
 }
 
 /**
- * 타일맵이 가리키는 맵 파일이 있고 맵으로 읽히는지 (씬 검사가 읽는다). 엔진처럼 파일을 읽어 맵으로 해석해 본다.
- * 처음 묻는 경로는 백엔드에 확인을 보내고 모른다(undefined)고 답한다. 답이 오거나 바뀌면 changed를 내보낸다.
- * 파일이 바뀌면 그 경로(폴더면 그 아래 경로)를 다시 확인하고, 그동안은 옛 답을 준다. 해석한 결과는 경로와 내용으로
- * 기억해 내용이 같으면 다시 해석하지 않는다. 확인하지 못한 경로(루트 밖 등)는 모른다로 둔다
+ * 타일맵이 가리키는 맵 파일을 엔진이 열 수 있는지 (씬 검사가 읽는다). 엔진의 Tilemap::load 규칙(checkEngineMap)으로
+ * 해석하고, 타일셋 그림이 프로젝트에 있는지 본다. 처음 묻는 경로는 백엔드에 확인을 보내고 모른다(undefined)고 답한다.
+ * 답이 오거나 바뀌면 changed를 내보낸다. 맵 파일이나 그 맵의 타일셋 그림이 바뀌면(폴더면 그 아래) 다시 확인하고,
+ * 그동안은 옛 답을 준다. 해석한 결과는 경로와 내용으로 기억해 내용이 같으면 다시 해석하지 않는다. 그림이 있는지는
+ * 늘 다시 본다. 확인하지 못한 경로(루트 밖 등)는 모른다로 둔다
  */
 export class MapFileCheck {
   /** 경로 → 상태, 확인 못 함(null) */
   private readonly known = new Map<string, MapFileStatus | null>();
   /** 확인 중인 경로 → 요청 번호 (늦게 온 옛 답을 버린다) */
   private readonly pending = new Map<string, number>();
-  /** 경로 → 마지막으로 해석한 내용과 그 결과 */
-  private readonly parsed = new Map<string, { text: string; status: MapFileStatus }>();
+  /** 경로 → 마지막으로 해석한 내용과 그 결과 (엔진 규칙의 판정과 타일셋 그림 경로) */
+  private readonly parsed = new Map<string, { text: string; status: MapFileStatus; images: string[] }>();
   private seq = 0;
   readonly events = new Emitter<{ changed: string }>();
 
@@ -86,8 +88,9 @@ export class MapFileCheck {
 
   /** 프로젝트 파일 하나가 바뀌었다 (만들기, 고치기, 지우기, 폴더 이름 바꾸기) */
   fileChanged(path: string): void {
+    const under = (p: string) => p === path || p.startsWith(`${path}/`);
     for (const p of new Set([...this.known.keys(), ...this.pending.keys()])) {
-      if (p === path || p.startsWith(`${path}/`)) this.check(p);
+      if (under(p) || (this.parsed.get(p)?.images ?? []).some(under)) this.check(p);
     }
   }
 
@@ -120,20 +123,22 @@ export class MapFileCheck {
       if (e instanceof BackendError && e.code === "not_found") return MISSING;
       return (await backend.exists(path)) ? null : MISSING;
     }
-    return this.parse(path, text);
+    const { status, images } = this.parse(path, text);
+    if (status.kind !== "ok") return status;
+    for (const image of images) {
+      if (!(await backend.exists(image))) return { kind: "invalid", reason: `타일셋 그림이 없다: ${image}` };
+    }
+    return OK;
   }
 
-  private parse(path: string, text: string): MapFileStatus {
+  private parse(path: string, text: string): { status: MapFileStatus; images: string[] } {
     const cached = this.parsed.get(path);
-    if (cached && cached.text === text) return cached.status;
-    let status: MapFileStatus;
-    try {
-      parseMap(text);
-      status = OK;
-    } catch (e) {
-      status = { kind: "invalid", reason: (e as Error).message };
-    }
-    this.parsed.set(path, { text, status });
-    return status;
+    if (cached && cached.text === text) return cached;
+    const check = checkEngineMap(text);
+    const entry = check.ok
+      ? { text, status: OK, images: check.images }
+      : { text, status: { kind: "invalid", reason: check.reason } as MapFileStatus, images: [] };
+    this.parsed.set(path, entry);
+    return entry;
   }
 }

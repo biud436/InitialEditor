@@ -5,4 +5,5 @@ export * from "./schema";
 export * from "./mapModel";
 export * from "./resize";
 export * from "./autotile";
+export * from "./engineLoad";
 export * from "./mapDocument";

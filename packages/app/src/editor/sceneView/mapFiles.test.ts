@@ -3,7 +3,16 @@ import { describe, expect, it, vi } from "vitest";
 import { MapFileCache, MapFileCheck } from "./mapFiles";
 
 const PATH = "resources/maps/a.json";
-const MAP = JSON.stringify({ version: 2, width: 2, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "g", data: [0, 0] }] });
+const IMAGE = "resources/tiles/t.png";
+const MAP = JSON.stringify({
+  version: 2, width: 2, height: 1, tileWidth: 16, tileHeight: 16,
+  tilesets: [{ image: `./${IMAGE}`, firstGid: 1, columns: 1 }],
+  layers: [{ name: "g", data: [0, 0] }],
+});
+/** MAP 을 바꾼 글 */
+function mapWith(patch: Record<string, unknown>): string {
+  return JSON.stringify({ ...(JSON.parse(MAP) as Record<string, unknown>), ...patch });
+}
 
 async function setup(files: Record<string, string>) {
   const backend = new MemoryBackend(files);
@@ -47,9 +56,9 @@ describe("씬 뷰의 맵 파일 캐시", () => {
   });
 });
 
-describe("맵 파일이 있고 맵으로 읽히는지", () => {
+describe("맵 파일을 엔진이 열 수 있는지", () => {
   async function check(files: Record<string, string>) {
-    const backend = new MemoryBackend(files);
+    const backend = new MemoryBackend({ [IMAGE]: "png", ...files });
     await backend.open("/p");
     const asked = vi.spyOn(backend, "readText");
     const files2 = new MapFileCheck(() => backend);
@@ -75,21 +84,57 @@ describe("맵 파일이 있고 맵으로 읽히는지", () => {
     expect(asked).toHaveBeenCalledTimes(2);
   });
 
-  it("JSON이 아니거나 맵 형식이 아니면 invalid와 이유다. 고치면 ok로 돌아온다", async () => {
+  it("JSON이 아니거나 엔진이 받지 않는 맵이면 invalid와 이유다. 고치면 ok로 돌아온다", async () => {
     const { files, backend, changed } = await check({ [PATH]: "{ not json", "resources/maps/empty.json": "{}" });
     files.status(PATH);
     files.status("resources/maps/empty.json");
     await vi.waitFor(() => expect(changed).toHaveLength(2));
     expect(files.problem(PATH)).toMatchObject({ kind: "invalid", reason: expect.stringMatching(/^JSON 이 아니다: /) });
-    expect(files.problem("resources/maps/empty.json")).toEqual({ kind: "invalid", reason: "모르는 맵 버전이다: undefined (지원: 1, 2)" });
+    expect(files.problem("resources/maps/empty.json")).toEqual({ kind: "invalid", reason: "모르는 맵 버전이다: 없음 (지원: 1, 2)" });
     // 이유가 바뀌어도 알린다
     changed.length = 0;
-    await backend.writeText(PATH, "[]");
+    await backend.writeText(PATH, mapWith({ layers: [] }));
     files.fileChanged(PATH);
     await vi.waitFor(() => expect(changed).toEqual([PATH]));
-    expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: "맵 파일은 객체여야 한다" });
+    expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: "레이어가 없다" });
     await backend.writeText(PATH, MAP);
     files.fileChanged(PATH);
+    await vi.waitFor(() => expect(files.status(PATH)).toEqual(OK));
+    expect(changed).toEqual([PATH, PATH]);
+  });
+
+  it("엔진 규칙을 따른다: 에디터 모델이 거부해도 엔진이 여는 맵은 ok, 엔진이 거부하는 맵은 invalid", async () => {
+    const cases: Record<string, string> = {
+      "resources/maps/nox.json": mapWith({ objects: [{ id: "a", type: "start" }] }),
+      "resources/maps/neg.json": mapWith({ layers: [{ name: "g", data: [-1, 0] }] }),
+      "resources/maps/ev.json": mapWith({ events: {} }),
+      "resources/maps/nolayers.json": mapWith({ layers: [] }),
+      "resources/maps/notilesets.json": mapWith({ tilesets: [] }),
+      "resources/maps/nullcol.json": mapWith({ collision: null }),
+      "resources/maps/noimage.json": mapWith({ tilesets: [{ image: "resources/tiles/nope.png", firstGid: 1, columns: 1 }] }),
+    };
+    const { files, changed } = await check(cases);
+    for (const p of Object.keys(cases)) files.status(p);
+    await vi.waitFor(() => expect(changed).toHaveLength(Object.keys(cases).length));
+    expect(files.problem("resources/maps/nox.json")).toBeNull();
+    expect(files.problem("resources/maps/neg.json")).toBeNull();
+    expect(files.problem("resources/maps/ev.json")).toBeNull();
+    expect(files.problem("resources/maps/nolayers.json")).toEqual({ kind: "invalid", reason: "레이어가 없다" });
+    expect(files.problem("resources/maps/notilesets.json")).toEqual({ kind: "invalid", reason: "타일셋이 없다" });
+    expect(files.problem("resources/maps/nullcol.json")).toMatchObject({ kind: "invalid", reason: expect.stringMatching(/^collision /) });
+    expect(files.problem("resources/maps/noimage.json")).toEqual({ kind: "invalid", reason: "타일셋 그림이 없다: resources/tiles/nope.png" });
+  });
+
+  it("타일셋 그림이 지워지거나 되살아나면 그 그림을 쓰는 맵을 다시 확인한다", async () => {
+    const { files, backend, changed } = await check({ [PATH]: MAP });
+    files.status(PATH);
+    await vi.waitFor(() => expect(files.status(PATH)).toEqual(OK));
+    changed.length = 0;
+    await backend.remove(IMAGE);
+    files.fileChanged(IMAGE);
+    await vi.waitFor(() => expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: `타일셋 그림이 없다: ${IMAGE}` }));
+    await backend.writeText(IMAGE, "png");
+    files.fileChanged("resources/tiles");
     await vi.waitFor(() => expect(files.status(PATH)).toEqual(OK));
     expect(changed).toEqual([PATH, PATH]);
   });
