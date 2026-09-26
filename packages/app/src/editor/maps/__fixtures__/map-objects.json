@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "types": [
+    {
+      "type": "start",
+      "label": "시작 지점",
+      "shape": "point",
+      "color": "success",
+      "unique": true
+    },
+    {
+      "type": "checkpoint",
+      "label": "체크포인트",
+      "shape": "point",
+      "color": "success"
+    },
+    {
+      "type": "spawn",
+      "label": "몬스터",
+      "shape": "point",
+      "color": "danger",
+      "fields": [
+        {
+          "name": "species",
+          "type": "enum",
+          "values": [
+            "spider",
+            "wolf",
+            "blackwolf",
+            "monkey",
+            "soul",
+            "sentinel",
+            "shard",
+            "apophis"
+          ],
+          "required": true,
+          "label": "종"
+        },
+        {
+          "name": "minX",
+          "type": "number",
+          "role": "rangeMin",
+          "required": true,
+          "label": "순찰 왼끝"
+        },
+        {
+          "name": "maxX",
+          "type": "number",
+          "role": "rangeMax",
+          "required": true,
+          "label": "순찰 오른끝"
+        },
+        {
+          "name": "boss",
+          "type": "boolean",
+          "label": "보스"
+        }
+      ]
+    },
+    {
+      "type": "landmark",
+      "label": "흔적",
+      "shape": "band",
+      "color": "warning",
+      "defaultWidth": 48,
+      "fields": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "label": "제목"
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "required": true,
+          "label": "글"
+        },
+        {
+          "name": "skill",
+          "type": "enum",
+          "values": [
+            "edge",
+            "read",
+            "leap",
+            "berserk",
+            "bolt"
+          ],
+          "label": "익히는 힘"
+        },
+        {
+          "name": "hallucination",
+          "type": "number",
+          "min": 0,
+          "label": "환각 (초)"
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "label": "구간",
+      "shape": "band",
+      "color": "muted",
+      "defaultWidth": 768,
+      "fields": [
+        {
+          "name": "name",
+          "type": "enum",
+          "values": [
+            "entrance",
+            "road",
+            "gorge",
+            "den",
+            "altar",
+            "chest",
+            "moon",
+            "stars",
+            "ruin",
+            "sun"
+          ],
+          "required": true,
+          "label": "이름"
+        }
+      ]
+    },
+    {
+      "type": "light",
+      "label": "빛기둥",
+      "shape": "point",
+      "color": "accent"
+    }
+  ],
+  "play": {
+    "env": {
+      "INITIAL2D_SCENE": "aldebaran",
+      "INITIAL2D_SKIP_INTRO": "1",
+      "INITIAL2D_ALDEBARAN_STAGE": "{map.name}",
+      "INITIAL2D_ALDEBARAN_AT": "{x}"
+    }
+  }
+}

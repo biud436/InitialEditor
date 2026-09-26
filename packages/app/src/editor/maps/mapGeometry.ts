@@ -279,8 +279,11 @@ export interface ObjectHit {
 }
 
 /**
- * 점 아래의 오브젝트. 작은 모양이 먼저다: 점 표식, 범위 손잡이, 점 표식의 여유, 띠 가장자리, 사각형, 띠 안쪽.
- * 같은 종류에서는 목록의 뒤(위에 그려진 것)가 먼저다. zoom은 화면 픽셀 여유를 월드로 바꾸는 데 쓴다.
+ * 점 아래의 오브젝트. 점 표식, 범위 손잡이, 점 표식의 여유가 먼저다 (같은 종류에서는 목록의 뒤, 위에 그려진 것이 먼저).
+ * 그다음은 띠와 사각형이다. 점이 든 가장 작은 모양(띠는 맵 높이 전체의 넓이로 잰다)을 고르되, 그보다 크지 않은
+ * 띠의 가장자리가 닿으면 가장자리가 먼저다. 가장자리가 여럿 닿으면 가까운 것, 같은 거리면 점이 안에 든 띠의 것,
+ * 그다음 좁은 띠의 것이다 (맞닿은 두 띠는 누른 쪽 띠의 가장자리).
+ * zoom은 화면 픽셀 여유를 월드로 바꾸는 데 쓴다.
  */
 export function hitObject(shapes: readonly ObjectShape[], p: Point, zoom: number, mapPixelHeight: number): ObjectHit | null {
   const tol = HIT_TOLERANCE_PX / zoom;
@@ -288,7 +291,7 @@ export function hitObject(shapes: readonly ObjectShape[], p: Point, zoom: number
   const handleW = RANGE_HANDLE_HALF_W_PX / zoom + tol;
   const handleH = RANGE_HANDLE_HALF_H_PX / zoom + tol;
   const inHeight = p.y >= -tol && p.y <= mapPixelHeight + tol;
-  const passes: Array<(s: ObjectShape) => ObjectPart | null> = [
+  const pointPasses: Array<(s: ObjectShape) => ObjectPart | null> = [
     (s) => (s.kind === "point" && Math.hypot(p.x - s.x, p.y - s.y) <= radius ? "body" : null),
     (s) => {
       if (s.kind !== "point" || !s.range || Math.abs(p.y - s.y) > handleH) return null;
@@ -299,25 +302,56 @@ export function hitObject(shapes: readonly ObjectShape[], p: Point, zoom: number
       return nearMin ? "rangeMin" : nearMax ? "rangeMax" : null;
     },
     (s) => (s.kind === "point" && Math.hypot(p.x - s.x, p.y - s.y) <= radius + tol ? "body" : null),
-    (s) => {
-      if (s.kind !== "band" || !inHeight) return null;
-      if (Math.abs(p.x - (s.x + s.width)) <= tol) return "bandRight";
-      if (Math.abs(p.x - s.x) <= tol) return "bandLeft";
-      return null;
-    },
-    (s) => (s.kind === "rect" && p.x >= s.x - tol && p.x <= s.x + s.width + tol && p.y >= s.y - tol && p.y <= s.y + s.height + tol ? "body" : null),
-    (s) => (s.kind === "band" && inHeight && p.x >= s.x && p.x <= s.x + s.width ? "body" : null),
   ];
-  for (const pass of passes) {
+  for (const pass of pointPasses) {
     for (let i = shapes.length - 1; i >= 0; i--) {
       const part = pass(shapes[i]);
       if (part) return { id: shapes[i].id, part };
     }
   }
-  return null;
+  // 띠와 사각형: 가장 작은 몸통을 고르고, 그보다 크지 않은 띠의 가장자리가 닿으면 그 가장자리
+  const edges: Array<{ hit: ObjectHit; size: number; dist: number; inside: boolean }> = [];
+  let body: { hit: ObjectHit; size: number } | null = null;
+  for (let i = shapes.length - 1; i >= 0; i--) {
+    const s = shapes[i];
+    if (s.kind === "band") {
+      if (!inHeight) continue;
+      const size = s.width * mapPixelHeight;
+      const inside = p.x >= s.x && p.x <= s.x + s.width;
+      const right = Math.abs(p.x - (s.x + s.width));
+      const left = Math.abs(p.x - s.x);
+      if (right <= tol) edges.push({ hit: { id: s.id, part: "bandRight" }, size, dist: right, inside });
+      if (left <= tol) edges.push({ hit: { id: s.id, part: "bandLeft" }, size, dist: left, inside });
+      if (inside && (!body || size < body.size)) body = { hit: { id: s.id, part: "body" }, size };
+    } else if (s.kind === "rect") {
+      if (p.x < s.x - tol || p.x > s.x + s.width + tol || p.y < s.y - tol || p.y > s.y + s.height + tol) continue;
+      const size = s.width * s.height;
+      if (!body || size < body.size) body = { hit: { id: s.id, part: "body" }, size };
+    }
+  }
+  let edge: (typeof edges)[number] | null = null;
+  for (const e of edges) {
+    if (body && e.size > body.size) continue;
+    const better = !edge || e.dist < edge.dist || (e.dist === edge.dist && ((e.inside && !edge.inside) || (e.inside === edge.inside && e.size < edge.size)));
+    if (better) edge = e;
+  }
+  return edge?.hit ?? body?.hit ?? null;
 }
 
-/** 상자 선택: 점은 상자 안에 있어야 하고, 띠와 사각형은 겹치면 든다 */
+/** 큰 띠의 기준 폭 (칸). 이보다 넓거나 다른 오브젝트를 품은 띠는 먼저 골라야 몸통을 끌어 옮긴다 */
+export const LARGE_BAND_TILES = 16;
+
+/**
+ * 큰 띠인가: 폭이 LARGE_BAND_TILES 칸 이상이거나 다른 오브젝트의 x 를 품는다 (구간 같은 배경 띠).
+ * 큰 띠의 몸통은 고르지 않은 채로 끌면 상자 선택이 된다. 줌과 무관하다.
+ */
+export function isLargeBand(s: ObjectShape, shapes: readonly ObjectShape[], tileWidth: number): boolean {
+  if (s.kind !== "band") return false;
+  if (s.width >= LARGE_BAND_TILES * tileWidth) return true;
+  return shapes.some((o) => o.id !== s.id && o.kind !== "band" && o.x >= s.x && o.x < s.x + s.width);
+}
+
+/** 상자 선택: 점은 상자 안에 있어야 하고, 띠는 가로로 다 들어야 하고, 사각형은 겹치면 든다 */
 export function shapesInRect(shapes: readonly ObjectShape[], r: Rect, mapPixelHeight: number): string[] {
   const out: string[] = [];
   for (const s of shapes) {
@@ -326,7 +360,9 @@ export function shapesInRect(shapes: readonly ObjectShape[], r: Rect, mapPixelHe
       continue;
     }
     const b = shapeBounds(s, mapPixelHeight);
-    if (b.x <= r.x + r.w && r.x <= b.x + b.w && b.y <= r.y + r.h && r.y <= b.y + b.h) out.push(s.id);
+    const overlapsY = b.y <= r.y + r.h && r.y <= b.y + b.h;
+    const inX = s.kind === "band" ? b.x >= r.x && b.x + b.w <= r.x + r.w : b.x <= r.x + r.w && r.x <= b.x + b.w;
+    if (inX && overlapsY) out.push(s.id);
   }
   return out;
 }
@@ -355,13 +391,35 @@ export interface MoveStart {
   y: number;
   /** 띠는 세로로 옮기지 않는다 */
   lockY: boolean;
+  /** 순찰 범위가 있는 점은 범위도 같이 옮긴다 */
+  range?: RangeInfo | null;
 }
 
-/** 끌기 변위를 정수 픽셀로 반올림해 적용한다 */
-export function moveTargets(starts: readonly MoveStart[], dx: number, dy: number): Array<{ id: string; x: number; y: number }> {
+export interface MoveTarget {
+  id: string;
+  x: number;
+  y: number;
+  /** 옮긴 범위 (범위가 있는 점만) */
+  range?: RangeInfo;
+}
+
+/**
+ * 끌기 변위를 정수 픽셀로 반올림해 적용한다. 범위는 폭을 지킨 채 같은 만큼 옮기되 맵 폭 안에서 멈춘다.
+ * keepRange면 범위는 제자리다 (몸통만 옮긴다).
+ */
+export function moveTargets(starts: readonly MoveStart[], dx: number, dy: number, mapPixelWidth = Infinity, keepRange = false): MoveTarget[] {
   const rx = Math.round(dx);
   const ry = Math.round(dy);
-  return starts.map((s) => ({ id: s.id, x: s.x + rx, y: s.lockY ? s.y : s.y + ry }));
+  return starts.map((s) => {
+    const out: MoveTarget = { id: s.id, x: s.x + rx, y: s.lockY ? s.y : s.y + ry };
+    if (s.range) {
+      const lo = Math.min(0, -s.range.min);
+      const hi = Math.max(0, mapPixelWidth - s.range.max);
+      const shift = keepRange ? 0 : Math.min(hi, Math.max(lo, rx));
+      out.range = { ...s.range, min: s.range.min + shift, max: s.range.max + shift };
+    }
+    return out;
+  });
 }
 
 /** 방향키 이동: 1px, Shift는 타일 한 칸 */

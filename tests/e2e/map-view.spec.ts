@@ -175,9 +175,10 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     const handle = await toPage(view, { x: 176, y: 136 });
     await drag(page, handle, { x: handle.x - 16 * handle.zoom, y: handle.y });
     expect(await active(page, "(d) => d.model.findObject('slime_1').props")).toMatchObject({ species: "slime", minX: 160, maxX: 248 });
-    // 방향키 1px, Escape는 선택 풀기
+    // 방향키 1px (순찰 범위도 같이 움직인다), Escape는 선택 풀기
     await page.keyboard.press("ArrowRight");
     expect(await active(page, "(d) => d.model.findObject('slime_1').x")).toBe(201);
+    expect(await active(page, "(d) => d.model.findObject('slime_1').props")).toMatchObject({ minX: 161, maxX: 249 });
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("map-selection-count")).toHaveText("0");
 
@@ -192,7 +193,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     expect(saved.layers[0].data.slice(3 * W + 13, 3 * W + 16)).toEqual([3, 7, 3]);
     expect(saved.collision[5 * W + 5]).toBe(1);
     expect(saved.objects.find((o) => o.id === "start")).toMatchObject({ x: 44, y: 136 });
-    expect(saved.objects.find((o) => o.id === "slime_1")).toMatchObject({ x: 201, props: { minX: 160, maxX: 248 } });
+    expect(saved.objects.find((o) => o.id === "slime_1")).toMatchObject({ x: 201, props: { minX: 161, maxX: 249 } });
     const groundRow1 = saved.layers[0].data.slice(row1, row1 + W).join(",");
     expect(text).toContain(`\n        ${groundRow1},\n`);
     expect(text).toMatch(/"collision": \[\n {4}(\d+,){19}\d+,\n/);
@@ -220,17 +221,19 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     await expect(layers.getByTestId("layer-row")).toHaveCount(4);
     await openMenu(page, "편집", "되돌리기");
     await expect(layers.getByTestId("layer-row")).toHaveCount(5);
+    // 되돌리면 대상도 삭제 전의 새 레이어(layer:2)로 돌아온다
+    await expect(view).toHaveAttribute("data-target", "layer:2");
     // 눈: 레이어 숨기기
     await row("layer:0").getByTestId("layer-eye").click();
     await expect(row("layer:0").getByTestId("layer-eye")).toHaveAttribute("aria-pressed", "false");
     // 통행 줄을 누르면 통행 도구
     await row("collision").click();
     await expect(view).toHaveAttribute("data-tool", "collision");
-    // 펜(B)으로 돌아오면 마지막 타일 레이어(삭제 뒤 대상이던 layer:1)가 대상
+    // 펜(B)으로 돌아오면 마지막 타일 레이어(되돌린 뒤 대상이던 layer:2)가 대상
     await view.locator(".map-view-host").focus();
     await page.keyboard.press("b");
     await expect(view).toHaveAttribute("data-tool", "pen");
-    await expect(view).toHaveAttribute("data-target", "layer:1");
+    await expect(view).toHaveAttribute("data-target", "layer:2");
 
     // 보기 토글: 격자와 오브젝트 (맵 메뉴)
     await expect(page.getByTestId("map-toggle-grid")).toHaveAttribute("aria-pressed", "true");
