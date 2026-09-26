@@ -2,7 +2,6 @@
 // 브라우저 폴더 모드(웹판)는 폴더 열기, 최근 폴더 다시 열기, 샘플로 해 보기 (BrowserFoldersSection).
 
 import { observer } from "mobx-react-lite";
-import { NO_RESTORE_MESSAGE } from "@initial-editor/backend-fsaccess";
 import { isFolderFallback, MODE_LABELS, SAMPLE_ROOT, type BackendMode } from "../../editor/backends";
 import { browserFolders } from "../../editor/browserFolders";
 import { useEditor } from "../../editor/EditorContext";
@@ -22,7 +21,6 @@ const NO_PICKER = "이 브라우저에는 폴더 열기가 없다 (크롬, 엣�
 
 const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }: { editor: Editor }) {
   const folders = browserFolders(editor);
-  const blocked = folders.records.some((r) => !folders.canReopen(r));
   return (
     <>
       <div className="welcome-actions">
@@ -51,7 +49,7 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
                 <span className="welcome-recent-name" title={record.name}>
                   {record.name}
                 </span>
-                <button type="button" className="btn" disabled={!folders.canReopen(record)} onClick={() => void folders.reopen(record)}>
+                <button type="button" className="btn" onClick={() => void folders.reopen(record)}>
                   다시 열기
                 </button>
                 <button type="button" className="btn btn-ghost" aria-label={`${record.name} 을(를) 목록에서 지우기`} onClick={() => void folders.forget(record.key)}>
@@ -61,7 +59,11 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
             ))}
           </ul>
         )}
-        {blocked && <p className="welcome-notice">{NO_RESTORE_MESSAGE}</p>}
+        {folders.records.length > 0 && folders.restoreNotice && (
+          <p className="welcome-notice" data-testid="welcome-restore-notice">
+            {folders.restoreNotice}
+          </p>
+        )}
         <p className="muted welcome-hint">브라우저가 폴더 권한을 기억하지 않았으면 다시 열 때 한 번 더 묻는다.</p>
       </section>
     </>

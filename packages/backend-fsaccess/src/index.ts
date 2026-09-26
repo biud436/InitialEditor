@@ -1,7 +1,7 @@
 // @initial-editor/backend-fsaccess: 브라우저 폴더(File System Access API) 백엔드. 웹판(Cloudflare Pages)이 쓴다.
 
 export { FsAccessBackend, OPFS_NAME, OPFS_ROOT, type FsAccessBackendOptions } from "./FsAccessBackend";
-export { requestReadWrite, supportsFolderPicker } from "./fsOps";
+export { FOLDER_PICKER_ID, requestReadWrite, supportsFolderPicker } from "./fsOps";
 export {
   createHandleStore,
   HandleStore,
@@ -9,13 +9,16 @@ export {
   MAX_FOLDERS,
   MemoryFolderTable,
   NO_RESTORE_MESSAGE,
+  PRIVATE_PROFILE_MESSAGE,
   RESTORE_GUARD_KEY,
   RESTORE_GUARD_TTL_MS,
   RestoreGuard,
   type FolderRecord,
   type FolderTable,
+  type HandleStoreOptions,
   type KeyValueStore,
 } from "./handleStore";
+export { detectOffTheRecord, FALLBACK_HEAP_LIMIT, mayBeOffTheRecord, readProfileSignals, type ProfileHost, type ProfileSignals } from "./profile";
 export { ChangePoller, DEFAULT_POLL_MS, SELF_WINDOW_MS, type PollSource, type Stamp, type StampedEntry } from "./poller";
 export { hashBytes } from "./hash";
 export type { FsDirHandle, FsFileHandle, FsHandle, FsHandleBase } from "./types";

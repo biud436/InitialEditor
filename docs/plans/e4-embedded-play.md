@@ -135,19 +135,23 @@ index.md 2절의 결정(웹판을 겸한다)의 파일 쪽이다. Cloudflare Pag
 
 - [x] `packages/backend-fsaccess`: `FsAccessBackend`(`kind: "browser"`, `capabilities: { run: false, pickFolder: true, watch: true }`). `BackendKind` 에 `"browser"` 를 더했다
 - [x] `open(root)` 의 root 는 기억한 폴더의 키이거나 `"opfs"`, `"opfs:<하위 폴더>"`(브라우저 전용 저장소, 테스트와 연습용). 경로 규칙과 오류 코드는 브리지와 같다 (`normalizeRel`, `not_found`, `outside_root`, `not_open`, `io`, `unsupported`)
-- [x] 쓰기는 `createWritable` 뒤 `close()`. 명세의 스왑 파일이라 원자적이다. 이름 바꾸기는 `move()` 가 되면 그것, 안 되면 복사 뒤 지우기 (폴더는 통째로)
-- [x] 감시는 1.5초 폴링. 범위는 목록을 읽은 폴더(루트와 트리가 펼친 폴더)와 읽거나 쓴 파일. 크기와 마지막 수정 시각을 비교하고, 추적하는 폴더에 새 폴더가 생기면 그 안까지 알리고 추적한다
+- [x] 쓰기는 `createWritable` 뒤 `close()`. 명세의 스왑 파일이라 원자적이다. 이름 바꾸기는 `move()` 가 되면 그것, 안 되면 복사 뒤 지우기 (폴더는 통째로). 크롬 153 은 파일 핸들에만 `move()` 가 있어 폴더는 늘 복사다. `move()` 경로의 단위 검사는 가짜(`test/fakeFs.ts`)뿐이고 실제 디스크 폴더에서는 자동 검사가 없어서, 복사 뒤 지우기를 남겨 둔다
+- [x] 감시는 1.5초 폴링. 범위는 목록을 읽은 폴더(루트와 트리가 펼친 폴더)와 읽거나 쓴 파일. 크기와 마지막 수정 시각을 비교하고, 추적하는 폴더에 새 폴더가 생기면 그 안까지 알리고 추적한다. 내용은 읽지 않으므로 크기와 수정 시각이 둘 다 그대로인 밖의 변경(수정 시각을 보존하는 복사 등)은 놓친다 (폴링의 한계)
 - [x] 내가 한 변경: 쓰는 동안 경로를 잡고(hold), 끝나면 스냅숏을 고치고(note), 바로 `self` 로 알린다. 도장을 못 읽은 쓰기는 3초 안에 내용 해시가 같으면 `self` (브리지와 같은 규칙)
 - [x] `hmrPush` 와 `run` 은 `unsupported` (게임 뷰의 엔진이 저장을 받아 스스로 다시 뜬다)
-- [x] 폴더 기억: IndexedDB `initial-editor` 의 `handles`(키, 핸들)와 `folders`(키, 이름, 연 시각). 같은 폴더를 다시 고르면 같은 키 (`isSameEntry`), 최대 10개
+- [x] 폴더 기억: IndexedDB `initial-editor` 의 `handles`(키, 핸들)와 `folders`(키, 이름, 연 시각). 기억의 기준은 폴더 이름이다: 같은 이름을 고르면 그 기록의 핸들과 시각을 바꾼다 (새것이 이긴다, 기록이 늘지 않는다). 고를 때 기억한 핸들을 꺼내 비교하지 않는다. 최대 10개
+- [x] 핸들을 꺼내는 곳은 다시 열기(`HandleStore.restore`) 하나이고, 일반 프로필로 보일 때만 꺼낸다. 시크릿 짐작(`src/profile.ts`): `navigator.storage.estimate()` 의 할당량이 `performance.memory.jsHeapSizeLimit`(없으면 1 GiB)의 두 배보다 작으면 시크릿일 수 있다고 본다 (흔한 시크릿 판별과 같은 기준, 모르면 시크릿 쪽). 그때 다시 열기는 이유를 한 줄 알리고 폴더 고르기(`id: "initial-editor"`, 크롬은 지난번 폴더에서 연다)로 연다. `open()` 은 이 페이지에서 고르거나 꺼낸 핸들만 쓴다
 - [x] 권한: `queryPermission` 뒤 `requestPermission`. 묻는 것은 클릭 안에서만 되므로 시작 화면의 "다시 열기"가 먼저 묻고 연다
 - [x] 앱: `chooseMode` 에 `browser`. 로컬이 아닌 호스트는 `showDirectoryPicker` 가 있으면 브라우저 폴더, 없으면 메모리와 안내. `?backend=browser` 는 강제, `?backend=opfs` 는 OPFS 를 바로 연다
 - [x] 시작 화면: 폴더 열기, 최근 폴더와 다시 열기, 샘플로 해 보기(메모리 샘플로 바꾼다). 파일 > 최근 프로젝트도 브라우저 폴더 모드에서는 기억한 폴더의 이름이다
-- [x] 검수: 적합성 한 벌 14건을 루트 둘(기억한 폴더, OPFS 하위 폴더)에 (가짜 File System Access API `test/fakeFs.ts`, 가짜 자체의 명세 검사 7건), 폴링 단위 12건, 백엔드 단위 15건, e2e `tests/e2e/web-folder.spec.ts` 4건
+- [x] 검수: 적합성 한 벌 14건을 루트 둘(기억한 폴더, OPFS 하위 폴더)에 (가짜 File System Access API `test/fakeFs.ts`, 가짜 자체의 명세 검사 7건), 폴링 단위 12건, 백엔드 단위 19건, 시크릿 짐작 단위 6건(`test/profile.test.ts`, 두 갈래와 값이 없을 때), 앱의 짐작 연결 1건(`backends.test.ts`), e2e `tests/e2e/web-folder.spec.ts` 4건 (기본 컨텍스트에서 다시 열기와 이미 기억한 이름의 폴더 열기와 프로젝트 열기 커맨드가 폴더 고르기로 돌고 브라우저가 살아 있는지, `launchPersistentContext` 에서 바로 다시 열기와 흔적이 있을 때 폴더 고르기)
 
 ### 메모
 
-- **시크릿 컨텍스트에서 IndexedDB 의 폴더 핸들을 꺼내면 탭이 죽는다.** Playwright 의 기본 컨텍스트(시크릿 창과 같은 off-the-record 프로필)에서 크로미움 153 과 크롬 모두 재현했다. 넣는 것은 되고 꺼내는 순간 렌더러가 닫힌다. 일반 프로필(`launchPersistentContext`)에서는 된다. 그래서 목록은 이름만 담은 `folders` 에서 읽고, 핸들은 다시 열 때만 꺼내며, 꺼내는 동안 localStorage 에 표시(`initial-editor.folders.restoring`)를 남긴다. 다음에 페이지가 떴을 때 표시가 남아 있으면 꺼내다 죽은 것이므로 그 창에서는 다시 열기를 끄고 안내한다 (12시간 뒤 풀린다). 진짜 시크릿 창에서 같은지는 저자 확인이 필요하다
+- **시크릿 프로필에서 IndexedDB 의 폴더 핸들을 꺼내면 브라우저 프로세스가 통째로 죽는다 (탭만이 아니다).** 크롬 153 의 진짜 `--incognito` 창(프로세스가 SIGTRAP 으로 끝난다)과 Playwright 의 기본 컨텍스트(크로미움과 크롬, `browser.isConnected()` 가 false 가 된다)에서 재현했다. 넣는 것은 되고 꺼내는 순간 죽는다. 일반 프로필(`launchPersistentContext`, 일반 크롬)에서는 된다. 시크릿 창의 저장소(localStorage 의 표시 포함)도 함께 사라지므로 아래 표시는 시크릿 창에서는 효과가 없다. 그래서 핸들은 일반 프로필로 보일 때 다시 열기에서만 꺼내고, 시크릿일 수 있으면 폴더 고르기로 돈다 (위 작업 항목)
+- 잰 값: 할당량은 시크릿 창과 Playwright 기본 컨텍스트가 2048 MiB, 일반 크롬과 `launchPersistentContext` 가 10240 MiB. 힙 한도는 크롬 4192 MiB, 크로미움 3586 MiB. 일반 프로필이라도 할당량이 기준보다 작게 나오는 기기에서는 다시 열기가 폴더 고르기로 돌 뿐 죽지는 않는다
+- 두 번째 방어(일반 프로필): 꺼내는 동안 localStorage 에 표시(`initial-editor.folders.restoring`)를 남긴다. 다음에 페이지가 떴을 때 5분 안의 표시가 남아 있으면 꺼내다 죽은 것이므로 그 페이지에서는 꺼내지 않고 이유를 알린 뒤 폴더 고르기로 연다. 폴더를 하나라도 열면(`open()` 성공) 표시를 지운다. 같은 이름은 한 기록이라 다시 골라도 쌓이지 않는다
+- 사람이 볼 것: 진짜 로컬 폴더를 시크릿 창에서 고른 뒤 다시 열기가 폴더 고르기로 돌 때 크롬이 지난번 폴더에서 대화상자를 여는지 (자동 검사는 OPFS 하위 폴더와 가짜 대화상자로 한다)
 - 핸들은 경로와 같다. 지우고 같은 이름으로 다시 만들면 옛 핸들이 새 항목을 가리킨다 (가짜도 그렇게 만들었다)
 - `ProjectInfo.root` 는 폴더 이름이다 (브라우저는 절대 경로를 주지 않는다). 다시 열 때 쓰는 키는 `backend.openedRoot`
 - 설정의 `recentProjects`(브리지와 같은 localStorage)에 키가 남지 않게 `browserFolders.ts` 가 `projectOpened` 에서 지운다. `Editor.openProject` 가 브라우저 폴더 모드에서 `addRecentProject` 를 건너뛰면 이 우회는 없앨 수 있다

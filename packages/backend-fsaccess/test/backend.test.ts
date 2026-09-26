@@ -1,11 +1,33 @@
-// 적합성 한 벌 밖의 브라우저 폴더 규칙: 권한, 폴더 고르기와 기억, OPFS 루트, 옮기기, 기본 1.5초 감시와 self 알림.
+// 적합성 한 벌 밖의 브라우저 폴더 규칙: 권한, 폴더 고르기와 기억(핸들을 꺼내는 때), OPFS 루트, 옮기기,
+// 기본 1.5초 감시와 self 알림.
 
 import type { ChangeEvent } from "@initial-editor/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FsAccessBackend } from "../src/FsAccessBackend";
-import { HandleStore, MAX_FOLDERS, MemoryFolderTable, RESTORE_GUARD_KEY, RESTORE_GUARD_TTL_MS, RestoreGuard, type KeyValueStore } from "../src/handleStore";
+import {
+  HandleStore,
+  MAX_FOLDERS,
+  MemoryFolderTable,
+  NO_RESTORE_MESSAGE,
+  PRIVATE_PROFILE_MESSAGE,
+  RESTORE_GUARD_KEY,
+  RESTORE_GUARD_TTL_MS,
+  RestoreGuard,
+  type KeyValueStore,
+} from "../src/handleStore";
 import type { FsDirHandle } from "../src/types";
 import { FakeFs } from "./fakeFs";
+
+/** 핸들을 꺼낸 횟수를 세는 저장소 */
+function countingTable(): MemoryFolderTable & { reads: number } {
+  const table = Object.assign(new MemoryFolderTable(), { reads: 0 });
+  const getHandle = table.getHandle.bind(table);
+  table.getHandle = async (key) => {
+    table.reads++;
+    return getHandle(key);
+  };
+  return table;
+}
 
 function make(fs: FakeFs, picker?: () => Promise<FsDirHandle | null>) {
   const handles = new HandleStore(new MemoryFolderTable());
@@ -36,7 +58,7 @@ describe("FsAccessBackend", () => {
 
   it("기억하는 폴더는 최근 순이고 MAX_FOLDERS 를 넘으면 오래된 것을 잊는다", async () => {
     let t = 0;
-    const handles = new HandleStore(new MemoryFolderTable(), undefined, () => ++t);
+    const handles = new HandleStore(new MemoryFolderTable(), { now: () => ++t });
     const keys: string[] = [];
     for (let i = 0; i < MAX_FOLDERS + 2; i++) keys.push((await handles.remember(new FakeFs({ name: `g${i}` }).root())).key);
     const list = await handles.list();
@@ -49,47 +71,139 @@ describe("FsAccessBackend", () => {
     expect(await handles.get(keys[5])).toBeUndefined();
   });
 
-  it("목록은 핸들을 꺼내지 않고, 다른 페이지에서 기억한 폴더는 열 때 한 번만 꺼낸다", async () => {
-    const fs = new FakeFs({ name: "mygame" });
-    const table = new MemoryFolderTable();
-    let restored = 0;
-    const getHandle = table.getHandle.bind(table);
-    table.getHandle = async (key) => (restored++, getHandle(key));
-    const key = (await new HandleStore(table).remember(fs.root())).key;
+  it("목록과 폴더 열기는 기억한 핸들을 꺼내지 않고, 다른 페이지에서 기억한 폴더는 다시 열기(restore)로 한 번만 꺼낸다", async () => {
+    const table = countingTable();
+    const key = (await new HandleStore(table).remember(new FakeFs({ name: "mygame" }).root())).key;
     // 새 페이지: 같은 저장소, 새 HandleStore
     const handles = new HandleStore(table);
     const backend = new FsAccessBackend({ handles });
     expect((await handles.list()).map((r) => r.name)).toEqual(["mygame"]);
-    expect(restored).toBe(0);
+    // open() 은 꺼내지 않는다: 이 페이지에서 고르거나 꺼낸 핸들만 쓴다
+    await expect(backend.open(key)).rejects.toMatchObject({ code: "io" });
+    expect(handles.opened(key)).toBeUndefined();
+    expect(table.reads).toBe(0);
+    expect(await handles.restoreBlocker(key)).toBeNull();
+    expect(await handles.restore(key)).toBeDefined();
     await backend.open(key);
     await backend.open(key);
-    expect(restored).toBe(1);
-    // 이름이 다른 폴더를 고를 때는 기억한 핸들을 꺼내 비교하지 않는다
+    expect(await handles.restore(key)).toBeDefined();
+    expect(table.reads).toBe(1);
+    // 같은 이름이든 다른 이름이든 폴더를 고를 때 기억한 핸들을 꺼내 비교하지 않는다
+    expect((await handles.remember(new FakeFs({ name: "mygame" }).root())).key).toBe(key);
     await handles.remember(new FakeFs({ name: "other" }).root());
-    expect(restored).toBe(1);
+    expect(table.reads).toBe(1);
   });
 
-  it("핸들을 꺼내다 페이지가 죽은 표시가 남아 있으면 다시 열기를 끄고, 이 페이지에서 고른 폴더는 연다", async () => {
+  it("기억은 폴더 이름으로 한다: 같은 이름을 고르면 그 기록의 핸들과 시각을 바꾼다 (새것이 이긴다). 핸들은 꺼내지 않는다", async () => {
+    let t = 0;
+    const table = countingTable();
+    const first = new FakeFs({ name: "game" });
+    first.writeFile("which.txt", "first");
+    const old = await new HandleStore(table, { now: () => ++t }).remember(first.root());
+    // 새 페이지에서 이름이 같은 다른 폴더를 고른다
+    const second = new FakeFs({ name: "game" });
+    second.writeFile("which.txt", "second");
+    const handles = new HandleStore(table, { now: () => 100 + ++t });
+    const backend = new FsAccessBackend({ handles, picker: async () => second.root() });
+    const key = await backend.pickFolder();
+    expect(key).toBe(old.key);
+    expect(table.reads).toBe(0);
+    const list = await handles.list();
+    expect(list).toEqual([{ key: old.key, name: "game", openedAt: expect.any(Number) }]);
+    expect(list[0].openedAt).toBeGreaterThan(old.openedAt);
+    await backend.open(key!);
+    expect(await backend.readText("which.txt")).toBe("second");
+    // 다음 페이지가 꺼내는 핸들도 새것이다
+    const next = new HandleStore(table);
+    const restored = await next.restore(old.key);
+    expect(await restored!.isSameEntry(second.root())).toBe(true);
+  });
+
+  it("이름이 같은 기록이 여럿이면 목록에서 새것 하나만 남기고 나머지는 지운다", async () => {
+    const table = new MemoryFolderTable();
+    const a = new FakeFs({ name: "dup" }).root();
+    await table.put({ key: "folder-old", name: "dup", openedAt: 1 }, a);
+    await table.put({ key: "folder-new", name: "dup", openedAt: 2 }, a);
+    await table.put({ key: "folder-else", name: "else", openedAt: 3 }, a);
+    const handles = new HandleStore(table);
+    expect((await handles.list()).map((r) => r.key)).toEqual(["folder-else", "folder-new"]);
+    expect([...table.records.keys()].sort()).toEqual(["folder-else", "folder-new"]);
+    expect(table.handles.has("folder-old")).toBe(false);
+  });
+
+  it("시크릿 프로필일 수 있으면 기억한 핸들을 꺼내지 않고 폴더 고르기로 돌린다. 이 페이지에서 고른 것은 그대로 연다", async () => {
+    const table = countingTable();
+    const old = await new HandleStore(table).remember(new FakeFs({ name: "old" }).root());
+    let probes = 0;
+    const handles = new HandleStore(table, { offTheRecord: async () => (probes++, true) });
+    const picked = new FakeFs({ name: "old" });
+    const backend = new FsAccessBackend({ handles, picker: async () => picked.root() });
+    expect(await handles.restoreBlocker()).toBe(PRIVATE_PROFILE_MESSAGE);
+    expect(await handles.restoreBlocker(old.key)).toBe(PRIVATE_PROFILE_MESSAGE);
+    await expect(handles.restore(old.key)).rejects.toMatchObject({ code: "unsupported", message: PRIVATE_PROFILE_MESSAGE });
+    expect(table.reads).toBe(0);
+    // 폴더 고르기로 같은 이름을 고르면 같은 기록이 되고, 그 핸들은 이 페이지에서 꺼내지 않고 쓴다
+    const key = await backend.pickFolder();
+    expect(key).toBe(old.key);
+    expect(await handles.restoreBlocker(key!)).toBeNull();
+    expect(await handles.restore(key!)).toBe(handles.opened(key!));
+    expect((await backend.open(key!)).name).toBe("old");
+    expect(table.reads).toBe(0);
+    expect((await handles.list()).length).toBe(1);
+    expect(probes).toBe(1);
+    // 짐작이 실패하면 시크릿일 수 있다고 본다
+    const failing = new HandleStore(table, { offTheRecord: async () => Promise.reject(new Error("no estimate")) });
+    expect(await failing.restoreBlocker(old.key)).toBe(PRIVATE_PROFILE_MESSAGE);
+    expect(table.reads).toBe(0);
+  });
+
+  it("핸들을 꺼내다 페이지가 끝난 표시가 몇 분 안이면 꺼내지 않고 폴더 고르기로 돌린다. 폴더를 열면 표시를 지우고 기록은 늘지 않는다", async () => {
     const kv = new Map<string, string>();
     const storage: KeyValueStore = { getItem: (k) => kv.get(k) ?? null, setItem: (k, v) => void kv.set(k, v), removeItem: (k) => void kv.delete(k) };
-    const table = new MemoryFolderTable();
+    const table = countingTable();
     const old = await new HandleStore(table).remember(new FakeFs({ name: "old" }).root());
-    // 꺼내는 도중 탭이 죽는다: 끝나지 않는 꺼내기
+    // 꺼내는 도중 브라우저가 꺼진다: 끝나지 않는 꺼내기
+    const getHandle = table.getHandle;
     table.getHandle = () => new Promise(() => {});
-    void new HandleStore(table, new RestoreGuard(storage)).handle(old.key);
-    expect(kv.has(RESTORE_GUARD_KEY)).toBe(true);
+    void new HandleStore(table, { guard: new RestoreGuard(storage) }).restore(old.key);
+    await vi.waitFor(() => expect(kv.has(RESTORE_GUARD_KEY)).toBe(true));
+    table.getHandle = getHandle;
+    table.reads = 0;
 
-    const handles = new HandleStore(table, new RestoreGuard(storage));
-    const fresh = new FakeFs({ name: "fresh" });
-    const backend = new FsAccessBackend({ handles, picker: async () => fresh.root() });
-    expect(handles.canRestore(old.key)).toBe(false);
-    await expect(backend.open(old.key)).rejects.toMatchObject({ code: "unsupported" });
+    const handles = new HandleStore(table, { guard: new RestoreGuard(storage) });
+    const same = new FakeFs({ name: "old" });
+    const backend = new FsAccessBackend({ handles, picker: async () => same.root() });
+    expect(await handles.restoreBlocker(old.key)).toBe(NO_RESTORE_MESSAGE);
+    await expect(handles.restore(old.key)).rejects.toMatchObject({ code: "unsupported" });
+    await expect(backend.open(old.key)).rejects.toMatchObject({ code: "io" });
+    expect(table.reads).toBe(0);
+    // 같은 폴더를 다시 고르면 같은 기록이다 (쌓이지 않는다). 열면 표시를 지운다
     const key = (await backend.pickFolder())!;
-    expect(handles.canRestore(key)).toBe(true);
-    expect((await backend.open(key)).name).toBe("fresh");
-    // 표시가 오래되면 무시한다
-    const later = new RestoreGuard(storage, () => Date.now() + RESTORE_GUARD_TTL_MS + 1);
-    expect(later.crashed).toBe(false);
+    expect(key).toBe(old.key);
+    expect((await handles.list()).length).toBe(1);
+    expect(kv.has(RESTORE_GUARD_KEY)).toBe(true);
+    expect((await backend.open(key)).name).toBe("old");
+    expect(kv.has(RESTORE_GUARD_KEY)).toBe(false);
+    // 다음 페이지는 다시 바로 꺼낸다
+    expect(await new HandleStore(table, { guard: new RestoreGuard(storage) }).restoreBlocker(old.key)).toBeNull();
+  });
+
+  it("꺼내다 끝난 표시는 몇 분만 막는다. 꺼내는 중에는 폴더를 열어도 표시를 지우지 않는다", async () => {
+    expect(RESTORE_GUARD_TTL_MS).toBeLessThanOrEqual(10 * 60 * 1000);
+    const kv = new Map<string, string>([[RESTORE_GUARD_KEY, "1000"]]);
+    const storage: KeyValueStore = { getItem: (k) => kv.get(k) ?? null, setItem: (k, v) => void kv.set(k, v), removeItem: (k) => void kv.delete(k) };
+    expect(new RestoreGuard(storage, () => 1000 + RESTORE_GUARD_TTL_MS - 1).crashed).toBe(true);
+    expect(new RestoreGuard(storage, () => 1000 + RESTORE_GUARD_TTL_MS + 1).crashed).toBe(false);
+    kv.clear();
+    const guard = new RestoreGuard(storage);
+    let finish!: () => void;
+    const running = guard.run(() => new Promise<void>((resolve) => (finish = resolve)));
+    expect(kv.has(RESTORE_GUARD_KEY)).toBe(true);
+    guard.clear();
+    expect(kv.has(RESTORE_GUARD_KEY)).toBe(true);
+    finish();
+    await running;
+    expect(kv.has(RESTORE_GUARD_KEY)).toBe(false);
   });
 
   it("모르는 키는 not_found", async () => {

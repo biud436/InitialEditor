@@ -1,7 +1,8 @@
 // ProjectBackend 의 브라우저 폴더 구현 (docs/plans/03-project-and-runtime.md 2절, e4-embedded-play.md 웹판).
 //
 // 크로미움의 폴더 열기(File System Access API)로 고른 폴더를 서버 없이 직접 읽고 쓴다. open() 의 root 는
-//   - 기억한 폴더의 키: pickFolder() 가 폴더 핸들을 IndexedDB 에 넣고 돌려준 값 (handleStore.ts)
+//   - 기억한 폴더의 키: pickFolder() 가 폴더 핸들을 IndexedDB 에 넣고 돌려준 값 (handleStore.ts). open() 은 이
+//     페이지에서 고르거나 다시 열기(handles.restore)로 꺼낸 핸들만 쓰고, IndexedDB 에서 핸들을 꺼내지 않는다
 //   - "opfs" 또는 "opfs:<하위 폴더>": 브라우저 전용 저장소(Origin Private File System). 테스트와 연습용
 // 엔진 프로세스와 핫 리로드 서버는 없다 (게임은 페이지 안의 WASM 엔진이 돌린다). 감시는 폴링이다 (poller.ts).
 
@@ -113,6 +114,7 @@ export class FsAccessBackend implements ProjectBackend {
     this.rootKey = root.trim();
     this.poller.trackDir("", entries);
     if (this.watchers.size > 0) this.poller.start();
+    this.handles.markOpened();
     if (remembered) void this.handles.touch(this.rootKey).catch(() => {});
     const hasGameJson = entries.some((e) => e.name === "game.json" && e.stamp.kind === "file");
     return { root: name, name, hasGameJson };
@@ -311,8 +313,8 @@ export class FsAccessBackend implements ProjectBackend {
     }
     const record = await this.handles.get(key);
     if (!record) throw new BackendError(`기억한 폴더가 없다 (${key}). 폴더 열기로 다시 고른다`, "not_found");
-    const handle = await this.handles.handle(key);
-    if (!handle) throw new BackendError(`기억한 폴더의 핸들이 없다 (${record.name}). 폴더 열기로 다시 고른다`, "not_found");
+    const handle = this.handles.opened(key);
+    if (!handle) throw new BackendError(`${record.name} 폴더는 시작 화면의 다시 열기로 연다 (이 페이지에서 아직 꺼내지 않았다)`, "io");
     return { handle, name: record.name || handle.name, remembered: true };
   }
 

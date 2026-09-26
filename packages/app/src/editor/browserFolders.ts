@@ -1,6 +1,7 @@
 // 웹판의 폴더 다루기 (브라우저 폴더 모드). 시작 화면과 최근 프로젝트 메뉴가 쓴다.
-//   폴더 열기: 폴더를 고르고(showDirectoryPicker) 핸들을 IndexedDB 에 기억한 뒤 연다
-//   다시 열기: 기억한 폴더의 권한을 클릭 안에서 다시 묻고 연다
+//   폴더 열기: 폴더를 고르고(showDirectoryPicker) 핸들을 IndexedDB 에 기억한 뒤 연다. 기억한 핸들은 꺼내지 않는다
+//   다시 열기: 일반 프로필이면 기억한 핸들을 꺼내 권한을 클릭 안에서 다시 묻고 연다. 시크릿 프로필일 수 있거나
+//             지난번에 꺼내다 죽었으면 꺼내지 않고 이유를 한 줄 알린 뒤 폴더 고르기로 연다 (handleStore.ts)
 //   샘플로 해 보기: 메모리 백엔드로 바꿔 샘플 프로젝트를 연다
 // 최근 목록은 설정의 recentProjects 가 아니라 IndexedDB 의 기억한 폴더다 (키만으로는 이름을 모른다).
 
@@ -13,12 +14,14 @@ export class BrowserFolders {
   /** 기억한 폴더 (최근 순) */
   records: FolderRecord[] = [];
   loaded = false;
+  /** 다시 열기가 폴더 고르기로 도는 이유 (시작 화면의 안내). 기억한 핸들을 바로 꺼내면 null */
+  restoreNotice: string | null = null;
   readonly supported = supportsFolderPicker();
   readonly backend: FsAccessBackend;
 
   constructor(private readonly editor: Editor) {
     this.backend = editor.backend instanceof FsAccessBackend ? editor.backend : new FsAccessBackend();
-    makeObservable(this, { records: observable.ref, loaded: observable });
+    makeObservable(this, { records: observable.ref, loaded: observable, restoreNotice: observable });
     editor.events.on("projectOpened", () => {
       // 브라우저 폴더의 최근 목록은 IndexedDB 가 들고 있다. 설정 쪽 목록(브리지와 같은 저장소)에 키를 남기지 않는다
       const key = this.backend.openedRoot;
@@ -31,8 +34,10 @@ export class BrowserFolders {
 
   async refresh(): Promise<void> {
     const records = await this.backend.handles.list().catch(() => []);
+    const notice = await this.backend.handles.restoreBlocker().catch(() => null);
     runInAction(() => {
       this.records = records;
+      this.restoreNotice = notice;
       this.loaded = true;
     });
   }
@@ -51,16 +56,19 @@ export class BrowserFolders {
     return this.openKey(key);
   }
 
-  /** 이 레코드를 다시 열 수 있는가. 시크릿 창 등에서 핸들을 꺼내다 탭이 멈춘 적이 있으면 이 페이지에서 고른 것만 된다 */
-  canReopen(record: FolderRecord): boolean {
-    return this.backend.handles.canRestore(record.key);
-  }
-
-  /** 기억한 폴더 다시 열기. 권한을 먼저 묻는다 (클릭 안이어야 한다) */
+  /**
+   * 기억한 폴더 다시 열기. 클릭 처리기에서 바로 부른다 (권한 묻기와 폴더 고르기는 사용자 제스처 안에서만 된다).
+   * 핸들을 꺼낼 수 없는 곳이면 이유를 알리고 폴더 고르기로 연다
+   */
   async reopen(record: FolderRecord): Promise<boolean> {
+    const blocker = await this.backend.handles.restoreBlocker(record.key).catch(() => null);
+    if (blocker) {
+      this.editor.toasts.info(blocker);
+      return this.openNew();
+    }
     let handle;
     try {
-      handle = await this.backend.handles.handle(record.key);
+      handle = await this.backend.handles.restore(record.key);
     } catch (e) {
       this.fail("기억한 폴더를 열지 못했다", e);
       return false;

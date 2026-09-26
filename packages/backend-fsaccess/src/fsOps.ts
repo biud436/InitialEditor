@@ -10,6 +10,9 @@ interface PickerHost {
   navigator?: { storage?: { getDirectory?: () => Promise<unknown> } };
 }
 
+/** 폴더 고르기 대화상자의 id. 크롬은 id 마다 마지막으로 고른 폴더에서 대화상자를 연다 (다시 열기가 고르기로 돌 때 같은 폴더가 가깝다) */
+export const FOLDER_PICKER_ID = "initial-editor";
+
 /** 이 브라우저에 폴더 열기가 있는가 (크롬, 엣지). 파이어폭스와 사파리는 없다 */
 export function supportsFolderPicker(): boolean {
   return typeof (globalThis as PickerHost).showDirectoryPicker === "function";
@@ -21,7 +24,7 @@ export async function defaultPicker(): Promise<FsDirHandle | null> {
     throw new BackendError("이 브라우저에는 폴더 열기가 없다. 크롬이나 엣지에서 연다", "unsupported");
   }
   try {
-    return (await host.showDirectoryPicker({ mode: "readwrite", id: "initial-editor" })) as FsDirHandle;
+    return (await host.showDirectoryPicker({ mode: "readwrite", id: FOLDER_PICKER_ID })) as FsDirHandle;
   } catch (e) {
     if (errorName(e) === "AbortError") return null;
     throw toBackendError(e);
