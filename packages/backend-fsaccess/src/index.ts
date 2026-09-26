@@ -18,7 +18,7 @@ export {
   type HandleStoreOptions,
   type KeyValueStore,
 } from "./handleStore";
-export { detectOffTheRecord, FALLBACK_HEAP_LIMIT, mayBeOffTheRecord, readProfileSignals, type ProfileHost, type ProfileSignals } from "./profile";
+export { detectOffTheRecord, mayBeOffTheRecord, MIN_NORMAL_QUOTA, readProfileSignals, type ProfileHost, type ProfileSignals } from "./profile";
 export { ChangePoller, DEFAULT_POLL_MS, SELF_WINDOW_MS, type PollSource, type Stamp, type StampedEntry } from "./poller";
 export { hashBytes } from "./hash";
 export type { FsDirHandle, FsFileHandle, FsHandle, FsHandleBase } from "./types";

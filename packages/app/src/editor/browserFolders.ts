@@ -1,11 +1,12 @@
 // 웹판의 폴더 다루기 (브라우저 폴더 모드). 시작 화면과 최근 프로젝트 메뉴가 쓴다.
-//   폴더 열기: 폴더를 고르고(showDirectoryPicker) 핸들을 IndexedDB 에 기억한 뒤 연다. 기억한 핸들은 꺼내지 않는다
+//   폴더 열기(프로젝트 열기 커맨드, Ctrl+O 도 이것): 폴더를 고르고(showDirectoryPicker), 열린 프로젝트를 닫는다
+//             (저장하지 않은 문서를 묻는다). 닫은 뒤에만 핸들을 IndexedDB 에 기억하고 연다. 기억한 핸들은 꺼내지 않는다
 //   다시 열기: 일반 프로필이면 기억한 핸들을 꺼내 권한을 클릭 안에서 다시 묻고 연다. 시크릿 프로필일 수 있거나
 //             지난번에 꺼내다 죽었으면 꺼내지 않고 이유를 한 줄 알린 뒤 폴더 고르기로 연다 (handleStore.ts)
 //   샘플로 해 보기: 메모리 백엔드로 바꿔 샘플 프로젝트를 연다
 // 최근 목록은 설정의 recentProjects 가 아니라 IndexedDB 의 기억한 폴더다 (키만으로는 이름을 모른다).
 
-import { FsAccessBackend, requestReadWrite, supportsFolderPicker, type FolderRecord } from "@initial-editor/backend-fsaccess";
+import { FsAccessBackend, requestReadWrite, supportsFolderPicker, type FolderRecord, type FsDirHandle } from "@initial-editor/backend-fsaccess";
 import { makeObservable, observable, runInAction } from "mobx";
 import { createMemoryBackend, SAMPLE_ROOT } from "./backends";
 import type { Editor } from "./Editor";
@@ -42,16 +43,27 @@ export class BrowserFolders {
     });
   }
 
-  /** 폴더 열기. 클릭 처리기에서 바로 부른다 (대화상자는 사용자 제스처 안에서만 뜬다) */
+  /**
+   * 폴더 열기. 클릭 처리기에서 바로 부른다 (대화상자는 사용자 제스처 안에서만 뜬다).
+   * 저장하지 않은 문서를 묻는 곳에서 취소하면 기억한 기록과 이 페이지의 핸들을 바꾸지 않는다
+   */
   async openNew(): Promise<boolean> {
-    let key: string | null;
+    let handle: FsDirHandle | null;
     try {
-      key = await this.backend.pickFolder();
+      handle = await this.backend.pickHandle();
     } catch (e) {
       this.fail("폴더를 열지 못했다", e);
       return false;
     }
-    if (!key) return false;
+    if (!handle) return false;
+    if (!(await this.editor.closeProject())) return false;
+    let key: string;
+    try {
+      key = (await this.backend.handles.remember(handle)).key;
+    } catch (e) {
+      this.fail("폴더를 열지 못했다", e);
+      return false;
+    }
     await this.refresh();
     return this.openKey(key);
   }

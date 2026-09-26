@@ -274,10 +274,15 @@ export class FsAccessBackend implements ProjectBackend {
 
   /** 폴더를 고르고 기억한다. 돌려주는 키를 open() 에 넘긴다. 취소면 null */
   async pickFolder(): Promise<string | null> {
-    const handle = await this.picker();
+    const handle = await this.pickHandle();
     if (!handle) return null;
     const record = await this.handles.remember(handle);
     return record.key;
+  }
+
+  /** 폴더를 고르기만 하고 기억하지 않는다 (기억은 handles.remember). 취소면 null */
+  pickHandle(): Promise<FsDirHandle | null> {
+    return this.picker();
   }
 
   async close(): Promise<void> {

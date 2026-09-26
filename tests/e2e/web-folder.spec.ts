@@ -6,7 +6,10 @@
 // Playwright 의 기본 컨텍스트는 시크릿 창과 같은 off-the-record 프로필이라 IndexedDB 에서 폴더 핸들을 꺼내면
 // 브라우저 프로세스가 통째로 죽는다. 앱은 그런 곳에서 핸들을 꺼내지 않는다: 기본 컨텍스트에서는 다시 열기와 폴더 열기가
 // 폴더 고르기로 돌고 브라우저가 살아 있는지 본다. 핸들을 바로 꺼내는 다시 열기는 일반 프로필(launchPersistentContext)에서
-// 짐작을 흉내 내지 않고 진짜 값으로 본다. 폴더 고르기 대화상자는 OPFS 하위 폴더를 돌려주는 가짜로 바꾼다 (PICKER_STUB).
+// 짐작을 흉내 내지 않고 진짜 값으로 본다. performance.memory 가 없으면(NO_MEMORY) 일반 프로필이어도 폴더 고르기로 돈다.
+// 폴더 고르기 대화상자는 OPFS 하위 폴더를 돌려주는 가짜로 바꾼다 (PICKER_STUB).
+// 샘플로 해 보기 뒤의 Ctrl+O 와 파일 > 프로젝트 열기도 폴더 고르기다. 저장하지 않은 문서를 묻는 곳에서 취소하면
+// 기억한 기록과 페이지의 핸들이 그대로다 (이름이 같은 두 폴더 a/game, b/game).
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -22,12 +25,12 @@ const PROJECT: Record<string, string> = {
     '{\n  "version": 2,\n  "width": 2,\n  "height": 2,\n  "tileWidth": 16,\n  "tileHeight": 16,\n  "tilesets": [],\n  "layers": [{ "name": "ground", "data": [0, 0, 0, 0] }],\n  "events": [],\n  "objects": []\n}\n',
 };
 
-/** OPFS 에 파일을 쓴다 (sub 가 있으면 그 하위 폴더에). 에디터를 거치지 않는다 */
+/** OPFS 에 파일을 쓴다 (sub 가 있으면 그 하위 폴더에, "a/game" 처럼 여러 층도 된다). 에디터를 거치지 않는다 */
 async function writeOpfs(page: Page, files: Record<string, string>, sub = "") {
   await page.evaluate(
     async ({ files, sub }) => {
       let root = await navigator.storage.getDirectory();
-      if (sub) root = await root.getDirectoryHandle(sub, { create: true });
+      for (const seg of sub.split("/").filter(Boolean)) root = await root.getDirectoryHandle(seg, { create: true });
       for (const [path, text] of Object.entries(files)) {
         const parts = path.split("/");
         const name = parts.pop()!;
@@ -167,20 +170,64 @@ async function folderKeys(page: Page): Promise<string[]> {
   );
 }
 
+/** 기억한 폴더의 기록 (folders 저장소만 읽는다. 핸들은 꺼내지 않는다) */
+async function folderRecords(page: Page): Promise<{ key: string; name: string; openedAt: number }[]> {
+  return page.evaluate(
+    () =>
+      new Promise<{ key: string; name: string; openedAt: number }[]>((resolve, reject) => {
+        const req = indexedDB.open("initial-editor");
+        req.onsuccess = () => {
+          const db = req.result;
+          const all = db.transaction("folders").objectStore("folders").getAll();
+          all.onsuccess = () => {
+            db.close();
+            resolve(all.result);
+          };
+          all.onerror = () => reject(all.error);
+        };
+        req.onerror = () => reject(req.error);
+      }),
+  );
+}
+
+/** 열린 프로젝트의 키와, 페이지가 그 키로 들고 있는 핸들의 scripts/lua/main.lua 내용 */
+async function liveMain(page: Page): Promise<{ key: string | null; main: string }> {
+  return page.evaluate(async () => {
+    const backend = (window as unknown as EditorWindow).initialEditor.backend;
+    const key = backend.openedRoot;
+    const handle = key ? backend.handles?.opened(key) : undefined;
+    if (!handle) return { key, main: "(핸들 없음)" };
+    const lua = await (await handle.getDirectoryHandle("scripts")).getDirectoryHandle("lua");
+    return { key, main: await (await (await lua.getFileHandle("main.lua")).getFile()).text() };
+  });
+}
+
 /**
- * 폴더 고르기 대화상자의 가짜: window.__pick 이름의 OPFS 하위 폴더를 돌려주고, 받은 옵션을 window.__picks 에 남긴다.
- * 페이지를 새로 고치면 __picks 는 비어서 다시 시작한다
+ * 폴더 고르기 대화상자의 가짜: window.__pick 경로("a/game" 처럼 / 로 나눈다)의 OPFS 하위 폴더를 돌려주고,
+ * 받은 옵션을 window.__picks 에 남긴다. 페이지를 새로 고치면 __picks 는 비어서 다시 시작한다
  */
 const PICKER_STUB = `
   window.__pick = "remembered";
   window.__picks = [];
   window.showDirectoryPicker = async (options) => {
     window.__picks.push(options ?? null);
-    return (await navigator.storage.getDirectory()).getDirectoryHandle(window.__pick, { create: true });
+    let dir = await navigator.storage.getDirectory();
+    for (const seg of window.__pick.split("/")) dir = await dir.getDirectoryHandle(seg, { create: true });
+    return dir;
   };
 `;
 
-type PickerWindow = { __picks: unknown[] };
+/** performance.memory 를 없앤다 (힙 한도를 알려 주지 않는 브라우저) */
+const NO_MEMORY = `Object.defineProperty(Performance.prototype, "memory", { get() { return undefined; }, configurable: true });`;
+
+type PickerWindow = { __picks: unknown[]; __pick: string };
+type EditorWindow = {
+  initialEditor: {
+    backend: { openedRoot: string | null; handles?: { opened(key: string): FileSystemDirectoryHandle | undefined } };
+    project: { gameJson?: { name?: string } };
+    commands: { execute(id: string): Promise<unknown> };
+  };
+};
 
 async function pickerCalls(page: Page): Promise<unknown[]> {
   return page.evaluate(() => (window as unknown as PickerWindow).__picks);
@@ -252,6 +299,128 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     expect(browser.isConnected()).toBe(true);
   });
 
+  test("시크릿 컨텍스트에 performance.memory 가 없어도 (할당량은 2 GiB 에 사용량을 더한 값) 다시 열기는 핸들을 꺼내지 않고 폴더 고르기로 연다. 브라우저는 살아 있다", async ({
+    browser,
+    context,
+    page,
+  }) => {
+    await context.addInitScript(NO_MEMORY);
+    await context.addInitScript(PICKER_STUB);
+    await page.goto("/?backend=browser");
+    await expectBrowserWelcome(page);
+    await rememberOpfsFolder(page, "remembered", "folder-e2e");
+    await page.reload();
+    // 이 테스트가 뜻이 있으려면: 힙 한도가 없고 할당량이 시크릿 창의 값(2 GiB 이상 4 GiB 이하)이다
+    const signals = await page.evaluate(async () => ({
+      quota: (await navigator.storage.estimate()).quota ?? 0,
+      memory: (performance as unknown as { memory?: unknown }).memory ?? null,
+    }));
+    expect(signals.memory).toBeNull();
+    expect(signals.quota, `시크릿 컨텍스트의 할당량 ${signals.quota}`).toBeGreaterThanOrEqual(2 * 1024 ** 3);
+    expect(signals.quota, `시크릿 컨텍스트의 할당량 ${signals.quota}`).toBeLessThanOrEqual(4 * 1024 ** 3);
+
+    const recent = page.getByTestId("welcome-recent-folders");
+    await expect(recent).toContainText("remembered");
+    await expect(page.getByTestId("welcome-restore-notice")).toContainText(PRIVATE_NOTICE);
+    await recent.getByRole("button", { name: "다시 열기" }).click();
+    await expect(page.getByTestId("toasts")).toContainText(PRIVATE_NOTICE);
+    await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
+    expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS]);
+    expect(browser.isConnected()).toBe(true);
+    expect(await folderKeys(page)).toEqual(["folder-e2e"]);
+  });
+
+  test("샘플로 해 보기 뒤에도 Ctrl+O 와 파일 > 프로젝트 열기는 폴더 고르기로 연다 (브리지 주소를 묻지 않는다)", async ({ browser, context, page }) => {
+    await context.addInitScript(PICKER_STUB);
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    await writeOpfs(page, PROJECT, "remembered");
+    const tree = page.getByTestId("project-tree");
+    const statusbar = page.getByTestId("statusbar");
+
+    for (const how of ["Ctrl+O", "파일 > 프로젝트 열기"]) {
+      await page.reload();
+      await welcome.getByRole("button", { name: "샘플로 해 보기" }).click();
+      await expect(statusbar).toContainText("memory://sample");
+      await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
+      if (how === "Ctrl+O") await page.keyboard.press("ControlOrMeta+o");
+      else await openMenu(page, "파일", "프로젝트 열기");
+      await expect(statusbar, how).toContainText("remembered");
+      await expect(statusbar).toContainText("브라우저 폴더");
+      await expect(tree.locator('[data-path="game.json"]')).toBeVisible();
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      expect(await pickerCalls(page), how).toEqual([PICKER_OPTIONS]);
+      await expect(page.getByTestId("console-list")).toContainText("백엔드 교체: browser");
+    }
+    expect(browser.isConnected()).toBe(true);
+  });
+
+  test("저장하지 않은 문서를 묻는 곳에서 Ctrl+O 를 취소하면 기억한 기록과 페이지의 핸들이 그대로다 (이름이 같은 두 폴더 a/game, b/game)", async ({
+    browser,
+    context,
+    page,
+  }) => {
+    await context.addInitScript(PICKER_STUB);
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    for (const sub of ["a", "b"]) {
+      await writeOpfs(page, { "game.json": `{"name":"${sub}","script":"lua"}\n`, "scripts/lua/main.lua": `-- ${sub.toUpperCase()}\n` }, `${sub}/game`);
+    }
+    const setPick = (path: string) => page.evaluate((path) => ((window as unknown as PickerWindow).__pick = path), path);
+
+    // a/game 을 열고 main.lua 를 고친 채 둔다
+    await setPick("a/game");
+    await welcome.getByRole("button", { name: "폴더 열기", exact: true }).click();
+    const tree = page.getByTestId("project-tree");
+    await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
+    await tree.locator('[data-path="scripts"]').click();
+    await tree.locator('[data-path="scripts/lua"]').click();
+    await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
+    await expect(page.locator(CODE)).toContainText("-- A");
+    await page.locator(CODE).click();
+    await page.evaluate(() =>
+      (window as unknown as { initialEditor: { scripting: { activeScript: { reveal(l: number, c: number): void } } } }).initialEditor.scripting.activeScript.reveal(1, 1),
+    );
+    await page.keyboard.type("-- unsaved edit\n");
+    const tab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await expect(tab.locator(".doc-tab-dirty")).toHaveCount(1);
+    const recordsBefore = await folderRecords(page);
+    expect(recordsBefore.map((r) => r.name)).toEqual(["game"]);
+    const liveBefore = await liveMain(page);
+    expect(liveBefore).toEqual({ key: recordsBefore[0].key, main: "-- A\n" });
+
+    // Ctrl+O 로 b/game 을 고르고, 저장하지 않은 문서를 묻는 곳에서 취소한다
+    await setPick("b/game");
+    await page.keyboard.press("ControlOrMeta+o");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("저장하지 않은 문서가 1개 있다");
+    await dialog.getByRole("button", { name: "취소" }).click();
+    await expect(dialog).toHaveCount(0);
+    expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS, PICKER_OPTIONS]);
+    expect(await folderRecords(page)).toEqual(recordsBefore);
+    expect(await liveMain(page)).toEqual(liveBefore);
+    await expect(tab.locator(".doc-tab-dirty")).toHaveCount(1);
+
+    // 저장은 a 로 간다
+    await openMenu(page, "파일", "저장");
+    await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
+    expect(await readOpfs(page, "a/game/scripts/lua/main.lua")).toBe("-- unsaved edit\n-- A\n");
+    expect(await readOpfs(page, "b/game/scripts/lua/main.lua")).toBe("-- B\n");
+
+    // 최근 프로젝트 > game 은 대화상자 없이 a 를 다시 연다
+    const opened = page.getByTestId("console-list").getByText("프로젝트 열림: game");
+    await expect(opened).toHaveCount(1);
+    await page.getByRole("menubar").getByRole("menuitem", { name: "파일", exact: true }).click();
+    await page.locator(".menu-item", { hasText: "최근 프로젝트" }).first().hover();
+    await page.locator(".menu-item", { hasText: /^game/ }).first().click();
+    await expect(opened).toHaveCount(2);
+    await expect(dialog).toHaveCount(0);
+    expect(await page.evaluate(() => (window as unknown as EditorWindow).initialEditor.project.gameJson?.name)).toBe("a");
+    expect(await liveMain(page)).toEqual({ key: recordsBefore[0].key, main: "-- unsaved edit\n-- A\n" });
+    expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS, PICKER_OPTIONS]);
+    expect(browser.isConnected()).toBe(true);
+  });
+
   test("일반 프로필: 기억한 폴더를 다시 열면 핸들을 바로 꺼내 연다. 꺼내다 꺼진 표시가 남아 있으면 폴더 고르기로 열고 표시를 지운다", async ({ baseURL }) => {
     const profile = mkdtempSync(path.join(tmpdir(), "ie-web-folder-"));
     const context = await chromium.launchPersistentContext(profile, { baseURL, viewport: { width: 1280, height: 800 } });
@@ -261,12 +430,15 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       await page.goto("/?backend=browser");
       const welcome = await expectBrowserWelcome(page);
       await expect(welcome).toContainText("아직 없다");
-      // 앱의 짐작(profile.ts)이 이 컨텍스트를 일반 프로필로 봐야 이 테스트가 뜻이 있다: 할당량이 힙 한도의 두 배 이상
+      // 앱의 짐작(profile.ts)이 이 컨텍스트를 일반 프로필로 봐야 이 테스트가 뜻이 있다:
+      // 힙 한도가 있고, 할당량이 힙 한도의 두 배보다 크고 4 GiB 보다도 크다
       const signals = await page.evaluate(async () => ({
         quota: (await navigator.storage.estimate()).quota ?? 0,
-        heapLimit: (performance as unknown as { memory?: { jsHeapSizeLimit: number } }).memory?.jsHeapSizeLimit ?? 1024 ** 3,
+        heapLimit: (performance as unknown as { memory?: { jsHeapSizeLimit: number } }).memory?.jsHeapSizeLimit ?? 0,
       }));
-      expect(signals.quota, `일반 프로필의 할당량 ${signals.quota} 이 힙 한도 ${signals.heapLimit} 의 두 배보다 작다`).toBeGreaterThanOrEqual(2 * signals.heapLimit);
+      expect(signals.heapLimit, "performance.memory.jsHeapSizeLimit 가 없다").toBeGreaterThan(0);
+      expect(signals.quota, `일반 프로필의 할당량 ${signals.quota} 이 힙 한도 ${signals.heapLimit} 의 두 배보다 크지 않다`).toBeGreaterThan(2 * signals.heapLimit);
+      expect(signals.quota, `일반 프로필의 할당량 ${signals.quota} 이 4 GiB 보다 크지 않다`).toBeGreaterThan(4 * 1024 ** 3);
 
       await rememberOpfsFolder(page, "remembered", "folder-e2e");
       await page.reload();
@@ -307,6 +479,19 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       await recent.getByRole("button", { name: "다시 열기" }).click();
       await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
       expect(await pickerCalls(page)).toEqual([]);
+
+      // performance.memory 가 없으면 일반 프로필이어도 핸들을 꺼내지 않고 폴더 고르기로 연다
+      const bare = await context.newPage();
+      await bare.addInitScript(NO_MEMORY);
+      await bare.goto("/?backend=browser");
+      const bareRecent = bare.getByTestId("welcome-recent-folders");
+      await expect(bareRecent).toContainText("remembered");
+      await expect(bare.getByTestId("welcome-restore-notice")).toContainText(PRIVATE_NOTICE);
+      await bareRecent.getByRole("button", { name: "다시 열기" }).click();
+      await expect(bare.getByTestId("toasts")).toContainText(PRIVATE_NOTICE);
+      await expect(bare.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
+      expect(await pickerCalls(bare)).toEqual([PICKER_OPTIONS]);
+      expect(await folderKeys(bare)).toEqual(["folder-e2e"]);
     } finally {
       await context.close();
       rmSync(profile, { recursive: true, force: true });

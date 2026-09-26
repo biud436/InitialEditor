@@ -5,6 +5,7 @@ import { BridgeBackend } from "@initial-editor/backend-bridge";
 import type { EditorCommand, ScriptBackend } from "@initial-editor/core";
 import { openAboutDialog } from "../components/AboutDialog";
 import { openSettingsDialog } from "../components/SettingsDialog";
+import { browserFolders } from "./browserFolders";
 import type { Editor } from "./Editor";
 import { WELCOME_KIND } from "./documents/WelcomeDocument";
 import { PANEL_IDS, PANEL_TITLES, PRESET_LABELS, type PresetName } from "./layoutPresets";
@@ -26,6 +27,11 @@ function isHttpUrl(value: string): string | null {
 }
 
 async function openProjectCommand(editor: Editor): Promise<void> {
+  // 웹판은 샘플(메모리 백엔드)로 바꾼 뒤에도 폴더 고르기로 연다
+  if (editor.mode === "browser") {
+    await browserFolders(editor).openNew();
+    return;
+  }
   if (editor.backend.capabilities.pickFolder) {
     const folder = await editor.backend.pickFolder();
     if (folder) await editor.openProject(folder);

@@ -1,11 +1,11 @@
 // 크로미움의 시크릿(off-the-record) 프로필 짐작. 시크릿 프로필에서 IndexedDB 의 폴더 핸들을 꺼내면 브라우저
-// 프로세스가 통째로 죽으므로 (handleStore.ts), 그럴 수 있는 곳에서는 핸들을 꺼내지 않는다.
-// 기준은 흔한 시크릿 판별과 같다: 저장 할당량(navigator.storage.estimate 의 quota)이 JS 힙 한도
-// (performance.memory.jsHeapSizeLimit)의 두 배보다 작으면 시크릿일 수 있다. 힙 한도를 모르면 1 GiB 로 치고,
-// 할당량을 모르면 시크릿일 수 있다고 본다 (틀려도 폴더 고르기로 돌 뿐이다).
+// 프로세스가 통째로 죽으므로 (handleStore.ts), 일반 프로필이라고 확신할 때만 핸들을 꺼낸다.
+// 일반 프로필: performance.memory.jsHeapSizeLimit 가 있고, 저장 할당량(navigator.storage.estimate 의 quota)이
+// 힙 한도의 두 배보다 크고 4 GiB 보다도 크다. 나머지는 모두 시크릿일 수 있다고 본다 (힙 한도나 할당량을 모를 때,
+// 크롬 153 의 시크릿 창과 게스트 창처럼 할당량이 2 GiB 이거나 2 GiB 에 사용량을 더한 값일 때).
 
-/** performance.memory 가 없을 때 쓰는 힙 한도 */
-export const FALLBACK_HEAP_LIMIT = 1024 ** 3;
+/** 일반 프로필로 보려면 할당량이 이보다 커야 한다 */
+export const MIN_NORMAL_QUOTA = 4 * 1024 ** 3;
 
 export interface ProfileSignals {
   /** 저장 할당량 (바이트) */
@@ -20,8 +20,8 @@ function positive(n: number | undefined): n is number {
 
 /** 시크릿 프로필일 수 있는가. 일반 프로필이라고 확신할 때만 false */
 export function mayBeOffTheRecord({ quota, heapLimit }: ProfileSignals): boolean {
-  if (!positive(quota)) return true;
-  return quota < 2 * (positive(heapLimit) ? heapLimit : FALLBACK_HEAP_LIMIT);
+  if (!positive(quota) || !positive(heapLimit)) return true;
+  return !(quota > 2 * heapLimit && quota > MIN_NORMAL_QUOTA);
 }
 
 export interface ProfileHost {
