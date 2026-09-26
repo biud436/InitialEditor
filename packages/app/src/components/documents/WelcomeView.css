@@ -1,0 +1,51 @@
+.welcome {
+  max-width: 720px;
+  padding: var(--space-4) 28px;
+}
+
+.welcome-title {
+  margin: 0 0 var(--space-2);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.welcome-mode {
+  color: var(--fg-muted);
+}
+
+.welcome-mode strong {
+  color: var(--fg);
+}
+
+.welcome-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.welcome-section h2 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.welcome-recent {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.welcome-recent li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.welcome-recent-open {
+  max-width: 560px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}

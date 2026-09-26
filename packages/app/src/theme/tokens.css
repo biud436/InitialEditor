@@ -1,0 +1,83 @@
+/* 테마 토큰 (docs/plans/02-scope-and-screens.md 6절).
+   색 리터럴은 이 파일에만 있다. 컴포넌트와 확장은 var(--...) 만 쓴다 (scripts/check-color-literals.mjs 가 검사한다).
+   테마는 <html data-theme="dark|light"> 하나로 바뀐다. 새 테마는 한 벌을 더 적는 것으로 끝난다.
+   이름은 역할로만 짓는다 (옛 --dark-* 가 라이트에서도 dark 였던 교훈). */
+
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", Menlo, Consolas, "D2Coding", "Noto Sans Mono CJK KR", "Liberation Mono", monospace;
+  --radius: 4px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+}
+
+/* 다크: 중립 회색 편집기 팔레트에 파란 강조 */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-base: #1b1d21;
+  --bg-panel: #22252a;
+  --bg-elevated: #2b2f36;
+  --bg-input: #15171a;
+  --bg-hover: #31363e;
+  --bg-selection: #2d4a72;
+
+  --fg: #e4e7eb;
+  --fg-muted: #9aa3ad;
+  --fg-disabled: #5f6873;
+  --fg-on-accent: #ffffff;
+
+  --accent: #4a8fe7;
+  --danger: #e5534b;
+  --warning: #d9a441;
+  --success: #57ab5a;
+  --border: #383d45;
+  --focus-ring: #6fa8f5;
+
+  --scene-bg: #101214;
+  --scene-grid: #24282d;
+  --scene-grid-major: #343941;
+  --scene-selection: #4a8fe7;
+  --scene-camera: #d9a441;
+
+  /* 부가 토큰: 모달 뒤 가림막과 그림자. 색 리터럴이 컴포넌트에 새지 않게 여기 둔다 */
+  --overlay: rgba(0, 0, 0, 0.55);
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  --badge-bg: #3a4150;
+}
+
+/* 라이트: 다크의 짝. 대비는 읽힐 만큼 */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #ececee;
+  --bg-panel: #f7f7f8;
+  --bg-elevated: #ffffff;
+  --bg-input: #ffffff;
+  --bg-hover: #dfe2e7;
+  --bg-selection: #cfe0f7;
+
+  --fg: #1f2328;
+  --fg-muted: #59636e;
+  --fg-disabled: #a2aab3;
+  --fg-on-accent: #ffffff;
+
+  --accent: #1f6fd0;
+  --danger: #c93c34;
+  --warning: #9a6b00;
+  --success: #2f8a34;
+  --border: #d0d4da;
+  --focus-ring: #4a8fe7;
+
+  --scene-bg: #f2f3f5;
+  --scene-grid: #e0e2e6;
+  --scene-grid-major: #c9ccd2;
+  --scene-selection: #1f6fd0;
+  --scene-camera: #9a6b00;
+
+  --overlay: rgba(20, 24, 30, 0.35);
+  --shadow: 0 6px 24px rgba(20, 24, 30, 0.2);
+  --badge-bg: #dfe2e7;
+}

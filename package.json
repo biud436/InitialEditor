@@ -1,28 +1,44 @@
 {
   "name": "initial-editor-main",
-  "version": "1.0.0",
+  "version": "2.0.0-dev",
   "repository": "https://github.com/biud436/InitialEditor.git",
   "author": "biud436 <biud436@gmail.com>",
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "legacy/*"
   ],
   "engines": {
     "node": ">=20.0.0"
   },
-  "scripts": {
-    "script:build": "yarn workspace initial-editor run script:build",
-    "dev": "yarn workspace renderer run dev",
-    "build:editor": "yarn workspace initial-editor run build",
-    "build:renderer": "yarn workspace renderer run build",
-    "build": "yarn build:editor && yarn build:renderer",
-    "start": "yarn workspace renderer run start",
-    "test": "yarn build:editor && yarn workspace initial-editor run test"
-  },
   "packageManager": "yarn@1.22.19",
-  "dependencies": {
-    "@changesets/cli": "^2.26.2",
-    "ultra-runner": "^3.10.5"
+  "scripts": {
+    "dev": "yarn workspace @initial-editor/app dev",
+    "build": "yarn workspace @initial-editor/app build",
+    "preview": "yarn workspace @initial-editor/app preview",
+    "typecheck": "tsc -b packages/core packages/backend-bridge packages/backend-tauri packages/ext-tilemap packages/app",
+    "lint": "eslint packages",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:conformance": "yarn workspace @initial-editor/backend-bridge test:conformance",
+    "test:rust": "cd src-tauri && cargo test",
+    "test:e2e": "playwright test",
+    "check:colors": "node scripts/check-color-literals.mjs",
+    "tauri": "tauri",
+    "legacy:build": "cd legacy/initial-editor && tsc && cd ../renderer && ../../node_modules/.bin/vite build",
+    "legacy:dev": "cd legacy/initial-editor && tsc && cd ../renderer && ../../node_modules/.bin/vite",
+    "legacy:test": "cd legacy/initial-editor && tsc && node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.12.0",
+    "@playwright/test": "^1.48.0",
+    "@tauri-apps/cli": "^2.0.0",
+    "eslint": "^9.12.0",
+    "jsdom": "^25.0.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.8.0",
+    "vitest": "^2.1.0"
   }
 }

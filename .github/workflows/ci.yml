@@ -1,0 +1,125 @@
+# CI (docs/plans/e0-foundation.md 마일스톤 6): 타입 검사, 린트, 단위 테스트, 빌드, 색 리터럴 검사, Playwright 스모크,
+# 그리고 Rust 명령의 cargo test 와 Tauri 디버그 빌드. 엔진 저장소(biud436/Initial2D)를 형제 폴더로 받아
+# 브리지 스모크와 적합성 테스트가 진짜 브리지 서버를 띄우게 한다.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: 웹 (타입, 린트, 테스트, 빌드, 스모크)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: InitialEditor
+
+      - name: 엔진 저장소 (브리지 서버와 픽스처)
+        uses: actions/checkout@v4
+        with:
+          repository: biud436/Initial2D
+          path: Initial2D
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: InitialEditor/yarn.lock
+
+      - name: 의존성
+        working-directory: InitialEditor
+        run: yarn install --immutable
+
+      - name: 타입 검사
+        working-directory: InitialEditor
+        run: yarn typecheck
+
+      - name: 린트
+        working-directory: InitialEditor
+        run: yarn lint
+
+      - name: 단위 테스트
+        working-directory: InitialEditor
+        run: yarn test
+
+      - name: 브리지 적합성 테스트
+        working-directory: InitialEditor
+        env:
+          INITIAL2D_DIR: ${{ github.workspace }}/Initial2D
+        run: yarn test:conformance
+
+      - name: 빌드
+        working-directory: InitialEditor
+        run: yarn build
+
+      - name: 색 리터럴 검사
+        working-directory: InitialEditor
+        run: node scripts/check-color-literals.mjs
+
+      - name: Playwright 브라우저
+        working-directory: InitialEditor
+        run: yarn playwright install chromium
+
+      - name: Playwright 스모크 (메모리 모드와 브리지 모드)
+        working-directory: InitialEditor
+        env:
+          CI: "1"
+          INITIAL2D_DIR: ${{ github.workspace }}/Initial2D
+        run: yarn test:e2e
+
+      - name: Playwright 결과 보관
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            InitialEditor/playwright-report
+            InitialEditor/test-results
+          retention-days: 7
+
+  rust:
+    name: Rust (cargo test)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: cargo test
+        working-directory: src-tauri
+        run: cargo test --locked
+
+  tauri:
+    name: Tauri 디버그 빌드
+    runs-on: macos-latest
+    needs: [web, rust]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: 의존성
+        run: yarn install --immutable
+
+      - name: yarn tauri build --debug
+        run: yarn tauri build --debug

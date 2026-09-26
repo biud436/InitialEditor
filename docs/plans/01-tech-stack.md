@@ -65,17 +65,17 @@
 | 코드 편집기 | **Monaco** (react-ace 대체) | Lua와 Ruby 구문이 기본으로 들어 있고, 자동완성 공급자를 등록해 엔진 API 스텁(R2)을 붙일 수 있다. 워커 번들은 Vite에서 처리한다 |
 | 도킹 레이아웃 | **dockview** | React용, MIT, 레이아웃 직렬화(`toJSON`)와 테마 클래스가 있다. 패널을 끌어 옮기고 저장하는 것이 필요 요건이다 |
 | 상태 | MobX 유지, Recoil 제거 | 둘 다 있던 것을 하나로. 문서 모델(씬, 스크립트)은 클래스라 MobX가 맞다 |
-| 스타일 | CSS 변수 토큰 + Tailwind 유틸리티, styled-components 제거 | 테마는 토큰이 전부이고 런타임 CSS-in-JS는 필요 없다 |
+| 스타일 | CSS 변수 토큰 + 컴포넌트별 CSS(모듈), styled-components 와 Tailwind 제거 | 테마는 토큰이 전부이고 런타임 CSS-in-JS는 필요 없다. Tailwind 의 팔레트 클래스(`bg-gray-800`)는 토큰 규칙을 비켜 가므로 함께 뺐다 (2026-09-26 E0 에서 정정) |
 | DI와 데코레이터 | tsyringe, typedi, reflect-metadata 제거 | 확장 API가 명시적 등록 함수라 컨테이너가 필요 없다. 메뉴 커맨드의 `@MenuCommand` 데코레이터도 명시적 `registerCommand`로 |
 | 번들 | Vite 하나, webpack과 babel 제거 | 옛 코어의 webpack 설정은 사용되지 않는 경로다 |
-| 테스트 | `node --test`(코어, 이미 쓰고 있다), Vitest(React 훅과 컴포넌트), Playwright(브라우저 모드 UI 스모크), `cargo test`(Rust 명령) | 엔진과 같은 원칙: 렌더링은 골든으로, 로직은 단위로 |
-| 패키지 관리 | yarn 1.22 유지 | 바꿀 이유가 없다. Node 20 이상 |
+| 테스트 | Vitest 하나로 코어와 React(코어는 Node 환경, 컴포넌트는 jsdom), Playwright(브라우저 모드 UI 스모크), `cargo test`(Rust 명령) | 엔진과 같은 원칙: 렌더링은 골든으로, 로직은 단위로. 처음에는 `node --test`를 코어에 남기려 했으나 빌드 없이 TS 를 바로 돌리는 러너 하나가 낫다 (E0 에서 정정) |
+| 패키지 관리 | Yarn 4.3.1 (Berry, `.yarn/releases` 의 파일을 `yarnPath` 로) | 조사 때 1.22 로 보였던 것은 `packageManager` 라벨이었고 실제 락파일과 실행 파일은 Berry 다. 라벨은 그대로 두었다 (corepack 의 1.22 쉼이 `yarnPath` 로 위임하는 경로가 동작한다). Node 20 이상 |
 
 ### 의존성 정리표
 
 | 남긴다 | 버린다 | 새로 든다 |
 |---|---|---|
-| react, react-dom, mobx, mobx-react-lite, uuid, classnames, tailwindcss, postcss, autoprefixer, vite, typescript, eslint, prettier | pixi.js 7 (8로), react-ace, ace-builds, recoil, styled-components, styled-reset, tsyringe, typedi, reflect-metadata, rxjs, axios (fetch로 충분), webpack 일체, babel 일체, dart-sass, sass, @types/jquery, mousetrap (자체 단축키 등록으로), react-draggable, react-resizable (dockview가 대신), react-router-dom (화면이 하나다), storybook (당장은 유지 비용만 든다), @hyrious/marshal (RPG Maker 데이터 읽기, 쓰이지 않는다), ultra-runner, @changesets/cli | pixi.js 8, monaco-editor, dockview, @tauri-apps/api, @tauri-apps/cli, tauri 플러그인(dialog, fs, shell, process, window-state, store), vitest, @playwright/test |
+| react, react-dom, mobx, mobx-react-lite, vite, typescript, eslint, prettier | tailwindcss, postcss, autoprefixer, uuid, classnames, pixi.js 7 (8로), react-ace, ace-builds, recoil, styled-components, styled-reset, tsyringe, typedi, reflect-metadata, rxjs, axios (fetch로 충분), webpack 일체, babel 일체, dart-sass, sass, @types/jquery, mousetrap (자체 단축키 등록으로), react-draggable, react-resizable (dockview가 대신), react-router-dom (화면이 하나다), storybook (당장은 유지 비용만 든다), @hyrious/marshal (RPG Maker 데이터 읽기, 쓰이지 않는다), ultra-runner, @changesets/cli | pixi.js 8, monaco-editor, dockview, @tauri-apps/api, @tauri-apps/cli, tauri 플러그인(dialog, fs, shell, process, window-state, store), vitest, @playwright/test |
 
 Storybook은 지우지 않고 남겨 두되 새 패널을 등록하지 않는다. 테마 토큰이 자리 잡은 뒤 컴포넌트 카탈로그로 되살릴지 정한다.
 

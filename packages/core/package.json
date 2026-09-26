@@ -1,0 +1,19 @@
+{
+  "name": "@initial-editor/core",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "InitialEditor 코어: DOM 도 PIXI 도 모르는 모델 (프로젝트, 문서, 명령, 확장 API)",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "mobx": "^6.13.0"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
+  }
+}

@@ -1,0 +1,35 @@
+.image-preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.image-zoom {
+  min-width: 44px;
+  text-align: center;
+  color: var(--fg);
+}
+
+.image-preview-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-4);
+  background: var(--scene-bg);
+  /* 투명 픽셀이 보이게 하는 체커 (배경 두 색은 토큰) */
+  background-image: linear-gradient(45deg, var(--scene-grid) 25%, transparent 25%), linear-gradient(-45deg, var(--scene-grid) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--scene-grid) 75%), linear-gradient(-45deg, transparent 75%, var(--scene-grid) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}
+
+.image-preview-img {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  outline: 1px solid var(--border);
+}

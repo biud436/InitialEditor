@@ -1,0 +1,15 @@
+{
+  "name": "@initial-editor/ext-tilemap",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "타일맵 확장 (E3). 지금은 activate 만 있는 껍데기",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@initial-editor/core": "2.0.0-dev"
+  }
+}

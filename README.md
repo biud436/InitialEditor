@@ -2,99 +2,101 @@
 
 ![LOGO](https://repository-images.githubusercontent.com/294916739/2f3b679c-ef74-43a7-9d9d-9c08982e3db1)
 
-![typescript](https://img.shields.io/badge/typescript-5.2.2-green.svg?logo=typescript&style=for-the-badge)
-![react](https://img.shields.io/badge/react-18.2.0-green.svg?logo=react&style=for-the-badge)
-![pixi.js](https://img.shields.io/badge/pixi.js-7.3.1-green.svg?logo=pixi.js&style=for-the-badge)
+![typescript](https://img.shields.io/badge/typescript-5-green.svg?logo=typescript&style=for-the-badge)
+![react](https://img.shields.io/badge/react-18-green.svg?logo=react&style=for-the-badge)
+![tauri](https://img.shields.io/badge/tauri-2-green.svg?logo=tauri&style=for-the-badge)
 
 </div>
 
-# Introduction
+# InitialEditor
 
-This project allows you to edit multi dimensional tile map on my own game engine. it is worked fine on any platforms such as Linux Desktop, OSX, Windows and so on.
+[Initial2D](https://github.com/biud436/Initial2D) 엔진으로 게임을 만드는 에디터입니다. 프로젝트(폴더)를 열고,
+스크립트를 쓰고, 씬에 오브젝트를 놓고, 실행 버튼을 누르면 엔진에서 그 게임이 돕니다. 에디터 코어는 장르를
+모르고, 타일맵과 RPG 이벤트는 확장이 더합니다. 계획과 진행 상황은 [docs/plans/index.md](./docs/plans/index.md)에
+있습니다 (지금은 E0 토대 단계).
 
-## Tilemap
+두 가지 모드로 돕니다.
 
-![IMG](./packages/initial-editor/editor.png)
+| 모드 | 무엇 | 로컬 파일 | 엔진 실행 |
+|---|---|---|---|
+| **Tauri 앱** (제품) | macOS, Windows, Linux 데스크톱 앱 | 직접 (폴더 선택, 감시, 원자적 저장) | 엔진 실행 파일을 띄운다 (E1) |
+| **브라우저** (개발) | Vite dev 서버 + 엔진 저장소의 브리지 서버 | 브리지 서버(`127.0.0.1:5960`)를 거쳐서 | 없음 |
 
-## Child Window
+브라우저 모드에는 서버 없이 도는 **메모리 모드**(`?backend=memory`)도 있어, UI 작업과 스모크 테스트에 씁니다.
 
-<img width="1392" alt="image" src="https://user-images.githubusercontent.com/13586185/189561657-2fb02462-0f7e-47ab-bc35-dab68e3a395f.png">
+## 시작하기
 
-## Roadmap
-
-The next version of this editor is planned in [docs/plans/index.md](./docs/plans/index.md) (Korean):
-a Tauri 2 desktop shell on the existing TypeScript + React stack, a genre-neutral scene editor with
-tilemap as an extension, script editing with hot reload, and a play button that runs the game either
-as the Initial2D executable or inside the editor. The engine-side work it depends on is tracked in
-the Initial2D repository's `docs/plans/index.md`.
-
-## How to start (New way)
-
-you have to run the following command in the terminal.
+Node 20 이상, Yarn(저장소에 든 Berry 4.3.1을 `yarn`이 그대로 씁니다), Tauri 앱을 빌드하려면 Rust 안정판과
+플랫폼별 준비물([docs/plans/01-tech-stack.md](./docs/plans/01-tech-stack.md) 7절)이 필요합니다.
 
 ```sh
-yarn build
-yarn dev
+yarn install
+
+# 브라우저 모드 (엔진 저장소가 옆 폴더에 있다고 가정)
+INITIAL2D_HMR=1 ../Initial2D/build/Initial2D &              # 1. 게임을 핫 리로드 켜고 실행 (선택)
+node ../Initial2D/tools/bridge/server.js --project ../Initial2D  # 2. 브리지 서버 (127.0.0.1:5960)
+yarn dev                                                     # 3. http://127.0.0.1:5173
+
+# 메모리 모드 (서버 없음)
+VITE_DEFAULT_BACKEND=memory yarn dev      # 또는 http://127.0.0.1:5173/?backend=memory
+
+# Tauri 앱
+yarn tauri dev                            # 개발 (Vite dev 서버를 함께 띄운다)
+yarn tauri build                          # 번들 (src-tauri/target/release/bundle/)
+INITIAL_EDITOR_OPEN=~/mygame yarn tauri dev   # 시작하자마자 그 폴더를 연다 (--open <폴더> 인자도 같다)
 ```
 
-## Working with an Initial2D project (bridge server)
+브리지 서버는 엔진 저장소의 `tools/bridge/server.js`(0.2.0 이상)이며 프로젝트의 `scripts/`, `resources/`,
+`.initial-editor/`와 루트의 `game.json`만 읽고 씁니다. 사용법은 엔진 README의 "에디터 브리지 서버" 절에 있습니다.
 
-The editor is a plain web app, so it reaches your local game project through a small
-bridge server that ships with the [Initial2D](https://github.com/biud436/Initial2D) engine
-(`tools/bridge/server.js`, Node 20+, no dependencies). The bridge exposes `scripts/` and
-`resources/` of the game project over `http://127.0.0.1:5960` and can push scripts to the
-running game (hot reload).
+## 프로젝트
 
-```sh
-# in the Initial2D repository
-INITIAL2D_HMR=1 ./build/Initial2D      # run the game with hot reload enabled
-node tools/bridge/server.js            # serve this repository as the project (127.0.0.1:5960)
-node tools/bridge/server.js --project ~/mygame
+프로젝트는 `game.json`이 있는 폴더입니다. 엔진이 작업 폴더의 `./game.json`을 읽으므로 새 개념이 아닙니다.
+`game.json`이 없는 폴더(예: Initial2D 저장소 자체)를 열면 에디터가 만들 것인지 묻습니다. 에디터만 쓰는 상태
+(레이아웃 등)는 `.initial-editor/`에 두므로 gitignore 하는 것을 권합니다.
 
-# in this repository
-yarn build && yarn dev                 # open http://localhost:5173
+## 저장소 구성
+
+```
+packages/core/            DOM 도 PIXI 도 모르는 모델: 프로젝트, 문서와 되돌리기, 커맨드와 메뉴, 확장 API, 로그, 설정
+packages/backend-bridge/  ProjectBackend 의 브리지(HTTP + WebSocket) 구현
+packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
+packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
+packages/ext-tilemap/     타일맵 확장 (E3 에서 채운다)
+src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push
+tests/e2e/                Playwright 스모크 (브라우저 모드)
+legacy/                   2020~2026 의 옛 에디터 (참고용, E3 끝에 지운다)
+docs/plans/               계획과 진행 상황
 ```
 
-| What | How | Result |
-|---|---|---|
-| Edit scripts | Tools → Script Editor | Opens `scripts/**/*.lua`; **Ctrl+S** saves and (by default) hot-reloads the running game. Files changed by other editors are reloaded automatically, or flagged when you have unsaved edits. |
-| Export a map | **Ctrl+E** | Writes map format v1 to `resources/maps/<name>.json` and copies any tileset image the project is missing. |
-| Open a map | **Ctrl+O** | Loads a map from `resources/maps/*.json` into the editor. |
-| Save a map | **Ctrl+S** | Rewrites the map at its current path (falls back to the export dialog for a new map). |
-| New map | **Ctrl+N** | Creates an empty map with the name, id and size you choose. |
+## 개발 명령
 
-Notes:
+| 명령 | 무엇 |
+|---|---|
+| `yarn dev`, `yarn build`, `yarn preview` | 앱 (Vite) |
+| `yarn typecheck`, `yarn lint` | TypeScript 와 ESLint (`core`는 DOM 과 PIXI 를 import 하지 못한다) |
+| `yarn test` | Vitest 단위 테스트 (모든 패키지) |
+| `yarn test:conformance` | 브리지 백엔드 적합성 (엔진 저장소의 브리지 서버를 임시 프로젝트로 띄운다. 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D`) |
+| `yarn test:rust` | `cargo test` (src-tauri) |
+| `yarn test:e2e` | Playwright (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`) |
+| `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
+| `yarn tauri <cmd>` | Tauri CLI |
+| `yarn legacy:test`, `yarn legacy:build`, `yarn legacy:dev` | 옛 에디터 |
 
-- The bridge URL can be changed with `localStorage['initial-editor.bridge-url']`.
-- Data the editor cannot edit yet (the collision layer, layer names) is carried through open → save
-  untouched, so exporting a map the engine authored does not throw that data away.
-- Tile id `0` means "empty" everywhere in the editor, so the very first tile of the first tileset has
-  no id. Opening a map that uses it blanks those cells and tells you how many.
+## 테마
 
-## Tests
+색은 `packages/app/src/theme/tokens.css`의 토큰(CSS 변수)으로만 씁니다. `<html data-theme="dark|light">`로 바뀌고
+기본은 OS 설정을 따릅니다. 새 테마는 토큰 값 한 벌을 더하면 됩니다. 규칙은
+[docs/plans/02-scope-and-screens.md](./docs/plans/02-scope-and-screens.md) 6절.
 
-```sh
-yarn test     # builds initial-editor, then runs the map-format unit tests (node --test)
-```
+## 옛 에디터
 
-## How to upstream from remote github repository
-
-To upstream from the remote repository, you must call below command.
-
-```bash
-git remote add upstream https://github.com/biud436/InitialEditor.git
-git fetch upstream
-git checkout main
-git merge upstream/main
-```
+`legacy/`에 2020년부터의 타일맵 에디터(PIXI 7, jQuery 시절의 셸)가 그대로 있습니다. 새 에디터가 그 기능을 전부
+갖출 때(E3)까지 `yarn legacy:dev`로 띄울 수 있습니다. 브리지 서버가 필요하고, 사용법은 엔진 README에 있습니다.
 
 # License
 
-This tool is under the MIT License.
-
----
-
-But some icon and javascript and stylesheets and images included at this tool have their own licenses.
+MIT. 다만 포함된 일부 아이콘, 스크립트, 스타일시트, 이미지는 자기 라이선스를 따릅니다.
 
 - Font Awesome Free - https://fontawesome.com/license/free
 - FSM Tile (2k_town05.png) - http://refmap-l.blog.jp/archives/8632768.html

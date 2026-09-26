@@ -1,0 +1,75 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay);
+}
+
+.modal {
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.modal-title {
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-body {
+  padding: var(--space-4);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.modal-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--fg-muted);
+}
+
+.modal-input {
+  width: 100%;
+}
+
+.modal-error {
+  margin-top: var(--space-2);
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+/* 설정과 정보 같은 폼 */
+.form-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.form-row > label:first-child {
+  color: var(--fg-muted);
+}
+
+.form-help {
+  grid-column: 2;
+  color: var(--fg-muted);
+  font-size: 12px;
+}

@@ -1,0 +1,107 @@
+.menubar {
+  display: flex;
+  align-items: stretch;
+  height: 28px;
+  padding: 0 var(--space-1);
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  flex: none;
+}
+
+.menubar-branch {
+  position: relative;
+  display: flex;
+}
+
+.menubar-button {
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  border-radius: var(--radius);
+}
+
+.menubar-button:hover,
+.menubar-branch.is-open > .menubar-button {
+  background: var(--bg-hover);
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 220px;
+  margin: 0;
+  padding: var(--space-1) 0;
+  list-style: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.menu-item-wrap {
+  position: relative;
+}
+
+.menu-item-wrap > .menu {
+  top: -5px;
+  left: 100%;
+}
+
+.menu-separator {
+  height: 1px;
+  margin: var(--space-1) var(--space-2);
+  background: var(--border);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 4px 12px 4px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.menu-item:hover:not(:disabled),
+.menu-item:focus-visible,
+.menu-item-wrap.is-open > .menu-item {
+  background: var(--bg-selection);
+  outline: none;
+}
+
+.menu-item:disabled {
+  color: var(--fg-disabled);
+}
+
+.menu-check {
+  width: 14px;
+  flex: none;
+  text-align: center;
+  font-size: 11px;
+}
+
+.menu-label {
+  flex: 1;
+}
+
+.menu-shortcut {
+  margin-left: var(--space-4);
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.menu-item:disabled .menu-shortcut {
+  color: var(--fg-disabled);
+}
+
+.menu-arrow {
+  color: var(--fg-muted);
+}

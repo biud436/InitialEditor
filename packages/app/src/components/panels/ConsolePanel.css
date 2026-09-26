@@ -1,0 +1,71 @@
+.console {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+}
+
+.console-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.console-filter {
+  width: 200px;
+}
+
+.console-count {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.console-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-1) 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.console-row {
+  display: flex;
+  gap: var(--space-2);
+  padding: 1px var(--space-2);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-ts {
+  color: var(--fg-disabled);
+  flex: none;
+}
+
+.console-source {
+  flex: none;
+  min-width: 52px;
+  padding: 0 4px;
+  border-radius: var(--radius);
+  background: var(--badge-bg);
+  color: var(--fg-muted);
+  text-align: center;
+  font-size: 11px;
+  line-height: 16px;
+  align-self: flex-start;
+}
+
+.console-row.level-debug .console-text {
+  color: var(--fg-muted);
+}
+
+.console-row.level-warn .console-text {
+  color: var(--warning);
+}
+
+.console-row.level-error .console-text {
+  color: var(--danger);
+}
