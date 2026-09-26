@@ -1,7 +1,8 @@
 // 씬의 타일맵 오브젝트 e2e (docs/plans/e3-tilemap.md 마일스톤 5). 메모리 백엔드(?backend=memory)라 서버가 필요 없다.
 // 샘플 프로젝트의 resources/maps/meadow.json (20x12 칸, 16px). 칸 (5,1)은 풀(초록), 8행은 흙길(갈색), (0,0)을 6으로 바꾸면 물(파랑).
 // 흐름: 새 씬 → 타일맵 추가(검사 오류) → 자리 (64,64) → 맵 고르기 → 씬 뷰의 픽셀이 맵의 타일 → 맵 파일이 바뀌면 다시 그린다
-//       → 맵 파일을 지우거나 이름을 바꾸면 검사 오류, 되살리면 사라진다 → 인스펙터의 맵 열기 → 저장 → 맵 비우기.
+//       → 맵 파일을 지우거나 이름을 바꾸거나 깨뜨리면(JSON이 아님, 맵 형식이 아님) 검사 오류, 되살리면 사라진다
+//       → 인스펙터의 맵 열기 → 저장 → 맵 비우기.
 // 그리고 맵은 배경 대상이다: 누르고 놓으면 고르고, 끌면 상자 선택, 고른 뒤에만 옮긴다.
 // 쌓는 순서는 엔진 씬 로더와 같다: 앞의 groundLayers 개 레이어는 모든 오브젝트 아래, 나머지는 모든 오브젝트 위.
 // 픽셀은 페이지 스크린샷의 1x1 조각을 페이지 안에서 풀어 읽는다 (screen = world * zoom + pan).
@@ -177,6 +178,20 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await expect(problems).toHaveAttribute("data-count", "1");
     await expect(problems).toContainText(missingText);
     await external(MEADOW, "create", changedText);
+    await expect(problems).toHaveAttribute("data-count", "0");
+    await expect.poll(async () => isWater(await pixel(page, view, firstCell))).toBe(true);
+
+    // 파일이 있어도 JSON이 아니거나 맵 형식이 아니면 검사 오류다 (엔진이 씬을 거부한다). 고치면 사라진다
+    const modify = (body: string) => ev(page, "(e, a) => e.backend.simulateExternalChange(a.path, 'modify', a.body)", { path: MEADOW, body });
+    const unreadable = `타일맵 tilemap의 맵 파일을 맵으로 읽지 못한다: ${MEADOW} (`;
+    await modify("{ not json");
+    await expect(problems).toHaveAttribute("data-count", "1");
+    await expect(problems).toContainText(`${unreadable}JSON 이 아니다: `);
+    await expect(problems).toContainText("엔진이 씬을 거부한다");
+    await modify('{ "version": 9 }');
+    await expect(problems).toContainText(`${unreadable}모르는 맵 버전이다: 9 (지원: 1, 2)). 엔진이 씬을 거부한다`);
+    await expect(problems).toHaveAttribute("data-count", "1");
+    await modify(changedText);
     await expect(problems).toHaveAttribute("data-count", "0");
     await expect.poll(async () => isWater(await pixel(page, view, firstCell))).toBe(true);
 

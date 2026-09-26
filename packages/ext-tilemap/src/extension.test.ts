@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CommandRegistry, ExtensionHost, ExtensionRegistries, makeObject, MemoryBackend, MenuRegistry, SceneDocument } from "@initial-editor/core";
-import { readTilemapProps, TILEMAP_DEFAULTS, tilemapExtension, tilemapMapRefs, tilemapObjectType, validateTilemapMapFiles, validateTilemapObjects } from "./index";
+import { type MapFileProblem, readTilemapProps, TILEMAP_DEFAULTS, tilemapExtension, tilemapMapRefs, tilemapObjectType, validateTilemapMapFiles, validateTilemapObjects } from "./index";
 
 function host() {
   const registries = new ExtensionRegistries();
@@ -94,24 +94,34 @@ describe("타일맵 확장", () => {
     expect(tilemapMapRefs(null)).toEqual([]);
   });
 
-  it("맵 파일 검사는 없다고 답한 경로만 오류로 알린다 (모르면 알리지 않는다)", () => {
+  it("맵 파일 검사는 없거나 맵으로 읽히지 않는다고 답한 경로만 오류로 알린다 (문제없거나 모르면 알리지 않는다)", () => {
     const scene = {
       objects: [
         { id: "here", type: "tilemap", props: { map: "resources/maps/a.json", groundLayers: 1 } },
         { id: "gone", type: "tilemap", props: { map: "resources/maps/old.json", groundLayers: 1 } },
         { id: "blank", type: "tilemap", props: { map: "", groundLayers: 1 } },
+        { id: "broken", type: "tilemap", props: { map: "resources/maps/broken.json", groundLayers: 1 } },
       ],
     };
     const asked: string[] = [];
+    const answers: Record<string, MapFileProblem> = {
+      "resources/maps/old.json": { kind: "missing" },
+      "resources/maps/broken.json": { kind: "invalid", reason: "JSON 이 아니다: Unexpected token" },
+    };
     const problems = validateTilemapMapFiles(scene, (path) => {
       asked.push(path);
-      return path === "resources/maps/old.json";
+      return answers[path] ?? null;
     });
-    expect(asked).toEqual(["resources/maps/a.json", "resources/maps/old.json"]);
+    expect(asked).toEqual(["resources/maps/a.json", "resources/maps/old.json", "resources/maps/broken.json"]);
     expect(problems).toEqual([
       { severity: "error", message: "타일맵 gone의 맵 파일이 없다: resources/maps/old.json. 엔진이 씬을 거부한다", location: "objects[1].props.map" },
+      {
+        severity: "error",
+        message: "타일맵 broken의 맵 파일을 맵으로 읽지 못한다: resources/maps/broken.json (JSON 이 아니다: Unexpected token). 엔진이 씬을 거부한다",
+        location: "objects[3].props.map",
+      },
     ]);
-    expect(validateTilemapMapFiles(scene, () => false)).toEqual([]);
-    expect(validateTilemapMapFiles({ objects: "x" }, () => true)).toEqual([]);
+    expect(validateTilemapMapFiles(scene, () => null)).toEqual([]);
+    expect(validateTilemapMapFiles({ objects: "x" }, () => ({ kind: "missing" }))).toEqual([]);
   });
 });

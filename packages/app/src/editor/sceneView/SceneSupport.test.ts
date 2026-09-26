@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 씬 뷰 지원의 타일맵 연결: 타일맵 타입에 씬 노드를 붙이고, 프로젝트 파일이 바뀌면 맵 파일 캐시에 알린다.
-// 맵 파일이 없는 타일맵은 씬 검사 결과의 오류이고, 파일이 생기거나 지워지거나 이름이 바뀌면 다시 검사한다.
+// 맵 파일이 없거나 맵으로 읽히지 않는 타일맵은 씬 검사 결과의 오류이고, 파일이 생기거나 바뀌거나 지워지거나 이름이 바뀌면 다시 검사한다.
 import { CommandRegistry, DocumentRegistry, Emitter, ExtensionHost, ExtensionRegistries, LogStore, MemoryBackend, MenuRegistry, Project, SceneDocument } from "@initial-editor/core";
 import { tilemapExtension } from "@initial-editor/ext-tilemap";
 import { describe, expect, it, vi } from "vitest";
@@ -94,6 +94,28 @@ describe("씬 뷰 지원의 타일맵", () => {
     await vi.waitFor(() => expect(locations(doc)).toEqual([]));
     await backend.rename("resources/maps", "resources/levels");
     await vi.waitFor(() => expect(locations(doc)).toEqual(["objects[0].props.map", "objects[1].props.map"]));
+    support.dispose();
+  });
+
+  it("맵 파일이 JSON이 아니거나 맵 형식이 아니면 오류이고, 파일을 고치면 다시 검사해 사라진다", async () => {
+    const { backend, support, host } = await setup(tilemapScene([MAP_PATH]));
+    await host.activateAll([tilemapExtension]);
+    const doc = (await support.openScene(SCENE_PATH))!;
+    await vi.waitFor(() => expect(support.mapFiles.status(MAP_PATH)).toEqual({ kind: "ok" }));
+    expect(locations(doc)).toEqual([]);
+
+    // JSON이 아니다
+    await backend.writeText(MAP_PATH, "{ not json");
+    await vi.waitFor(() => expect(locations(doc)).toEqual(["objects[0].props.map"]));
+    expect(doc.problems[0].severity).toBe("error");
+    expect(doc.problems[0].message).toMatch(new RegExp(`^타일맵 tm0의 맵 파일을 맵으로 읽지 못한다: ${MAP_PATH} \\(JSON 이 아니다: .+\\)\\. 엔진이 씬을 거부한다$`));
+    // JSON이지만 맵이 아니다
+    await backend.writeText(MAP_PATH, "{}");
+    await vi.waitFor(() => expect(doc.problems[0]?.message).toContain("모르는 맵 버전이다"));
+    expect(locations(doc)).toEqual(["objects[0].props.map"]);
+    // 고치면 사라진다
+    await backend.writeText(MAP_PATH, MAP);
+    await vi.waitFor(() => expect(locations(doc)).toEqual([]));
     support.dispose();
   });
 

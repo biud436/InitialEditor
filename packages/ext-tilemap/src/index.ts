@@ -4,8 +4,8 @@
 // Tilemap.load로 열고, 앞의 groundLayers 개 레이어를 씬의 모든 오브젝트 아래에(drawBelow), 나머지를 모든 오브젝트
 // 위에(drawAbove) 그린다. 오브젝트 순서 자리에는 그리지 않는다.
 // 씬 뷰 노드와 인스펙터는 앱이 붙인다 (확장 API에 UI 등록이 아직 없다).
-// 검사기는 엔진 런타임 짝의 validate와 같은 규칙으로 씬의 타일맵 오브젝트를 검사한다. 맵 파일이 있는지는 파일을
-// 보는 앱이 validateTilemapMapFiles로 따로 검사한다 (엔진은 맵 파일을 열지 못하면 씬을 거부한다).
+// 검사기는 엔진 런타임 짝의 validate와 같은 규칙으로 씬의 타일맵 오브젝트를 검사한다. 맵 파일이 있고 맵으로 읽히는지는
+// 파일을 보는 앱이 validateTilemapMapFiles로 따로 검사한다 (엔진은 맵 파일을 열지 못하면 씬을 거부한다).
 
 import type { Extension, ExtensionApi, ObjectTypeSpec, ValidationProblem } from "@initial-editor/core";
 
@@ -77,14 +77,24 @@ export function tilemapMapRefs(scene: unknown): TilemapMapRef[] {
   return tilemapEntries(scene).flatMap(({ index, id, props }) => (typeof props.map === "string" && props.map !== "" ? [{ index, id, map: props.map }] : []));
 }
 
+/** 타일맵이 가리키는 맵 파일의 문제: 없다(missing), 있지만 JSON이 아니거나 맵 형식이 아니다(invalid, 이유) */
+export type MapFileProblem = { kind: "missing" } | { kind: "invalid"; reason: string };
+
+function mapFileMessage(ref: TilemapMapRef, problem: MapFileProblem): string {
+  return problem.kind === "missing"
+    ? `타일맵 ${ref.id}의 맵 파일이 없다: ${ref.map}. 엔진이 씬을 거부한다`
+    : `타일맵 ${ref.id}의 맵 파일을 맵으로 읽지 못한다: ${ref.map} (${problem.reason}). 엔진이 씬을 거부한다`;
+}
+
 /**
- * 맵 파일이 없는 타일맵을 오류로 알린다. 엔진은 Tilemap.load가 실패하면 씬을 거부한다 (Lua와 mruby).
- * 파일이 없는지는 부르는 쪽이 missing으로 답한다 (모르면 false). 파일 시스템과 DOM을 모른다
+ * 맵 파일이 없거나 맵으로 읽히지 않는 타일맵을 오류로 알린다. 엔진은 Tilemap.load가 실패하면 씬을 거부한다 (Lua와 mruby).
+ * 파일의 문제는 부르는 쪽이 problemOf로 답한다 (문제없거나 모르면 null). 파일 시스템과 DOM을 모른다
  */
-export function validateTilemapMapFiles(scene: unknown, missing: (path: string) => boolean): ValidationProblem[] {
-  return tilemapMapRefs(scene)
-    .filter((ref) => missing(ref.map))
-    .map((ref): ValidationProblem => ({ severity: "error", message: `타일맵 ${ref.id}의 맵 파일이 없다: ${ref.map}. 엔진이 씬을 거부한다`, location: `objects[${ref.index}].props.map` }));
+export function validateTilemapMapFiles(scene: unknown, problemOf: (path: string) => MapFileProblem | null): ValidationProblem[] {
+  return tilemapMapRefs(scene).flatMap((ref): ValidationProblem[] => {
+    const problem = problemOf(ref.map);
+    return problem ? [{ severity: "error", message: mapFileMessage(ref, problem), location: `objects[${ref.index}].props.map` }] : [];
+  });
 }
 
 /**
