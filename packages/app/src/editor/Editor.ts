@@ -29,8 +29,10 @@ import { installScriptSupport } from "./scripting";
 import type { ScriptSupport } from "./scripting";
 import { installSceneSupport } from "./sceneView";
 import type { SceneSupport } from "./sceneView";
+import { installMapSupport, type MapSupport } from "./maps";
 import { installSceneTools } from "./scene";
 import type { SceneTools } from "./scene";
+import { installMapSchema, type MapSchemaStore } from "./maps/schemaStore";
 import { MODE_LABELS, type BackendMode } from "./backends";
 import { DocumentDock } from "./documentDock";
 import { IMAGE_EXTENSIONS, ImagePreviewDocument } from "./documents/ImagePreviewDocument";
@@ -89,8 +91,12 @@ export class Editor {
   scripting!: ScriptSupport;
   /** E2: 씬 뷰 (installSceneSupport 가 붙인다: 씬 문서 열기와 PIXI 씬 뷰) */
   sceneSupport!: SceneSupport;
+  /** E3: 맵 뷰 (installMapSupport 가 붙인다: 맵 문서 열기, PIXI 맵 뷰, 팔레트와 레이어 패널의 상태, 맵 커맨드) */
+  mapSupport!: MapSupport;
   /** E2: 씬 도구 (installSceneTools 가 붙인다: 계층, 인스펙터, 씬 커맨드, 템플릿) */
   sceneTools!: SceneTools;
+  /** E3: 맵 오브젝트 스키마 (installMapSchema가 붙인다: resources/schema/map-objects.json, 여기서 실행) */
+  mapSchema!: MapSchemaStore;
 
   private readonly labelProviders = new Map<string, () => string>();
   private readonly hintProviders = new Map<string, () => string | undefined>();
@@ -141,8 +147,10 @@ export class Editor {
     this.disposers.push(installRecentProjectsMenu(this));
     installScriptSupport(this);
     installSceneSupport(this); // 스크립트 지원 뒤에: openPath 를 바깥에서 감싸 resources/scenes/*.json 을 먼저 가로챈다
+    installMapSupport(this); // 가장 바깥에서 resources/maps/*.json 을 가로챈다
     installSceneTools(this);
     installRunner(this);
+    installMapSchema(this);
     try {
       const ids = await this.extensions.activateAll([tilemapExtension]);
       this.log.info("editor", `확장 활성: ${ids.join(", ")}`);

@@ -108,8 +108,9 @@ test.describe("메모리 모드 스모크", () => {
     const tree = page.getByTestId("project-tree");
     await tree.locator('[data-path="resources"]').click();
     await tree.locator('[data-path="resources/maps"]').click();
+    // 맵 파일은 맵 뷰로 열린다 (E3)
     await tree.locator('[data-path="resources/maps/sample.json"]').dblclick();
-    await expect(page.locator(CODE)).toContainText('"version": 2');
+    await expect(page.getByTestId("map-view")).toBeVisible();
     // 오른쪽 클릭 메뉴로 새 파일 (확장자 없음) 을 만들고 열면 미리보기가 없다
     await tree.locator('[data-path="resources/maps"]').click({ button: "right" });
     await page.getByRole("menuitem", { name: "새 파일" }).click();

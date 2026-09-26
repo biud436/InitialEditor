@@ -15,6 +15,9 @@ import { ExtensionsPanel } from "./panels/ExtensionsPanel";
 import { FindPanel } from "./panels/FindPanel";
 import { HierarchyPanel } from "./panels/HierarchyPanel";
 import { InspectorPanel } from "./panels/InspectorPanel";
+import { ObjectsPanel } from "./maps/ObjectsPanel";
+import { LayersPanel } from "./maps/LayersPanel";
+import { PalettePanel } from "./maps/PalettePanel";
 import { ProjectPanel } from "./panels/ProjectPanel";
 import "./Dock.css";
 
@@ -28,6 +31,9 @@ const components: Record<string, FunctionComponent<IDockviewPanelProps>> = {
   extensions: ExtensionsPanel,
   console: ConsolePanel,
   find: FindPanel,
+  mapObjects: ObjectsPanel,
+  mapPalette: PalettePanel,
+  mapLayers: LayersPanel,
   [DOCUMENT_COMPONENT]: DocumentPanel,
 };
 

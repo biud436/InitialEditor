@@ -45,6 +45,8 @@ export interface RunnerOptions {
 export interface StartOptions {
   /** INITIAL2D_SCENE (E2 의 현재 씬부터 실행) */
   scene?: string;
+  /** 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT, INITIAL2D_SCENE) 뒤에 덧씌우는 환경 변수 (맵의 여기서 실행) */
+  env?: Record<string, string>;
 }
 
 export const NO_MRUBY = "이 엔진 빌드에는 mruby 가 없다";
@@ -336,6 +338,7 @@ export class RunnerStore {
 
     const env: Record<string, string> = { INITIAL2D_HMR: "1", INITIAL2D_SCRIPT: script };
     if (opts.scene) env.INITIAL2D_SCENE = opts.scene;
+    if (opts.env) Object.assign(env, opts.env);
     let handle: RunHandle;
     try {
       handle = await backend.run({ exe, cwd: project.root, env, args: [] });
@@ -359,7 +362,8 @@ export class RunnerStore {
       this.state = "running";
     });
     this.startTicker();
-    log.info(LOG_SOURCE, `엔진 시작: PID ${handle.pid ?? "?"}, ${exe}, 언어 ${script}${opts.scene ? `, 씬 ${opts.scene}` : ""} (INITIAL2D_HMR=1)`);
+    const extra = opts.env && Object.keys(opts.env).length > 0 ? `, ${Object.entries(opts.env).map(([k, v]) => `${k}=${v}`).join(" ")}` : "";
+    log.info(LOG_SOURCE, `엔진 시작: PID ${handle.pid ?? "?"}, ${exe}, 언어 ${script}${opts.scene ? `, 씬 ${opts.scene}` : ""} (INITIAL2D_HMR=1${extra})`);
     handle.onOutput((line) => {
       log.append(classifyEngineLine(line), "engine", line);
     });

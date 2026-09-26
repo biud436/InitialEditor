@@ -81,6 +81,18 @@ describe("맵 파일", () => {
   }
 });
 
+// 엔진의 알데바란 맵은 에디터와 같은 고정 형식으로 쓰인다 (엔진 tools/mapfile.py). 다시 써도 바이트가 같아야
+// 에디터로 열고 저장만 한 파일이 git 에서 바뀌지 않는다
+describe("엔진 맵과 같은 고정 형식", () => {
+  for (const rel of ["resources/maps/aldebaran_forest.json", "resources/maps/aldebaran_tomb.json"]) {
+    const file = path.join(ENGINE, rel);
+    const text = existsSync(file) ? readFileSync(file, "utf8") : "";
+    it.skipIf(!text.includes('"objects"'))(`${rel} 를 읽고 다시 쓰면 바이트가 같다`, () => {
+      expect(serializeMap(parseMap(text))).toBe(text);
+    });
+  }
+});
+
 describe("타일 계산", () => {
   const m = tiny();
   it("gid 에서 타일셋과 원본 위치", () => {

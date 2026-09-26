@@ -1,5 +1,7 @@
 // 메모리 모드(?backend=memory)의 샘플 프로젝트. 의존성 없이 화면을 띄우는 데모이며 Playwright 스모크의 상대다.
 
+import { meadowMapJson, meadowTilesetPng } from "./maps/sampleMap";
+
 export const SAMPLE_ROOT = "memory://sample";
 
 /** 16x16 파랑과 살구색 체커 PNG (RGBA) */
@@ -75,9 +77,51 @@ export const SAMPLE_MAP_JSON = `{
   "height": 4,
   "tileWidth": 16,
   "tileHeight": 16,
-  "tilesets": [{ "image": "resources/images/checker.png", "firstgid": 1 }],
+  "tilesets": [{ "image": "resources/images/checker.png", "firstGid": 1, "columns": 1 }],
   "layers": [{ "name": "ground", "data": [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1] }],
-  "events": []
+  "events": [],
+  "objects": [
+    { "id": "start", "type": "start", "x": 8, "y": 48 },
+    { "id": "slime_1", "type": "spawn", "x": 40, "y": 48, "props": { "species": "slime", "minX": 24, "maxX": 56 } },
+    { "id": "sign_1", "type": "landmark", "x": 16, "y": 0, "width": 16, "props": { "title": "표지판", "text": "첫 줄\\n둘째 줄" } }
+  ]
+}
+`;
+
+/**
+ * 맵 오브젝트 스키마 예제 (resources/schema/map-objects.json). 몬스터(종, 순찰 범위, 보스, 레벨), 하나뿐인 시작 지점,
+ * 띠 모양의 흔적(제목과 여러 줄 글). play.env는 여기서 실행의 환경 변수다.
+ */
+export const SAMPLE_MAP_SCHEMA_JSON = `{
+  "version": 1,
+  "types": [
+    {
+      "type": "spawn",
+      "label": "몬스터",
+      "shape": "point",
+      "color": "danger",
+      "fields": [
+        { "name": "species", "type": "enum", "values": ["slime", "bat"], "default": "slime", "label": "종" },
+        { "name": "minX", "type": "number", "role": "rangeMin", "label": "순찰 왼끝" },
+        { "name": "maxX", "type": "number", "role": "rangeMax", "label": "순찰 오른끝" },
+        { "name": "boss", "type": "boolean", "label": "보스" },
+        { "name": "level", "type": "integer", "min": 1, "label": "레벨" }
+      ]
+    },
+    { "type": "start", "label": "시작 지점", "shape": "point", "color": "success", "unique": true },
+    {
+      "type": "landmark",
+      "label": "흔적",
+      "shape": "band",
+      "color": "warning",
+      "defaultWidth": 32,
+      "fields": [
+        { "name": "title", "type": "string", "label": "제목" },
+        { "name": "text", "type": "text", "label": "글" }
+      ]
+    }
+  ],
+  "play": { "env": { "INITIAL2D_SCENE": "main", "INITIAL2D_SAMPLE_MAP": "{map.name}", "INITIAL2D_SAMPLE_AT": "{x},{y}" } }
 }
 `;
 
@@ -135,6 +179,8 @@ export const SAMPLE_README = `# 샘플 프로젝트
 - resources/images/checker.png: 이미지 미리보기용 체커
 - resources/images/coin.png: 두 프레임 동전 시트 (씬 뷰의 프레임 자르기 예)
 - resources/maps/sample.json: 맵 포맷 v2 예제
+- resources/maps/meadow.json: 20x12 초원 맵 (맵 뷰에서 칠하는 예, 타일셋은 resources/tiles/meadow16.png)
+- resources/schema/map-objects.json: 맵 오브젝트 스키마 예제 (오브젝트 목록과 인스펙터 폼)
 - resources/scenes/main.json: 씬 포맷 v1 예제 (씬 뷰에서 연다)
 `;
 
@@ -147,6 +193,9 @@ export function sampleProjectFiles(): Record<string, string | Uint8Array> {
     "resources/images/checker.png": base64ToBytes(CHECKER_PNG_BASE64),
     "resources/images/coin.png": base64ToBytes(COIN_PNG_BASE64),
     "resources/maps/sample.json": SAMPLE_MAP_JSON,
+    "resources/maps/meadow.json": meadowMapJson(),
+    "resources/tiles/meadow16.png": meadowTilesetPng(),
+    "resources/schema/map-objects.json": SAMPLE_MAP_SCHEMA_JSON,
     "resources/scenes/main.json": SAMPLE_SCENE_JSON,
     "README.md": SAMPLE_README,
   };

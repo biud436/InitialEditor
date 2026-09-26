@@ -1,0 +1,184 @@
+/* 맵 오브젝트 패널. 색 견본(map-swatch)은 MapObjectInspector.css에 있다 */
+
+.map-objects {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  user-select: none;
+}
+
+.map-objects-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  font-size: 12px;
+}
+
+.map-objects-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-objects-count {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.map-objects-banner {
+  flex: none;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--danger);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-objects-noschema {
+  flex: none;
+}
+
+.map-objects-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-1) 0;
+}
+
+.map-objects-group + .map-objects-group {
+  margin-top: var(--space-1);
+}
+
+.map-objects-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.map-objects-group-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-objects-badge {
+  flex: none;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.map-objects-unique {
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.map-objects-add {
+  margin-left: auto;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.map-objects-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 22px;
+  padding: 0 var(--space-2) 0 calc(var(--space-2) + 16px);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.map-objects-row:hover {
+  background: var(--bg-hover);
+}
+
+.map-objects-row.is-selected {
+  background: var(--bg-selection);
+}
+
+.map-objects-id {
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-objects-summary {
+  margin-left: auto;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-objects-rename {
+  flex: 1;
+  min-width: 60px;
+  min-height: 20px;
+  padding: 1px 4px;
+}
+
+.map-objects-problems {
+  flex: none;
+  max-height: 40%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.map-objects-problems-head {
+  flex: none;
+  padding: var(--space-1) var(--space-2);
+  font-weight: 600;
+}
+
+.map-objects-problems-list {
+  overflow: auto;
+  padding: 0 0 var(--space-1) 0;
+}
+
+.map-objects-problem {
+  display: flex;
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+}
+
+.map-objects-problem.is-error {
+  color: var(--danger);
+}
+
+.map-objects-problem.is-warning {
+  color: var(--warning);
+}
+
+.map-objects-problem.is-link {
+  cursor: pointer;
+}
+
+.map-objects-problem.is-link:hover {
+  background: var(--bg-hover);
+}
+
+.map-objects-problem-where {
+  flex: none;
+  font-family: var(--font-mono);
+  color: var(--fg-muted);
+}

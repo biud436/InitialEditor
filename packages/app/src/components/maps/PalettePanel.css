@@ -1,0 +1,71 @@
+.palette {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  user-select: none;
+}
+
+.palette-header,
+.palette-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  font-size: 12px;
+}
+
+.palette-info {
+  justify-content: space-between;
+  color: var(--fg);
+}
+
+.palette-tabs,
+.palette-zooms {
+  display: inline-flex;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.palette-spacer {
+  flex: 1;
+}
+
+.palette-tab,
+.palette-zoom {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.palette-tab.is-active,
+.palette-zoom.is-active {
+  background: var(--bg-selection);
+  border-color: var(--accent);
+}
+
+.palette-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-2);
+}
+
+.palette-canvas {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+  image-rendering: pixelated;
+}
+
+.palette-error {
+  color: var(--danger);
+}
