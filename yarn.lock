@@ -2720,6 +2720,7 @@ __metadata:
   resolution: "@initial-editor/app@workspace:packages/app"
   dependencies:
     "@initial-editor/backend-bridge": "npm:2.0.0-dev"
+    "@initial-editor/backend-fsaccess": "npm:2.0.0-dev"
     "@initial-editor/backend-tauri": "npm:2.0.0-dev"
     "@initial-editor/core": "npm:2.0.0-dev"
     "@initial-editor/ext-tilemap": "npm:2.0.0-dev"
@@ -2743,6 +2744,14 @@ __metadata:
 "@initial-editor/backend-bridge@npm:2.0.0-dev, @initial-editor/backend-bridge@workspace:packages/backend-bridge":
   version: 0.0.0-use.local
   resolution: "@initial-editor/backend-bridge@workspace:packages/backend-bridge"
+  dependencies:
+    "@initial-editor/core": "npm:2.0.0-dev"
+  languageName: unknown
+  linkType: soft
+
+"@initial-editor/backend-fsaccess@npm:2.0.0-dev, @initial-editor/backend-fsaccess@workspace:packages/backend-fsaccess":
+  version: 0.0.0-use.local
+  resolution: "@initial-editor/backend-fsaccess@workspace:packages/backend-fsaccess"
   dependencies:
     "@initial-editor/core": "npm:2.0.0-dev"
   languageName: unknown
