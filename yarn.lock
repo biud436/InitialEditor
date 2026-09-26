@@ -2771,6 +2771,7 @@ __metadata:
   resolution: "@initial-editor/ext-tilemap@workspace:packages/ext-tilemap"
   dependencies:
     "@initial-editor/core": "npm:2.0.0-dev"
+    mobx: "npm:^6.13.0"
   languageName: unknown
   linkType: soft
 
