@@ -16,7 +16,7 @@
     "dev": "yarn workspace @initial-editor/app dev",
     "build": "yarn workspace @initial-editor/app build",
     "preview": "yarn workspace @initial-editor/app preview",
-    "typecheck": "tsc -b packages/core packages/backend-bridge packages/backend-tauri packages/ext-tilemap packages/app tests",
+    "typecheck": "tsc -b packages/core packages/backend-bridge packages/backend-tauri packages/ext-tilemap packages/ext-rpg packages/app tests",
     "lint": "eslint packages tests",
     "test": "vitest run",
     "test:watch": "vitest",
