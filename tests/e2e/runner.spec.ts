@@ -1,6 +1,6 @@
 // 실행기의 브라우저 판 (docs/plans/e1-scripting.md 마일스톤 3). 메모리 백엔드(?backend=memory)라 엔진 프로세스는 못 띄우고
 // F5 는 에디터 안 게임 탭에서 웹 엔진으로 돈다 (그 흐름은 game-view.spec.ts, 실행 버튼의 툴팁은 smoke.spec.ts).
-// 여기서는 상태 바의 엔진 칸, 콘솔의 오류 링크, "엔진만" 필터, 브라우저 모드의 수동 리로드를 본다.
+// 여기서는 상태 바의 엔진 칸, 콘솔의 오류 링크, "엔진만" 필터, 메모리 모드의 수동 리로드(게임 탭이 돌 때만)를 본다.
 // 진짜 엔진 프로세스와의 핫 리로드는 scripts/e2e-engine-hotreload.mjs (yarn test:engine).
 
 import { expect, test, type Page } from "@playwright/test";
@@ -83,11 +83,20 @@ test.describe("실행기 (메모리 모드)", () => {
     await expect(list).toContainText("프로젝트 열림");
   });
 
-  test("브라우저 모드의 수동 리로드는 백엔드로 push 하고 결과를 콘솔에 적는다", async ({ page }) => {
+  test("메모리 모드의 수동 리로드는 게임 탭이 돌 때만 켜지고 에디터 안 엔진을 다시 읽는다 (밖에 엔진이 없다)", async ({ page }) => {
     await openSample(page);
     const reload = page.getByTestId("toolbar").locator('[data-command="run.reload"]');
+    await expect(reload).toBeDisabled();
+    await expect(page.getByTestId("toolbar").locator('span.toolbar-tip:has([data-command="run.reload"])')).toHaveAttribute("title", /게임 탭에서 실행 중일 때 다시 읽는다/);
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(reload).toBeEnabled();
     await reload.click();
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: \d+개 파일을 보냈다/);
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 에디터 안 엔진, \d+개 파일을 다시 올렸다/);
+    await expect(page.getByTestId("console-list")).not.toContainText("개 파일을 보냈다");
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    await expect(reload).toBeDisabled();
   });
 });

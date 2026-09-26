@@ -3,6 +3,7 @@
 //   탭 id 는 "doc:<경로>" (시작 탭은 "doc:welcome"). 레이아웃 JSON 에 남은 문서 탭은 reconcile 이 경로로 다시 연다.
 //   옆 문서(SIDE_KINDS, 게임 탭)는 처음에 문서 영역 오른쪽의 새 그룹에 연다. 스크립트를 고치는 동안에도 보이게.
 //   사용자가 옮기면 그 자리를 기억해 두었다가 닫고 다시 열 때 그 자리에 연다. 보통 문서는 옆 문서의 그룹에 끼우지 않는다.
+//   탭을 다른 그룹이나 자리로 옮기면 onDocumentMoved 로 알린다 (dockview 가 내용 요소를 옮겨 그 안의 초점이 풀린다).
 
 import type { DockviewApi, IDockviewPanel } from "dockview";
 
@@ -123,6 +124,7 @@ export class DocumentDock {
   private closing = new Set<Document>();
   /** 옆 문서 종류별 마지막 자리 (이 창이 열려 있는 동안) */
   private readonly sideSpots = new Map<string, SideSpot>();
+  private readonly moveListeners = new Set<(doc: Document) => void>();
 
   constructor(private readonly deps: DocumentDockDeps) {}
 
@@ -148,7 +150,18 @@ export class DocumentDock {
       api.onDidLayoutChange(() => {
         if (!this.layout?.applying) this.rememberSideSpots(api);
       }),
+      api.onDidMovePanel(({ panel }) => {
+        const doc = isDocumentPanelId(panel.id) ? this.findDocument(panel.id) : undefined;
+        if (!doc) return;
+        for (const listener of [...this.moveListeners]) listener(doc);
+      }),
     );
+  }
+
+  /** 문서 탭이 다른 그룹이나 자리로 옮겨지면 부른다 (끌어 놓기, 그룹 옮기기). 돌려주는 함수로 뗀다 */
+  onDocumentMoved(listener: (doc: Document) => void): () => void {
+    this.moveListeners.add(listener);
+    return () => void this.moveListeners.delete(listener);
   }
 
   /** 옆 문서 종류의 기억한 자리 (테스트와 검수용) */

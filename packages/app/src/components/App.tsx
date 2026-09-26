@@ -15,7 +15,8 @@ import { Toolbar } from "./Toolbar";
 export const App = observer(function App() {
   const editor = useEditor();
 
-  useEffect(() => installShortcuts(editor.commands), [editor]);
+  // 모달 대화상자가 떠 있으면 전역 단축키를 부르지 않는다
+  useEffect(() => installShortcuts(editor.commands, window, { suspended: () => editor.modals.top !== null }), [editor]);
 
   // 브라우저 모드: 저장하지 않은 문서가 있으면 새로 고침이나 탭 닫기 전에 묻는다
   useEffect(() => (editor.isBrowser ? installUnloadGuard(() => editor.documents.dirtyDocuments.length > 0) : undefined), [editor]);

@@ -70,6 +70,19 @@ export interface RunnerOptions {
   now?: () => number;
   /** 에디터 안 실행. 없으면 process 만 있다 */
   embedded?: EmbeddedEngine;
+  /** 밖에서 띄운 엔진이 있을 수 있는가 (기본 true). 메모리 모드는 false: 엔진이 없어 hmrPush 를 부르지 않는다 */
+  externalEngine?: boolean;
+}
+
+export interface ReloadOptions {
+  /** 저장 시 리로드 (SaveReloader). 브리지 너머에 엔진이 없으면(연결 거부) 토스트 없이 한 줄만 남긴다 */
+  fromSave?: boolean;
+}
+
+/** 브리지가 전한 핫 리로드 실패가 엔진 쪽 포트의 연결 거부인가 (엔진이 떠 있지 않다) */
+export function isHmrRefused(e: unknown): boolean {
+  const err = e as BackendError | null;
+  return err?.code === "hmr_unreachable" && /ECONNREFUSED|connection refused/i.test(err.message ?? "");
 }
 
 export interface StartOptions {
@@ -84,6 +97,7 @@ export const WASM_NO_MRUBY = "이 웹 엔진 빌드에는 mruby 가 없다. game
 export const EMBEDDED_HINT = "에디터 안 게임 탭에서 돈다 (웹 엔진)";
 export const RUN_MODE_LABELS: Record<RunMode, string> = { process: "프로세스", embedded: "에디터 안" };
 export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
+export const HMR_NO_ENGINE_SKIPPED = "엔진이 떠 있지 않아 리로드를 건너뛰었다";
 const LOG_SOURCE = "runner";
 const DEFAULT_STOP_TIMEOUT_MS = 4000;
 
@@ -132,11 +146,14 @@ export class RunnerStore {
   private readonly stopTimeoutMs: number;
   private readonly clock: () => number;
   private readonly embedded: EmbeddedEngine | null;
+  private readonly externalEngine: boolean;
   private ticker: ReturnType<typeof setInterval> | null = null;
   private startPromise: Promise<void> | null = null;
   private lastStart: StartOptions = {};
   private resolveToken = 0;
   private exitWaiters: Array<() => void> = [];
+  /** 에디터 안 엔진이 뜨는 중에 들어온 리로드. 뜬 뒤 한 번에 올린다 ("all" 은 scripts 와 씬과 맵 전부) */
+  private queuedReload: Set<string> | "all" | null = null;
 
   constructor(
     private readonly host: RunnerHost,
@@ -147,6 +164,7 @@ export class RunnerStore {
     this.stopTimeoutMs = opts.stopTimeoutMs ?? DEFAULT_STOP_TIMEOUT_MS;
     this.clock = opts.now ?? (() => Date.now());
     this.embedded = opts.embedded ?? null;
+    this.externalEngine = opts.externalEngine ?? true;
     this.now = this.clock();
     makeObservable(this, {
       state: observable,
@@ -166,6 +184,7 @@ export class RunnerStore {
       shownMode: computed,
       modeHint: computed,
       embeddedRunning: computed,
+      embeddedActive: computed,
       isRunning: computed,
       unavailableReason: computed,
       canRun: computed,
@@ -203,9 +222,14 @@ export class RunnerStore {
     return this.mode === "embedded" ? EMBEDDED_HINT : undefined;
   }
 
-  /** 에디터 안 엔진이 돌고 있다 (저장 시 리로드가 그쪽으로 간다) */
+  /** 에디터 안 엔진이 돌고 있다 (리로드가 그쪽으로 간다) */
   get embeddedRunning(): boolean {
     return this.activeMode === "embedded" && this.state === "running";
+  }
+
+  /** 에디터 안 엔진이 뜨는 중(파일 올리는 중, 부팅 중)이거나 돌고 있다. 뜨는 중의 리로드는 뜬 뒤에 올린다 */
+  get embeddedActive(): boolean {
+    return this.activeMode === "embedded" && (this.state === "starting" || this.state === "running");
   }
 
   /** 시작 중이거나 실행 중 (정지 버튼이 켜지는 조건) */
@@ -238,22 +262,22 @@ export class RunnerStore {
     return undefined;
   }
 
-  /** 리로드: 브리지 모드는 프로젝트가 열려 있으면 늘, Tauri 는 실행 중일 때만 */
+  /** 리로드: 브리지 모드는 프로젝트가 열려 있으면 늘, Tauri 는 실행 중일 때만, 메모리와 웹판은 게임 탭이 뜨는 중이거나 돌 때만 */
   get canReload(): boolean {
     return this.reloadHint === undefined;
   }
 
   get reloadHint(): string | undefined {
     if (!this.host.project.isOpen) return "프로젝트를 먼저 연다";
-    if (this.state === "running") return undefined;
+    if (this.state === "running" || this.embeddedActive) return undefined;
     if (this.host.backend.capabilities.run) return "엔진이 실행 중일 때 보낼 수 있다";
     if (!this.canPush) return "게임 탭에서 실행 중일 때 다시 읽는다";
     return undefined;
   }
 
-  /** 밖에서 띄운 엔진의 핫 리로드 서버로 보낼 길이 있는가. 브라우저 폴더(웹판)에는 없다 */
+  /** 밖에서 띄운 엔진의 핫 리로드 서버로 보낼 길이 있는가. 브라우저 폴더(웹판)와 메모리 모드(엔진이 없다)에는 없다 */
   get canPush(): boolean {
-    return this.host.backend.kind !== "browser";
+    return this.externalEngine && this.host.backend.kind !== "browser";
   }
 
   get elapsedMs(): number {
@@ -404,6 +428,7 @@ export class RunnerStore {
 
     const launched = mode === "embedded" ? await this.launchEmbedded(opts) : await this.launchProcess(opts);
     if (!launched) {
+      this.queuedReload = null;
       runInAction(() => (this.state = "idle"));
       return;
     }
@@ -421,6 +446,9 @@ export class RunnerStore {
       log.append(classifyEngineLine(line), "engine", line);
     });
     handle.onExit((code) => this.onExit(handle, code));
+    const queued = this.queuedReload;
+    this.queuedReload = null;
+    if (queued && this.embeddedRunning) void this.reloadEmbedded(queued === "all" ? undefined : [...queued]);
   }
 
   /** 실패를 콘솔과 토스트에 알리고 null */
@@ -571,10 +599,16 @@ export class RunnerStore {
    * 묶음을 엔진의 핫 리로드 서버로 보낸다. Tauri 는 여기서 모으고(hmrCollect.ts), 브리지는 서버가 모으므로 빈 목록.
    * 엔진은 받으면 VM 을 통째로 다시 시작한다 (씬 상태는 날아간다). 결과나 실패 이유를 콘솔에 남긴다.
    * 에디터 안 엔진이 돌고 있으면 그쪽으로 paths 를 다시 올린다 (paths 가 없으면 scripts 와 씬과 맵 전부).
+   * 에디터 안 엔진이 뜨는 중이면 모아 두었다가 뜬 뒤에 올린다. 보낼 길이 없는 백엔드(메모리, 웹판)는 보내지 않는다.
    */
-  async reload(paths?: readonly string[]): Promise<{ count: number } | null> {
+  async reload(paths?: readonly string[], opts: ReloadOptions = {}): Promise<{ count: number } | null> {
     const { backend, project, log, toasts } = this.host;
     if (!project.isOpen) return null;
+    if (this.activeMode === "embedded" && this.state === "starting") {
+      this.queueReload(paths);
+      log.info(LOG_SOURCE, "핫 리로드: 에디터 안 엔진이 뜨는 중이다. 뜨면 바뀐 파일을 다시 올린다");
+      return null;
+    }
     if (this.embeddedRunning) return this.reloadEmbedded(paths);
     if (!this.canPush && this.state !== "running") return null;
     let files: HmrFile[] = [];
@@ -599,11 +633,26 @@ export class RunnerStore {
       return result;
     } catch (e) {
       const err = e as BackendError;
+      if (opts.fromSave && backend.kind === "bridge" && isHmrRefused(err)) {
+        log.info(LOG_SOURCE, HMR_NO_ENGINE_SKIPPED);
+        return null;
+      }
       const message = err.code === "hmr_unreachable" || err.code === "network" ? `핫 리로드 실패: ${HMR_UNREACHABLE_HINT} (${err.message})` : `핫 리로드 실패: ${err.message}`;
       log.error(LOG_SOURCE, message);
       toasts.error(message);
       return null;
     }
+  }
+
+  /** 뜨는 중에 들어온 리로드를 모은다. 경로가 없으면(수동 리로드) 전부 */
+  private queueReload(paths?: readonly string[]): void {
+    if (!paths || this.queuedReload === "all") {
+      this.queuedReload = "all";
+      return;
+    }
+    const set = this.queuedReload ?? new Set<string>();
+    for (const p of paths) set.add(p);
+    this.queuedReload = set;
   }
 
   /**

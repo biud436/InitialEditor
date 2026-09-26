@@ -1,10 +1,10 @@
 // 실행 방식 나누기 (E4): 에디터 안 실행(가짜 EmbeddedEngine)과 프로세스 실행을 RunnerStore 가 고르는가.
 // 엔진이 던진 값(WebAssembly.Exception 처럼 message 가 없는 것)이 콘솔과 토스트에 "undefined" 로 나오지 않는가.
 
-import { LogStore, MemorySettingsStorage, Project, SettingsStore, type OutputStream, type ProjectBackend, type RunHandle, type RunSpec } from "@initial-editor/core";
+import { BackendError, LogStore, MemorySettingsStorage, Project, SettingsStore, type OutputStream, type ProjectBackend, type RunHandle, type RunSpec } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
 import { describe, expect, it } from "vitest";
-import { EMBEDDED_HINT, RunnerStore, WASM_NO_MRUBY, type EmbeddedEngine, type RunnerHost } from "./RunnerStore";
+import { EMBEDDED_HINT, HMR_NO_ENGINE_SKIPPED, RunnerStore, WASM_NO_MRUBY, type EmbeddedEngine, type RunnerHost } from "./RunnerStore";
 
 class FakeHandle implements RunHandle {
   id = 1;
@@ -84,7 +84,11 @@ function withRun(mem: MemoryBackend, onRun: (spec: RunSpec) => Promise<RunHandle
   return Object.assign(Object.create(mem) as MemoryBackend, { kind: "tauri", capabilities: { run: true, pickFolder: true, watch: true }, run: onRun });
 }
 
-async function setup(opts: { tauri?: boolean; runMode?: "process" | "embedded"; script?: "lua" | "mruby" } = {}) {
+/** 브리지 서버가 엔진 포트에 연결하지 못했을 때의 502 */
+const REFUSED = "HMR push failed (127.0.0.1:5959): connect ECONNREFUSED 127.0.0.1:5959 — 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
+
+/** 기본은 브리지처럼 (MemoryBackend 의 kind 는 bridge, hmrPush 는 mem.pushed 에 남는다). memory 면 메모리 모드 (엔진이 없다) */
+async function setup(opts: { tauri?: boolean; memory?: boolean; runMode?: "process" | "embedded"; script?: "lua" | "mruby" } = {}) {
   const mem = new MemoryBackend({
     "game.json": JSON.stringify({ windowWidth: 320, windowHeight: 240, renderScale: 1, script: opts.script ?? "lua" }),
     "scripts/lua/main.lua": "print('main')",
@@ -110,8 +114,9 @@ async function setup(opts: { tauri?: boolean; runMode?: "process" | "embedded"; 
     unavailableReason: "브라우저 모드에서는 엔진을 띄울 수 없다",
     probe: opts.tauri ? async () => ["lua"] : undefined,
     stopTimeoutMs: 200,
+    externalEngine: !opts.memory,
   });
-  return { runner, embedded, specs, log, toasts, settings };
+  return { runner, embedded, specs, log, toasts, settings, mem, backend };
 }
 
 const texts = (log: LogStore) => log.entries.map((e) => `${e.level}/${e.source}: ${e.text}`);
@@ -214,10 +219,11 @@ describe("RunnerStore 실행 방식", () => {
   });
 
   it("리로드: 에디터 안 엔진이 돌면 저장한 경로를 그쪽으로, 아니면 백엔드로 push", async () => {
-    const { runner, embedded, log } = await setup();
-    // 돌지 않을 때 브라우저 모드는 백엔드(브리지 서버)로 보낸다
+    const { runner, embedded, log, mem } = await setup();
+    // 돌지 않을 때 브리지 모드는 백엔드(브리지 서버)로 보낸다
     expect(runner.canReload).toBe(true);
     expect(await runner.reload(["scripts/lua/main.lua"])).toEqual({ count: 0 });
+    expect(mem.pushed).toEqual([[]]);
     expect(embedded.reloads).toEqual([]);
 
     await runner.start();
@@ -241,6 +247,128 @@ describe("RunnerStore 실행 방식", () => {
     expect(runner.canReload).toBe(true);
     expect(await runner.reload()).toEqual({ count: 5 });
     expect(embedded.reloads).toEqual([undefined]);
+  });
+
+  it("메모리 백엔드는 엔진이 없어 보내지 않는다: 게임 전에도 끝난 뒤에도 리로드했다고 적지 않는다", async () => {
+    const { runner, embedded, mem, log, toasts } = await setup({ memory: true });
+    expect(runner.canPush).toBe(false);
+    expect(runner.canReload).toBe(false);
+    expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(await runner.reload()).toBeNull();
+
+    await runner.start();
+    embedded.handles[0].exit(1);
+    expect(runner.state).toBe("idle");
+    const before = log.entries.length;
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(mem.pushed).toEqual([]);
+    expect(embedded.reloads).toEqual([]);
+    expect(texts(log).slice(before)).toEqual([]);
+    expect(toasts.filter((t) => t.includes("리로드"))).toEqual([]);
+  });
+
+  it("브리지: 저장 시 리로드가 엔진 포트의 연결 거부로 실패하면 토스트 없이 조용한 한 줄만 남긴다", async () => {
+    const { runner, embedded, backend, log, toasts } = await setup();
+    let pushes = 0;
+    let failure = new BackendError(REFUSED, "hmr_unreachable");
+    backend.hmrPush = async () => {
+      pushes++;
+      throw failure;
+    };
+    // 게임이 끝난 뒤 고쳐 저장한다
+    await runner.start();
+    embedded.handles[0].exit(1);
+    toasts.length = 0;
+    const before = log.entries.length;
+    expect(await runner.reload(["scripts/lua/games/aldebaran/title.lua"], { fromSave: true })).toBeNull();
+    expect(pushes).toBe(1);
+    expect(toasts).toEqual([]);
+    expect(texts(log).slice(before)).toEqual([`info/runner: ${HMR_NO_ENGINE_SKIPPED}`]);
+
+    // 수동 리로드는 사용자가 누른 것이라 전처럼 알린다
+    expect(await runner.reload()).toBeNull();
+    expect(toasts).toEqual([`error: 핫 리로드 실패: 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인 (${REFUSED})`]);
+
+    // 연결 거부가 아닌 실패(응답 시간 초과, 브리지 서버가 없음)는 저장 시에도 알린다
+    failure = new BackendError("HMR push failed (127.0.0.1:5959): HMR push timed out after 5000ms", "hmr_unreachable");
+    await runner.reload(["scripts/lua/main.lua"], { fromSave: true });
+    failure = new BackendError("브리지 서버(http://127.0.0.1:5960)에 연결할 수 없다", "network");
+    await runner.reload(["scripts/lua/main.lua"], { fromSave: true });
+    expect(toasts).toHaveLength(3);
+    expect(texts(log).filter((l) => l === `info/runner: ${HMR_NO_ENGINE_SKIPPED}`)).toHaveLength(1);
+  });
+
+  it("Tauri 의 프로세스 실행은 그대로: 저장 시 리로드의 실패도 알린다", async () => {
+    const { runner, backend, toasts } = await setup({ tauri: true, runMode: "process" });
+    backend.hmrPush = async () => {
+      throw new BackendError("Connection refused (os error 61)", "hmr_unreachable");
+    };
+    await runner.start();
+    expect(runner.state).toBe("running");
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(toasts.at(-1)).toBe("error: 핫 리로드 실패: 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인 (Connection refused (os error 61))");
+  });
+
+  it("게임 탭이 뜨는 중(파일 올리는 중, 부팅 중)의 리로드는 백엔드로 보내지 않고 모았다가 뜬 뒤 한 번에 올린다", async () => {
+    const { runner, embedded, mem, log, toasts } = await setup();
+    let open!: () => void;
+    embedded.gate = new Promise((r) => (open = r));
+    const starting = runner.start();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(runner.state).toBe("starting");
+    expect(runner.embeddedActive).toBe(true);
+    expect(runner.embeddedRunning).toBe(false);
+    expect(runner.canReload).toBe(true);
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(await runner.reload(["resources/maps/a.json", "scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(mem.pushed).toEqual([]);
+    expect(embedded.reloads).toEqual([]);
+    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진이 뜨는 중이다. 뜨면 바뀐 파일을 다시 올린다");
+    open();
+    await starting;
+    expect(runner.state).toBe("running");
+    expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"]]);
+    await Promise.resolve();
+    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진, 2개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)");
+    expect(mem.pushed).toEqual([]);
+    expect(toasts).toEqual([]);
+
+    // 뜨는 중의 수동 리로드(경로 없음)는 전부 다시 올린다
+    await runner.stop();
+    embedded.gate = new Promise((r) => (open = r));
+    const again = runner.start();
+    await Promise.resolve();
+    await Promise.resolve();
+    await runner.reload(["scripts/lua/main.lua"]);
+    await runner.reload();
+    open();
+    await again;
+    expect(embedded.reloads.at(-1)).toBeUndefined();
+    expect(embedded.reloads).toHaveLength(2);
+    expect(mem.pushed).toEqual([]);
+  });
+
+  it("뜨는 중에 그만두면 모아 둔 리로드는 버린다", async () => {
+    const { runner, embedded, mem } = await setup();
+    let open!: () => void;
+    embedded.gate = new Promise((r) => (open = r));
+    const starting = runner.start();
+    await Promise.resolve();
+    await Promise.resolve();
+    await runner.reload(["scripts/lua/main.lua"], { fromSave: true });
+    const stopping = runner.stop();
+    open();
+    await starting;
+    await stopping;
+    expect(runner.state).toBe("idle");
+    embedded.gate = null;
+    embedded.aborted = 0;
+    await runner.start();
+    expect(runner.state).toBe("running");
+    expect(embedded.reloads).toEqual([]);
+    expect(mem.pushed).toEqual([]);
   });
 
   it("게임이 스스로 끝나면 종료 코드를 상태 바에 남긴다", async () => {

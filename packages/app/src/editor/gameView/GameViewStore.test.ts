@@ -509,8 +509,8 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     const runner = new RunnerStore({ backend: t.backend, project: t.project, settings, log: t.log, toasts, platform: "mac" }, { embedded: t.store });
     const saves = new SaveReloader({
       accepts: (path) =>
-        shouldReloadOnSave({ path, reloadOnSave: settings.settings.reloadOnSave, canSpawn: false, running: runner.state === "running", embeddedRunning: runner.embeddedRunning }),
-      reload: (paths) => void runner.reload(paths),
+        shouldReloadOnSave({ path, reloadOnSave: settings.settings.reloadOnSave, canSpawn: false, running: runner.state === "running", embeddedActive: runner.embeddedActive }),
+      reload: (paths) => void runner.reload(paths, { fromSave: true }),
     });
     await runner.start();
     expect(runner.embeddedRunning).toBe(true);
@@ -534,6 +534,101 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     saves.onSaved("scripts/lua/main.lua");
     expect(saves.pending).toBe(false);
     await runner.stop();
+    runner.dispose();
+  });
+
+  /** 실행기, 저장 리로더, 게임 뷰를 잇는다. 메모리 모드(밖의 엔진이 없다)의 연결과 같다 */
+  function wire(t: Awaited<ReturnType<typeof setup>>) {
+    const settings = new SettingsStore(new MemorySettingsStorage());
+    const toasts: string[] = [];
+    const toast = (level: string) => (text: string) => void toasts.push(`${level}: ${text}`);
+    const runner = new RunnerStore(
+      { backend: t.backend, project: t.project, settings, log: t.log, toasts: { info: toast("info"), success: toast("success"), warn: toast("warn"), error: toast("error") }, platform: "mac" },
+      { embedded: t.store, externalEngine: false },
+    );
+    const saves = new SaveReloader(
+      {
+        accepts: (path) =>
+          shouldReloadOnSave({ path, reloadOnSave: true, canSpawn: false, running: runner.state === "running", embeddedActive: runner.embeddedActive, canPush: runner.canPush }),
+        reload: (paths) => void runner.reload(paths, { fromSave: true }),
+      },
+      10,
+    );
+    return { runner, saves, toasts };
+  }
+
+  it("파일을 올리는 중에 저장하면(그 파일은 이미 읽었다) 백엔드로 보내지 않고 엔진이 뜬 뒤 새 글로 다시 올린다", async () => {
+    const t = await setup({ "scripts/lua/title.lua": "-- t" });
+    const { runner, saves, toasts } = wire(t);
+    // main.lua 를 읽은 뒤의 파일은 멈춰 있다 (큰 프로젝트의 긴 스테이징)
+    const read = t.backend.readBinary.bind(t.backend);
+    const readPaths: string[] = [];
+    let release!: () => void;
+    const slow = new Promise<void>((r) => (release = r));
+    t.backend.readBinary = async (p: string) => {
+      const data = await read(p);
+      const late = readPaths.includes("scripts/lua/main.lua");
+      readPaths.push(p);
+      if (late) await slow;
+      return data;
+    };
+    const starting = runner.start();
+    await vi.waitFor(() => expect(readPaths).toContain("scripts/lua/main.lua"));
+    expect(t.store.phase).toBe("staging");
+    await t.backend.writeText("scripts/lua/main.lua", "print('v2')");
+    saves.onSaved("scripts/lua/main.lua");
+    await vi.waitFor(() => expect(saves.pending).toBe(false));
+    await Promise.resolve();
+    expect(t.backend.pushed).toEqual([]);
+    expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 에디터 안 엔진이 뜨는 중이다"))).toBe(true);
+
+    release();
+    await starting;
+    expect(runner.state).toBe("running");
+    const game = t.games[0];
+    expect(text(game.opts.files?.["scripts/lua/main.lua"])).toBe("print('main')");
+    await vi.waitFor(() => expect(game.reloads).toHaveLength(1));
+    expect(Object.keys(game.reloads[0])).toEqual(["scripts/lua/main.lua"]);
+    expect(text(game.reloads[0]["scripts/lua/main.lua"])).toBe("print('v2')");
+    expect(t.backend.pushed).toEqual([]);
+    expect(t.log.entries.some((e) => e.text.includes("개 파일을 보냈다"))).toBe(false);
+    expect(toasts).toEqual([]);
+    await runner.stop();
+    runner.dispose();
+  });
+
+  it("엔진을 띄우는 중(부팅)에 저장해도 뜬 뒤 그 파일을 다시 올린다", async () => {
+    const t = await setup();
+    const { runner, saves } = wire(t);
+    const open = t.hold();
+    const starting = runner.start();
+    await vi.waitFor(() => expect(t.store.phase).toBe("booting"));
+    await t.backend.writeText("scripts/lua/main.lua", "print('v3')");
+    saves.onSaved("scripts/lua/main.lua");
+    await vi.waitFor(() => expect(saves.pending).toBe(false));
+    expect(t.games).toHaveLength(0);
+    open();
+    await starting;
+    await vi.waitFor(() => expect(t.games[0].reloads).toHaveLength(1));
+    expect(text(t.games[0].reloads[0]["scripts/lua/main.lua"])).toBe("print('v3')");
+    expect(t.backend.pushed).toEqual([]);
+    await runner.stop();
+    runner.dispose();
+  });
+
+  it("메모리 모드에서 게임이 끝난 뒤 저장하면 리로드하지 않고 리로드했다고 적지 않는다", async () => {
+    const t = await setup();
+    const { runner, saves, toasts } = wire(t);
+    await runner.start();
+    await runner.stop();
+    expect(t.store.phase).toBe("ended");
+    const before = t.log.entries.length;
+    saves.onSaved("scripts/lua/main.lua");
+    expect(saves.pending).toBe(false);
+    await new Promise((r) => setTimeout(r, 30));
+    expect(t.backend.pushed).toEqual([]);
+    expect(t.log.entries.slice(before).filter((e) => e.text.includes("리로드"))).toEqual([]);
+    expect(toasts.filter((x) => x.includes("리로드"))).toEqual([]);
     runner.dispose();
   });
 });

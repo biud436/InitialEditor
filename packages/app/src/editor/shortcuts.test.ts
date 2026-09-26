@@ -152,6 +152,82 @@ describe("단축키 규칙", () => {
     expect(f6.defaultPrevented).toBe(false);
     off();
   });
+
+  it("installShortcuts: IME 조합 중에도 묶인 F5 계열은 실행하고 기본 동작을 막는다. 다른 단축키는 조합에 맡긴다", async () => {
+    let running = false;
+    const commands = new CommandRegistry({ platform: "mac" });
+    const calls: string[] = [];
+    commands.register({ id: "file.save", label: "저장", shortcut: "Ctrl+S", run: () => void calls.push("file.save") });
+    commands.register({ id: "run.start", label: "실행", shortcut: "F5", enabled: () => !running, run: () => void calls.push("run.start") });
+    commands.register({ id: "run.stop", label: "정지", shortcut: "Shift+F5", enabled: () => running, run: () => void calls.push("run.stop") });
+    const off = installShortcuts(commands, window);
+    const textarea = document.createElement("textarea");
+    document.body.append(textarea);
+    const composing = (init: KeyboardEventInit) => {
+      const ev = new KeyboardEvent("keydown", { ...init, isComposing: true, bubbles: true, cancelable: true });
+      expect(ev.isComposing).toBe(true);
+      textarea.dispatchEvent(ev);
+      return ev;
+    };
+
+    const f5 = composing({ key: "F5" });
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start"]);
+    expect(f5.defaultPrevented).toBe(true);
+
+    running = true;
+    const stop = composing({ key: "F5", shiftKey: true });
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start", "run.stop"]);
+    expect(stop.defaultPrevented).toBe(true);
+
+    // 비활성이어도 새로 고침은 막는다
+    const disabled = composing({ key: "F5" });
+    expect(disabled.defaultPrevented).toBe(true);
+
+    // 조합 중의 Cmd+S 는 부르지 않는다 (조합이 끝난 뒤의 키가 저장한다)
+    const save = composing({ key: "s", metaKey: true });
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start", "run.stop"]);
+    expect(save.defaultPrevented).toBe(false);
+    off();
+  });
+
+  it("installShortcuts: 모달 대화상자가 떠 있으면 커맨드를 부르지 않고 묶인 F5 의 새로 고침만 막는다", async () => {
+    let modal = true;
+    const commands = new CommandRegistry({ platform: "mac" });
+    const calls: string[] = [];
+    commands.register({ id: "file.save", label: "저장", shortcut: "Ctrl+S", run: () => void calls.push("file.save") });
+    commands.register({ id: "run.start", label: "실행", shortcut: "F5", run: () => void calls.push("run.start") });
+    commands.register({ id: "run.stop", label: "정지", shortcut: "Shift+F5", run: () => void calls.push("run.stop") });
+    const off = installShortcuts(commands, window, { suspended: () => modal });
+    const input = document.createElement("input");
+    document.body.append(input);
+    const press = (init: KeyboardEventInit) => {
+      const ev = new KeyboardEvent("keydown", { ...init, bubbles: true, cancelable: true });
+      input.dispatchEvent(ev);
+      return ev;
+    };
+
+    const f5 = press({ key: "F5" });
+    const shiftF5 = press({ key: "F5", shiftKey: true });
+    const save = press({ key: "s", metaKey: true });
+    const f6 = press({ key: "F6" });
+    await Promise.resolve();
+    expect(calls).toEqual([]);
+    expect(f5.defaultPrevented).toBe(true);
+    expect(shiftF5.defaultPrevented).toBe(true);
+    // 대화상자 안의 다른 키는 대화상자와 브라우저에 맡긴다
+    expect(save.defaultPrevented).toBe(false);
+    expect(f6.defaultPrevented).toBe(false);
+
+    // 닫히면 다시 통한다
+    modal = false;
+    press({ key: "F5" });
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start"]);
+    off();
+  });
 });
 
 describe("installUnloadGuard", () => {

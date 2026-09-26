@@ -2,6 +2,8 @@
 // 입력 칸(input, textarea, contenteditable, 스크립트 편집기)에 초점이 있으면 file.*, run.*, F5 계열과 되돌리기와
 // 다시 실행만 허용한다. 그래야 텍스트 칸의 복사와 붙여넣기와 찾기가 브라우저 기본대로 돈다.
 // F5 계열은 커맨드에 묶여 있으면 커맨드가 비활성이어도 기본 동작(페이지 새로 고침)을 막는다.
+// IME 조합 중에는 F5 계열만 받는다 (F5 는 조합에 들어가지 않는다). 모달 대화상자가 떠 있으면 커맨드를 부르지 않는다
+// (대화상자가 자기 키를 다룬다). 그때도 묶인 F5 계열의 새로 고침은 막는다.
 
 import { matchShortcut, type CommandRegistry, type KeyLike } from "@initial-editor/core";
 
@@ -37,10 +39,20 @@ export function isBoundKey(commands: CommandRegistry, ev: KeyLike): boolean {
   return commands.list().some((cmd) => !!cmd.shortcut && matchShortcut(cmd.shortcut, ev, commands.context.platform));
 }
 
+export interface ShortcutOptions {
+  /** true 면 커맨드를 부르지 않는다 (모달 대화상자가 떠 있다) */
+  suspended?: () => boolean;
+}
+
 /** window 에 keydown 을 걸고 커맨드를 실행한다. 돌려주는 함수로 뗀다 */
-export function installShortcuts(commands: CommandRegistry, win: Window = window): () => void {
+export function installShortcuts(commands: CommandRegistry, win: Window = window, opts: ShortcutOptions = {}): () => void {
   const handler = (ev: KeyboardEvent) => {
-    if (ev.defaultPrevented || ev.isComposing) return;
+    if (ev.defaultPrevented) return;
+    if (ev.isComposing && !isRunKey(ev)) return;
+    if (opts.suspended?.()) {
+      if (isRunKey(ev) && isBoundKey(commands, ev)) ev.preventDefault();
+      return;
+    }
     const id = resolveShortcut(commands, ev, isEditableTarget(ev.target));
     if (!id) {
       // 비활성인 실행 커맨드의 키가 페이지를 새로 고치지 않게

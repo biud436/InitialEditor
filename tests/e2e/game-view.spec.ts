@@ -3,7 +3,9 @@
 //   메모리 모드: 샘플 프로젝트의 main.lua 가 사각형을 칠하고 "sample:frame" 을 한 번 찍는다. F5 → 게임 탭과 canvas →
 //               콘솔의 줄 → canvas 의 픽셀 → main.lua 를 고쳐 저장하면 핫 리로드 줄과 두 번째 출력 → Shift+F5 로 정지.
 //               스크립트 편집기(Monaco) 안의 F5 와 Shift+F5, 스크립트 옆 그룹에 열리는 게임 탭, 활성 게임 탭 누르기,
-//               엔진 밖으로 나온 예외(세션을 종료 코드 1 로 끝내고 읽는 글을 보인다).
+//               엔진 밖으로 나온 예외(세션을 종료 코드 1 로 끝내고 읽는 글을 보인다). 다른 그룹으로 끌어 옮긴 게임 탭의
+//               초점, IME 조합 중의 F5, 설정 대화상자 안의 F5(아무것도 하지 않는다), 파일을 올리는 중의 저장(엔진이 뜬 뒤
+//               다시 올린다), 게임이 끝난 뒤의 저장(메모리 모드는 리로드하지 않는다).
 //               Lua 오류는 네이티브 엔진과 같다: 실행 중 저장한 문법 오류는 오류 줄을 찍고 스크립트만 멈추며(게임은 돈다)
 //               고쳐 저장하면 다시 그린다. Update 의 실행 오류는 오류 줄을 찍고 종료 코드 1 로 끝난다. 오류 줄의 링크는 그 자리로 간다.
 //               mruby: 웹 빌드에 mruby 가 있으면(MANIFEST 의 기능) Ruby 판 샘플이 같은 사각형을 그린다. 없는 빌드의 거부는
@@ -11,6 +13,7 @@
 //   브리지 모드: 엔진 저장소(INITIAL2D_DIR, 기본 ../Initial2D)의 resources 와 scripts 를 임시 폴더에 복사하고 game.json 을
 //               Lua 로 써서 브리지 서버(6073)를 띄운다. F5 → 알데바란 타이틀이 그려지고, Enter 로 숲이 열리고,
 //               20 초 안에 Lua 오류가 없다. 언어를 mruby 로 바꾸면 Ruby 판 알데바란이 같은 흐름으로 돈다.
+//               게임이 끝난 뒤 저장하면 엔진이 없다는 한 줄만 남기고 토스트는 없다 (포트는 E2E_BRIDGE_PORT 로 바꾼다).
 //               GAME_VIEW_SCREENSHOT=<png 경로> 를 주면 게임 탭을 그 파일로 찍는다 (눈으로 보는 검수).
 //   네이티브 대조: 엔진의 인수 씬(tests/engine/scenes/aldebaran_scene.lua, INITIAL2D_ALDEBARAN_STOP=title)을 같은 파일로
 //               네이티브 엔진(헤드리스, 프로세스 실행과 같은 실행 파일)과 게임 탭에서 돌려 20 프레임째를 견준다.
@@ -21,6 +24,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createServer, type AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -244,6 +248,162 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
   });
 
+  test("게임 탭을 다른 그룹으로 끌어 옮겨도 canvas 가 키를 받는다", async ({ page }) => {
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    const canvas = page.getByTestId("game-canvas");
+    await expect(canvas).toBeFocused();
+    const gameTab = page.getByTestId("doc-tab").filter({ hasText: "게임" });
+    const startTab = page.getByTestId("doc-tab").filter({ hasText: "시작" });
+    const sameStrip = () =>
+      page.evaluate(() => {
+        const tabs = [...document.querySelectorAll('[data-testid="doc-tab"]')];
+        const strip = (text: string) => tabs.find((t) => t.textContent?.includes(text))?.closest(".dv-tabs-container") ?? null;
+        return strip("게임") !== null && strip("게임") === strip("시작");
+      });
+    expect(await sameStrip()).toBe(false);
+
+    // 게임 탭을 시작 탭의 줄 끝으로 끌어다 놓는다
+    const from = (await gameTab.boundingBox())!;
+    const to = (await startTab.boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 - 20, from.y + from.height / 2, { steps: 5 });
+    await page.mouse.move(to.x + to.width + 30, to.y + to.height / 2, { steps: 15 });
+    await page.mouse.up();
+    await expect.poll(sameStrip).toBe(true);
+    expect(await page.evaluate(() => (window as unknown as { initialEditor: { documents: { active: { kind: string } | null } } }).initialEditor.documents.active?.kind)).toBe("game");
+    await expect(canvas).toBeFocused();
+    expect(await phase(page)).toBe("running");
+    await page.keyboard.press("Shift+F5");
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+  });
+
+  test("IME 조합 중에 누른 F5 도 실행하고 페이지를 새로 고치지 않는다", async ({ page }) => {
+    await openMainLua(page);
+    await markPage(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { __f5: Array<{ composing: boolean; prevented: boolean }> };
+      w.__f5 = [];
+      // 모든 처리기가 끝난 뒤의 결과를 본다
+      window.addEventListener("keydown", (ev) => {
+        if (ev.key === "F5") setTimeout(() => w.__f5.push({ composing: ev.isComposing, prevented: ev.defaultPrevented }), 0);
+      });
+    });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.imeSetComposition", { text: "한", selectionStart: 1, selectionEnd: 1 });
+    await cdp.send("Input.dispatchKeyEvent", { type: "rawKeyDown", key: "F5", code: "F5", windowsVirtualKeyCode: 116, nativeVirtualKeyCode: 116 });
+    await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "F5", code: "F5", windowsVirtualKeyCode: 116, nativeVirtualKeyCode: 116 });
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __f5: unknown[] }).__f5)).toEqual([{ composing: true, prevented: true }]);
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    expect(await pageWasNotReloaded(page)).toBe(true);
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+  });
+
+  test("설정 대화상자 안의 F5 는 아무것도 하지 않는다 (게임을 띄우지 않고 초점도 대화상자에 남는다)", async ({ page }) => {
+    await markPage(page);
+    await page.evaluate(() => void (window as unknown as { initialEditor: { commands: { execute(id: string): Promise<boolean> } } }).initialEditor.commands.execute("tools.settings"));
+    const dialog = page.locator("[role=dialog]");
+    await expect(dialog).toBeVisible();
+    const input = dialog.locator("input[type=text], input:not([type])").first();
+    await input.focus();
+    await page.evaluate(() => {
+      const w = window as unknown as { __f5: boolean[] };
+      w.__f5 = [];
+      window.addEventListener("keydown", (ev) => {
+        if (ev.key === "F5") setTimeout(() => w.__f5.push(ev.defaultPrevented), 0);
+      });
+    });
+    await page.keyboard.press("F5");
+    await page.keyboard.press("Shift+F5");
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __f5: boolean[] }).__f5)).toEqual([true, true]);
+    await page.waitForTimeout(500);
+    const runner = await page.evaluate(() => (window as unknown as { initialEditor: { runner: { state: string } } }).initialEditor.runner.state);
+    expect(runner).toBe("idle");
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "게임" })).toHaveCount(0);
+    await expect(dialog).toBeVisible();
+    await expect(input).toBeFocused();
+    expect(await pageWasNotReloaded(page)).toBe(true);
+    // 대화상자를 닫으면 F5 가 다시 통한다
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await page.keyboard.press("Shift+F5");
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+  });
+
+  test("파일을 올리는 중에 저장한 스크립트는 게임 밖으로 보내지 않고 엔진이 뜬 뒤 다시 올린다", async ({ page }) => {
+    await openMainLua(page);
+    // main.lua 를 읽은 뒤의 파일은 풀어 줄 때까지 멈춘다 (큰 프로젝트의 긴 스테이징)
+    await page.evaluate(() => {
+      const w = window as unknown as { initialEditor: { backend: { readBinary(p: string): Promise<Uint8Array> } }; __reads: string[]; __release: () => void };
+      const backend = w.initialEditor.backend;
+      const read = backend.readBinary.bind(backend);
+      const held = new Promise<void>((r) => (w.__release = r));
+      w.__reads = [];
+      backend.readBinary = async (p: string) => {
+        const data = await read(p);
+        const late = w.__reads.includes("scripts/lua/main.lua");
+        w.__reads.push(p);
+        if (late) await held;
+        return data;
+      };
+    });
+    await moveCursor(page, 1);
+    await page.keyboard.insertText('print("marker:v2")\n');
+    await page.keyboard.press("F5");
+    await page.waitForFunction(() => (window as unknown as { __reads: string[] }).__reads.includes("scripts/lua/main.lua"));
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "staging");
+
+    // 스테이징 중에 저장한다 (main.lua 는 이미 옛 글로 읽혔다)
+    const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await scriptTab.click();
+    await page.locator(CODE).click();
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
+    await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진이 뜨는 중이다")).toHaveCount(1);
+    await expect(view).toHaveAttribute("data-phase", "staging");
+
+    await page.evaluate(() => (window as unknown as { __release: () => void }).__release());
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    // 뜬 뒤 저장한 파일만 다시 올려 새 글이 돈다
+    await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진, 1개 파일을 다시 올렸다")).toHaveCount(1, { timeout: 10_000 });
+    await expect(consoleRows(page, "marker:v2")).toHaveCount(1, { timeout: 10_000 });
+    await expect(page.getByTestId("console-list")).not.toContainText("개 파일을 보냈다");
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+  });
+
+  test("게임이 끝난 뒤 저장해도 메모리 모드는 리로드하지 않고 리로드했다고 적지 않는다", async ({ page }) => {
+    await openMainLua(page);
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    const rowsBefore = await page.getByTestId("console-list").locator(".console-row").count();
+
+    const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await scriptTab.click();
+    await page.locator(CODE).click();
+    await moveCursor(page, 1);
+    await page.keyboard.insertText("-- edit\n");
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
+    await page.waitForTimeout(1000); // 저장 리로드의 디바운스(300ms)보다 길게
+    const after = await page.getByTestId("console-list").locator(".console-row").allInnerTexts();
+    expect(after.slice(rowsBefore).filter((t) => t.includes("리로드"))).toEqual([]);
+    await expect(page.getByTestId("toasts")).not.toContainText("리로드");
+    // 수동 리로드도 게임이 돌 때만이다
+    await expect(page.getByTestId("toolbar").locator('[data-command="run.reload"]')).toBeDisabled();
+  });
+
   test("엔진 밖으로 나온 예외는 세션을 종료 코드 1 로 끝내고 콘솔과 상태 띠에 읽는 글을 남긴다", async ({ page }) => {
     await page.keyboard.press("F5");
     const view = page.getByTestId("game-view");
@@ -435,8 +595,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
 const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? "../Initial2D");
 const serverScript = path.join(engineDir, "tools", "bridge", "server.js");
-// 다른 작업 트리의 e2e(bridge.spec 의 5961 등)와 겹치지 않는 포트. 두 describe 가 차례로 쓴다
-const BRIDGE_PORT = 6073;
+// 다른 작업 트리의 e2e(bridge.spec 의 5961 등)와 겹치지 않는 포트. 두 describe 가 차례로 쓴다. E2E_BRIDGE_PORT 로 바꾼다
+const BRIDGE_PORT = Number(process.env.E2E_BRIDGE_PORT ?? 6073);
 const BRIDGE_URL = `http://127.0.0.1:${BRIDGE_PORT}`;
 const hasEngineRepo = existsSync(serverScript) && existsSync(path.join(engineDir, "scripts", "lua", "main.lua"));
 
@@ -495,6 +655,18 @@ async function openBridgeProject(page: Page): Promise<void> {
   await page.reload();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("toolbar").locator('[data-command="run.start"]')).toBeEnabled();
+}
+
+/** 아무도 듣지 않는 포트 (연결하면 거부된다) */
+function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const { port } = server.address() as AddressInfo;
+      server.close(() => resolve(port));
+    });
+  });
 }
 
 async function setLanguage(page: Page, language: "lua" | "mruby"): Promise<void> {
@@ -577,6 +749,47 @@ test.describe("게임 뷰 (브리지 모드, 알데바란)", () => {
     } finally {
       await setLanguage(page, "lua");
     }
+  });
+
+  test("게임이 끝난 뒤 고쳐 저장하면 엔진이 없다는 한 줄만 남기고 오류 토스트는 없다 (수동 리로드는 알린다)", async ({ page }) => {
+    test.setTimeout(90_000);
+    // 브리지가 엔진의 핫 리로드 포트로 보내는 곳을 아무도 듣지 않는 포트로 돌린다 (5959 에 떠 있는 다른 엔진을 건드리지 않는다)
+    const port = await freePort();
+    await page.route("**/api/reload", (route) =>
+      route.request().method() === "POST" ? route.continue({ postData: JSON.stringify({ host: "127.0.0.1", port }) }) : route.continue(),
+    );
+    await openBridgeProject(page);
+    const tree = page.getByTestId("project-tree");
+    await tree.locator('[data-path="scripts"]').click();
+    await tree.locator('[data-path="scripts/lua"]').click();
+    await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
+    await expect(page.locator(CODE)).toContainText("Initial2D");
+    const original = await scriptText(page);
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 60_000 });
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+
+    const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await scriptTab.click();
+    await page.locator(CODE).click();
+    await moveCursor(page, 1);
+    await page.keyboard.insertText("-- edit\n");
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
+    await expect(consoleRows(page, "엔진이 떠 있지 않아 리로드를 건너뛰었다")).toHaveCount(1, { timeout: 10_000 });
+    await expect(page.getByTestId("console-list")).not.toContainText("ECONNREFUSED");
+    await expect(page.getByTestId("toasts")).not.toContainText("핫 리로드");
+
+    // 수동 리로드는 사용자가 누른 것이라 그대로 알린다
+    await page.getByTestId("toolbar").locator('[data-command="run.reload"]').click();
+    await expect(page.getByTestId("toasts")).toContainText("핫 리로드 실패: 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인");
+
+    // 사본을 되돌린다
+    await undoTo(page, original);
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
   });
 });
 

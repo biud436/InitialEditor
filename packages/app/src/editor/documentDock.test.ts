@@ -170,4 +170,36 @@ describe("DocumentDock (dockview)", () => {
     await settle();
     expect(groupOf("doc:game")).toBe(groupOf("doc:welcome"));
   });
+
+  it("탭을 다른 그룹이나 새 자리로 옮기면 그 문서를 알린다 (그룹 통째로 옮기기도)", async () => {
+    documents.open(new WelcomeDocument());
+    const main = new PathDocument("scripts/lua/main.lua");
+    documents.open(main);
+    const gameDoc = new GameDocument();
+    documents.open(gameDoc);
+    await settle();
+    const moved: Document[] = [];
+    const off = dock.onDocumentMoved((d) => moved.push(d));
+
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    expect(moved).toEqual([gameDoc]);
+    expect(groupOf("doc:game")).toBe(groupOf("doc:welcome"));
+
+    // 새 그룹(아래)으로
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "bottom" });
+    expect(moved).toEqual([gameDoc, gameDoc]);
+    expect(groupOf("doc:game")).not.toBe(groupOf("doc:welcome"));
+
+    // 도구 패널을 옮기는 것은 문서가 아니다
+    api.getPanel("console")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    expect(moved).toHaveLength(2);
+
+    // 스크립트 탭의 그룹을 통째로 옮기면 그 그룹의 문서들
+    groupOf("doc:welcome")!.api.moveTo({ group: groupOf("doc:game")!, position: "right" });
+    expect(moved.slice(2)).toEqual(expect.arrayContaining([main]));
+
+    off();
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    expect(moved.filter((d) => d === gameDoc)).toHaveLength(2);
+  });
 });

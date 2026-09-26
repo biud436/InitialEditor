@@ -1,6 +1,7 @@
 // 게임 탭 (E4). 위에 상태 띠(상태, FPS, 소리 켜기, 실행과 정지와 다시 시작), 아래에 웹 엔진이 그리는 canvas.
 // canvas 는 GameViewStore 가 실행마다 새로 만들고 여기서는 붙이기만 한다. 크기는 game.json 의 창 크기에 패널에 맞춘
-// 배율(fitScale)을 곱한 CSS 크기다. 탭이 활성이 되거나 게임 탭 제목을 누르면(DocumentTab) canvas 가 키를 받는다.
+// 배율(fitScale)을 곱한 CSS 크기다. 탭이 활성이 되거나 게임 탭 제목을 누르거나(DocumentTab) 탭을 다른 그룹으로 옮기면
+// canvas 가 키를 받는다.
 // 실행 단축키(F5, Shift+F5 등)는 게임(SDL 이 기본 동작을 막는다)보다 먼저 여기서 받아 에디터 커맨드로 돌린다.
 
 import { observer } from "mobx-react-lite";
@@ -47,11 +48,12 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
     return () => ro.disconnect();
   }, []);
 
-  // 실행 단축키는 게임보다 먼저 (캡처 단계라 canvas 에 닿기 전이다)
+  // 실행 단축키는 게임보다 먼저 (캡처 단계라 canvas 에 닿기 전이다). 모달 대화상자가 떠 있으면 부르지 않는다
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const onKey = (ev: KeyboardEvent) => {
+      if (editor.modals.top) return;
       const id = editor.commands.findByKey(ev);
       if (!id || !id.startsWith("run.")) return;
       ev.preventDefault();
@@ -82,6 +84,20 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
     if (!active || !canvas || !running) return;
     return store.focusCanvas();
   }, [store, active, canvas, running]);
+
+  // 탭을 다른 그룹으로 끌어 옮기면 도킹이 내용 요소를 옮기며 초점이 풀린다. 앞에 있으면 canvas 에 다시 준다
+  useEffect(() => {
+    let cancel: (() => void) | null = null;
+    const off = editor.documentDock.onDocumentMoved((moved) => {
+      if (moved !== doc || editor.documents.active !== doc) return;
+      cancel?.();
+      cancel = store.focusCanvas();
+    });
+    return () => {
+      off();
+      cancel?.();
+    };
+  }, [editor, store, doc]);
 
   const busy = store.phase === "staging" || store.phase === "booting";
   const endedWithError = store.phase === "ended" && !!store.lastExitCode;

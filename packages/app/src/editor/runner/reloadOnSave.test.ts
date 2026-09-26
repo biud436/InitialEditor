@@ -32,15 +32,15 @@ describe("shouldReloadOnSave", () => {
     expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false })).toBe(true);
   });
 
-  it("에디터 안 엔진이 돌면 Tauri 의 프로세스가 없어도 늘", () => {
-    expect(shouldReloadOnSave({ ...base, running: false, embeddedRunning: true })).toBe(true);
-    expect(shouldReloadOnSave({ ...base, reloadOnSave: false, embeddedRunning: true })).toBe(false);
-    expect(shouldReloadOnSave({ ...base, path: "resources/images/a.png", embeddedRunning: true })).toBe(false);
+  it("에디터 안 엔진이 뜨는 중이거나 돌면 Tauri 의 프로세스가 없어도 늘", () => {
+    expect(shouldReloadOnSave({ ...base, running: false, embeddedActive: true })).toBe(true);
+    expect(shouldReloadOnSave({ ...base, reloadOnSave: false, embeddedActive: true })).toBe(false);
+    expect(shouldReloadOnSave({ ...base, path: "resources/images/a.png", embeddedActive: true })).toBe(false);
   });
 
-  it("보낼 길이 없는 백엔드(웹판)는 게임 탭이 돌 때만", () => {
+  it("보낼 길이 없는 백엔드(웹판, 메모리)는 게임 탭이 뜨는 중이거나 돌 때만", () => {
     expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false, canPush: false })).toBe(false);
-    expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false, canPush: false, embeddedRunning: true })).toBe(true);
+    expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false, canPush: false, embeddedActive: true })).toBe(true);
   });
 
   it("대상 폴더 밖의 문서는 아니다", () => {
