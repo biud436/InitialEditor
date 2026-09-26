@@ -1,0 +1,1 @@
+{"version":3,"file":"ApplicationFactory.js","sourceRoot":"","sources":["../../src/graphics/ApplicationFactory.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,IAAI,MAAM,SAAS,CAAC;AAEhC,MAAM,OAAO,kBAAkB;IAC3B,MAAM,CAAC,MAAM,CACT,OAA0C;QAE1C,OAAO,IAAI,IAAI,CAAC,WAAW,CAAC,OAAO,CAAC,CAAC;IACzC,CAAC;CACJ"}

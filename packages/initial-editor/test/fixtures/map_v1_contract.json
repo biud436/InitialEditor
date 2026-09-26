@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "name": "소형",
+  "id": 99,
+  "width": 4,
+  "height": 3,
+  "tileWidth": 16,
+  "tileHeight": 16,
+  "layers": [
+    { "name": "ground", "data": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
+    { "name": "deco",   "data": [0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0] }
+  ],
+  "collision": [0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0],
+  "tilesets": [
+    { "image": "resources/tiles/tileset16-8x13.png", "firstGid": 1, "columns": 8 }
+  ]
+}

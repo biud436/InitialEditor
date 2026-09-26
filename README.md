@@ -2,13 +2,11 @@
 
 ![LOGO](https://repository-images.githubusercontent.com/294916739/2f3b679c-ef74-43a7-9d9d-9c08982e3db1)
 
-</div>
+![typescript](https://img.shields.io/badge/typescript-5.2.2-green.svg?logo=typescript&style=for-the-badge)
+![react](https://img.shields.io/badge/react-18.2.0-green.svg?logo=react&style=for-the-badge)
+![pixi.js](https://img.shields.io/badge/pixi.js-7.3.1-green.svg?logo=pixi.js&style=for-the-badge)
 
-![typescript](https://img.shields.io/badge/typescript-4.6.2-green.svg?logo=typescript&style=for-the-badge)
-![electron](https://img.shields.io/badge/electron-16.0.7-green.svg?logo=electron&style=for-the-badge)
-![react](https://img.shields.io/badge/react-17.0.2-green.svg?logo=react&style=for-the-badge)
-![next](https://img.shields.io/badge/next-11.1.3-green.svg?logo=next.js&style=for-the-badge)
-![styled-components](https://img.shields.io/badge/styled--components-5.3.3-green.svg?logo=styled-components&style=for-the-badge)
+</div>
 
 # Introduction
 
@@ -16,104 +14,59 @@ This project allows you to edit multi dimensional tile map on my own game engine
 
 ## Tilemap
 
-![IMG](./editor.png)
+![IMG](./packages/initial-editor/editor.png)
 
 ## Child Window
 
 <img width="1392" alt="image" src="https://user-images.githubusercontent.com/13586185/189561657-2fb02462-0f7e-47ab-bc35-dab68e3a395f.png">
 
-# Usage
-
-## Menu Commands
-
-This stuff is written in a TypeScript. if you want to make a new menu command into the editor, you can add a new command into the `packages/menu/commands` directory, this editor can collect a decorator called `@OnMenuClick('menu-command-key')` and can execute a mapped action to its decorator.
-
-```ts
-import { MenuCommand } from "../../decorators/MenuCommand";
-import { OnMenuClick } from "../../decorators/OnMenuClick";
-import { IBaseMenuCommand } from "./IBaseMenuCommand";
-
-@MenuCommand("file", "file-new", "새로 만들기", ["ctrl", "n"])
-export class NewFileCommand implements IBaseMenuCommand {
-    @OnMenuClick("file-new")
-    action(ev: any) {
-        if (window.app) {
-            window.app.emit("openWindow", {
-                path: "/newWindow",
-            });
-        }
-    }
-}
-```
-
-To write a new menu command, you must import an interface named `IBaseMenuCommand` that starts with 'I' like as C# and so on. this interface has a name, children, shortcut properties, and action method. the action method is a function that can be executed when the menu command is clicked.
-
-## InitialDOM
-
-To create a new element, you can use the `InitialDOM` class. this class is a wrapper class of the `document` object. this class has a static method called `query` and `fetch`. the `query` method is a wrapper method of the `document.querySelector` method. the `fetch` method is a wrapper method of the `document.createElement` method. the `css` method creates a new style sheet to the `head` element and returns class name.
-
-```ts
-const parent = InitialDOM.query("#view");
-let child = null;
-if ((child = InitialDOM.query("#tileset-marker"))) {
-    parent?.removeChild(child);
-    return;
-}
-
-this._element = InitialDOM.fetch("div");
-this._element.id = "tileset-marker";
-this._element.className = InitialDOM.css`
-        min-width: ${this._tileWidth}px;
-        min-height: ${this._tileHeight}px;
-        width: ${this._tileWidth}px;
-        height: ${this._tileHeight}px;
-        position: absolute;
-        top: 0;
-        left: 0;
-        margin: 0;
-        padding: 0;
-        border: 2px dotted yellow;
-        z-index: 50;
-        box-sizing: border-box;
-    `;
-```
-
-Why the wrapper class is needed? In this way, it will be possible to change this class to another framework such as React, Vue, Angular and so on easily. so I wrote it like this way.
-
-# Environment
-
-| Platform Type |    Status     |
-| :-----------: | :-----------: |
-|   Electron    | Stable (100%) |
-
-## How to setup
-
-In case of platform such as `OSX`, try these steps. First up, you must install node in your system.
-
-```sh
-brew install node
-node -v
-cd ~/Documents
-git clone https://github.com/biud436/InitialEditor.git
-cd InitialEidtor
-sudo yarn install
-```
-
-In case of platform such as `Windows 10`, try to download the Node.js LTS version in your system manually. and next, if you exist the program called `git` in environment variable named `PATH` of your system, you must just call the command such as `git clone https://github.com/biud436/InitialEditor.git` in desired directory. and next try to below step.
-
-```bat
-git clone https://github.com/biud436/InitialEditor.git
-cd InitialEidtor
-yarn install
-```
-
-## How to start on Mac OSX or Windows
+## How to start (New way)
 
 you have to run the following command in the terminal.
 
 ```sh
-yarn script:build
-yarn electron:dev
+yarn build
+yarn dev
+```
+
+## Working with an Initial2D project (bridge server)
+
+The editor is a plain web app, so it reaches your local game project through a small
+bridge server that ships with the [Initial2D](https://github.com/biud436/Initial2D) engine
+(`tools/bridge/server.js`, Node 20+, no dependencies). The bridge exposes `scripts/` and
+`resources/` of the game project over `http://127.0.0.1:5960` and can push scripts to the
+running game (hot reload).
+
+```sh
+# in the Initial2D repository
+INITIAL2D_HMR=1 ./build/Initial2D      # run the game with hot reload enabled
+node tools/bridge/server.js            # serve this repository as the project (127.0.0.1:5960)
+node tools/bridge/server.js --project ~/mygame
+
+# in this repository
+yarn build && yarn dev                 # open http://localhost:5173
+```
+
+| What | How | Result |
+|---|---|---|
+| Edit scripts | Tools → Script Editor | Opens `scripts/**/*.lua`; **Ctrl+S** saves and (by default) hot-reloads the running game. Files changed by other editors are reloaded automatically, or flagged when you have unsaved edits. |
+| Export a map | **Ctrl+E** | Writes map format v1 to `resources/maps/<name>.json` and copies any tileset image the project is missing. |
+| Open a map | **Ctrl+O** | Loads a map from `resources/maps/*.json` into the editor. |
+| Save a map | **Ctrl+S** | Rewrites the map at its current path (falls back to the export dialog for a new map). |
+| New map | **Ctrl+N** | Creates an empty map with the name, id and size you choose. |
+
+Notes:
+
+- The bridge URL can be changed with `localStorage['initial-editor.bridge-url']`.
+- Data the editor cannot edit yet (the collision layer, layer names) is carried through open → save
+  untouched, so exporting a map the engine authored does not throw that data away.
+- Tile id `0` means "empty" everywhere in the editor, so the very first tile of the first tileset has
+  no id. Opening a map that uses it blanks those cells and tells you how many.
+
+## Tests
+
+```sh
+yarn test     # builds initial-editor, then runs the map-format unit tests (node --test)
 ```
 
 ## How to upstream from remote github repository
@@ -123,8 +76,8 @@ To upstream from the remote repository, you must call below command.
 ```bash
 git remote add upstream https://github.com/biud436/InitialEditor.git
 git fetch upstream
-git checkout next
-git merge upstream/next
+git checkout main
+git merge upstream/main
 ```
 
 # License
@@ -135,7 +88,7 @@ This tool is under the MIT License.
 
 But some icon and javascript and stylesheets and images included at this tool have their own licenses.
 
--   Font Awesome Free - https://fontawesome.com/license/free
--   FSM Tile (2k_town05.png) - http://refmap-l.blog.jp/archives/8632768.html
--   FSM Tile (2k_town05-01.png) - http://refmap-l.blog.jp/archives/8632768.html
--   Tuxemon Tileset - https://opengameart.org/content/tuxemon-tileset
+- Font Awesome Free - https://fontawesome.com/license/free
+- FSM Tile (2k_town05.png) - http://refmap-l.blog.jp/archives/8632768.html
+- FSM Tile (2k_town05-01.png) - http://refmap-l.blog.jp/archives/8632768.html
+- Tuxemon Tileset - https://opengameart.org/content/tuxemon-tileset
