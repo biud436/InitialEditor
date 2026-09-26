@@ -4,12 +4,12 @@ import type { IDockviewPanelProps } from "dockview";
 import { observer } from "mobx-react-lite";
 import type { DocumentPanelParams } from "../../editor/documentDock";
 import { ImagePreviewDocument } from "../../editor/documents/ImagePreviewDocument";
-import { TextPreviewDocument } from "../../editor/documents/TextPreviewDocument";
+import { ScriptDocument } from "../../editor/documents/ScriptDocument";
 import { WelcomeDocument } from "../../editor/documents/WelcomeDocument";
 import { useEditor } from "../../editor/EditorContext";
 import { ExternalChangeBanner } from "../documents/ExternalChangeBanner";
 import { ImagePreviewView } from "../documents/ImagePreviewView";
-import { TextPreviewView } from "../documents/TextPreviewView";
+import { ScriptEditorView } from "../documents/ScriptEditorView";
 import { WelcomeView } from "../documents/WelcomeView";
 
 export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPanelProps<DocumentPanelParams>) {
@@ -20,7 +20,7 @@ export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPan
   }
   let view;
   if (doc instanceof WelcomeDocument) view = <WelcomeView />;
-  else if (doc instanceof TextPreviewDocument) view = <TextPreviewView doc={doc} />;
+  else if (doc instanceof ScriptDocument) view = <ScriptEditorView doc={doc} />;
   else if (doc instanceof ImagePreviewDocument) view = <ImagePreviewView doc={doc} />;
   else view = <div className="panel-hint">이 문서 종류를 그릴 수 없다: {doc.kind}</div>;
   return (

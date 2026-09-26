@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "_comment": "엔진의 resources/api/initial2d-api.json 이 없을 때 쓰는 최소 명세. 출처는 Initial2D README 의 Lua 대응표. 진짜 명세가 오면 그것이 이긴다.",
+  "modules": [
+    {
+      "name": "Graphics",
+      "lua": null,
+      "ruby": "Graphics",
+      "doc": "화면과 글자 그리기. Lua 는 전역 함수, Ruby 는 Graphics 모듈",
+      "functions": [
+        { "lua": "WindowWidth", "ruby": "width", "params": [], "returns": "number", "doc": "창 너비", "rubyKind": "getter" },
+        { "lua": "WindowHeight", "ruby": "height", "params": [], "returns": "number", "doc": "창 높이", "rubyKind": "getter" },
+        { "lua": "SetRenderScale", "ruby": "render_scale=", "params": [{ "name": "n", "type": "number" }], "returns": "nil", "doc": "렌더 배율", "rubyKind": "setter" },
+        { "lua": "GetRenderScale", "ruby": "render_scale", "params": [], "returns": "number", "doc": "렌더 배율", "rubyKind": "getter" },
+        { "lua": "GetFrameCount", "ruby": "frame_count", "params": [], "returns": "number", "doc": "시작 뒤 프레임 수", "rubyKind": "getter" },
+        { "lua": "PreparaFont", "ruby": "prepare_font", "params": [{ "name": "path", "type": "string" }], "returns": "nil", "doc": "글꼴 파일을 준비한다" },
+        { "lua": "DrawText", "ruby": "draw_text", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }, { "name": "text", "type": "string" }], "returns": "nil", "doc": "글자를 그린다" },
+        { "lua": "GetTextWidth", "ruby": "text_width", "params": [{ "name": "text", "type": "string" }], "returns": "number", "doc": "글자의 너비 (px)" },
+        { "lua": "draw_set_color", "ruby": "set_color", "params": [{ "name": "r", "type": "number" }, { "name": "g", "type": "number" }, { "name": "b", "type": "number" }, { "name": "a", "type": "number", "optional": true }], "returns": "nil", "doc": "그리기 색 (0..255)" },
+        { "lua": "draw_point", "ruby": "draw_point", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }], "returns": "nil", "doc": "점 하나" }
+      ]
+    },
+    {
+      "name": "System",
+      "lua": null,
+      "ruby": "System",
+      "doc": "플랫폼과 종료와 파일 목록. Lua 는 전역 함수, Ruby 는 System 모듈",
+      "functions": [
+        { "lua": "GetPlatform", "ruby": "platform", "params": [], "returns": "string", "doc": "\"windows\", \"macos\", \"android\"", "rubyKind": "getter" },
+        { "lua": "GameExit", "ruby": "exit", "params": [], "returns": "nil", "doc": "게임을 끝낸다", "rubyKind": "module_function" },
+        { "lua": "GetCurrentDirectory", "ruby": "current_directory", "params": [], "returns": "string", "doc": "작업 폴더", "rubyKind": "getter" },
+        { "lua": "GetResourcesFiles", "ruby": "resource_files", "params": [], "returns": "table", "doc": "resources/ 아래 파일 목록", "rubyKind": "getter" },
+        { "lua": "MessageBox", "ruby": "message_box", "params": [{ "name": "text", "type": "string" }, { "name": "caption", "type": "string", "optional": true }], "returns": "nil", "doc": "메시지 상자" },
+        { "lua": "SetAppIcon", "ruby": "app_icon=", "params": [{ "name": "path", "type": "string" }], "returns": "nil", "doc": "앱 아이콘", "rubyKind": "setter" },
+        { "lua": null, "ruby": "env", "params": [{ "name": "name", "type": "string" }], "returns": "string", "doc": "환경 변수 (mruby 에는 ENV 가 없다)" },
+        { "lua": "LoadScript", "ruby": null, "params": [{ "name": "path", "type": "string" }], "returns": "nil", "doc": "스크립트 파일을 읽어 실행한다" }
+      ]
+    },
+    {
+      "name": "Input",
+      "lua": "Input",
+      "ruby": "Input",
+      "doc": "키보드와 마우스와 터치. Ruby 의 key 는 Keys 상수 이름의 Symbol (:space)",
+      "functions": [
+        { "lua": "IsKeyDown", "ruby": "key_down?", "params": [{ "name": "key", "type": "key" }], "returns": "boolean", "doc": "이 프레임에 눌렸다", "rubyKind": "predicate" },
+        { "lua": "IsKeyPress", "ruby": "key_press?", "params": [{ "name": "key", "type": "key" }], "returns": "boolean", "doc": "누르고 있다", "rubyKind": "predicate" },
+        { "lua": "IsKeyUp", "ruby": "key_up?", "params": [{ "name": "key", "type": "key" }], "returns": "boolean", "doc": "이 프레임에 뗐다", "rubyKind": "predicate" },
+        { "lua": null, "ruby": "trigger?", "params": [{ "name": "key", "type": "key" }], "returns": "boolean", "doc": "key_down? 의 RGSS 식 별명", "rubyKind": "predicate", "alias": true },
+        { "lua": null, "ruby": "press?", "params": [{ "name": "key", "type": "key" }], "returns": "boolean", "doc": "key_press? 의 RGSS 식 별명", "rubyKind": "predicate", "alias": true },
+        { "lua": null, "ruby": "release?", "params": [{ "name": "key", "type": "key" }], "returns": "boolean", "doc": "key_up? 의 RGSS 식 별명", "rubyKind": "predicate", "alias": true },
+        { "lua": "IsAnyKeyDown", "ruby": "any_key_down?", "params": [], "returns": "boolean", "doc": "아무 키나 눌렸다", "rubyKind": "predicate" },
+        { "lua": "GetMouseX", "ruby": "mouse_x", "params": [], "returns": "number", "doc": "마우스 x", "rubyKind": "getter" },
+        { "lua": "GetMouseY", "ruby": "mouse_y", "params": [], "returns": "number", "doc": "마우스 y", "rubyKind": "getter" },
+        { "lua": "IsMouseDown", "ruby": "mouse_down?", "params": [{ "name": "button", "type": "button" }], "returns": "boolean", "doc": "0, 1, 2 또는 :left, :right, :middle", "rubyKind": "predicate" },
+        { "lua": "IsMouseUp", "ruby": "mouse_up?", "params": [{ "name": "button", "type": "button" }], "returns": "boolean", "doc": "버튼을 뗐다", "rubyKind": "predicate" },
+        { "lua": "IsMousePress", "ruby": "mouse_press?", "params": [{ "name": "button", "type": "button" }], "returns": "boolean", "doc": "버튼을 누르고 있다", "rubyKind": "predicate" },
+        { "lua": "IsAnyMouseDown", "ruby": "any_mouse_down?", "params": [], "returns": "boolean", "doc": "아무 버튼이나 눌렸다", "rubyKind": "predicate" },
+        { "lua": "GetMouseZ", "ruby": "mouse_z", "params": [], "returns": "number", "doc": "휠", "rubyKind": "getter" },
+        { "lua": "SetMouseZ", "ruby": "mouse_z=", "params": [{ "name": "w", "type": "number" }], "returns": "nil", "doc": "휠 값", "rubyKind": "setter" },
+        { "lua": "GetTouchCount", "ruby": "touch_count", "params": [], "returns": "number", "doc": "터치 수", "rubyKind": "getter" },
+        { "lua": "GetTouch", "ruby": "touch", "params": [{ "name": "i", "type": "number" }], "returns": "table", "doc": "Lua 는 1부터 값 네 개, Ruby 는 0부터 [id, x, y, phase]" }
+      ]
+    },
+    {
+      "name": "Audio",
+      "lua": "Audio",
+      "ruby": "Audio",
+      "doc": "음악과 효과음 (SDL_mixer)",
+      "functions": [
+        { "lua": "PlayMusic", "ruby": "play_music", "params": [{ "name": "path", "type": "string" }, { "name": "id", "type": "string" }, { "name": "loop", "type": "boolean", "optional": true }], "returns": "nil", "doc": "음악 재생. loop 는 true 무한, false 한 번, 숫자는 SDL_mixer 값" },
+        { "lua": "PlaySound", "ruby": "play_sound", "params": [{ "name": "path", "type": "string" }, { "name": "id", "type": "string" }, { "name": "loop", "type": "boolean", "optional": true }], "returns": "nil", "doc": "효과음 재생" },
+        { "lua": "InsertNextMusic", "ruby": "insert_next_music", "params": [{ "name": "path", "type": "string" }, { "name": "id", "type": "string" }, { "name": "loop", "type": "boolean", "optional": true }], "returns": "nil", "doc": "다음에 이어 틀 음악" },
+        { "lua": "SetVolume", "ruby": "volume=", "params": [{ "name": "v", "type": "number" }], "returns": "nil", "doc": "0..255", "rubyKind": "setter" },
+        { "lua": "GetVolume", "ruby": "volume", "params": [], "returns": "number", "doc": "SDL_mixer 의 0..128 로 읽힌다", "rubyKind": "getter" },
+        { "lua": "PauseMusic", "ruby": "pause_music", "params": [], "returns": "nil", "doc": "음악 멈춤" },
+        { "lua": "StopMusic", "ruby": "stop_music", "params": [], "returns": "nil", "doc": "음악 정지" },
+        { "lua": "ResumeMusic", "ruby": "resume_music", "params": [], "returns": "nil", "doc": "음악 이어 재생" },
+        { "lua": "IsPlayingMusic", "ruby": "playing_music?", "params": [], "returns": "boolean", "doc": "음악이 나오고 있다", "rubyKind": "predicate" },
+        { "lua": "FadeOutMusic", "ruby": "fade_out_music", "params": [{ "name": "ms", "type": "number" }], "returns": "nil", "doc": "서서히 줄이며 끈다" },
+        { "lua": "SetMusicPosition", "ruby": "music_position=", "params": [{ "name": "sec", "type": "number" }], "returns": "nil", "doc": "재생 위치 (초)", "rubyKind": "setter" },
+        { "lua": "ReleaseMusic", "ruby": "release_music", "params": [{ "name": "id", "type": "string" }], "returns": "nil", "doc": "음악 자원을 놓는다" }
+      ]
+    },
+    {
+      "name": "TextureManager",
+      "lua": "TextureManager",
+      "ruby": "TextureManager",
+      "doc": "텍스처 캐시",
+      "functions": [
+        { "lua": "Load", "ruby": "load", "params": [{ "name": "path", "type": "string" }, { "name": "id", "type": "string" }], "returns": "boolean", "doc": "이미지를 id 로 올린다" },
+        { "lua": "Remove", "ruby": "remove", "params": [{ "name": "id", "type": "string" }], "returns": "nil", "doc": "id 의 텍스처를 내린다" },
+        { "lua": "IsValid", "ruby": "valid?", "params": [{ "name": "id", "type": "string" }], "returns": "boolean", "doc": "id 가 올라와 있다", "rubyKind": "predicate" }
+      ]
+    },
+    {
+      "name": "Json",
+      "lua": "Json",
+      "ruby": "Json",
+      "doc": "JSON 읽기",
+      "functions": [
+        { "lua": "Load", "ruby": "load", "params": [{ "name": "path", "type": "string" }], "returns": "table", "doc": "파일을 읽어 테이블로. Lua 는 실패하면 nil 과 메시지, Ruby 는 RuntimeError" },
+        { "lua": null, "ruby": "parse", "params": [{ "name": "text", "type": "string" }], "returns": "Hash", "doc": "문자열을 파싱한다" }
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "name": "Sprite",
+      "lua": "Sprite",
+      "ruby": "Sprite",
+      "doc": "스프라이트 시트 한 장. Lua 는 숫자 핸들과 Sprite.*(id, ...), Ruby 는 진짜 객체",
+      "constructors": [
+        { "lua": "Sprite.Create", "ruby": "Sprite.new", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }, { "name": "w", "type": "number" }, { "name": "h", "type": "number" }, { "name": "frames", "type": "number" }, { "name": "tex_id", "type": "string" }], "returns": "Sprite", "doc": "올라와 있는 텍스처로 만든다" },
+        { "lua": "Sprite.Image", "ruby": "Sprite.load", "params": [{ "name": "path", "type": "string" }, { "name": "id", "type": "string" }, { "name": "x", "type": "number" }, { "name": "y", "type": "number" }, { "name": "w", "type": "number" }, { "name": "h", "type": "number" }, { "name": "frames", "type": "number", "optional": true }], "returns": "Sprite", "doc": "이미지 파일을 읽어 만든다" }
+      ],
+      "methods": [
+        { "lua": "Update", "ruby": "update", "params": [{ "name": "elapsed", "type": "number" }], "returns": "nil", "doc": "애니메이션을 진행한다" },
+        { "lua": "Draw", "ruby": "draw", "params": [], "returns": "nil", "doc": "그린다" },
+        { "lua": "Dispose", "ruby": "dispose", "params": [], "returns": "nil", "doc": "놓는다. Ruby 는 GC 가 거두기도 한다" },
+        { "lua": "GetPosition", "ruby": "position", "params": [], "returns": "x, y", "doc": "위치", "rubyKind": "getter" },
+        { "lua": "SetPosition", "ruby": "set_position", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }], "returns": "nil", "doc": "위치" },
+        { "lua": null, "ruby": "x", "params": [], "returns": "number", "doc": "x", "rubyKind": "getter" },
+        { "lua": null, "ruby": "y", "params": [], "returns": "number", "doc": "y", "rubyKind": "getter" },
+        { "lua": null, "ruby": "x=", "params": [{ "name": "x", "type": "number" }], "returns": "nil", "doc": "x", "rubyKind": "setter" },
+        { "lua": null, "ruby": "y=", "params": [{ "name": "y", "type": "number" }], "returns": "nil", "doc": "y", "rubyKind": "setter" },
+        { "lua": "GetScale", "ruby": "scale", "params": [], "returns": "number", "doc": "배율", "rubyKind": "getter" },
+        { "lua": "SetScale", "ruby": "scale=", "params": [{ "name": "scale", "type": "number" }], "returns": "nil", "doc": "배율", "rubyKind": "setter" },
+        { "lua": "GetAngle", "ruby": "angle", "params": [], "returns": "number", "doc": "각도 (도)", "rubyKind": "getter" },
+        { "lua": "SetAngle", "ruby": "angle=", "params": [{ "name": "degrees", "type": "number" }], "returns": "nil", "doc": "각도 (도)", "rubyKind": "setter" },
+        { "lua": "GetWidth", "ruby": "width", "params": [], "returns": "number", "doc": "너비", "rubyKind": "getter" },
+        { "lua": "GetHeight", "ruby": "height", "params": [], "returns": "number", "doc": "높이", "rubyKind": "getter" },
+        { "lua": "GetVisible", "ruby": "visible?", "params": [], "returns": "boolean", "doc": "보인다", "rubyKind": "predicate" },
+        { "lua": "SetVisible", "ruby": "visible=", "params": [{ "name": "visible", "type": "boolean" }], "returns": "nil", "doc": "보이기", "rubyKind": "setter" },
+        { "lua": "GetOpacity", "ruby": "opacity", "params": [], "returns": "number", "doc": "불투명도 (0..255)", "rubyKind": "getter" },
+        { "lua": "SetOpacity", "ruby": "opacity=", "params": [{ "name": "opacity", "type": "number" }], "returns": "nil", "doc": "불투명도 (0..255)", "rubyKind": "setter" },
+        { "lua": "SetFrameDelay", "ruby": "frame_delay=", "params": [{ "name": "ms", "type": "number" }], "returns": "nil", "doc": "프레임 사이 시간", "rubyKind": "setter" },
+        { "lua": "SetFrames", "ruby": "set_frames", "params": [{ "name": "first", "type": "number" }, { "name": "last", "type": "number" }], "returns": "nil", "doc": "재생할 프레임 구간" },
+        { "lua": "SetLoop", "ruby": "loop=", "params": [{ "name": "loop", "type": "boolean" }], "returns": "nil", "doc": "반복", "rubyKind": "setter" },
+        { "lua": "GetAnimComplete", "ruby": "anim_complete?", "params": [], "returns": "boolean", "doc": "애니메이션이 끝났다", "rubyKind": "predicate" },
+        { "lua": "SetSheetGrid", "ruby": "set_sheet_grid", "params": [{ "name": "cols", "type": "number" }, { "name": "rows", "type": "number" }], "returns": "nil", "doc": "시트의 칸 수" },
+        { "lua": "GetRect", "ruby": "rect", "params": [], "returns": "rect", "doc": "사각형", "rubyKind": "getter" },
+        { "lua": "SetRect", "ruby": "set_rect", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }, { "name": "w", "type": "number" }, { "name": "h", "type": "number" }], "returns": "nil", "doc": "사각형" }
+      ]
+    },
+    {
+      "name": "Tilemap",
+      "lua": "Tilemap",
+      "ruby": "Tilemap",
+      "doc": "맵 파일 (resources/maps/*.json). Lua 는 레이어를 1부터, Ruby 는 0부터 센다",
+      "constructors": [
+        { "lua": "Tilemap.Load", "ruby": "Tilemap.new", "params": [{ "name": "path", "type": "string" }], "returns": "Tilemap", "doc": "맵을 읽는다. Lua 는 실패하면 nil 과 메시지, Ruby 는 RuntimeError" },
+        { "lua": null, "ruby": "Tilemap.load", "params": [{ "name": "path", "type": "string" }], "returns": "Tilemap", "doc": "실패하면 nil" }
+      ],
+      "methods": [
+        { "lua": "Draw", "ruby": "draw", "params": [{ "name": "from", "type": "number" }, { "name": "to", "type": "number" }, { "name": "cam_x", "type": "number", "optional": true }, { "name": "cam_y", "type": "number", "optional": true }], "returns": "nil", "doc": "레이어 구간을 그린다" },
+        { "lua": "GetSize", "ruby": "size", "params": [], "returns": "w, h, tw, th, layers", "doc": "크기", "rubyKind": "getter" },
+        { "lua": null, "ruby": "width", "params": [], "returns": "number", "doc": "가로 타일 수", "rubyKind": "getter" },
+        { "lua": null, "ruby": "height", "params": [], "returns": "number", "doc": "세로 타일 수", "rubyKind": "getter" },
+        { "lua": null, "ruby": "layer_count", "params": [], "returns": "number", "doc": "레이어 수", "rubyKind": "getter" },
+        { "lua": "GetTileId", "ruby": "tile_id", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }, { "name": "layer", "type": "number" }], "returns": "number", "doc": "타일 gid" },
+        { "lua": "SetTileId", "ruby": "set_tile_id", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }, { "name": "layer", "type": "number" }, { "name": "gid", "type": "number" }], "returns": "nil", "doc": "타일 gid" },
+        { "lua": "IsPassable", "ruby": "passable?", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }], "returns": "boolean", "doc": "지나갈 수 있다", "rubyKind": "predicate" },
+        { "lua": "Dispose", "ruby": "dispose", "params": [], "returns": "nil", "doc": "놓는다" }
+      ]
+    },
+    {
+      "name": "FontEx",
+      "lua": "FontEx",
+      "ruby": "FontEx",
+      "doc": "동적 글꼴 (Windows 전용, 다른 곳은 무동작)",
+      "constructors": [
+        { "lua": "FontEx.Create", "ruby": "FontEx.new", "params": [{ "name": "face", "type": "string" }, { "name": "size", "type": "number" }, { "name": "w", "type": "number" }, { "name": "h", "type": "number" }], "returns": "FontEx", "doc": "글꼴을 만든다" }
+      ],
+      "methods": [
+        { "lua": "SetText", "ruby": "text=", "params": [{ "name": "text", "type": "string" }], "returns": "nil", "doc": "글자", "rubyKind": "setter" },
+        { "lua": "SetPosition", "ruby": "set_position", "params": [{ "name": "x", "type": "number" }, { "name": "y", "type": "number" }], "returns": "nil", "doc": "위치" },
+        { "lua": "SetTextColor", "ruby": "set_text_color", "params": [{ "name": "r", "type": "number" }, { "name": "g", "type": "number" }, { "name": "b", "type": "number" }], "returns": "nil", "doc": "글자 색" },
+        { "lua": "SetOpacity", "ruby": "opacity=", "params": [{ "name": "opacity", "type": "number" }], "returns": "nil", "doc": "불투명도", "rubyKind": "setter" },
+        { "lua": "SetAngle", "ruby": "angle=", "params": [{ "name": "degrees", "type": "number" }], "returns": "nil", "doc": "각도", "rubyKind": "setter" },
+        { "lua": "GetTextWidth", "ruby": "text_width", "params": [{ "name": "text", "type": "string" }], "returns": "number", "doc": "글자 너비" },
+        { "lua": "Update", "ruby": "update", "params": [{ "name": "elapsed", "type": "number" }], "returns": "nil", "doc": "갱신" },
+        { "lua": "Draw", "ruby": "draw", "params": [], "returns": "nil", "doc": "그린다" },
+        { "lua": "Dispose", "ruby": "dispose", "params": [], "returns": "nil", "doc": "놓는다" }
+      ]
+    }
+  ],
+  "constants": [
+    {
+      "module": "Keys",
+      "ruby": "Keys",
+      "doc": "가상 키 이름. Input 의 술어에 Symbol(:space)이나 Keys::SPACE 로 넘긴다",
+      "names": [
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+        "SPACE", "ENTER", "ESCAPE", "TAB", "BACKSPACE", "SHIFT", "CONTROL", "ALT",
+        "LEFT", "RIGHT", "UP", "DOWN",
+        "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"
+      ]
+    }
+  ],
+  "sceneContract": [
+    { "name": "init", "params": [], "doc": "씬이 열릴 때 한 번" },
+    { "name": "update", "params": [{ "name": "elapsed", "type": "number" }], "doc": "프레임마다. elapsed 는 지난 프레임부터의 ms" },
+    { "name": "render", "params": [], "doc": "프레임마다 update 뒤에" },
+    { "name": "destroy", "params": [], "doc": "씬이 닫힐 때 한 번" }
+  ]
+}

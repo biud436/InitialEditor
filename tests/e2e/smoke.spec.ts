@@ -1,9 +1,11 @@
 // 브라우저 모드 스모크 (docs/plans/e0-foundation.md 마일스톤 6). 메모리 백엔드(?backend=memory)라 서버가 필요 없다.
-// 흐름: 시작 탭 → 샘플 프로젝트 열기 → 파일 트리 → 미리보기 탭 → 테마 전환 → 콘솔 패널 닫기가 새로 고침 뒤에도 남는가.
+// 흐름: 시작 탭 → 샘플 프로젝트 열기 → 파일 트리 → 편집기 탭(Monaco, E1) → 테마 전환 → 콘솔 패널 닫기가 새로 고침 뒤에도 남는가.
 
 import { expect, test, type Page } from "@playwright/test";
 
 const LAYOUT_KEY = "initial-editor.layout";
+/** 스크립트 탭의 Monaco 가 그린 줄들 (E1 부터 텍스트 파일은 Monaco 로 열린다) */
+const CODE = ".monaco-editor .view-lines";
 
 async function openMenu(page: Page, branch: string, item: string | RegExp) {
   await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
@@ -47,11 +49,12 @@ test.describe("메모리 모드 스모크", () => {
     const mainLua = tree.locator('[data-path="scripts/lua/main.lua"]');
     await expect(mainLua).toBeVisible();
 
-    // 더블클릭으로 미리보기 탭
+    // 더블클릭으로 편집기 탭 (Monaco)
     await mainLua.dblclick();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "main.lua" })).toBeVisible();
-    await expect(page.getByTestId("text-preview")).toContainText("function init()");
-    await expect(page.getByTestId("text-preview")).toContainText("샘플 프로젝트 시작");
+    await expect(page.locator(".monaco-editor").first()).toBeVisible();
+    await expect(page.locator(CODE)).toContainText("function init()");
+    await expect(page.locator(CODE)).toContainText("샘플 프로젝트 시작");
 
     // 이미지 미리보기
     await tree.locator('[data-path="resources"]').click();
@@ -106,7 +109,7 @@ test.describe("메모리 모드 스모크", () => {
     await tree.locator('[data-path="resources"]').click();
     await tree.locator('[data-path="resources/maps"]').click();
     await tree.locator('[data-path="resources/maps/sample.json"]').dblclick();
-    await expect(page.getByTestId("text-preview")).toContainText('"version": 2');
+    await expect(page.locator(CODE)).toContainText('"version": 2');
     // 오른쪽 클릭 메뉴로 새 파일 (확장자 없음) 을 만들고 열면 미리보기가 없다
     await tree.locator('[data-path="resources/maps"]').click({ button: "right" });
     await page.getByRole("menuitem", { name: "새 파일" }).click();
@@ -141,8 +144,8 @@ test.describe("game.json 없는 프로젝트 등록", () => {
 
     // 만든 파일은 엔진 기본값이다
     await tree.locator('[data-path="game.json"]').dblclick();
-    await expect(page.getByTestId("text-preview")).toContainText('"windowWidth": 768');
-    await expect(page.getByTestId("text-preview")).toContainText('"script": "lua"');
+    await expect(page.locator(CODE)).toContainText('"windowWidth": 768');
+    await expect(page.locator(CODE)).toContainText('"script": "lua"');
   });
 
   test("나중에를 누르면 만들지 않는다", async ({ page }) => {

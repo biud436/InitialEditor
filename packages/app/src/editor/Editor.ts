@@ -3,7 +3,9 @@
 
 import {
   CommandRegistry,
+  type Document,
   DocumentRegistry,
+  Emitter,
   ExtensionHost,
   ExtensionRegistries,
   extname,
@@ -13,6 +15,7 @@ import {
   SettingsStore,
   type Platform,
   type ProjectBackend,
+  type ProjectInfo,
   type SettingsStorage,
 } from "@initial-editor/core";
 import { tilemapExtension } from "@initial-editor/ext-tilemap";
@@ -20,6 +23,10 @@ import { makeObservable, observable, runInAction } from "mobx";
 import { matchMediaSource, ThemeController, type SystemThemeSource, type ThemeTarget } from "../theme/ThemeController";
 import { registerAppCommands } from "./appCommands";
 import { registerAppMenus } from "./appMenus";
+import { installRunner } from "./runner";
+import type { RunnerStore } from "./runner/RunnerStore";
+import { installScriptSupport } from "./scripting";
+import type { ScriptSupport } from "./scripting";
 import { MODE_LABELS, type BackendMode } from "./backends";
 import { DocumentDock } from "./documentDock";
 import { IMAGE_EXTENSIONS, ImagePreviewDocument } from "./documents/ImagePreviewDocument";
@@ -70,6 +77,12 @@ export class Editor {
   readonly persistence: LayoutPersistence;
   readonly documentDock: DocumentDock;
   readonly layout: LayoutStore;
+  /** 에디터 전역 이벤트. 저장 뒤 핫 리로드(runner)처럼 모듈끼리 느슨하게 잇는다 */
+  readonly events = new Emitter<{ documentSaved: Document; projectOpened: ProjectInfo; projectClosed: void }>();
+  /** E1: 엔진 실행기 (installRunner 가 붙인다) */
+  runner!: RunnerStore;
+  /** E1: 스크립트 편집 지원 (installScriptSupport 가 붙인다) */
+  scripting!: ScriptSupport;
 
   private readonly labelProviders = new Map<string, () => string>();
   private readonly hintProviders = new Map<string, () => string | undefined>();
@@ -118,6 +131,8 @@ export class Editor {
     registerAppCommands(this);
     registerAppMenus(this);
     this.disposers.push(installRecentProjectsMenu(this));
+    installScriptSupport(this);
+    installRunner(this);
     try {
       const ids = await this.extensions.activateAll([tilemapExtension]);
       this.log.info("editor", `확장 활성: ${ids.join(", ")}`);
@@ -127,6 +142,12 @@ export class Editor {
     this.openWelcome();
     this.log.info("editor", `InitialEditor ${this.version} 시작 (모드: ${MODE_LABELS[this.mode]}, 백엔드: ${this.backend.kind}, 플랫폼: ${this.platform})`);
     if (this.autoOpenRoot) void this.openProject(this.autoOpenRoot);
+  }
+
+  /** 문서를 저장하고 documentSaved 를 알린다 (저장 시 핫 리로드가 여기에 붙는다) */
+  async saveDocument(doc: Document): Promise<void> {
+    await doc.save();
+    this.events.emit("documentSaved", doc);
   }
 
   /** 프로젝트를 연다. game.json 이 없으면 만들 것인지 묻는다 */
@@ -164,6 +185,7 @@ export class Editor {
       }
     }
     await this.layout.restore();
+    this.events.emit("projectOpened", info);
     return true;
   }
 
@@ -186,6 +208,7 @@ export class Editor {
     }
     const root = this.project.root;
     await this.project.close();
+    this.events.emit("projectClosed", undefined);
     this.log.info("editor", `프로젝트를 닫았다: ${root}`);
     this.openWelcome();
     return true;

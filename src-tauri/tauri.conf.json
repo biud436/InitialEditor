@@ -5,7 +5,7 @@
   "identifier": "com.biud436.initialeditor",
   "build": {
     "devUrl": "http://127.0.0.1:5173",
-    "frontendDist": "../packages/app/dist",
+    "frontendDist": "../dist",
     "beforeDevCommand": "yarn dev",
     "beforeBuildCommand": "yarn build"
   },

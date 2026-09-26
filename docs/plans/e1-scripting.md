@@ -14,37 +14,37 @@
 
 ### 마일스톤 1: 편집기
 
-- [ ] Monaco 문서 뷰: 탭으로 열기, 저장(Ctrl+S), 모두 저장, dirty 표시, 닫을 때 확인
-- [ ] 언어: Lua, Ruby, JSON. 워커는 Vite `?worker`로. 설정: 글꼴 크기, 탭 크기, 줄 번호, 자동 줄바꿈
-- [ ] 외부 변경 정책 (옛 `LuaEditor.tsx`의 것): 미수정이면 다시 읽고, 수정 중이면 배너
-- [ ] 테마 연동: 토큰에서 Monaco 테마를 정의하고 테마가 바뀔 때 다시 적용
-- [ ] 새 스크립트 만들기: 언어 템플릿(씬 계약 네 함수가 든 빈 파일, 컴포넌트 템플릿)
+- [x] Monaco 문서 뷰: 탭으로 열기, 저장(Ctrl+S), 모두 저장, dirty 표시, 닫을 때 확인
+- [x] 언어: Lua, Ruby, JSON. 워커는 Vite `?worker`로. 설정: 글꼴 크기, 탭 크기, 줄 번호, 자동 줄바꿈
+- [x] 외부 변경 정책 (옛 `LuaEditor.tsx`의 것): 미수정이면 다시 읽고, 수정 중이면 배너
+- [x] 테마 연동: 토큰에서 Monaco 테마를 정의하고 테마가 바뀔 때 다시 적용
+- [x] 새 스크립트 만들기: 언어 템플릿(씬 계약 네 함수가 든 빈 파일, 컴포넌트 템플릿)
 
 ### 마일스톤 2: 핫 리로드
 
-- [ ] 저장 시 `hmrPush` (설정으로 끌 수 있다). 대상은 `scripts/` 전체 묶음이며, 씬과 맵 파일(`resources/scenes/`, `resources/maps/`)도 넣는다
-- [ ] 수동 리로드 커맨드 (Ctrl+Shift+R)
-- [ ] 결과를 콘솔에: `HotReload: reloaded with N files` 또는 연결 실패 이유
+- [x] 저장 시 `hmrPush` (설정으로 끌 수 있다). 대상은 `scripts/` 전체 묶음이며, 씬과 맵 파일(`resources/scenes/`, `resources/maps/`)도 넣는다
+- [x] 수동 리로드 커맨드 (Ctrl+Shift+R)
+- [x] 결과를 콘솔에: `HotReload: reloaded with N files` 또는 연결 실패 이유
 
 ### 마일스톤 3: 실행기 (모드 A, 외부 프로세스)
 
-- [ ] 엔진 경로 탐색 순서 ([03-project-and-runtime.md](03-project-and-runtime.md) 4절)와 설정 UI. 찾지 못하면 실행 버튼의 툴팁에 이유
-- [ ] 실행 전에 `Initial2D --features`를 불러 Ruby 지원 여부로 언어 토글을 잠근다
-- [ ] 실행(F5): `cwd`는 프로젝트 루트, 환경 변수 `INITIAL2D_HMR=1`, `INITIAL2D_SCRIPT`, 필요하면 `INITIAL2D_SCENE`. 정지(Shift+F5), 실행 중 다시 누르면 재시작. 동시에 하나만
-- [ ] 출력 스트리밍을 콘솔에. 상태 바에 PID와 경과 시간
-- [ ] **오류 링크**: Lua(`scripts/lua/x.lua:12:`)와 Ruby(백트레이스 `scripts/ruby/x.rb:12:in`)의 패턴을 파싱해 링크로. 누르면 그 파일 그 줄. 파서는 `core`의 순수 함수이고 단위 테스트가 있다
-- [ ] 종료 코드가 0이 아니면 콘솔에 강조하고 토스트
+- [x] 엔진 경로 탐색 순서 ([03-project-and-runtime.md](03-project-and-runtime.md) 4절)와 설정 UI. 찾지 못하면 실행 버튼의 툴팁에 이유
+- [x] 실행 전에 `Initial2D --features`를 불러 Ruby 지원 여부로 언어 토글을 잠근다
+- [x] 실행(F5): `cwd`는 프로젝트 루트, 환경 변수 `INITIAL2D_HMR=1`, `INITIAL2D_SCRIPT`, 필요하면 `INITIAL2D_SCENE`. 정지(Shift+F5), 실행 중 다시 누르면 재시작. 동시에 하나만
+- [x] 출력 스트리밍을 콘솔에. 상태 바에 PID와 경과 시간
+- [x] **오류 링크**: Lua(`scripts/lua/x.lua:12:`)와 Ruby(백트레이스 `scripts/ruby/x.rb:12:in`)의 패턴을 파싱해 링크로. 누르면 그 파일 그 줄. 파서는 `core`의 순수 함수이고 단위 테스트가 있다
+- [x] 종료 코드가 0이 아니면 콘솔에 강조하고 토스트
 
 ### 마일스톤 4: 자동완성 (R2가 오면)
 
-- [ ] 프로젝트나 엔진 저장소의 `resources/api/initial2d.lua`(주석 기반 타입 스텁)를 읽어 Monaco 자동완성 공급자로. `Graphics.` 뒤에 함수 목록과 시그니처와 한 줄 설명
-- [ ] Ruby는 같은 내용의 Ruby 스텁(`resources/api/initial2d.rb`)에서. 모듈과 메서드와 Symbol 키
-- [ ] 스텁이 없으면 키워드 완성만 하고 도움말 메뉴에서 알린다
+- [x] 프로젝트나 엔진 저장소의 `resources/api/initial2d.lua`(주석 기반 타입 스텁)를 읽어 Monaco 자동완성 공급자로. `Graphics.` 뒤에 함수 목록과 시그니처와 한 줄 설명
+- [x] Ruby는 같은 내용의 Ruby 스텁(`resources/api/initial2d.rb`)에서. 모듈과 메서드와 Symbol 키
+- [x] 스텁이 없으면 키워드 완성만 하고 도움말 메뉴에서 알린다
 
 ### 마일스톤 5: 찾기
 
-- [ ] 프로젝트 전체 텍스트 검색 (`core`가 파일을 순회, 결과 패널, 누르면 이동)
-- [ ] 편집기 안 찾기와 바꾸기는 Monaco 기본
+- [x] 프로젝트 전체 텍스트 검색 (`core`가 파일을 순회, 결과 패널, 누르면 이동)
+- [x] 편집기 안 찾기와 바꾸기는 Monaco 기본
 
 ### 마일스톤 6: Windows
 
@@ -53,12 +53,12 @@
 
 ## 완료 기준
 
-- [ ] 에디터에서 `scripts/lua/games/flappy.lua`를 고치고 저장하면 실행 중인 게임이 다시 뜨고 콘솔에 `HotReload: reloaded`가 찍힌다 (엔진 3단계의 완료 기준을 새 에디터로 다시 확인)
-- [ ] F5로 알데바란이 뜨고 Shift+F5로 꺼진다. 언어를 Ruby로 바꾸면 mruby 알데바란이 뜬다
-- [ ] 일부러 오류를 낸 스크립트를 실행하면 콘솔의 링크를 눌러 그 파일 그 줄로 간다
-- [ ] R2가 있을 때 `Graphics.` 뒤에 함수 목록이 뜬다
+- [x] 에디터에서 `scripts/lua/games/flappy.lua`를 고치고 저장하면 실행 중인 게임이 다시 뜨고 콘솔에 `HotReload: reloaded`가 찍힌다 (엔진 3단계의 완료 기준을 새 에디터로 다시 확인)
+- [x] F5로 알데바란이 뜨고 Shift+F5로 꺼진다. 언어를 Ruby로 바꾸면 mruby 알데바란이 뜬다
+- [x] 일부러 오류를 낸 스크립트를 실행하면 콘솔의 링크를 눌러 그 파일 그 줄로 간다
+- [x] R2가 있을 때 `Graphics.` 뒤에 함수 목록이 뜬다
 - [ ] Windows에서 위 첫 셋이 된다
-- [ ] 두 저장소의 README에 사용법이 있다
+- [x] 두 저장소의 README에 사용법이 있다
 
 ## 검수
 
@@ -76,3 +76,13 @@
 
 - **핫 리로드의 범위.** 엔진은 묶음을 받으면 VM을 통째로 다시 시작한다. 씬 상태가 날아간다. 대응: 그것이 엔진의 규칙이며, 에디터는 그 사실을 콘솔에 적는다. 부분 리로드는 엔진 쪽 과제다.
 - **프로세스 종료.** 게임이 창을 닫지 않고 멈추면 정지가 안 될 수 있다. 대응: 정지는 kill 신호 뒤 시간 제한을 두고 강제 종료한다.
+
+## 구현 노트 (2026-09-26)
+
+- **명세는 JSON 하나, 스텁은 생성.** 계획은 스텁을 손으로 두는 것이었으나 엔진 R2 가 `resources/api/initial2d-api.json` 을 진실로 삼고 EmmyLua 와 Ruby 스텁을 생성하도록 바꿨다 (둘 다 손이면 어긋날 자리가 둘). 에디터는 프로젝트의 그 JSON 을 읽고, 없으면 내장 기본값(`scripting/api-fallback.json`)으로 자동완성한다.
+- **되돌리기는 편집기 안에서는 Monaco 의 스택.** 스크립트 탭이 활성이면 `edit.undo`/`edit.redo` 가 Monaco 로 가고, 아니면 코어 스택으로 간다. `scriptCommands.ts` 가 앱의 등록을 감싸 다시 등록한다. 열기 경로도 `editor.openPath` 를 감싸는 방식이라, 코어에 열기 레지스트리를 두는 것이 E2 의 정리 항목이다.
+- **엔진을 고쳤다.** Lua 오류가 `lua_call` 이라 PANIC(abort, 134)이었고 위치가 없었다. `lua_pcall` 로 바꿔 `Lua error in update: ./scripts/lua/main.lua:15: ...` 와 종료 코드 1 이 되었고, 파이프일 때 `print` 가 4KB 마다 뭉쳐 오던 것은 stdout 줄 버퍼링으로 풀었다 (엔진 PR #39). 콘솔의 링크 파서는 Lua, Ruby(백트레이스), Windows 경로 꼴을 단위 14건으로 고정한다.
+- **핫 리로드의 파일 수집은 백엔드마다 다르다.** Tauri 는 에디터가 `scripts/**` 와 `resources/scenes/**`, `resources/maps/**` 를 모아 보내고, 브리지는 서버가 디스크에서 모은다. 저장 시 자동 리로드는 Tauri 에서는 실행 중일 때만, 브리지에서는 늘 (터미널에서 띄운 게임을 위해).
+- **Windows(마일스톤 6)는 손대지 못했다.** `.exe` 와 역슬래시 후보만 있다. 실기 검증은 저자 몫이다.
+- **번들이 3.5MB(gzip 0.9MB)** 가 되었다. Monaco 가 정적 import 라서다. 데스크톱 앱에는 문제가 없고, 브라우저 모드가 무거우면 동적 import 로 나눈다.
+- **배포된 페이지는 메모리 모드.** Cloudflare Pages 가 `yarn build` 의 `dist/` 를 배포하므로 빌드 출력을 저장소 루트로 냈고, 로컬이 아닌 호스트에서 열리면 브리지 대신 메모리 모드로 시작한다 (브리지는 루프백 origin 만 받는다).

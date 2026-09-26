@@ -69,3 +69,42 @@
 .console-row.level-error .console-text {
   color: var(--danger);
 }
+
+/* 엔진 출력은 출처 배지를 강조색으로, 실행기 메시지는 테두리만 */
+.console-row.source-engine .console-source {
+  background: var(--accent);
+  color: var(--fg-on-accent);
+}
+
+.console-row.source-runner .console-source {
+  border: 1px solid var(--accent);
+  line-height: 14px;
+}
+
+.console-row.source-engine.level-error .console-text {
+  font-weight: 600;
+}
+
+/* 파일:줄: 링크 */
+.console-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.console-link:hover,
+.console-link:focus-visible {
+  background: var(--bg-selection);
+  outline: none;
+}
+
+.console-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}

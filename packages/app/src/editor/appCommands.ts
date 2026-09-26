@@ -14,7 +14,6 @@ export const ENGINE_README_API = "https://github.com/biud436/Initial2D#lua-대�
 export const PLANS_INDEX = "https://github.com/biud436/InitialEditor/blob/master/docs/plans/index.md";
 
 export const BROWSER_NO_RUN = "브라우저 모드에서는 엔진을 띄울 수 없다";
-export const RUN_LATER = "E1 에서 붙는다";
 export const SCENE_LATER = "E2 에서 붙는다";
 
 function isHttpUrl(value: string): string | null {
@@ -83,7 +82,7 @@ export function registerAppCommands(editor: Editor): void {
     run: async () => {
       const doc = active();
       if (!doc) return;
-      await doc.save();
+      await editor.saveDocument(doc);
       editor.toasts.success(`저장했다: ${doc.title}`);
     },
   });
@@ -95,7 +94,7 @@ export function registerAppCommands(editor: Editor): void {
     enabled: () => editor.documents.dirtyDocuments.length > 0,
     run: async () => {
       const docs = editor.documents.dirtyDocuments;
-      for (const doc of docs) await doc.save();
+      for (const doc of docs) await editor.saveDocument(doc);
       editor.toasts.success(`${docs.length}개 문서를 저장했다`);
     },
   });
@@ -122,15 +121,7 @@ export function registerAppCommands(editor: Editor): void {
     reg({ id, label, category: "edit", shortcut, enabled: () => false, run: () => {} });
     editor.setHint(id, () => SCENE_LATER);
   }
-  reg({
-    id: "edit.find",
-    label: "찾기",
-    category: "edit",
-    shortcut: "Ctrl+F",
-    run: () => {
-      editor.toasts.info(`찾기: ${RUN_LATER}`);
-    },
-  });
+  // edit.find (프로젝트 전체 찾기) 는 scripting/scriptCommands.ts 가 등록한다 (E1)
 
   // 씬 (E2)
   later("새 씬", "scene.new", SCENE_LATER, "Ctrl+Shift+N");
@@ -139,17 +130,7 @@ export function registerAppCommands(editor: Editor): void {
   later("격자 표시", "scene.toggleGrid", SCENE_LATER);
   later("스냅", "scene.toggleSnap", SCENE_LATER);
 
-  // 실행 (E1). 등록은 하되 비활성이고 이유는 툴팁에
-  const runHint = () => (browser ? BROWSER_NO_RUN : RUN_LATER);
-  for (const [id, label, shortcut] of [
-    ["run.start", "실행", "F5"],
-    ["run.stop", "정지", "Shift+F5"],
-    ["run.fromScene", "현재 씬부터 실행", "Ctrl+F5"],
-    ["run.reload", "리로드", "Ctrl+Shift+R"],
-  ] as const) {
-    reg({ id, label, category: "run", shortcut, enabled: () => false, run: () => {} });
-    editor.setHint(id, runHint);
-  }
+  // 실행 커맨드(run.start, run.stop, run.fromScene, run.reload)는 runner/runCommands.ts 가 등록한다 (E1)
   const setLanguage = async (script: ScriptBackend) => {
     const project = editor.project;
     if (!project.isOpen || project.gameJson.script === script) return;

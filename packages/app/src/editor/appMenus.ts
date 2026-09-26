@@ -40,6 +40,7 @@ export function appMenuItems(): MenuItemSpec[] {
 
     { path: "실행/실행", commandId: "run.start", order: 10 },
     { path: "실행/정지", commandId: "run.stop", order: 20 },
+    { path: "실행/다시 시작", commandId: "run.restart", order: 25 },
     { path: "실행/현재 씬부터 실행", commandId: "run.fromScene", order: 30 },
     { path: "실행/리로드", commandId: "run.reload", order: 40, separatorBefore: true },
     { path: "실행/언어/Lua", commandId: "run.language.lua", order: 10 },

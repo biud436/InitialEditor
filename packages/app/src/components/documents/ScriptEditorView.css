@@ -1,0 +1,16 @@
+.script-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.script-editor-host {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Monaco 가 제 배경을 그리지만 붙기 전 잠깐은 패널 색이 보이게 */
+.script-editor-host .monaco-editor {
+  background: var(--bg-panel);
+}

@@ -27,3 +27,15 @@
 .statusbar-spacer {
   flex: 1;
 }
+
+.statusbar-engine {
+  font-variant-numeric: tabular-nums;
+}
+
+.statusbar-engine.running {
+  color: var(--success);
+}
+
+.statusbar-engine.failed {
+  color: var(--danger);
+}

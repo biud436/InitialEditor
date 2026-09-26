@@ -1,5 +1,6 @@
-// 메뉴 바 아래 툴바. 실행과 정지와 리로드는 커맨드에 묶이고, 비활성 이유는 툴팁에 있다.
-// 언어 선택은 game.json 의 script 이고 바꾸면 바로 저장한다. 씬 선택은 E2 의 자리다.
+// 메뉴 바 아래 툴바. 실행과 정지와 리로드는 runner/runCommands.ts 의 커맨드에 묶이고, 비활성 이유는 툴팁에 있다.
+// 실행 중이면 초록 점과 PID 와 경과 시간이 붙는다 (editor.runner). 언어 선택은 game.json 의 script 이고 바꾸면
+// 바로 저장한다. 씬 선택은 E2 의 자리다.
 
 import type { ScriptBackend } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
@@ -7,7 +8,7 @@ import { useEditor } from "../editor/EditorContext";
 import { PlayIcon, ReloadIcon, StopIcon } from "./icons";
 import "./Toolbar.css";
 
-function CommandButton({ id, children }: { id: string; children: React.ReactNode }) {
+const CommandButton = observer(function CommandButton({ id, children }: { id: string; children: React.ReactNode }) {
   const editor = useEditor();
   const enabled = editor.commands.isEnabled(id);
   const label = editor.commandLabel(id);
@@ -22,7 +23,20 @@ function CommandButton({ id, children }: { id: string; children: React.ReactNode
       </button>
     </span>
   );
-}
+});
+
+const RunningIndicator = observer(function RunningIndicator() {
+  const runner = useEditor().runner;
+  if (!runner.isRunning) return null;
+  const starting = runner.state === "starting";
+  const title = starting ? "엔진을 띄우는 중" : `${runner.enginePath ?? "엔진"} 실행 중 (PID ${runner.pid ?? "?"})`;
+  return (
+    <span className={`toolbar-running${starting ? " starting" : ""}`} data-testid="toolbar-running" title={title}>
+      <span className="toolbar-dot" aria-hidden="true" />
+      {starting ? "시작 중" : `PID ${runner.pid ?? "?"} ${runner.elapsedText}`}
+    </span>
+  );
+});
 
 export const Toolbar = observer(function Toolbar() {
   const editor = useEditor();
@@ -45,6 +59,7 @@ export const Toolbar = observer(function Toolbar() {
         <CommandButton id="run.reload">
           <ReloadIcon />
         </CommandButton>
+        <RunningIndicator />
       </div>
       <div className="toolbar-sep" />
       <div className="toolbar-group" aria-label="도구">
