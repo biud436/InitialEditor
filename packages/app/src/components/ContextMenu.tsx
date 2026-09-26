@@ -1,6 +1,9 @@
-// 오른쪽 클릭 메뉴. 프로젝트 패널이 쓴다. 바깥 클릭이나 Escape 로 닫힌다.
+// 오른쪽 클릭 메뉴. 프로젝트, 계층, 맵 오브젝트 패널이 쓴다. 바깥 클릭이나 Escape 로 닫힌다.
+// document.body 에 그린다: 도킹 영역(dockview 의 grid view)은 contain: layout 이라 그 안의 position: fixed 가
+// 창이 아니라 도킹 영역 기준이 되어, 메뉴가 도킹 영역의 위치만큼 밀려 뜬다.
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import "./ContextMenu.css";
 
 export interface ContextMenuItem {
@@ -47,7 +50,7 @@ export function ContextMenu({ state, onClose }: { state: ContextMenuState; onClo
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div className="context-menu" role="menu" ref={ref} style={{ left: pos.x, top: pos.y }} onContextMenu={(e) => e.preventDefault()}>
       {state.items.map((item, i) => (
         <div key={i}>
@@ -66,6 +69,7 @@ export function ContextMenu({ state, onClose }: { state: ContextMenuState; onClo
           </button>
         </div>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
