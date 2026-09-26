@@ -12,7 +12,7 @@
   "engines": {
     "node": ">=22.13.0"
   },
-  "packageManager": "yarn@1.22.19",
+  "packageManager": "yarn@4.3.1",
   "scripts": {
     "dev": "yarn workspace @initial-editor/app dev",
     "build": "yarn workspace @initial-editor/app build",
