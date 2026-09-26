@@ -82,7 +82,7 @@
 - **명세는 JSON 하나, 스텁은 생성.** 계획은 스텁을 손으로 두는 것이었으나 엔진 R2 가 `resources/api/initial2d-api.json` 을 진실로 삼고 EmmyLua 와 Ruby 스텁을 생성하도록 바꿨다 (둘 다 손이면 어긋날 자리가 둘). 에디터는 프로젝트의 그 JSON 을 읽고, 없으면 내장 기본값(`scripting/api-fallback.json`)으로 자동완성한다.
 - **되돌리기는 편집기 안에서는 Monaco 의 스택.** 스크립트 탭이 활성이면 `edit.undo`/`edit.redo` 가 Monaco 로 가고, 아니면 코어 스택으로 간다. `scriptCommands.ts` 가 앱의 등록을 감싸 다시 등록한다. 열기 경로도 `editor.openPath` 를 감싸는 방식이라, 코어에 열기 레지스트리를 두는 것이 E2 의 정리 항목이다.
 - **엔진을 고쳤다.** Lua 오류가 `lua_call` 이라 PANIC(abort, 134)이었고 위치가 없었다. `lua_pcall` 로 바꿔 `Lua error in update: ./scripts/lua/main.lua:15: ...` 와 종료 코드 1 이 되었고, 파이프일 때 `print` 가 4KB 마다 뭉쳐 오던 것은 stdout 줄 버퍼링으로 풀었다 (엔진 PR #39). 콘솔의 링크 파서는 Lua, Ruby(백트레이스), Windows 경로 꼴을 단위 14건으로 고정한다.
-- **핫 리로드의 파일 수집은 백엔드마다 다르다.** Tauri 는 에디터가 `scripts/**` 와 `resources/scenes/**`, `resources/maps/**` 를 모아 보내고, 브리지는 서버가 디스크에서 모은다. 저장 시 자동 리로드는 Tauri 에서는 실행 중일 때만, 브리지에서는 늘 (터미널에서 띄운 게임을 위해).
+- **핫 리로드의 파일 수집은 백엔드마다 다르다.** Tauri 는 에디터가 `scripts/**` 와 `resources/scenes/**`, `resources/maps/**` 를 모아 보내고, 브리지는 서버가 디스크에서 모은다. 저장 시 자동 리로드는 Tauri 에서는 실행 중일 때만, 브리지에서는 늘 (터미널에서 띄운 게임을 위해). E4 부터 브리지 너머에 엔진이 없어 연결이 거부되면 토스트 없이 콘솔에 한 줄만 남기고, 메모리 모드는 보내지 않는다 (e4-embedded-play.md 의 "저장 시 리로드의 갈래").
 - **Windows(마일스톤 6)는 손대지 못했다.** `.exe` 와 역슬래시 후보만 있다. 실기 검증은 저자 몫이다.
 - **번들이 3.5MB(gzip 0.9MB)** 가 되었다. Monaco 가 정적 import 라서다. 데스크톱 앱에는 문제가 없고, 브라우저 모드가 무거우면 동적 import 로 나눈다.
 - **배포된 페이지는 메모리 모드.** Cloudflare Pages 가 `yarn build` 의 `dist/` 를 배포하므로 빌드 출력을 저장소 루트로 냈고, 로컬이 아닌 호스트에서 열리면 브리지 대신 메모리 모드로 시작한다 (브리지는 루프백 origin 만 받는다).
