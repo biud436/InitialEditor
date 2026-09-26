@@ -504,7 +504,9 @@ export class MapRenderer {
         this.needWarning = true;
       }),
       model.events.on("reset", () => {
+        // 다시 읽기와 크기 바꾸기: 덩어리 격자, 레이어, 통행, 오브젝트, 격자 선, 바탕을 새로 그린다
         this.grid = chunkGrid(model);
+        this.needGrid = true;
         // 타일셋이 같으면 읽은 이미지는 그대로이고 칸만 바뀌었다
         if (!this.sameTilesets()) this.loadTilesets();
         else this.needWarning = true;

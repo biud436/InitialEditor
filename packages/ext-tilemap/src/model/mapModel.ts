@@ -7,6 +7,8 @@
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { Emitter, type Command } from "@initial-editor/core";
 import { cloneMap, cloneObject, structuredCloneJson, type MapData, type MapObject, type TileLayer } from "./format";
+import { anchorOffset, resizeGrid, shiftEvents, shiftObject, validateMapSize, type ResizeAnchor } from "./resize";
+import { typeOf, type MapObjectSchema } from "./schema";
 import type { CellChange } from "./tiles";
 
 export interface MapModelEvents {
@@ -55,6 +57,10 @@ export class MapModel {
   }
   get collision(): readonly number[] | null {
     return this.data.collision;
+  }
+  /** RPG 이벤트 (보존만 한다. 크기 바꾸기가 칸 좌표를 옮긴다) */
+  get rpgEvents(): readonly unknown[] | null {
+    return this.data.events;
   }
   /** 픽셀 크기 */
   get pixelWidth(): number {
@@ -159,6 +165,63 @@ export class MapModel {
       },
     };
     return cmd;
+  }
+
+  // ---- 크기 ----
+
+  /**
+   * 맵 크기 바꾸기. 기준점이 옛 칸의 자리를 정한다 (resize.ts). 겹치는 칸은 두고 새 칸은 0이다.
+   * 통행도 같은 방식으로 자르고, 오브젝트는 옮긴 칸 수만큼 픽셀로, 이벤트는 칸으로 옮긴다.
+   * schema를 주면 띠의 y를 두고 순찰 범위 칸을 x와 함께 옮긴다. 되돌리면 전부 원래대로다.
+   */
+  resize(width: number, height: number, anchor: ResizeAnchor = "top-left", schema: MapObjectSchema | null = null): Command {
+    const problem = validateMapSize(width, height);
+    if (problem) throw new Error(problem);
+    const model = this;
+    const to = { width, height };
+    let before: {
+      width: number;
+      height: number;
+      layers: Array<[TileLayer, number[]]>;
+      collision: number[] | null;
+      events: unknown[] | null;
+      objects: MapObject[];
+    } | null = null;
+    const done = () => {
+      model.bump();
+      model.events.emit("reset", undefined);
+    };
+    return {
+      label: `크기 바꾸기: ${this.data.width}x${this.data.height} → ${width}x${height}`,
+      execute: action(() => {
+        const d = model.data;
+        const from = { width: d.width, height: d.height };
+        const offset = anchorOffset(anchor, from, to);
+        before = { ...from, layers: d.layers.map((l): [TileLayer, number[]] => [l, l.data]), collision: d.collision, events: d.events, objects: model.objects.slice() };
+        for (const l of d.layers) l.data = resizeGrid(l.data, from, to, offset);
+        if (d.collision) d.collision = resizeGrid(d.collision, from, to, offset);
+        if (d.events) d.events = shiftEvents(d.events, offset);
+        d.width = width;
+        d.height = height;
+        const dx = offset.dx * d.tileWidth;
+        const dy = offset.dy * d.tileHeight;
+        model.objects.replace(model.objects.map((o) => shiftObject(o, dx, dy, typeOf(schema, o.type))));
+        done();
+      }),
+      undo: action(() => {
+        const b = before;
+        if (!b) return;
+        const d = model.data;
+        for (const [layer, data] of b.layers) layer.data = data;
+        d.collision = b.collision;
+        d.events = b.events;
+        d.width = b.width;
+        d.height = b.height;
+        model.objects.replace(b.objects);
+        before = null;
+        done();
+      }),
+    };
   }
 
   // ---- 레이어 ----

@@ -35,6 +35,8 @@ interface Internals {
   installReactions(): void;
   loadTilesets(): void;
   frame(): void;
+  grid: { cols: number; rows: number; size: number };
+  needGrid: boolean;
 }
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -85,6 +87,24 @@ describe("MapRenderer", () => {
   afterEach(() => {
     document.body.innerHTML = "";
     vi.unstubAllGlobals();
+  });
+
+  it("크기를 바꾸면(reset) 덩어리 격자를 새 크기로 짓고 격자 선을 다시 그린다. 되돌려도 같다", () => {
+    const { doc, r, internals } = makeRenderer();
+    internals.app = fakeApp();
+    internals.installReactions();
+    internals.frame();
+    expect(internals.needGrid).toBe(false);
+    const cols = internals.grid.cols;
+    doc.apply(doc.model.resize(internals.grid.size * 3, 2));
+    expect(internals.needGrid).toBe(true);
+    expect(internals.grid.cols).toBe(3);
+    internals.frame();
+    expect(internals.needGrid).toBe(false);
+    doc.undo.undo();
+    expect(internals.needGrid).toBe(true);
+    expect(internals.grid.cols).toBe(cols);
+    r.dispose();
   });
 
   it("줌이 100%를 넘나들면 이미 만든 덩어리 텍스처의 거르기를 다시 건다", () => {

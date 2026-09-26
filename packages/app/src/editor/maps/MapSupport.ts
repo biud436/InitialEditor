@@ -2,7 +2,8 @@
 //   - resources/maps/*.json을 MapDocument로 연다 (openPath를 가장 바깥에서 감싼다). 맵으로 읽지 못한 파일은 텍스트로 연다
 //   - 타일셋 텍스처 캐시 (이미지 파일이 바뀌면 버린다), 보기 설정(MapViewState), 열린 렌더러 목록
 //   - 활성 맵, 포인터 아래 월드 좌표(cursor), 뷰 가운데, 오브젝트로 뷰 옮기기: 오브젝트 인스펙터와 "여기서 실행"이 쓴다
-//   - 맵 커맨드와 메뉴 (mapCommands.ts)
+//   - 맵 커맨드와 메뉴 (mapCommands.ts), 맵 오브젝트 클립보드 (mapClipboard.ts, 편집 메뉴가 쓴다)
+//   - 맵 탭이 활성이 되면 레이아웃에 없는 맵 패널(팔레트, 레이어, 맵 오브젝트)을 더한다 (LayoutStore.ensureMapPanels)
 
 import { MapDocument, MapFormatError, isMapPath, typeOf, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { action, computed, makeObservable, observable, reaction, runInAction } from "mobx";
@@ -11,6 +12,7 @@ import { TextureCache } from "../sceneView/textures";
 import { isEditableTarget } from "../shortcuts";
 import { registerMapCommands } from "./mapCommands";
 import { shapeBounds, shapeOf } from "./mapGeometry";
+import { MapClipboard } from "./mapClipboard";
 import type { MapRenderer } from "./MapRenderer";
 import { MapViewState } from "./mapViewState";
 
@@ -27,6 +29,8 @@ interface SchemaSource {
 export class MapSupport {
   readonly textures: TextureCache;
   readonly view: MapViewState;
+  /** 맵 오브젝트 클립보드 (씬 오브젝트의 것과 따로) */
+  readonly clipboard = new MapClipboard();
   /** 활성 맵 뷰에서 포인터가 마지막으로 있던 월드 좌표 (정수 픽셀). 활성 탭이 바뀌면 null */
   cursor: WorldPoint | null = null;
   /** 초점이 입력 칸에 있다. 도구 단축키(한 글자)를 끈다 */
@@ -92,7 +96,10 @@ export class MapSupport {
       }),
       reaction(
         () => this.activeMap,
-        () => this.setCursor(null),
+        (doc) => {
+          this.setCursor(null);
+          if (doc) this.showMapPanels();
+        },
       ),
     );
     if (editor.project.isOpen) this.watchProject();
@@ -143,6 +150,15 @@ export class MapSupport {
     const m = doc.model;
     editor.log.info("editor", `맵을 열었다: ${path} (${m.width}x${m.height} 칸, 레이어 ${m.layers.length}, 오브젝트 ${m.objects.length})`);
     return doc;
+  }
+
+  /** 레이아웃에 없는 맵 패널을 더한다. 이 세션에서 사용자가 닫은 것은 다시 열지 않는다 */
+  private showMapPanels(): void {
+    try {
+      this.editor.layout?.ensureMapPanels();
+    } catch (e) {
+      this.editor.log.warn("editor", `맵 패널을 더하지 못했다: ${(e as Error).message}`);
+    }
   }
 
   /** 문서마다: 마지막 타일 레이어를 기억하고, 레이어 수가 줄면 대상을 범위 안으로 당긴다 */

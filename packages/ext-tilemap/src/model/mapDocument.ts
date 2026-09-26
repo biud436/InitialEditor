@@ -65,8 +65,12 @@ export class MapDocument extends Document {
       select: action,
       clearSelection: action,
     });
-    // 선택된 오브젝트가 지워지면 선택에서 뺀다
-    this.model.events.on("reset", () => runInAction(() => this.selection.clear()));
+    // 다시 읽기나 크기 바꾸기 뒤에 없는 오브젝트는 선택에서 뺀다
+    this.model.events.on("reset", () =>
+      runInAction(() => {
+        for (const id of [...this.selection]) if (!this.model.findObject(id)) this.selection.delete(id);
+      }),
+    );
   }
 
   static async open(backend: ProjectBackend, path: string, schema: MapObjectSchema | null = null): Promise<MapDocument> {

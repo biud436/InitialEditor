@@ -166,6 +166,15 @@ describe("오브젝트 추가 규칙", () => {
     expect(plan.copies[0].object.props.nested).not.toBe(src.props.nested);
   });
 
+  it("복제는 순찰 범위 칸(rangeMin, rangeMax)도 x와 함께 옮긴다 (붙여넣기와 같은 모양)", () => {
+    const src = obj("wolf_1", "spawn", 224, { props: { species: "wolf", minX: 180, maxX: 280 } });
+    const plan = planDuplicate(SCHEMA, [src], ["wolf_1"]);
+    expect(plan.copies[0].object).toMatchObject({ id: "wolf_2", x: 240, props: { species: "wolf", minX: 196, maxX: 296 } });
+    expect(src.props).toMatchObject({ minX: 180, maxX: 280 });
+    // 스키마가 없으면 범위 칸을 모르므로 x만 옮긴다
+    expect(planDuplicate(null, [src], ["wolf_1"]).copies[0].object).toMatchObject({ x: 240, props: { minX: 180, maxX: 280 } });
+  });
+
   it("이름 바꾸기 검사: 비움과 겹침을 거부하고 그대로면 통과", () => {
     expect(validateRename("a", " a ", ["a", "b"])).toBeNull();
     expect(validateRename("a", "", ["a", "b"])).toBe("id 는 비울 수 없다");

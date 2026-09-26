@@ -11,6 +11,7 @@ import { useEditor } from "../../editor/EditorContext";
 import { MapRenderer, readMapTheme } from "../../editor/maps";
 import { MAP_TOOLS } from "../../editor/maps/mapCommands";
 import { targetHidden } from "../../editor/maps/mapTools";
+import { MapSizeButton } from "./MapSizeButton";
 import "./MapView.css";
 
 export function targetKey(target: MapTarget): string {
@@ -97,9 +98,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
         <span className="doc-header-path" title={doc.path ?? undefined}>
           {m.name || doc.title}
         </span>
-        <span title={`레이어 ${m.layers.length}, 오브젝트 ${m.objects.length}`}>
-          {m.width}x{m.height} 칸 ({m.pixelWidth}x{m.pixelHeight} px)
-        </span>
+        <MapSizeButton document={doc} onResize={run("map.resize")} />
         <span>
           선택 <span data-testid="map-selection-count">{doc.selectedIds.length}</span>
         </span>

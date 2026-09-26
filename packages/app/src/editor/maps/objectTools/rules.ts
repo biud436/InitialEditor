@@ -3,13 +3,14 @@
 //   - 한 줄 요약: 첫 enum 칸의 값, 띠는 x..x+width, 사각형은 크기
 //   - 새 오브젝트: unique 타입 거부, defaultProps, 띠와 사각형의 기본 크기, 겹치지 않는 id,
 //     범위 칸(rangeMin/rangeMax)은 스키마 기본값이 없으면 x 기준 ±PATROL_RADIUS
-//   - 복제: 새 id, 16px 옆, unique 타입은 건너뛴다
+//   - 복제: 새 id, 16px 옆(순찰 범위도 같이), unique 타입은 건너뛴다
 //   - 여기서 실행의 위치(맵 안으로 자른다)와 환경 변수
 
 import {
   cloneObject,
   defaultProps,
   playEnv,
+  shiftObject,
   typeOf,
   uniqueMapObjectId,
   type FieldSpec,
@@ -124,20 +125,21 @@ export interface DuplicatePlan {
   skipped: string[];
 }
 
-/** 고른 오브젝트의 복제본. 원본 바로 뒤에 놓을 수 있게 after에 원본 id를 둔다 */
+/** 고른 오브젝트의 복제본 (DUPLICATE_OFFSET 오른쪽, 순찰 범위 칸도 같이). 원본 바로 뒤에 놓을 수 있게 after에 원본 id를 둔다 */
 export function planDuplicate(schema: MapObjectSchema | null, objects: readonly MapObject[], ids: readonly string[]): DuplicatePlan {
   const taken = new Set(objects.map((o) => o.id));
   const copies: DuplicatePlan["copies"] = [];
   const skipped: string[] = [];
   for (const o of objects) {
     if (!ids.includes(o.id)) continue;
-    if (typeOf(schema, o.type)?.unique) {
+    const spec = typeOf(schema, o.type);
+    if (spec?.unique) {
       skipped.push(o.id);
       continue;
     }
     const id = uniqueMapObjectId(o.id.replace(/_\d+$/, "") || o.type, taken);
     taken.add(id);
-    copies.push({ object: { ...cloneObject(o), id, x: o.x + DUPLICATE_OFFSET }, after: o.id });
+    copies.push({ object: { ...shiftObject(cloneObject(o), DUPLICATE_OFFSET, 0, spec), id }, after: o.id });
   }
   return { copies, skipped };
 }

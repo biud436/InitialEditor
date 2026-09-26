@@ -3,4 +3,5 @@ export * from "./format";
 export * from "./tiles";
 export * from "./schema";
 export * from "./mapModel";
+export * from "./resize";
 export * from "./mapDocument";
