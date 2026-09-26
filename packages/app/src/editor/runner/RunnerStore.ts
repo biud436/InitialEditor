@@ -48,7 +48,7 @@ export interface EmbeddedReload {
 
 /** 에디터 안 실행 (게임 탭의 웹 엔진) */
 export interface EmbeddedEngine {
-  /** 웹 엔진의 기능 ("lua", "wasm"). engine/MANIFEST.json 에서 읽는다 */
+  /** 웹 엔진의 기능 ("lua", "mruby", "wasm"). engine/MANIFEST.json 에서 읽는다 */
   loadFeatures(): Promise<string[]>;
   /** 게임 탭을 열고 파일을 올리고 엔진을 띄운다. 그만두면 name 이 AbortError 인 오류를 던진다 */
   launch(opts: { env: Record<string, string> }): Promise<RunHandle>;
@@ -80,7 +80,7 @@ export interface StartOptions {
 }
 
 export const NO_MRUBY = "이 엔진 빌드에는 mruby 가 없다";
-export const WASM_NO_MRUBY = "웹 엔진은 Lua 만 돈다. game.json 의 script 를 lua 로 바꾸거나 실행 방식을 프로세스로";
+export const WASM_NO_MRUBY = "이 웹 엔진 빌드에는 mruby 가 없다. game.json 의 script 를 lua 로 바꾸거나, mruby 를 넣은 웹 빌드를 yarn sync:engine-web 으로 가져오거나, 실행 방식을 프로세스로";
 export const EMBEDDED_HINT = "에디터 안 게임 탭에서 돈다 (웹 엔진)";
 export const RUN_MODE_LABELS: Record<RunMode, string> = { process: "프로세스", embedded: "에디터 안" };
 export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";

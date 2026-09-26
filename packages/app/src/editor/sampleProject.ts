@@ -61,18 +61,36 @@ function Render() render() end
 function Destroy() destroy() end
 `;
 
-export const SAMPLE_MAIN_RB = `# 샘플 프로젝트의 Ruby 진입점. Lua 판과 같은 씬 계약이다.
+export const SAMPLE_MAIN_RB = `# 샘플 프로젝트의 Ruby 진입점. Lua 판과 같은 씬 계약이고 같은 화면을 그린다.
+# 엔진이 init 을 한 번, 프레임마다 update(elapsed) 와 render 를 부른다. render 는 draw_point 로 사각형을 채운다.
+
+$elapsed_total = 0
+$printed = false
+
+# (x, y) 에서 w x h 를 한 색으로 채운다
+def fill_rect(x, y, w, h, r, g, b)
+  Graphics.set_color(r, g, b, 255)
+  y.upto(y + h - 1) do |py|
+    x.upto(x + w - 1) do |px|
+      Graphics.draw_point(px, py)
+    end
+  end
+end
 
 def init
   puts "샘플 프로젝트 시작"
 end
 
 def update(elapsed)
-  System.exit if Input.trigger?(:escape)
+  $elapsed_total += elapsed
 end
 
 def render
-  Graphics.draw_text(24, 24, "안녕")
+  unless $printed
+    $printed = true
+    puts "sample:frame"
+  end
+  fill_rect(32, 32, 64, 48, 240, 176, 64)
 end
 
 def destroy

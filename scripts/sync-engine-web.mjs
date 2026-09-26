@@ -9,7 +9,8 @@
 //
 // 먼저 엔진 저장소에서 tools/build_web.sh 로 build-web/site/ 를 만든다. 복사하는 파일은 FILES 셋이고,
 // MANIFEST.json 에 엔진 커밋, 파일별 sha256 과 크기, 빌드의 기능(--features 와 같은 단어)을 적는다.
-// 기능은 build-web/CMakeCache.txt 에 libmruby 가 잡혔는지로 정한다 (지금의 웹 빌드는 mruby 를 찾지 않는다).
+// 기능은 wasm 에 libmruby 가 링크되었는지로 정한다 (mruby 코어의 MRUBY_COPYRIGHT 문자열이 들어 있다).
+// mruby 없이 빌드한 사이트(INITIAL2D_WEB_MRUBY=0 tools/build_web.sh)는 "lua wasm" 이다.
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -42,16 +43,15 @@ function argValue(name) {
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
 
-/** 빌드 캐시에 libmruby 경로가 있으면 mruby 가 들어간 빌드다 */
-function detectFeatures() {
+/** mruby 코어(src/version.c 의 MRUBY_COPYRIGHT)만 가진 문자열. Lua 만 넣은 빌드에는 없다 */
+const MRUBY_MARKER = "mruby - Copyright";
+
+/** 빌드의 기능 목록. --features 로 주면 그것, 아니면 wasm 에 libmruby 가 들었는지 본다 */
+function detectFeatures(wasm) {
   const given = argValue("--features");
   if (given) return given.split(/\s+/).filter(Boolean);
   const features = ["lua"];
-  const cache = path.join(engineDir, "build-web", "CMakeCache.txt");
-  if (fs.existsSync(cache)) {
-    const m = /^MRUBY_LIBRARY:FILEPATH=(.+)$/m.exec(fs.readFileSync(cache, "utf8"));
-    if (m && !m[1].endsWith("-NOTFOUND")) features.push("mruby");
-  }
+  if (wasm.includes(MRUBY_MARKER)) features.push("mruby");
   features.push("wasm");
   return features;
 }
@@ -83,7 +83,7 @@ const manifest = {
   engineDirty: dirty === null ? null : dirty.length > 0,
   builtAt: wasmStat.mtime.toISOString(),
   syncedAt: new Date().toISOString().slice(0, 10),
-  features: detectFeatures(),
+  features: detectFeatures(fs.readFileSync(path.join(siteDir, "Initial2D.wasm"))),
   files,
 };
 fs.writeFileSync(path.join(outDir, MANIFEST), JSON.stringify(manifest, null, 2) + "\n");

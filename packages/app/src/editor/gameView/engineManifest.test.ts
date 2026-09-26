@@ -1,6 +1,6 @@
 // 웹 엔진 사본(packages/app/public/engine, yarn sync:engine-web)의 검사.
 //   1. MANIFEST.json 에 적힌 파일이 전부 있고 sha256 과 크기가 맞다 (사본이 손으로 바뀌지 않았다)
-//   2. 로더가 에디터가 기대는 export(bootInitial2D)를 가진다
+//   2. 기능 목록이 wasm 과 맞고(mruby), 로더가 에디터가 기대는 export(bootInitial2D)를 가진다
 //   3. INITIAL2D_DIR 의 build-web/site/ 가 있으면 그쪽과도 같다 (어긋나면 yarn sync:engine-web). 없으면 건너뛴다
 
 import { createHash } from "node:crypto";
@@ -36,6 +36,11 @@ describe("웹 엔진 사본 (packages/app/public/engine)", () => {
     expect(manifest.features).toContain("lua");
     expect(manifest.features).toContain("wasm");
     expect(manifest.engineCommit).toMatch(/^[0-9a-f]{40}$/);
+  });
+
+  it("기능의 mruby 는 wasm 에 libmruby 가 링크되었는지와 맞다 (sync 가 mruby 코어의 MRUBY_COPYRIGHT 로 정한다)", () => {
+    const wasm = fs.readFileSync(path.join(ENGINE_DIR, "Initial2D.wasm"));
+    expect(manifest.features.includes("mruby")).toBe(wasm.includes("mruby - Copyright"));
   });
 
   it("로더가 bootInitial2D 를 내보내고 팩토리는 createInitial2D 다", () => {

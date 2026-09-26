@@ -44,7 +44,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             <option value="process">프로세스 (엔진 실행 파일, 창이 따로 뜬다)</option>
             <option value="embedded">에디터 안 (웹 엔진, 게임 탭)</option>
           </select>
-          <div className="form-help">{canSpawn ? "F5 가 어디서 게임을 돌릴지. 에디터 안은 Lua 만 된다" : "브라우저에서는 늘 에디터 안 게임 탭에서 돈다 (웹 엔진, Lua)"}</div>
+          <div className="form-help">{canSpawn ? "F5 가 어디서 게임을 돌릴지. 에디터 안은 웹 엔진 빌드에 든 언어(Lua, mruby)만 돈다" : "브라우저에서는 늘 에디터 안 게임 탭에서 돈다 (웹 엔진)"}</div>
         </div>
         <div className="form-row">
           <label htmlFor="settings-engine">엔진 경로</label>
