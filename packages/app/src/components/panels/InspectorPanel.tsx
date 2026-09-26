@@ -28,6 +28,8 @@ const IdField = observer(function IdField({ object }: { object: SceneObject }) {
   const editor = useEditor();
   const [text, setText] = useState(object.id);
   const [focused, setFocused] = useState(false);
+  // Escape로 초점을 놓으면 blur에서 이름을 바꾸지 않는다
+  const cancelled = useRef(false);
   useEffect(() => {
     if (!focused) setText(object.id);
   }, [object.id, focused]);
@@ -41,9 +43,17 @@ const IdField = observer(function IdField({ object }: { object: SceneObject }) {
       aria-label="id"
       data-testid="inspector-id"
       onChange={(e) => setText(e.target.value)}
-      onFocus={() => setFocused(true)}
+      onFocus={() => {
+        cancelled.current = false;
+        setFocused(true);
+      }}
       onBlur={() => {
         setFocused(false);
+        if (cancelled.current) {
+          cancelled.current = false;
+          setText(object.id);
+          return;
+        }
         commit();
       }}
       onKeyDown={(e) => {
@@ -51,6 +61,8 @@ const IdField = observer(function IdField({ object }: { object: SceneObject }) {
           e.preventDefault();
           e.currentTarget.blur();
         } else if (e.key === "Escape") {
+          e.preventDefault();
+          cancelled.current = true;
           setText(object.id);
           e.currentTarget.blur();
         }

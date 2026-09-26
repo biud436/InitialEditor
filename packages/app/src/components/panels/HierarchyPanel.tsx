@@ -39,6 +39,8 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
   const [drag, setDrag] = useState<DragState | null>(null);
   const anchor = useRef<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  // 한 번의 이름 바꾸기가 Enter 와 뒤따르는 blur 로 두 번 확정되지 않게 한다
+  const renameClosed = useRef(false);
 
   if (!doc) {
     return (
@@ -75,18 +77,20 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
   };
 
   const beginRename = (id: string) => {
+    renameClosed.current = false;
     setRenaming(id);
     setRenameText(id);
   };
 
   const commitRename = () => {
-    if (renaming === null) return;
+    if (renaming === null || renameClosed.current) return;
+    renameClosed.current = true;
     const id = renaming;
     const next = renameText.trim();
-    if (next === id || tools.rename(id, next)) {
-      setRenaming(null);
-      requestAnimationFrame(() => focusRow(next === id ? id : next));
-    }
+    const ok = next === id || tools.rename(id, next);
+    // 거부된 이름(비었거나 겹침)은 토스트로 알렸다. 입력을 닫고 원래 id 줄로 초점을 돌린다
+    setRenaming(null);
+    requestAnimationFrame(() => focusRow(ok ? next : id));
   };
 
   const onListKey = (e: KeyboardEvent) => {
