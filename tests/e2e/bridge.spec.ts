@@ -9,7 +9,8 @@ import path from "node:path";
 
 const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? "../Initial2D");
 const serverScript = path.join(engineDir, "tools", "bridge", "server.js");
-const PORT = 5961;
+// 브리지 서버 포트. 다른 작업 트리의 e2e 와 겹치면 E2E_BRIDGE_SMOKE_PORT 로 바꾼다
+const PORT = Number(process.env.E2E_BRIDGE_SMOKE_PORT ?? 5961);
 const BRIDGE_URL = `http://127.0.0.1:${PORT}`;
 
 async function waitForHealth(url: string, timeoutMs = 15_000): Promise<void> {
