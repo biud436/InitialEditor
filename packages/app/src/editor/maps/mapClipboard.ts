@@ -1,21 +1,20 @@
 // 맵 오브젝트의 복사, 잘라내기, 붙여넣기, 복제, 삭제. 편집 메뉴의 edit.* 커맨드(scene/sceneCommands.ts)는
 // 활성 문서가 맵이면 mapEditRouter로 온다. 아니면 씬 쪽이 그대로 받는다.
 // 클립보드는 종류마다 하나다: 씬 오브젝트는 SceneTools.clipboard, 맵 오브젝트는 MapClipboard (MapSupport.clipboard).
-// 붙여넣기는 새 id로 맨 뒤에 붙이고 한 칸(타일 크기) 옮긴다. 거듭 붙이면 한 칸씩 더 간다. 맵 밖이면 안으로 당기고,
-// 당겨서 한 축의 옮김이 없어지면(맵 끝의 오브젝트) 그 축은 반대쪽으로 옮긴다.
+// 붙여넣기는 맨 뒤에 붙이고 x로만 한 칸(타일 폭) 옮긴다. y는 그대로라 바닥에 선 몬스터와 시작 지점이 바닥에 남는다.
+// 거듭 붙이면 한 칸씩 더 간다. 맵 밖이면 안으로 당기고, 당겨서 옮김이 없어지면(맵 끝의 오브젝트) 반대쪽으로 옮긴다.
+// id는 맵에 없으면 원래 것을 쓴다: 잘라내고 붙이면 옮기기이고(시작 지점은 start 그대로), 있으면 새 id다.
 // 잘라내기는 복사와 삭제이고 삭제가 되돌리기 한 단계다.
 
 import type { Document } from "@initial-editor/core";
-import { cloneObject, compound, isBandObject, MapDocument, shiftObject, typeOf, uniqueMapObjectId, type MapObject, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
+import { cloneObject, compound, MapDocument, typeOf, uniqueMapObjectId, type MapObject, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { makeObservable, observable, runInAction } from "mobx";
 import { deleteMapObjects, duplicateMapObjects, type MapObjectHost } from "./objectTools/actions";
+import { placeCopy, type CopyBounds } from "./objectTools/rules";
+
+export { pasteAxis } from "./objectTools/rules";
 
 const LOG = "maps";
-
-export interface PasteGeometry {
-  pixelWidth: number;
-  pixelHeight: number;
-}
 
 export interface PastePlan {
   objects: MapObject[];
@@ -23,25 +22,12 @@ export interface PastePlan {
   skipped: string[];
 }
 
-function clamp(v: number, lo: number, hi: number): number {
-  return Math.min(Math.max(v, lo), Math.max(lo, hi));
-}
-
 /**
- * 한 축의 붙일 자리: v + d를 [lo, hi]로 당긴다. 당겨서 원래 자리 v로 돌아오면 반대쪽(v - d)을 당겨 쓴다.
- */
-export function pasteAxis(v: number, d: number, lo: number, hi: number): number {
-  const forward = clamp(v + d, lo, hi);
-  if (forward !== v || d === 0) return forward;
-  return clamp(v - d, lo, hi);
-}
-
-/**
- * 붙일 오브젝트: 겹치지 않는 새 id, (dx, dy) 픽셀 옮김(띠는 y를 둔다, 순찰 범위는 x와 함께), 맵 안으로 당김.
- * 맵 끝에 붙은 오브젝트는 당기면 원본과 겹치므로 그 축은 반대쪽으로 옮긴다 (pasteAxis).
+ * 붙일 오브젝트: x로 dx 픽셀 옮김(y는 그대로, 순찰 범위는 x와 함께), 맵 안으로 당김 (placeCopy).
+ * id는 맵과 이번 붙이기에 없으면 원래 것, 있으면 겹치지 않는 새 것이다.
  * 하나만 둘 수 있는 타입은 맵에 이미 있거나 이번에 하나 붙였으면 건너뛴다.
  */
-export function planPaste(schema: MapObjectSchema | null, existing: readonly MapObject[], clipboard: readonly MapObject[], dx: number, dy: number, geometry: PasteGeometry): PastePlan {
+export function planPaste(schema: MapObjectSchema | null, existing: readonly MapObject[], clipboard: readonly MapObject[], dx: number, geometry: CopyBounds): PastePlan {
   const taken = new Set(existing.map((o) => o.id));
   const uniqueTaken = new Set(existing.map((o) => o.type));
   const objects: MapObject[] = [];
@@ -53,10 +39,8 @@ export function planPaste(schema: MapObjectSchema | null, existing: readonly Map
       continue;
     }
     uniqueTaken.add(source.type);
-    const x = pasteAxis(source.x, dx, 0, geometry.pixelWidth - (source.width ?? 1));
-    const y = isBandObject(source, spec) ? source.y : pasteAxis(source.y, dy, 0, geometry.pixelHeight - (source.height ?? 1));
-    const placed = shiftObject(cloneObject(source), x - source.x, y - source.y, spec);
-    const id = uniqueMapObjectId(source.id.replace(/_\d+$/, "") || source.type, taken);
+    const placed = placeCopy(source, spec, dx, geometry);
+    const id = taken.has(source.id) ? uniqueMapObjectId(source.id.replace(/_\d+$/, "") || source.type, taken) : source.id;
     taken.add(id);
     objects.push({ ...placed, id });
   }
@@ -101,7 +85,7 @@ export class MapClipboard {
     if (this.objects.length === 0) return [];
     const step = this.pasteCount + 1;
     const m = doc.model;
-    const plan = planPaste(doc.schema, m.objects, this.objects, m.tileWidth * step, m.tileHeight * step, { pixelWidth: m.pixelWidth, pixelHeight: m.pixelHeight });
+    const plan = planPaste(doc.schema, m.objects, this.objects, m.tileWidth * step, { pixelWidth: m.pixelWidth, pixelHeight: m.pixelHeight });
     if (plan.skipped.length > 0) host.toasts.warn(`하나만 둘 수 있는 타입이라 붙이지 않았다: ${plan.skipped.join(", ")}`);
     if (plan.objects.length === 0) return [];
     this.pasteCount = step;

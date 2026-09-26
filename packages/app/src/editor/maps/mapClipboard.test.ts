@@ -1,6 +1,6 @@
 import { DocumentRegistry, LogStore } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
-import { MapDocument, parseObjectSchema, type MapObject } from "@initial-editor/ext-tilemap/model";
+import { MapDocument, parseObjectSchema, validateObjects, type MapObject } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import { EMPTY_MAP_CLIPBOARD, MapClipboard, mapEditRouter, NEED_MAP_SELECTION, pasteAxis, planPaste, type MapEditHost } from "./mapClipboard";
 
@@ -67,33 +67,38 @@ const geometry = { pixelWidth: 320, pixelHeight: 80 };
 const clip = (ids: string[]) => OBJECTS.filter((o) => ids.includes(o.id)).map((o) => ({ props: {}, extra: {}, ...o }) as MapObject);
 
 describe("붙여넣기 계획", () => {
-  it("새 id, 한 칸 옮김, 띠는 y를 두고, 순찰 범위는 x와 함께", () => {
-    const plan = planPaste(SCHEMA, clip(["slime_1", "sign_1", "zone_1"]), clip(["slime_1", "sign_1", "zone_1"]), 16, 8, geometry);
+  it("원래 id가 맵에 있으면 새 id, x로만 한 칸 옮기고 y는 그대로, 순찰 범위는 x와 함께", () => {
+    const plan = planPaste(SCHEMA, clip(["slime_1", "sign_1", "zone_1"]), clip(["slime_1", "sign_1", "zone_1"]), 16, geometry);
     expect(plan.skipped).toEqual([]);
     expect(plan.objects.map((o) => [o.id, o.x, o.y, o.width, o.height])).toEqual([
-      ["slime_2", 136, 48, undefined, undefined],
+      ["slime_2", 136, 40, undefined, undefined],
       ["sign_2", 32, 0, 32, undefined],
-      ["zone_2", 216, 58, 64, 16],
+      ["zone_2", 216, 50, 64, 16],
     ]);
     expect(plan.objects[0].props).toEqual({ species: "slime", minX: 96, maxX: 216 });
   });
 
   it("id는 이미 있는 것과 이번에 만든 것을 모두 피한다", () => {
     const existing = [...clip(["slime_1"]), { id: "slime_2", type: "spawn", x: 0, y: 0, props: {}, extra: {} }];
-    const plan = planPaste(SCHEMA, existing, [...clip(["slime_1"]), ...clip(["slime_1"])], 16, 8, geometry);
+    const plan = planPaste(SCHEMA, existing, [...clip(["slime_1"]), ...clip(["slime_1"])], 16, geometry);
     expect(plan.objects.map((o) => o.id)).toEqual(["slime_3", "slime_4"]);
   });
 
-  it("하나만 두는 타입은 맵에 있으면 건너뛰고, 없으면 하나만 붙인다", () => {
-    expect(planPaste(SCHEMA, clip(["start"]), clip(["start"]), 16, 8, geometry)).toMatchObject({ objects: [], skipped: ["start"] });
-    const twice = planPaste(SCHEMA, [], [...clip(["start"]), ...clip(["start"])], 16, 8, geometry);
-    expect(twice.objects.map((o) => o.id)).toEqual(["start_1"]);
+  it("원래 id가 맵에 없으면 그대로 쓴다. 이번 붙이기에서 한 번 쓴 id는 다음 것이 피한다", () => {
+    const plan = planPaste(SCHEMA, clip(["sign_1"]), [...clip(["slime_1", "zone_1"]), ...clip(["slime_1"])], 16, geometry);
+    expect(plan.objects.map((o) => o.id)).toEqual(["slime_1", "zone_1", "slime_2"]);
+  });
+
+  it("하나만 두는 타입은 맵에 있으면 건너뛰고, 없으면 하나만 id 그대로 붙인다", () => {
+    expect(planPaste(SCHEMA, clip(["start"]), clip(["start"]), 16, geometry)).toMatchObject({ objects: [], skipped: ["start"] });
+    const twice = planPaste(SCHEMA, [], [...clip(["start"]), ...clip(["start"])], 16, geometry);
+    expect(twice.objects.map((o) => [o.id, o.x, o.y])).toEqual([["start", 40, 40]]);
     expect(twice.skipped).toEqual(["start"]);
   });
 
   it("맵 밖이면 안으로 당기고, 순찰 범위도 실제로 옮긴 만큼만 옮긴다", () => {
     const small = { pixelWidth: 64, pixelHeight: 32 };
-    const plan = planPaste(SCHEMA, [], clip(["slime_1", "sign_1", "zone_1"]), 16, 8, small);
+    const plan = planPaste(SCHEMA, [], clip(["slime_1", "sign_1", "zone_1"]), 16, small);
     expect(plan.objects.map((o) => [o.id, o.x, o.y])).toEqual([
       ["slime_1", 63, 31],
       ["sign_1", 32, 0],
@@ -119,11 +124,11 @@ describe("붙여넣기 계획", () => {
       { id: "slime_9", type: "spawn", x: 319, y: 79, props: { minX: 280, maxX: 320 }, extra: {} },
       { id: "slime_10", type: "spawn", x: 319, y: 20, props: { minX: 280, maxX: 320 }, extra: {} },
     ];
-    const plan = planPaste(SCHEMA, edge, edge, 16, 8, geometry);
+    const plan = planPaste(SCHEMA, edge, edge, 16, geometry);
     expect(plan.objects.map((o) => [o.id, o.x, o.y])).toEqual([
       ["band_2", 272, 0],
-      ["slime_1", 303, 71],
-      ["slime_2", 303, 28],
+      ["slime_1", 303, 79],
+      ["slime_2", 303, 20],
     ]);
     expect(plan.objects[1].props).toEqual({ minX: 264, maxX: 304 });
   });
@@ -138,10 +143,10 @@ describe("맵 클립보드", () => {
     expect(clipboard.paste(host, doc)).toEqual(["slime_2", "sign_2"]);
     expect(doc.undo.depth).toBe(1);
     expect(doc.selectedIds).toEqual(["slime_2", "sign_2"]);
-    expect(doc.model.findObject("slime_2")).toMatchObject({ x: 136, y: 48 });
+    expect(doc.model.findObject("slime_2")).toMatchObject({ x: 136, y: 40 });
     expect(doc.undo.undoLabel).toContain("오브젝트 2개 붙여넣기");
     expect(clipboard.paste(host, doc)).toEqual(["slime_3", "sign_3"]);
-    expect(doc.model.findObject("slime_3")).toMatchObject({ x: 152, y: 56 });
+    expect(doc.model.findObject("slime_3")).toMatchObject({ x: 152, y: 40 });
     expect(log.entries.at(-1)?.text).toBe("오브젝트 붙여넣기: slime_3, sign_3");
     doc.undo.undo();
     doc.undo.undo();
@@ -150,7 +155,7 @@ describe("맵 클립보드", () => {
     doc.select(["zone_1"]);
     clipboard.copy(doc);
     clipboard.paste(host, doc);
-    expect(doc.model.findObject("zone_2")).toMatchObject({ x: 216, y: 58 });
+    expect(doc.model.findObject("zone_2")).toMatchObject({ x: 216, y: 50 });
     expect(doc.undo.undoLabel).toContain("붙여넣기: zone_2");
   });
 
@@ -165,7 +170,7 @@ describe("맵 클립보드", () => {
 
   it("붙인 것끼리 props를 나눠 갖지 않는다 (깊은 복사)", () => {
     const nested: MapObject = { id: "note_1", type: "note", x: 0, y: 0, props: { data: { a: 1 } }, extra: {} };
-    const plan = planPaste(null, [], [nested, nested], 16, 8, geometry);
+    const plan = planPaste(null, [], [nested, nested], 16, geometry);
     expect(plan.objects[0].props.data).toEqual({ a: 1 });
     expect(plan.objects[0].props.data).not.toBe(nested.props.data);
     expect(plan.objects[0].props.data).not.toBe(plan.objects[1].props.data);
@@ -185,6 +190,28 @@ describe("맵 클립보드", () => {
     // 작은 맵(64x32 px) 안으로 당긴다
     expect(other.model.findObject("zone_1")).toMatchObject({ x: 0, y: 16 });
     expect(other.selectedIds).toEqual(["slime_1", "zone_1"]);
+  });
+
+  it("잘라내고 붙이면 옮기기다: 원래 id(시작 지점은 start), x로 한 칸, y는 그대로. 다시 붙이면 새 id", async () => {
+    const { doc, clipboard, host, toasts } = await setup();
+    doc.select(["start", "slime_1"]);
+    expect(clipboard.cut(doc)).toBe(2);
+    expect(clipboard.paste(host, doc)).toEqual(["start", "slime_1"]);
+    expect(doc.model.objectIds()).toEqual(["sign_1", "zone_1", "start", "slime_1"]);
+    expect(doc.model.findObject("start")).toMatchObject({ x: 40, y: 40 });
+    expect(doc.model.findObject("slime_1")).toMatchObject({ x: 136, y: 40, props: { minX: 96, maxX: 216 } });
+    expect(doc.selectedIds).toEqual(["start", "slime_1"]);
+    expect(validateObjects(doc.model.objects, SCHEMA)).toEqual([]);
+    // 한 번 더 붙이면 원래 id가 맵에 있으므로 새 id이고, 시작 지점은 붙이지 않는다
+    expect(clipboard.paste(host, doc)).toEqual(["slime_2"]);
+    expect(doc.model.findObject("slime_2")).toMatchObject({ x: 152, y: 40 });
+    expect(toasts).toEqual(["warn: 하나만 둘 수 있는 타입이라 붙이지 않았다: start"]);
+    // 되돌리면 잘라내기 전으로 간다
+    doc.undo.undo();
+    doc.undo.undo();
+    doc.undo.undo();
+    expect(doc.model.objectIds()).toEqual(["start", "slime_1", "sign_1", "zone_1"]);
+    expect(doc.model.findObject("start")).toMatchObject({ x: 24, y: 40 });
   });
 
   it("맵 오른쪽 끝의 띠는 붙일 때마다 왼쪽으로 한 칸씩 더 간다", async () => {
@@ -247,9 +274,9 @@ describe("편집 커맨드의 맵 쪽", () => {
     expect(doc.selectedIds).toEqual(["slime_2"]);
     router.run("duplicate");
     expect(doc.selectedIds).toEqual(["slime_3"]);
-    // 복제와 붙여넣기는 같은 모양이다: 순찰 범위가 x와 함께 옮겨진다
-    expect(doc.model.findObject("slime_2")).toMatchObject({ x: 136, props: { minX: 96, maxX: 216 } });
-    expect(doc.model.findObject("slime_3")).toMatchObject({ x: 152, props: { minX: 112, maxX: 232 } });
+    // 복제와 붙여넣기는 같은 모양이다: x로 한 칸(타일 폭 16, 높이는 8), y는 그대로, 순찰 범위가 x와 함께 옮겨진다
+    expect(doc.model.findObject("slime_2")).toMatchObject({ x: 136, y: 40, props: { minX: 96, maxX: 216 } });
+    expect(doc.model.findObject("slime_3")).toMatchObject({ x: 152, y: 40, props: { minX: 112, maxX: 232 } });
     router.run("delete");
     expect(doc.model.findObject("slime_3")).toBeUndefined();
     doc.select(["slime_2"]);

@@ -97,9 +97,10 @@ export function deleteMapObjects(doc: MapDocument, ids: readonly string[]): numb
   return present.length;
 }
 
-/** 오브젝트를 원본 바로 뒤에 복제하고 복제본을 고른다. unique 타입은 건너뛰고 알린다 */
+/** 오브젝트를 원본 바로 뒤에 복제하고(한 칸 오른쪽, y는 그대로) 복제본을 고른다. unique 타입은 건너뛰고 알린다 */
 export function duplicateMapObjects(host: MapObjectHost, doc: MapDocument, ids: readonly string[]): string[] {
-  const plan = planDuplicate(doc.schema, doc.model.objects, ids);
+  const m = doc.model;
+  const plan = planDuplicate(doc.schema, m.objects, ids, m.tileWidth, { pixelWidth: m.pixelWidth, pixelHeight: m.pixelHeight });
   if (plan.skipped.length > 0) host.toasts.warn(`하나만 둘 수 있는 타입이라 복제하지 않았다: ${plan.skipped.join(", ")}`);
   if (plan.copies.length === 0) return [];
   const indexOf = (id: string) => doc.model.objects.findIndex((o) => o.id === id);

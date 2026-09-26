@@ -2,7 +2,8 @@
 // 샘플 프로젝트: resources/maps/meadow.json (20x12 칸, 16px, 타일셋 resources/tiles/meadow16.png 8열, 오브젝트 start,
 // slime_1, bat_1, sign_1)과 resources/maps/sample.json (4x4 칸).
 // 흐름: 새 맵(단축키, 이미 있는 이름, 만들기, 파일 형식, 취소) → 크기 바꾸기(기준점, 되돌리기, 저장, 줄이기의 미리 보기와 알림)
-//       → 맵 오브젝트 클립보드(복사, 붙여넣기, 복제, 잘라내기, 삭제, 되돌리기, 씬과 따로) → 맵을 열면 맵 패널이 붙는다.
+//       → 맵 오브젝트 클립보드(복사, 붙여넣기, 복제, 잘라내기, 삭제, 되돌리기, 씬과 따로, 잘라내고 붙이면 옮기기)
+//       → 맵을 열면 맵 패널이 붙는다.
 
 import { expect, test, type Page } from "@playwright/test";
 
@@ -204,29 +205,30 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(page.getByTestId("map-objects-count")).toHaveText("4개");
   });
 
-  test("맵 오브젝트 클립보드: 복사, 붙여넣기, 복제, 잘라내기, 삭제, 되돌리기, 하나만 두는 타입, 씬과 따로, 다른 맵, 입력 칸", async ({ page }) => {
+  test("맵 오브젝트 클립보드: 복사, 붙여넣기, 복제, 잘라내기, 삭제, 되돌리기, 하나만 두는 타입, 씬과 따로, 잘라내고 붙이면 옮기기, 다른 맵, 입력 칸", async ({ page }) => {
     await openMeadow(page);
     const mod = await primaryKey(page);
     const panel = page.getByTestId("map-objects");
     const row = (id: string) => panel.locator(`[data-testid="map-objects-row"][data-id="${id}"]`);
 
-    // 복사와 붙여넣기: 새 id, 한 칸 오른쪽 아래, 순찰 범위도 같이 옮긴다. 되돌리기 한 단계
+    // 복사와 붙여넣기: 원래 id가 맵에 있으니 새 id, x로만 한 칸 오른쪽(y는 그대로라 바닥에 선 채), 순찰 범위도 같이 옮긴다.
+    // 되돌리기 한 단계
     await row("slime_1").click();
     await page.keyboard.press(`${mod}+c`);
     await expect(page.getByTestId("toasts")).toContainText("맵 오브젝트 1개를 복사했다");
     await page.keyboard.press(`${mod}+v`);
     await expect(row("slime_2")).toHaveAttribute("aria-selected", "true");
-    expect(await obj(page, "slime_2")).toMatchObject({ x: 216, y: 152, props: { minX: 192, maxX: 264 } });
+    expect(await obj(page, "slime_2")).toMatchObject({ x: 216, y: 136, props: { minX: 192, maxX: 264 } });
     await expect(page.getByTestId("map-selection-count")).toHaveText("1");
     expect(await depth(page)).toBe(1);
     await page.keyboard.press(`${mod}+v`);
     await expect(row("slime_3")).toHaveAttribute("aria-selected", "true");
-    expect(await obj(page, "slime_3")).toMatchObject({ x: 232, y: 168 });
+    expect(await obj(page, "slime_3")).toMatchObject({ x: 232, y: 136 });
 
-    // 복제: 한 칸 오른쪽, 순찰 범위도
+    // 복제: 한 칸 오른쪽, y는 그대로, 순찰 범위도
     await page.keyboard.press(`${mod}+d`);
     await expect(row("slime_4")).toHaveAttribute("aria-selected", "true");
-    expect(await obj(page, "slime_4")).toMatchObject({ x: 248, y: 168, props: { minX: 224, maxX: 296 } });
+    expect(await obj(page, "slime_4")).toMatchObject({ x: 248, y: 136, props: { minX: 224, maxX: 296 } });
 
     // 잘라내기는 되돌리기 한 단계이고 되돌리면 둘 다 돌아온다
     await row("sign_1").click();
@@ -277,6 +279,26 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(page.getByTestId("toasts")).toContainText("하나만 둘 수 있는 타입이라 붙이지 않았다: start");
     expect(await objectCount(page)).toBe(withStart);
 
+    // 잘라내고 붙이면 옮기기다: 원래 id 그대로(시작 지점은 start), x로 한 칸, y는 그대로
+    expect(await obj(page, "start")).toMatchObject({ x: 24, y: 136 });
+    await row("start").click();
+    await page.keyboard.press(`${mod}+x`);
+    await expect(row("start")).toHaveCount(0);
+    await page.keyboard.press(`${mod}+v`);
+    await expect(row("start")).toHaveAttribute("aria-selected", "true");
+    expect(await obj(page, "start")).toMatchObject({ x: 40, y: 136 });
+    expect(await objectCount(page)).toBe(withStart);
+    await row("slime_1").click();
+    const slime = await obj(page, "slime_1");
+    await page.keyboard.press(`${mod}+x`);
+    await expect(row("slime_1")).toHaveCount(0);
+    await page.keyboard.press(`${mod}+v`);
+    await expect(row("slime_1")).toHaveAttribute("aria-selected", "true");
+    expect(await obj(page, "slime_1")).toMatchObject({ x: slime!.x + 16, y: slime!.y, props: { minX: (slime!.props.minX as number) + 16, maxX: (slime!.props.maxX as number) + 16 } });
+    expect(await objectCount(page)).toBe(withStart);
+    // id가 겹치지 않고 시작 지점도 하나다 (검사 결과가 비었다)
+    await expect(page.getByTestId("map-objects-problems")).toHaveAttribute("data-count", "0");
+
     // 다른 맵(64x64 px)에 붙이면 맵 안으로 당긴다
     await row("slime_1").click();
     await page.keyboard.press(`${mod}+c`);
@@ -289,7 +311,8 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 입력 칸 안의 Ctrl+A, Ctrl+C는 글자 편집이다 (오브젝트를 건드리지 않는다)
     const d1 = await depth(page);
-    const toastCount = await page.getByTestId("toasts").locator(".toast").count();
+    // 앞의 토스트는 시간이 지나 사라질 수 있어 개수가 아니라 id로 새 토스트를 찾는다
+    const lastToast = await ev<number>(page, "(e) => Math.max(0, ...e.toasts.toasts.map((t) => t.id))");
     await row("slime_2").click();
     await page.keyboard.press("F2");
     const rename = panel.getByTestId("map-objects-rename");
@@ -298,7 +321,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await page.keyboard.press(`${mod}+c`);
     await page.keyboard.press("Escape");
     expect(await depth(page)).toBe(d1);
-    expect(await page.getByTestId("toasts").locator(".toast").count()).toBe(toastCount);
+    expect(await ev<string[]>(page, "(e, last) => e.toasts.toasts.filter((t) => t.id > last).map((t) => t.text)", lastToast)).toEqual([]);
   });
 
   test("맵 패널: 맵을 열면 붙고, 사용자가 닫은 것은 두고, 레이아웃 프리셋 뒤에는 맵 탭을 다시 고를 때 붙는다", async ({ page }) => {

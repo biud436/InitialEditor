@@ -91,9 +91,10 @@ describe("편집 커맨드의 갈래", () => {
     expect(tools.clipboard.map((o) => o.id)).toEqual(["player"]);
     await commands.execute("edit.paste");
     expect(map.model.objectIds()).toEqual(["slime_1", "slime_2"]);
-    expect(map.model.findObject("slime_2")).toMatchObject({ x: 136, y: 176 });
+    expect(map.model.findObject("slime_2")).toMatchObject({ x: 136, y: 160 });
     await commands.execute("edit.duplicate");
     expect(map.model.objectIds()).toEqual(["slime_1", "slime_2", "slime_3"]);
+    expect(map.model.findObject("slime_3")).toMatchObject({ x: 152, y: 160 });
     expect(commands.findByKey(key("Delete", false))).toBe("edit.delete");
     await commands.execute("edit.delete");
     expect(map.model.objectIds()).toEqual(["slime_1", "slime_2"]);
