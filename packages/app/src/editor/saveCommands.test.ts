@@ -1,6 +1,6 @@
-import { Document, type SaveOutcome } from "@initial-editor/core";
+import { Document, MemoryBackend, type SaveConflictChoice, type SaveGuard, type SaveOutcome } from "@initial-editor/core";
 import { describe, expect, it } from "vitest";
-import { saveActiveDocument, saveAllDocuments, saveAllMessage, type SaveHost } from "./saveCommands";
+import { createDocumentSaver, saveActiveDocument, saveAllDocuments, saveAllMessage, type SaveHost } from "./saveCommands";
 
 class Doc extends Document {
   constructor(title: string) {
@@ -82,5 +82,131 @@ describe("파일 > 모두 저장", () => {
 
   it("문구만 따로: 아무것도 저장하지 않고 취소만 했으면 안내다", () => {
     expect(saveAllMessage({ saved: [], reloaded: [], cancelled: ["a.lua"], failed: [] })).toEqual({ level: "info", text: "0개 문서를 저장했다. 저장하지 않은 것: a.lua" });
+  });
+});
+
+/** 글 하나를 디스크에 쓰고 읽는 문서 */
+class FileDoc extends Document {
+  text = "mine";
+  constructor(private readonly backend: MemoryBackend) {
+    super("test", "notes.txt", "notes.txt");
+  }
+  async save(): Promise<void> {
+    this.assertCanSave();
+    await this.backend.writeText("notes.txt", this.text);
+    this.noteDiskText(this.text);
+    this.markSaved();
+  }
+  async reload(): Promise<void> {
+    this.text = await this.backend.readText("notes.txt");
+    this.noteDiskText(this.text);
+    this.markSaved();
+  }
+}
+
+/** 충돌을 물으면 기다렸다가 answer로 답하는 확인 */
+async function saverSetup() {
+  const backend = new MemoryBackend({ "notes.txt": "disk" });
+  await backend.open("/mem");
+  const doc = new FileDoc(backend);
+  doc.noteDiskText("disk");
+  doc.markDirty();
+  const asked: string[] = [];
+  const pending: Array<(c: SaveConflictChoice) => void> = [];
+  let discard = true;
+  const guard: SaveGuard = {
+    readText: (p) => backend.readText(p),
+    askConflict: (_doc, conflict) => {
+      asked.push(conflict.kind);
+      return new Promise((resolve) => pending.push(resolve));
+    },
+    confirmDiscard: async () => discard,
+  };
+  const saved: Document[] = [];
+  const logs: string[] = [];
+  const save = createDocumentSaver({ guard, onSaved: (d) => void saved.push(d), log: { info: (_s, text) => void logs.push(text) } });
+  const answer = async (c: SaveConflictChoice) => {
+    // 디스크를 읽고 물을 때까지 기다린다
+    for (let i = 0; i < 50 && pending.length === 0; i++) await Promise.resolve();
+    pending.shift()!(c);
+  };
+  return { backend, doc, asked, saved, logs, save, answer, setDiscard: (v: boolean) => (discard = v) };
+}
+
+describe("문서 저장 (Editor.saveDocument)", () => {
+  it("디스크가 그대로면 묻지 않고 저장하고 onSaved를 부른다", async () => {
+    const t = await saverSetup();
+    expect(await t.save(t.doc)).toBe("saved");
+    expect(t.asked).toEqual([]);
+    expect(await t.backend.readText("notes.txt")).toBe("mine");
+    expect(t.saved).toEqual([t.doc]);
+  });
+
+  it("같은 문서의 저장이 겹치면 한 번만 묻고 같은 결과를 함께 받는다. 끝나면 다음 저장은 새로 묻는다", async () => {
+    const t = await saverSetup();
+    await t.backend.writeText("notes.txt", "outside");
+    const first = t.save(t.doc);
+    const second = t.save(t.doc);
+    expect(second).toBe(first);
+    await t.answer("cancel");
+    expect(await Promise.all([first, second])).toEqual(["cancelled", "cancelled"]);
+    expect(t.asked).toEqual(["changed"]);
+    expect(await t.backend.readText("notes.txt")).toBe("outside");
+    expect(t.saved).toEqual([]);
+    expect(t.logs).toEqual(["저장을 취소했다: notes.txt"]);
+
+    const third = t.save(t.doc);
+    expect(third).not.toBe(first);
+    await t.answer("overwrite");
+    expect(await third).toBe("saved");
+    expect(t.asked).toEqual(["changed", "changed"]);
+    expect(await t.backend.readText("notes.txt")).toBe("mine");
+    expect(t.saved).toEqual([t.doc]);
+  });
+
+  it("다른 문서의 저장은 따로 묻는다", async () => {
+    const t = await saverSetup();
+    const other = new FileDoc(t.backend);
+    other.noteDiskText("disk");
+    other.markDirty();
+    await t.backend.writeText("notes.txt", "outside");
+    const a = t.save(t.doc);
+    const b = t.save(other);
+    expect(b).not.toBe(a);
+    await t.answer("cancel");
+    await t.answer("cancel");
+    expect(await Promise.all([a, b])).toEqual(["cancelled", "cancelled"]);
+    expect(t.asked).toEqual(["changed", "changed"]);
+  });
+
+  it("다시 읽기는 디스크 내용으로 바꾸고 onSaved 대신 콘솔에 남긴다. 버리기를 거절하면 취소다", async () => {
+    const t = await saverSetup();
+    await t.backend.writeText("notes.txt", "outside");
+    t.setDiscard(false);
+    const declined = t.save(t.doc);
+    await t.answer("reload");
+    expect(await declined).toBe("cancelled");
+    expect(t.doc.text).toBe("mine");
+
+    t.setDiscard(true);
+    const reloaded = t.save(t.doc);
+    await t.answer("reload");
+    expect(await reloaded).toBe("reloaded");
+    expect(t.doc.text).toBe("outside");
+    expect(t.doc.dirty).toBe(false);
+    expect(t.saved).toEqual([]);
+    expect(t.logs).toEqual(["저장을 취소했다: notes.txt", "저장하지 않고 디스크 내용으로 다시 읽었다: notes.txt"]);
+  });
+
+  it("저장이 실패하면 오류가 그대로 오고, 다음 저장은 다시 시도한다", async () => {
+    const t = await saverSetup();
+    const broken = new FileDoc(t.backend);
+    broken.save = async () => {
+      throw new Error("디스크가 가득 찼다");
+    };
+    broken.noteDiskText("disk");
+    await expect(t.save(broken)).rejects.toThrow("디스크가 가득 찼다");
+    await expect(t.save(broken)).rejects.toThrow("디스크가 가득 찼다");
+    expect(t.saved).toEqual([]);
   });
 });

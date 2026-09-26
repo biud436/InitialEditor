@@ -45,6 +45,7 @@ import type { KeyValueStorage } from "./LocalStorageSettingsStorage";
 import { ModalStore } from "./modals";
 import { ProjectTreeModel } from "./projectTree";
 import { installRecentProjectsMenu } from "./recentProjects";
+import { createDocumentSaver } from "./saveCommands";
 import { modalSaveGuard } from "./SaveConflictDialog";
 import { ToastStore } from "./toasts";
 
@@ -105,8 +106,12 @@ export class Editor {
   private readonly checkedProviders = new Map<string, () => boolean>();
   private projectDisposers: Array<() => void> = [];
   private disposers: Array<() => void> = [];
-  /** 진행 중인 저장 (문서마다 하나) */
-  private readonly saving = new Map<Document, Promise<SaveOutcome>>();
+  /** 디스크를 확인하고 저장한다 (saveDocument가 쓴다) */
+  private readonly saveChecked = createDocumentSaver({
+    guard: modalSaveGuard(this.modals, (path) => this.backend.readText(path)),
+    onSaved: (doc) => this.events.emit("documentSaved", doc),
+    log: this.log,
+  });
   private readonly autoOpenRoot: string | undefined;
 
   constructor(opts: EditorOptions) {
@@ -172,19 +177,7 @@ export class Editor {
    * 결과는 저장함, 다시 읽음, 취소 중 하나다. 같은 문서의 저장이 진행 중이면 그 결과를 함께 기다린다
    */
   saveDocument(doc: Document): Promise<SaveOutcome> {
-    const running = this.saving.get(doc);
-    if (running) return running;
-    const task = this.runSave(doc).finally(() => this.saving.delete(doc));
-    this.saving.set(doc, task);
-    return task;
-  }
-
-  private async runSave(doc: Document): Promise<SaveOutcome> {
-    const outcome = await doc.saveChecked(modalSaveGuard(this.modals, (path) => this.backend.readText(path)));
-    if (outcome === "saved") this.events.emit("documentSaved", doc);
-    else if (outcome === "reloaded") this.log.info("editor", `저장하지 않고 디스크 내용으로 다시 읽었다: ${doc.path ?? doc.title}`);
-    else this.log.info("editor", `저장을 취소했다: ${doc.path ?? doc.title}`);
-    return outcome;
+    return this.saveChecked(doc);
   }
 
   /** 프로젝트를 연다. game.json 이 없으면 만들 것인지 묻는다 */
