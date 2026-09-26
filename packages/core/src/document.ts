@@ -20,19 +20,30 @@ export interface Command {
   merge?(next: Command): boolean;
 }
 
+/** 되돌리기 목록의 한 칸. id는 이 명령을 실행한 뒤의 상태를 가리킨다 */
+interface UndoEntry {
+  readonly cmd: Command;
+  readonly id: number;
+}
+
 export class UndoStack {
-  private undoList: Command[] = [];
-  private redoList: Command[] = [];
+  private undoList: UndoEntry[] = [];
+  private redoList: UndoEntry[] = [];
+  /** 가장 오래 남은 명령 아래의 상태 id (비어 있을 때의 상태) */
+  private baseId = 0;
+  private nextId = 0;
   readonly events = new Emitter<{ change: void }>();
 
   constructor(private readonly limit = 200) {
-    makeObservable<UndoStack, "undoList" | "redoList">(this, {
+    makeObservable<UndoStack, "undoList" | "redoList" | "baseId">(this, {
       undoList: observable.shallow,
       redoList: observable.shallow,
+      baseId: observable,
       canUndo: computed,
       canRedo: computed,
       undoLabel: computed,
       redoLabel: computed,
+      stateId: computed,
       push: action,
       undo: action,
       redo: action,
@@ -49,53 +60,69 @@ export class UndoStack {
   }
 
   get undoLabel(): string | null {
-    return this.undoList.length ? this.undoList[this.undoList.length - 1].label : null;
+    return this.undoList.length ? this.undoList[this.undoList.length - 1].cmd.label : null;
   }
 
   get redoLabel(): string | null {
-    return this.redoList.length ? this.redoList[this.redoList.length - 1].label : null;
+    return this.redoList.length ? this.redoList[this.redoList.length - 1].cmd.label : null;
   }
 
   get depth(): number {
     return this.undoList.length;
   }
 
-  /** 명령을 실행하고 스택에 넣는다. 합쳐지면 스택 길이는 그대로다 */
+  /**
+   * 지금 상태의 id. 새 명령과 합쳐진 명령은 새 id를 받고, 되돌리기와 다시 실행은 id를 오간다.
+   * 같은 id면 같은 내용이다 (문서의 dirty가 저장 시점의 id와 비교한다)
+   */
+  get stateId(): number {
+    const top = this.undoList[this.undoList.length - 1];
+    return top ? top.id : this.baseId;
+  }
+
+  /** 명령을 실행하고 스택에 넣는다. 합쳐지면 스택 길이는 그대로지만 상태 id는 새로 받는다 */
   push(cmd: Command): void {
     cmd.execute();
-    const top = this.undoList[this.undoList.length - 1];
-    if (top && cmd.coalesceKey && top.coalesceKey === cmd.coalesceKey && top.merge?.(cmd)) {
+    const last = this.undoList.length - 1;
+    const top = this.undoList[last];
+    if (top && cmd.coalesceKey && top.cmd.coalesceKey === cmd.coalesceKey && top.cmd.merge?.(cmd)) {
+      this.undoList[last] = { cmd: top.cmd, id: ++this.nextId };
       this.redoList = [];
       this.events.emit("change", undefined);
       return;
     }
-    this.undoList.push(cmd);
-    if (this.undoList.length > this.limit) this.undoList.shift();
+    this.undoList.push({ cmd, id: ++this.nextId });
+    if (this.undoList.length > this.limit) {
+      // 버린 명령 뒤의 상태가 이제 가장 밑이다
+      this.baseId = this.undoList.shift()!.id;
+    }
     this.redoList = [];
     this.events.emit("change", undefined);
   }
 
   undo(): boolean {
-    const cmd = this.undoList.pop();
-    if (!cmd) return false;
-    cmd.undo();
-    this.redoList.push(cmd);
+    const entry = this.undoList.pop();
+    if (!entry) return false;
+    entry.cmd.undo();
+    this.redoList.push(entry);
     this.events.emit("change", undefined);
     return true;
   }
 
   redo(): boolean {
-    const cmd = this.redoList.pop();
-    if (!cmd) return false;
-    cmd.execute();
-    this.undoList.push(cmd);
+    const entry = this.redoList.pop();
+    if (!entry) return false;
+    entry.cmd.execute();
+    this.undoList.push(entry);
     this.events.emit("change", undefined);
     return true;
   }
 
+  /** 스택을 비운다. 내용이 바뀌었을 수 있으므로 새 상태 id를 받는다 */
   clear(): void {
     this.undoList = [];
     this.redoList = [];
+    this.baseId = ++this.nextId;
     this.events.emit("change", undefined);
   }
 }
@@ -108,12 +135,14 @@ export type DocumentKind = "scene" | "script" | "asset" | "welcome" | string;
  */
 export abstract class Document {
   readonly undo = new UndoStack();
-  /** 마지막 저장(또는 로드) 시점의 되돌리기 깊이. 이것과 다르면 dirty */
-  private savedDepth = 0;
+  /** 마지막 저장(또는 로드) 시점의 되돌리기 상태 id. 이것과 다르면 dirty */
+  private savedStateId = this.undo.stateId;
   /** 되돌리기 밖에서 바뀐 것(외부 재로드 등)을 표시할 때 */
   private forcedDirty = false;
   /** 외부에서 바뀌었는데 아직 반영하지 않았다 (배너를 띄운다) */
   externallyChanged = false;
+  /** 밖에서 바뀐 파일을 다시 읽지 못한 이유. 있으면 저장을 막는다 (다시 읽기에 성공하거나 allowOverwrite로 풀린다) */
+  reloadError: string | null = null;
 
   constructor(
     readonly kind: DocumentKind,
@@ -121,40 +150,84 @@ export abstract class Document {
     public path: string | null,
     public title: string,
   ) {
-    makeObservable<Document, "savedDepth" | "forcedDirty">(this, {
-      savedDepth: observable,
+    makeObservable<Document, "savedStateId" | "forcedDirty">(this, {
+      savedStateId: observable,
       forcedDirty: observable,
       externallyChanged: observable,
+      reloadError: observable,
       path: observable,
       title: observable,
       dirty: computed,
+      saveBlocked: computed,
       markSaved: action,
       markDirty: action,
+      markReloadFailed: action,
+      allowOverwrite: action,
       apply: action,
     });
   }
 
   get dirty(): boolean {
-    return this.forcedDirty || this.undo.depth !== this.savedDepth;
+    return this.forcedDirty || this.undo.stateId !== this.savedStateId;
+  }
+
+  /** 다시 읽지 못한 파일이다. 저장하면 디스크의 더 새 내용을 덮어쓰므로 막는다 */
+  get saveBlocked(): boolean {
+    return this.reloadError !== null;
   }
 
   apply(cmd: Command): void {
     this.undo.push(cmd);
   }
 
-  markSaved(): void {
-    this.savedDepth = this.undo.depth;
+  /**
+   * 저장됐다고 표시한다. stateId는 디스크에 쓴 내용의 상태 id로, 쓰기를 기다리기 전에 받아 두면
+   * 기다리는 동안 들어온 편집이 dirty로 남는다
+   */
+  markSaved(stateId: number = this.undo.stateId): void {
+    this.savedStateId = stateId;
     this.forcedDirty = false;
     this.externallyChanged = false;
+    this.reloadError = null;
   }
 
   markDirty(): void {
     this.forcedDirty = true;
   }
 
-  /** 파일로 저장한다. 구체 문서가 구현하고, 성공하면 markSaved 를 부른다 */
+  /** 다시 읽기에 실패했다: 배너에 이유를 띄우고 저장을 막는다 */
+  markReloadFailed(message: string): void {
+    this.externallyChanged = true;
+    this.reloadError = message;
+  }
+
+  /** 배너의 "내 것으로 덮어쓰기": 막힌 저장을 풀고 지금 내용을 저장할 것으로 둔다 */
+  allowOverwrite(): void {
+    this.externallyChanged = false;
+    this.reloadError = null;
+    this.forcedDirty = true;
+  }
+
+  /** 저장이 막혀 있으면 던진다. 구체 문서의 save가 쓰기 전에 부른다 */
+  assertCanSave(): void {
+    if (this.reloadError !== null) {
+      throw new Error(`${this.title}을(를) 디스크에서 다시 읽지 못해 저장을 막았다 (다시 읽거나 내 것으로 덮어쓰기를 고른다): ${this.reloadError}`);
+    }
+  }
+
+  /** 디스크에서 다시 읽는다. 실패하면 이유를 남기고 저장을 막은 뒤 다시 던진다 */
+  async reloadFromDisk(): Promise<void> {
+    try {
+      await this.reload();
+    } catch (e) {
+      this.markReloadFailed((e as Error).message);
+      throw e;
+    }
+  }
+
+  /** 파일로 저장한다. 구체 문서가 구현하고, assertCanSave로 막힘을 확인한 뒤 성공하면 markSaved를 부른다 */
   abstract save(): Promise<void>;
-  /** 디스크의 내용으로 되돌린다 (외부 변경 반영) */
+  /** 디스크의 내용으로 되돌린다 (외부 변경 반영). 밖에서 부를 때는 실패를 기록하는 reloadFromDisk를 쓴다 */
   abstract reload(): Promise<void>;
   /** 닫을 때 정리 */
   dispose(): void {

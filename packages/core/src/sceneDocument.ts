@@ -69,9 +69,12 @@ export class SceneDocument extends Document {
 
   async save(): Promise<void> {
     if (!this.path) throw new Error("경로가 없는 씬은 저장할 수 없다");
+    this.assertCanSave();
     this.revalidate();
+    // 쓰는 동안 들어온 편집은 dirty로 남도록 쓰기 전의 상태로 표시한다
+    const state = this.undo.stateId;
     await this.backend.writeText(this.path, this.text());
-    this.markSaved();
+    this.markSaved(state);
   }
 
   async reload(): Promise<void> {
