@@ -190,8 +190,10 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
     for (const f of spec.fields) {
       const v = o.props[f.name];
       const loc = `${where}.props.${f.name}`;
-      if (v === undefined) {
-        if (f.required) problems.push({ severity: "error", message: `${o.id}: ${f.label} 이(가) 비어 있다`, location: loc, objectId: o.id });
+      // 글 칸은 비었거나 공백뿐이어도 빈 것이다 (새 오브젝트의 필수 글 칸은 ""로 시작한다)
+      const blankText = (f.type === "string" || f.type === "text") && typeof v === "string" && v.trim() === "";
+      if (v === undefined || blankText) {
+        if (f.required) problems.push({ severity: "error", message: `${o.id}: ${f.label}이(가) 비어 있다`, location: loc, objectId: o.id });
         continue;
       }
       const bad = (why: string) => problems.push({ severity: "error", message: `${o.id}: ${f.label} ${why}`, location: loc, objectId: o.id });

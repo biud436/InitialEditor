@@ -93,6 +93,19 @@ describe("엔진 맵과 같은 고정 형식", () => {
   }
 });
 
+// 엔진의 스키마로 알데바란 맵을 검사하면 문제가 없다 (흔적의 제목과 글이 다 차 있다)
+describe("엔진 맵과 엔진 스키마", () => {
+  const schemaFile = path.join(ENGINE, "resources/schema/map-objects.json");
+  for (const rel of ["resources/maps/aldebaran_forest.json", "resources/maps/aldebaran_tomb.json"]) {
+    const file = path.join(ENGINE, rel);
+    it.skipIf(!existsSync(file) || !existsSync(schemaFile))(`${rel}의 오브젝트는 검사에 걸리지 않는다`, () => {
+      const map = parseMap(readFileSync(file, "utf8"));
+      expect(map.objects.length).toBeGreaterThan(0);
+      expect(validateObjects(map.objects, parseObjectSchema(readFileSync(schemaFile, "utf8")))).toEqual([]);
+    });
+  }
+});
+
 describe("타일 계산", () => {
   const m = tiny();
   it("gid 에서 타일셋과 원본 위치", () => {
@@ -238,6 +251,45 @@ describe("오브젝트 스키마", () => {
     expect(msgs).toContain("warning:objects[5].type");
     expect(msgs).toContain("error:objects[6].id");
     expect(msgs).toContain("error:objects");
+  });
+
+  it("검사: 필수 글 칸이 비었거나 공백뿐이면 비어 있다고 알린다. 필수가 아닌 빈 글과 필수 숫자 0은 괜찮다", () => {
+    const s = parseObjectSchema(
+      JSON.stringify({
+        version: 1,
+        types: [
+          {
+            type: "landmark",
+            label: "흔적",
+            shape: "band",
+            fields: [
+              { name: "title", type: "string", required: true, label: "제목" },
+              { name: "text", type: "text", required: true, label: "글" },
+              { name: "note", type: "string", label: "메모" },
+              { name: "count", type: "integer", required: true, label: "수" },
+            ],
+          },
+        ],
+      }),
+    );
+    const landmark = (id: string, props: Record<string, unknown>) => ({ id, type: "landmark", x: 0, y: 0, width: 48, props, extra: {} });
+    // 목록에서 새로 더한 흔적은 기본값으로 시작한다: 필수 글은 "", 필수 수는 0
+    expect(defaultProps(s.types[0])).toEqual({ title: "", text: "", count: 0 });
+    const problems = validateObjects(
+      [
+        landmark("fresh", defaultProps(s.types[0])),
+        landmark("spaces", { title: "  \t", text: "\n \n", note: "", count: 1 }),
+        landmark("filled", { title: "돌무더기", text: "누군가 쌓았다", note: "   ", count: 0 }),
+      ],
+      s,
+    );
+    expect(problems.map((p) => [p.location, p.message])).toEqual([
+      ["objects[0].props.title", "fresh: 제목이(가) 비어 있다"],
+      ["objects[0].props.text", "fresh: 글이(가) 비어 있다"],
+      ["objects[1].props.title", "spaces: 제목이(가) 비어 있다"],
+      ["objects[1].props.text", "spaces: 글이(가) 비어 있다"],
+    ]);
+    expect(problems.every((p) => p.severity === "error")).toBe(true);
   });
 
   it("실행 환경 변수 채우기", () => {
