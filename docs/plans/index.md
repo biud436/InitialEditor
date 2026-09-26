@@ -74,8 +74,10 @@ graph LR
     E1 --> E4[E4. 내장 플레이]
     R3[R3. 엔진: Emscripten 빌드] --> E4
     E3 --> E5[E5. RPG 확장]
-    E4 -.-> E6[E6. 배포]
-    E5 -.-> E6
+    M2[M2. 엔진: RPG 이벤트 계약과 이전] --> E5
+    E3 --> E6[E6. 배포]
+    E4 --> E6
+    R4[R4. 엔진: 배포용 빌드] --> E6
 ```
 
 | 단계 | 문서 | 한 줄 요약 | 핵심 산출물 | 권장 모델 |
@@ -85,11 +87,13 @@ graph LR
 | E2 | [e2-scene.md](e2-scene.md) | 씬에 오브젝트를 놓고 저장하면 게임이 그 씬을 연다 | 씬 포맷 v1, 계층과 인스펙터와 씬 뷰, 되돌리기, 스크립트 컴포넌트 | **Fable 5** |
 | E3 | [e3-tilemap.md](e3-tilemap.md) | 게임의 맵을 연다: 실제 타일셋으로 칠하고, 통행을 칠하고, 몬스터와 흔적 같은 배치를 맵 위에서 옮기고, 그 자리에서 실행한다 | 맵 모델(`ext-tilemap/model`), 맵 뷰(PIXI), 팔레트와 레이어 패널, 오브젝트 레이어와 스키마 폼, 여기서 실행. 엔진 짝은 알데바란 배치의 맵 이전(M1) | **Fable 5** |
 | E4 | [e4-embedded-play.md](e4-embedded-play.md) | 게임이 에디터 안에서 돌고, 같은 앱이 웹(Cloudflare Pages)에서도 쓸모 있다 | 게임 뷰 패널, WASM 엔진 로더, 브라우저 폴더 열기 백엔드 | **Fable 5** |
-| E5 | (구상, 5절) | RPG 확장: 이벤트 배치와 커맨드 편집, 데이터베이스 | 엔진의 `docs/plans/12-editor-events.md` 마일스톤 2와 3 | **Fable 5** |
-| E6 | (구상, 5절) | Windows와 Linux 빌드, 설치 파일, 안드로이드 에셋 스테이징, 설치된 앱 자체 시험(E3 완료 기준 1) | 배포 패키지 | Opus 5 |
+| E5 | [e5-rpg.md](e5-rpg.md) | 항구 마을 맵에 NPC 를 놓고 커맨드를 적고 저장하면 게임에서 말을 걸 수 있다 (Lua 한 줄 없이) | `packages/ext-rpg`(이벤트 레이어, 커맨드 목록 편집기, 이 이벤트 앞에서 실행), 타일맵 확장의 레이어와 실행 제공자 자리, `yarn test:engine-events`. 엔진 짝은 M2 | **Fable 5** |
+| E6 | [e6-packaging.md](e6-packaging.md) | 설치 하나로 편집하고 실행한다: 세 OS 번들, 앱에 든 엔진, 설치된 앱의 자체 시험, 안드로이드 스테이징, 웹판 헤더 | Tauri 사이드카와 신뢰 규칙, `release.yml`(산출물), 자체 시험, `_headers`. 엔진 짝은 R4 | Opus 5 (사이드카와 자체 시험은 **Fable 5**) |
 | R1 | Initial2D `docs/plans/index.md` 에디터 트랙 | 엔진: 씬 로더 (Lua와 Ruby, `scripts/*/scene_loader`) | 씬 포맷 v1 픽스처, 로더, 새 프로젝트 템플릿 | **Fable 5** |
 | R2 | 위와 같음 | 엔진: API 스텁과 대조 테스트 | `resources/api/initial2d.lua`(주석 기반 타입), Ruby 스텁, 표면 대조 테스트 | Opus 5 |
 | R3 | 위와 같음 | 엔진: Emscripten 빌드 | `build-web/`, CMake의 EMSCRIPTEN 분기, 핫 리로드 서버 제외 | **Fable 5** |
+| M2 | Initial2D `docs/plans/m2-rpg-events.md` | 엔진: RPG 이벤트 데이터 계약과 데모 이벤트의 이전 | `event-commands.json`, `rpg-game.json`, 검사와 trace, `tools/export_events.py` | **Fable 5** |
+| R4 | E6 문서 3.1절 (엔진 문서는 그때 만든다) | 엔진: 배포용 빌드 (정적 링크, 템플릿 묶음) | `tools/build_dist.sh`, `dist.yml` | Opus 5 |
 
 모델 선정 기준은 엔진 로드맵과 같다. 최소 기준선은 Opus 5, 뒤 단계의 토대가 되는 설계(E0의 패키지 경계와 백엔드 계약,
 E2의 씬 포맷, E4의 파일 스테이징)는 Fable 5.
@@ -97,14 +101,14 @@ E2의 씬 포맷, E4의 파일 스테이징)는 Fable 5.
 순서에 대한 메모: E1과 E2는 E0 뒤에 병행할 수 있다. E1이 먼저인 이유는 저자가 "이 에디터에서 가장 중요한 건
 스크립트 작성"이라고 했기 때문이며, E1은 R1 없이 완성된다. E3은 E2의 확장 API가 있어야 시작한다.
 
-## 5. 이후 후보 (E5, E6과 그 다음)
+## 5. 이후 후보
+
+E5 와 E6 은 계획 문서가 생겨 4절로 옮겼다 (2026-09-27).
 
 여기부터는 순서가 아니라 후보다. 만들려는 게임이 요구하는 것이 다음이 된다.
 
 | 후보 | 언제 필요해지는가 | 어디에 붙는가 | 크기 |
 |---|---|---|---|
-| E5. RPG 확장 | 알데바란이 아니라 항구 마을 같은 RPG를 에디터로 만들 때. 엔진의 `12-editor-events.md`가 이미 마일스톤 넷을 적어 두었다 (마일스톤 1 "잃지 않기"는 E3에서 먼저 한다) | `packages/ext-rpg`: 이벤트 오브젝트 타입, 스키마 기반 커맨드 폼, 데이터베이스 패널 | 대 |
-| E6. 배포 | 다른 사람이 설치해서 쓸 때 | Tauri 번들(dmg, msi, AppImage), 엔진 사이드카, 안드로이드 `prepare_assets.sh` 버튼, 설치된 앱 자체 시험(엔진 저장소의 숲을 Tauri 창에서 열어 맵 뷰 캡처를 게임 프레임과 견준다. E3 완료 기준 1이 여기서 닫힌다) | 중 |
 | 오토타일 | 맵을 손으로 그릴 때. 엔진 `roadmap-v2.md` 13단계의 "굽기" 방식 | 타일맵 확장 | 중 |
 | 애니메이션 편집기 | 시트 프레임 구간을 눈으로 정할 때 | 코어 자산 검사기 | 소 |
 | 써드파티 확장 동적 로딩 | 확장이 다섯을 넘고 저장소 밖에서 만들 때 | 확장 호스트 | 중 |
@@ -132,6 +136,10 @@ E2의 씬 포맷, E4의 파일 스테이징)는 Fable 5.
 | R1. 엔진 씬 로더 | ✅ 완료 | 2026-09-26 | 엔진 PR #41. `scripts/lua/scene_loader.lua`와 `scripts/ruby/scene_loader.rb`가 `resources/scenes/*.json`(씬 포맷 v1)을 읽고 검사해 node, sprite, text를 만들고 확장 타입은 `scene_types/`(타일맵 먼저)에 맡긴다. 플래피를 씬으로 다시 짰고 새 프로젝트 템플릿과 픽스처가 있다. C++ 무수정. 엔진 검수 442 PASS. E2의 템플릿과 `yarn test:engine-scene`이 쓴다 |
 | R2. 엔진 API 스텁 | ✅ 완료 | 2026-09-26 | 엔진 PR #42. `resources/api/initial2d-api.json`이 Lua와 mruby 바인딩 전부(모듈 7, 함수 58, 클래스 3과 메서드 58, `Keys` 상수 82, 씬 계약)를 적고, `tools/gen_api_stubs.py`가 EmmyLua와 Ruby 스텁을 만든다. 두 언어의 표면 테스트가 명세와 VM을 양쪽으로 대조한다. E1 자동완성이 이 JSON을 읽는다 |
 | R3. 엔진 Emscripten 빌드 | ✅ 완료 | 2026-09-26 | 엔진 PR #44. `tools/build_web.sh`(emcmake, SDL2 포트, 핫 리로드 서버와 mruby 제외), 브라우저가 프레임을 돌리는 `App::StepFrame`, 로더 `tools/web/initial2d-loader.js`, 웹 스모크(헤드리스 크로미움의 알데바란 타이틀이 네이티브 골든과 픽셀 차이 0). 엔진 검수 446 PASS |
+| E5. RPG 확장 | 🟡 진행 중 | 2026-09-27 | 계획은 [e5-rpg.md](e5-rpg.md) (결정 기록 포함). 엔진 짝 M2 의 두 PR 이 병합되었다: 계약(엔진 #49)과 데모 이벤트의 이전(엔진 #50). 에디터 작업(`packages/ext-rpg` 모델, 확장 API 의 레이어 자리, 이벤트 레이어, 커맨드 편집기, 실행과 e2e)은 E4 병합 뒤에 시작한다 (같은 파일을 고친다) |
+| E6. 배포 | ⬜ 대기 | 2026-09-27 | 계획은 [e6-packaging.md](e6-packaging.md) (결정 기록 포함: 태그와 공개 릴리스, 라이선스, 서명, Windows 엔진, Pages 설정은 저자 결정으로 남긴다). E3 완료 기준 1(Tauri 창의 숲)이 여기의 설치된 앱 자체 시험으로 닫힌다 |
+| M2. 엔진 RPG 이벤트 계약과 이전 | 🟡 진행 중 | 2026-09-27 | 엔진 PR #49(계약: 스키마, 게임 설정, 아이템 표, 인자 타입까지의 검사, trace 와 실행 장치, 적대 검수 세 번), #50(`tools/export_events.py` 로 항구 마을 16개와 여관 6개를 맵 파일로, 인수 시나리오와 골든 무변경). 남은 것은 에디터 쪽 왕복(E5 마일스톤 2) |
+| R4. 엔진 배포용 빌드 | ⬜ 대기 | 2026-09-27 | E6 문서 3.1절. 정적 링크한 엔진 실행 파일과 템플릿 묶음을 워크플로 산출물로 |
 
 ### 갱신 규칙
 
