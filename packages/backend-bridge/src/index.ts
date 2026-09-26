@@ -88,6 +88,9 @@ export class BridgeBackend implements ProjectBackend {
   private info: BridgeProjectInfo | null = null;
   private readonly watchers = new Set<(e: ChangeEvent) => void>();
   private socketStop: (() => void) | null = null;
+  /** 서버의 hello 를 받아 알림이 오기 시작했다 */
+  private socketReady = false;
+  private readyWaiters: Array<() => void> = [];
   private statusListener: ((s: BridgeWatchStatus) => void) | null = null;
 
   constructor(baseUrl: string = DEFAULT_BRIDGE_URL) {
@@ -184,6 +187,24 @@ export class BridgeBackend implements ProjectBackend {
     if (res.status === 404) return false;
     if (!res.ok) throw await this.errorFrom(res, r);
     return true;
+  }
+
+  whenWatching(timeoutMs = 5000): Promise<void> {
+    if (typeof WebSocket === "undefined") {
+      return Promise.reject(new BackendError("이 실행 환경에는 WebSocket 이 없어 변경 알림을 받을 수 없다 (브라우저나 Node 22 이상이 필요하다)", "unsupported"));
+    }
+    if (this.socketReady || this.watchers.size === 0) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.readyWaiters = this.readyWaiters.filter((w) => w !== done);
+        reject(new BackendError(`브리지 알림 연결이 ${timeoutMs}ms 안에 열리지 않았다`, "network"));
+      }, timeoutMs);
+      const done = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+      this.readyWaiters.push(done);
+    });
   }
 
   watch(handler: (e: ChangeEvent) => void): () => void {
@@ -302,6 +323,13 @@ export class BridgeBackend implements ProjectBackend {
         } catch {
           return;
         }
+        if (message.type === "hello") {
+          this.socketReady = true;
+          const waiters = this.readyWaiters;
+          this.readyWaiters = [];
+          for (const w of waiters) w();
+          return;
+        }
         if (message.type !== "change") return;
         const change = message as BridgeChangeMessage;
         const event: ChangeEvent = {
@@ -313,6 +341,7 @@ export class BridgeBackend implements ProjectBackend {
       };
       socket.onclose = () => {
         socket = null;
+        this.socketReady = false;
         this.statusListener?.("closed");
         scheduleRetry();
       };
@@ -341,6 +370,7 @@ export class BridgeBackend implements ProjectBackend {
   private stopSocket(): void {
     this.socketStop?.();
     this.socketStop = null;
+    this.socketReady = false;
   }
 }
 

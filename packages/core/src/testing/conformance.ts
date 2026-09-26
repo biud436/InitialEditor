@@ -145,6 +145,7 @@ export function backendConformance(name: string, create: () => Promise<Conforman
       if (!backend.capabilities.watch) return;
       const seen: ChangeEvent[] = [];
       const off = backend.watch((e) => seen.push(e));
+      await backend.whenWatching?.();
       await backend.writeText("scripts/watched.lua", "x");
       await waitFor(() => seen.some((e) => e.path === "scripts/watched.lua"));
       await backend.remove("scripts/watched.lua");
@@ -162,6 +163,7 @@ export function backendConformance(name: string, create: () => Promise<Conforman
       if (!backend.capabilities.watch || !harness.externalWrite) return;
       const seen: ChangeEvent[] = [];
       const off = backend.watch((e) => seen.push(e));
+      await backend.whenWatching?.();
       await harness.externalWrite("scripts/outside.lua", "changed outside");
       const ev = await waitFor(() => seen.find((e) => e.path === "scripts/outside.lua"));
       expect(ev.origin).toBe("external");

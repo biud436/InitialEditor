@@ -1,0 +1,119 @@
+.hierarchy {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  user-select: none;
+}
+
+.hierarchy-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  font-size: 12px;
+}
+
+.hierarchy-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hierarchy-order {
+  white-space: nowrap;
+}
+
+.hierarchy-count {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.hierarchy-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-1) 0;
+}
+
+.hier-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 var(--space-2) 0 2px;
+  white-space: nowrap;
+  cursor: default;
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+}
+
+.hier-row:hover {
+  background: var(--bg-hover);
+}
+
+.hier-row.is-selected {
+  background: var(--bg-selection);
+}
+
+.hier-row.is-hidden .hier-name,
+.hier-row.is-hidden .hier-icon {
+  color: var(--fg-disabled);
+}
+
+.hier-row.is-dragging {
+  opacity: 0.5;
+}
+
+.hier-row.drop-before {
+  border-top-color: var(--accent);
+}
+
+.hier-row.drop-after {
+  border-bottom-color: var(--accent);
+}
+
+.hier-eye {
+  padding: 1px 3px;
+  color: var(--fg-muted);
+}
+
+.hier-eye.is-off {
+  color: var(--fg-disabled);
+}
+
+.hier-icon {
+  display: inline-flex;
+  color: var(--fg-muted);
+}
+
+.hier-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hier-type {
+  margin-left: auto;
+  font-size: 11px;
+}
+
+.hier-scripts {
+  flex: none;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--fg-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.hier-rename {
+  flex: 1;
+  min-width: 60px;
+  min-height: 20px;
+  padding: 1px 4px;
+}

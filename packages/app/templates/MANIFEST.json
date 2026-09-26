@@ -1,0 +1,317 @@
+{
+  "comment": "scripts/sync-engine-templates.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 경로, to 는 새 프로젝트 안의 경로",
+  "engineCommit": "1d41771",
+  "syncedAt": "2026-09-26",
+  "files": [
+    {
+      "path": "scripts/lua/scene_loader.lua",
+      "to": "scripts/lua/scene_loader.lua",
+      "groups": [
+        "common"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 22671,
+      "sha256": "7c05603bd140e21f092e9f18e1e083680139cb6805812fdb4cf5290585e713a6"
+    },
+    {
+      "path": "scripts/lua/scene_types/tilemap.lua",
+      "to": "scripts/lua/scene_types/tilemap.lua",
+      "groups": [
+        "common"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 2545,
+      "sha256": "c15c2731945a656e5a0f1b581d576475e594e12dab738de8506a13ae4bfcddb0"
+    },
+    {
+      "path": "scripts/ruby/scene_loader.rb",
+      "to": "scripts/ruby/scene_loader.rb",
+      "groups": [
+        "common"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 24745,
+      "sha256": "1e575370a78913ad8ea565897ae09f880042c74e17130504b0973713926535d4"
+    },
+    {
+      "path": "scripts/ruby/scene_types/tilemap.rb",
+      "to": "scripts/ruby/scene_types/tilemap.rb",
+      "groups": [
+        "common"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 2761,
+      "sha256": "62ab2fb90d30fc058025670212b8c32e6843ffe61fd44d4c9990b7b8d624187e"
+    },
+    {
+      "path": "resources/fonts/hangul.fnt",
+      "to": "resources/fonts/hangul.fnt",
+      "groups": [
+        "common"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 300902,
+      "sha256": "ffdf693218f6eb25f7ae08339b97e00cd4573e0d2c3ebc2421b5a19de90be325"
+    },
+    {
+      "path": "resources/fonts/hangul_0.png",
+      "to": "resources/fonts/hangul_0.png",
+      "groups": [
+        "common"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 447010,
+      "sha256": "1948bafdb089bed924f997bbd50d4df2800fcf3ddd3ae59dcb3d8ff54cf9ac1d"
+    },
+    {
+      "path": "resources/api/initial2d-api.json",
+      "to": "resources/api/initial2d-api.json",
+      "groups": [
+        "common"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 42238,
+      "sha256": "f773db340a2d5639e33a4a42387ba10008c24f7d3659feab86bedbed2e81e5a0"
+    },
+    {
+      "path": "resources/templates/main.lua",
+      "to": "scripts/lua/main.lua",
+      "groups": [
+        "empty",
+        "flappy"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1015,
+      "sha256": "d0e4409b1d6356deb407816cd80dd7edcceb78eb83460dd0d295868aa7e3ef55"
+    },
+    {
+      "path": "resources/templates/main.rb",
+      "to": "scripts/ruby/main.rb",
+      "groups": [
+        "empty",
+        "flappy"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 1208,
+      "sha256": "c75006dc6b01a649cfc68fbba6d5f95332d0bc458a1ea2aadb5263f7860f75fb"
+    },
+    {
+      "path": "resources/templates/scene.json",
+      "to": "resources/scenes/main.json",
+      "groups": [
+        "empty"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 236,
+      "sha256": "54b2cd9ef822c3ee405b3c9751de6338d9f378f536ee53d6134ea60560eb80f6"
+    },
+    {
+      "path": "resources/scenes/flappy.json",
+      "to": "resources/scenes/flappy.json",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 2752,
+      "sha256": "fd44d2b903c4d079fbfd0f55ea60d4ae401b7e454421bed5d0db8f9a0bef0803"
+    },
+    {
+      "path": "scripts/lua/components/flappy/bird.lua",
+      "to": "scripts/lua/components/flappy/bird.lua",
+      "groups": [
+        "flappy"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 2031,
+      "sha256": "3d793edca118e1fe65396278699a1ea47cd9e266636c17edd5ba1be09298e800"
+    },
+    {
+      "path": "scripts/lua/components/flappy/common.lua",
+      "to": "scripts/lua/components/flappy/common.lua",
+      "groups": [
+        "flappy"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 4476,
+      "sha256": "8bad343c4b6e8f2bf321679bac3914d476510b98462f911f795353edef575a60"
+    },
+    {
+      "path": "scripts/lua/components/flappy/director.lua",
+      "to": "scripts/lua/components/flappy/director.lua",
+      "groups": [
+        "flappy"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 2911,
+      "sha256": "fb00d8ad55c5d315b3cad2a23f491b30c1dbe139d2e569e23edf70b6505e7656"
+    },
+    {
+      "path": "scripts/lua/components/flappy/pipes.lua",
+      "to": "scripts/lua/components/flappy/pipes.lua",
+      "groups": [
+        "flappy"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1827,
+      "sha256": "27588c28ed90eb527682f99b3ae649935540d63ad93b60a77571646cd662d640"
+    },
+    {
+      "path": "scripts/lua/components/flappy/scroller.lua",
+      "to": "scripts/lua/components/flappy/scroller.lua",
+      "groups": [
+        "flappy"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 809,
+      "sha256": "3338540de5d6da401e3c13e861792467bbc5cad72ae44e97e2f3f1c318114d7f"
+    },
+    {
+      "path": "scripts/ruby/components/flappy/bird.rb",
+      "to": "scripts/ruby/components/flappy/bird.rb",
+      "groups": [
+        "flappy"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 2228,
+      "sha256": "e3cf6b7f21fa00bb4c67e1d8d3cc1f9140c96328c662972bb6d39879c0dbee1d"
+    },
+    {
+      "path": "scripts/ruby/components/flappy/common.rb",
+      "to": "scripts/ruby/components/flappy/common.rb",
+      "groups": [
+        "flappy"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 4876,
+      "sha256": "daa394c46b40c84b482b3bdfd0284a5b17b53ff2773eee3d2dd6fc8273ca44c1"
+    },
+    {
+      "path": "scripts/ruby/components/flappy/director.rb",
+      "to": "scripts/ruby/components/flappy/director.rb",
+      "groups": [
+        "flappy"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 3079,
+      "sha256": "86300d9f6995c773e957f21b061f9e160b5576c280323d5a76348e8354418b18"
+    },
+    {
+      "path": "scripts/ruby/components/flappy/pipes.rb",
+      "to": "scripts/ruby/components/flappy/pipes.rb",
+      "groups": [
+        "flappy"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 2019,
+      "sha256": "bfdfb1275675a47f923f9eeb8a77dc5e3f5ec8b2e33735cb5a4910be290bf2eb"
+    },
+    {
+      "path": "scripts/ruby/components/flappy/scroller.rb",
+      "to": "scripts/ruby/components/flappy/scroller.rb",
+      "groups": [
+        "flappy"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 872,
+      "sha256": "d1c3a9df7f344a366ae3682f41d35e9f64daf28eea290e69ea6c423b2006fd8d"
+    },
+    {
+      "path": "resources/background_768x896.png",
+      "to": "resources/background_768x896.png",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 86170,
+      "sha256": "4b707a80839027cea3aed10585c56cb2709754eb1ce05424b571f00f366ae626"
+    },
+    {
+      "path": "resources/ground_768x64.png",
+      "to": "resources/ground_768x64.png",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 981,
+      "sha256": "bc58975f58b794f127c3fdd3548d25edb0a23d8a3e489d2291bc5afaacbd33d2"
+    },
+    {
+      "path": "resources/bird_276x64.png",
+      "to": "resources/bird_276x64.png",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 1683,
+      "sha256": "b448683818d3a8f3ee8d1c9de11235cc36899aec1a106041bfb3944bff990b18"
+    },
+    {
+      "path": "resources/object_52x271.png",
+      "to": "resources/object_52x271.png",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 574,
+      "sha256": "39fc95932e316f6479bd8eb8f3af1dcbcb1cb1c30d5401e27b03ba6327acdc51"
+    },
+    {
+      "path": "resources/audio/flap.wav",
+      "to": "resources/audio/flap.wav",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 2468,
+      "sha256": "e524a72cb33cb5b16e4b2a4a8da75235d8c6b13aaaa54911754b469693c89c3e"
+    },
+    {
+      "path": "resources/audio/hit.wav",
+      "to": "resources/audio/hit.wav",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 4012,
+      "sha256": "5a587e0fa20c55ea6ac78dbed5d3cd8336f2373a76d842b04c2dac393b37b4ce"
+    },
+    {
+      "path": "resources/audio/point.wav",
+      "to": "resources/audio/point.wav",
+      "groups": [
+        "flappy"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 3130,
+      "sha256": "479783af8374e2c003ab76e0ba51de6f75e5b494e218abd5720222e0f684c76c"
+    }
+  ]
+}

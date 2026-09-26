@@ -14,3 +14,10 @@ packages/renderer/src/styles/*.scss linguist-documentation
 *.ttf   binary
 *.woff  binary
 *.woff2 binary
+*.wav   binary
+*.ogg   binary
+*.mp3   binary
+*.gif   binary
+*.bmp   binary
+*.wasm  binary
+*.bin   binary

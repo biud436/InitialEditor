@@ -27,6 +27,10 @@ import { installRunner } from "./runner";
 import type { RunnerStore } from "./runner/RunnerStore";
 import { installScriptSupport } from "./scripting";
 import type { ScriptSupport } from "./scripting";
+import { installSceneSupport } from "./sceneView";
+import type { SceneSupport } from "./sceneView";
+import { installSceneTools } from "./scene";
+import type { SceneTools } from "./scene";
 import { MODE_LABELS, type BackendMode } from "./backends";
 import { DocumentDock } from "./documentDock";
 import { IMAGE_EXTENSIONS, ImagePreviewDocument } from "./documents/ImagePreviewDocument";
@@ -83,6 +87,10 @@ export class Editor {
   runner!: RunnerStore;
   /** E1: 스크립트 편집 지원 (installScriptSupport 가 붙인다) */
   scripting!: ScriptSupport;
+  /** E2: 씬 뷰 (installSceneSupport 가 붙인다: 씬 문서 열기와 PIXI 씬 뷰) */
+  sceneSupport!: SceneSupport;
+  /** E2: 씬 도구 (installSceneTools 가 붙인다: 계층, 인스펙터, 씬 커맨드, 템플릿) */
+  sceneTools!: SceneTools;
 
   private readonly labelProviders = new Map<string, () => string>();
   private readonly hintProviders = new Map<string, () => string | undefined>();
@@ -132,6 +140,8 @@ export class Editor {
     registerAppMenus(this);
     this.disposers.push(installRecentProjectsMenu(this));
     installScriptSupport(this);
+    installSceneSupport(this); // 스크립트 지원 뒤에: openPath 를 바깥에서 감싸 resources/scenes/*.json 을 먼저 가로챈다
+    installSceneTools(this);
     installRunner(this);
     try {
       const ids = await this.extensions.activateAll([tilemapExtension]);

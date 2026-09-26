@@ -1,0 +1,62 @@
+.scene-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.scene-view-header {
+  flex-wrap: wrap;
+}
+
+.scene-view-header .btn {
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+.scene-view-header .btn.is-on {
+  background: var(--bg-selection);
+  border-color: var(--accent);
+}
+
+.scene-view-gridsize {
+  padding: 1px 4px;
+  font-size: 12px;
+}
+
+.scene-view-zoom {
+  min-width: 42px;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.scene-view-note {
+  padding: 0 6px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  cursor: help;
+}
+
+/* 캔버스 자리. 초점을 받아야 방향키와 Escape 가 통한다 */
+.scene-view-host {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--scene-bg);
+  outline: none;
+}
+
+.scene-view-host:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--focus-ring);
+}
+
+.scene-view-host canvas {
+  display: block;
+  touch-action: none;
+  user-select: none;
+}
+
+.scene-view-error {
+  border-bottom: 1px solid var(--danger);
+  color: var(--danger);
+}
