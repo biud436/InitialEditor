@@ -26,6 +26,7 @@
     "test:engine": "node scripts/e2e-engine-hotreload.mjs",
     "test:engine-scene": "node scripts/e2e-engine-scene.mjs",
     "sync:templates": "node scripts/sync-engine-templates.mjs",
+    "sync:rpg": "node scripts/sync-engine-rpg.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
     "tauri": "tauri"
   },
