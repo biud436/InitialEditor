@@ -3,6 +3,7 @@
 //   - 타일셋 텍스처 캐시 (이미지 파일이 바뀌면 버린다), 보기 설정(MapViewState), 열린 렌더러 목록
 //   - 활성 맵, 포인터 아래 월드 좌표(cursor), 뷰 가운데, 오브젝트로 뷰 옮기기: 오브젝트 인스펙터와 "여기서 실행"이 쓴다
 //   - 맵 커맨드와 메뉴 (mapCommands.ts), 맵 오브젝트 클립보드 (mapClipboard.ts, 편집 메뉴가 쓴다)
+//   - 붙은 렌더러의 도구 경고(한도에 닿은 채우기)를 콘솔에 남긴다
 //   - 맵 탭이 활성이 되면 레이아웃에 없는 맵 패널(팔레트, 레이어, 맵 오브젝트)을 더한다 (LayoutStore.ensureMapPanels)
 
 import { MapDocument, MapFormatError, isMapPath, typeOf, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
@@ -36,6 +37,7 @@ export class MapSupport {
   /** 초점이 입력 칸에 있다. 도구 단축키(한 글자)를 끈다 */
   editableFocus = false;
   private readonly renderers = new Map<MapDocument, Set<MapRenderer>>();
+  private readonly rendererWarnings = new Map<MapRenderer, () => void>();
   private readonly lastLayers = new WeakMap<MapDocument, number>();
   private readonly docDisposers = new Map<MapDocument, () => void>();
   private disposers: Array<() => void> = [];
@@ -196,10 +198,18 @@ export class MapSupport {
     let set = this.renderers.get(doc);
     if (!set) this.renderers.set(doc, (set = new Set()));
     set.add(renderer);
+    // 도구의 경고(한도에 닿은 채우기)는 콘솔에도 남긴다
+    this.rendererWarnings.get(renderer)?.();
+    this.rendererWarnings.set(
+      renderer,
+      renderer.events.on("warn", (message) => this.editor.log.warn("maps", `${doc.title}: ${message}`)),
+    );
     runInAction(() => this.renderersVersion++);
   }
 
   detachRenderer(doc: MapDocument, renderer: MapRenderer): void {
+    this.rendererWarnings.get(renderer)?.();
+    this.rendererWarnings.delete(renderer);
     const set = this.renderers.get(doc);
     if (!set) return;
     set.delete(renderer);
@@ -260,6 +270,8 @@ export class MapSupport {
     this.unwatchProject();
     for (const d of this.docDisposers.values()) d();
     this.docDisposers.clear();
+    for (const off of this.rendererWarnings.values()) off();
+    this.rendererWarnings.clear();
     for (const d of this.disposers.reverse()) d();
     this.disposers = [];
     this.textures.dispose();

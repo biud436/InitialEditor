@@ -2,9 +2,10 @@
 // 맵 렌더러의 입력과 상태 (WebGL 없이). PIXI 앱 대신 캔버스와 렌더러 흉내를 넣고 비공개 단계를 직접 부른다.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Emitter, MemoryBackend } from "@initial-editor/core";
-import { MapDocument, parseMap } from "@initial-editor/ext-tilemap/model";
+import { MapDocument, parseMap, singleBrush } from "@initial-editor/ext-tilemap/model";
 import { Container, TextureSource } from "pixi.js";
 import { MapRenderer } from "./MapRenderer";
+import { fillLimitNotice } from "./mapTools";
 import { MapViewState } from "./mapViewState";
 
 // jsdom에는 캔버스 2D가 없다. PIXI가 불러올 때 캔버스를 시험하므로 조용히 null을 준다
@@ -196,6 +197,24 @@ describe("MapRenderer", () => {
     doc.toggleLayer(0);
     expect(r.tools.cursor).toBe("crosshair");
     r.dispose();
+  });
+
+  it("한도에 닿은 채우기는 알림(onNotice)과 경고 이벤트(warn) 둘로 나간다", () => {
+    const { doc, r, notices } = makeRenderer();
+    const warns: string[] = [];
+    r.events.on("warn", (m) => warns.push(m));
+    r.tools.fillLimit = 3;
+    doc.setBrush(singleBrush(2));
+    doc.setTool("fill");
+    const at = { world: { x: 8, y: 8 }, button: 0, shift: false, alt: false };
+    r.tools.pointerDown(at);
+    r.tools.pointerUp(at);
+    expect(doc.model.layers[0].data.filter((v) => v === 2)).toHaveLength(3);
+    expect(notices).toEqual([fillLimitNotice(3, 3)]);
+    expect(warns).toEqual([fillLimitNotice(3, 3)]);
+    // 버린 뒤에는 이벤트를 듣던 것이 떨어진다
+    r.dispose();
+    expect(r.events.listenerCount("warn")).toBe(0);
   });
 
   it("타일셋 밖의 gid 경고는 칸을 고치거나 다시 읽으면 다시 센다", async () => {

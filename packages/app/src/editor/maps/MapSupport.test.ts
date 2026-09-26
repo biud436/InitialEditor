@@ -5,6 +5,7 @@ import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import type { Editor } from "../Editor";
 import { MapClipboard } from "./mapClipboard";
+import type { MapRenderer, MapRendererEvents } from "./MapRenderer";
 import { MapSupport } from "./MapSupport";
 
 const MAP = JSON.stringify({ version: 2, name: "a", width: 2, height: 2, tileWidth: 16, tileHeight: 16, layers: [{ name: "g", data: [0, 0, 0, 0] }], tilesets: [] });
@@ -63,5 +64,25 @@ describe("MapSupport와 맵 패널", () => {
     expect(documents.active).toBe(a);
     expect(log.entries.map((e) => `${e.level}: ${e.text}`)).toContain("warn: 맵 패널을 더하지 못했다: dockview가 없다");
     support.dispose();
+  });
+
+  it("붙은 렌더러의 도구 경고는 콘솔에 맵 이름과 함께 남기고, 떼면 더 남기지 않는다", async () => {
+    const { support, a, log } = await setup(() => {});
+    const events = new Emitter<MapRendererEvents>();
+    const renderer = { events } as unknown as MapRenderer;
+    support.attachRenderer(a, renderer);
+    events.emit("warn", "채우기가 한도에 닿았다");
+    expect(log.entries.map((e) => `${e.level}/${e.source}: ${e.text}`)).toContain("warn/maps: a.json: 채우기가 한도에 닿았다");
+    // 같은 렌더러를 다시 붙여도 한 줄만 남긴다
+    support.attachRenderer(a, renderer);
+    events.emit("warn", "둘째");
+    expect(log.entries.filter((e) => e.text.endsWith("둘째"))).toHaveLength(1);
+    support.detachRenderer(a, renderer);
+    expect(events.listenerCount("warn")).toBe(0);
+    events.emit("warn", "셋째");
+    expect(log.entries.some((e) => e.text.endsWith("셋째"))).toBe(false);
+    support.attachRenderer(a, renderer);
+    support.dispose();
+    expect(events.listenerCount("warn")).toBe(0);
   });
 });
