@@ -4,6 +4,8 @@
 //   맵: 취소는 둘 다 두고, 덮어쓰기는 내 것을 쓴다. 지워진 파일은 다시 읽기 없이 묻고 덮어쓰면 다시 만든다.
 //   JSON(스크립트 편집기): 배너에서 내 것 유지를 골라도 저장 직전 디스크와 견주어 묻고, 다시 읽기는 한 번 더 묻는다.
 //   모두 저장: 문서마다 묻고, 취소한 것은 두고 나머지를 저장한다.
+//   깨진 파일: 모달의 다시 읽기가 실패하면 저장 실패가 아니라 다시 읽지 못했다고 알리고, 배너와 내 수정이 남는다.
+//   쓰는 중의 저장: 쓰기가 끝나기를 기다렸다가 최신 내용으로 한 번 더 쓴다 (저장했다는 알림은 실제로 쓴 저장마다).
 // 브리지 포트는 E2E_BRIDGE_PORT가 있으면 그것, 없으면 OS가 준 빈 포트다.
 
 import { expect, test, type Page } from "@playwright/test";
@@ -237,5 +239,79 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     expect(await docState(page, SCENE_PATH)).toEqual({ dirty: false, externallyChanged: false });
     expect(await docState(page, LUA_PATH)).toEqual({ dirty: true, externallyChanged: true });
     await expect(code).toContainText("mine");
+  });
+
+  test("맵: 디스크의 파일이 깨졌을 때 모달에서 다시 읽기를 고르면 다시 읽지 못했다고 알리고, 배너와 내 수정이 남는다", async ({ page }) => {
+    await openProject(page);
+    const mod = await primaryKey(page);
+    await openPath(page, MAP_PATH, "field.json");
+    await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
+    await ev(page, "(e) => e.documents.active.apply(e.documents.active.model.paintCells(0, [{ index: 0, value: 9 }]))");
+    const broken = "{ broken";
+    writeOutside(MAP_PATH, broken);
+    const banner = page.getByTestId("external-change-banner");
+    await expect(banner).toBeVisible();
+
+    await docTab(page, "field.json").click();
+    await page.keyboard.press(`${mod}+KeyS`);
+    await expect(conflict(page)).toHaveAttribute("data-kind", "changed");
+    await modal(page).getByRole("button", { name: "다시 읽기" }).click();
+    await modal(page).getByRole("button", { name: "버리고 다시 읽기" }).click();
+    await expect(modal(page)).toHaveCount(0);
+    const toasts = page.getByTestId("toasts");
+    await expect(toasts).toContainText("다시 읽지 못했다: JSON 이 아니다: ");
+    await expect(toasts).not.toContainText("저장하지 못했다");
+    // 콘솔에도 남는다
+    await expect
+      .poll(() => ev<string[]>(page, "(e) => e.log.entries.filter((l) => l.level === 'error').map((l) => l.text)"))
+      .toContainEqual(expect.stringMatching(/^resources\/maps\/field\.json을\(를\) 다시 읽지 못했다: JSON 이 아니다: /));
+    // 배너는 다시 읽지 못한 상태로 남고, 내 수정과 디스크는 그대로다
+    await expect(banner).toHaveAttribute("data-error", "true");
+    await expect(banner).toContainText("디스크의 파일을 다시 읽지 못해 저장을 막았다: JSON 이 아니다: ");
+    expect(await ev(page, "(e) => [e.documents.active.dirty, e.documents.active.model.layers[0].data[0]]")).toEqual([true, 9]);
+    expect(disk(MAP_PATH)).toBe(broken);
+  });
+
+  test("맵: 쓰는 중에 고치고 다시 저장하면 그 쓰기가 끝난 뒤 최신 내용으로 한 번 더 쓴다", async ({ page }) => {
+    await openProject(page);
+    const mod = await primaryKey(page);
+    await openPath(page, MAP_PATH, "field.json");
+    await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
+    // 다음 쓰기 하나를 붙잡아 두었다가 풀어 준다 (큰 맵의 느린 쓰기)
+    await ev(
+      page,
+      `(e) => {
+        const b = e.backend;
+        const write = b.writeText.bind(b);
+        window.__writes = [];
+        window.__hold = true;
+        b.writeText = (p, t) => {
+          window.__writes.push(p);
+          if (!window.__hold) return write(p, t);
+          window.__hold = false;
+          return new Promise((resolve, reject) => {
+            window.__release = () => write(p, t).then(resolve, reject);
+          });
+        };
+      }`,
+    );
+    await ev(page, "(e) => e.documents.active.apply(e.documents.active.model.paintCells(0, [{ index: 1, value: 9 }]))");
+    await docTab(page, "field.json").click();
+    await page.keyboard.press(`${mod}+KeyS`);
+    await expect.poll(() => ev<boolean>(page, "() => typeof window.__release === 'function'")).toBe(true);
+
+    // 쓰는 중에 고치고 다시 저장한다
+    await ev(page, "(e) => e.documents.active.apply(e.documents.active.model.paintCells(0, [{ index: 2, value: 7 }]))");
+    await page.keyboard.press(`${mod}+KeyS`);
+    expect(await ev<string[]>(page, "() => window.__writes")).toEqual([MAP_PATH]);
+    await ev(page, "() => window.__release()");
+
+    const saved = page.getByTestId("toasts").locator(".toast", { hasText: "저장했다: field.json" });
+    await expect(saved).toHaveCount(2);
+    await expect.poll(() => ev<string[]>(page, "() => window.__writes")).toEqual([MAP_PATH, MAP_PATH]);
+    await expect.poll(() => JSON.parse(disk(MAP_PATH)).layers[0].data.slice(0, 3)).toEqual([1, 9, 7]);
+    await expect.poll(() => docState(page, MAP_PATH)).toEqual({ dirty: false, externallyChanged: false });
+    await expect(modal(page)).toHaveCount(0);
+    await expect(docTab(page, "field.json").locator(".doc-tab-dirty")).toHaveCount(0);
   });
 });

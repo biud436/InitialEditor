@@ -250,6 +250,21 @@ describe("여기서 실행", () => {
     expect(playHereHint({ ...fromStore.host, mapSchema: { current: only(["aldebaran_*"]) } })).toBe(reason);
   });
 
+  it("저장 충돌 모달의 다시 읽기가 실패하면 다시 읽지 못해 실행하지 않았다고 알린다", async () => {
+    const f = await fake();
+    f.doc.apply(f.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
+    f.mem.simulateExternalChange(MAP_PATH, "modify", "{ broken");
+    f.host.saveDocument = (d) =>
+      d.saveChecked({ readText: (p) => f.mem.readText(p), askConflict: async () => "reload", confirmDiscard: async () => true });
+    expect(await playHere(f.host)).toBe(false);
+    expect(f.starts).toEqual([]);
+    expect(f.toasts).toHaveLength(1);
+    expect(f.toasts[0]).toMatch(/^error: aldebaran_forest\.json 을\(를\) 다시 읽지 못해 실행하지 않았다: /);
+    expect(f.toasts[0]).not.toContain("저장하지 못해");
+    expect(f.doc.reloadError).not.toBeNull();
+    expect(f.doc.dirty).toBe(true);
+  });
+
   it("문서에 스키마가 아직 없으면 저장소의 스키마를 쓴다", async () => {
     const f = await fake({ schema: null });
     const host: PlayHost = { ...f.host, mapSchema: { current: SCHEMA } };

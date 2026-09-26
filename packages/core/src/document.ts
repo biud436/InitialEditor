@@ -143,6 +143,23 @@ export type SaveConflictChoice = "overwrite" | "reload" | "cancel";
 /** 저장 요청의 결과. reloaded는 내 수정을 버리고 디스크 내용으로 다시 읽었다 */
 export type SaveOutcome = "saved" | "reloaded" | "cancelled";
 
+/** 저장 충돌 모달에서 다시 읽기를 골랐는데 디스크의 파일을 다시 읽지 못했다. 저장 실패와 구분해 알린다 */
+export class ReloadFailedError extends Error {
+  constructor(
+    /** 다시 읽지 못한 이유 (배너에도 남는다) */
+    readonly reason: string,
+  ) {
+    super(`다시 읽지 못했다: ${reason}`);
+    this.name = "ReloadFailedError";
+  }
+}
+
+/** saveChecked가 어디까지 왔는지 알린다 */
+export interface SaveProgress {
+  /** 확인과 모달을 마치고 쓰기(또는 다시 읽기)를 시작한다. 이 뒤의 편집은 이번 저장에 들어가지 않는다 */
+  acting?(): void;
+}
+
 /** 저장 직전 확인에 쓰는 것. 에디터가 백엔드와 모달로 채운다 */
 export interface SaveGuard {
   readText(path: string): Promise<string>;
@@ -285,20 +302,28 @@ export abstract class Document {
 
   /**
    * 디스크를 확인하고 저장한다. 충돌이면 guard로 묻는다: 덮어쓰기는 내 것을 쓰고,
-   * 다시 읽기는 (수정 중이면 한 번 더 물은 뒤) 디스크 내용으로 바꾸고, 취소는 아무것도 하지 않는다
+   * 다시 읽기는 (수정 중이면 한 번 더 물은 뒤) 디스크 내용으로 바꾸고, 취소는 아무것도 하지 않는다.
+   * 다시 읽지 못하면 ReloadFailedError를 던진다 (배너에 이유가 남고 저장은 막힌다).
+   * 쓰기나 다시 읽기를 시작할 때 progress.acting을 부른다
    */
-  async saveChecked(guard: SaveGuard): Promise<SaveOutcome> {
+  async saveChecked(guard: SaveGuard, progress: SaveProgress = {}): Promise<SaveOutcome> {
     const conflict = await this.findSaveConflict((path) => guard.readText(path));
     if (conflict) {
       const choice = await guard.askConflict(this, conflict);
       if (choice === "cancel") return "cancelled";
       if (choice === "reload") {
         if (this.dirty && !(await guard.confirmDiscard(this))) return "cancelled";
-        await this.reloadFromDisk();
+        progress.acting?.();
+        try {
+          await this.reloadFromDisk();
+        } catch (e) {
+          throw new ReloadFailedError((e as Error).message);
+        }
         return "reloaded";
       }
       this.allowOverwrite();
     }
+    progress.acting?.();
     await this.save();
     return "saved";
   }

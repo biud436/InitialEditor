@@ -174,7 +174,8 @@ export class Editor {
   /**
    * 문서를 저장하고 documentSaved를 알린다 (저장 시 핫 리로드가 여기에 붙는다). 모든 저장이 여기를 지난다.
    * 파일이 밖에서 바뀌었거나 지워졌거나 다시 읽지 못했으면 모달로 묻는다 (03-project-and-runtime.md 파일 규칙 4).
-   * 결과는 저장함, 다시 읽음, 취소 중 하나다. 같은 문서의 저장이 진행 중이면 그 결과를 함께 기다린다
+   * 결과는 저장함, 다시 읽음, 취소 중 하나다. 같은 문서의 저장이 확인이나 모달을 기다리는 중이면 거기에 합치고,
+   * 쓰는 중이면 끝난 뒤 최신 내용으로 다시 저장한다 (createDocumentSaver)
    */
   saveDocument(doc: Document): Promise<SaveOutcome> {
     return this.saveChecked(doc);

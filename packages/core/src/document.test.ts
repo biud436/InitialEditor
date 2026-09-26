@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BackendError } from "./backend";
-import { type Command, Document, DocumentRegistry, type SaveConflict, type SaveConflictChoice, type SaveGuard, UndoStack } from "./document";
+import { type Command, Document, DocumentRegistry, ReloadFailedError, type SaveConflict, type SaveConflictChoice, type SaveGuard, UndoStack } from "./document";
 import { CORE_DEFAULT_PROPS, makeObject } from "./scene";
 import { SceneDocument } from "./sceneDocument";
 import { MemoryBackend } from "./testing/memory-backend";
@@ -430,6 +430,60 @@ describe("저장 충돌", () => {
     ]);
     expect(doc.saveBlocked).toBe(false);
     expect(JSON.parse(await be.readText(PATH)).objects.map((o: { id: string }) => o.id)).toEqual(["mine"]);
+  });
+
+  it("모달의 다시 읽기가 실패하면 ReloadFailedError로 이유를 던지고, 배너와 저장 막힘이 남으며 내 수정은 그대로다", async () => {
+    const { be, doc } = await openScene();
+    const broken = "{ broken";
+    be.simulateExternalChange(PATH, "modify", broken);
+    const { guard } = guardFor(be, { choices: ["reload"], discard: [true] });
+    const error = await doc.saveChecked(guard).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(ReloadFailedError);
+    const reason = (error as ReloadFailedError).reason;
+    expect(reason).toContain("JSON");
+    expect((error as Error).message).toBe(`다시 읽지 못했다: ${reason}`);
+    expect(doc.reloadError).toBe(reason);
+    expect(doc.externallyChanged).toBe(true);
+    expect(doc.saveBlocked).toBe(true);
+    expect(doc.dirty).toBe(true);
+    expect(doc.scene.objects.map((o) => o.id)).toEqual(["mine"]);
+    expect(await be.readText(PATH)).toBe(broken);
+  });
+
+  it("묻기를 마치고 쓰기나 다시 읽기를 시작할 때 acting을 한 번 부르고, 취소면 부르지 않는다", async () => {
+    const { be, doc } = await openScene();
+    const steps: string[] = [];
+    const write = be.writeText.bind(be);
+    be.writeText = async (p, text) => {
+      steps.push("write");
+      return write(p, text);
+    };
+    const acting = () => void steps.push("acting");
+    const { guard } = guardFor(be, { choices: ["cancel", "overwrite", "reload"], discard: [true] });
+    const ask = guard.askConflict;
+    guard.askConflict = async (d, c) => {
+      steps.push("ask");
+      return ask(d, c);
+    };
+    // 충돌이 없으면 확인 뒤 바로 쓴다
+    expect(await doc.saveChecked(guard, { acting })).toBe("saved");
+    expect(steps).toEqual(["acting", "write"]);
+    // 취소면 쓰지 않고 부르지 않는다
+    steps.length = 0;
+    be.simulateExternalChange(PATH, "modify", OUTSIDE);
+    doc.apply(doc.scene.addObject(makeObject("node", "second", {})));
+    expect(await doc.saveChecked(guard, { acting })).toBe("cancelled");
+    expect(steps).toEqual(["ask"]);
+    // 덮어쓰기: 고른 뒤에 부르고 쓴다
+    steps.length = 0;
+    expect(await doc.saveChecked(guard, { acting })).toBe("saved");
+    expect(steps).toEqual(["ask", "acting", "write"]);
+    // 다시 읽기: 버리기를 확인한 뒤에 부른다
+    steps.length = 0;
+    be.simulateExternalChange(PATH, "modify", OUTSIDE);
+    doc.apply(doc.scene.addObject(makeObject("node", "third", {})));
+    expect(await doc.saveChecked(guard, { acting })).toBe("reloaded");
+    expect(steps).toEqual(["ask", "acting"]);
   });
 
   it("배너의 내 것으로 덮어쓰기(allowOverwrite) 뒤의 저장은 묻지 않고 쓴다", async () => {
