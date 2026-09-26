@@ -81,7 +81,7 @@ function encodePath(rel: string): string {
 
 export class BridgeBackend implements ProjectBackend {
   readonly kind = "bridge" as const;
-  readonly capabilities: BackendCapabilities = { run: false, pickFolder: false, watch: true };
+  readonly capabilities: BackendCapabilities = { run: false, pickFolder: false, watch: true, hmr: true };
 
   private baseUrl: string;
   private opened = false;

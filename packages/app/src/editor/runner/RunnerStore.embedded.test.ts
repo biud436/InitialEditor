@@ -1,10 +1,20 @@
 // 실행 방식 나누기 (E4): 에디터 안 실행(가짜 EmbeddedEngine)과 프로세스 실행을 RunnerStore 가 고르는가.
 // 엔진이 던진 값(WebAssembly.Exception 처럼 message 가 없는 것)이 콘솔과 토스트에 "undefined" 로 나오지 않는가.
+// 밖의 엔진으로 보낼지는 백엔드의 capabilities.hmr이 정하고(메모리 백엔드는 늘 false), 뜨는 중의 리로드는 첫 프레임 뒤에 올린다.
 
 import { BackendError, LogStore, MemorySettingsStorage, Project, SettingsStore, type OutputStream, type ProjectBackend, type RunHandle, type RunSpec } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
-import { describe, expect, it } from "vitest";
-import { EMBEDDED_HINT, HMR_NO_ENGINE_SKIPPED, RunnerStore, WASM_NO_MRUBY, type EmbeddedEngine, type RunnerHost } from "./RunnerStore";
+import { describe, expect, it, vi } from "vitest";
+import {
+  browserRunNotice,
+  EMBEDDED_HINT,
+  HMR_NO_ENGINE_SKIPPED,
+  RunnerStore,
+  START_ENDED_RELOAD_DROPPED,
+  WASM_NO_MRUBY,
+  type EmbeddedEngine,
+  type RunnerHost,
+} from "./RunnerStore";
 
 class FakeHandle implements RunHandle {
   id = 1;
@@ -49,6 +59,13 @@ class FakeEmbedded implements EmbeddedEngine {
   launchError: { value: unknown } | null = null;
   /** reload 의 결과: 스크립트 오류, 또는 던질 값 (던지면 게임 뷰처럼 세션을 종료 코드 1 로 끝낸다) */
   reloadResult: "ok" | "scriptError" | { throws: unknown } = "ok";
+  /** whenStepped의 결과 (기본은 바로 true: 첫 프레임을 돌았다). 약속이면 그것을 기다린다 */
+  stepped: boolean | Promise<boolean> = true;
+  steppedFor: RunHandle[] = [];
+  async whenStepped(handle: RunHandle) {
+    this.steppedFor.push(handle);
+    return this.stepped;
+  }
   async loadFeatures() {
     if (this.featuresError) throw this.featuresError.value;
     return this.features;
@@ -81,14 +98,24 @@ class FakeEmbedded implements EmbeddedEngine {
 }
 
 function withRun(mem: MemoryBackend, onRun: (spec: RunSpec) => Promise<RunHandle>): ProjectBackend {
-  return Object.assign(Object.create(mem) as MemoryBackend, { kind: "tauri", capabilities: { run: true, pickFolder: true, watch: true }, run: onRun });
+  return Object.assign(Object.create(mem) as MemoryBackend, { kind: "tauri", capabilities: { run: true, pickFolder: true, watch: true, hmr: true }, run: onRun });
+}
+
+/** 브리지처럼: 엔진은 못 띄우고 밖의 엔진으로는 보낸다 (kind는 bridge 그대로, hmrPush는 mem.pushed에 남는다) */
+function bridgeLike(mem: MemoryBackend): MemoryBackend {
+  return Object.assign(Object.create(mem) as MemoryBackend, { capabilities: { run: false, pickFolder: false, watch: true, hmr: true } });
+}
+
+/** 웹판의 브라우저 폴더처럼 (FsAccessBackend의 kind와 capabilities) */
+function browserLike(mem: MemoryBackend): MemoryBackend {
+  return Object.assign(Object.create(mem) as MemoryBackend, { kind: "browser", capabilities: { run: false, pickFolder: true, watch: true, hmr: false } });
 }
 
 /** 브리지 서버가 엔진 포트에 연결하지 못했을 때의 502 */
 const REFUSED = "HMR push failed (127.0.0.1:5959): connect ECONNREFUSED 127.0.0.1:5959 — 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
 
-/** 기본은 브리지처럼 (MemoryBackend 의 kind 는 bridge, hmrPush 는 mem.pushed 에 남는다). memory 면 메모리 모드 (엔진이 없다) */
-async function setup(opts: { tauri?: boolean; memory?: boolean; runMode?: "process" | "embedded"; script?: "lua" | "mruby" } = {}) {
+/** 기본은 브리지처럼 (bridgeLike). memory 면 메모리 백엔드 그대로 (메모리 모드와 웹판의 샘플, 엔진이 없다) */
+async function setup(opts: { tauri?: boolean; memory?: boolean; browser?: boolean; runMode?: "process" | "embedded"; script?: "lua" | "mruby" } = {}) {
   const mem = new MemoryBackend({
     "game.json": JSON.stringify({ windowWidth: 320, windowHeight: 240, renderScale: 1, script: opts.script ?? "lua" }),
     "scripts/lua/main.lua": "print('main')",
@@ -99,7 +126,11 @@ async function setup(opts: { tauri?: boolean; memory?: boolean; runMode?: "proce
         specs.push(spec);
         return new FakeHandle(4321);
       })
-    : mem;
+    : opts.memory
+      ? mem
+      : opts.browser
+        ? browserLike(mem)
+        : bridgeLike(mem);
   const project = new Project(backend);
   const settings = new SettingsStore(new MemorySettingsStorage());
   if (opts.runMode) settings.update({ runMode: opts.runMode }, false);
@@ -114,7 +145,6 @@ async function setup(opts: { tauri?: boolean; memory?: boolean; runMode?: "proce
     unavailableReason: "브라우저 모드에서는 엔진을 띄울 수 없다",
     probe: opts.tauri ? async () => ["lua"] : undefined,
     stopTimeoutMs: 200,
-    externalEngine: !opts.memory,
   });
   return { runner, embedded, specs, log, toasts, settings, mem, backend };
 }
@@ -236,9 +266,7 @@ describe("RunnerStore 실행 방식", () => {
   });
 
   it("웹판(브라우저 폴더)은 밖으로 보낼 길이 없어 게임이 돌 때만 리로드한다", async () => {
-    const { runner, embedded } = await setup();
-    const host = (runner as unknown as { host: { backend: object } }).host;
-    Object.defineProperty(host.backend, "kind", { value: "browser" });
+    const { runner, embedded } = await setup({ browser: true });
     expect(runner.canPush).toBe(false);
     expect(runner.canReload).toBe(false);
     expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
@@ -251,6 +279,9 @@ describe("RunnerStore 실행 방식", () => {
 
   it("메모리 백엔드는 엔진이 없어 보내지 않는다: 게임 전에도 끝난 뒤에도 리로드했다고 적지 않는다", async () => {
     const { runner, embedded, mem, log, toasts } = await setup({ memory: true });
+    // 모드가 아니라 백엔드가 정한다: 웹판의 샘플도 메모리 백엔드이고 kind는 브리지와 같다
+    expect(mem.kind).toBe("bridge");
+    expect(mem.capabilities.hmr).toBe(false);
     expect(runner.canPush).toBe(false);
     expect(runner.canReload).toBe(false);
     expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
@@ -329,9 +360,10 @@ describe("RunnerStore 실행 방식", () => {
     open();
     await starting;
     expect(runner.state).toBe("running");
-    expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"]]);
-    await Promise.resolve();
-    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진, 2개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)");
+    // 첫 프레임 뒤 (가짜는 바로 첫 프레임을 돈다)
+    await vi.waitFor(() => expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"]]));
+    expect(embedded.steppedFor).toEqual([embedded.handles[0]]);
+    await vi.waitFor(() => expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진, 2개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)"));
     expect(mem.pushed).toEqual([]);
     expect(toasts).toEqual([]);
 
@@ -345,9 +377,90 @@ describe("RunnerStore 실행 방식", () => {
     await runner.reload();
     open();
     await again;
+    await vi.waitFor(() => expect(embedded.reloads).toHaveLength(2));
     expect(embedded.reloads.at(-1)).toBeUndefined();
+    expect(mem.pushed).toEqual([]);
+  });
+
+  it("떴지만 첫 프레임 전의 리로드도 모았다가 엔진이 첫 프레임을 돈 뒤에 올린다", async () => {
+    const { runner, embedded, mem, log } = await setup({ memory: true });
+    let step!: (ok: boolean) => void;
+    embedded.stepped = new Promise((r) => (step = r));
+    await runner.start();
+    expect(runner.state).toBe("running");
+    expect(runner.embeddedRunning).toBe(true);
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(await runner.reload(["resources/maps/a.json"], { fromSave: true })).toBeNull();
+    expect(embedded.reloads).toEqual([]);
+    expect(texts(log).filter((l) => l.includes("에디터 안 엔진이 뜨는 중이다"))).toHaveLength(2);
+    step(true);
+    await vi.waitFor(() => expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"]]));
+    // 첫 프레임 뒤의 리로드는 바로 간다
+    expect(await runner.reload(["scripts/lua/main.lua"])).toEqual({ count: 1 });
     expect(embedded.reloads).toHaveLength(2);
     expect(mem.pushed).toEqual([]);
+    expect(texts(log)).not.toContainEqual(`info/runner: ${START_ENDED_RELOAD_DROPPED}`);
+  });
+
+  it("첫 프레임 전에 게임이 끝나면(시작 스크립트의 오류) 모아 둔 리로드를 버리고 한 줄 남긴다. 다음 실행은 새로 올린 글로 돈다", async () => {
+    for (const order of ["exit first", "stepped first"] as const) {
+      const { runner, embedded, mem, log, toasts } = await setup({ memory: true });
+      let open!: () => void;
+      embedded.gate = new Promise((r) => (open = r));
+      let step!: (ok: boolean) => void;
+      embedded.stepped = new Promise((r) => (step = r));
+      const starting = runner.start();
+      await vi.waitFor(() => expect(embedded.launches).toHaveLength(1));
+      // 부팅 중에 고쳐 저장한다
+      expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+      open();
+      await starting;
+      expect(runner.state).toBe("running");
+      if (order === "exit first") {
+        // 엔진이 첫 프레임에서 루프를 내린다 (시작 때의 오류가 종료를 요청해 두었다)
+        embedded.handles[0].exit(1);
+        step(false);
+      } else {
+        step(false);
+        await vi.waitFor(() => expect(texts(log)).toContainEqual(`info/runner: ${START_ENDED_RELOAD_DROPPED}`));
+        embedded.handles[0].exit(1);
+      }
+      await vi.waitFor(() => expect(runner.state).toBe("idle"));
+      await new Promise((r) => setTimeout(r, 10));
+      expect(runner.exitCode, order).toBe(1);
+      expect(embedded.reloads, order).toEqual([]);
+      expect(mem.pushed, order).toEqual([]);
+      expect(texts(log).filter((l) => l === `info/runner: ${START_ENDED_RELOAD_DROPPED}`), order).toHaveLength(1);
+      expect(texts(log).some((l) => l.includes("다시 올렸다")), order).toBe(false);
+      expect(toasts, order).toEqual(["error: 엔진이 종료 코드 1 로 끝났다. 콘솔을 본다"]);
+
+      // 버린 리로드는 다음 실행에 남지 않는다 (F5는 저장한 글을 처음부터 올린다)
+      embedded.gate = null;
+      embedded.stepped = true;
+      await runner.start();
+      await new Promise((r) => setTimeout(r, 10));
+      expect(runner.state, order).toBe("running");
+      expect(embedded.reloads, order).toEqual([]);
+      await runner.stop();
+    }
+  });
+
+  it("모아 둔 리로드가 없으면 첫 프레임 전에 끝나도 줄을 남기지 않는다", async () => {
+    const { runner, embedded, log } = await setup({ memory: true });
+    embedded.stepped = new Promise(() => {});
+    await runner.start();
+    embedded.handles[0].exit(1);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(runner.state).toBe("idle");
+    expect(texts(log)).not.toContainEqual(`info/runner: ${START_ENDED_RELOAD_DROPPED}`);
+  });
+
+  it("엔진을 못 띄우는 백엔드의 시작 안내는 밖의 엔진으로 보낼 길이 있을 때만 수동 리로드를 적는다", () => {
+    expect(browserRunNotice(true)).toBe(
+      "브라우저 모드: 실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다. 터미널에서 INITIAL2D_HMR=1 로 띄운 엔진에는 수동 리로드(Ctrl+Shift+R)가 간다",
+    );
+    expect(browserRunNotice(false)).toBe("브라우저 모드: 실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다. 밖에서 띄운 엔진으로는 보내지 않고, 저장한 파일은 게임 탭이 돌 때 다시 읽는다");
+    expect(browserRunNotice(false)).not.toContain("수동 리로드");
   });
 
   it("뜨는 중에 그만두면 모아 둔 리로드는 버린다", async () => {

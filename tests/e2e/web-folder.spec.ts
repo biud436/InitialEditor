@@ -10,6 +10,7 @@
 // 폴더 고르기 대화상자는 OPFS 하위 폴더를 돌려주는 가짜로 바꾼다 (PICKER_STUB).
 // 샘플로 해 보기 뒤의 Ctrl+O 와 파일 > 프로젝트 열기도 폴더 고르기다. 저장하지 않은 문서를 묻는 곳에서 취소하면
 // 기억한 기록과 페이지의 핸들이 그대로다 (이름이 같은 두 폴더 a/game, b/game).
+// 샘플은 메모리 백엔드라 밖에 엔진이 없다: 수동 리로드는 게임 탭이 돌 때만 켜지고, 게임이 끝난 뒤 저장해도 보냈다고 적지 않는다.
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -353,6 +354,50 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       await expect(page.getByTestId("console-list")).toContainText("백엔드 교체: browser");
     }
     expect(browser.isConnected()).toBe(true);
+  });
+
+  test("샘플로 해 보기(메모리 백엔드)는 밖에 엔진이 없다: 수동 리로드는 게임 탭이 돌 때만 켜지고, 게임이 끝난 뒤 저장해도 보냈다고 적지 않는다", async ({ page }) => {
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    await welcome.getByRole("button", { name: "샘플로 해 보기" }).click();
+    await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
+    const toolbar = page.getByTestId("toolbar");
+    const reload = toolbar.locator('[data-command="run.reload"]');
+    await expect(reload).toBeDisabled();
+    await expect(toolbar.locator('span.toolbar-tip:has([data-command="run.reload"])')).toHaveAttribute("title", /게임 탭에서 실행 중일 때 다시 읽는다/);
+    const list = page.getByTestId("console-list");
+    await expect(list).toContainText("밖에서 띄운 엔진으로는 보내지 않고, 저장한 파일은 게임 탭이 돌 때 다시 읽는다");
+    await expect(list).not.toContainText("수동 리로드(Ctrl+Shift+R)가 간다");
+
+    const tree = page.getByTestId("project-tree");
+    await tree.locator('[data-path="scripts"]').click();
+    await tree.locator('[data-path="scripts/lua"]').click();
+    await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
+    await expect(page.locator(CODE)).toContainText("function init()");
+    await page.locator(CODE).click();
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await expect(reload).toBeEnabled();
+    await page.keyboard.press("Shift+F5");
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    await expect(reload).toBeDisabled();
+
+    // 게임이 끝난 뒤 고쳐 저장한다
+    const rowsBefore = await list.locator(".console-row").count();
+    const tab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await tab.click();
+    await page.locator(CODE).click();
+    await page.keyboard.press("ControlOrMeta+End");
+    await page.keyboard.insertText("\n-- 끝난 뒤에 고침");
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
+    await page.waitForTimeout(1000); // 저장 리로드의 디바운스(300ms)보다 길게
+    const after = await list.locator(".console-row").allInnerTexts();
+    expect(after.slice(rowsBefore).filter((t) => t.includes("리로드"))).toEqual([]);
+    await expect(list).not.toContainText("개 파일을 보냈다");
+    await expect(page.getByTestId("toasts")).not.toContainText("리로드");
+    await expect(reload).toBeDisabled();
   });
 
   test("저장하지 않은 문서를 묻는 곳에서 Ctrl+O 를 취소하면 기억한 기록과 페이지의 핸들이 그대로다 (이름이 같은 두 폴더 a/game, b/game)", async ({

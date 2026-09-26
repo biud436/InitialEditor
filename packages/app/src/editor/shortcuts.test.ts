@@ -1,7 +1,17 @@
 // @vitest-environment jsdom
-import { CommandRegistry } from "@initial-editor/core";
+import { CommandRegistry, MemoryBackend } from "@initial-editor/core";
 import { describe, expect, it, vi } from "vitest";
-import { allowedInEditable, installShortcuts, installUnloadGuard, isBoundKey, isEditableTarget, resolveShortcut } from "./shortcuts";
+import {
+  allowedInEditable,
+  installShortcuts,
+  installUnloadGuard,
+  isBoundKey,
+  isBoundReloadKey,
+  isEditableTarget,
+  isReloadKey,
+  losesWorkOnUnload,
+  resolveShortcut,
+} from "./shortcuts";
 
 function registry(platform: "mac" | "win" = "mac") {
   const commands = new CommandRegistry({ platform });
@@ -230,6 +240,108 @@ describe("단축키 규칙", () => {
   });
 });
 
+describe("새로 고침 계열 키", () => {
+  it("F5와 그 조합, Ctrl+R과 Ctrl+Shift+R(mac은 Cmd)이다", () => {
+    expect(isReloadKey(key("F5"), "mac")).toBe(true);
+    expect(isReloadKey(key("F5", { shift: true }), "win")).toBe(true);
+    expect(isReloadKey(key("F5", { ctrl: true }), "win")).toBe(true);
+    expect(isReloadKey(key("r", { meta: true }), "mac")).toBe(true);
+    expect(isReloadKey(key("R", { meta: true, shift: true }), "mac")).toBe(true);
+    expect(isReloadKey(key("r", { ctrl: true }), "win")).toBe(true);
+    expect(isReloadKey(key("R", { ctrl: true, shift: true }), "linux")).toBe(true);
+    // mac의 Ctrl+R과 그 밖의 Cmd+R은 새로 고침이 아니다
+    expect(isReloadKey(key("r", { ctrl: true }), "mac")).toBe(false);
+    expect(isReloadKey(key("r", { meta: true }), "win")).toBe(false);
+    expect(isReloadKey(key("r", { meta: true, alt: true }), "mac")).toBe(false);
+    expect(isReloadKey(key("r"), "mac")).toBe(false);
+    expect(isReloadKey(key("s", { meta: true }), "mac")).toBe(false);
+  });
+
+  it("비활성 커맨드에 묶인 Ctrl+Shift+R도 기본 동작(브라우저의 강력 새로 고침)을 막는다. 묶이지 않은 Ctrl+R은 건드리지 않는다", async () => {
+    for (const platform of ["mac", "win"] as const) {
+      let canReload = false;
+      const commands = new CommandRegistry({ platform });
+      const calls: string[] = [];
+      commands.register({ id: "run.reload", label: "리로드", shortcut: "Ctrl+Shift+R", enabled: () => canReload, run: () => void calls.push("run.reload") });
+      const off = installShortcuts(commands, window);
+      const primary = platform === "mac" ? { metaKey: true } : { ctrlKey: true };
+      const press = (init: KeyboardEventInit, target: EventTarget = window) => {
+        const ev = new KeyboardEvent("keydown", { ...init, bubbles: true, cancelable: true });
+        target.dispatchEvent(ev);
+        return ev;
+      };
+
+      const disabled = press({ key: "R", shiftKey: true, ...primary });
+      await Promise.resolve();
+      expect(calls, platform).toEqual([]);
+      expect(disabled.defaultPrevented, platform).toBe(true);
+      expect(isBoundReloadKey(commands, key("R", platform === "mac" ? { meta: true, shift: true } : { ctrl: true, shift: true }))).toBe(true);
+      expect(isBoundReloadKey(commands, key("r", platform === "mac" ? { meta: true } : { ctrl: true }))).toBe(false);
+
+      // 묶이지 않은 Ctrl+R(Shift 없이)은 브라우저에 맡긴다
+      const plain = press({ key: "r", ...primary });
+      expect(plain.defaultPrevented, platform).toBe(false);
+
+      // 입력 칸 안에서도 막고, 켜져 있으면 실행한다
+      const textarea = document.createElement("textarea");
+      document.body.append(textarea);
+      const inEditor = press({ key: "R", shiftKey: true, ...primary }, textarea);
+      expect(inEditor.defaultPrevented, platform).toBe(true);
+      canReload = true;
+      const enabled = press({ key: "R", shiftKey: true, ...primary }, textarea);
+      await Promise.resolve();
+      expect(calls, platform).toEqual(["run.reload"]);
+      expect(enabled.defaultPrevented, platform).toBe(true);
+      off();
+    }
+  });
+
+  it("Ctrl+R에 묶인 커맨드가 있으면 비활성이어도 막는다", () => {
+    const commands = new CommandRegistry({ platform: "win" });
+    commands.register({ id: "run.restartHere", label: "여기서 다시", shortcut: "Ctrl+R", enabled: () => false, run: () => {} });
+    const off = installShortcuts(commands, window);
+    const ev = new KeyboardEvent("keydown", { key: "r", ctrlKey: true, bubbles: true, cancelable: true });
+    window.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(true);
+    // Ctrl+Shift+R은 묶이지 않아서 건드리지 않는다
+    const hard = new KeyboardEvent("keydown", { key: "R", ctrlKey: true, shiftKey: true, bubbles: true, cancelable: true });
+    window.dispatchEvent(hard);
+    expect(hard.defaultPrevented).toBe(false);
+    off();
+  });
+
+  it("IME 조합 중과 모달 대화상자가 떠 있을 때도 묶인 Cmd+Shift+R은 페이지를 새로 고치지 않는다", async () => {
+    let modal = false;
+    let canReload = true;
+    const commands = new CommandRegistry({ platform: "mac" });
+    const calls: string[] = [];
+    commands.register({ id: "run.reload", label: "리로드", shortcut: "Ctrl+Shift+R", enabled: () => canReload, run: () => void calls.push("run.reload") });
+    const off = installShortcuts(commands, window, { suspended: () => modal });
+    const textarea = document.createElement("textarea");
+    document.body.append(textarea);
+    const press = (composing: boolean) => {
+      const ev = new KeyboardEvent("keydown", { key: "R", metaKey: true, shiftKey: true, isComposing: composing, bubbles: true, cancelable: true });
+      textarea.dispatchEvent(ev);
+      return ev;
+    };
+
+    const composing = press(true);
+    await Promise.resolve();
+    expect(calls).toEqual(["run.reload"]);
+    expect(composing.defaultPrevented).toBe(true);
+    canReload = false;
+    expect(press(true).defaultPrevented).toBe(true);
+
+    modal = true;
+    canReload = true;
+    const inModal = press(false);
+    await Promise.resolve();
+    expect(calls).toEqual(["run.reload"]);
+    expect(inModal.defaultPrevented).toBe(true);
+    off();
+  });
+});
+
 describe("installUnloadGuard", () => {
   /** BeforeUnloadEvent 처럼 returnValue 가 글인 이벤트 (jsdom 의 Event.returnValue 는 불리언이다) */
   function beforeUnload(): Event {
@@ -256,5 +368,27 @@ describe("installUnloadGuard", () => {
     const after = beforeUnload();
     target.dispatchEvent(after);
     expect(after.defaultPrevented).toBe(false);
+  });
+
+  it("메모리 백엔드에 이번 세션에 저장한 것이 있으면 문서가 모두 저장되어 있어도 묻는다 (에디터의 레이아웃 파일은 세지 않는다)", async () => {
+    const backend = new MemoryBackend({ "game.json": "{}", "scripts/lua/main.lua": "-- a" });
+    await backend.open("memory://sample");
+    const target = new EventTarget();
+    const off = installUnloadGuard(() => losesWorkOnUnload(0, backend), target);
+    const ask = () => {
+      const ev = beforeUnload();
+      target.dispatchEvent(ev);
+      return ev.defaultPrevented;
+    };
+    expect(ask()).toBe(false);
+    await backend.writeText(".initial-editor/layout.json", "{}");
+    expect(ask()).toBe(false);
+    await backend.writeText("scripts/lua/main.lua", "-- b");
+    expect(ask()).toBe(true);
+    off();
+
+    // 디스크에 쓰는 백엔드(volatileWrites가 없다)는 문서만 본다
+    expect(losesWorkOnUnload(0, {})).toBe(false);
+    expect(losesWorkOnUnload(2, {})).toBe(true);
   });
 });

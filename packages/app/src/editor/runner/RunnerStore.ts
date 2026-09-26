@@ -56,6 +56,11 @@ export interface EmbeddedEngine {
   abort(): void;
   /** paths(없으면 scripts 와 씬과 맵 전부)를 다시 올리고 VM 을 다시 시작한다. 엔진이 예외로 죽으면 던진다 */
   reload(paths?: readonly string[]): Promise<EmbeddedReload>;
+  /**
+   * launch가 돌려준 실행의 엔진이 프레임을 하나 이상 돌았고 아직 돌면 true, 그 전에 끝나면 false 로 풀린다.
+   * 시작 스크립트의 오류는 루프에 종료를 요청해 두므로, 첫 프레임 전에 올린 고침은 받아들여지고도 게임이 끝난다
+   */
+  whenStepped(handle: RunHandle): Promise<boolean>;
   /** 상태 바 툴팁 (웹 엔진의 기능과 커밋) */
   readonly description: string | null;
 }
@@ -70,13 +75,19 @@ export interface RunnerOptions {
   now?: () => number;
   /** 에디터 안 실행. 없으면 process 만 있다 */
   embedded?: EmbeddedEngine;
-  /** 밖에서 띄운 엔진이 있을 수 있는가 (기본 true). 메모리 모드는 false: 엔진이 없어 hmrPush 를 부르지 않는다 */
-  externalEngine?: boolean;
 }
 
 export interface ReloadOptions {
   /** 저장 시 리로드 (SaveReloader). 브리지 너머에 엔진이 없으면(연결 거부) 토스트 없이 한 줄만 남긴다 */
   fromSave?: boolean;
+}
+
+/** 엔진을 띄우지 못하는 백엔드로 프로젝트를 열 때 콘솔에 남기는 안내. 수동 리로드는 밖의 엔진으로 보낼 길이 있을 때만 적는다 */
+export function browserRunNotice(canPush: boolean): string {
+  const run = "브라우저 모드: 실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다.";
+  return canPush
+    ? `${run} 터미널에서 INITIAL2D_HMR=1 로 띄운 엔진에는 수동 리로드(Ctrl+Shift+R)가 간다`
+    : `${run} 밖에서 띄운 엔진으로는 보내지 않고, 저장한 파일은 게임 탭이 돌 때 다시 읽는다`;
 }
 
 /** 브리지가 전한 핫 리로드 실패가 엔진 쪽 포트의 연결 거부인가 (엔진이 떠 있지 않다) */
@@ -98,6 +109,7 @@ export const EMBEDDED_HINT = "에디터 안 게임 탭에서 돈다 (웹 엔진)
 export const RUN_MODE_LABELS: Record<RunMode, string> = { process: "프로세스", embedded: "에디터 안" };
 export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
 export const HMR_NO_ENGINE_SKIPPED = "엔진이 떠 있지 않아 리로드를 건너뛰었다";
+export const START_ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
 const LOG_SOURCE = "runner";
 const DEFAULT_STOP_TIMEOUT_MS = 4000;
 
@@ -146,14 +158,15 @@ export class RunnerStore {
   private readonly stopTimeoutMs: number;
   private readonly clock: () => number;
   private readonly embedded: EmbeddedEngine | null;
-  private readonly externalEngine: boolean;
   private ticker: ReturnType<typeof setInterval> | null = null;
   private startPromise: Promise<void> | null = null;
   private lastStart: StartOptions = {};
   private resolveToken = 0;
   private exitWaiters: Array<() => void> = [];
-  /** 에디터 안 엔진이 뜨는 중에 들어온 리로드. 뜬 뒤 한 번에 올린다 ("all" 은 scripts 와 씬과 맵 전부) */
+  /** 에디터 안 엔진이 뜨는 중에 들어온 리로드. 첫 프레임을 돈 뒤 한 번에 올린다 ("all" 은 scripts 와 씬과 맵 전부) */
   private queuedReload: Set<string> | "all" | null = null;
+  /** 떴지만 아직 첫 프레임을 돌지 않은 에디터 안 실행. 그동안의 리로드도 모은다 */
+  private awaitingFrame: RunHandle | null = null;
 
   constructor(
     private readonly host: RunnerHost,
@@ -164,7 +177,6 @@ export class RunnerStore {
     this.stopTimeoutMs = opts.stopTimeoutMs ?? DEFAULT_STOP_TIMEOUT_MS;
     this.clock = opts.now ?? (() => Date.now());
     this.embedded = opts.embedded ?? null;
-    this.externalEngine = opts.externalEngine ?? true;
     this.now = this.clock();
     makeObservable(this, {
       state: observable,
@@ -275,9 +287,18 @@ export class RunnerStore {
     return undefined;
   }
 
-  /** 밖에서 띄운 엔진의 핫 리로드 서버로 보낼 길이 있는가. 브라우저 폴더(웹판)와 메모리 모드(엔진이 없다)에는 없다 */
+  /**
+   * 밖에서 띄운 엔진의 핫 리로드 서버로 보낼 길이 있는가. 백엔드가 안다 (capabilities.hmr): 브라우저 폴더(웹판)와
+   * 메모리 백엔드(메모리 모드, 웹판의 샘플. 엔진이 없다)에는 없다
+   */
   get canPush(): boolean {
-    return this.externalEngine && this.host.backend.kind !== "browser";
+    return this.host.backend.capabilities.hmr;
+  }
+
+  /** 에디터 안 엔진이 뜨는 중이다: 파일 올리는 중, 부팅 중, 또는 떴지만 아직 첫 프레임 전 */
+  private get embeddedStarting(): boolean {
+    if (this.activeMode !== "embedded") return false;
+    return this.state === "starting" || (this.state === "running" && this.handle !== null && this.awaitingFrame === this.handle);
   }
 
   get elapsedMs(): number {
@@ -445,10 +466,34 @@ export class RunnerStore {
     handle.onOutput((line) => {
       log.append(classifyEngineLine(line), "engine", line);
     });
+    if (mode === "embedded") this.awaitingFrame = handle;
     handle.onExit((code) => this.onExit(handle, code));
+    if (mode === "embedded") void this.reloadQueuedAfterFirstFrame(handle);
+  }
+
+  /**
+   * 뜨는 중에 모아 둔 리로드는 엔진이 첫 프레임을 돌고 아직 돌 때 올린다. 시작 스크립트가 오류로 끝나면 엔진은 이미
+   * 종료를 요청해 두어서 그 전에 올린 고침도 다음 프레임에 함께 끝난다. 그 전에 끝나면 버리고 한 줄 남긴다 (F5가 저장한 글로 돈다)
+   */
+  private async reloadQueuedAfterFirstFrame(handle: RunHandle): Promise<void> {
+    const stepped = await this.embedded!.whenStepped(handle);
+    if (this.awaitingFrame !== handle) return; // 끝나서 onExit가 이미 정리했다
+    if (!stepped || this.handle !== handle || !this.embeddedRunning) {
+      this.dropQueuedReload();
+      return;
+    }
+    this.awaitingFrame = null;
     const queued = this.queuedReload;
     this.queuedReload = null;
-    if (queued && this.embeddedRunning) void this.reloadEmbedded(queued === "all" ? undefined : [...queued]);
+    if (queued) await this.reloadEmbedded(queued === "all" ? undefined : [...queued]);
+  }
+
+  /** 첫 프레임 전에 게임이 끝났다. 모아 둔 리로드가 있으면 버리고 한 줄 남긴다 */
+  private dropQueuedReload(): void {
+    this.awaitingFrame = null;
+    if (!this.queuedReload) return;
+    this.queuedReload = null;
+    this.host.log.info(LOG_SOURCE, START_ENDED_RELOAD_DROPPED);
   }
 
   /** 실패를 콘솔과 토스트에 알리고 null */
@@ -546,6 +591,7 @@ export class RunnerStore {
       log.error(LOG_SOURCE, `엔진 종료 코드 ${code} (경과 ${elapsed}). 위의 오류 줄을 누르면 그 자리로 간다`);
       toasts.error(`엔진이 종료 코드 ${code} 로 끝났다. 콘솔을 본다`);
     }
+    if (this.awaitingFrame === handle) this.dropQueuedReload();
   }
 
   /** 정지. 시작 중이면 시작이 끝나기를 기다렸다가 정지한다. 이미 멈춰 있으면 아무것도 하지 않는다 */
@@ -599,12 +645,13 @@ export class RunnerStore {
    * 묶음을 엔진의 핫 리로드 서버로 보낸다. Tauri 는 여기서 모으고(hmrCollect.ts), 브리지는 서버가 모으므로 빈 목록.
    * 엔진은 받으면 VM 을 통째로 다시 시작한다 (씬 상태는 날아간다). 결과나 실패 이유를 콘솔에 남긴다.
    * 에디터 안 엔진이 돌고 있으면 그쪽으로 paths 를 다시 올린다 (paths 가 없으면 scripts 와 씬과 맵 전부).
-   * 에디터 안 엔진이 뜨는 중이면 모아 두었다가 뜬 뒤에 올린다. 보낼 길이 없는 백엔드(메모리, 웹판)는 보내지 않는다.
+   * 에디터 안 엔진이 뜨는 중이면(첫 프레임 전까지) 모아 두었다가 첫 프레임 뒤에 올린다. 보낼 길이 없는 백엔드
+   * (메모리, 웹판)는 보내지 않는다.
    */
   async reload(paths?: readonly string[], opts: ReloadOptions = {}): Promise<{ count: number } | null> {
     const { backend, project, log, toasts } = this.host;
     if (!project.isOpen) return null;
-    if (this.activeMode === "embedded" && this.state === "starting") {
+    if (this.embeddedStarting) {
       this.queueReload(paths);
       log.info(LOG_SOURCE, "핫 리로드: 에디터 안 엔진이 뜨는 중이다. 뜨면 바뀐 파일을 다시 올린다");
       return null;

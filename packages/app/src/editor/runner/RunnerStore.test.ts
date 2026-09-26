@@ -1,6 +1,8 @@
 import {
   BackendError,
   LogStore,
+  type BackendCapabilities,
+  type BackendKind,
   MemorySettingsStorage,
   Project,
   SettingsStore,
@@ -43,11 +45,11 @@ class FakeHandle implements RunHandle {
   }
 }
 
-/** 메모리 백엔드에 Tauri 처럼 run 을 붙인 것 (kind 와 capabilities 만 다르다) */
-function tauriLike(mem: MemoryBackend, onRun: (spec: RunSpec) => Promise<RunHandle>): ProjectBackend {
+/** 메모리 백엔드에 kind와 capabilities와 run만 바꿔 씌운 것 */
+function delegating(mem: MemoryBackend, kind: BackendKind, capabilities: BackendCapabilities, onRun: (spec: RunSpec) => Promise<RunHandle>): ProjectBackend {
   return {
-    kind: "tauri",
-    capabilities: { run: true, pickFolder: true, watch: true },
+    kind,
+    capabilities,
     open: (root) => mem.open(root),
     list: (rel) => mem.list(rel),
     readText: (rel) => mem.readText(rel),
@@ -66,6 +68,16 @@ function tauriLike(mem: MemoryBackend, onRun: (spec: RunSpec) => Promise<RunHand
   };
 }
 
+/** 메모리 백엔드에 Tauri 처럼 run 을 붙인 것 (kind 와 capabilities 만 다르다) */
+function tauriLike(mem: MemoryBackend, onRun: (spec: RunSpec) => Promise<RunHandle>): ProjectBackend {
+  return delegating(mem, "tauri", { run: true, pickFolder: true, watch: true, hmr: true }, onRun);
+}
+
+/** 브리지처럼: 엔진은 못 띄우고 밖의 엔진으로는 보낸다 (hmrPush는 mem.pushed에 남는다) */
+function bridgeLike(mem: MemoryBackend): ProjectBackend {
+  return delegating(mem, "bridge", { run: false, pickFolder: false, watch: true, hmr: true }, (spec) => mem.run(spec));
+}
+
 interface Harness {
   host: RunnerHost;
   mem: MemoryBackend;
@@ -75,16 +87,19 @@ interface Harness {
   probed: string[];
 }
 
-async function harness(opts: { files?: Record<string, string>; tauri?: boolean; enginePath?: string; open?: boolean } = {}): Promise<Harness> {
+/** 기본은 Tauri처럼, tauri: false면 브리지처럼, memory면 메모리 백엔드 그대로 (메모리 모드와 웹판의 샘플) */
+async function harness(opts: { files?: Record<string, string>; tauri?: boolean; memory?: boolean; enginePath?: string; open?: boolean } = {}): Promise<Harness> {
   const mem = new MemoryBackend({
     "game.json": '{ "windowWidth": 320, "windowHeight": 240, "renderScale": 1, "script": "lua" }',
     "scripts/lua/main.lua": "print('main')",
     ...(opts.files ?? {}),
   });
   const handles: FakeHandle[] = [];
-  const backend = opts.tauri === false
+  const backend = opts.memory
     ? mem
-    : tauriLike(mem, async (spec) => {
+    : opts.tauri === false
+      ? bridgeLike(mem)
+      : tauriLike(mem, async (spec) => {
         const h = new FakeHandle(spec);
         handles.push(h);
         return h;
@@ -355,6 +370,20 @@ describe("RunnerStore 핫 리로드", () => {
     const runner = new RunnerStore(h.host);
     expect(await runner.reload()).toBeNull();
     expect(h.toasts).toContainEqual("error: 핫 리로드 실패: 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인 (connection refused)");
+  });
+
+  it("메모리 백엔드(메모리 모드, 웹판의 샘플)는 kind가 브리지와 같아도 밖으로 보내지 않고 수동 리로드를 꺼 둔다", async () => {
+    const h = await harness({ memory: true });
+    expect(h.host.backend.kind).toBe("bridge");
+    const runner = new RunnerStore(h.host);
+    expect(runner.canPush).toBe(false);
+    expect(runner.canReload).toBe(false);
+    expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
+    expect(await runner.reload()).toBeNull();
+    expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
+    expect(h.mem.pushed).toEqual([]);
+    expect(logTexts(h.log).filter((l) => l.includes("핫 리로드"))).toEqual([]);
+    expect(h.toasts).toEqual([]);
   });
 
   it("Tauri 에서 보낼 파일이 없으면 보내지 않는다", async () => {

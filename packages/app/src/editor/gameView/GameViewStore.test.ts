@@ -7,10 +7,10 @@ import { DocumentRegistry, LogStore, MemorySettingsStorage, Project, SettingsSto
 import { MemoryBackend } from "@initial-editor/core/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SaveReloader, shouldReloadOnSave } from "../runner/reloadOnSave";
-import { RunnerStore } from "../runner/RunnerStore";
+import { RunnerStore, START_ENDED_RELOAD_DROPPED } from "../runner/RunnerStore";
 import type { BootOptions, EngineGame, EngineRuntime, StageData } from "./engineAssets";
 import { GAME_KIND, GameDocument } from "./GameDocument";
-import { LOOP_STOPPED_LINE, type GameSession } from "./GameSession";
+import { GameSession, LOOP_STOPPED_LINE } from "./GameSession";
 import { GameViewStore } from "./GameViewStore";
 
 class FakeGame implements EngineGame {
@@ -537,14 +537,14 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     runner.dispose();
   });
 
-  /** 실행기, 저장 리로더, 게임 뷰를 잇는다. 메모리 모드(밖의 엔진이 없다)의 연결과 같다 */
+  /** 실행기, 저장 리로더, 게임 뷰를 잇는다. 메모리 백엔드(밖의 엔진이 없다, capabilities.hmr이 false)의 연결과 같다 */
   function wire(t: Awaited<ReturnType<typeof setup>>) {
     const settings = new SettingsStore(new MemorySettingsStorage());
     const toasts: string[] = [];
     const toast = (level: string) => (text: string) => void toasts.push(`${level}: ${text}`);
     const runner = new RunnerStore(
       { backend: t.backend, project: t.project, settings, log: t.log, toasts: { info: toast("info"), success: toast("success"), warn: toast("warn"), error: toast("error") }, platform: "mac" },
-      { embedded: t.store, externalEngine: false },
+      { embedded: t.store },
     );
     const saves = new SaveReloader(
       {
@@ -630,5 +630,115 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     expect(t.log.entries.slice(before).filter((e) => e.text.includes("리로드"))).toEqual([]);
     expect(toasts.filter((x) => x.includes("리로드"))).toEqual([]);
     runner.dispose();
+  });
+  it("시작 스크립트의 오류로 첫 프레임에 끝나는 게임이 부팅 중에 받은 저장은 올리지 않고 한 줄 남기며, F5는 저장한 글로 돈다 (새 로더)", async () => {
+    const t = await setup({}, { newLoader: true });
+    const { runner, saves, toasts } = wire(t);
+    expect(runner.canPush).toBe(false);
+    const open = t.hold();
+    const starting = runner.start();
+    await vi.waitFor(() => expect(t.store.phase).toBe("booting"));
+    await t.backend.writeText("scripts/lua/main.lua", "print('fixed')");
+    saves.onSaved("scripts/lua/main.lua");
+    await vi.waitFor(() => expect(saves.pending).toBe(false));
+    open();
+    await starting;
+    expect(runner.state).toBe("running");
+    const game = t.games[0];
+    // 엔진은 시작 스크립트의 오류를 찍고 종료를 요청해 두었다. 아직 첫 프레임 전이라 고침을 올리지 않는다
+    game.opts.printErr?.("Lua error in init: ./scripts/lua/main.lua:2: boom in init");
+    await new Promise((r) => setTimeout(r, 50));
+    expect(game.reloads).toEqual([]);
+    // 첫 프레임: 엔진은 프레임 수를 올리고 같은 콜백에서 루프를 내린다
+    game.frameCount = 1;
+    game.opts.printErr?.(LOOP_STOPPED_LINE);
+    game.opts.onExit?.(1);
+    await vi.waitFor(() => expect(runner.state).toBe("idle"));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(game.reloads).toEqual([]);
+    expect(runner.exitCode).toBe(1);
+    expect(t.store.phase).toBe("ended");
+    expect(t.log.entries.filter((e) => e.text === START_ENDED_RELOAD_DROPPED)).toHaveLength(1);
+    expect(t.log.entries.some((e) => e.text.includes("다시 올렸다"))).toBe(false);
+    expect(t.backend.pushed).toEqual([]);
+    expect(toasts).toEqual(["error: 엔진이 종료 코드 1 로 끝났다. 콘솔을 본다"]);
+
+    // 다시 실행하면 저장한 글을 처음부터 올린다
+    await runner.start();
+    expect(runner.state).toBe("running");
+    expect(text(t.games[1].opts.files?.["scripts/lua/main.lua"])).toBe("print('fixed')");
+    await runner.stop();
+    runner.dispose();
+  });
+
+  it("부팅 중과 첫 프레임 전에 받은 저장은 엔진이 첫 프레임을 돌고 아직 돌 때 한 번에 올린다 (새 로더)", async () => {
+    const t = await setup({}, { newLoader: true });
+    const { runner, saves, toasts } = wire(t);
+    const open = t.hold();
+    const starting = runner.start();
+    await vi.waitFor(() => expect(t.store.phase).toBe("booting"));
+    await t.backend.writeText("scripts/lua/main.lua", "print('v4')");
+    saves.onSaved("scripts/lua/main.lua");
+    await vi.waitFor(() => expect(saves.pending).toBe(false));
+    open();
+    await starting;
+    const game = t.games[0];
+    await new Promise((r) => setTimeout(r, 50));
+    expect(game.reloads).toEqual([]);
+    // 뜬 뒤 첫 프레임 전의 저장도 모은다
+    await t.backend.writeText("resources/maps/forest.json", '{"v":2}');
+    saves.onSaved("resources/maps/forest.json");
+    await vi.waitFor(() => expect(saves.pending).toBe(false));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(game.reloads).toEqual([]);
+    game.frameCount = 1;
+    await vi.waitFor(() => expect(game.reloads).toHaveLength(1));
+    expect(Object.keys(game.reloads[0]).sort()).toEqual(["resources/maps/forest.json", "scripts/lua/main.lua"]);
+    expect(text(game.reloads[0]["scripts/lua/main.lua"])).toBe("print('v4')");
+    await vi.waitFor(() => expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 에디터 안 엔진, 2개 파일을 다시 올렸다"))).toBe(true));
+    expect(t.log.entries.some((e) => e.text === START_ENDED_RELOAD_DROPPED)).toBe(false);
+    expect(toasts).toEqual([]);
+    await runner.stop();
+    runner.dispose();
+  });
+});
+
+describe("GameSession.whenStepped", () => {
+  function session() {
+    const ended: Array<number | null> = [];
+    const s = new GameSession({ id: 1, onEnded: (_s, code) => void ended.push(code) });
+    return { s, ended };
+  }
+  const game = (frames?: () => number) =>
+    ({ module: { FS: { readFile: () => new Uint8Array(), writeFile: () => {} } }, exitCode: 0, stage() {}, reload() {}, quit() {}, features: () => "lua wasm", frames }) as EngineGame;
+
+  it("엔진이 프레임을 하나 이상 돌았고 루프가 돌면 true", async () => {
+    const { s } = session();
+    let n = 0;
+    s.attach(game(() => n));
+    let result: boolean | null = null;
+    void s.whenStepped(5).then((v) => (result = v));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(result).toBeNull();
+    n = 1;
+    await vi.waitFor(() => expect(result).toBe(true));
+  });
+
+  it("첫 프레임에서 루프가 멈추면(프레임 수는 1) false, 세션이 끝났거나 붙은 엔진이 없어도 false", async () => {
+    const { s } = session();
+    let n = 0;
+    s.attach(game(() => n));
+    const waiting = s.whenStepped(5);
+    n = 1;
+    s.printErr(LOOP_STOPPED_LINE);
+    expect(await waiting).toBe(false);
+    expect(await s.whenStepped(5)).toBe(false);
+    expect(await session().s.whenStepped(5)).toBe(false);
+  });
+
+  it("frames()가 없는 로더는 알 수 없어서 바로 true", async () => {
+    const { s } = session();
+    s.attach(game());
+    expect(await s.whenStepped(5)).toBe(true);
   });
 });

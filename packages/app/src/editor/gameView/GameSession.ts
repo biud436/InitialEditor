@@ -20,6 +20,8 @@ const DEFAULT_QUIT_TIMEOUT_MS = 1500;
 /** quit 뒤 프레임 수가 이만큼 그대로면 루프가 이미 죽은 것으로 본다 (살아 있는 루프는 다음 프레임에 멈춘다) */
 const STALL_MS = 200;
 const STALL_POLL_MS = 50;
+/** 첫 프레임을 기다릴 때 frames()를 보는 간격 */
+const STEP_POLL_MS = 16;
 
 export interface GameSessionOptions {
   id: number;
@@ -132,6 +134,26 @@ export class GameSession implements RunHandle {
     }
     this.releaseLoopWaiters();
     if (!this.stopping) this.finish(1);
+  }
+
+  /**
+   * 엔진이 프레임을 하나 이상 돌았고 아직 돌면 true, 그 전에 루프가 멈추거나 세션이 끝나면 false.
+   * 엔진은 프레임 콜백 안에서 프레임 수를 올린 뒤 같은 콜백에서 루프를 내리므로, 수가 1 이상인데 루프가 멈추지 않았으면
+   * 시작 때 걸어 둔 종료 요청(시작 스크립트의 오류)은 없다. frames()가 없는 로더는 알 수 없어서 바로 true
+   */
+  whenStepped(pollMs = STEP_POLL_MS): Promise<boolean> {
+    return new Promise((resolve) => {
+      const check = () => {
+        if (this.result || this.dead || !this.game) {
+          resolve(false);
+          return;
+        }
+        const frames = readFrames(this.game);
+        if (frames === null || frames >= 1) resolve(true);
+        else setTimeout(check, pollMs);
+      };
+      check();
+    });
   }
 
   /** reload 의 결과. 스크립트가 깨끗이 다시 떴으면 이전 스크립트 오류는 잊는다 */

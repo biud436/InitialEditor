@@ -78,6 +78,11 @@ export interface BackendCapabilities {
   pickFolder: boolean;
   /** 외부 변경 알림이 오는가 */
   watch: boolean;
+  /**
+   * 밖에서 띄운 엔진의 핫 리로드 서버로 보낼 길이 있는가 (hmrPush). Tauri와 브리지는 true, 브라우저 폴더(hmrPush가
+   * unsupported)와 메모리(엔진이 없다)는 false라서 에디터가 hmrPush를 부르지 않는다
+   */
+  hmr: boolean;
 }
 
 export type BackendErrorCode =
@@ -104,6 +109,12 @@ export class BackendError extends Error {
 export interface ProjectBackend {
   readonly kind: BackendKind;
   readonly capabilities: BackendCapabilities;
+  /**
+   * 쓴 것이 이 페이지의 메모리에만 있는 백엔드(메모리)가 이번 세션에 프로젝트에 쓴 횟수 (쓰기, 폴더 만들기, 지우기,
+   * 이름 바꾸기). 에디터 자신의 상태(.initial-editor/ 아래)는 세지 않는다. 페이지를 떠나면 사라지므로 브라우저 모드는
+   * 떠나기 전에 묻는다. 디스크에 쓰는 백엔드는 두지 않는다
+   */
+  readonly volatileWrites?: number;
 
   /**
    * 프로젝트를 연다. Tauri 는 폴더의 절대 경로, 브리지는 서버 URL 을 받는다.

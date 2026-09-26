@@ -228,7 +228,7 @@ export class GameViewStore {
       entries = (await listStageFiles(backend, RELOAD_ON_SAVE_DIRS)).files;
     }
     const read = await readStageFiles(backend, entries, { concurrency: this.concurrency });
-    if (this.session !== session || session.game !== game) throw new Error("그사이 게임이 끝났다");
+    if (this.session !== session || session.game !== game || session.dead) throw new Error("그사이 게임이 끝났다");
     let result: boolean | void;
     try {
       result = game.reload(read.files);
@@ -238,6 +238,11 @@ export class GameViewStore {
     }
     session.noteReload(result);
     return { count: Object.keys(read.files).length, scriptsFailed: result === false };
+  }
+
+  /** launch가 돌려준 실행의 엔진이 첫 프레임을 돌았고 아직 돌면 true, 그 전에 끝나면 false (GameSession.whenStepped) */
+  whenStepped(handle: RunHandle): Promise<boolean> {
+    return handle instanceof GameSession ? handle.whenStepped() : Promise.resolve(false);
   }
 
   // ---- 뷰에게 보이는 쪽 ----

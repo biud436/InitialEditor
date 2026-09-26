@@ -49,7 +49,7 @@ export interface FsAccessBackendOptions {
 
 export class FsAccessBackend implements ProjectBackend {
   readonly kind = "browser" as const;
-  readonly capabilities: BackendCapabilities = { run: false, pickFolder: true, watch: true };
+  readonly capabilities: BackendCapabilities = { run: false, pickFolder: true, watch: true, hmr: false };
   readonly handles: HandleStore;
 
   private rootHandle: FsDirHandle | null = null;

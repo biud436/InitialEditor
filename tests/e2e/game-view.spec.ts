@@ -5,7 +5,8 @@
 //               스크립트 편집기(Monaco) 안의 F5 와 Shift+F5, 스크립트 옆 그룹에 열리는 게임 탭, 활성 게임 탭 누르기,
 //               엔진 밖으로 나온 예외(세션을 종료 코드 1 로 끝내고 읽는 글을 보인다). 다른 그룹으로 끌어 옮긴 게임 탭의
 //               초점, IME 조합 중의 F5, 설정 대화상자 안의 F5(아무것도 하지 않는다), 파일을 올리는 중의 저장(엔진이 뜬 뒤
-//               다시 올린다), 게임이 끝난 뒤의 저장(메모리 모드는 리로드하지 않는다).
+//               다시 올린다), 게임이 끝난 뒤의 저장(메모리 모드는 리로드하지 않는다), 시작 스크립트의 오류로 끝나는 게임이
+//               뜨는 중에 고쳐 저장한 것(올리지 않고 한 줄 남기며 F5가 고친 글로 돈다).
 //               Lua 오류는 네이티브 엔진과 같다: 실행 중 저장한 문법 오류는 오류 줄을 찍고 스크립트만 멈추며(게임은 돈다)
 //               고쳐 저장하면 다시 그린다. Update 의 실행 오류는 오류 줄을 찍고 종료 코드 1 로 끝난다. 오류 줄의 링크는 그 자리로 간다.
 //               mruby: 웹 빌드에 mruby 가 있으면(MANIFEST 의 기능) Ruby 판 샘플이 같은 사각형을 그린다. 없는 빌드의 거부는
@@ -506,6 +507,68 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(page.getByTestId("toasts")).not.toContainText("리로드");
     // 수동 리로드도 게임이 돌 때만이다
     await expect(page.getByTestId("toolbar").locator('[data-command="run.reload"]')).toBeDisabled();
+  });
+
+  test("시작 스크립트의 오류로 끝나는 게임이 뜨는 중에 고쳐 저장한 것은 올리지 않고 한 줄 남기며, F5는 고친 글로 돈다", async ({ page }) => {
+    type EditorWindow = {
+      initialEditor: {
+        backend: { readText(p: string): Promise<string> };
+        documents: { findByPath(p: string): { model: { setValue(t: string): void } } };
+      };
+    };
+    const original = await page.evaluate(() => (window as unknown as EditorWindow).initialEditor.backend.readText("scripts/lua/main.lua"));
+    const broken = original.replace("function init()", 'function init()\n  error("boom in init")');
+    expect(broken).not.toBe(original);
+    await writeProjectFile(page, "scripts/lua/main.lua", broken);
+    await openMainLua(page);
+    await expect(page.locator(CODE)).toContainText("boom in init");
+    // 엔진이 뜨는 중(부팅)에 멈춰 둔다: wasm 인스턴스는 풀어 줄 때까지 만들지 않는다
+    await page.evaluate(() => {
+      const w = window as unknown as { __releaseBoot?: () => void; __restoreBoot: () => void };
+      const wasm = WebAssembly as unknown as { instantiateStreaming: (...args: unknown[]) => Promise<unknown> };
+      const orig = wasm.instantiateStreaming;
+      wasm.instantiateStreaming = async (...args: unknown[]) => {
+        await new Promise<void>((r) => (w.__releaseBoot = r));
+        return orig.apply(WebAssembly, args);
+      };
+      w.__restoreBoot = () => (wasm.instantiateStreaming = orig);
+    });
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await page.waitForFunction(() => typeof (window as unknown as { __releaseBoot?: () => void }).__releaseBoot === "function");
+    await expect(view).toHaveAttribute("data-phase", "booting");
+
+    // 뜨는 중에 고쳐 저장한다
+    const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await scriptTab.click();
+    await page.evaluate((text) => (window as unknown as EditorWindow).initialEditor.documents.findByPath("scripts/lua/main.lua").model.setValue(text), original);
+    await page.locator(CODE).click();
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
+    await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진이 뜨는 중이다")).toHaveCount(1);
+
+    await page.evaluate(() => {
+      const w = window as unknown as { __releaseBoot: () => void; __restoreBoot: () => void };
+      w.__restoreBoot();
+      w.__releaseBoot();
+    });
+    // 시작 때의 오류가 종료를 요청해 두어서 게임은 첫 프레임에 끝난다. 고침은 올리지 않고 그렇다고 한 줄 남긴다
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 30_000 });
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
+    await expect(consoleRows(page, "boom in init")).toHaveCount(1);
+    await expect(consoleRows(page, "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다")).toHaveCount(1);
+    const list = page.getByTestId("console-list");
+    await expect(list).not.toContainText("다시 올렸다");
+    await expect(list).not.toContainText("HotReload: reloaded");
+    await expect(consoleRows(page, "sample:frame")).toHaveCount(0);
+
+    // F5는 저장한 글을 처음부터 올려 돈다
+    await page.keyboard.press("F5");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await expect(consoleRows(page, "sample:frame")).toHaveCount(1, { timeout: 15_000 });
+    await expect(consoleRows(page, "boom in init")).toHaveCount(1);
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
   });
 
   test("엔진 밖으로 나온 예외는 세션을 종료 코드 1 로 끝내고 콘솔과 상태 띠에 읽는 글을 남긴다", async ({ page }) => {

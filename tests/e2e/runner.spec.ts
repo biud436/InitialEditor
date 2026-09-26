@@ -1,6 +1,7 @@
 // 실행기의 브라우저 판 (docs/plans/e1-scripting.md 마일스톤 3). 메모리 백엔드(?backend=memory)라 엔진 프로세스는 못 띄우고
 // F5 는 에디터 안 게임 탭에서 웹 엔진으로 돈다 (그 흐름은 game-view.spec.ts, 실행 버튼의 툴팁은 smoke.spec.ts).
-// 여기서는 상태 바의 엔진 칸, 콘솔의 오류 링크, "엔진만" 필터, 메모리 모드의 수동 리로드(게임 탭이 돌 때만)를 본다.
+// 여기서는 상태 바의 엔진 칸, 콘솔의 오류 링크, "엔진만" 필터, 메모리 모드의 수동 리로드(게임 탭이 돌 때만)와
+// 꺼져 있는 리로드의 단축키(브라우저의 강력 새로 고침으로 가지 않는다)를 본다.
 // 진짜 엔진 프로세스와의 핫 리로드는 scripts/e2e-engine-hotreload.mjs (yarn test:engine).
 
 import { expect, test, type Page } from "@playwright/test";
@@ -98,5 +99,48 @@ test.describe("실행기 (메모리 모드)", () => {
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
     await expect(reload).toBeDisabled();
+  });
+
+  test("꺼져 있는 리로드의 단축키(Ctrl+Shift+R, mac은 Cmd+Shift+R)도 브라우저의 강력 새로 고침으로 가지 않는다", async ({ page }) => {
+    await openSample(page);
+    // 앱의 처리기(버블 단계)가 지나간 뒤 기본 동작이 막혔는지 적는다
+    await page.evaluate(() => {
+      const w = window as unknown as { __reloadKeys: boolean[]; __notReloaded: boolean };
+      w.__reloadKeys = [];
+      w.__notReloaded = true;
+      window.addEventListener(
+        "keydown",
+        (ev) => {
+          if (ev.key.toLowerCase() === "r") setTimeout(() => w.__reloadKeys.push(ev.defaultPrevented), 0);
+        },
+        true,
+      );
+    });
+    const reloadKeys = () => page.evaluate(() => (window as unknown as { __reloadKeys: boolean[] }).__reloadKeys);
+    const reload = page.getByTestId("toolbar").locator('[data-command="run.reload"]');
+    await expect(reload).toBeDisabled();
+
+    // 대기 중(리로드가 꺼져 있다): 프로젝트 트리와 스크립트 편집기에서
+    await page.getByTestId("project-tree").locator('[data-path="scripts"]').click();
+    await page.keyboard.press("ControlOrMeta+Shift+R");
+    await page.getByTestId("project-tree").locator('[data-path="scripts/lua"]').click();
+    await page.getByTestId("project-tree").locator('[data-path="scripts/lua/main.lua"]').dblclick();
+    await page.locator(".monaco-editor .view-lines").click();
+    await page.keyboard.press("ControlOrMeta+Shift+R");
+    await expect.poll(reloadKeys).toEqual([true, true]);
+    await expect(page.getByTestId("console-list")).not.toContainText("핫 리로드");
+
+    // 게임이 돌 때는 리로드를 부르고 역시 막는다
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await page.getByTestId("doc-tab").filter({ hasText: "main.lua" }).click();
+    await page.locator(".monaco-editor .view-lines").click();
+    await page.keyboard.press("ControlOrMeta+Shift+R");
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 에디터 안 엔진, \d+개 파일을 다시 올렸다/);
+    await expect.poll(reloadKeys).toEqual([true, true, true]);
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    expect(await page.evaluate(() => (window as unknown as { __notReloaded?: boolean }).__notReloaded)).toBe(true);
   });
 });
