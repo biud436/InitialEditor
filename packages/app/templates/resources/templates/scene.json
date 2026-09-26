@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "main",
+  "objects": [
+    { "id": "hello", "type": "text", "x": 32, "y": 32, "visible": true,
+      "props": { "text": "새 프로젝트", "font": "resources/fonts/hangul.fnt" },
+      "scripts": [] }
+  ]
+}

@@ -89,7 +89,7 @@ test.describe("메모리 모드 스모크", () => {
     await page.reload();
     await expect(page.getByTestId("welcome")).toBeVisible();
     await expect(page.getByTestId("console")).toHaveCount(0);
-    await expect(page.getByText("씬을 열면 여기에 오브젝트가 보인다 (E2)")).toBeVisible();
+    await expect(page.getByText("씬을 열면 여기에 오브젝트가 보인다")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
     // 다시 켜면 돌아온다

@@ -51,7 +51,7 @@ const ROOT_KEYS = new Set(["version", "name", "objects"]);
 /** 코어 타입의 기본 props. 확장 타입은 registerObjectType 의 defaults 가 준다 */
 export const CORE_DEFAULT_PROPS: Record<CoreObjectType, Record<string, unknown>> = {
   node: {},
-  sprite: { image: "", width: 0, height: 0, frames: 1, scale: 1, angle: 0, opacity: 255, loop: true, startFrame: 0, endFrame: 0 },
+  sprite: { image: "", width: 0, height: 0, frames: 1, frameDelay: 100, scale: 1, angle: 0, opacity: 255, loop: true, startFrame: 0, endFrame: 0 },
   text: { text: "", font: "" },
 };
 

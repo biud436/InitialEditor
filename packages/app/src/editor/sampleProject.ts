@@ -6,6 +6,10 @@ export const SAMPLE_ROOT = "memory://sample";
 const CHECKER_PNG_BASE64 =
   "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALElEQVR4nGN4MMvmPzK2qr6KggnJMwwDA0jVgC4/HAwY+FgYeAMGPhYG3AAAod6fH2bZCn8AAAAASUVORK5CYII=";
 
+/** 32x16 두 프레임 동전 시트 PNG (RGBA): 0 은 둥근 동전, 1 은 옆으로 돈 동전. 씬 뷰가 첫 프레임만 자르는 것을 보인다 */
+const COIN_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAXUlEQVR42mNgGIzgxDS5/9gwueaQpenXJRsUTKphyGYQrQ+bxdgcQo45BPURYzmxhuHSR3Kw43MALkfgMwenw0mxnJBhow4Yug4Y0EQ44NlwUBREg6IoHhSVEb0BAL/LsX95CSSqAAAAAElFTkSuQmCC";
+
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
@@ -77,6 +81,51 @@ export const SAMPLE_MAP_JSON = `{
 }
 `;
 
+/**
+ * 씬 포맷 v1 예제 (docs/plans/e2-scene.md). 스프라이트 둘(체커 4배, 두 프레임 동전 시트), 줄바꿈과 한글이 든 글자 하나,
+ * 컴포넌트 자리인 노드 하나. 모르는 키 editorOnly 는 보존되는지 보는 용도다.
+ */
+export const SAMPLE_SCENE_JSON = `{
+  "version": 1,
+  "name": "main",
+  "objects": [
+    {
+      "id": "bg",
+      "type": "sprite",
+      "x": 32,
+      "y": 32,
+      "props": { "image": "resources/images/checker.png", "width": 0, "height": 0, "frames": 1, "frameDelay": 100, "scale": 4, "angle": 0, "opacity": 255, "loop": true, "startFrame": 0, "endFrame": 0 },
+      "scripts": []
+    },
+    {
+      "id": "coin",
+      "type": "sprite",
+      "x": 160,
+      "y": 48,
+      "props": { "image": "resources/images/coin.png", "width": 0, "height": 0, "frames": 2, "frameDelay": 200, "scale": 3, "angle": 0, "opacity": 255, "loop": true, "startFrame": 0, "endFrame": 1 },
+      "scripts": []
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "x": 32,
+      "y": 160,
+      "props": { "text": "샘플 씬\\n둘째 줄", "font": "resources/fonts/hangul.fnt" },
+      "scripts": []
+    },
+    {
+      "id": "spawner",
+      "type": "node",
+      "x": 384,
+      "y": 448,
+      "props": { "interval": 1500 },
+      "scripts": [],
+      "editorOnly": { "note": "컴포넌트를 붙이는 자리" }
+    }
+  ]
+}
+`;
+
 export const SAMPLE_README = `# 샘플 프로젝트
 
 메모리 모드의 예제다. 파일은 브라우저 메모리에만 있고 새로 고치면 처음으로 돌아간다.
@@ -84,7 +133,9 @@ export const SAMPLE_README = `# 샘플 프로젝트
 - scripts/lua/main.lua: Lua 진입점
 - scripts/ruby/main.rb: Ruby 진입점
 - resources/images/checker.png: 이미지 미리보기용 체커
+- resources/images/coin.png: 두 프레임 동전 시트 (씬 뷰의 프레임 자르기 예)
 - resources/maps/sample.json: 맵 포맷 v2 예제
+- resources/scenes/main.json: 씬 포맷 v1 예제 (씬 뷰에서 연다)
 `;
 
 /** MemoryBackend 생성자에 넘길 초기 파일 */
@@ -94,7 +145,9 @@ export function sampleProjectFiles(): Record<string, string | Uint8Array> {
     "scripts/lua/main.lua": SAMPLE_MAIN_LUA,
     "scripts/ruby/main.rb": SAMPLE_MAIN_RB,
     "resources/images/checker.png": base64ToBytes(CHECKER_PNG_BASE64),
+    "resources/images/coin.png": base64ToBytes(COIN_PNG_BASE64),
     "resources/maps/sample.json": SAMPLE_MAP_JSON,
+    "resources/scenes/main.json": SAMPLE_SCENE_JSON,
     "README.md": SAMPLE_README,
   };
 }

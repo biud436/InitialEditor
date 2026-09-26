@@ -1,10 +1,13 @@
 // 실행 커맨드 (docs/plans/02-scope-and-screens.md 5절의 표, 실행 갈래). 메뉴(appMenus.ts)와 툴바는 이 id 만 가리킨다.
 // 비활성 이유는 setHint 로 툴팁에 간다: 브라우저 모드, 엔진 없음(찾아본 곳), mruby 없음.
-// run.fromScene 은 씬 문서(E2)가 생기면 붙는다. 지금은 자리만 있고 비활성이다.
+// run.fromScene (Ctrl+F5) 은 활성 탭이 씬 문서일 때 그 씬 이름을 INITIAL2D_SCENE 으로 넘겨 띄운다 (E2).
+// 씬 로더(scripts/*/scene_loader)가 그 변수를 game.json 의 startScene 보다 먼저 본다.
 
-import { SCENE_LATER } from "../appCommands";
+import { SceneDocument, sceneNameFromPath } from "@initial-editor/core";
 import type { Editor } from "../Editor";
 import type { RunnerStore } from "./RunnerStore";
+
+const NEED_SCENE_TAB = "씬 탭이 활성일 때 그 씬부터 실행한다";
 
 export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
   const c = editor.commands;
@@ -20,6 +23,21 @@ export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
   c.register({ id: "run.reload", label: "리로드", category: "run", shortcut: "Ctrl+Shift+R", icon: "reload", enabled: () => runner.canReload, run: () => void runner.reload() });
   editor.setHint("run.reload", () => runner.reloadHint);
 
-  c.register({ id: "run.fromScene", label: "현재 씬부터 실행", category: "run", shortcut: "Ctrl+F5", enabled: () => false, run: () => {} });
-  editor.setHint("run.fromScene", () => SCENE_LATER);
+  /** 활성 탭이 씬 문서면 그 씬 이름 */
+  const activeSceneName = (): string | null => {
+    const doc = editor.documents.active;
+    return doc instanceof SceneDocument && doc.path ? sceneNameFromPath(doc.path) : null;
+  };
+  c.register({
+    id: "run.fromScene",
+    label: "현재 씬부터 실행",
+    category: "run",
+    shortcut: "Ctrl+F5",
+    enabled: () => activeSceneName() !== null && runner.canRun,
+    run: () => {
+      const scene = activeSceneName();
+      if (scene) return runner.start({ scene });
+    },
+  });
+  editor.setHint("run.fromScene", () => (activeSceneName() === null ? NEED_SCENE_TAB : runner.startHint));
 }

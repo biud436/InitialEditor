@@ -1,0 +1,249 @@
+.inspector {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+}
+
+.inspector-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  flex: none;
+  font-size: 12px;
+}
+
+.inspector-type-icon {
+  display: inline-flex;
+  color: var(--fg-muted);
+}
+
+.inspector-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspector-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.inspector-section {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.inspector-subtitle {
+  margin-bottom: var(--space-1);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inspector-note {
+  padding: var(--space-1) 0;
+  font-size: 12px;
+}
+
+/* 공통 입력 칸 (scene/fields.tsx) */
+.field-row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.field-label {
+  color: var(--fg-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field-number,
+.field-text,
+.field-select {
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+textarea.field-text {
+  resize: vertical;
+  font-family: var(--font-ui);
+}
+
+.field-select {
+  font-family: var(--font-ui);
+}
+
+.field-range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.field-range input[type="range"] {
+  flex: 1;
+  min-width: 40px;
+}
+
+.field-range-number {
+  width: 64px;
+  flex: none;
+}
+
+.field-mixed {
+  font-size: 12px;
+}
+
+.inspector-preview {
+  margin: 0 0 var(--space-2) 0;
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--scene-bg);
+  overflow: auto;
+  max-height: 160px;
+  font-size: 12px;
+}
+
+.inspector-preview img {
+  display: block;
+  max-width: 100%;
+  image-rendering: pixelated;
+}
+
+.inspector-script {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.inspector-script-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.inspector-attach {
+  margin-top: var(--space-1);
+}
+
+.inspector-problems {
+  border-bottom: 0;
+}
+
+.inspector-problem-count {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--badge-bg);
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+
+.inspector-problem {
+  display: flex;
+  gap: var(--space-2);
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.inspector-problem.is-error {
+  color: var(--danger);
+}
+
+.inspector-problem.is-warning {
+  color: var(--warning);
+}
+
+.inspector-problem-where {
+  flex: none;
+  font-family: var(--font-mono);
+  color: var(--fg-muted);
+}
+
+/* 오브젝트 추가 대화상자 (scene/AddObjectDialog.tsx) */
+.add-object-body {
+  padding: var(--space-2);
+}
+
+.add-object-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.add-object-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+}
+
+.add-object-item:hover,
+.add-object-item:focus-visible {
+  background: var(--bg-hover);
+}
+
+.add-object-icon {
+  display: inline-flex;
+  color: var(--fg-muted);
+}
+
+.add-object-label {
+  flex: 1;
+}
+
+.add-object-type {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* 스크립트 붙이기 대화상자 (scene/AttachScriptDialog.tsx) */
+.attach-script-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.attach-script-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.attach-script-suggestion {
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}

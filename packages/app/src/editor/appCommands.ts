@@ -55,17 +55,6 @@ export function registerAppCommands(editor: Editor): void {
   const browser = editor.isBrowser;
   const active = () => editor.documents.active;
   const reg = (cmd: EditorCommand) => c.register(cmd);
-  const later = (label: string, id: string, reason: string, shortcut?: string, category = "scene") =>
-    reg({
-      id,
-      label,
-      category,
-      shortcut,
-      run: () => {
-        editor.toasts.info(`${label}: ${reason}`);
-      },
-    });
-
   // 파일
   reg({ id: "file.newProject", label: "새 프로젝트", category: "file", shortcut: "Ctrl+N", enabled: () => !browser, run: () => void createNewProject(editor) });
   editor.setHint("file.newProject", () => (browser ? "브라우저 모드에서는 새 프로젝트를 만들 수 없다 (Tauri 앱에서 폴더를 고른다)" : undefined));
@@ -111,24 +100,10 @@ export function registerAppCommands(editor: Editor): void {
     const label = active()?.undo.redoLabel;
     return label ? `다시 실행: ${label}` : "다시 실행";
   });
-  for (const [id, label, shortcut] of [
-    ["edit.cut", "잘라내기", "Ctrl+X"],
-    ["edit.copy", "복사", "Ctrl+C"],
-    ["edit.paste", "붙여넣기", "Ctrl+V"],
-    ["edit.duplicate", "복제", "Ctrl+D"],
-    ["edit.delete", "삭제", "Delete"],
-  ] as const) {
-    reg({ id, label, category: "edit", shortcut, enabled: () => false, run: () => {} });
-    editor.setHint(id, () => SCENE_LATER);
-  }
+  // edit.cut, edit.copy, edit.paste, edit.duplicate, edit.delete (씬 오브젝트) 는 scene/sceneCommands.ts 가 등록한다 (E2)
   // edit.find (프로젝트 전체 찾기) 는 scripting/scriptCommands.ts 가 등록한다 (E1)
 
-  // 씬 (E2)
-  later("새 씬", "scene.new", SCENE_LATER, "Ctrl+Shift+N");
-  later("오브젝트 추가", "scene.addObject", SCENE_LATER, "Ctrl+Shift+A");
-  later("시작 씬으로 지정", "scene.setStart", SCENE_LATER);
-  later("격자 표시", "scene.toggleGrid", SCENE_LATER);
-  later("스냅", "scene.toggleSnap", SCENE_LATER);
+  // 씬 커맨드(scene.new, addObject, setStart)는 scene/sceneCommands.ts 가, 격자와 스냅과 줌은 sceneView/viewCommands.ts 가 등록한다 (E2)
 
   // 실행 커맨드(run.start, run.stop, run.fromScene, run.reload)는 runner/runCommands.ts 가 등록한다 (E1)
   const setLanguage = async (script: ScriptBackend) => {
