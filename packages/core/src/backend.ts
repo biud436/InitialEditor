@@ -127,6 +127,13 @@ export interface ProjectBackend {
   /** 변경 알림 구독. 돌려주는 함수로 해지한다 */
   watch(handler: (e: ChangeEvent) => void): () => void;
 
+  /**
+   * 구독이 실제로 알림을 받기 시작하면 풀리는 약속 (선택). 브리지는 WebSocket 이 열리고 서버의 hello 를
+   * 받은 뒤에야 알림이 온다. 그 전의 변경은 놓칠 수 있으므로, 순서가 중요한 곳(테스트)은 이것을 기다린다.
+   * 구현하지 않은 백엔드는 구독과 동시에 알림을 받는 것으로 본다.
+   */
+  whenWatching?(timeoutMs?: number): Promise<void>;
+
   /** 스크립트 묶음을 엔진 핫 리로드 서버(기본 127.0.0.1:5959)로 보낸다 */
   hmrPush(files: HmrFile[], target?: HmrTarget): Promise<{ count: number }>;
 
