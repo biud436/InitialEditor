@@ -1,8 +1,0 @@
-export * from "./EditorSchema";
-export * from "./FileProvider";
-export * from "./IFileProvider";
-export * from "./BridgeFileProvider";
-export * from "./LayerTreeSchema";
-export * from "./Schema";
-export * from "./ThemeSchema";
-//# sourceMappingURL=index.js.map

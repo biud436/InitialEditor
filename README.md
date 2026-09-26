@@ -81,7 +81,6 @@ packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축�
 packages/ext-tilemap/     타일맵 확장 (E3 에서 채운다)
 src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push
 tests/e2e/                Playwright 스모크 (브라우저 모드)
-legacy/                   2020~2026 의 옛 에디터 (참고용, E3 끝에 지운다)
 docs/plans/               계획과 진행 상황
 ```
 
@@ -100,7 +99,6 @@ docs/plans/               계획과 진행 상황
 | `yarn test:e2e` | Playwright (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`) |
 | `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
 | `yarn tauri <cmd>` | Tauri CLI |
-| `yarn legacy:test`, `yarn legacy:build`, `yarn legacy:dev` | 옛 에디터 |
 
 ## 테마
 
@@ -110,14 +108,9 @@ docs/plans/               계획과 진행 상황
 
 ## 옛 에디터
 
-`legacy/`에 2020년부터의 타일맵 에디터(PIXI 7, jQuery 시절의 셸)가 그대로 있습니다. 새 에디터가 그 기능을 전부
-갖출 때(E3)까지 `yarn legacy:dev`로 띄울 수 있습니다. 브리지 서버가 필요하고, 사용법은 엔진 README에 있습니다.
+2020년부터의 타일맵 에디터(PIXI 7, jQuery 시절의 셸)는 E3에서 지웠습니다. 옛 기능이 새 에디터의 어디로 갔는지는
+[docs/plans/e3-tilemap.md](./docs/plans/e3-tilemap.md)의 이전표에 있고, 코드는 git 이력에 남아 있습니다.
 
 # License
 
-MIT. 다만 포함된 일부 아이콘, 스크립트, 스타일시트, 이미지는 자기 라이선스를 따릅니다.
-
-- Font Awesome Free - https://fontawesome.com/license/free
-- FSM Tile (2k_town05.png) - http://refmap-l.blog.jp/archives/8632768.html
-- FSM Tile (2k_town05-01.png) - http://refmap-l.blog.jp/archives/8632768.html
-- Tuxemon Tileset - https://opengameart.org/content/tuxemon-tileset
+MIT.

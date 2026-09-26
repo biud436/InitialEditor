@@ -2,7 +2,7 @@
 //
 // 상대는 엔진 저장소의 tools/bridge/server.js (0.2.0 이상, 기본 127.0.0.1:5960)다. 서버가 프로젝트
 // 하나를 서빙하므로 open() 에 넘기는 값은 폴더가 아니라 서버 URL 이다. 파일 API 는 HTTP, 변경 알림은
-// WebSocket /ws 다. 옛 legacy/initial-editor/src/bridge/BridgeClient.ts 를 이 인터페이스에 맞춰 옮겼다.
+// WebSocket /ws 다.
 //
 // 브라우저 모드는 개발과 UI 테스트용이라 엔진 실행(run)과 폴더 선택(pickFolder)은 없다.
 

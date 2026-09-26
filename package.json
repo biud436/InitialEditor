@@ -6,8 +6,7 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "legacy/*"
+    "packages/*"
   ],
   "engines": {
     "node": ">=22.13.0"
@@ -28,15 +27,13 @@
     "test:engine-scene": "node scripts/e2e-engine-scene.mjs",
     "sync:templates": "node scripts/sync-engine-templates.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
-    "tauri": "tauri",
-    "legacy:build": "cd legacy/initial-editor && tsc && cd ../renderer && ../../node_modules/.bin/vite build",
-    "legacy:dev": "cd legacy/initial-editor && tsc && cd ../renderer && ../../node_modules/.bin/vite",
-    "legacy:test": "cd legacy/initial-editor && tsc && node --test test/*.test.mjs"
+    "tauri": "tauri"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
     "@playwright/test": "^1.48.0",
     "@tauri-apps/cli": "^2.0.0",
+    "@types/node": "^22.0.0",
     "eslint": "^9.12.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "jsdom": "^25.0.0",
