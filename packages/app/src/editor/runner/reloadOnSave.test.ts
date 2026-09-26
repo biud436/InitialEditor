@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Debouncer, isReloadPath, shouldReloadOnSave } from "./reloadOnSave";
+import { Debouncer, isReloadPath, SaveReloader, shouldReloadOnSave } from "./reloadOnSave";
 
 describe("isReloadPath", () => {
   it("scripts 와 resources/scenes 와 resources/maps 아래만", () => {
@@ -30,6 +30,17 @@ describe("shouldReloadOnSave", () => {
 
   it("브리지(띄울 수 없음)는 늘 (터미널에서 띄웠을 수 있다)", () => {
     expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false })).toBe(true);
+  });
+
+  it("에디터 안 엔진이 돌면 Tauri 의 프로세스가 없어도 늘", () => {
+    expect(shouldReloadOnSave({ ...base, running: false, embeddedRunning: true })).toBe(true);
+    expect(shouldReloadOnSave({ ...base, reloadOnSave: false, embeddedRunning: true })).toBe(false);
+    expect(shouldReloadOnSave({ ...base, path: "resources/images/a.png", embeddedRunning: true })).toBe(false);
+  });
+
+  it("보낼 길이 없는 백엔드(웹판)는 게임 탭이 돌 때만", () => {
+    expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false, canPush: false })).toBe(false);
+    expect(shouldReloadOnSave({ ...base, canSpawn: false, running: false, canPush: false, embeddedRunning: true })).toBe(true);
   });
 
   it("대상 폴더 밖의 문서는 아니다", () => {
@@ -63,5 +74,50 @@ describe("Debouncer", () => {
     d.cancel();
     vi.advanceTimersByTime(1000);
     expect(calls).toBe(0);
+  });
+});
+
+describe("SaveReloader", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  function make(accept = true) {
+    const calls: string[][] = [];
+    const saver = new SaveReloader({ accepts: (p) => accept && isReloadPath(p), reload: (paths) => void calls.push(paths) }, 300);
+    return { saver, calls };
+  }
+
+  it("300ms 안의 저장은 모아서 한 번에, 같은 경로는 한 번", () => {
+    const { saver, calls } = make();
+    saver.onSaved("scripts/lua/main.lua");
+    vi.advanceTimersByTime(100);
+    saver.onSaved("resources/maps/forest.json");
+    vi.advanceTimersByTime(100);
+    saver.onSaved("./scripts/lua/main.lua");
+    saver.onSaved("resources/scenes/title.json");
+    expect(saver.pending).toBe(true);
+    vi.advanceTimersByTime(299);
+    expect(calls).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(calls).toEqual([["scripts/lua/main.lua", "resources/maps/forest.json", "resources/scenes/title.json"]]);
+    // 다음 묶음은 새로 모은다
+    saver.onSaved("scripts/lua/title.lua");
+    vi.advanceTimersByTime(300);
+    expect(calls[1]).toEqual(["scripts/lua/title.lua"]);
+  });
+
+  it("대상이 아닌 저장은 모으지 않고, cancel 하면 버린다", () => {
+    const { saver, calls } = make();
+    saver.onSaved("resources/images/a.png");
+    saver.onSaved(null);
+    expect(saver.pending).toBe(false);
+    saver.onSaved("scripts/lua/main.lua");
+    saver.cancel();
+    vi.advanceTimersByTime(1000);
+    expect(calls).toEqual([]);
+    const off = make(false);
+    off.saver.onSaved("scripts/lua/main.lua");
+    vi.advanceTimersByTime(1000);
+    expect(off.calls).toEqual([]);
   });
 });

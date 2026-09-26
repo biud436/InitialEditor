@@ -27,6 +27,7 @@
     "test:engine": "node scripts/e2e-engine-hotreload.mjs",
     "test:engine-scene": "node scripts/e2e-engine-scene.mjs",
     "sync:templates": "node scripts/sync-engine-templates.mjs",
+    "sync:engine-web": "node scripts/sync-engine-web.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
     "tauri": "tauri",
     "legacy:build": "cd legacy/initial-editor && tsc && cd ../renderer && ../../node_modules/.bin/vite build",

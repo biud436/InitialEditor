@@ -97,10 +97,15 @@ test.describe("메모리 모드 스모크", () => {
     await expect(page.getByTestId("console")).toBeVisible();
   });
 
-  test("실행 버튼은 비활성이고 이유가 툴팁에 있다", async ({ page }) => {
+  test("실행 버튼은 프로젝트를 열면 켜지고, 에디터 안에서 돈다는 것이 툴팁에 있다", async ({ page }) => {
     const run = page.getByTestId("toolbar").locator('[data-command="run.start"]');
+    const tip = page.getByTestId("toolbar").locator(".toolbar-tip").first();
     await expect(run).toBeDisabled();
-    await expect(page.getByTestId("toolbar").locator(".toolbar-tip").first()).toHaveAttribute("title", /브라우저 모드에서는 엔진을 띄울 수 없다/);
+    await expect(tip).toHaveAttribute("title", /프로젝트를 먼저 연다/);
+    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    // 브라우저 모드의 F5 는 웹 엔진을 게임 탭에서 돌린다 (E4, game-view.spec.ts)
+    await expect(run).toBeEnabled();
+    await expect(tip).toHaveAttribute("title", /^실행 \(F5\) ?: 에디터 안 게임 탭에서 돈다 \(웹 엔진\)$/);
   });
 
   test("오른쪽 클릭 메뉴는 누른 자리에 뜬다", async ({ page }) => {

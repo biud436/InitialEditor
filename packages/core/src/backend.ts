@@ -7,7 +7,7 @@
 // 경로 규칙: 모든 `rel` 은 프로젝트 루트 기준 상대 경로이고 구분자는 `/` 다 (paths.ts 의 normalizeRel 이
 // 정규화한다). 루트 밖은 없다. 백엔드는 정규화된 경로만 받는다고 가정하지 말고 스스로 다시 검사한다.
 
-export type BackendKind = "tauri" | "bridge";
+export type BackendKind = "tauri" | "bridge" | "browser";
 
 export interface ProjectInfo {
   /** Tauri 는 절대 경로, 브리지는 서버가 알려 준 루트 (표시용) */

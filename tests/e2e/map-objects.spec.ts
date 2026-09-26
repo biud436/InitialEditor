@@ -2,13 +2,13 @@
 // 메모리 백엔드(?backend=memory)라 서버가 필요 없다. 샘플 프로젝트에는 resources/schema/map-objects.json과
 // 오브젝트 셋(start, slime_1, sign_1)이 든 resources/maps/sample.json이 있다.
 // 흐름: 맵 열기 → 묶음과 수 → 몬스터 고르기와 종 바꾸기 → 순찰 범위 → 흔적 추가 → 여러 줄 한글 글 저장 →
-//       겹치는 id 거부 → 삭제와 되돌리기 → 뒤집힌 범위의 검사 결과 → 여기서 실행은 브라우저 모드에서 꺼져 있다.
+//       겹치는 id 거부 → 삭제와 되돌리기 → 뒤집힌 범위의 검사 결과 → 여기서 실행은 브라우저 모드에서도 켜져 있다
+//       (에디터 안 게임 탭에서 돈다. 실제 실행은 game-view.spec.ts).
 
 import { expect, test, type Page } from "@playwright/test";
 
 const LAYOUT_KEY = "initial-editor.layout";
 const MAP_PATH = "resources/maps/sample.json";
-const BROWSER_NO_RUN = "브라우저 모드에서는 엔진을 띄울 수 없다";
 
 type MapObjectLike = { id: string; type: string; x: number; y: number; width?: number; props: Record<string, unknown> };
 type EditorLike = {
@@ -192,14 +192,13 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     await problem.click();
     await expect(inspector).toHaveAttribute("data-object", "slime_1");
 
-    // 여기서 실행: 브라우저 모드에서는 꺼져 있고 이유가 툴팁에 있다. Ctrl+F5(run.fromScene)도 맵에서는 같은 이유다
+    // 여기서 실행: 브라우저 모드에서도 켜져 있다 (에디터 안 게임 탭에서 돈다). Ctrl+F5(run.fromScene)도 맵에서는 여기서 실행이다
     const branch = (await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).count()) > 0 ? "맵" : "실행";
     await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
     const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
-    await expect(playHere).toBeDisabled();
-    await expect(playHere).toHaveAttribute("title", BROWSER_NO_RUN);
+    await expect(playHere).toBeEnabled();
     await page.keyboard.press("Escape");
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere")])).toEqual([false, BROWSER_NO_RUN]);
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene"), e.commandLabel("run.fromScene")])).toEqual([false, BROWSER_NO_RUN, "여기서 실행 (맵)"]);
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere") ?? "(없음)"])).toEqual([true, "(없음)"]);
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, "(없음)", "여기서 실행 (맵)"]);
   });
 });

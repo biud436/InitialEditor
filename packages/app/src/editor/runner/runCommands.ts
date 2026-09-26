@@ -1,5 +1,5 @@
 // 실행 커맨드 (docs/plans/02-scope-and-screens.md 5절의 표, 실행 갈래). 메뉴(appMenus.ts)와 툴바는 이 id 만 가리킨다.
-// 비활성 이유는 setHint 로 툴팁에 간다: 브라우저 모드, 엔진 없음(찾아본 곳), mruby 없음.
+// 비활성 이유는 setHint 로 툴팁에 간다: 엔진 없음(찾아본 곳), mruby 없음. 실행이 켜져 있으면 에디터 안 실행인지를 적는다.
 // run.fromScene (Ctrl+F5) 은 활성 탭이 씬 문서일 때 그 씬 이름을 INITIAL2D_SCENE 으로 넘겨 띄운다 (E2).
 // 씬 로더(scripts/*/scene_loader)가 그 변수를 game.json 의 startScene 보다 먼저 본다.
 // 활성 탭이 맵 문서면 Ctrl+F5는 맵의 여기서 실행(map.playHere, maps/objectTools/commands.ts)으로 넘어간다.
@@ -15,7 +15,7 @@ const MAP_PLAY_HERE = "map.playHere";
 export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
   const c = editor.commands;
   c.register({ id: "run.start", label: "실행", category: "run", shortcut: "F5", icon: "play", enabled: () => runner.canRun, run: () => runner.start() });
-  editor.setHint("run.start", () => runner.startHint);
+  editor.setHint("run.start", () => runner.startHint ?? runner.modeHint);
 
   c.register({ id: "run.stop", label: "정지", category: "run", shortcut: "Shift+F5", icon: "stop", enabled: () => runner.isRunning, run: () => runner.stop() });
   editor.setHint("run.stop", () => (runner.isRunning ? undefined : "실행 중이 아니다"));

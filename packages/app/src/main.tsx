@@ -1,10 +1,10 @@
-// 진입점. 백엔드를 고르고(Tauri, 브리지, 메모리) 에디터를 만들어 같은 App 을 띄운다.
+// 진입점. 백엔드를 고르고(Tauri, 브리지, 메모리, 브라우저 폴더) 에디터를 만들어 같은 App 을 띄운다.
 
 import { createRoot } from "react-dom/client";
 import "./theme/tokens.css";
 import "./theme/base.css";
 import { App } from "./components/App";
-import { chooseMode, createBackend, createSettingsStorage, parseQuery } from "./editor/backends";
+import { chooseMode, createBackend, createSettingsStorage, isFolderFallback, parseQuery } from "./editor/backends";
 import { Editor } from "./editor/Editor";
 import { EditorProvider } from "./editor/EditorContext";
 import { detectPlatform } from "./editor/platform";
@@ -38,6 +38,7 @@ async function boot(): Promise<void> {
   });
   window.initialEditor = editor;
   await editor.start();
+  if (isFolderFallback(mode)) editor.log.info("editor", "이 브라우저에는 폴더 열기가 없어 메모리 모드로 시작했다 (크롬, 엣지에서 된다)");
   const container = document.getElementById("root");
   if (!container) throw new Error("#root 가 없다");
   createRoot(container).render(

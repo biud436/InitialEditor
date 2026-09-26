@@ -1,6 +1,7 @@
-// 실행기의 브라우저 판 (docs/plans/e1-scripting.md 마일스톤 3). 메모리 백엔드(?backend=memory)라 엔진을 띄우지는 못한다.
-// 실행 버튼이 비활성이고 툴팁에 이유가 있는 것은 smoke.spec.ts 가 본다. 여기서는 상태 바의 엔진 칸, 콘솔의 오류 링크,
-// "엔진만" 필터, 브라우저 모드의 수동 리로드를 본다. 진짜 엔진과의 핫 리로드는 scripts/e2e-engine-hotreload.mjs (yarn test:engine).
+// 실행기의 브라우저 판 (docs/plans/e1-scripting.md 마일스톤 3). 메모리 백엔드(?backend=memory)라 엔진 프로세스는 못 띄우고
+// F5 는 에디터 안 게임 탭에서 웹 엔진으로 돈다 (그 흐름은 game-view.spec.ts, 실행 버튼의 툴팁은 smoke.spec.ts).
+// 여기서는 상태 바의 엔진 칸, 콘솔의 오류 링크, "엔진만" 필터, 브라우저 모드의 수동 리로드를 본다.
+// 진짜 엔진 프로세스와의 핫 리로드는 scripts/e2e-engine-hotreload.mjs (yarn test:engine).
 
 import { expect, test, type Page } from "@playwright/test";
 
@@ -26,17 +27,18 @@ async function appendLog(page: Page, level: string, source: string, text: string
 }
 
 test.describe("실행기 (메모리 모드)", () => {
-  test("상태 바의 엔진 칸은 없음이고 이유가 툴팁에 있다", async ({ page }) => {
+  test("상태 바의 엔진 칸은 에디터 안 대기이고 웹 엔진이 툴팁에 있다", async ({ page }) => {
     await page.goto("/?backend=memory");
     const engine = page.getByTestId("status-engine");
-    await expect(engine).toHaveText("엔진: 없음");
-    await expect(engine).toHaveAttribute("title", /브라우저 모드에서는 엔진을 띄울 수 없다/);
-    // 프로젝트를 열어도 브라우저 모드에서는 그대로다
+    await expect(engine).toHaveText("엔진 (에디터 안): 대기");
+    await expect(engine).toHaveAttribute("title", /에디터 안 게임 탭에서 돈다 \(웹 엔진\)/);
+    // 프로젝트를 열면 웹 엔진의 MANIFEST 를 읽어 기능과 커밋을 툴팁에 더한다
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
-    await expect(engine).toHaveText("엔진: 없음");
-    await expect(page.getByTestId("console-list")).toContainText("브라우저 모드에서는 엔진을 띄울 수 없다");
-    // 정지와 현재 씬부터 실행도 꺼져 있다
+    await expect(engine).toHaveText("엔진 (에디터 안): 대기");
+    await expect(engine).toHaveAttribute("title", /기능 lua wasm, 엔진 커밋 [0-9a-f]{7}/);
+    await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다");
+    // 실행 전이라 정지는 꺼져 있고 실행 표시도 없다
     const toolbar = page.getByTestId("toolbar");
     await expect(toolbar.locator('[data-command="run.stop"]')).toBeDisabled();
     await expect(toolbar.getByTestId("toolbar-running")).toHaveCount(0);

@@ -1,0 +1,80 @@
+.game-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.game-view-header {
+  flex-wrap: wrap;
+}
+
+.game-view-header .btn {
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+.game-view-state {
+  color: var(--fg);
+}
+
+.game-view-state.phase-running {
+  color: var(--success);
+}
+
+.game-view-state.phase-failed {
+  color: var(--danger);
+}
+
+.game-view-fps {
+  font-family: var(--font-mono);
+}
+
+.game-view-audio {
+  border-color: var(--warning);
+}
+
+/* 게임 화면 자리. 가운데에 canvas 를 둔다 */
+.game-view-frame {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--scene-bg);
+}
+
+.game-view-host {
+  display: contents;
+}
+
+.game-view-host canvas {
+  display: block;
+  flex: none;
+  outline: none;
+  image-rendering: pixelated;
+  touch-action: none;
+  user-select: none;
+}
+
+.game-view-host canvas.is-smooth {
+  image-rendering: auto;
+}
+
+.game-view-host canvas:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.game-view-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  border: 1px dashed var(--border);
+  color: var(--fg-muted);
+  text-align: center;
+}

@@ -20,9 +20,21 @@ function base64ToBytes(b64: string): Uint8Array {
 }
 
 export const SAMPLE_MAIN_LUA = `-- 샘플 프로젝트의 Lua 진입점. 씬 계약 네 함수 (init, update, render, destroy).
--- 엔진은 있는 것만 부른다. 프레임마다 update(elapsed) 와 render() 가 불린다.
+-- 엔진은 전역 Initialize, Update, Render, Destroy 를 부르고, 맨 아래에서 그것을 네 함수로 잇는다.
+-- 프레임마다 update(elapsed) 와 render() 가 불린다. render 는 draw_point 로 사각형을 채운다.
 
 local elapsedTotal = 0
+local printed = false
+
+-- (x, y) 에서 w x h 를 한 색으로 채운다
+local function fillRect(x, y, w, h, r, g, b)
+  draw_set_color(r, g, b, 255)
+  for py = y, y + h - 1 do
+    for px = x, x + w - 1 do
+      draw_point(px, py)
+    end
+  end
+end
 
 function init()
   print("샘플 프로젝트 시작")
@@ -30,17 +42,23 @@ end
 
 function update(elapsed)
   elapsedTotal = elapsedTotal + elapsed
-  if Input.trigger("escape") then
-    System.exit()
-  end
 end
 
 function render()
-  Graphics.drawText(24, 24, string.format("경과 %.1f 초", elapsedTotal / 1000))
+  if not printed then
+    printed = true
+    print("sample:frame")
+  end
+  fillRect(32, 32, 64, 48, 240, 176, 64)
 end
 
 function destroy()
 end
+
+function Initialize() init() end
+function Update(elapsed) update(elapsed) end
+function Render() render() end
+function Destroy() destroy() end
 `;
 
 export const SAMPLE_MAIN_RB = `# 샘플 프로젝트의 Ruby 진입점. Lua 판과 같은 씬 계약이다.
