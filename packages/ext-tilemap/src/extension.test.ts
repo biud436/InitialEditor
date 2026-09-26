@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CommandRegistry, ExtensionHost, ExtensionRegistries, makeObject, MemoryBackend, MenuRegistry, SceneDocument } from "@initial-editor/core";
-import { readTilemapProps, TILEMAP_DEFAULTS, tilemapExtension, tilemapObjectType, validateTilemapObjects } from "./index";
+import { readTilemapProps, TILEMAP_DEFAULTS, tilemapExtension, tilemapMapRefs, tilemapObjectType, validateTilemapMapFiles, validateTilemapObjects } from "./index";
 
 function host() {
   const registries = new ExtensionRegistries();
@@ -75,5 +75,43 @@ describe("타일맵 확장", () => {
     expect(readTilemapProps({ map: 3, groundLayers: -1 })).toEqual({ map: "", groundLayers: 1 });
     expect(readTilemapProps({ groundLayers: "2" })).toEqual({ map: "", groundLayers: 1 });
     expect(readTilemapProps({ groundLayers: 0 })).toEqual({ map: "", groundLayers: 0 });
+  });
+
+  it("타일맵이 가리키는 맵 파일 목록은 비었거나 문자열이 아닌 map을 뺀다", () => {
+    const scene = {
+      objects: [
+        { id: "a", type: "tilemap", props: { map: "resources/maps/a.json" } },
+        { id: "s", type: "sprite", props: { map: "resources/maps/x.json" } },
+        { id: "empty", type: "tilemap", props: { map: "" } },
+        { id: "num", type: "tilemap", props: { map: 3 } },
+        { type: "tilemap", props: { map: "resources/maps/b.json" } },
+      ],
+    };
+    expect(tilemapMapRefs(scene)).toEqual([
+      { index: 0, id: "a", map: "resources/maps/a.json" },
+      { index: 4, id: "#4", map: "resources/maps/b.json" },
+    ]);
+    expect(tilemapMapRefs(null)).toEqual([]);
+  });
+
+  it("맵 파일 검사는 없다고 답한 경로만 오류로 알린다 (모르면 알리지 않는다)", () => {
+    const scene = {
+      objects: [
+        { id: "here", type: "tilemap", props: { map: "resources/maps/a.json", groundLayers: 1 } },
+        { id: "gone", type: "tilemap", props: { map: "resources/maps/old.json", groundLayers: 1 } },
+        { id: "blank", type: "tilemap", props: { map: "", groundLayers: 1 } },
+      ],
+    };
+    const asked: string[] = [];
+    const problems = validateTilemapMapFiles(scene, (path) => {
+      asked.push(path);
+      return path === "resources/maps/old.json";
+    });
+    expect(asked).toEqual(["resources/maps/a.json", "resources/maps/old.json"]);
+    expect(problems).toEqual([
+      { severity: "error", message: "타일맵 gone의 맵 파일이 없다: resources/maps/old.json. 엔진이 씬을 거부한다", location: "objects[1].props.map" },
+    ]);
+    expect(validateTilemapMapFiles(scene, () => false)).toEqual([]);
+    expect(validateTilemapMapFiles({ objects: "x" }, () => true)).toEqual([]);
   });
 });

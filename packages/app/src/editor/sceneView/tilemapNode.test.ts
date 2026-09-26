@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 // 씬 뷰의 타일맵 노드 (WebGL 없이). 텍스처 캐시와 렌더러 흉내를 ctx로 넣고 PIXI 노드의 모양을 본다.
+// ctx.below()와 ctx.above()는 렌더러의 아래 자리와 위 자리 흉내다 (타일은 노드가 아니라 거기에 붙는다).
 import { Emitter, makeObject, MemoryBackend, type SceneObject } from "@initial-editor/core";
 import { parseMap } from "@initial-editor/ext-tilemap/model";
 import { Container, Sprite, TextureSource } from "pixi.js";
@@ -7,7 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MapFileCache } from "./mapFiles";
 import type { SceneNodeContext } from "./SceneRenderer";
 import { tileFrame, TileFrameCache } from "./tileFrames";
-import { createTilemapNode, planTilemap, TILEMAP_PLACEHOLDER_SIZE } from "./tilemapNode";
+import { createTilemapNode, groundLayerCount, planTilemap, TILEMAP_PLACEHOLDER_SIZE } from "./tilemapNode";
 
 // jsdom 에는 캔버스 2D가 없다. PIXI가 불러올 때 캔버스를 시험하므로 조용히 null을 준다
 vi.hoisted(() => {
@@ -52,6 +53,8 @@ async function setup(
   const bounds: Array<{ x: number; y: number; w: number; h: number }> = [];
   /** setBounds마다 배경 대상이었는가 */
   const backgrounds: boolean[] = [];
+  const below = new Container({ label: "below" });
+  const above = new Container({ label: "above" });
   const ctx: SceneNodeContext = {
     loadTexture: async (p) => {
       loads.push(p);
@@ -70,10 +73,14 @@ async function setup(
       bounds.push(b);
       backgrounds.push(opts?.background === true);
     },
+    below: () => below,
+    above: () => above,
   };
   const object: SceneObject = makeObject("tilemap", "tilemap1", props, { x: 32, y: 48 });
   const root = createTilemapNode({ maps }, object, ctx);
-  return { backend, maps, ctx, root, labels, bounds, backgrounds, loads };
+  /** 노드와 아래, 위 자리의 스프라이트 전부 */
+  const all = () => [...sprites(below), ...sprites(root), ...sprites(above)];
+  return { backend, maps, ctx, root, below, above, all, labels, bounds, backgrounds, loads };
 }
 
 function sprites(root: Container): Sprite[] {
@@ -88,9 +95,9 @@ function sprites(root: Container): Sprite[] {
   return out;
 }
 
-function chunks(root: Container): Container[] {
-  const tiles = root.children.find((c) => c.label === "tiles");
-  return (tiles?.children ?? []) as Container[];
+/** 자리에 붙은 타일 묶음의 덩어리들 */
+function chunks(part: Container): Container[] {
+  return part.children.flatMap((tiles) => tiles.children) as Container[];
 }
 
 describe("타일 자리", () => {
@@ -149,33 +156,66 @@ describe("타일맵 그리기 계획", () => {
 
 describe("타일맵 노드", () => {
   it("맵을 고르지 않았으면 이름표 상자다", async () => {
-    const { root, labels, bounds, backgrounds, loads } = await setup({}, { map: "", groundLayers: 1 });
+    const { all, labels, bounds, backgrounds, loads } = await setup({}, { map: "", groundLayers: 1 });
     expect(labels.map((l) => l.label)).toEqual(["tilemap: tilemap1 (맵 없음)"]);
     expect(bounds).toEqual([{ x: 0, y: 0, w: TILEMAP_PLACEHOLDER_SIZE, h: TILEMAP_PLACEHOLDER_SIZE }]);
     // 자리표시 상자는 보통 대상이다 (누르면 고르고 끈다)
     expect(backgrounds).toEqual([false]);
-    expect(sprites(root)).toHaveLength(0);
+    expect(all()).toHaveLength(0);
     expect(loads).toEqual([]);
   });
 
   it("맵의 레이어를 타일셋으로 그리고 맵 크기를 배경 대상의 경계로 알린다", async () => {
-    const { root, labels, bounds, backgrounds, loads } = await setup();
+    const { root, below, above, labels, bounds, backgrounds, loads } = await setup();
     expect(labels.at(-1)?.label).toBe("tilemap: tilemap1 (읽는 중)");
     await tick();
     expect(loads).toEqual([SHEET]);
-    const all = sprites(root);
-    expect(all).toHaveLength(9);
+    // groundLayers 1: ground(8칸)는 아래 자리에, deco(1칸)는 위 자리에. 노드 자신에는 타일이 없다
+    const ground = sprites(below);
+    expect(ground).toHaveLength(8);
+    expect(sprites(above)).toHaveLength(1);
+    expect(sprites(root)).toHaveLength(0);
     // ground의 둘째 칸 (gid 2)은 (16, 0)에, 그림 속 (16, 0)을 쓴다
-    expect(all[1].position.x).toBe(16);
-    expect(all[1].texture.frame.x).toBe(16);
+    expect(ground[1].position.x).toBe(16);
+    expect(ground[1].texture.frame.x).toBe(16);
     expect(bounds.at(-1)).toEqual({ x: 0, y: 0, w: 64, h: 32 });
     expect(backgrounds).toEqual([false, true]);
     // 레이어마다 덩어리 하나, 덩어리는 텍스처로 굽는다
-    const cs = chunks(root);
+    const cs = [...chunks(below), ...chunks(above)];
     expect(cs.map((c) => c.label)).toEqual(["chunk:0", "chunk:1"]);
     expect(cs.every((c) => c.isCachedAsTexture)).toBe(true);
     // 자리표시 이름표는 치웠다
     expect(root.children.some((c) => labels.includes(c as Container))).toBe(false);
+  });
+
+  it("엔진처럼 앞의 groundLayers 개 레이어만 아래 자리에, 나머지는 위 자리에 둔다", async () => {
+    const layersOf = (part: Container) => chunks(part).map((c) => c.label);
+    const none = await setup(undefined, { map: MAP_PATH, groundLayers: 0 });
+    await tick();
+    expect(layersOf(none.below)).toEqual([]);
+    expect(layersOf(none.above)).toEqual(["chunk:0", "chunk:1"]);
+    // 빈 쪽에는 묶음을 붙이지 않는다
+    expect(none.below.children).toHaveLength(0);
+
+    const both = await setup(undefined, { map: MAP_PATH, groundLayers: 2 });
+    await tick();
+    expect(layersOf(both.below)).toEqual(["chunk:0", "chunk:1"]);
+    expect(both.above.children).toHaveLength(0);
+
+    // 레이어 수보다 크면 모두 아래 (엔진은 레이어 수로 자른다)
+    const more = await setup(undefined, { map: MAP_PATH, groundLayers: 5 });
+    await tick();
+    expect(layersOf(more.below)).toEqual(["chunk:0", "chunk:1"]);
+    expect(more.above.children).toHaveLength(0);
+  });
+
+  it("아래에 그릴 레이어 수는 0 이상, 레이어 수 이하의 정수다", () => {
+    expect(groundLayerCount(1, 2)).toBe(1);
+    expect(groundLayerCount(0, 2)).toBe(0);
+    expect(groundLayerCount(5, 2)).toBe(2);
+    expect(groundLayerCount(1.7, 3)).toBe(1);
+    expect(groundLayerCount(-1, 3)).toBe(0);
+    expect(groundLayerCount(1, 0)).toBe(0);
   });
 
   it("맵 파일이 없거나 맵 형식이 아니면 이유가 붙은 이름표 상자다", async () => {
@@ -187,13 +227,13 @@ describe("타일맵 노드", () => {
     const invalid = await setup({ [MAP_PATH]: '{"version": 9}' });
     await tick();
     expect(invalid.labels.at(-1)?.label).toMatch(/모르는 맵 버전이다: 9/);
-    expect(sprites(invalid.root)).toHaveLength(0);
+    expect(invalid.all()).toHaveLength(0);
   });
 
   it("타일셋을 읽지 못하면 맵 테두리와 이유를 그린다", async () => {
     const s = await setup(undefined, undefined, [SHEET]);
     await tick();
-    expect(sprites(s.root)).toHaveLength(0);
+    expect(s.all()).toHaveLength(0);
     expect(s.labels.at(-1)?.label).toMatch(/타일셋을 읽지 못했다: resources\/tiles\/t\.png \(없다\)/);
     expect(s.bounds.at(-1)).toEqual({ x: 0, y: 0, w: 64, h: 32 });
   });
@@ -201,11 +241,16 @@ describe("타일맵 노드", () => {
   it("맵 파일이나 타일셋 그림이 바뀌면 다시 그리고, 다른 파일은 무시한다", async () => {
     const s = await setup();
     await tick();
-    expect(sprites(s.root)).toHaveLength(9);
+    expect(s.all()).toHaveLength(9);
+    const first = [...s.below.children, ...s.above.children];
     await s.backend.writeText(MAP_PATH, mapText([1, 0, 0, 0, 0, 0, 0, 0]));
     s.maps.fileChanged(MAP_PATH);
     await tick();
-    expect(sprites(s.root)).toHaveLength(2);
+    expect(s.all()).toHaveLength(2);
+    // 옛 타일 묶음은 치웠다
+    expect(first.every((c) => c.destroyed)).toBe(true);
+    expect(s.below.children).toHaveLength(1);
+    expect(s.above.children).toHaveLength(1);
 
     s.maps.fileChanged("resources/tiles/other.png");
     await tick();
@@ -214,13 +259,15 @@ describe("타일맵 노드", () => {
     s.maps.fileChanged(SHEET);
     await tick();
     expect(s.loads).toEqual([SHEET, SHEET, SHEET]);
-    expect(sprites(s.root)).toHaveLength(2);
+    expect(s.all()).toHaveLength(2);
 
     // 맵 파일이 지워지면 이름표 상자
     await s.backend.remove(MAP_PATH);
     s.maps.fileChanged(MAP_PATH);
     await tick();
-    expect(sprites(s.root)).toHaveLength(0);
+    expect(s.all()).toHaveLength(0);
+    expect(s.below.children).toHaveLength(0);
+    expect(s.above.children).toHaveLength(0);
     expect(s.labels.at(-1)?.label).toMatch(/resources\/maps\/m\.json: /);
   });
 
@@ -239,5 +286,17 @@ describe("타일맵 노드", () => {
     expect(events.listenerCount("changed")).toBe(0);
     await tick();
     expect(s.bounds).toHaveLength(1);
+    expect(s.all()).toHaveLength(0);
+  });
+
+  it("다 그린 노드를 버리면 아래와 위 자리에 붙인 타일도 치운다", async () => {
+    const s = await setup();
+    await tick();
+    const parts = [...s.below.children, ...s.above.children];
+    expect(parts).toHaveLength(2);
+    s.root.destroy({ children: true });
+    expect(parts.every((c) => c.destroyed)).toBe(true);
+    expect(s.below.children).toHaveLength(0);
+    expect(s.above.children).toHaveLength(0);
   });
 });

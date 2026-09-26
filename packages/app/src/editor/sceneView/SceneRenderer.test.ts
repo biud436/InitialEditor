@@ -197,3 +197,120 @@ describe("배경 대상 (타일맵)", () => {
     expect(doc.selectedIds).toEqual(["e2"]);
   });
 });
+
+interface LayerInternals extends Internals {
+  world: Container;
+  belowLayer: Container;
+  objectLayer: Container;
+  aboveLayer: Container;
+  reconcile(): void;
+}
+
+/** 확장 오브젝트 a, b, c. 노드마다 ctx를 모으고, parts에 적힌 id는 만들 때 아래와 위 자리를 받는다 */
+function layerSetup(parts: string[]) {
+  const registries = new ExtensionRegistries();
+  const ctxs = new Map<string, SceneNodeContext>();
+  const spec: ObjectTypeSpec = {
+    type: "ext",
+    label: "확장",
+    defaults: {},
+    createSceneNode: (o, c) => {
+      const obj = o as SceneObject;
+      const ctx = c as SceneNodeContext;
+      ctxs.set(obj.id, ctx);
+      if (parts.includes(obj.id)) {
+        ctx.below().addChild(new Container({ label: `${obj.id}:ground` }));
+        ctx.above().addChild(new Container({ label: `${obj.id}:deco` }));
+      }
+      return new Container();
+    },
+  };
+  registries.objectTypes.set("ext", spec);
+  const objects = ["a", "b", "c"].map((id, i) => makeObject("ext", id, {}, { x: i * 10, y: 5 }));
+  const doc = new SceneDocument(new MemoryBackend(), "resources/scenes/s.json", { version: 1, name: "s", objects, extra: {} }, () => new Set(["ext"]));
+  const r = new SceneRenderer({
+    document: doc,
+    view: new SceneViewState(null),
+    textures: { load: async () => ({}), events: new Emitter() } as never,
+    objectTypes: registries.objectTypes,
+    gameSize: () => ({ width: 100, height: 100 }),
+    theme: () => ({ colors: new Proxy({}, { get: () => 0x888888 }), fonts: new Proxy({}, { get: () => "sans-serif" }) }) as never,
+  });
+  const internals = r as unknown as LayerInternals;
+  internals.reconcile();
+  const labels = (layer: Container) => layer.children.map((c) => c.label);
+  return { doc, r, internals, ctxs, labels };
+}
+
+describe("아래와 위 자리 (엔진 씬 로더의 drawBelow, drawAbove)", () => {
+  it("아래 자리는 모든 오브젝트 밑에, 위 자리는 모든 오브젝트 위에 오브젝트 순서로 쌓인다", () => {
+    const { internals, labels } = layerSetup(["a", "c"]);
+    const w = internals.world.children;
+    expect(w.indexOf(internals.belowLayer)).toBeLessThan(w.indexOf(internals.objectLayer));
+    expect(w.indexOf(internals.objectLayer)).toBeLessThan(w.indexOf(internals.aboveLayer));
+    expect(labels(internals.belowLayer)).toEqual(["below:a", "below:c"]);
+    expect(labels(internals.objectLayer)).toEqual(["a", "b", "c"]);
+    expect(labels(internals.aboveLayer)).toEqual(["above:a", "above:c"]);
+    // 자리는 오브젝트 위치에 있고 확장이 붙인 것을 담는다
+    const [ground] = internals.belowLayer.children;
+    expect([ground.position.x, ground.position.y]).toEqual([0, 5]);
+    expect(ground.children.map((c) => c.label)).toEqual(["a:ground"]);
+  });
+
+  it("노드를 다 그린 뒤에 받은 자리도 오브젝트 순서 자리에 끼운다. 같은 자리를 다시 주며, 순서를 바꾸면 따라간다", () => {
+    const { doc, internals, ctxs, labels } = layerSetup(["c"]);
+    const late = ctxs.get("a")!.below();
+    expect(labels(internals.belowLayer)).toEqual(["below:a", "below:c"]);
+    expect(ctxs.get("a")!.below()).toBe(late);
+    // a를 맨 뒤로
+    doc.apply(doc.scene.reorder(0, 2));
+    internals.reconcile();
+    expect(labels(internals.belowLayer)).toEqual(["below:c", "below:a"]);
+    expect(labels(internals.objectLayer)).toEqual(["b", "c", "a"]);
+  });
+
+  it("오브젝트를 옮기거나 숨기면 자리도 따라가고, 오브젝트를 지우면 자리도 치운다", () => {
+    const { doc, internals, labels } = layerSetup(["b"]);
+    const [below] = internals.belowLayer.children;
+    const [above] = internals.aboveLayer.children;
+    doc.apply(doc.scene.moveObjects([{ id: "b", x: 40, y: 50 }]));
+    doc.apply(doc.scene.setField("b", "visible", false));
+    internals.reconcile();
+    for (const part of [below, above]) {
+      expect([part.position.x, part.position.y]).toEqual([40, 50]);
+      expect(part.alpha).toBeLessThan(1);
+    }
+    doc.apply(doc.scene.removeObject("b"));
+    internals.reconcile();
+    expect(below.destroyed).toBe(true);
+    expect(above.destroyed).toBe(true);
+    expect(labels(internals.belowLayer)).toEqual([]);
+    expect(labels(internals.aboveLayer)).toEqual([]);
+  });
+
+  it("버린 노드와 만들지 못한 노드의 자리는 층에 붙지 않는다", () => {
+    const { internals, ctxs, labels } = layerSetup([]);
+    const entry = internals.nodes.get("a")!;
+    const ctx = ctxs.get("a")!;
+    internals.destroyEntry(entry);
+    internals.nodes.delete("a");
+    ctx.below();
+    ctx.above();
+    expect(labels(internals.belowLayer)).toEqual([]);
+    expect(labels(internals.aboveLayer)).toEqual([]);
+
+    // 자리를 받은 뒤 던지면 그 자리를 치우고 이름표 상자다
+    let failing!: SceneNodeContext;
+    let part!: Container;
+    const { internals: other, spec, object } = setup((_o, c) => {
+      failing = c as SceneNodeContext;
+      part = failing.below();
+      throw new Error("실패");
+    });
+    other.nodes.set(object.id, other.createEntry(object, spec));
+    expect(part.destroyed).toBe(true);
+    expect((other as unknown as LayerInternals).belowLayer.children).toHaveLength(0);
+    failing.above();
+    expect((other as unknown as LayerInternals).aboveLayer.children).toHaveLength(0);
+  });
+});

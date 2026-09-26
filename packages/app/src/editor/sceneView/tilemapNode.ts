@@ -1,6 +1,8 @@
 // 씬 뷰의 타일맵 노드 (타일맵 확장의 createSceneNode). props.map이 가리키는 맵 파일을 읽어 레이어를 순서대로,
-// 맵의 타일셋으로, 오브젝트 위치(왼쪽 위)에 그린다. 게임에서는 groundLayers 위의 레이어가 다른 오브젝트 위에
-// 오지만 씬 뷰는 오브젝트 순서 자리에 모두 그린다 (근사).
+// 맵의 타일셋으로, 오브젝트 위치(왼쪽 위)에 그린다.
+// 쌓는 순서는 엔진 씬 로더와 같다: 앞의 groundLayers 개 레이어는 ctx.below()에 (씬의 모든 오브젝트 아래, 타일맵보다
+//   앞에 놓인 오브젝트도 그 위에 보인다), 나머지 레이어는 ctx.above()에 (모든 오브젝트 위). groundLayers가 레이어
+//   수보다 크면 모두 아래다. 노드 자신(오브젝트 순서 자리)에는 테두리와 이름표만 둔다.
 //
 // 그리기: 맵 뷰(MapRenderer)처럼 레이어를 CHUNK_TILES 칸 덩어리로 나누고, 덩어리마다 칸 스프라이트를 모은 Container를
 //   cacheAsTexture로 텍스처 한 장에 굽는다. 빈 덩어리는 만들지 않는다.
@@ -37,6 +39,11 @@ export interface TilemapPlan {
   drawn: number;
   /** 타일셋 밖이거나 그림을 읽지 못해 그리지 못한 칸 */
   skipped: number;
+}
+
+/** 아래에 그릴 레이어 수 (엔진 scene_types/tilemap의 groundLayers: 레이어 수를 넘지 않는다) */
+export function groundLayerCount(groundLayers: number, layerCount: number): number {
+  return Math.max(0, Math.min(Math.floor(groundLayers), layerCount));
 }
 
 /** 맵을 덩어리별로 그릴 칸 목록으로 (PIXI 없이) */
@@ -94,6 +101,9 @@ class TilemapNode {
   /** 바뀌면 다시 그릴 경로: 맵 파일과 그 타일셋 그림 */
   private watched = new Set<string>();
   private stopWatching: (() => void) | null = null;
+  private groundLayers = 1;
+  /** ctx.below(), ctx.above()에 붙인 타일 묶음 */
+  private tiles: Container[] = [];
 
   constructor(
     private readonly deps: TilemapNodeDeps,
@@ -104,7 +114,8 @@ class TilemapNode {
 
   start(): void {
     this.root.once("destroyed", () => this.dispose());
-    const { map } = readTilemapProps(this.object.props);
+    const { map, groundLayers } = readTilemapProps(this.object.props);
+    this.groundLayers = groundLayers;
     if (!map) {
       this.placeholder("맵 없음", this.ctx.colors["fg-muted"]);
       return;
@@ -151,7 +162,9 @@ class TilemapNode {
   private build(map: MapData, sheets: Array<LoadedTexture | null>, errors: string[]): void {
     const plan = planTilemap(map, sheets);
     const frames = new TileFrameCache(map.tilesets, sheets, map.tileWidth, map.tileHeight);
-    const content = new Container({ label: "tiles" });
+    const ground = groundLayerCount(this.groundLayers, map.layers.length);
+    const below = new Container({ label: "tiles-below" });
+    const above = new Container({ label: "tiles-above" });
     for (const ch of plan.chunks) {
       const chunk = new Container({ label: `chunk:${ch.layer}` });
       chunk.position.set(ch.x, ch.y);
@@ -163,11 +176,22 @@ class TilemapNode {
         chunk.addChild(s);
       }
       chunk.cacheAsTexture({ scaleMode: "nearest", antialias: false });
-      content.addChild(chunk);
+      (ch.layer < ground ? below : above).addChild(chunk);
     }
     this.clear();
     this.frames = frames;
-    this.root.addChild(content);
+    for (const [part, at] of [
+      [below, () => this.ctx.below()],
+      [above, () => this.ctx.above()],
+    ] as const) {
+      // 빈 쪽은 자리를 만들지 않는다
+      if (part.children.length === 0) {
+        part.destroy();
+        continue;
+      }
+      at().addChild(part);
+      this.tiles.push(part);
+    }
     const notes = [...errors];
     if (plan.skipped > 0) notes.push(`타일셋 밖의 칸 ${plan.skipped}`);
     if (plan.drawn === 0 && errors.length === 0) notes.push("빈 맵");
@@ -197,14 +221,20 @@ class TilemapNode {
 
   private clear(): void {
     for (const child of this.root.removeChildren()) child.destroy({ children: true });
+    this.dropTiles();
     this.frames?.destroy();
     this.frames = null;
+  }
+
+  private dropTiles(): void {
+    for (const part of this.tiles.splice(0)) if (!part.destroyed) part.destroy({ children: true });
   }
 
   private dispose(): void {
     this.disposed = true;
     this.stopWatching?.();
     this.stopWatching = null;
+    this.dropTiles();
     this.frames?.destroy();
     this.frames = null;
   }

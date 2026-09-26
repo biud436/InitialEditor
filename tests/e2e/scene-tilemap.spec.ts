@@ -1,10 +1,13 @@
 // 씬의 타일맵 오브젝트 e2e (docs/plans/e3-tilemap.md 마일스톤 5). 메모리 백엔드(?backend=memory)라 서버가 필요 없다.
 // 샘플 프로젝트의 resources/maps/meadow.json (20x12 칸, 16px). 칸 (5,1)은 풀(초록), 8행은 흙길(갈색), (0,0)을 6으로 바꾸면 물(파랑).
 // 흐름: 새 씬 → 타일맵 추가(검사 오류) → 자리 (64,64) → 맵 고르기 → 씬 뷰의 픽셀이 맵의 타일 → 맵 파일이 바뀌면 다시 그린다
-//       → 인스펙터의 맵 열기 → 저장 → 맵 비우기. 그리고 맵은 배경 대상이다: 누르고 놓으면 고르고, 끌면 상자 선택, 고른 뒤에만 옮긴다.
+//       → 맵 파일을 지우거나 이름을 바꾸면 검사 오류, 되살리면 사라진다 → 인스펙터의 맵 열기 → 저장 → 맵 비우기.
+// 그리고 맵은 배경 대상이다: 누르고 놓으면 고르고, 끌면 상자 선택, 고른 뒤에만 옮긴다.
+// 쌓는 순서는 엔진 씬 로더와 같다: 앞의 groundLayers 개 레이어는 모든 오브젝트 아래, 나머지는 모든 오브젝트 위.
 // 픽셀은 페이지 스크린샷의 1x1 조각을 페이지 안에서 풀어 읽는다 (screen = world * zoom + pan).
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { encodePng } from "../../packages/app/src/editor/maps/sampleMap";
 
 const LAYOUT_KEY = "initial-editor.layout";
 const VIEW_KEY = "initial-editor.sceneView";
@@ -97,6 +100,15 @@ const at = (dx: number, dy: number): Point => ({ x: ORIGIN.x + dx, y: ORIGIN.y +
 const isGrass = ([r, g, b]: Rgb) => g > r + 30 && g > b + 30;
 const isDirt = ([r, g, b]: Rgb) => r > b + 40 && r > g;
 const isWater = ([r, g, b]: Rgb) => b > g && b > r + 40;
+const isMagenta = ([r, g, b]: Rgb) => r > 200 && b > 200 && g < 80;
+
+/** 16x16 자홍 그림 (타일셋에 없는 색이라 스프라이트가 보이는지 픽셀로 가린다) */
+const MARK = "resources/images/mark.png";
+function markPng(): number[] {
+  const rgba = new Uint8Array(16 * 16 * 4);
+  for (let i = 0; i < 16 * 16; i++) rgba.set([255, 0, 255, 255], i * 4);
+  return Array.from(encodePng(16, 16, rgba));
+}
 
 async function drag(page: Page, from: Point, to: Point) {
   await page.mouse.move(from.x, from.y);
@@ -150,6 +162,24 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await expect.poll(async () => isWater(await pixel(page, view, firstCell))).toBe(true);
     expect(isGrass(await pixel(page, view, grassAt))).toBe(true);
 
+    // 맵 파일이 없어지면 검사 오류 (엔진이 씬을 거부한다): 지우기, 이름 바꾸기. 되살리면 사라진다
+    const changedText = JSON.stringify(data, null, 2);
+    const external = (path: string, kind: "create" | "delete", body?: string) =>
+      ev(page, "(e, a) => e.backend.simulateExternalChange(a.path, a.kind, a.body ?? undefined)", { path, kind, body: body ?? null });
+    const missingText = `타일맵 tilemap의 맵 파일이 없다: ${MEADOW}. 엔진이 씬을 거부한다`;
+    await external(MEADOW, "delete");
+    await expect(problems).toHaveAttribute("data-count", "1");
+    await expect(problems).toContainText(missingText);
+    await external(MEADOW, "create", changedText);
+    await expect(problems).toHaveAttribute("data-count", "0");
+    await external(MEADOW, "delete");
+    await external("resources/maps/meadow_old.json", "create", changedText);
+    await expect(problems).toHaveAttribute("data-count", "1");
+    await expect(problems).toContainText(missingText);
+    await external(MEADOW, "create", changedText);
+    await expect(problems).toHaveAttribute("data-count", "0");
+    await expect.poll(async () => isWater(await pixel(page, view, firstCell))).toBe(true);
+
     // 인스펙터의 맵 열기: 맵 탭이 열리고 바뀐 파일을 읽는다
     const open = page.getByTestId("tilemap-open-map");
     await expect(open).toBeEnabled();
@@ -182,6 +212,56 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await expect(open).toBeDisabled();
     await expect(problems).toHaveAttribute("data-count", "1");
     await expect.poll(async () => isGrass(await pixel(page, view, grassAt))).toBe(false);
+  });
+
+  test("쌓는 순서는 엔진과 같다: 바닥 레이어는 모든 오브젝트 아래, 나머지 레이어는 모든 오브젝트 위", async ({ page }) => {
+    const view = await newSceneInSample(page, "stack");
+    await ev(page, "(e, a) => e.backend.writeBinary(a.path, Uint8Array.from(a.bytes))", { path: MARK, bytes: markPng() });
+    const imageOf = async (at: Point) => {
+      const image = page.getByTestId("prop-image");
+      await expect(image.locator(`option[value="${MARK}"]`)).toHaveCount(1);
+      await image.selectOption(MARK);
+      await placeSelected(page, at);
+    };
+    // 목록 순서: 스프라이트(타일맵 앞), 타일맵, 스프라이트(타일맵 뒤)
+    // 앞의 것은 풀만 있는 칸 (5,1)에, 뒤의 것은 장식(나무 꼭대기)이 있는 칸 (1,0)에 16x16으로 겹친다
+    const beforeMap = await addObject(page, "sprite");
+    await imageOf(at(80, 16));
+    await addObject(page, "tilemap");
+    await placeSelected(page, ORIGIN);
+    const mapSelect = page.getByTestId("prop-map");
+    await expect(mapSelect.locator(`option[value="${MEADOW}"]`)).toHaveCount(1);
+    await mapSelect.selectOption(MEADOW);
+    await expect(page.getByTestId("tilemap-map-info")).toHaveText("20x12 칸, 타일 16x16, 레이어 2");
+    const afterMap = await addObject(page, "sprite");
+    await imageOf(at(16, 0));
+    expect(await ev(page, "(e) => e.documents.active.scene.objects.map((o) => o.id)")).toEqual([beforeMap, "tilemap", afterMap]);
+    await view.locator(".scene-view-host").focus();
+    await page.keyboard.press("Escape");
+    const onGround = at(88, 24);
+    const onDeco = at(24, 8);
+
+    // groundLayers 1: 바닥은 모든 오브젝트 아래라 앞의 스프라이트가 보이고, 장식은 모든 오브젝트 위라 뒤의 스프라이트를 덮는다
+    await expect.poll(async () => isMagenta(await pixel(page, view, onGround))).toBe(true);
+    await expect.poll(async () => isGrass(await pixel(page, view, onDeco))).toBe(true);
+
+    const setGround = async (n: number) => {
+      await ev(page, "(e) => e.documents.active.select(['tilemap'])");
+      const field = page.getByTestId("prop-groundLayers");
+      await field.fill(String(n));
+      await field.press("Enter");
+      expect(await ev(page, "(e) => e.documents.active.scene.find('tilemap').props.groundLayers")).toBe(n);
+      await view.locator(".scene-view-host").focus();
+      await page.keyboard.press("Escape");
+    };
+    // groundLayers 0: 맵 전체가 모든 오브젝트 위
+    await setGround(0);
+    await expect.poll(async () => isGrass(await pixel(page, view, onGround))).toBe(true);
+    await expect.poll(async () => isGrass(await pixel(page, view, onDeco))).toBe(true);
+    // groundLayers 2: 맵 전체가 모든 오브젝트 아래
+    await setGround(2);
+    await expect.poll(async () => isMagenta(await pixel(page, view, onGround))).toBe(true);
+    await expect.poll(async () => isMagenta(await pixel(page, view, onDeco))).toBe(true);
   });
 
   test("맵은 배경 대상: 누르고 놓으면 고르고, 그 위에서 끌면 상자 선택, 고른 뒤에만 끌어 옮긴다", async ({ page }) => {
