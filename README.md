@@ -26,7 +26,7 @@
 
 ## 시작하기
 
-Node 20 이상, Yarn(저장소에 든 Berry 4.3.1을 `yarn`이 그대로 씁니다), Tauri 앱을 빌드하려면 Rust 안정판과
+Node 22 이상(브라우저 모드 테스트가 전역 `WebSocket`을 쓴다), Yarn(저장소에 든 Berry 4.3.1을 `yarn`이 그대로 씁니다), Tauri 앱을 빌드하려면 Rust 안정판과
 플랫폼별 준비물([docs/plans/01-tech-stack.md](./docs/plans/01-tech-stack.md) 7절)이 필요합니다.
 
 ```sh
