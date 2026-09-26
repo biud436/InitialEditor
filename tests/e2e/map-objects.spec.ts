@@ -198,7 +198,9 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
     await expect(playHere).toBeEnabled();
     await page.keyboard.press("Escape");
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere") ?? "(없음)"])).toEqual([true, "(없음)"]);
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, "(없음)", "여기서 실행 (맵)"]);
+    // 켜져 있으면 안내는 위치를 정하는 규칙이다 (objectTools/rules.ts 의 PLAY_POSITION_RULE)
+    const rule = "위치는 하나만 고른 오브젝트 (순찰 범위가 있으면 왼끝에서 48px 왼쪽, 16 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서로 정하고 맵 안으로 자른다";
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere") ?? "(없음)"])).toEqual([true, rule]);
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, rule, "여기서 실행 (맵)"]);
   });
 });
