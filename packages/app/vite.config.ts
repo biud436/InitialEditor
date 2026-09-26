@@ -23,7 +23,6 @@ export default defineConfig({
     // 저장소 루트의 dist/ 로 낸다. Cloudflare Pages 가 옛 에디터 때부터 `yarn build` 뒤 dist/ 를 배포한다
     outDir: "../../dist",
     emptyOutDir: true,
-    emptyOutDir: true,
     target: "es2022",
     sourcemap: true,
   },
