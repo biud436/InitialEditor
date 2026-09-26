@@ -8,8 +8,11 @@
 //   pick     칸이나 사각형에서 붓을 뜨고 펜으로 돌아간다
 //   collision 통행을 칠한다. 왼쪽은 막힘(1), 오른쪽이나 Alt는 지나감(0)
 //   object   고르기(Shift는 더하고 빼기), 끌어 옮기기, 범위 손잡이와 띠 가장자리 끌기, 빈 곳 끌기는 상자 선택,
-//            방향키 1px(Shift는 한 칸), Delete는 지우기, Escape는 선택 풀기
+//            방향키 1px(Shift는 한 칸), Delete는 지우기, Escape는 선택 풀기.
+//            뷰 폭의 반보다 넓은 띠(구간)의 안쪽은 클릭하면 고르고, 끌면 옮기지 않고 상자 선택이다.
+//            순찰 범위가 있는 점을 옮기면 범위도 같이 옮긴다 (Alt는 몸통만)
 // 대상이 통행이면 타일 도구도 통행을 칠한다 (펜과 사각형과 채우기는 1, 지우개는 0).
+// 대상 레이어나 통행을 숨겼으면 칠하지 않는다 (ctx.notice로 알린다).
 
 import type { Command } from "@initial-editor/core";
 import { runInAction } from "mobx";
@@ -27,6 +30,7 @@ import {
   type MapModel,
 } from "@initial-editor/ext-tilemap/model";
 import {
+  isLargeBand,
   bandEdgeDrag,
   cellAt,
   cellRange,
@@ -43,6 +47,7 @@ import {
   strokeSegment,
   type Cell,
   type MoveStart,
+  type MoveTarget,
   type ObjectShape,
   type Point,
   type RangeInfo,
@@ -82,6 +87,20 @@ export interface ToolContext {
   zoom(): number;
   /** 미리보기나 커서가 바뀌었다 */
   changed(): void;
+  /** 뷰의 화면 폭 (넓은 띠를 가르는 데 쓴다). 없으면 넓은 띠가 없다 */
+  viewWidth?(): number;
+  /** 사용자에게 짧게 알린다 (숨긴 대상에 칠하려 할 때) */
+  notice?(message: string): void;
+}
+
+export const HIDDEN_TARGET_NOTICE = "숨긴 레이어에는 칠하지 않는다. 눈을 켜고 칠한다";
+
+/** 칠할 대상(타일 레이어나 통행)을 숨겼는가 */
+export function targetHidden(doc: MapDocument): boolean {
+  const t = doc.target;
+  if (t.kind === "collision") return !doc.showCollision;
+  if (t.kind === "layer") return doc.hiddenLayers.has(t.index);
+  return false;
 }
 
 type Gesture =
@@ -90,8 +109,11 @@ type Gesture =
   | { kind: "pick"; layer: number; from: Cell; to: Cell }
   | { kind: "press"; start: Point; starts: MoveStart[] }
   | { kind: "move"; key: string; start: Point; starts: MoveStart[]; last: string }
-  | { kind: "range"; key: string; id: string; part: "rangeMin" | "rangeMax"; range: RangeInfo; last: number | null }
-  | { kind: "band"; key: string; id: string; part: "bandLeft" | "bandRight"; start: { x: number; width: number }; last: string }
+  /** 손잡이와 가장자리: press는 누른 점, edge는 그때의 값. 문턱을 넘기 전(dragging false)에는 고치지 않는다 */
+  | { kind: "range"; key: string; id: string; part: "rangeMin" | "rangeMax"; range: RangeInfo; press: Point; edge: number; dragging: boolean; last: number | null }
+  | { kind: "band"; key: string; id: string; part: "bandLeft" | "bandRight"; start: { x: number; width: number }; press: Point; edge: number; dragging: boolean; last: string }
+  /** 넓은 띠의 안쪽을 눌렀다: 놓으면 고르고, 끌면 상자 선택 */
+  | { kind: "bandPress"; id: string; start: Point; additive: boolean }
   | { kind: "box"; start: Point; current: Point; additive: boolean };
 
 /** 이만큼(화면 픽셀) 움직여야 오브젝트 끌기다 */
@@ -99,7 +121,7 @@ export const DRAG_THRESHOLD_PX = 3;
 
 let gestureCounter = 0;
 
-/** 여러 명령을 한 단계로 묶되, 같은 키의 다음 묶음과 칸별로 합친다 (띠 가장자리 끌기의 x와 폭) */
+/** 여러 명령을 한 단계로 묶되, 같은 키의 다음 묶음과 칸별로 합친다 (띠 가장자리 끌기의 x와 폭, 범위가 있는 점 옮기기) */
 export function mergeableCompound(label: string, parts: Command[], coalesceKey?: string): Command {
   const cmd: Command & { parts: Command[] } = {
     label,
@@ -138,12 +160,19 @@ export class MapToolController {
     return this.gesture !== null;
   }
 
-  /** 칠할 대상. 타일 레이어 번호나 통행, 오브젝트가 대상이면 null */
+  /** 칠할 대상. 타일 레이어 번호나 통행. 오브젝트가 대상이거나 대상을 숨겼으면 null */
   paintTarget(): number | "collision" | null {
     const t = this.doc.target;
+    if (targetHidden(this.doc)) return null;
     if (t.kind === "collision") return "collision";
     if (t.kind === "layer") return t.index >= 0 && t.index < this.model.layers.length ? t.index : null;
     return null;
+  }
+
+  /** 문턱(화면 픽셀)을 넘게 움직였는가 */
+  private pastThreshold(from: Point, to: Point): boolean {
+    const zoom = this.ctx.zoom();
+    return Math.abs(to.x - from.x) * zoom >= DRAG_THRESHOLD_PX || Math.abs(to.y - from.y) * zoom >= DRAG_THRESHOLD_PX;
   }
 
   /** 오른쪽 버튼을 도구가 쓰는가 (통행 칠하기의 지우기). 아니면 렌더러가 팬으로 쓴다 */
@@ -197,7 +226,10 @@ export class MapToolController {
       this.update();
       return;
     }
-    if (target === null) return;
+    if (target === null) {
+      if (targetHidden(this.doc)) this.ctx.notice?.(HIDDEN_TARGET_NOTICE);
+      return;
+    }
     const brush = this.brushFor(target, p);
     if (tool === "rect") {
       this.gesture = { kind: "rect", target, brush, from: cell, to: cell };
@@ -229,6 +261,7 @@ export class MapToolController {
         case "move":
         case "range":
         case "band":
+        case "bandPress":
         case "box":
           this.objectMove(g, p);
           break;
@@ -246,6 +279,12 @@ export class MapToolController {
       this.apply(g.target, rectFill(this.model, g.brush, r.x0, r.y0, r.x1, r.y1));
     } else if (g?.kind === "pick") {
       this.finishPick(g);
+    } else if (g?.kind === "bandPress") {
+      // 끌지 않은 클릭: 띠를 고른다 (Shift는 더하고 빼기)
+      const doc = this.doc;
+      if (!g.additive) doc.select([g.id]);
+      else if (doc.selection.has(g.id)) doc.select(doc.selectedIds.filter((id) => id !== g.id));
+      else doc.select([g.id], true);
     } else if (g?.kind === "box") {
       const rect = rectFromPoints(g.start, g.current);
       const hits = shapesInRect(this.shapes(), rect, this.model.pixelHeight);
@@ -309,15 +348,23 @@ export class MapToolController {
       return;
     }
     const key = `map-object:${++gestureCounter}`;
+    const obj = this.model.findObject(hit.id)!;
+    const shape = shapeOf(obj, typeOf(doc.schema, obj.type));
     if (hit.part !== "body") {
       if (!doc.selection.has(hit.id)) doc.select([hit.id], p.shift);
-      const obj = this.model.findObject(hit.id)!;
-      const shape = shapeOf(obj, typeOf(doc.schema, obj.type));
       if ((hit.part === "rangeMin" || hit.part === "rangeMax") && shape.kind === "point" && shape.range) {
-        this.gesture = { kind: "range", key, id: hit.id, part: hit.part, range: shape.range, last: null };
+        const edge = hit.part === "rangeMin" ? shape.range.min : shape.range.max;
+        this.gesture = { kind: "range", key, id: hit.id, part: hit.part, range: shape.range, press: p.world, edge, dragging: false, last: null };
       } else if ((hit.part === "bandLeft" || hit.part === "bandRight") && shape.kind === "band") {
-        this.gesture = { kind: "band", key, id: hit.id, part: hit.part, start: { x: shape.x, width: shape.width }, last: "" };
+        const edge = hit.part === "bandLeft" ? shape.x : shape.x + shape.width;
+        this.gesture = { kind: "band", key, id: hit.id, part: hit.part, start: { x: shape.x, width: shape.width }, press: p.world, edge, dragging: false, last: "" };
       }
+      return;
+    }
+    // 고르지 않은 큰 띠(구간처럼 넓거나 다른 오브젝트를 품은 띠)의 몸통: 누르고 떼면 고르고, 끌면 상자 선택이다.
+    // 구간 띠가 맵 전체를 덮어도 빈 땅에서 상자 선택이 된다. 고른 뒤에 끌면 옮긴다
+    if (!doc.selection.has(hit.id) && isLargeBand(shape, this.shapes(), this.model.tileWidth)) {
+      this.gesture = { kind: "bandPress", id: hit.id, start: p.world, additive: p.shift };
       return;
     }
     if (p.shift) {
@@ -334,8 +381,22 @@ export class MapToolController {
     const doc = this.doc;
     return doc.selectedIds.map((id) => {
       const o = this.model.findObject(id)!;
-      return { id, x: o.x, y: o.y, lockY: shapeOf(o, typeOf(doc.schema, o.type)).kind === "band" };
+      const shape = shapeOf(o, typeOf(doc.schema, o.type));
+      return { id, x: o.x, y: o.y, lockY: shape.kind === "band", range: shape.kind === "point" ? shape.range : null };
     });
+  }
+
+  /** 옮기기 명령. 범위가 있는 점은 범위 칸 둘도 같은 한 단계로 고친다 */
+  private moveCommand(moves: MoveTarget[], key?: string): Command {
+    const model = this.model;
+    const ranged = moves.filter((m) => m.range);
+    const move = model.moveObjects(
+      moves.map((m) => ({ id: m.id, x: m.x, y: m.y })),
+      ranged.length === 0 ? key : undefined,
+    );
+    if (ranged.length === 0) return move;
+    const props = ranged.flatMap((m) => [model.setObjectProp(m.id, m.range!.minField, m.range!.min), model.setObjectProp(m.id, m.range!.maxField, m.range!.max)]);
+    return mergeableCompound(move.label, [move, ...props], key);
   }
 
   private objectMove(g: Gesture, p: ToolPointer): void {
@@ -345,30 +406,40 @@ export class MapToolController {
       g.current = p.world;
       return;
     }
+    if (g.kind === "bandPress") {
+      if (!this.pastThreshold(g.start, p.world)) return;
+      if (!g.additive) doc.clearSelection();
+      this.gesture = { kind: "box", start: g.start, current: p.world, additive: g.additive };
+      return;
+    }
     if (g.kind === "press") {
-      const zoom = this.ctx.zoom();
-      if (Math.abs(p.world.x - g.start.x) * zoom < DRAG_THRESHOLD_PX && Math.abs(p.world.y - g.start.y) * zoom < DRAG_THRESHOLD_PX) return;
+      if (!this.pastThreshold(g.start, p.world)) return;
       this.gesture = { kind: "move", key: `map-object:${++gestureCounter}`, start: g.start, starts: g.starts, last: "" };
       this.objectMove(this.gesture, p);
       return;
     }
     if (g.kind === "move") {
-      const moves = moveTargets(g.starts, p.world.x - g.start.x, p.world.y - g.start.y);
-      const signature = moves.map((m) => `${m.id}:${m.x},${m.y}`).join("|");
+      const moves = moveTargets(g.starts, p.world.x - g.start.x, p.world.y - g.start.y, model.pixelWidth, p.alt);
+      const signature = moves.map((m) => `${m.id}:${m.x},${m.y}:${m.range?.min ?? ""}`).join("|");
       if (signature === g.last) return;
       g.last = signature;
-      doc.apply(model.moveObjects(moves, g.key));
+      doc.apply(this.moveCommand(moves, g.key));
       return;
     }
+    if ((g.kind === "range" || g.kind === "band") && !g.dragging) {
+      if (!this.pastThreshold(g.press, p.world)) return;
+      g.dragging = true;
+    }
     if (g.kind === "range") {
-      const { field, value } = rangeDragValue(g.range, g.part, p.world.x, model.pixelWidth);
+      // 누른 점과의 차이만큼 옮긴다 (손잡이로 튀지 않는다)
+      const { field, value } = rangeDragValue(g.range, g.part, g.edge + (p.world.x - g.press.x), model.pixelWidth);
       if (value === g.last) return;
       g.last = value;
       doc.apply(model.setObjectProp(g.id, field, value, g.key));
       return;
     }
     if (g.kind === "band") {
-      const next = bandEdgeDrag(g.start, g.part, p.world.x);
+      const next = bandEdgeDrag(g.start, g.part, g.edge + (p.world.x - g.press.x));
       const signature = `${next.x},${next.width}`;
       if (signature === g.last) return;
       g.last = signature;
@@ -404,8 +475,8 @@ export class MapToolController {
     }
     const step = nudgeStep(k.key, k.shift, this.model.tileWidth, this.model.tileHeight);
     if (!step) return false;
-    const moves = moveTargets(this.moveStarts(), step.x, step.y);
-    doc.apply(this.model.moveObjects(moves));
+    const moves = moveTargets(this.moveStarts(), step.x, step.y, this.model.pixelWidth);
+    doc.apply(this.moveCommand(moves));
     return true;
   }
 
@@ -429,6 +500,7 @@ export class MapToolController {
     if (!this.hover || g) return { kind: "none" };
     const tool = this.doc.tool;
     if (tool === "object") return { kind: "none" };
+    if (tool !== "pick" && targetHidden(this.doc)) return { kind: "none" };
     const cell = this.cellOf(this.hover);
     if (cell.x < 0 || cell.y < 0 || cell.x >= this.model.width || cell.y >= this.model.height) return { kind: "none" };
     const target = this.paintTarget();
@@ -438,13 +510,17 @@ export class MapToolController {
 
   private computeCursor(): string {
     const g = this.gesture;
-    if (this.doc.tool !== "object") return "crosshair";
+    const tool = this.doc.tool;
+    if (tool !== "object") return tool !== "pick" && targetHidden(this.doc) ? "not-allowed" : "crosshair";
     if (g?.kind === "move") return "move";
     if (g?.kind === "range" || g?.kind === "band") return "ew-resize";
     if (!this.hover) return "default";
-    const hit = hitObject(this.shapes(), this.hover, this.ctx.zoom(), this.model.pixelHeight);
+    const shapes = this.shapes();
+    const hit = hitObject(shapes, this.hover, this.ctx.zoom(), this.model.pixelHeight);
     if (!hit) return "default";
-    return hit.part === "body" ? "move" : "ew-resize";
+    if (hit.part !== "body") return "ew-resize";
+    const shape = shapes.find((s) => s.id === hit.id);
+    return shape && !this.doc.selection.has(hit.id) && isLargeBand(shape, shapes, this.model.tileWidth) ? "default" : "move";
   }
 
   /** 마지막 호버 칸 (뷰 밖이면 null) */

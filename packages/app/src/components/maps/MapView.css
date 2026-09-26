@@ -43,6 +43,11 @@
   font-weight: 600;
 }
 
+.map-view-hidden-hint {
+  color: var(--warning);
+  font-size: 12px;
+}
+
 .map-view-header .map-view-zoom {
   min-width: 52px;
   justify-content: center;
@@ -56,7 +61,7 @@
   white-space: pre;
 }
 
-/* 캔버스 자리. 초점을 받아야 방향키와 Delete와 Space가 통한다 */
+/* 캔버스 자리. 초점을 받아야 방향키와 Delete가 통한다 (Space는 포인터가 위에 있으면 통한다) */
 .map-view-host {
   flex: 1;
   min-height: 0;

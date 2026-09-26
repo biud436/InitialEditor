@@ -120,15 +120,13 @@ export class ScriptSupport {
     return doc;
   }
 
-  /** 미수정 스크립트가 밖에서 바뀌어 조용히 다시 읽힐 때(Editor 가 한다) 토스트로 알린다 */
+  /** 미수정 스크립트가 밖에서 바뀌어 다시 읽히면(Editor 가 한다) 토스트로 알린다. 다시 읽기에 성공했을 때만 */
   private watchProject(): void {
     this.unwatchProject();
     const editor = this.editor;
     this.projectDisposers.push(
-      editor.project.events.on("change", (e) => {
-        if (e.origin === "self" || e.kind === "delete") return;
-        const doc = editor.documents.findByPath(e.path);
-        if (doc instanceof ScriptDocument && !doc.dirty) editor.toasts.info(`밖에서 바뀌어 다시 읽었다: ${doc.title}`);
+      editor.events.on("documentReloaded", (doc) => {
+        if (doc instanceof ScriptDocument) editor.toasts.info(`밖에서 바뀌어 다시 읽었다: ${doc.title}`);
       }),
     );
   }

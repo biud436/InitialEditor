@@ -85,7 +85,7 @@ export class Editor {
   readonly documentDock: DocumentDock;
   readonly layout: LayoutStore;
   /** 에디터 전역 이벤트. 저장 뒤 핫 리로드(runner)처럼 모듈끼리 느슨하게 잇는다 */
-  readonly events = new Emitter<{ documentSaved: Document; projectOpened: ProjectInfo; projectClosed: void }>();
+  readonly events = new Emitter<{ documentSaved: Document; documentReloaded: Document; projectOpened: ProjectInfo; projectClosed: void }>();
   /** E1: 엔진 실행기 (installRunner 가 붙인다) */
   runner!: RunnerStore;
   /** E4: 게임 탭의 웹 엔진 (installGameView 가 붙인다: 에디터 안 실행) */
@@ -168,6 +168,8 @@ export class Editor {
 
   /** 문서를 저장하고 documentSaved 를 알린다 (저장 시 핫 리로드가 여기에 붙는다) */
   async saveDocument(doc: Document): Promise<void> {
+    // 다시 읽지 못한 문서는 저장하지 않는다 (배너에서 다시 읽기나 덮어쓰기를 고를 때까지)
+    doc.assertCanSave();
     await doc.save();
     this.events.emit("documentSaved", doc);
   }
@@ -332,8 +334,18 @@ export class Editor {
           return;
         }
         if (!doc.dirty) {
-          void doc.reload().catch((err: Error) => this.log.warn("editor", `${e.path} 을(를) 다시 읽지 못했다: ${err.message}`));
-          this.log.info("editor", `밖에서 바뀌어 다시 읽었다: ${e.path}`);
+          // 실패하면 reloadFromDisk가 배너를 띄우고 저장을 막는다
+          doc.reloadFromDisk().then(
+            () => {
+              this.log.info("editor", `밖에서 바뀌어 다시 읽었다: ${e.path}`);
+              this.events.emit("documentReloaded", doc);
+            },
+            (err: Error) => {
+              const message = `${e.path} 을(를) 다시 읽지 못했다: ${err.message}`;
+              this.log.warn("editor", message);
+              this.toasts.error(message);
+            },
+          );
         } else {
           runInAction(() => (doc.externallyChanged = true));
           this.log.warn("editor", `밖에서 바뀌었지만 수정 중이라 두었다: ${e.path}`);

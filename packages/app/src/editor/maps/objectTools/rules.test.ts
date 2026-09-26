@@ -1,13 +1,15 @@
-import { parseObjectSchema, type MapObject } from "@initial-editor/ext-tilemap/model";
+import { parseObjectSchema, validateObjects, type MapObject } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import {
   buildPlayEnv,
   bulkEditableFields,
   groupObjects,
   mapNameFor,
+  PLAY_POSITION_RULE,
   planDuplicate,
   planNewObject,
   playPosition,
+  rangeAround,
   rangeFields,
   summarizeObject,
   UNKNOWN_GROUP_LABEL,
@@ -45,6 +47,32 @@ const SCHEMA = parseObjectSchema(
 );
 
 const GEO: MapGeometry = { pixelWidth: 4096, pixelHeight: 448, tileWidth: 16, tileHeight: 16 };
+
+// resources/schema/map-objects.json처럼 범위 칸이 필수이고 기본값이 없는 몬스터
+const REQUIRED_RANGE = parseObjectSchema(
+  JSON.stringify({
+    version: 1,
+    types: [
+      {
+        type: "spawn",
+        label: "몬스터",
+        fields: [
+          { name: "species", type: "enum", values: ["spider", "wolf"], required: true, label: "종" },
+          { name: "minX", type: "number", role: "rangeMin", required: true, label: "순찰 왼끝" },
+          { name: "maxX", type: "number", role: "rangeMax", required: true, label: "순찰 오른끝" },
+        ],
+      },
+      {
+        type: "bird",
+        label: "새",
+        fields: [
+          { name: "left", type: "number", role: "rangeMin", default: 10, label: "왼끝" },
+          { name: "right", type: "number", role: "rangeMax", label: "오른끝" },
+        ],
+      },
+    ],
+  }),
+);
 
 function obj(id: string, type: string, x: number, extra: Partial<MapObject> = {}): MapObject {
   return { id, type, x, y: 400, props: {}, extra: {}, ...extra };
@@ -84,9 +112,30 @@ describe("목록 묶음과 요약", () => {
 });
 
 describe("오브젝트 추가 규칙", () => {
-  it("defaultProps 와 겹치지 않는 id (타입_번호), 점은 그 자리", () => {
+  it("defaultProps 와 겹치지 않는 id (타입_번호), 점은 그 자리, 범위 칸은 x 기준 ±64", () => {
     const plan = planNewObject(SCHEMA, "spawn", [obj("spawn_1", "spawn", 1)], { x: 120.4, y: 399.6 }, GEO);
-    expect(plan).toEqual({ ok: true, object: { id: "spawn_2", type: "spawn", x: 120, y: 400, props: { species: "spider", boss: false }, extra: {} } });
+    expect(plan).toEqual({ ok: true, object: { id: "spawn_2", type: "spawn", x: 120, y: 400, props: { species: "spider", minX: 56, maxX: 184, boss: false }, extra: {} } });
+  });
+
+  it("범위 칸이 필수이고 기본값이 없어도 새 몬스터는 제자리 기준 범위로 순찰한다 (0..0이 아니다)", () => {
+    const plan = planNewObject(REQUIRED_RANGE, "spawn", [], { x: 2000, y: 300 }, GEO);
+    expect(plan.ok && plan.object.props).toEqual({ species: "spider", minX: 1936, maxX: 2064 });
+    expect(validateObjects([plan.ok ? plan.object : obj("x", "spawn", 0)], REQUIRED_RANGE)).toEqual([]);
+    const left = planNewObject(REQUIRED_RANGE, "spawn", [], { x: 20, y: 300 }, GEO);
+    expect(left.ok && left.object.props).toMatchObject({ minX: 0, maxX: 84 });
+    const right = planNewObject(REQUIRED_RANGE, "spawn", [], { x: 4080, y: 300 }, GEO);
+    expect(right.ok && right.object.props).toMatchObject({ minX: 4016, maxX: 4096 });
+  });
+
+  it("스키마 기본값이 있는 범위 칸은 기본값을 둔다", () => {
+    const plan = planNewObject(REQUIRED_RANGE, "bird", [], { x: 500, y: 100 }, GEO);
+    expect(plan.ok && plan.object.props).toEqual({ left: 10, right: 564 });
+  });
+
+  it("범위 도우미: x 기준 ±radius, 맵 폭 안으로 자른다", () => {
+    expect(rangeAround(2000, 4096)).toEqual({ min: 1936, max: 2064 });
+    expect(rangeAround(10.6, 4096, 100)).toEqual({ min: 0, max: 111 });
+    expect(rangeAround(4090, 4096)).toEqual({ min: 4026, max: 4096 });
   });
 
   it("띠는 defaultWidth 로 가운데에 놓고 맵 안으로 자른다, 없으면 두 칸 폭. 사각형은 높이도", () => {
@@ -135,6 +184,33 @@ describe("여기서 실행", () => {
     expect(playPosition({ ...base, viewCenter: { x: 2048, y: 224 } })).toEqual({ x: 2048, y: 224, source: "view" });
     expect(playPosition({ ...base, cursor: { x: Number.NaN, y: 1 } })).toEqual({ x: 56, y: 384, source: "start", objectId: "start" });
     expect(playPosition({ ...base, objects: [objects[1]] })).toEqual({ x: 2048, y: 224, source: "center" });
+  });
+
+  it("맵 밖의 커서는 쓰지 않고 화면 가운데로, 화면 가운데와 나머지도 맵 안으로 자른다", () => {
+    const view = { x: 2048, y: 224 };
+    expect(playPosition({ ...base, cursor: { x: -18, y: 30 }, viewCenter: view })).toEqual({ x: 2048, y: 224, source: "view" });
+    expect(playPosition({ ...base, cursor: { x: 4096 + 200, y: 30 }, viewCenter: view })).toEqual({ x: 2048, y: 224, source: "view" });
+    expect(playPosition({ ...base, cursor: { x: 138, y: -31 }, viewCenter: view })).toEqual({ x: 2048, y: 224, source: "view" });
+    expect(playPosition({ ...base, cursor: { x: 0, y: 447 }, viewCenter: view })).toEqual({ x: 0, y: 447, source: "cursor" });
+    expect(playPosition({ ...base, viewCenter: { x: -74, y: 900 } })).toEqual({ x: 0, y: 447, source: "view" });
+    expect(playPosition({ ...base, viewCenter: { x: 5000, y: -3 } })).toEqual({ x: 4095, y: 0, source: "view" });
+    expect(playPosition({ ...base, objects: [obj("far", "checkpoint", 9000)], selectedIds: ["far"] })).toMatchObject({ x: 4095, source: "selection" });
+  });
+
+  it("순찰 범위가 있는 오브젝트를 고르면 범위 왼끝에서 48px 왼쪽(16 이상), 다른 오브젝트는 그 x", () => {
+    const spawn = obj("spider_1", "spawn", 1056, { y: 300, props: { minX: 1010, maxX: 1120 } });
+    const nearEdge = obj("spider_2", "spawn", 80, { y: 300, props: { minX: 40, maxX: 120 } });
+    const noRange = obj("wolf_2", "spawn", 700, { y: 300 });
+    const cp = obj("checkpoint_1", "checkpoint", 1552, { y: 384 });
+    const input = { ...base, objects: [spawn, nearEdge, noRange, cp], schema: SCHEMA };
+    expect(playPosition({ ...input, selectedIds: ["spider_1"] })).toMatchObject({ x: 962, y: 300, source: "selection", objectId: "spider_1" });
+    expect(playPosition({ ...input, selectedIds: ["spider_2"] })).toMatchObject({ x: 16, source: "selection" });
+    // 범위 칸이 비었으면 엔진처럼 x - 64를 왼끝으로 본다
+    expect(playPosition({ ...input, selectedIds: ["wolf_2"] })).toMatchObject({ x: 700 - 64 - 48, source: "selection" });
+    expect(playPosition({ ...input, selectedIds: ["checkpoint_1"] })).toEqual({ x: 1552, y: 384, source: "selection", objectId: "checkpoint_1" });
+    // 스키마를 모르면 범위 칸도 모르므로 그 x
+    expect(playPosition({ ...input, schema: null, selectedIds: ["spider_1"] })).toMatchObject({ x: 1056, source: "selection" });
+    expect(PLAY_POSITION_RULE).toContain("48px 왼쪽");
   });
 
   it("환경 변수: play.env 의 자리표시자를 맵 이름, 파일, x, y 로 채운다", () => {

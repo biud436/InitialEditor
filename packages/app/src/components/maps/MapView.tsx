@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { MapRenderer, readMapTheme } from "../../editor/maps";
 import { MAP_TOOLS } from "../../editor/maps/mapCommands";
+import { targetHidden } from "../../editor/maps/mapTools";
 import "./MapView.css";
 
 export function targetKey(target: MapTarget): string {
@@ -47,6 +48,10 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       view: support.view,
       theme: () => readMapTheme(),
       onCursor: (p) => support.setCursor(p, r),
+      // 같은 알림이 떠 있으면 다시 띄우지 않는다
+      onNotice: (message) => {
+        if (!editor.toasts.toasts.some((t) => t.text === message)) editor.toasts.warn(message);
+      },
     });
     setRenderer(r);
     support.attachRenderer(doc, r);
@@ -73,6 +78,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
   const run = (id: string) => () => {
     void editor.commands.execute(id);
   };
+  const paintsHidden = doc.tool !== "object" && doc.tool !== "pick" && targetHidden(doc);
 
   return (
     <div
@@ -145,6 +151,11 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
         <span className="map-view-target" title="칠하거나 고르는 대상 (레이어 패널에서 바꾼다)">
           대상 <b data-testid="map-target">{targetLabel(doc)}</b>
         </span>
+        {paintsHidden ? (
+          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title="레이어 패널에서 눈을 켜면 칠할 수 있다">
+            숨김, 칠하지 않는다
+          </span>
+        ) : null}
         <span className="doc-header-spacer" />
         <span className="map-view-group">
           <button type="button" className={"btn" + (view.grid ? " is-on" : "")} aria-pressed={view.grid} onClick={run("map.toggleGrid")} data-testid="map-toggle-grid" title="타일 격자 (8칸마다 굵은 선)">

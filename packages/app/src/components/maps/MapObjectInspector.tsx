@@ -1,5 +1,5 @@
 // 맵 오브젝트 인스펙터. 활성 문서가 맵이면 인스펙터 패널이 이것을 그린다.
-//   하나 고름: id (Enter나 초점을 잃으면 이름 바꾸기, 겹치면 거부), 타입, x, y, 띠와 사각형은 폭과 높이,
+//   하나 고름: id (Enter나 초점을 잃으면 이름 바꾸기, 겹치면 거부, Escape는 취소), 타입, x, y, 띠와 사각형은 폭과 높이,
 //             그다음 스키마 칸마다 입력 하나. rangeMin/rangeMax 칸은 "순찰 범위" 한 줄로 묶는다
 //   같은 타입 여럿: 함께 고쳐도 뜻이 있는 칸(enum, boolean)만, 묶음 명령 하나로
 //   아무것도 안 고름: 맵 요약 (크기, 레이어, 타입별 수)과 스키마 출처
@@ -7,7 +7,7 @@
 
 import { typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { clearObjectProps, renameMapObject, selectProblem, setObjectGeometry, setObjectsProp, setRangeAround } from "../../editor/maps/objectTools/actions";
 import { OptionalNumberField, SchemaFieldInput } from "../../editor/maps/objectTools/fieldInputs";
@@ -30,6 +30,8 @@ const IdField = observer(function IdField({ doc, object }: { doc: MapDocument; o
   const editor = useEditor();
   const [text, setText] = useState(object.id);
   const [focused, setFocused] = useState(false);
+  // Escape로 초점을 놓으면 blur에서 이름을 바꾸지 않는다
+  const cancelled = useRef(false);
   useEffect(() => {
     if (!focused) setText(object.id);
   }, [object.id, focused]);
@@ -43,9 +45,17 @@ const IdField = observer(function IdField({ doc, object }: { doc: MapDocument; o
       aria-label="id"
       data-testid="map-inspector-id"
       onChange={(e) => setText(e.target.value)}
-      onFocus={() => setFocused(true)}
+      onFocus={() => {
+        cancelled.current = false;
+        setFocused(true);
+      }}
       onBlur={() => {
         setFocused(false);
+        if (cancelled.current) {
+          cancelled.current = false;
+          setText(object.id);
+          return;
+        }
         commit();
       }}
       onKeyDown={(e) => {
@@ -53,6 +63,8 @@ const IdField = observer(function IdField({ doc, object }: { doc: MapDocument; o
           e.preventDefault();
           e.currentTarget.blur();
         } else if (e.key === "Escape") {
+          e.preventDefault();
+          cancelled.current = true;
           setText(object.id);
           e.currentTarget.blur();
         }

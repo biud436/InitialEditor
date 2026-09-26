@@ -76,6 +76,12 @@
   border-left: 4px solid var(--warning);
 }
 
+/* 다시 읽기에 실패해 저장을 막은 상태 */
+.doc-banner[data-error="true"] {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg-elevated));
+}
+
 .doc-banner span {
   flex: 1;
 }

@@ -71,8 +71,12 @@ export function registerAppCommands(editor: Editor): void {
     run: async () => {
       const doc = active();
       if (!doc) return;
-      await editor.saveDocument(doc);
-      editor.toasts.success(`저장했다: ${doc.title}`);
+      try {
+        await editor.saveDocument(doc);
+        editor.toasts.success(`저장했다: ${doc.title}`);
+      } catch (e) {
+        editor.toasts.error(`${doc.title} 을(를) 저장하지 못했다: ${(e as Error).message}`);
+      }
     },
   });
   reg({
@@ -83,8 +87,18 @@ export function registerAppCommands(editor: Editor): void {
     enabled: () => editor.documents.dirtyDocuments.length > 0,
     run: async () => {
       const docs = editor.documents.dirtyDocuments;
-      for (const doc of docs) await editor.saveDocument(doc);
-      editor.toasts.success(`${docs.length}개 문서를 저장했다`);
+      let saved = 0;
+      const failed: string[] = [];
+      for (const doc of docs) {
+        try {
+          await editor.saveDocument(doc);
+          saved++;
+        } catch (e) {
+          failed.push(`${doc.title} (${(e as Error).message})`);
+        }
+      }
+      if (failed.length === 0) editor.toasts.success(`${saved}개 문서를 저장했다`);
+      else editor.toasts.error(`${saved}개를 저장했고 ${failed.length}개는 저장하지 못했다: ${failed.join(", ")}`);
     },
   });
   reg({ id: "file.closeProject", label: "프로젝트 닫기", category: "file", enabled: () => editor.project.isOpen, run: () => void editor.closeProject() });

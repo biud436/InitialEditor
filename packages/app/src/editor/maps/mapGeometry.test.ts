@@ -15,6 +15,7 @@ import {
   groupByChunk,
   hitObject,
   initialView,
+  isLargeBand,
   moveTargets,
   nextZoomStep,
   nudgeStep,
@@ -226,15 +227,50 @@ describe("오브젝트 모양과 맞히기", () => {
     expect(hitObject([...inside].reverse(), { x: 100, y: 50 }, 1, H)?.id).toBe("p");
   });
 
+  it("띠가 겹치면 좁은 띠가 먼저다 (넓은 띠가 목록의 뒤에 있어도)", () => {
+    const band = (id: string, x: number, width: number) => shapeOf(obj({ id, type: "landmark", x, width }), spec("landmark"));
+    const nested = [band("narrow", 300, 48), band("wide", 0, 767)];
+    expect(hitObject(nested, { x: 324, y: 200 }, 1, H)).toEqual({ id: "narrow", part: "body" });
+    expect(hitObject([...nested].reverse(), { x: 324, y: 200 }, 1, H)).toEqual({ id: "narrow", part: "body" });
+    // 좁은 띠의 가장자리가 넓은 띠의 안쪽보다 먼저다
+    expect(hitObject(nested, { x: 346, y: 200 }, 1, H)).toEqual({ id: "narrow", part: "bandRight" });
+    // 좁은 띠 밖이면 넓은 띠
+    expect(hitObject(nested, { x: 100, y: 200 }, 1, H)).toEqual({ id: "wide", part: "body" });
+    // 넓은 띠의 가장자리가 좁은 띠 안에 들면 좁은 띠가 먼저다
+    const straddle = [band("small", 740, 48), band("left", 0, 767), band("right", 767, 832)];
+    expect(hitObject(straddle, { x: 769, y: 200 }, 1, H)).toEqual({ id: "small", part: "body" });
+  });
+
+  it("맞닿은 두 띠의 가장자리는 누른 쪽 띠의 것이다", () => {
+    const band = (id: string, x: number, width: number) => shapeOf(obj({ id, type: "landmark", x, width }), spec("landmark"));
+    const adjacent = [band("entrance", 0, 767), band("road", 767, 832)];
+    expect(hitObject(adjacent, { x: 765, y: 200 }, 1, H)).toEqual({ id: "entrance", part: "bandRight" });
+    expect(hitObject(adjacent, { x: 769, y: 200 }, 1, H)).toEqual({ id: "road", part: "bandLeft" });
+    expect(hitObject([...adjacent].reverse(), { x: 765, y: 200 }, 1, H)).toEqual({ id: "entrance", part: "bandRight" });
+    expect(hitObject([...adjacent].reverse(), { x: 769, y: 200 }, 1, H)).toEqual({ id: "road", part: "bandLeft" });
+  });
+
+  it("넓은 띠는 화면에서 뷰 폭의 반보다 넓은 띠다", () => {
+    const section = shapeOf(obj({ id: "s", type: "landmark", x: 0, width: 800 }), spec("landmark"));
+    // 큰 띠: 16칸 이상이거나 다른 오브젝트를 품는다. 줌과 무관하다
+    expect(isLargeBand(section, shapes, 16)).toBe(true);
+    expect(isLargeBand(shapes[1], shapes, 16)).toBe(false);
+    expect(isLargeBand({ kind: "band", id: "narrow", x: 0, width: 40 }, [{ kind: "point", id: "p", x: 20, y: 0, range: null }], 16)).toBe(true);
+    expect(isLargeBand({ kind: "band", id: "narrow", x: 0, width: 40 }, [{ kind: "point", id: "p", x: 60, y: 0, range: null }], 16)).toBe(false);
+  });
+
   it("겹친 두 손잡이는 누른 쪽으로", () => {
     const s = [shapeOf(obj({ id: "w", type: "spawn", x: 300, y: 80, props: { left: 50, right: 50 } }), spec("spawn"))];
     expect(hitObject(s, { x: 52, y: 80 }, 1, H)).toEqual({ id: "w", part: "rangeMax" });
     expect(hitObject(s, { x: 48, y: 80 }, 1, H)).toEqual({ id: "w", part: "rangeMin" });
   });
 
-  it("상자 선택: 점은 안에 있어야, 띠와 사각형은 겹치면", () => {
+  it("상자 선택: 점은 안에 있어야, 띠는 가로로 다 들어야, 사각형은 겹치면", () => {
     expect(shapesInRect(shapes, { x: 90, y: 70, w: 20, h: 20 }, H)).toEqual(["wolf"]);
-    expect(shapesInRect(shapes, { x: 240, y: 100, w: 70, h: 10 }, H)).toEqual(["tracks"]);
+    // 띠에 걸치기만 한 상자는 띠를 고르지 않는다 (구간 안에서 끈 상자가 구간까지 고르지 않게)
+    expect(shapesInRect(shapes, { x: 240, y: 100, w: 70, h: 10 }, H)).toEqual([]);
+    expect(shapesInRect(shapes, { x: 190, y: 100, w: 70, h: 10 }, H)).toEqual(["tracks"]);
+    expect(shapesInRect(shapes, { x: 290, y: 30, w: 20, h: 20 }, H)).toEqual(["zone"]);
     expect(shapesInRect(shapes, { x: 0, y: 0, w: 1000, h: 1000 }, H)).toEqual(["tracks", "wolf", "zone", "mystery"]);
   });
 });
@@ -255,6 +291,17 @@ describe("끌기 계산", () => {
     expect(bandEdgeDrag(start, "bandRight", 150)).toEqual({ x: 200, width: 1 });
     expect(bandEdgeDrag(start, "bandLeft", 180)).toEqual({ x: 180, width: 68 });
     expect(bandEdgeDrag(start, "bandLeft", 400)).toEqual({ x: 247, width: 1 });
+  });
+
+  it("범위가 있는 점을 옮기면 범위도 폭을 지킨 채 같이 옮기고, 맵 폭 안에서 멈춘다", () => {
+    const range = { min: 1950, max: 2030, minField: "minX", maxField: "maxX" };
+    const start = [{ id: "wolf", x: 1990, y: 304, lockY: false, range }];
+    expect(moveTargets(start, 64, 0, 4096)).toEqual([{ id: "wolf", x: 2054, y: 304, range: { ...range, min: 2014, max: 2094 } }]);
+    // 몸통만 (Alt)
+    expect(moveTargets(start, 64, 0, 4096, true)[0].range).toEqual(range);
+    // 오른끝이 맵 폭에서 멈춘다
+    expect(moveTargets(start, 3000, 0, 4096)[0]).toMatchObject({ x: 4990, range: { min: 4016, max: 4096 } });
+    expect(moveTargets(start, -3000, 0, 4096)[0].range).toMatchObject({ min: 0, max: 80 });
   });
 
   it("옮기기는 정수 픽셀이고 띠는 세로로 움직이지 않는다", () => {

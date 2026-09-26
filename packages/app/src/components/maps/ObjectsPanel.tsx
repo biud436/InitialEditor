@@ -2,6 +2,7 @@
 //   묶음 제목 줄: 타입 이름, 수, 추가 버튼 (맵 뷰의 화면 가운데에 defaultProps로, unique 타입은 둘째를 거부)
 //   줄: id와 요약. 클릭 선택, Shift 더하기, Ctrl/Cmd 토글, 더블클릭은 맵 뷰에서 보이기,
 //       오른쪽 클릭 메뉴(이름 바꾸기, 복제, 삭제), F2 이름 바꾸기, Delete 삭제, 위아래 화살표
+//       이름 칸: Enter는 확정(거부되면 칸에 남는다), Escape는 취소, 초점을 잃으면 확정하고 거부되면 원래 id로 닫는다
 //   맨 아래: 검사 결과. 누르면 그 오브젝트를 고른다
 // 선택은 문서(MapDocument.selection)에 있어 맵 뷰와 인스펙터가 같은 것을 본다.
 
@@ -9,6 +10,7 @@ import { typeOf, type MapDocument, type MapObject } from "@initial-editor/ext-ti
 import { observer } from "mobx-react-lite";
 import { useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useEditor } from "../../editor/EditorContext";
+import { isEditableTarget } from "../../editor/shortcuts";
 import { addMapObject, deleteMapObjects, duplicateMapObjects, focusObjectInView, renameMapObject, selectProblem } from "../../editor/maps/objectTools/actions";
 import { groupObjects, summarizeObject } from "../../editor/maps/objectTools/rules";
 import { asMapDocument } from "../../editor/maps/schemaStore";
@@ -17,6 +19,11 @@ import "./MapObjectInspector.css";
 import "./ObjectsPanel.css";
 
 export const OBJECTS_EMPTY = "맵을 열면 여기에 오브젝트가 보인다";
+
+/** 초점이 옮겨 간 곳이 입력 칸이나 누를 수 있는 것이면 true (그때는 초점을 되돌리지 않는다) */
+function focusLanded(next: EventTarget | null): boolean {
+  return next instanceof HTMLElement && (next.tabIndex >= 0 || isEditableTarget(next));
+}
 
 export const ObjectsPanel = observer(function ObjectsPanel() {
   const editor = useEditor();
@@ -67,14 +74,15 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
     setRenameText(id);
   };
 
-  const commitRename = () => {
-    if (renaming === null) return;
+  /** 이름 바꾸기를 확정한다. 거부되면 false (이유는 renameMapObject가 토스트로 알린다) */
+  const commitRename = (): boolean => {
+    if (renaming === null) return true;
     const id = renaming;
     const next = renameText.trim();
-    if (renameMapObject(editor, doc, id, next)) {
-      setRenaming(null);
-      requestAnimationFrame(() => focusRow(next || id));
-    }
+    if (!renameMapObject(editor, doc, id, next)) return false;
+    setRenaming(null);
+    requestAnimationFrame(() => focusRow(next || id));
+    return true;
   };
 
   const add = (type: string) => {
@@ -184,9 +192,13 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
                       data-testid="map-objects-rename"
                       onChange={(e) => setRenameText(e.target.value)}
                       onFocus={(e) => e.target.select()}
-                      onBlur={() => {
+                      onBlur={(e) => {
                         if (renameText.trim() === o.id) setRenaming(null);
-                        else commitRename();
+                        else if (!commitRename()) {
+                          // 거부된 이름은 버리고 원래 id로 닫는다. 초점이 갈 곳이 없으면 그 줄로 돌린다
+                          setRenaming(null);
+                          if (!focusLanded(e.relatedTarget)) requestAnimationFrame(() => focusRow(o.id));
+                        }
                       }}
                       onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => {

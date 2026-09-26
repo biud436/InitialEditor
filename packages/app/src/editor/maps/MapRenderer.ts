@@ -9,12 +9,14 @@
 // 타일 텍스처: 타일셋 이미지를 TextureCache로 한 번 읽고 gid마다 frame을 자른 Texture를 캐시한다 (nearest).
 // 통행: 덩어리마다 Graphics 하나. 막힌 칸을 행 단위 구간으로 묶어 --danger로 옅게 칠한다.
 // 오브젝트: Graphics 하나에 전부 다시 그린다 (수가 적다). 글자는 오브젝트마다 Text 하나이고 줌의 역수로 배율을 준다.
-// 입력: 팬과 줌은 여기서, 도구는 mapTools.ts의 MapToolController가 맡는다.
+// 입력: 팬과 줌은 여기서, 도구는 mapTools.ts의 MapToolController가 맡는다. Space는 창 전체에서 듣는다:
+//   포인터가 캔버스 위에 있으면 초점이 팔레트나 도구 단추에 있어도 Space+끌기가 팬이다.
 
 import { tileSource, typeOf, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, UPDATE_PRIORITY } from "pixi.js";
 import type { LoadedTexture, TextureCache } from "../sceneView/textures";
+import { isEditableTarget } from "../shortcuts";
 import { shapeColorToken, type MapTheme } from "./mapColors";
 import {
   POINT_RADIUS_PX,
@@ -49,6 +51,8 @@ export interface MapRendererDeps {
   theme: () => MapTheme;
   /** 포인터 아래 월드 좌표 (정수 픽셀) */
   onCursor?: (p: Point) => void;
+  /** 도구가 사용자에게 짧게 알린다 (숨긴 레이어에 칠하려 할 때) */
+  onNotice?: (message: string) => void;
 }
 
 interface ChunkNode {
@@ -128,6 +132,10 @@ export class MapRenderer {
   private pan: { last: Point; pointerId: number } | null = null;
   private toolPointer: number | null = null;
   private spaceHeld = false;
+  /** 포인터가 캔버스 위에 있다 */
+  private hovering = false;
+  /** 타일셋 밖의 gid 경고를 다음 프레임에 다시 센다 */
+  private needWarning = false;
   private initialViewDone = false;
   private scaleMode: "nearest" | "linear" = "nearest";
   private disposers: Array<() => void> = [];
@@ -139,10 +147,12 @@ export class MapRenderer {
     this.tools = new MapToolController({
       document: deps.document,
       zoom: () => this.transform.zoom,
+      viewWidth: () => this.viewport().width,
       changed: () => {
         this.needPreview = true;
         this.updateCursor();
       },
+      notice: (message) => this.deps.onNotice?.(message),
     });
   }
 
@@ -252,7 +262,14 @@ export class MapRenderer {
     const mode = this.transform.zoom < 1 ? "linear" : "nearest";
     if (mode === this.scaleMode) return;
     this.scaleMode = mode;
-    for (const node of this.layers) for (const ch of node.chunks.values()) if (ch.rt) ch.rt.source.scaleMode = mode;
+    for (const node of this.layers) {
+      for (const ch of node.chunks.values()) {
+        if (!ch.rt) continue;
+        ch.rt.source.scaleMode = mode;
+        // 이미 올라간 텍스처는 style이 바뀌었다고 알려야 거르기를 다시 건다
+        ch.rt.source.style.update();
+      }
+    }
   }
 
   /** 뷰포트 가운데의 월드 좌표 */
@@ -317,19 +334,24 @@ export class MapRenderer {
       el.addEventListener(type, fn, opts);
       this.disposers.push(() => el.removeEventListener(type, fn, opts));
     };
+    const onWindow = <K extends keyof WindowEventMap>(type: K, fn: (ev: WindowEventMap[K]) => void) => {
+      window.addEventListener(type, fn);
+      this.disposers.push(() => window.removeEventListener(type, fn));
+    };
     on(canvas, "pointerdown", (e) => this.onPointerDown(e));
     on(canvas, "pointermove", (e) => this.onPointerMove(e));
     on(canvas, "pointerup", (e) => this.onPointerUp(e));
     on(canvas, "pointercancel", (e) => this.onPointerUp(e));
+    on(canvas, "pointerenter", () => {
+      this.hovering = true;
+    });
     on(canvas, "pointerleave", () => this.onPointerLeave());
     on(canvas, "wheel", (e) => this.onWheel(e), { passive: false });
     on(canvas, "contextmenu", (e) => e.preventDefault());
     on(host, "keydown", (e) => this.onKeyDown(e));
-    on(host, "keyup", (e) => this.onKeyUp(e));
-    on(host, "blur", () => {
-      this.spaceHeld = false;
-      this.updateCursor();
-    });
+    onWindow("keydown", (e) => this.onSpaceDown(e));
+    onWindow("keyup", (e) => this.onSpaceUp(e));
+    onWindow("blur", () => this.releaseSpace());
     const observer = new ResizeObserver(() => this.resize());
     observer.observe(host);
     this.disposers.push(() => observer.disconnect());
@@ -380,6 +402,7 @@ export class MapRenderer {
   }
 
   private onPointerMove(e: PointerEvent): void {
+    this.hovering = true;
     const screen = this.screenPoint(e);
     const pan = this.pan;
     if (pan && pan.pointerId === e.pointerId) {
@@ -409,6 +432,7 @@ export class MapRenderer {
   }
 
   private onPointerLeave(): void {
+    this.hovering = false;
     if (this.tools.busy || this.pan) return;
     runInAction(() => this.hover.set(null));
     this.tools.pointerLeave();
@@ -430,25 +454,38 @@ export class MapRenderer {
   }
 
   private onKeyDown(e: KeyboardEvent): void {
-    if (e.key === " ") {
-      if (!e.repeat) {
-        this.spaceHeld = true;
-        this.updateCursor();
-      }
-      e.preventDefault();
-      return;
-    }
+    // Space는 창의 onSpaceDown이 받는다
+    if (e.key === " ") return;
     if (this.tools.keyDown({ key: e.key, shift: e.shiftKey, alt: e.altKey, mod: e.ctrlKey || e.metaKey })) {
       e.preventDefault();
       e.stopPropagation();
     }
   }
 
-  private onKeyUp(e: KeyboardEvent): void {
-    if (e.key === " ") {
-      this.spaceHeld = false;
+  /** Space: 포인터가 캔버스 위에 있거나 뷰에 초점이 있으면 팬 준비. 입력 칸에서는 받지 않는다 */
+  private onSpaceDown(e: KeyboardEvent): void {
+    if (e.key !== " " || e.ctrlKey || e.metaKey || e.altKey || !this.host?.isConnected) return;
+    if (!this.hovering && document.activeElement !== this.host) return;
+    if (isEditableTarget(e.target)) return;
+    // 누르고 있는 동안 반복되는 keydown으로도 잡는다 (첫 keydown이 다른 곳에 갔을 수 있다)
+    if (!this.spaceHeld) {
+      this.spaceHeld = true;
       this.updateCursor();
     }
+    // 초점이 간 단추가 눌리거나 화면이 스크롤되지 않게
+    e.preventDefault();
+  }
+
+  private onSpaceUp(e: KeyboardEvent): void {
+    if (e.key !== " " || !this.spaceHeld) return;
+    e.preventDefault();
+    this.releaseSpace();
+  }
+
+  private releaseSpace(): void {
+    if (!this.spaceHeld) return;
+    this.spaceHeld = false;
+    this.updateCursor();
   }
 
   // ---- 문서 → 뷰 ----
@@ -458,13 +495,19 @@ export class MapRenderer {
     const model = this.model;
     const view = this.deps.view;
     this.disposers.push(
-      model.events.on("cells", (e) => this.markCells(e.layer, e.indices)),
+      model.events.on("cells", (e) => {
+        this.markCells(e.layer, e.indices);
+        if (e.layer !== "collision") this.needWarning = true;
+      }),
       model.events.on("layers", () => {
         this.needLayers = true;
+        this.needWarning = true;
       }),
       model.events.on("reset", () => {
         this.grid = chunkGrid(model);
+        // 타일셋이 같으면 읽은 이미지는 그대로이고 칸만 바뀌었다
         if (!this.sameTilesets()) this.loadTilesets();
+        else this.needWarning = true;
         this.needLayers = true;
         this.needObjects = true;
         this.drawStatic();
@@ -495,7 +538,7 @@ export class MapRenderer {
         },
       ),
       reaction(
-        () => [doc.tool, doc.target, doc.brush],
+        () => [doc.tool, doc.target, doc.brush, [...doc.hiddenLayers], doc.showCollision],
         () => this.tools.refresh(),
       ),
     );
@@ -568,6 +611,7 @@ export class MapRenderer {
       this.markAllTiles();
       this.ghostKey = "";
       this.needPreview = true;
+      this.needWarning = false;
       this.updateWarning();
     });
   }
@@ -631,6 +675,10 @@ export class MapRenderer {
     if (!this.app) return;
     if (this.needLayers) this.rebuildLayers();
     const renders = this.tilesetsSettled ? this.flushTiles() : 0;
+    if (this.needWarning && this.tilesetsSettled) {
+      this.needWarning = false;
+      this.updateWarning();
+    }
     this.flushCollision();
     if (this.needGrid) this.drawGrid();
     if (this.needObjects) this.drawObjects();

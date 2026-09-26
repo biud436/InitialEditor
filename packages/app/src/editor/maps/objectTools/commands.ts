@@ -1,10 +1,12 @@
 // 맵 오브젝트 커맨드: map.playHere (여기서 실행). Ctrl+F5는 run.fromScene이 들고 있고, 활성 문서가 맵이면
 // 이 커맨드로 넘긴다 (runner/runCommands.ts). 메뉴 자리는 "맵" 갈래가 있으면 맵/여기서 실행, 없으면 실행/여기서 실행이다.
 // 갈래는 다른 모듈이 나중에 등록할 수 있으므로 메뉴가 바뀔 때마다 자리를 다시 본다.
+// 안내(힌트)는 꺼진 이유, 켜져 있으면 위치 규칙이다.
 
 import type { MenuItemSpec } from "@initial-editor/core";
 import type { Editor } from "../../Editor";
 import { playHere, playHereHint } from "./playHere";
+import { PLAY_POSITION_RULE } from "./rules";
 
 export const PLAY_HERE_ID = "map.playHere";
 export const PLAY_HERE_LABEL = "여기서 실행";
@@ -28,7 +30,7 @@ export function registerMapObjectCommands(editor: Editor): () => void {
       await playHere(editor);
     },
   });
-  editor.setHint(PLAY_HERE_ID, () => playHereHint(editor));
+  editor.setHint(PLAY_HERE_ID, () => playHereHint(editor) ?? PLAY_POSITION_RULE);
 
   let placed: { path: string; off: () => void } | null = null;
   const place = () => {
