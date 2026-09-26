@@ -5,6 +5,7 @@
 // 오브젝트 이동이 한 스택에 들어간다.
 
 import { action, computed, makeObservable, observable } from "mobx";
+import { BackendError } from "./backend";
 import { Emitter } from "./events";
 
 export interface Command {
@@ -129,6 +130,45 @@ export class UndoStack {
 
 export type DocumentKind = "scene" | "script" | "asset" | "welcome" | string;
 
+/** 저장 직전에 찾은 충돌. changed는 밖에서 바뀌었고, missing은 지워졌고, unreadable은 다시 읽지 못했다 */
+export interface SaveConflict {
+  kind: "changed" | "missing" | "unreadable";
+  /** unreadable이면 다시 읽지 못한 이유 */
+  reason?: string;
+}
+
+/** 저장 충돌 모달에서 고른 것 */
+export type SaveConflictChoice = "overwrite" | "reload" | "cancel";
+
+/** 저장 요청의 결과. reloaded는 내 수정을 버리고 디스크 내용으로 다시 읽었다 */
+export type SaveOutcome = "saved" | "reloaded" | "cancelled";
+
+/** 저장 충돌 모달에서 다시 읽기를 골랐는데 디스크의 파일을 다시 읽지 못했다. 저장 실패와 구분해 알린다 */
+export class ReloadFailedError extends Error {
+  constructor(
+    /** 다시 읽지 못한 이유 (배너에도 남는다) */
+    readonly reason: string,
+  ) {
+    super(`다시 읽지 못했다: ${reason}`);
+    this.name = "ReloadFailedError";
+  }
+}
+
+/** saveChecked가 어디까지 왔는지 알린다 */
+export interface SaveProgress {
+  /** 확인과 모달을 마치고 쓰기(또는 다시 읽기)를 시작한다. 이 뒤의 편집은 이번 저장에 들어가지 않는다 */
+  acting?(): void;
+}
+
+/** 저장 직전 확인에 쓰는 것. 에디터가 백엔드와 모달로 채운다 */
+export interface SaveGuard {
+  readText(path: string): Promise<string>;
+  /** 충돌을 알리고 덮어쓰기, 다시 읽기, 취소 중에서 고르게 한다 */
+  askConflict(doc: Document, conflict: SaveConflict): Promise<SaveConflictChoice>;
+  /** 다시 읽으면 저장하지 않은 수정이 사라지므로 한 번 더 묻는다 */
+  confirmDiscard(doc: Document): Promise<boolean>;
+}
+
 /**
  * 열린 문서 하나. 저장과 되돌리기의 단위.
  * 구체 문서(씬, 스크립트)는 이것을 상속해 load/save 를 채운다.
@@ -143,6 +183,10 @@ export abstract class Document {
   externallyChanged = false;
   /** 밖에서 바뀐 파일을 다시 읽지 못한 이유. 있으면 저장을 막는다 (다시 읽기에 성공하거나 allowOverwrite로 풀린다) */
   reloadError: string | null = null;
+  /** 마지막으로 디스크에서 읽었거나 디스크에 쓴 내용. 저장 직전 디스크와 견준다 (모르면 null) */
+  private diskText: string | null = null;
+  /** 덮어쓰기를 골랐다: 다음 저장은 디스크와 견주지 않는다 */
+  private overwriteChosen = false;
 
   constructor(
     readonly kind: DocumentKind,
@@ -189,6 +233,13 @@ export abstract class Document {
     this.forcedDirty = false;
     this.externallyChanged = false;
     this.reloadError = null;
+    this.overwriteChosen = false;
+  }
+
+  /** 디스크와 맞춘 내용을 기억한다. 구체 문서가 파일을 읽거나 쓴 뒤 부른다 */
+  noteDiskText(text: string): void {
+    this.diskText = text;
+    this.overwriteChosen = false;
   }
 
   markDirty(): void {
@@ -199,13 +250,15 @@ export abstract class Document {
   markReloadFailed(message: string): void {
     this.externallyChanged = true;
     this.reloadError = message;
+    this.overwriteChosen = false;
   }
 
-  /** 배너의 "내 것으로 덮어쓰기": 막힌 저장을 풀고 지금 내용을 저장할 것으로 둔다 */
+  /** 덮어쓰기를 골랐다 (배너나 저장 충돌 모달): 막힌 저장을 풀고, 다음 저장은 디스크와 견주지 않고 지금 내용을 쓴다 */
   allowOverwrite(): void {
     this.externallyChanged = false;
     this.reloadError = null;
     this.forcedDirty = true;
+    this.overwriteChosen = true;
   }
 
   /** 저장이 막혀 있으면 던진다. 구체 문서의 save가 쓰기 전에 부른다 */
@@ -225,9 +278,62 @@ export abstract class Document {
     }
   }
 
-  /** 파일로 저장한다. 구체 문서가 구현하고, assertCanSave로 막힘을 확인한 뒤 성공하면 markSaved를 부른다 */
+  /**
+   * 저장하면 디스크의 더 새 내용을 덮어쓰는지 본다 (03-project-and-runtime.md 파일 규칙 4).
+   * 다시 읽지 못했으면 unreadable, 알던 파일이 없으면 missing, 디스크가 마지막으로 맞춘 내용과 다르면 changed다.
+   * 맞춘 내용을 모르는 문서는 밖에서 바뀐 알림(배너)만 본다. 덮어쓰기를 골랐으면 보지 않는다
+   */
+  async findSaveConflict(readText: (path: string) => Promise<string>): Promise<SaveConflict | null> {
+    if (!this.path) return null;
+    if (this.reloadError !== null) return { kind: "unreadable", reason: this.reloadError };
+    if (this.overwriteChosen) return null;
+    let disk: string;
+    try {
+      disk = await readText(this.path);
+    } catch (e) {
+      if (e instanceof BackendError && e.code === "not_found") {
+        return this.diskText !== null || this.externallyChanged ? { kind: "missing" } : null;
+      }
+      throw new Error(`디스크의 파일을 확인하지 못해 저장하지 않았다: ${(e as Error).message}`);
+    }
+    if (this.diskText !== null) return disk === this.diskText ? null : { kind: "changed" };
+    return this.externallyChanged ? { kind: "changed" } : null;
+  }
+
+  /**
+   * 디스크를 확인하고 저장한다. 충돌이면 guard로 묻는다: 덮어쓰기는 내 것을 쓰고,
+   * 다시 읽기는 (수정 중이면 한 번 더 물은 뒤) 디스크 내용으로 바꾸고, 취소는 아무것도 하지 않는다.
+   * 다시 읽지 못하면 ReloadFailedError를 던진다 (배너에 이유가 남고 저장은 막힌다).
+   * 쓰기나 다시 읽기를 시작할 때 progress.acting을 부른다
+   */
+  async saveChecked(guard: SaveGuard, progress: SaveProgress = {}): Promise<SaveOutcome> {
+    const conflict = await this.findSaveConflict((path) => guard.readText(path));
+    if (conflict) {
+      const choice = await guard.askConflict(this, conflict);
+      if (choice === "cancel") return "cancelled";
+      if (choice === "reload") {
+        if (this.dirty && !(await guard.confirmDiscard(this))) return "cancelled";
+        progress.acting?.();
+        try {
+          await this.reloadFromDisk();
+        } catch (e) {
+          throw new ReloadFailedError((e as Error).message);
+        }
+        return "reloaded";
+      }
+      this.allowOverwrite();
+    }
+    progress.acting?.();
+    await this.save();
+    return "saved";
+  }
+
+  /**
+   * 파일로 저장한다. 구체 문서가 구현하고, assertCanSave로 막힘을 확인한 뒤 성공하면 쓴 내용을 noteDiskText로 남기고
+   * markSaved를 부른다. 디스크 확인 없이 쓰므로 에디터는 saveChecked를 쓴다
+   */
   abstract save(): Promise<void>;
-  /** 디스크의 내용으로 되돌린다 (외부 변경 반영). 밖에서 부를 때는 실패를 기록하는 reloadFromDisk를 쓴다 */
+  /** 디스크의 내용으로 되돌린다 (외부 변경 반영). 읽은 내용을 noteDiskText로 남긴다. 밖에서 부를 때는 실패를 기록하는 reloadFromDisk를 쓴다 */
   abstract reload(): Promise<void>;
   /** 닫을 때 정리 */
   dispose(): void {

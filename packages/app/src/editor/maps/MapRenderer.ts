@@ -12,6 +12,7 @@
 // 입력: 팬과 줌은 여기서, 도구는 mapTools.ts의 MapToolController가 맡는다. Space는 창 전체에서 듣는다:
 //   포인터가 캔버스 위에 있으면 초점이 팔레트나 도구 단추에 있어도 Space+끌기가 팬이다.
 
+import { Emitter } from "@initial-editor/core";
 import { tileSource, typeOf, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, UPDATE_PRIORITY } from "pixi.js";
@@ -53,6 +54,11 @@ export interface MapRendererDeps {
   onCursor?: (p: Point) => void;
   /** 도구가 사용자에게 짧게 알린다 (숨긴 레이어에 칠하려 할 때) */
   onNotice?: (message: string) => void;
+}
+
+export interface MapRendererEvents {
+  /** 도구의 경고 (한도에 닿은 채우기). onNotice로도 알린다. MapSupport가 콘솔에 남긴다 */
+  warn: string;
 }
 
 interface ChunkNode {
@@ -100,6 +106,7 @@ export class MapRenderer {
   readonly hover = observable.box<{ cell: Cell; px: Point } | null>(null, { equals: comparer.structural });
   readonly stats = observable<MapRenderStats>({ chunkRenders: 0, chunkTextures: 0 });
   readonly tools: MapToolController;
+  readonly events = new Emitter<MapRendererEvents>();
 
   private app: Application | null = null;
   private host: HTMLElement | null = null;
@@ -153,6 +160,10 @@ export class MapRenderer {
         this.updateCursor();
       },
       notice: (message) => this.deps.onNotice?.(message),
+      warn: (message) => {
+        this.deps.onNotice?.(message);
+        this.events.emit("warn", message);
+      },
     });
   }
 
@@ -215,6 +226,7 @@ export class MapRenderer {
 
   dispose(): void {
     this.disposed = true;
+    this.events.clear();
     for (const d of this.disposers.reverse()) d();
     this.disposers = [];
     for (const node of this.layers) this.destroyLayer(node);
@@ -504,7 +516,9 @@ export class MapRenderer {
         this.needWarning = true;
       }),
       model.events.on("reset", () => {
+        // 다시 읽기와 크기 바꾸기: 덩어리 격자, 레이어, 통행, 오브젝트, 격자 선, 바탕을 새로 그린다
         this.grid = chunkGrid(model);
+        this.needGrid = true;
         // 타일셋이 같으면 읽은 이미지는 그대로이고 칸만 바뀌었다
         if (!this.sameTilesets()) this.loadTilesets();
         else this.needWarning = true;

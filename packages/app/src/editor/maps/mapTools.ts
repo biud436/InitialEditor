@@ -3,7 +3,7 @@
 //
 //   pen      붓을 찍는다. 끌면 지난 칸부터 선을 따라 찍고, 한 번의 끌기가 되돌리기 한 단계다
 //   rect     사각형을 끌어 붓 무늬로 채운다 (놓을 때 한 번)
-//   fill     이어진 같은 칸을 붓 무늬로 채운다
+//   fill     이어진 같은 칸을 붓 무늬로 채운다. 한도는 맵의 칸 수이고, 닿으면 알리고 콘솔에 남긴다
 //   erase    빈 칸(0) 붓의 펜
 //   pick     칸이나 사각형에서 붓을 뜨고 펜으로 돌아간다
 //   collision 통행을 칠한다. 왼쪽은 막힘(1), 오른쪽이나 Alt는 지나감(0)
@@ -18,7 +18,7 @@ import type { Command } from "@initial-editor/core";
 import { runInAction } from "mobx";
 import {
   ERASER,
-  floodFill,
+  floodFillArea,
   pickBrush,
   rectFill,
   singleBrush,
@@ -91,6 +91,13 @@ export interface ToolContext {
   viewWidth?(): number;
   /** 사용자에게 짧게 알린다 (숨긴 대상에 칠하려 할 때) */
   notice?(message: string): void;
+  /** 알림과 함께 콘솔에 경고 한 줄을 남긴다 (한도에 닿은 채우기). 없으면 notice로 알린다 */
+  warn?(message: string): void;
+}
+
+/** 채우기가 한도에 닿았을 때의 안내 */
+export function fillLimitNotice(filled: number, limit: number): string {
+  return `채우기가 한도 ${limit.toLocaleString("en-US")}칸에 닿아 ${filled.toLocaleString("en-US")}칸에서 멈췄다. 남은 칸을 눌러 이어서 채운다`;
 }
 
 export const HIDDEN_TARGET_NOTICE = "숨긴 레이어에는 칠하지 않는다. 눈을 켜고 칠한다";
@@ -142,6 +149,8 @@ export class MapToolController {
   preview: ToolPreview = { kind: "none" };
   /** CSS cursor 값 */
   cursor = "default";
+  /** 채우기 한 번의 칸 한도. null이면 맵의 칸 수 */
+  fillLimit: number | null = null;
   private gesture: Gesture | null = null;
   private hover: Point | null = null;
 
@@ -235,7 +244,13 @@ export class MapToolController {
       this.gesture = { kind: "rect", target, brush, from: cell, to: cell };
     } else if (tool === "fill") {
       const data = this.dataOf(target) ?? new Array<number>(this.model.width * this.model.height).fill(0);
-      this.apply(target, floodFill(this.model, data, brush, cell.x, cell.y));
+      const fill = floodFillArea(this.model, data, brush, cell.x, cell.y, this.fillLimit ?? undefined);
+      this.apply(target, fill.changes);
+      if (fill.truncated) {
+        const message = fillLimitNotice(fill.changes.length, fill.limit);
+        if (this.ctx.warn) this.ctx.warn(message);
+        else this.ctx.notice?.(message);
+      }
     } else {
       // pen, erase, collision
       this.gesture = { kind: "paint", key: `map-paint:${++gestureCounter}`, target, brush, origin: cell, last: null };

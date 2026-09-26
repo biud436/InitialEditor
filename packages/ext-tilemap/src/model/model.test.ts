@@ -93,6 +93,19 @@ describe("엔진 맵과 같은 고정 형식", () => {
   }
 });
 
+// 엔진의 스키마로 알데바란 맵을 검사하면 문제가 없다 (흔적의 제목과 글이 다 차 있다)
+describe("엔진 맵과 엔진 스키마", () => {
+  const schemaFile = path.join(ENGINE, "resources/schema/map-objects.json");
+  for (const rel of ["resources/maps/aldebaran_forest.json", "resources/maps/aldebaran_tomb.json"]) {
+    const file = path.join(ENGINE, rel);
+    it.skipIf(!existsSync(file) || !existsSync(schemaFile))(`${rel}의 오브젝트는 검사에 걸리지 않는다`, () => {
+      const map = parseMap(readFileSync(file, "utf8"));
+      expect(map.objects.length).toBeGreaterThan(0);
+      expect(validateObjects(map.objects, parseObjectSchema(readFileSync(schemaFile, "utf8")))).toEqual([]);
+    });
+  }
+});
+
 describe("타일 계산", () => {
   const m = tiny();
   it("gid 에서 타일셋과 원본 위치", () => {
@@ -240,6 +253,45 @@ describe("오브젝트 스키마", () => {
     expect(msgs).toContain("error:objects");
   });
 
+  it("검사: 필수 글 칸이 비었거나 공백뿐이면 비어 있다고 알린다. 필수가 아닌 빈 글과 필수 숫자 0은 괜찮다", () => {
+    const s = parseObjectSchema(
+      JSON.stringify({
+        version: 1,
+        types: [
+          {
+            type: "landmark",
+            label: "흔적",
+            shape: "band",
+            fields: [
+              { name: "title", type: "string", required: true, label: "제목" },
+              { name: "text", type: "text", required: true, label: "글" },
+              { name: "note", type: "string", label: "메모" },
+              { name: "count", type: "integer", required: true, label: "수" },
+            ],
+          },
+        ],
+      }),
+    );
+    const landmark = (id: string, props: Record<string, unknown>) => ({ id, type: "landmark", x: 0, y: 0, width: 48, props, extra: {} });
+    // 목록에서 새로 더한 흔적은 기본값으로 시작한다: 필수 글은 "", 필수 수는 0
+    expect(defaultProps(s.types[0])).toEqual({ title: "", text: "", count: 0 });
+    const problems = validateObjects(
+      [
+        landmark("fresh", defaultProps(s.types[0])),
+        landmark("spaces", { title: "  \t", text: "\n \n", note: "", count: 1 }),
+        landmark("filled", { title: "돌무더기", text: "누군가 쌓았다", note: "   ", count: 0 }),
+      ],
+      s,
+    );
+    expect(problems.map((p) => [p.location, p.message])).toEqual([
+      ["objects[0].props.title", "fresh: 제목이(가) 비어 있다"],
+      ["objects[0].props.text", "fresh: 글이(가) 비어 있다"],
+      ["objects[1].props.title", "spaces: 제목이(가) 비어 있다"],
+      ["objects[1].props.text", "spaces: 글이(가) 비어 있다"],
+    ]);
+    expect(problems.every((p) => p.severity === "error")).toBe(true);
+  });
+
   it("실행 환경 변수 채우기", () => {
     const s = parseObjectSchema(SCHEMA);
     expect(playEnv(s, { mapName: "aldebaran_forest", mapFile: "resources/maps/aldebaran_forest.json", x: 1990.4, y: 304 })).toEqual({
@@ -359,5 +411,27 @@ describe("MapDocument", () => {
     doc.setBrush(singleBrush(4));
     expect(doc.tool).toBe("pen");
     expect(doc.target).toEqual({ kind: "layer", index: 0 });
+  });
+
+  it("저장 직전 확인: 연 내용, 저장한 내용, 다시 읽은 내용을 기준으로 밖에서 바뀐 것을 잡는다", async () => {
+    const path = "resources/maps/tiny.json";
+    const be = new MemoryBackend({ [path]: serializeMap(tiny()) });
+    await be.open("/mem");
+    const doc = await MapDocument.open(be, path);
+    const read = (p: string) => be.readText(p);
+    doc.apply(doc.model.paintCells(0, [{ index: 0, value: 3 }]));
+    expect(await doc.findSaveConflict(read)).toBeNull();
+    // 맵 생성기가 밖에서 다시 쓴 맵
+    const regenerated = serializeMap({ ...tiny(), name: "regenerated" });
+    be.simulateExternalChange(path, "modify", regenerated);
+    expect(await doc.findSaveConflict(read)).toEqual({ kind: "changed" });
+    await doc.reloadFromDisk();
+    expect(doc.model.name).toBe("regenerated");
+    expect(await doc.findSaveConflict(read)).toBeNull();
+    doc.apply(doc.model.paintCells(0, [{ index: 1, value: 4 }]));
+    await doc.save();
+    expect(await doc.findSaveConflict(read)).toBeNull();
+    be.simulateExternalChange(path, "delete");
+    expect(await doc.findSaveConflict(read)).toEqual({ kind: "missing" });
   });
 });

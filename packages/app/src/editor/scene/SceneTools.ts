@@ -373,7 +373,7 @@ export class SceneTools {
     if (opened instanceof SceneDocument) return opened;
     if (opened) host.documents.close(opened);
     try {
-      const doc = await SceneDocument.open(host.backend, path, () => new Set(host.registries.objectTypes.keys()));
+      const doc = await SceneDocument.open(host.backend, path, () => new Set(host.registries.objectTypes.keys()), () => host.registries.validators);
       host.documents.open(doc);
       return doc;
     } catch (e) {

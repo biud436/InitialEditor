@@ -113,7 +113,7 @@ export class MapSchemaStore {
     }
     this.setResult(schema, error, schema ? "project" : "none");
     if (error) log.error(LOG, error);
-    else if (schema) log.info(LOG, `맵 오브젝트 스키마: 타입 ${schema.types.length}개 (${schema.types.map((t) => t.type).join(", ")})${schema.play ? ", 여기서 실행 있음" : ""}`);
+    else if (schema) log.info(LOG, `맵 오브젝트 스키마: 타입 ${schema.types.length}개 (${schema.types.map((t) => t.type).join(", ")})${playSummary(schema)}`);
     else log.info(LOG, `맵 오브젝트 스키마가 없다 (${SCHEMA_PATH}). 오브젝트는 타입과 좌표만 보인다`);
     return schema;
   }
@@ -157,6 +157,13 @@ export class MapSchemaStore {
     this.projectUnwatch?.();
     this.projectUnwatch = null;
   }
+}
+
+/** 읽은 스키마 한 줄의 여기서 실행 부분 (play.maps가 있으면 그 목록도) */
+function playSummary(schema: MapObjectSchema): string {
+  if (!schema.play) return "";
+  const maps = schema.play.maps;
+  return maps ? `, 여기서 실행 있음 (맵 ${maps.length > 0 ? maps.join(", ") : "없음"})` : ", 여기서 실행 있음";
 }
 
 /** editor.mapSchema를 만들어 붙이고, 맵 오브젝트 커맨드(여기서 실행)와 메뉴를 등록한다 */

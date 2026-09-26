@@ -8,6 +8,7 @@ import {
   PLAY_POSITION_RULE,
   planDuplicate,
   planNewObject,
+  playMapRefusal,
   playPosition,
   rangeAround,
   rangeFields,
@@ -156,14 +157,35 @@ describe("오브젝트 추가 규칙", () => {
     expect(planNewObject(null, "spawn", [], { x: 0, y: 0 }, GEO).ok).toBe(false);
   });
 
-  it("복제는 새 id 로 16px 옆, props 는 깊은 복사, unique 타입은 건너뛴다", () => {
+  it("복제는 새 id로 한 칸(타일 폭) 옆, y는 그대로, props는 깊은 복사, unique 타입은 건너뛴다", () => {
     const src = obj("wolf_1", "spawn", 300, { props: { species: "wolf", nested: { a: 1 } } });
-    const plan = planDuplicate(SCHEMA, [src, obj("start", "start", 56), obj("wolf_2", "spawn", 1)], ["wolf_1", "start"]);
+    const plan = planDuplicate(SCHEMA, [src, obj("start", "start", 56), obj("wolf_2", "spawn", 1)], ["wolf_1", "start"], 16, GEO);
     expect(plan.skipped).toEqual(["start"]);
     expect(plan.copies).toHaveLength(1);
     expect(plan.copies[0].after).toBe("wolf_1");
     expect(plan.copies[0].object).toMatchObject({ id: "wolf_3", x: 316, y: 400, props: { species: "wolf", nested: { a: 1 } } });
     expect(plan.copies[0].object.props.nested).not.toBe(src.props.nested);
+  });
+
+  it("복제는 순찰 범위 칸(rangeMin, rangeMax)도 x와 함께 옮긴다 (붙여넣기와 같은 모양)", () => {
+    const src = obj("wolf_1", "spawn", 224, { props: { species: "wolf", minX: 180, maxX: 280 } });
+    const plan = planDuplicate(SCHEMA, [src], ["wolf_1"], 16, GEO);
+    expect(plan.copies[0].object).toMatchObject({ id: "wolf_2", x: 240, props: { species: "wolf", minX: 196, maxX: 296 } });
+    expect(src.props).toMatchObject({ minX: 180, maxX: 280 });
+    // 스키마가 없으면 범위 칸을 모르므로 x만 옮긴다
+    expect(planDuplicate(null, [src], ["wolf_1"], 16, GEO).copies[0].object).toMatchObject({ x: 240, props: { minX: 180, maxX: 280 } });
+  });
+
+  it("복제의 옮김은 맵의 타일 폭이고, 맵 끝이면 반대쪽, 맵 밖의 y는 안으로 당긴다", () => {
+    const wide = obj("wolf_1", "spawn", 224, { y: 300, props: { species: "wolf", minX: 180, maxX: 280 } });
+    expect(planDuplicate(SCHEMA, [wide], ["wolf_1"], 32, GEO).copies[0].object).toMatchObject({ x: 256, y: 300, props: { minX: 212, maxX: 312 } });
+    const edge = obj("wolf_1", "spawn", 4095, { y: 300 });
+    expect(planDuplicate(SCHEMA, [edge], ["wolf_1"], 16, GEO).copies[0].object).toMatchObject({ x: 4079, y: 300 });
+    const below = obj("cp_1", "checkpoint", 100, { y: 900 });
+    expect(planDuplicate(SCHEMA, [below], ["cp_1"], 16, GEO).copies[0].object).toMatchObject({ x: 116, y: 447 });
+    // 띠는 y를 두고 폭까지 맵 안에 둔다
+    const band = obj("landmark_1", "landmark", 4048, { y: 0, width: 48 });
+    expect(planDuplicate(SCHEMA, [band], ["landmark_1"], 16, GEO).copies[0].object).toMatchObject({ x: 4032, y: 0, width: 48 });
   });
 
   it("이름 바꾸기 검사: 비움과 겹침을 거부하고 그대로면 통과", () => {
@@ -225,6 +247,21 @@ describe("여기서 실행", () => {
     });
     expect(buildPlayEnv({ ...SCHEMA, play: null }, { name: "forest", path: null }, { x: 0, y: 0 })).toBeNull();
     expect(buildPlayEnv(null, { name: "forest", path: null }, { x: 0, y: 0 })).toBeNull();
+  });
+
+  it("play.maps: 맞는 맵이나 목록이 없으면 null, 맞지 않으면 맵 이름과 목록을 든 이유", () => {
+    const listed = { ...SCHEMA, play: { env: { STAGE: "{map.name}" }, maps: ["aldebaran_*", "boss?"] } };
+    expect(playMapRefusal(listed, { name: "aldebaran_forest", path: "resources/maps/aldebaran_forest.json" })).toBeNull();
+    expect(playMapRefusal(listed, { name: "boss1", path: null })).toBeNull();
+    expect(playMapRefusal(listed, { name: "vm_a", path: "resources/maps/vm_a.json" })).toBe("맵 vm_a은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*, boss?");
+    expect(playMapRefusal(listed, { name: "항구 마을", path: "resources/maps/port_town.json" })).toContain("맵 항구 마을은(는)");
+    // 파일의 name이 비었으면 {map.name}과 같이 파일 이름으로 본다
+    expect(playMapRefusal(listed, { name: "", path: "resources/maps/aldebaran_tomb.json" })).toBeNull();
+    expect(playMapRefusal({ ...listed, play: { env: {}, maps: [] } }, { name: "a", path: null })).toBe("맵 a은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: 비었다");
+    // 목록이 없거나 play나 스키마가 없으면 이 규칙은 막지 않는다
+    expect(playMapRefusal({ ...SCHEMA, play: { env: {} } }, { name: "vm_a", path: null })).toBeNull();
+    expect(playMapRefusal({ ...SCHEMA, play: null }, { name: "vm_a", path: null })).toBeNull();
+    expect(playMapRefusal(null, { name: "vm_a", path: null })).toBeNull();
   });
 
   it("맵 이름이 비었으면 파일 이름에서 .json 을 뺀 것", () => {

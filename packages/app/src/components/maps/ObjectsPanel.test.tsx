@@ -36,10 +36,10 @@ const SCHEMA = parseObjectSchema(
   }),
 );
 
-async function setup() {
+async function setup(schema = SCHEMA) {
   const mem = new MemoryBackend({ [MAP_PATH]: MAP });
   await mem.open("/p");
-  const doc = await MapDocument.open(mem, MAP_PATH, SCHEMA);
+  const doc = await MapDocument.open(mem, MAP_PATH, schema);
   const documents = new DocumentRegistry();
   documents.open(doc);
   const toasts: string[] = [];
@@ -48,7 +48,7 @@ async function setup() {
     documents,
     log: new LogStore(),
     toasts: { info: toast("info"), success: toast("success"), warn: toast("warn"), error: toast("error") },
-    mapSchema: { current: SCHEMA, error: null },
+    mapSchema: { current: schema, error: null },
   } as unknown as Editor;
   render(
     <EditorProvider value={editor}>
@@ -127,5 +127,41 @@ describe("맵 오브젝트 목록의 이름 바꾸기", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     expect(renameInput()).toBeNull();
     expect(doc.model.objectIds()).toEqual(["start", "slime_boss", "sign_1"]);
+  });
+});
+
+describe("맵 오브젝트 목록의 검사", () => {
+  it("추가 버튼으로 더한 흔적은 필수 제목과 글이 비어 있어 검사에 오른다", async () => {
+    const required = parseObjectSchema(
+      JSON.stringify({
+        version: 1,
+        types: [
+          { type: "spawn", label: "몬스터", fields: [{ name: "species", type: "enum", values: ["slime", "bat"] }] },
+          { type: "start", label: "시작 지점", unique: true },
+          {
+            type: "landmark",
+            label: "흔적",
+            shape: "band",
+            defaultWidth: 16,
+            fields: [
+              { name: "title", type: "string", required: true, label: "제목" },
+              { name: "text", type: "text", required: true, label: "글" },
+            ],
+          },
+        ],
+      }),
+    );
+    const { doc } = await setup(required);
+    // 원래 흔적(sign_1)은 제목이 없어 이미 걸린다
+    const problems = () => screen.getByTestId("map-objects-problems");
+    expect(problems().getAttribute("data-count")).toBe("1");
+    const addLandmark = document.querySelector('[data-testid="map-objects-add"][data-type="landmark"]') as HTMLElement;
+    fireEvent.click(addLandmark);
+    const added = doc.selectedIds[0];
+    expect(doc.model.findObject(added)?.props).toEqual({ title: "", text: "" });
+    expect(problems().getAttribute("data-count")).toBe("3");
+    const texts = screen.getAllByTestId("map-objects-problem").map((p) => p.textContent ?? "");
+    expect(texts.filter((t) => t.includes(`${added}: 제목이(가) 비어 있다`))).toHaveLength(1);
+    expect(texts.filter((t) => t.includes(`${added}: 글이(가) 비어 있다`))).toHaveLength(1);
   });
 });

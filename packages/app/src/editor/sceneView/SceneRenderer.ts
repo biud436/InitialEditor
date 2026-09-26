@@ -1,7 +1,10 @@
 // PIXI 8 씬 뷰 렌더러 (docs/plans/e2-scene.md 마일스톤 4). 씬 문서 하나에 렌더러 하나, 탭마다 따로 만든다.
 //
-//   world (팬과 줌) ─ gridLayer ─ cameraLayer ─ objectLayer (오브젝트마다 Container, 그리기 순서) ─ selectionLayer
+//   world (팬과 줌) ─ gridLayer ─ cameraLayer ─ belowLayer ─ objectLayer (오브젝트마다 Container, 그리기 순서) ─ aboveLayer
+//                    ─ selectionLayer
 //   stage ─ bandLayer (상자 선택, 화면 좌표)
+// belowLayer와 aboveLayer는 엔진 씬 로더의 drawBelow와 drawAbove 자리다. 확장 노드가 ctx.below(), ctx.above()로 받아
+//   쓰며, 모든 오브젝트의 아래와 위에 오브젝트 순서로 쌓인다 (타일맵은 바닥 레이어를 아래에, 나머지를 위에).
 //
 // 문서 → 뷰: scene.objects 와 selection 을 MobX autorun/reaction 으로 듣고 바뀐 노드만 다시 만든다 (id 로 찾고,
 //   타입이나 props 가 바뀌면 새로 만들고, x, y 만 바뀌면 옮긴다).
@@ -9,14 +12,16 @@
 //   되돌리기 한 번에 끌기 전으로 돌아간다. 선택은 document.select / clearSelection.
 // 좌표 계산은 geometry.ts (순수 함수) 에 있고 여기는 PIXI 와 DOM 이벤트만 다룬다.
 //
-// 근사인 것: 글자는 시스템 글꼴(게임은 BMFont), 스프라이트는 시작 프레임 한 장, 회전과 배율은 엔진처럼 왼쪽 위 기준.
-// 게임 뷰가 진실이다.
+// 근사인 것: 글자는 시스템 글꼴(게임은 BMFont), 스프라이트는 시작 프레임 한 장, 회전과 배율은 엔진처럼 왼쪽 위 기준,
+// 숨긴 오브젝트는 흐리게 그린다(게임은 그리지 않는다). 게임 뷰가 진실이다.
+// 확장 타입은 등록된 createSceneNode가 만든 노드를 그린다 (타일맵은 tilemapNode.ts).
 
 import type { ObjectTypeSpec, SceneDocument, SceneObject } from "@initial-editor/core";
 import { autorun, comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, Sprite, Text, Texture } from "pixi.js";
 import type { SceneColors, SceneFonts } from "./colors";
 import {
+  backgroundAt,
   clickSelection,
   dragPositions,
   fitRect,
@@ -45,6 +50,20 @@ export interface SceneNodeContext {
   colors: SceneColors;
   fonts: SceneFonts;
   document: SceneDocument;
+  /** 줌과 상관없이 화면에서 같은 크기로 보이는 이름표. 노드 안에 붙여 쓴다 */
+  makeLabel(text: string, color: number): Container;
+  /**
+   * 노드의 경계 (오브젝트 위치 기준, 월드 단위). 고르기와 선택 상자가 쓴다. 비동기로 다 그린 뒤에도 부를 수 있다.
+   * background면 배경 대상이다 (geometry.ts HitTarget.background: 누르면 상자 선택, 움직이지 않고 놓으면 고른다)
+   */
+  setBounds(bounds: Rect, opts?: { background?: boolean }): void;
+  /**
+   * 모든 오브젝트보다 먼저 그리는 자리 (엔진 씬 로더의 drawBelow). 오브젝트 위치를 따라가고, 오브젝트 순서로
+   * 다른 확장의 아래 자리와 쌓이며, 노드를 버리면 함께 치운다. 처음 부를 때 만든다
+   */
+  below(): Container;
+  /** 모든 오브젝트 뒤에 그리는 자리 (drawAbove). 나머지는 below()와 같다 */
+  above(): Container;
 }
 
 export interface SceneTheme {
@@ -69,6 +88,11 @@ interface NodeEntry {
   size: Rect;
   /** 화면 크기를 유지할 글자들 (줌의 역수로 배율) */
   labels: Container[];
+  /** 배경 대상 (setBounds의 background) */
+  background: boolean;
+  /** 모든 오브젝트 아래와 위에 그리는 자리 (ctx.below(), ctx.above()로 만든 것) */
+  below: Container | null;
+  above: Container | null;
   imagePath: string | null;
   spec: ObjectTypeSpec | undefined;
   /** 비동기 로드가 늦게 끝나 옛 노드를 건드리지 않게 */
@@ -79,7 +103,7 @@ type PointerState =
   | { kind: "pan"; last: Point }
   | { kind: "maybeDrag"; start: Point; worldStart: Point; primary: string; starts: DragStart[] }
   | { kind: "drag"; worldStart: Point; primary: string; starts: DragStart[]; key: string; last: string }
-  | { kind: "band"; start: Point; current: Point; additive: boolean };
+  | { kind: "band"; start: Point; current: Point; additive: boolean; screenStart: Point; background: string | null };
 
 /** BMFont hangul.fnt (size 32, lineHeight 32) 의 근사 */
 const TEXT_FONT_SIZE = 28;
@@ -97,6 +121,12 @@ function num(v: unknown, fallback: number): number {
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
 
+/** 오브젝트 자리와 숨김 표시 (노드와 아래, 위 자리가 같이 쓴다) */
+function place(part: Container, o: SceneObject): void {
+  part.position.set(o.x, o.y);
+  part.alpha = o.visible ? 1 : HIDDEN_ALPHA;
+}
+
 export class SceneRenderer {
   /** 화면 변환. 컴포넌트가 data-zoom, data-pan-x, data-pan-y 로 내보낸다 (e2e 가 오브젝트 좌표를 화면 픽셀로 옮길 때 쓴다) */
   readonly transform = observable<ViewTransform>({ zoom: 1, panX: VIEW_MARGIN, panY: VIEW_MARGIN });
@@ -107,7 +137,9 @@ export class SceneRenderer {
   private readonly world = new Container();
   private readonly gridLayer = new Graphics();
   private readonly cameraLayer = new Graphics();
+  private readonly belowLayer = new Container();
   private readonly objectLayer = new Container();
+  private readonly aboveLayer = new Container();
   private readonly selectionLayer = new Graphics();
   private readonly bandLayer = new Graphics();
   private readonly nodes = new Map<string, NodeEntry>();
@@ -122,6 +154,7 @@ export class SceneRenderer {
   constructor(private readonly deps: SceneRendererDeps) {
     this.theme = deps.theme();
     this.transform.zoom = deps.view.zoom;
+    this.world.addChild(this.gridLayer, this.cameraLayer, this.belowLayer, this.objectLayer, this.aboveLayer, this.selectionLayer);
   }
 
   get document(): SceneDocument {
@@ -164,7 +197,6 @@ export class SceneRenderer {
     }
     this.app = app;
     app.stage.eventMode = "none";
-    this.world.addChild(this.gridLayer, this.cameraLayer, this.objectLayer, this.selectionLayer);
     app.stage.addChild(this.world, this.bandLayer);
     host.appendChild(app.canvas);
     app.canvas.style.display = "block";
@@ -210,7 +242,7 @@ export class SceneRenderer {
     const t = this.transform;
     this.world.scale.set(t.zoom);
     this.world.position.set(t.panX, t.panY);
-    for (const entry of this.nodes.values()) for (const label of entry.labels) label.scale.set(1 / t.zoom);
+    for (const entry of this.nodes.values()) for (const label of entry.labels) if (!label.destroyed) label.scale.set(1 / t.zoom);
     this.redrawGrid();
     this.redrawCamera();
     this.redrawSelection();
@@ -311,7 +343,7 @@ export class SceneRenderer {
     for (const o of this.document.scene.objects) {
       const entry = this.nodes.get(o.id);
       if (!entry) continue;
-      out.push({ id: o.id, bounds: { x: o.x + entry.size.x, y: o.y + entry.size.y, w: entry.size.w, h: entry.size.h } });
+      out.push({ id: o.id, bounds: { x: o.x + entry.size.x, y: o.y + entry.size.y, w: entry.size.w, h: entry.size.h }, background: entry.background });
     }
     return out;
   }
@@ -331,11 +363,13 @@ export class SceneRenderer {
     if (e.button !== 0) return;
     const doc = this.document;
     const world = screenToWorld(this.transform, screen);
-    const hit = hitTest(this.hitTargets(), world);
+    const targets = this.hitTargets();
+    const hit = hitTest(targets, world, doc.selection);
     const next = clickSelection(doc.selection, hit, e.shiftKey);
     doc.select(next);
     if (hit === null) {
-      this.pointer = { kind: "band", start: world, current: world, additive: e.shiftKey };
+      // 고르지 않은 배경 위면 상자 선택으로 시작하고, 움직이지 않고 놓으면 그 배경을 고른다
+      this.pointer = { kind: "band", start: world, current: world, additive: e.shiftKey, screenStart: screen, background: backgroundAt(targets, world) };
       return;
     }
     if (e.shiftKey) return; // Shift 는 토글만, 끌지 않는다
@@ -386,6 +420,10 @@ export class SceneRenderer {
     if (this.app?.canvas.hasPointerCapture(e.pointerId)) this.app.canvas.releasePointerCapture(e.pointerId);
     if (p.kind === "band") {
       this.bandLayer.clear();
+      if (p.background !== null && !movedEnough(p.screenStart, this.screenPoint(e))) {
+        this.document.select(clickSelection(this.document.selection, p.background, p.additive));
+        return;
+      }
       const band = rectFromPoints(p.start, p.current);
       if (band.w === 0 && band.h === 0) return; // 빈 곳 클릭은 pointerdown 에서 이미 비웠다
       const hits = rubberBandSelect(this.hitTargets(), band);
@@ -493,8 +531,7 @@ export class SceneRenderer {
         continue;
       }
       entry.object = o;
-      entry.node.position.set(o.x, o.y);
-      entry.node.alpha = o.visible ? 1 : HIDDEN_ALPHA;
+      for (const part of [entry.node, entry.below, entry.above]) if (part) place(part, o);
     }
     for (const [id, entry] of [...this.nodes]) {
       if (seen.has(id)) continue;
@@ -506,10 +543,15 @@ export class SceneRenderer {
   }
 
   private reorder(): void {
+    this.belowLayer.removeChildren();
     this.objectLayer.removeChildren();
+    this.aboveLayer.removeChildren();
     for (const o of this.document.scene.objects) {
       const entry = this.nodes.get(o.id);
-      if (entry) this.objectLayer.addChild(entry.node);
+      if (!entry) continue;
+      if (entry.below) this.belowLayer.addChild(entry.below);
+      this.objectLayer.addChild(entry.node);
+      if (entry.above) this.aboveLayer.addChild(entry.above);
     }
   }
 
@@ -528,19 +570,39 @@ export class SceneRenderer {
   private destroyEntry(entry: NodeEntry): void {
     entry.run = -1;
     entry.node.destroy({ children: true, texture: false, textureSource: false });
+    this.dropParts(entry);
+  }
+
+  /** 아래와 위 자리를 치운다 */
+  private dropParts(entry: NodeEntry): void {
+    for (const part of [entry.below, entry.above]) part?.destroy({ children: true, texture: false, textureSource: false });
+    entry.below = null;
+    entry.above = null;
+  }
+
+  /** 확장 노드의 아래(below)나 위(above) 자리. 처음 부를 때 만들고, 이미 그려진 노드면 층에 끼운다 */
+  private partFor(entry: NodeEntry, which: "below" | "above"): Container {
+    const existing = entry[which];
+    if (existing) return existing;
+    const part = new Container({ label: `${which}:${entry.object.id}` });
+    place(part, entry.object);
+    // 버린 노드의 늦은 호출은 붙이지 않는 자리를 준다
+    if (entry.run === -1 || this.disposed) return part;
+    entry[which] = part;
+    if (this.nodes.get(entry.object.id) === entry) this.reorder();
+    return part;
   }
 
   private createEntry(o: SceneObject, spec: ObjectTypeSpec | undefined): NodeEntry {
     const node = new Container();
     node.label = o.id;
-    node.position.set(o.x, o.y);
-    node.alpha = o.visible ? 1 : HIDDEN_ALPHA;
-    const entry: NodeEntry = { object: o, node, size: { x: 0, y: 0, w: 0, h: 0 }, labels: [], imagePath: null, spec, run: 0 };
+    place(node, o);
+    const entry: NodeEntry = { object: o, node, size: { x: 0, y: 0, w: 0, h: 0 }, labels: [], background: false, below: null, above: null, imagePath: null, spec, run: 0 };
     if (o.type === "sprite") this.buildSprite(entry);
     else if (o.type === "text") this.buildText(entry);
     else if (o.type === "node") this.buildNode(entry);
     else this.buildExtension(entry, spec);
-    for (const label of entry.labels) label.scale.set(1 / this.transform.zoom);
+    for (const label of entry.labels) if (!label.destroyed) label.scale.set(1 / this.transform.zoom);
     return entry;
   }
 
@@ -642,18 +704,49 @@ export class SceneRenderer {
   private buildExtension(entry: NodeEntry, spec: ObjectTypeSpec | undefined): void {
     const o = entry.object;
     if (spec?.createSceneNode) {
-      const ctx: SceneNodeContext = { loadTexture: (p) => this.deps.textures.load(p), colors: this.theme.colors, fonts: this.theme.fonts, document: this.document };
+      let bounded = false;
+      let failed = false;
+      const ctx: SceneNodeContext = {
+        loadTexture: (p) => this.deps.textures.load(p),
+        colors: this.theme.colors,
+        fonts: this.theme.fonts,
+        document: this.document,
+        makeLabel: (text, color) => {
+          const label = this.makeLabel(text, color);
+          label.scale.set(1 / this.transform.zoom);
+          if (!failed) entry.labels.push(label);
+          return label;
+        },
+        setBounds: (b, opts) => {
+          bounded = true;
+          if (failed || entry.run === -1 || this.disposed) return;
+          entry.size = { x: b.x, y: b.y, w: Math.max(1, b.w), h: Math.max(1, b.h) };
+          entry.background = opts?.background === true;
+          entry.labels = entry.labels.filter((label) => !label.destroyed);
+          this.redrawSelection();
+        },
+        // 만들지 못한 노드의 늦은 호출은 붙이지 않는 자리를 준다
+        below: () => (failed ? new Container() : this.partFor(entry, "below")),
+        above: () => (failed ? new Container() : this.partFor(entry, "above")),
+      };
       try {
         const made = spec.createSceneNode(o, ctx);
         if (made instanceof Container) {
           entry.node.addChild(made);
-          const b = made.getLocalBounds();
-          entry.size = { x: b.x, y: b.y, w: Math.max(1, b.width), h: Math.max(1, b.height) };
+          if (!bounded) {
+            const b = made.getLocalBounds();
+            entry.size = { x: b.x, y: b.y, w: Math.max(1, b.width), h: Math.max(1, b.height) };
+          }
           return;
         }
       } catch {
-        // 확장이 실패하면 아래의 이름표 상자로
+        // 아래의 이름표 상자로
       }
+      // 확장이 노드를 만들지 못했다: 만든 이름표와 자리를 치우고 이름표 상자를 그린다
+      failed = true;
+      for (const label of entry.labels) if (!label.destroyed) label.destroy();
+      entry.labels = [];
+      this.dropParts(entry);
     }
     const color = this.theme.colors["fg-muted"];
     const size = 48;

@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { MemoryBackend } from "@initial-editor/core";
 import { MapDocument, parseMap, parseObjectSchema, singleBrush, validateObjects } from "@initial-editor/ext-tilemap/model";
-import { HIDDEN_TARGET_NOTICE, MapToolController, type ToolPointer } from "./mapTools";
+import { fillLimitNotice, HIDDEN_TARGET_NOTICE, MapToolController, type ToolPointer } from "./mapTools";
 
 const W = 10;
 const H = 6;
@@ -170,6 +170,70 @@ describe("타일 도구", () => {
     dragCells([[0, 0], [2, 0]]);
     expect(doc.model.layers[1].data.slice(0, 4)).toEqual([0, 0, 0, 9]);
     expect(doc.undo.depth).toBe(2);
+  });
+
+  it("채우기: 1024x1024 맵의 빈 칸을 모두 채우고 알림이 없다", () => {
+    const size = 1024;
+    const data = parseMap(
+      JSON.stringify({
+        version: 2,
+        name: "big",
+        width: size,
+        height: size,
+        tileWidth: 16,
+        tileHeight: 16,
+        layers: [{ name: "ground", data: new Array(size * size).fill(0) }],
+        tilesets: [{ image: "resources/tiles/t.png", firstGid: 1, columns: 8 }],
+      }),
+    );
+    const doc = new MapDocument(new MemoryBackend(), "resources/maps/big.json", data, null);
+    const said: string[] = [];
+    const tools = new MapToolController({ document: doc, zoom: () => 1, changed: () => {}, notice: (m) => said.push(`notice: ${m}`), warn: (m) => said.push(`warn: ${m}`) });
+    doc.setBrush(singleBrush(1));
+    // 펜으로 한 줄(19칸)을 긋고 빈 칸을 채운다
+    tools.pointerDown({ world: { x: 8, y: 8 }, button: 0, shift: false, alt: false });
+    tools.pointerMove({ world: { x: 18 * 16 + 8, y: 8 }, button: 0, shift: false, alt: false });
+    tools.pointerUp({ world: { x: 18 * 16 + 8, y: 8 }, button: 0, shift: false, alt: false });
+    doc.setBrush(singleBrush(2));
+    doc.setTool("fill");
+    tools.pointerDown({ world: { x: 500 * 16, y: 500 * 16 }, button: 0, shift: false, alt: false });
+    tools.pointerUp({ world: { x: 500 * 16, y: 500 * 16 }, button: 0, shift: false, alt: false });
+    const layer = doc.model.layers[0].data;
+    expect(layer.filter((v) => v === 1)).toHaveLength(19);
+    expect(layer.filter((v) => v === 2)).toHaveLength(size * size - 19);
+    expect(layer.includes(0)).toBe(false);
+    expect(said).toEqual([]);
+    expect(doc.undo.depth).toBe(2);
+  });
+
+  it("채우기가 한도에 닿으면 채운 만큼 넣고 경고로 알린다 (warn이 없으면 notice)", () => {
+    const { doc, tools, at } = setup();
+    const warned: string[] = [];
+    const noticed: string[] = [];
+    const withWarn = new MapToolController({ document: doc, zoom: () => 1, changed: () => {}, notice: (m) => noticed.push(m), warn: (m) => warned.push(m) });
+    withWarn.fillLimit = 7;
+    doc.setBrush(singleBrush(9));
+    doc.setTarget({ kind: "layer", index: 1 });
+    doc.setTool("fill");
+    withWarn.pointerDown(at(20, 20));
+    withWarn.pointerUp(at(20, 20));
+    expect(doc.model.layers[1].data.filter((v) => v === 9)).toHaveLength(7);
+    expect(warned).toEqual([fillLimitNotice(7, 7)]);
+    expect(noticed).toEqual([]);
+    expect(fillLimitNotice(1_000_000, 1_048_576)).toBe("채우기가 한도 1,048,576칸에 닿아 1,000,000칸에서 멈췄다. 남은 칸을 눌러 이어서 채운다");
+
+    const onlyNotice = new MapToolController({ document: doc, zoom: () => 1, changed: () => {}, notice: (m) => noticed.push(m) });
+    onlyNotice.fillLimit = 5;
+    onlyNotice.pointerDown(at(9 * 16 + 8, 5 * 16 + 8));
+    onlyNotice.pointerUp(at(9 * 16 + 8, 5 * 16 + 8));
+    expect(noticed).toEqual([fillLimitNotice(5, 5)]);
+    expect(doc.model.layers[1].data.filter((v) => v === 9)).toHaveLength(12);
+
+    // 한도가 없으면(기본) 맵의 칸 수라 나머지를 다 채운다 (왼쪽 위 칸은 아직 비었다)
+    expect(doc.model.layers[1].data[0]).toBe(0);
+    tools.pointerDown(at(8, 8));
+    tools.pointerUp(at(8, 8));
+    expect(doc.model.layers[1].data.every((v) => v === 9)).toBe(true);
   });
 
   it("스포이드: 사각형을 떠서 붓으로 하고 펜으로 돌아간다", () => {

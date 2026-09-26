@@ -41,7 +41,7 @@ export function addToolPanel(api: DockviewApi, id: PanelId, placement?: Placemen
   api.addPanel({ id, component: id, title: PANEL_TITLES[id], position: toPosition(placement ?? defaultPlacement(api, id)) });
 }
 
-function firstDocPanelId(api: DockviewApi): string | undefined {
+export function firstDocPanelId(api: DockviewApi): string | undefined {
   return api.panels.find((p) => p.id.startsWith("doc:"))?.id;
 }
 
@@ -83,6 +83,44 @@ export function defaultPlacement(api: DockviewApi, id: PanelId): Placement {
       return doc ? { referencePanel: doc, direction: "right" } : { direction: "right" };
   }
 }
+
+// ---- 맵 패널 (맵 탭이 활성이 될 때) ----
+
+/** 맵 탭이 활성이 되면 없을 때 더하는 패널. 이 순서로 더한다 */
+export const MAP_PANEL_IDS = ["mapObjects", "mapPalette", "mapLayers"] as const satisfies readonly PanelId[];
+
+/** 더할 맵 패널: 레이아웃에 없고, 이 세션에서 사용자가 닫지 않은 것 */
+export function missingMapPanels(isOpen: (id: PanelId) => boolean, userClosed: ReadonlySet<string>): PanelId[] {
+  return MAP_PANEL_IDS.filter((id) => !isOpen(id) && !userClosed.has(id));
+}
+
+/**
+ * 맵 패널의 자리. 맵 오브젝트는 계층 옆 탭, 팔레트는 왼쪽 아래(프로젝트 아래, 없으면 계층 아래),
+ * 레이어는 오른쪽(인스펙터 아래, 없으면 문서 오른쪽). 기댈 패널이 없으면 문서 옆, 문서도 없으면 가장자리.
+ */
+export function mapPanelPlacement(has: (id: string) => boolean, id: PanelId, docPanel: string | undefined): Placement {
+  const nextToDoc = (direction: Direction): Placement => (docPanel ? { referencePanel: docPanel, direction } : { direction });
+  switch (id) {
+    case "mapObjects":
+      if (has("hierarchy")) return { referencePanel: "hierarchy", direction: "within" };
+      if (has("project")) return { referencePanel: "project", direction: "within" };
+      return nextToDoc("left");
+    case "mapPalette":
+      if (has("project")) return { referencePanel: "project", direction: "below" };
+      if (has("hierarchy")) return { referencePanel: "hierarchy", direction: "below" };
+      if (has("mapObjects")) return { referencePanel: "mapObjects", direction: "below" };
+      return nextToDoc("left");
+    case "mapLayers":
+      if (has("inspector")) return { referencePanel: "inspector", direction: "below" };
+      if (has("extensions")) return { referencePanel: "extensions", direction: "below" };
+      return nextToDoc("right");
+    default:
+      return nextToDoc("right");
+  }
+}
+
+/** 새로 더한 맵 패널의 높이 (자기 그룹을 새로 만든 것만) */
+export const MAP_PANEL_HEIGHTS: Partial<Record<PanelId, number>> = { mapPalette: 260, mapLayers: 220 };
 
 function size(api: DockviewApi, id: string, dim: { width?: number; height?: number }): void {
   api.getPanel(id)?.api.setSize(dim);

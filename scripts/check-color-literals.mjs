@@ -13,7 +13,7 @@ const roots = process.argv.slice(2);
 const targets = roots.length ? roots : ["packages"];
 const ALLOWED_FILES = new Set(["packages/app/src/theme/tokens.css"]);
 const EXTENSIONS = new Set([".css", ".scss", ".ts", ".tsx", ".jsx", ".js", ".html"]);
-const SKIP_DIRS = new Set(["node_modules", "dist", "legacy", "target", ".git"]);
+const SKIP_DIRS = new Set(["node_modules", "dist", "target", ".git"]);
 // `#abc` 는 값 자리(콜론, 따옴표, 괄호, 공백, 쉼표 뒤)에 올 때만 색으로 본다. `this.#field` 는 잡지 않는다.
 const PATTERN = /(?<=[:"'`(\s,=])#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 

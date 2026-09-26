@@ -5,6 +5,7 @@ import {
   dragPositions,
   fitRect,
   gridLines,
+  backgroundAt,
   hitTest,
   mergeSelection,
   movedEnough,
@@ -13,6 +14,7 @@ import {
   prevZoomStep,
   rectFromPoints,
   rectsIntersect,
+  rectEncloses,
   rubberBandSelect,
   screenToWorld,
   snapPoint,
@@ -104,6 +106,35 @@ describe("맞히기와 선택", () => {
     expect(rubberBandSelect(targets, { x: 30, y: 30, w: 30, h: 30 })).toEqual(["bg", "player"]);
     expect(rubberBandSelect(targets, { x: 190, y: 190, w: 100, h: 100 })).toEqual(["label"]);
     expect(rubberBandSelect(targets, { x: 120, y: 120, w: 10, h: 10 })).toEqual([]);
+  });
+
+  it("배경 대상(타일맵)은 다른 것 뒤에 맞고, 고른 것만 누른 대상이 된다", () => {
+    const withMap = [
+      { id: "sprite", bounds: { x: 10, y: 10, w: 10, h: 10 } },
+      { id: "map", bounds: { x: 0, y: 0, w: 320, h: 192 }, background: true },
+      { id: "top", bounds: { x: 300, y: 0, w: 10, h: 10 } },
+    ];
+    // 배경이 그리기 순서로 위에 있어도 다른 것이 먼저
+    expect(hitTest(withMap, { x: 15, y: 15 })).toBe("sprite");
+    expect(hitTest(withMap, { x: 305, y: 5 })).toBe("top");
+    // 고르지 않은 배경은 누른 대상이 아니다 (상자 선택이 시작된다). 따로 찾을 수 있다
+    expect(hitTest(withMap, { x: 100, y: 100 })).toBeNull();
+    expect(backgroundAt(withMap, { x: 100, y: 100 })).toBe("map");
+    expect(backgroundAt(withMap, { x: 400, y: 100 })).toBeNull();
+    // 고른 배경은 누르면 끌 수 있다. 그 위의 다른 것은 여전히 먼저
+    expect(hitTest(withMap, { x: 100, y: 100 }, new Set(["map"]))).toBe("map");
+    expect(hitTest(withMap, { x: 15, y: 15 }, new Set(["map"]))).toBe("sprite");
+  });
+
+  it("상자 선택은 배경 대상을 상자 안에 다 들어올 때만 넣는다", () => {
+    const withMap = [
+      { id: "map", bounds: { x: 0, y: 0, w: 100, h: 100 }, background: true },
+      { id: "sprite", bounds: { x: 40, y: 40, w: 10, h: 10 } },
+    ];
+    expect(rubberBandSelect(withMap, { x: 30, y: 30, w: 30, h: 30 })).toEqual(["sprite"]);
+    expect(rubberBandSelect(withMap, { x: -1, y: -1, w: 102, h: 102 })).toEqual(["map", "sprite"]);
+    expect(rubberBandSelect(withMap, { x: 0, y: 0, w: 100, h: 100 })).toEqual(["map", "sprite"]);
+    expect(rectEncloses({ x: 0, y: 0, w: 10, h: 10 }, { x: 0, y: 0, w: 10, h: 11 })).toBe(false);
   });
 
   it("상자 선택 합치기: Shift 는 더하고 아니면 바꾼다", () => {

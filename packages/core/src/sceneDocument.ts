@@ -3,7 +3,7 @@
 import { computed, makeObservable, observable, runInAction } from "mobx";
 import type { ProjectBackend } from "./backend";
 import { Document } from "./document";
-import type { ValidationProblem } from "./extensions";
+import type { ValidationProblem, Validator } from "./extensions";
 import { basename } from "./paths";
 import { emptyScene, parseScene, SceneModel, serializeScene, validateScene, type SceneData } from "./scene";
 
@@ -18,18 +18,23 @@ export function sceneNameFromPath(path: string): string {
   return basename(path).replace(/\.json$/i, "");
 }
 
+/** 확장이 등록한 검사기. 씬 데이터(SceneData)를 받는다 */
+export type SceneValidators = () => Iterable<Validator>;
+
 export class SceneDocument extends Document {
   readonly scene: SceneModel;
-  /** 마지막 로드나 저장 뒤의 검사 결과 */
+  /** 마지막 검사 결과 (씬 규칙 뒤에 확장 검사기의 결과) */
   problems: ValidationProblem[] = [];
   /** 선택된 오브젝트 id 들 (씬 뷰와 계층이 함께 본다) */
   readonly selection = observable.set<string>();
+  private validationRun = 0;
 
   constructor(
     private readonly backend: ProjectBackend,
     path: string,
     data: SceneData = emptyScene(sceneNameFromPath(path)),
     private readonly knownTypes: () => ReadonlySet<string>,
+    private readonly validators: SceneValidators = () => [],
   ) {
     super(SCENE_KIND, path, basename(path));
     this.scene = new SceneModel(data);
@@ -37,9 +42,11 @@ export class SceneDocument extends Document {
     this.revalidate();
   }
 
-  static async open(backend: ProjectBackend, path: string, knownTypes: () => ReadonlySet<string>): Promise<SceneDocument> {
+  static async open(backend: ProjectBackend, path: string, knownTypes: () => ReadonlySet<string>, validators?: SceneValidators): Promise<SceneDocument> {
     const text = await backend.readText(path);
-    return new SceneDocument(backend, path, parseScene(text), knownTypes);
+    const doc = new SceneDocument(backend, path, parseScene(text), knownTypes, validators);
+    doc.noteDiskText(text);
+    return doc;
   }
 
   get selectedIds(): string[] {
@@ -57,9 +64,32 @@ export class SceneDocument extends Document {
     runInAction(() => this.selection.clear());
   }
 
+  /**
+   * 씬 규칙과 확장 검사기로 검사한다. 돌려주는 것은 바로 나온 결과이고, 비동기 검사기의 결과는
+   * 끝나는 대로 problems에 더한다 (그 사이에 다시 검사했으면 버린다).
+   */
   revalidate(): ValidationProblem[] {
-    const problems = validateScene(this.scene.toData(), this.knownTypes());
+    const data = this.scene.toData();
+    const problems = validateScene(data, this.knownTypes());
+    const pending: Array<Promise<ValidationProblem[]>> = [];
+    for (const fn of this.validators()) {
+      try {
+        const result = fn(data);
+        if (Array.isArray(result)) problems.push(...result);
+        else pending.push(Promise.resolve(result));
+      } catch (e) {
+        problems.push(validatorFailure(e));
+      }
+    }
+    const run = ++this.validationRun;
     runInAction(() => (this.problems = problems));
+    if (pending.length > 0) {
+      void Promise.allSettled(pending).then((results) => {
+        if (run !== this.validationRun) return;
+        const more = results.flatMap((r) => (r.status === "fulfilled" ? r.value : [validatorFailure(r.reason)]));
+        if (more.length > 0) runInAction(() => (this.problems = [...problems, ...more]));
+      });
+    }
     return problems;
   }
 
@@ -73,7 +103,9 @@ export class SceneDocument extends Document {
     this.revalidate();
     // 쓰는 동안 들어온 편집은 dirty로 남도록 쓰기 전의 상태로 표시한다
     const state = this.undo.stateId;
-    await this.backend.writeText(this.path, this.text());
+    const text = this.text();
+    await this.backend.writeText(this.path, text);
+    this.noteDiskText(text);
     this.markSaved(state);
   }
 
@@ -86,7 +118,12 @@ export class SceneDocument extends Document {
       this.undo.clear();
       this.selection.clear();
     });
+    this.noteDiskText(text);
     this.markSaved();
     this.revalidate();
   }
+}
+
+function validatorFailure(e: unknown): ValidationProblem {
+  return { severity: "warning", message: `검사기가 실패했다: ${e instanceof Error ? e.message : String(e)}` };
 }

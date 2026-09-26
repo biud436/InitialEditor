@@ -1,0 +1,88 @@
+// 맵 탭이 활성이 되면 레이아웃에 맵 패널을 더해 달라고 한다 (LayoutStore.ensureMapPanels). 편집 메뉴가 쓰는 클립보드도 여기 있다.
+import { CommandRegistry, DocumentRegistry, Emitter, LogStore, MenuRegistry, Project, SceneDocument, type Document } from "@initial-editor/core";
+import { MemoryBackend } from "@initial-editor/core/testing";
+import { MapDocument } from "@initial-editor/ext-tilemap/model";
+import { describe, expect, it } from "vitest";
+import type { Editor } from "../Editor";
+import { MapClipboard } from "./mapClipboard";
+import type { MapRenderer, MapRendererEvents } from "./MapRenderer";
+import { MapSupport } from "./MapSupport";
+
+const MAP = JSON.stringify({ version: 2, name: "a", width: 2, height: 2, tileWidth: 16, tileHeight: 16, layers: [{ name: "g", data: [0, 0, 0, 0] }], tilesets: [] });
+
+async function setup(ensure: () => unknown) {
+  const be = new MemoryBackend({ "game.json": "{}", "resources/maps/a.json": MAP, "resources/maps/b.json": MAP, "resources/scenes/s.json": '{ "version": 1, "name": "s", "objects": [] }' });
+  const project = new Project(be);
+  await project.open("/mem");
+  const documents = new DocumentRegistry();
+  const log = new LogStore();
+  const editor = {
+    backend: be,
+    project,
+    documents,
+    commands: new CommandRegistry({ platform: "win" }),
+    menus: new MenuRegistry(),
+    log,
+    toasts: { info() {}, success() {}, warn() {}, error() {} },
+    events: new Emitter(),
+    setHint: () => {},
+    setChecked: () => {},
+    openPath: async () => {},
+    layout: { ensureMapPanels: ensure },
+  } as unknown as Editor;
+  const support = new MapSupport(editor);
+  support.install();
+  const a = await MapDocument.open(be, "resources/maps/a.json");
+  const b = await MapDocument.open(be, "resources/maps/b.json");
+  const scene = await SceneDocument.open(be, "resources/scenes/s.json", () => new Set(["node"]));
+  return { support, documents, log, a, b, scene: scene as Document };
+}
+
+describe("MapSupport와 맵 패널", () => {
+  it("맵 탭이 활성이 될 때마다 한 번 부르고, 다른 탭은 부르지 않는다", async () => {
+    let calls = 0;
+    const { support, documents, a, b, scene } = await setup(() => calls++);
+    documents.open(scene);
+    expect(calls).toBe(0);
+    documents.open(a);
+    expect(calls).toBe(1);
+    documents.open(b);
+    expect(calls).toBe(2);
+    documents.activate(scene);
+    expect(calls).toBe(2);
+    documents.activate(a);
+    expect(calls).toBe(3);
+    expect(support.clipboard).toBeInstanceOf(MapClipboard);
+    support.dispose();
+  });
+
+  it("레이아웃이 실패해도 맵은 열리고 경고만 남긴다", async () => {
+    const { support, documents, a, log } = await setup(() => {
+      throw new Error("dockview가 없다");
+    });
+    documents.open(a);
+    expect(documents.active).toBe(a);
+    expect(log.entries.map((e) => `${e.level}: ${e.text}`)).toContain("warn: 맵 패널을 더하지 못했다: dockview가 없다");
+    support.dispose();
+  });
+
+  it("붙은 렌더러의 도구 경고는 콘솔에 맵 이름과 함께 남기고, 떼면 더 남기지 않는다", async () => {
+    const { support, a, log } = await setup(() => {});
+    const events = new Emitter<MapRendererEvents>();
+    const renderer = { events } as unknown as MapRenderer;
+    support.attachRenderer(a, renderer);
+    events.emit("warn", "채우기가 한도에 닿았다");
+    expect(log.entries.map((e) => `${e.level}/${e.source}: ${e.text}`)).toContain("warn/maps: a.json: 채우기가 한도에 닿았다");
+    // 같은 렌더러를 다시 붙여도 한 줄만 남긴다
+    support.attachRenderer(a, renderer);
+    events.emit("warn", "둘째");
+    expect(log.entries.filter((e) => e.text.endsWith("둘째"))).toHaveLength(1);
+    support.detachRenderer(a, renderer);
+    expect(events.listenerCount("warn")).toBe(0);
+    events.emit("warn", "셋째");
+    expect(log.entries.some((e) => e.text.endsWith("셋째"))).toBe(false);
+    support.attachRenderer(a, renderer);
+    support.dispose();
+    expect(events.listenerCount("warn")).toBe(0);
+  });
+});

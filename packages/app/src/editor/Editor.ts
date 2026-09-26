@@ -12,6 +12,7 @@ import {
   LogStore,
   MenuRegistry,
   Project,
+  type SaveOutcome,
   SettingsStore,
   type Platform,
   type ProjectBackend,
@@ -44,6 +45,8 @@ import type { KeyValueStorage } from "./LocalStorageSettingsStorage";
 import { ModalStore } from "./modals";
 import { ProjectTreeModel } from "./projectTree";
 import { installRecentProjectsMenu } from "./recentProjects";
+import { createDocumentSaver } from "./saveCommands";
+import { modalSaveGuard } from "./SaveConflictDialog";
 import { ToastStore } from "./toasts";
 
 export interface EditorOptions {
@@ -100,9 +103,16 @@ export class Editor {
 
   private readonly labelProviders = new Map<string, () => string>();
   private readonly hintProviders = new Map<string, () => string | undefined>();
+  private readonly noteProviders = new Map<string, () => string | undefined>();
   private readonly checkedProviders = new Map<string, () => boolean>();
   private projectDisposers: Array<() => void> = [];
   private disposers: Array<() => void> = [];
+  /** 디스크를 확인하고 저장한다 (saveDocument가 쓴다) */
+  private readonly saveChecked = createDocumentSaver({
+    guard: modalSaveGuard(this.modals, (path) => this.backend.readText(path)),
+    onSaved: (doc) => this.events.emit("documentSaved", doc),
+    log: this.log,
+  });
   private readonly autoOpenRoot: string | undefined;
 
   constructor(opts: EditorOptions) {
@@ -162,12 +172,14 @@ export class Editor {
     if (this.autoOpenRoot) void this.openProject(this.autoOpenRoot);
   }
 
-  /** 문서를 저장하고 documentSaved 를 알린다 (저장 시 핫 리로드가 여기에 붙는다) */
-  async saveDocument(doc: Document): Promise<void> {
-    // 다시 읽지 못한 문서는 저장하지 않는다 (배너에서 다시 읽기나 덮어쓰기를 고를 때까지)
-    doc.assertCanSave();
-    await doc.save();
-    this.events.emit("documentSaved", doc);
+  /**
+   * 문서를 저장하고 documentSaved를 알린다 (저장 시 핫 리로드가 여기에 붙는다). 모든 저장이 여기를 지난다.
+   * 파일이 밖에서 바뀌었거나 지워졌거나 다시 읽지 못했으면 모달로 묻는다 (03-project-and-runtime.md 파일 규칙 4).
+   * 결과는 저장함, 다시 읽음, 취소 중 하나다. 같은 문서의 저장이 확인이나 모달을 기다리는 중이면 거기에 합치고,
+   * 쓰는 중이면 끝난 뒤 최신 내용으로 다시 저장한다 (createDocumentSaver)
+   */
+  saveDocument(doc: Document): Promise<SaveOutcome> {
+    return this.saveChecked(doc);
   }
 
   /** 프로젝트를 연다. game.json 이 없으면 만들 것인지 묻는다 */
@@ -297,6 +309,11 @@ export class Editor {
     return this.hintProviders.get(id)?.();
   }
 
+  /** 켜진 커맨드의 툴팁 (눌러도 일을 하지 않는 이유 같은 것). 없으면 undefined */
+  commandNote(id: string): string | undefined {
+    return this.noteProviders.get(id)?.();
+  }
+
   commandChecked(id: string): boolean {
     return this.checkedProviders.get(id)?.() ?? false;
   }
@@ -307,6 +324,10 @@ export class Editor {
 
   setHint(id: string, fn: () => string | undefined): void {
     this.hintProviders.set(id, fn);
+  }
+
+  setNote(id: string, fn: () => string | undefined): void {
+    this.noteProviders.set(id, fn);
   }
 
   setChecked(id: string, fn: () => boolean): void {

@@ -93,3 +93,23 @@
   color: var(--warning);
   font-size: 12px;
 }
+
+/* 맵 크기: 누르면 크기 바꾸기. 여백과 테두리 없이 글자 폭만 차지해 머리 띠의 줄바꿈이 글자일 때와 같다 */
+.map-view-header .map-view-size {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.map-view-header .map-view-size:hover {
+  color: var(--fg);
+  text-decoration: underline;
+}
+
+.map-view-header .map-view-size:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}

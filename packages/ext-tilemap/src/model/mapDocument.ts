@@ -65,13 +65,19 @@ export class MapDocument extends Document {
       select: action,
       clearSelection: action,
     });
-    // 선택된 오브젝트가 지워지면 선택에서 뺀다
-    this.model.events.on("reset", () => runInAction(() => this.selection.clear()));
+    // 다시 읽기나 크기 바꾸기 뒤에 없는 오브젝트는 선택에서 뺀다
+    this.model.events.on("reset", () =>
+      runInAction(() => {
+        for (const id of [...this.selection]) if (!this.model.findObject(id)) this.selection.delete(id);
+      }),
+    );
   }
 
   static async open(backend: ProjectBackend, path: string, schema: MapObjectSchema | null = null): Promise<MapDocument> {
     const text = await backend.readText(path);
-    return new MapDocument(backend, path, parseMap(text), schema);
+    const doc = new MapDocument(backend, path, parseMap(text), schema);
+    doc.noteDiskText(text);
+    return doc;
   }
 
   /** 오브젝트 검사 결과 (스키마와 대조) */
@@ -136,15 +142,19 @@ export class MapDocument extends Document {
     this.assertCanSave();
     // 쓰는 동안 들어온 편집은 dirty로 남도록 쓰기 전의 상태로 표시한다
     const state = this.undo.stateId;
-    await this.backend.writeText(this.path, this.text());
+    const text = this.text();
+    await this.backend.writeText(this.path, text);
+    this.noteDiskText(text);
     this.markSaved(state);
   }
 
   async reload(): Promise<void> {
     if (!this.path) return;
-    const data = parseMap(await this.backend.readText(this.path));
+    const text = await this.backend.readText(this.path);
+    const data = parseMap(text);
     this.model.replaceAll(data);
     this.undo.clear();
+    this.noteDiskText(text);
     this.markSaved();
   }
 }

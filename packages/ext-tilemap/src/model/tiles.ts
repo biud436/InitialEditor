@@ -123,32 +123,55 @@ export function rectFill(map: Pick<MapData, "width" | "height">, brush: Brush, x
   return out;
 }
 
+export interface FloodFillResult {
+  changes: CellChange[];
+  /** 한도에 닿아 이어진 칸을 다 채우지 못했다 */
+  truncated: boolean;
+  /** 이번 채우기의 한도 (칸 수) */
+  limit: number;
+}
+
 /**
  * 같은 값으로 이어진 칸을 채운다 (네 방향). 무늬는 채울 영역의 격자에 맞춰 되풀이한다.
  * 시작 칸이 이미 그 값이고 붓이 한 칸이면 바뀌는 것이 없다.
+ * 한도의 기본값은 맵의 칸 수라 맵 전체도 채운다. 한도에 닿으면 truncated로 알린다.
  */
-export function floodFill(map: Pick<MapData, "width" | "height">, data: readonly number[], brush: Brush, x: number, y: number, limit = 1_000_000): CellChange[] {
-  if (!inBounds(map, x, y)) return [];
-  const target = data[cellIndex(map, x, y)];
-  if (brush.width === 1 && brush.height === 1 && brush.gids[0][0] === target) return [];
-  const seen = new Uint8Array(map.width * map.height);
-  const stack: number[] = [cellIndex(map, x, y)];
+export function floodFillArea(map: Pick<MapData, "width" | "height">, data: readonly number[], brush: Brush, x: number, y: number, limit = map.width * map.height): FloodFillResult {
   const out: CellChange[] = [];
-  while (stack.length > 0 && out.length < limit) {
-    const i = stack.pop()!;
-    if (seen[i] || data[i] !== target) continue;
+  if (!inBounds(map, x, y)) return { changes: out, truncated: false, limit };
+  const start = cellIndex(map, x, y);
+  const target = data[start];
+  if (brush.width === 1 && brush.height === 1 && brush.gids[0][0] === target) return { changes: out, truncated: false, limit };
+  const cells = map.width * map.height;
+  // 넣을 때 표시하므로 한 칸은 한 번만 쌓이고 스택은 칸 수를 넘지 않는다
+  const seen = new Uint8Array(cells);
+  const stack = new Int32Array(cells);
+  let top = 0;
+  const visit = (i: number) => {
+    if (seen[i] || data[i] !== target) return;
     seen[i] = 1;
+    stack[top++] = i;
+  };
+  visit(start);
+  while (top > 0) {
+    if (out.length >= limit) return { changes: out, truncated: true, limit };
+    const i = stack[--top];
     const cx = i % map.width;
-    const cy = Math.floor(i / map.width);
+    const cy = (i - cx) / map.width;
     const bx = (((cx - x) % brush.width) + brush.width) % brush.width;
     const by = (((cy - y) % brush.height) + brush.height) % brush.height;
     out.push({ index: i, value: brush.gids[by][bx] });
-    if (cx > 0) stack.push(i - 1);
-    if (cx < map.width - 1) stack.push(i + 1);
-    if (cy > 0) stack.push(i - map.width);
-    if (cy < map.height - 1) stack.push(i + map.width);
+    if (cx > 0) visit(i - 1);
+    if (cx < map.width - 1) visit(i + 1);
+    if (cy > 0) visit(i - map.width);
+    if (cy < map.height - 1) visit(i + map.width);
   }
-  return out;
+  return { changes: out, truncated: false, limit };
+}
+
+/** floodFillArea의 바뀌는 칸만 */
+export function floodFill(map: Pick<MapData, "width" | "height">, data: readonly number[], brush: Brush, x: number, y: number, limit?: number): CellChange[] {
+  return floodFillArea(map, data, brush, x, y, limit).changes;
 }
 
 /** 칸 범위에서 붓을 뜬다 (스포이드, 여러 칸) */

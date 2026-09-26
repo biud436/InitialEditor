@@ -1,4 +1,6 @@
 // 맵 커맨드와 "맵" 메뉴 (씬 30과 실행 40 사이, 35).
+//   map.new (Ctrl+Alt+M): 새 맵 대화상자 (newMap.ts, components/maps/NewMapDialog.tsx). 프로젝트가 열려 있을 때
+//   map.resize: 크기 바꾸기 대화상자 (resize.ts, components/maps/ResizeMapDialog.tsx). 맵 탭이 활성일 때
 //   map.tool.<도구>: 펜 B, 사각형 R, 채우기 G, 지우개 E, 스포이드 I, 통행 C, 오브젝트 V.
 //     맵 탭이 활성이고 초점이 입력 칸에 없을 때만 켜진다 (한 글자 단축키가 입력을 먹지 않게)
 //   map.toggleGrid, map.toggleCollision, map.toggleObjects, map.toggleDimAbove: 보기 토글 (체크 표시)
@@ -8,8 +10,12 @@
 import type { EditorCommand } from "@initial-editor/core";
 import type { MapDocument, MapTool } from "@initial-editor/ext-tilemap/model";
 import { runInAction } from "mobx";
+import { openNewMapDialog } from "../../components/maps/NewMapDialog";
+import { openResizeMapDialog } from "../../components/maps/ResizeMapDialog";
 import type { Editor } from "../Editor";
 import type { MapSupport } from "./MapSupport";
+import { createMapFile } from "./newMap";
+import { applyResize } from "./resize";
 
 export interface ToolSpec {
   tool: MapTool;
@@ -30,6 +36,7 @@ export const MAP_TOOLS: readonly ToolSpec[] = [
 
 const TILE_TOOLS: ReadonlySet<MapTool> = new Set(["pen", "rect", "fill", "erase", "pick"]);
 const NEED_MAP = "맵 탭이 활성일 때";
+const NEED_PROJECT = "프로젝트를 먼저 연다";
 
 /**
  * 도구를 고른다. 대상이 오브젝트이면 타일 도구는 마지막 타일 레이어로 돌아간다. 대상이 통행이면 펜과 스포이드는
@@ -56,6 +63,38 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
 
   editor.menus.setBranchOrder("맵", 35);
 
+  reg({
+    id: "map.new",
+    label: "새 맵",
+    category: "map",
+    shortcut: "Ctrl+Alt+M",
+    enabled: () => editor.project.isOpen,
+    run: async () => {
+      const spec = await openNewMapDialog(editor);
+      if (!spec) return;
+      const path = await createMapFile(editor, spec);
+      if (path) await support.openMap(path);
+    },
+  });
+  editor.setHint("map.new", () => (editor.project.isOpen ? undefined : NEED_PROJECT));
+  reg({
+    id: "map.resize",
+    label: "크기 바꾸기",
+    category: "map",
+    enabled: hasMap,
+    run: async () => {
+      const doc = support.activeMap;
+      if (!doc) return;
+      const req = await openResizeMapDialog(editor, doc);
+      if (req) applyResize(editor, doc, req);
+    },
+  });
+  editor.setHint("map.resize", () => (hasMap() ? undefined : NEED_MAP));
+  disposers.push(
+    editor.menus.register({ path: "맵/새 맵", commandId: "map.new", order: 1 }),
+    editor.menus.register({ path: "맵/크기 바꾸기", commandId: "map.resize", order: 2 }),
+  );
+
   MAP_TOOLS.forEach((spec, i) => {
     const id = `map.tool.${spec.tool}`;
     reg({
@@ -68,7 +107,7 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
     });
     editor.setChecked(id, () => support.activeMap?.tool === spec.tool);
     editor.setHint(id, () => (hasMap() ? undefined : NEED_MAP));
-    disposers.push(editor.menus.register({ path: `맵/${spec.label} 도구`, commandId: id, order: 10 + i }));
+    disposers.push(editor.menus.register({ path: `맵/${spec.label} 도구`, commandId: id, order: 10 + i, separatorBefore: i === 0 }));
   });
 
   reg({ id: "map.toggleGrid", label: "격자 표시", category: "map", run: () => support.view.toggleGrid() });

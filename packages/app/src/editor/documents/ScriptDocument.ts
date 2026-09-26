@@ -58,6 +58,7 @@ export class ScriptDocument extends Document {
     try {
       const text = await this.backend.readText(this.path);
       this.setModel(text);
+      this.noteDiskText(text);
     } catch (e) {
       runInAction(() => {
         this.error = (e as Error).message;
@@ -99,7 +100,9 @@ export class ScriptDocument extends Document {
     if (!this.path || !model) return;
     // 쓰는 동안 들어온 편집은 dirty 로 남도록, 쓰기 전의 판을 저장된 판으로 삼는다
     const version = model.getAlternativeVersionId();
-    await this.backend.writeText(this.path, model.getValue(LF()));
+    const text = model.getValue(LF());
+    await this.backend.writeText(this.path, text);
+    this.noteDiskText(text);
     this.savedVersionId = version;
     if (model.getAlternativeVersionId() === version) this.markSaved();
   }
@@ -117,6 +120,7 @@ export class ScriptDocument extends Document {
       model.pushEditOperations([], [{ range: model.getFullModelRange(), text }], () => null);
     }
     this.savedVersionId = model.getAlternativeVersionId();
+    this.noteDiskText(text);
     this.markSaved();
   }
 
