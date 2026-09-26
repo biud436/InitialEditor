@@ -9,7 +9,8 @@
 //               Lua 오류는 네이티브 엔진과 같다: 실행 중 저장한 문법 오류는 오류 줄을 찍고 스크립트만 멈추며(게임은 돈다)
 //               고쳐 저장하면 다시 그린다. Update 의 실행 오류는 오류 줄을 찍고 종료 코드 1 로 끝난다. 오류 줄의 링크는 그 자리로 간다.
 //               mruby: 웹 빌드에 mruby 가 있으면(MANIFEST 의 기능) Ruby 판 샘플이 같은 사각형을 그린다. 없는 빌드의 거부는
-//               MANIFEST 를 가로채 mruby 를 뺀 가짜로 본다.
+//               MANIFEST 를 가로채 mruby 를 뺀 가짜로 본다. C 를 거치는 끝없는 재귀(SystemStackError)와 바인딩 안의
+//               C++ 예외(RuntimeError)는 네이티브 엔진과 같은 줄 묶음을 찍고 종료 코드 1 로 끝나며, rescue 로 잡으면 게임이 돈다.
 //   브리지 모드: 엔진 저장소(INITIAL2D_DIR, 기본 ../Initial2D)의 resources 와 scripts 를 임시 폴더에 복사하고 game.json 을
 //               Lua 로 써서 브리지 서버(6073)를 띄운다. F5 → 알데바란 타이틀이 그려지고, Enter 로 숲이 열리고,
 //               20 초 안에 Lua 오류가 없다. 언어를 mruby 로 바꾸면 Ruby 판 알데바란이 같은 흐름으로 돈다.
@@ -96,6 +97,109 @@ function engineFeatures(): string[] {
   if (!existsSync(file)) return [];
   return (JSON.parse(readFileSync(file, "utf8")) as { features?: string[] }).features ?? [];
 }
+
+/** 콘솔에 온 엔진 줄 (source engine), 온 차례대로 */
+function engineLines(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    (window as unknown as { initialEditor: { log: { entries: Array<{ source: string; text: string }> } } }).initialEditor.log.entries
+      .filter((e) => e.source === "engine")
+      .map((e) => e.text),
+  );
+}
+
+/** lines 에서 first 줄부터 length 줄 (first 가 없으면 빈 배열) */
+function blockAt(lines: string[], first: string, length: number): string[] {
+  const i = lines.indexOf(first);
+  return i < 0 ? [] : lines.slice(i, i + length);
+}
+
+/** 메모리 백엔드의 프로젝트에 파일을 쓴다 (열린 문서가 없는 파일) */
+async function writeProjectFile(page: Page, rel: string, text: string): Promise<void> {
+  await page.evaluate(
+    ([p, t]) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText(p, t),
+    [rel, text] as const,
+  );
+}
+
+// Ruby 오류 e2e 의 main.rb 와, 네이티브 엔진(Initial2D 470074b, 헤드리스)이 같은 파일로 stderr 에 찍는 줄 묶음.
+// 기대값에 줄 번호가 들어 있으므로 파일을 고치면 네이티브로 다시 재어 함께 고친다.
+
+/** to_s 가 자기 자신을 문자열에 넣어 C 를 거쳐 끝없이 재귀한다. 세 번째 update 에서 SystemStackError, 서른 번째에 stack:alive */
+const RUBY_STACK_MAIN = `# to_s 가 자기 자신을 문자열에 넣어 C 를 거쳐 끝없이 재귀한다
+class Loop
+  def to_s
+    "#{self}x"
+  end
+end
+
+$n = 0
+
+def init
+  puts "stack:init"
+end
+
+def update(elapsed)
+  $n += 1
+  Loop.new.to_s if $n == 3
+  puts "stack:alive" if $n == 30
+end
+
+def render
+end
+
+def destroy
+  puts "stack:destroy"
+end
+`;
+const RUBY_STACK_LINE = "  Loop.new.to_s if $n == 3";
+/** 같은 재귀를 rescue 로 잡는 줄. 네이티브는 잡고 계속 돈다 */
+const RUBY_STACK_RESCUE_LINE = '  begin; Loop.new.to_s; rescue SystemStackError => e; puts "stack:rescued #{e.class}"; end if $n == 3';
+/** mruby 의 호출 깊이 한도(512)에서 멈춘 역추적: 맨 위, update, to_s 509 번 */
+const RUBY_STACK_BLOCK = [
+  "mruby: uncaught exception in update",
+  "trace (most recent call last):",
+  "\t[511] scripts/ruby/main.rb:23",
+  "\t[510] scripts/ruby/main.rb:16:in update",
+  ...Array.from({ length: 509 }, (_, i) => `\t[${509 - i}] scripts/ruby/main.rb:4:in to_s`),
+  "scripts/ruby/main.rb:4:in to_s: SystemStackError",
+];
+
+/** 타입이 틀린 맵(version 이 문자열)은 Tilemap 바인딩 안에서 C++ 예외(Json::LogicError)가 된다 */
+const RUBY_CPP_MAP = '{"version": "x", "width": 1}\n';
+const RUBY_CPP_MAIN = `# 타입이 틀린 맵(version 이 문자열)을 읽으면 Tilemap 바인딩 안에서 C++ 예외(Json::LogicError)가 난다
+BAD_MAP = "resources/maps/bad.json"
+$n = 0
+
+def init
+  begin
+    Tilemap.new(BAD_MAP)
+    puts "cpp:not raised"
+  rescue => e
+    puts "cpp:rescued #{e.class}: #{e.message}"
+  end
+  puts "cpp:load #{Tilemap.load(BAD_MAP).inspect}"
+end
+
+def update(elapsed)
+  $n += 1
+  puts "cpp:alive" if $n == 30
+  Tilemap.new(BAD_MAP) if $n == 40
+end
+
+def render
+end
+
+def destroy
+  puts "cpp:destroy"
+end
+`;
+const RUBY_CPP_BLOCK = [
+  "mruby: uncaught exception in update",
+  "trace (most recent call last):",
+  "\t[2] scripts/ruby/main.rb:24",
+  "\t[1] scripts/ruby/main.rb:18:in update",
+  "scripts/ruby/main.rb:18:in initialize: Json::LogicError: Value is not convertible to Int. (RuntimeError)",
+];
 
 test.describe("게임 뷰 (메모리 모드)", () => {
   test.beforeEach(async ({ page }) => {
@@ -568,6 +672,111 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
     await expect(page.getByTestId("game-message")).toContainText("정지했다");
+  });
+
+  test("Ruby 의 C 를 거치는 끝없는 재귀는 네이티브처럼 SystemStackError 와 역추적을 찍고 종료 코드 1 로 끝나며, rescue 로 잡으면 게임이 돈다", async ({ page }) => {
+    test.skip(!engineFeatures().includes("mruby"), "public/engine 의 웹 빌드에 mruby 가 없다 (MANIFEST 의 기능)");
+    const pageErrors: string[] = [];
+    page.on("pageerror", (e) => pageErrors.push(e.message));
+    await writeProjectFile(page, "scripts/ruby/main.rb", RUBY_STACK_MAIN);
+    await setLanguage(page, "mruby");
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+
+    // 네이티브와 같은 줄 묶음 (역추적 511 줄), destroy 없이 종료 코드 1
+    const errorRow = consoleRows(page, "scripts/ruby/main.rb:4:in to_s: SystemStackError").first();
+    await expect(errorRow).toBeVisible({ timeout: 30_000 });
+    await expect(errorRow).toHaveClass(/level-error/);
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    const lines = await engineLines(page);
+    expect(blockAt(lines, RUBY_STACK_BLOCK[0], RUBY_STACK_BLOCK.length)).toEqual(RUBY_STACK_BLOCK);
+    expect(lines.filter((l) => l.startsWith("mruby: uncaught exception"))).toHaveLength(1);
+    expect(lines).toContain("stack:init");
+    expect(lines).not.toContain("stack:alive");
+    expect(lines).not.toContain("stack:destroy");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 끝났다 (종료 코드 1)");
+    await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
+    await expect(page.getByTestId("game-canvas")).toHaveCount(0);
+    // 메모리가 깨진 흔적(엔진 밖 예외, 읽을 수 없는 글)이 없다
+    for (const id of ["console-list", "toasts", "game-view"]) {
+      await expect(page.getByTestId(id)).not.toContainText("fatal:");
+      await expect(page.getByTestId(id)).not.toContainText("undefined");
+      await expect(page.getByTestId(id)).not.toContainText("out of bounds");
+    }
+    expect(pageErrors).toEqual([]);
+
+    // 오류 줄의 링크는 to_s 의 줄로 간다
+    const link = errorRow.getByTestId("console-link").first();
+    await expect(link).toHaveAttribute("data-path", "scripts/ruby/main.rb");
+    await expect(link).toHaveAttribute("data-line", "4");
+    await link.click();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "main.rb" })).toBeVisible();
+    await expect(page.getByTestId("script-cursor")).toHaveText(/^줄 4, /);
+
+    // update 의 그 줄을 rescue 로 감싸 저장하고 다시 실행하면 잡고 계속 돈다 (네이티브는 stack:alive 를 찍고 종료 코드 0)
+    const stackLine = RUBY_STACK_MAIN.split("\n").indexOf(RUBY_STACK_LINE) + 1;
+    await moveCursor(page, stackLine);
+    await page.keyboard.press("Shift+End");
+    await page.keyboard.insertText(RUBY_STACK_RESCUE_LINE);
+    expect(await scriptText(page)).toBe(RUBY_STACK_MAIN.replace(RUBY_STACK_LINE, RUBY_STACK_RESCUE_LINE));
+    await page.keyboard.press("ControlOrMeta+s");
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "main.rb" }).locator(".doc-tab-dirty")).toHaveCount(0);
+    await page.keyboard.press("F5");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await expect(consoleRows(page, "stack:rescued SystemStackError")).toHaveCount(1, { timeout: 15_000 });
+    await expect(consoleRows(page, "stack:alive")).toHaveCount(1, { timeout: 15_000 });
+    expect(await phase(page)).toBe("running");
+    expect((await engineLines(page)).filter((l) => l.startsWith("mruby: uncaught exception"))).toHaveLength(1);
+    expect(pageErrors).toEqual([]);
+    await page.keyboard.press("Shift+F5");
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    await expect(page.getByTestId("game-message")).toContainText("정지했다");
+    await expect(consoleRows(page, "stack:destroy")).toHaveCount(1);
+  });
+
+  test("Ruby 바인딩 안의 C++ 예외는 RuntimeError 라서 rescue 로 잡히고 게임이 돌며, 잡지 않으면 네이티브처럼 오류 줄을 찍고 종료 코드 1 로 끝난다", async ({ page }) => {
+    test.skip(!engineFeatures().includes("mruby"), "public/engine 의 웹 빌드에 mruby 가 없다 (MANIFEST 의 기능)");
+    const pageErrors: string[] = [];
+    page.on("pageerror", (e) => pageErrors.push(e.message));
+    await writeProjectFile(page, "resources/maps/bad.json", RUBY_CPP_MAP);
+    await writeProjectFile(page, "scripts/ruby/main.rb", RUBY_CPP_MAIN);
+    await setLanguage(page, "mruby");
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+
+    // init 의 rescue 가 잡고 Tilemap.load 는 nil, 그 뒤로도 update 가 돈다
+    await expect(consoleRows(page, "cpp:rescued RuntimeError: Json::LogicError: Value is not convertible to Int.")).toHaveCount(1, { timeout: 30_000 });
+    await expect(consoleRows(page, "cpp:load nil")).toHaveCount(1);
+    await expect(consoleRows(page, "cpp:alive")).toHaveCount(1, { timeout: 15_000 });
+    await expect(consoleRows(page, "cpp:not raised")).toHaveCount(0);
+
+    // 잡지 않은 40 번째 update: 네이티브와 같은 줄 묶음, destroy 없이 종료 코드 1 (엔진 밖 예외가 아니다)
+    const errorRow = consoleRows(page, "scripts/ruby/main.rb:18:in initialize: Json::LogicError").first();
+    await expect(errorRow).toBeVisible({ timeout: 15_000 });
+    await expect(errorRow).toHaveClass(/level-error/);
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    const lines = await engineLines(page);
+    expect(blockAt(lines, RUBY_CPP_BLOCK[0], RUBY_CPP_BLOCK.length)).toEqual(RUBY_CPP_BLOCK);
+    expect(lines.filter((l) => l.startsWith("mruby: uncaught exception"))).toHaveLength(1);
+    expect(lines).not.toContain("cpp:destroy");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 끝났다 (종료 코드 1)");
+    await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
+    for (const id of ["console-list", "toasts", "game-view"]) {
+      await expect(page.getByTestId(id)).not.toContainText("fatal:");
+      await expect(page.getByTestId(id)).not.toContainText("C++ 예외");
+      await expect(page.getByTestId(id)).not.toContainText("Aborted");
+      await expect(page.getByTestId(id)).not.toContainText("undefined");
+    }
+    expect(pageErrors).toEqual([]);
+
+    const link = errorRow.getByTestId("console-link").first();
+    await expect(link).toHaveAttribute("data-path", "scripts/ruby/main.rb");
+    await expect(link).toHaveAttribute("data-line", "18");
+    await link.click();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "main.rb" })).toBeVisible();
+    await expect(page.getByTestId("script-cursor")).toHaveText(/^줄 18, /);
   });
 
   test("mruby 가 없는 웹 빌드면 game.json 이 mruby 인 프로젝트는 띄우지 않고 이유를 알린다 (가짜 MANIFEST)", async ({ page }) => {
