@@ -118,7 +118,7 @@ const MenuList = observer(function MenuList({ nodes, onRun, autoFocus }: { nodes
         const enabled = hasChildren ? true : id ? editor.commands.isEnabled(id) : false;
         const label = id ? editor.commandLabel(id) : node.label;
         const shortcut = id ? editor.commands.formatShortcut(id) : "";
-        const hint = id && !enabled ? editor.commandHint(id) : undefined;
+        const hint = id ? (enabled ? editor.commandNote(id) : editor.commandHint(id)) : undefined;
         const checked = id ? editor.commandChecked(id) : false;
         return (
           <li key={node.label} className={"menu-item-wrap" + (hasChildren && openSub === node.label ? " is-open" : "")} onMouseEnter={() => setOpenSub(hasChildren ? node.label : null)}>

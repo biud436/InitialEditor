@@ -1,6 +1,7 @@
 // 여기서 실행: 활성 맵의 한 자리에서 엔진을 띄운다. 환경 변수는 스키마의 play.env가 정하고
 // ({map.name}, {map.file}, {x}, {y}), 러너의 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT) 뒤에 덧씌운다.
-// 스키마에 play.maps가 있으면 그 글롭에 맞는 맵에서만 켜진다 (다른 맵이면 꺼지고 이유를 안내한다).
+// 스키마에 play.maps가 있으면 그 글롭에 맞는 맵에서만 띄운다. 다른 맵에서도 커맨드는 켜 두고, 누르면 띄우지 않고
+// 이유를 토스트와 콘솔로 알린다 (메뉴 툴팁에도 그 이유가 있다).
 // 위치 규칙은 rules.ts의 playPosition이다. 커서는 이 맵의 뷰에 남은 것만 쓴다.
 // 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
 
@@ -34,17 +35,26 @@ function schemaOf(host: PlayHost, doc: MapDocument): MapObjectSchema | null {
   return doc.schema ?? host.mapSchema?.current ?? null;
 }
 
-/** 실행할 수 없는 이유. 실행할 수 있으면 undefined */
-export function playHereHint(host: PlayHost): string | undefined {
+/** 커맨드를 꺼 두는 이유 (러너가 못 띄운다, 맵 탭이 아니다, 스키마에 play가 없다). 켜 두면 undefined */
+export function playHereDisabledReason(host: PlayHost): string | undefined {
   const reason = host.runner.unavailableReason;
   if (reason) return reason;
   const doc = activeMapOf(host);
   if (!doc) return NEED_MAP_TAB;
-  const schema = schemaOf(host, doc);
-  if (!schema?.play) return NO_PLAY_HINT;
-  const refusal = playMapRefusal(schema, { name: doc.model.name, path: doc.path });
-  if (refusal) return refusal;
+  if (!schemaOf(host, doc)?.play) return NO_PLAY_HINT;
   return host.runner.startHint;
+}
+
+/** 스키마의 play.maps가 활성 맵을 받지 않는 이유. 커맨드는 켜 두고 누르면 이 이유를 알린다. 받으면 null */
+export function playHereRefusal(host: PlayHost): string | null {
+  const doc = activeMapOf(host);
+  if (!doc) return null;
+  return playMapRefusal(schemaOf(host, doc), { name: doc.model.name, path: doc.path });
+}
+
+/** 지금 띄울 수 없는 이유: 꺼 두는 이유, 아니면 play.maps가 받지 않는 이유. 띄울 수 있으면 undefined */
+export function playHereHint(host: PlayHost): string | undefined {
+  return playHereDisabledReason(host) ?? playHereRefusal(host) ?? undefined;
 }
 
 /**
@@ -77,9 +87,15 @@ export function playEnvFor(host: PlayHost, doc: MapDocument, at: PlayPosition): 
 
 /** 여기서 실행. 띄웠으면 true */
 export async function playHere(host: PlayHost): Promise<boolean> {
-  const hint = playHereHint(host);
+  const hint = playHereDisabledReason(host);
   if (hint) {
     host.toasts.warn(hint);
+    return false;
+  }
+  const refusal = playHereRefusal(host);
+  if (refusal) {
+    host.log.warn(LOG, `여기서 실행하지 않았다: ${refusal}`);
+    host.toasts.warn(refusal);
     return false;
   }
   const doc = activeMapOf(host)!;

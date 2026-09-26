@@ -2,7 +2,8 @@
 // 비활성 이유는 setHint 로 툴팁에 간다: 브라우저 모드, 엔진 없음(찾아본 곳), mruby 없음.
 // run.fromScene (Ctrl+F5) 은 활성 탭이 씬 문서일 때 그 씬 이름을 INITIAL2D_SCENE 으로 넘겨 띄운다 (E2).
 // 씬 로더(scripts/*/scene_loader)가 그 변수를 game.json 의 startScene 보다 먼저 본다.
-// 활성 탭이 맵 문서면 Ctrl+F5는 맵의 여기서 실행(map.playHere, maps/objectTools/commands.ts)으로 넘어간다.
+// 활성 탭이 맵 문서면 Ctrl+F5는 맵의 여기서 실행(map.playHere, maps/objectTools/commands.ts)으로 넘어가고,
+// 켜짐과 안내와 툴팁도 그 커맨드의 것을 따른다.
 
 import { SceneDocument, sceneNameFromPath } from "@initial-editor/core";
 import { MAP_KIND } from "@initial-editor/ext-tilemap/model";
@@ -48,5 +49,6 @@ export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
     },
   });
   editor.setHint("run.fromScene", () => (mapActive() ? editor.commandHint(MAP_PLAY_HERE) : activeSceneName() === null ? NEED_SCENE_TAB : runner.startHint));
+  editor.setNote("run.fromScene", () => (mapActive() ? editor.commandNote(MAP_PLAY_HERE) : undefined));
   editor.setLabelProvider("run.fromScene", () => (mapActive() ? "여기서 실행 (맵)" : "현재 씬부터 실행"));
 }

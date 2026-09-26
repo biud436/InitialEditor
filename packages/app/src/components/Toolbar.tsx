@@ -13,7 +13,7 @@ const CommandButton = observer(function CommandButton({ id, children }: { id: st
   const enabled = editor.commands.isEnabled(id);
   const label = editor.commandLabel(id);
   const shortcut = editor.commands.formatShortcut(id);
-  const hint = enabled ? undefined : editor.commandHint(id);
+  const hint = enabled ? editor.commandNote(id) : editor.commandHint(id);
   const title = [label, shortcut ? `(${shortcut})` : "", hint ? `: ${hint}` : ""].filter(Boolean).join(" ");
   return (
     <span className="toolbar-tip" title={title}>

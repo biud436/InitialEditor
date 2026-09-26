@@ -103,6 +103,7 @@ export class Editor {
 
   private readonly labelProviders = new Map<string, () => string>();
   private readonly hintProviders = new Map<string, () => string | undefined>();
+  private readonly noteProviders = new Map<string, () => string | undefined>();
   private readonly checkedProviders = new Map<string, () => boolean>();
   private projectDisposers: Array<() => void> = [];
   private disposers: Array<() => void> = [];
@@ -308,6 +309,11 @@ export class Editor {
     return this.hintProviders.get(id)?.();
   }
 
+  /** 켜진 커맨드의 툴팁 (눌러도 일을 하지 않는 이유 같은 것). 없으면 undefined */
+  commandNote(id: string): string | undefined {
+    return this.noteProviders.get(id)?.();
+  }
+
   commandChecked(id: string): boolean {
     return this.checkedProviders.get(id)?.() ?? false;
   }
@@ -318,6 +324,10 @@ export class Editor {
 
   setHint(id: string, fn: () => string | undefined): void {
     this.hintProviders.set(id, fn);
+  }
+
+  setNote(id: string, fn: () => string | undefined): void {
+    this.noteProviders.set(id, fn);
   }
 
   setChecked(id: string, fn: () => boolean): void {

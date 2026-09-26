@@ -4,7 +4,7 @@ import { MapDocument, parseObjectSchema, type MapObjectSchema } from "@initial-e
 import { describe, expect, it } from "vitest";
 import type { ConfirmOptions } from "../../modals";
 import { NO_PLAY_HINT, PLAY_POSITION_RULE } from "./rules";
-import { NEED_MAP_TAB, playHere, playHereHint, type PlayHost } from "./playHere";
+import { NEED_MAP_TAB, playHere, playHereDisabledReason, playHereHint, playHereRefusal, type PlayHost } from "./playHere";
 
 const MAP_PATH = "resources/maps/aldebaran_forest.json";
 const MAP = JSON.stringify({
@@ -227,27 +227,39 @@ describe("여기서 실행", () => {
     expect(playHereHint(noEngine.host)).toBe("엔진을 찾지 못했다");
   });
 
-  it("play.maps에 맞지 않는 맵이면 꺼지고 이유를 알리며, 맞는 맵이면 켜진다", async () => {
+  it("play.maps에 맞지 않는 맵이면 켜 둔 채 누를 때 띄우지 않고 이유를 토스트와 콘솔로 알리며, 맞는 맵이면 띄운다", async () => {
     const only = (maps: string[]) => ({ ...SCHEMA, play: { ...SCHEMA.play!, maps } });
     const other = await fake({ schema: only(["aldebaran_*"]) });
     const reason = "맵 forest은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*";
+    expect(playHereDisabledReason(other.host)).toBeUndefined();
+    expect(playHereRefusal(other.host)).toBe(reason);
     expect(playHereHint(other.host)).toBe(reason);
+    // 저장하지 않은 맵이어도 저장을 묻기 전에 멈춘다
+    other.doc.apply(other.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
     expect(await playHere(other.host)).toBe(false);
     expect(other.toasts).toEqual([`warn: ${reason}`]);
+    expect(other.host.log.entries.filter((e) => e.source === "maps").map((e) => [e.level, e.text])).toEqual([["warn", `여기서 실행하지 않았다: ${reason}`]]);
     expect(other.starts).toEqual([]);
     expect(other.confirms).toEqual([]);
+    expect(other.saved).toEqual([]);
 
     const match = await fake({ schema: only(["aldebaran_*", "for?st"]) });
+    expect(playHereRefusal(match.host)).toBeNull();
     expect(playHereHint(match.host)).toBeUndefined();
     expect(await playHere(match.host)).toBe(true);
     expect(match.starts[0].env?.INITIAL2D_ALDEBARAN_STAGE).toBe("forest");
 
-    // 러너가 못 띄우면 그 이유가 먼저다
+    // 러너가 못 띄우면 그 이유가 먼저이고 꺼진다
     const browser = await fake({ reason: "브라우저 모드에서는 엔진을 띄울 수 없다", schema: only(["aldebaran_*"]) });
+    expect(playHereDisabledReason(browser.host)).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
     expect(playHereHint(browser.host)).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    expect(await playHere(browser.host)).toBe(false);
+    expect(browser.toasts).toEqual(["warn: 브라우저 모드에서는 엔진을 띄울 수 없다"]);
     // 저장소의 스키마로 볼 때도 같다
     const fromStore = await fake({ schema: null });
-    expect(playHereHint({ ...fromStore.host, mapSchema: { current: only(["aldebaran_*"]) } })).toBe(reason);
+    const storeHost = { ...fromStore.host, mapSchema: { current: only(["aldebaran_*"]) } };
+    expect(playHereDisabledReason(storeHost)).toBeUndefined();
+    expect(playHereHint(storeHost)).toBe(reason);
   });
 
   it("저장 충돌 모달의 다시 읽기가 실패하면 다시 읽지 못해 실행하지 않았다고 알린다", async () => {
