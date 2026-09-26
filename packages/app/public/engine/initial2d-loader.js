@@ -14,8 +14,9 @@
 //     오류는 루프를 내린다 (onExit(1)).
 //   - reload() 의 스크립트 오류는 false 를 돌려주고 루프는 돈다 (스크립트만 멈춘다). 고친 파일로 다시
 //     reload() 하면 true 이고 게임이 다시 그려진다.
-//   - 프레임 밖으로 빠지려는 C++ 예외는 엔진이 "fatal: 메시지" 한 줄로 적고 루프를 내린다 (onExit(1)).
-//     callMain 밖으로 나온 예외와 abort 는 로더가 같은 형식으로 적는다.
+//   - 프레임 밖으로 빠지려는 C++ 예외는 엔진이 "fatal: 타입: 메시지" 한 줄로 적고 루프를 내린다 (onExit(1)).
+//     callMain 밖으로 나온 C++ 예외는 로더가 errorText 로 같은 형식을 적는다. 그 밖의 JS 오류는 "fatal: 메시지",
+//     abort 는 "fatal: aborted: 이유" 다. mruby 바인딩의 C++ 예외는 여기까지 오지 않는다 (Ruby 의 RuntimeError).
 //
 // 설정(env)은 네이티브의 INITIAL2D_* 환경 변수와 같은 이름이다. 두 곳에 넣는다.
 //   - Module.initial2dEnv: C++ 의 Platform::GetEnv 가 먼저 보는 곳 (reload 때 바꿀 수 있다)
@@ -127,7 +128,8 @@ export async function bootInitial2D({
 	try {
 		exitCode = module.callMain([]);
 	} catch (e) {
-		// Lua 오류는 여기까지 오지 않는다 (엔진이 printErr 로 적는다). C++ 예외나 abort 만 온다
+		// 스크립트 오류는 여기까지 오지 않는다 (엔진이 printErr 로 적는다). C++ 예외(엔진의 fatal 줄과 같은 형식),
+		// 브라우저의 호출 스택 한계 같은 JS 오류, abort 만 온다
 		if (!exited) {
 			err(`fatal: ${describe(e)}`);
 		}

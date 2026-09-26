@@ -1,8 +1,8 @@
 {
   "comment": "scripts/sync-engine-web.mjs 가 만든다. 손으로 고치지 않는다. 엔진 저장소의 build-web/site/ 사본이다",
-  "engineCommit": "07ebd6061a4297d01a69766b756c9e4baef307d7",
+  "engineCommit": "470074b3d373f0ec5b56345580958440140f4ad1",
   "engineDirty": false,
-  "builtAt": "2026-09-26T17:54:18.112Z",
+  "builtAt": "2026-09-26T20:22:50.957Z",
   "syncedAt": "2026-09-26",
   "features": [
     "lua",
@@ -13,17 +13,17 @@
     {
       "path": "Initial2D.js",
       "size": 187004,
-      "sha256": "f0a861644ebc96f94ea009e98e1c61a304b1d67d8e2f66e664da4ba27e6a94a1"
+      "sha256": "30af669f562bf9e6bc02f7b9e454444a0b48e27a3a3e7a3b7b921bbef1df651b"
     },
     {
       "path": "Initial2D.wasm",
-      "size": 2952747,
-      "sha256": "d0e0bb5d9771b3f2a37c1ab3d9391b087565f4e47619d00b4b9b24c28df240ac"
+      "size": 2963062,
+      "sha256": "854376feb083f3fecab793d0f06d21fe04d29b04908d5b238f017a729d66fcfa"
     },
     {
       "path": "initial2d-loader.js",
-      "size": 11150,
-      "sha256": "254155902f512c019da2b9d586ed6e5662bb694bd7d181c7fcdb5872ac5e18b1"
+      "size": 11447,
+      "sha256": "6bdb7b85c50c623bbe59afa9958abd7f397acaf218ae62a4dd9b1a3467562ffc"
     }
   ]
 }
