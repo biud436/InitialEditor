@@ -85,6 +85,8 @@ export class DocumentDock {
   reconcile(): void {
     const api = this.api;
     if (!api) return;
+    // 시작 탭을 다시 여는 것이 활성 문서를 바꾸므로, 들어올 때의 활성 문서를 끝에서 되돌린다
+    const activeBefore = this.deps.documents.active;
     for (const panel of [...api.panels]) {
       if (!isDocumentPanelId(panel.id)) continue;
       if (this.findDocument(panel.id)) continue;
@@ -94,6 +96,7 @@ export class DocumentDock {
       else api.removePanel(panel);
     }
     for (const doc of this.deps.documents.documents) this.addPanel(doc);
+    if (activeBefore && this.deps.documents.documents.includes(activeBefore)) this.deps.documents.activate(activeBefore);
     const active = this.deps.documents.active;
     if (active) api.getPanel(documentPanelId(active))?.api.setActive();
   }

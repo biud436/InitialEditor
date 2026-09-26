@@ -244,6 +244,17 @@ describe("RunnerStore 실행", () => {
     runner.dispose();
   });
 
+  it("env 를 주면 기본 변수 뒤에 덧씌우고, 다시 시작해도 같은 변수로 띄운다", async () => {
+    const h = await harness();
+    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    await runner.start({ env: { INITIAL2D_SCENE: "aldebaran", INITIAL2D_ALDEBARAN_AT: "320", INITIAL2D_HMR: "0" } });
+    expect(h.handles[0].spec.env).toEqual({ INITIAL2D_HMR: "0", INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "aldebaran", INITIAL2D_ALDEBARAN_AT: "320" });
+    expect(logTexts(h.log).some((l) => l.includes("INITIAL2D_ALDEBARAN_AT=320"))).toBe(true);
+    await runner.restart();
+    expect(h.handles[1].spec.env).toEqual(h.handles[0].spec.env);
+    runner.dispose();
+  });
+
   it("mruby 프로젝트인데 빌드에 mruby 가 없으면 띄우지 않고 알린다", async () => {
     const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
     const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });

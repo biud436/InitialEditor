@@ -1,0 +1,92 @@
+/* 맵 오브젝트 인스펙터. 공통 모양(inspector-*, field-*)은 panels/InspectorPanel.css를 쓴다 */
+
+.map-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--fg-muted);
+}
+
+.map-swatch.is-accent {
+  background: var(--accent);
+}
+
+.map-swatch.is-danger {
+  background: var(--danger);
+}
+
+.map-swatch.is-warning {
+  background: var(--warning);
+}
+
+.map-swatch.is-success {
+  background: var(--success);
+}
+
+.map-swatch.is-muted {
+  background: var(--fg-muted);
+}
+
+.map-inspector-typename {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-field-clear {
+  flex: none;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+.map-range .field-number {
+  width: auto;
+  flex: 1;
+}
+
+.map-range-sep {
+  flex: none;
+  font-size: 12px;
+}
+
+.map-range-actions {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-1) calc(92px + var(--space-2));
+}
+
+.map-range-actions .btn {
+  font-size: 12px;
+}
+
+.map-summary-list {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.map-schema-error {
+  color: var(--danger);
+}
+
+.map-raw-props {
+  margin: var(--space-1) 0 0 0;
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: pre-wrap;
+  overflow: auto;
+  max-height: 160px;
+}
+
+.inspector-problem.is-link {
+  cursor: pointer;
+}
+
+.inspector-problem.is-link:hover {
+  background: var(--bg-hover);
+}

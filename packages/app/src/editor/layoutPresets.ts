@@ -1,9 +1,9 @@
-// 도킹 프리셋 셋 (02-scope-and-screens.md 3절 "레이아웃"). 씬(기본), 스크립트, 타일맵.
+// 도킹 프리셋 셋 (02-scope-and-screens.md 3절 "레이아웃"). 씬(기본), 스크립트, 타일맵(맵 편집).
 // JSON 을 손으로 적지 않고 addPanel 의 상대 위치로 짓는다. dockview 의 직렬화 모양이 바뀌어도 살아남게.
 
 import type { AddPanelOptions, DockviewApi } from "dockview";
 
-export const PANEL_IDS = ["hierarchy", "project", "inspector", "extensions", "console", "find"] as const;
+export const PANEL_IDS = ["hierarchy", "project", "inspector", "extensions", "console", "find", "mapObjects", "mapPalette", "mapLayers"] as const;
 export type PanelId = (typeof PANEL_IDS)[number];
 
 export const PANEL_TITLES: Record<PanelId, string> = {
@@ -13,6 +13,9 @@ export const PANEL_TITLES: Record<PanelId, string> = {
   extensions: "확장 패널",
   console: "콘솔",
   find: "찾기",
+  mapObjects: "맵 오브젝트",
+  mapPalette: "팔레트",
+  mapLayers: "레이어",
 };
 
 export type PresetName = "scene" | "script" | "tilemap";
@@ -65,6 +68,19 @@ export function defaultPlacement(api: DockviewApi, id: PanelId): Placement {
       // 프로젝트 찾기(E1)는 콘솔 옆 탭으로. 콘솔이 없으면 문서 아래
       if (has("console")) return { referencePanel: "console", direction: "within" };
       return doc ? { referencePanel: doc, direction: "below" } : { direction: "below" };
+    case "mapObjects":
+      // 맵 오브젝트 목록(E3)은 계층 옆 탭으로
+      if (has("hierarchy")) return { referencePanel: "hierarchy", direction: "within" };
+      return doc ? { referencePanel: doc, direction: "left" } : { direction: "left" };
+    case "mapPalette":
+      // 타일 팔레트(E3)는 왼쪽 아래
+      if (has("hierarchy")) return { referencePanel: "hierarchy", direction: "below" };
+      if (has("project")) return { referencePanel: "project", direction: "below" };
+      return doc ? { referencePanel: doc, direction: "left" } : { direction: "left" };
+    case "mapLayers":
+      // 레이어(E3)는 인스펙터 아래
+      if (has("inspector")) return { referencePanel: "inspector", direction: "below" };
+      return doc ? { referencePanel: doc, direction: "right" } : { direction: "right" };
   }
 }
 
@@ -93,12 +109,14 @@ export function buildPreset(api: DockviewApi, name: PresetName): void {
       add("console", { referencePanel: "project", direction: "right" });
       break;
     case "tilemap":
-      // 팔레트와 레이어(확장 패널)가 크고 씬 뷰가 넓다
+      // 왼쪽: 위는 계층, 프로젝트, 맵 오브젝트 탭이고 아래는 팔레트. 가운데: 맵 뷰와 콘솔. 오른쪽: 인스펙터와 레이어
       add("hierarchy");
-      add("extensions", { referencePanel: "hierarchy", direction: "right" });
+      add("inspector", { referencePanel: "hierarchy", direction: "right" });
       add("console", { referencePanel: "hierarchy", direction: "right" });
-      add("project", { referencePanel: "hierarchy", direction: "below" });
-      add("inspector", { referencePanel: "extensions", direction: "above" });
+      add("mapPalette", { referencePanel: "hierarchy", direction: "below" });
+      add("project", { referencePanel: "hierarchy", direction: "within" });
+      add("mapObjects", { referencePanel: "hierarchy", direction: "within" });
+      add("mapLayers", { referencePanel: "inspector", direction: "below" });
       break;
   }
 }
@@ -117,10 +135,10 @@ export function applyPresetSizes(api: DockviewApi, name: PresetName): void {
       size(api, "console", { height: 260 });
       break;
     case "tilemap":
-      size(api, "hierarchy", { width: 220 });
-      size(api, "hierarchy", { height: 160 });
-      size(api, "extensions", { width: 340 });
-      size(api, "inspector", { height: 180 });
+      size(api, "hierarchy", { width: 300 });
+      size(api, "hierarchy", { height: 240 });
+      size(api, "inspector", { width: 280 });
+      size(api, "mapLayers", { height: 240 });
       size(api, "console", { height: 150 });
       break;
   }

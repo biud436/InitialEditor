@@ -9,11 +9,13 @@ import type { SceneDocument, SceneObject } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
+import { asMapDocument } from "../../editor/maps/schemaStore";
 import { openAttachScriptDialog } from "../../editor/scene/AttachScriptDialog";
 import { compoundCommand } from "../../editor/scene/commands";
 import { inspectorFor } from "../../editor/scene/coreTypes";
 import { FieldRow, NumberField } from "../../editor/scene/fields";
 import { TypeIcon } from "../../editor/scene/typeIcons";
+import { MapObjectInspector } from "../maps/MapObjectInspector";
 import "./InspectorPanel.css";
 
 export const INSPECTOR_EMPTY = "씬 탭을 열고 오브젝트를 고르면 속성이 보인다";
@@ -171,6 +173,8 @@ const ProblemsSection = observer(function ProblemsSection({ doc }: { doc: SceneD
 
 export const InspectorPanel = observer(function InspectorPanel() {
   const editor = useEditor();
+  // 맵 문서는 맵 오브젝트 인스펙터가 그린다 (components/maps/MapObjectInspector.tsx)
+  if (asMapDocument(editor.documents.active)) return <MapObjectInspector />;
   const tools = editor.sceneTools;
   const doc = tools.activeScene;
   if (!doc) {

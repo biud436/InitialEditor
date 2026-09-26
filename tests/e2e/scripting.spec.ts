@@ -102,7 +102,9 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await expect(page.getByTestId("find-panel")).toBeVisible();
     const input = page.getByTestId("find-input");
     await expect(input).toBeFocused();
-    await input.fill("init");
+    // 단어 경계로 찾는다: 샘플의 맵 스키마에 든 INITIAL2D_* 는 init 이라는 단어가 아니다
+    await page.getByTestId("find-regex").check();
+    await input.fill("\\binit\\b");
     await input.press("Enter");
     const files = page.getByTestId("find-file");
     await expect(files.filter({ hasText: "scripts/lua/main.lua" })).toHaveCount(1);
@@ -118,7 +120,7 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
 
     // 대소문자 구분을 켜면 소문자 init 만
     await page.getByTestId("find-case").check();
-    await input.fill("INIT");
+    await input.fill("\\bINIT\\b");
     await input.press("Enter");
     await expect(page.getByTestId("find-summary")).toContainText("0개 파일");
     await expect(page.getByTestId("find-results")).toContainText("찾지 못했다");

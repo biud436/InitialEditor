@@ -1,0 +1,87 @@
+.layers {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+  user-select: none;
+}
+
+.layers-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-1) 0;
+}
+
+.layers-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-2);
+  cursor: default;
+  white-space: nowrap;
+}
+
+.layers-row:hover {
+  background: var(--bg-hover);
+}
+
+.layers-row.is-active {
+  background: var(--bg-selection);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.layers-sep {
+  height: 1px;
+  margin: var(--space-1) var(--space-2);
+  background: var(--border);
+}
+
+.layers-eye {
+  min-width: 36px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  font-size: 11px;
+}
+
+.layers-eye.is-off {
+  color: var(--fg-disabled);
+  background: transparent;
+}
+
+.layers-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layers-rename {
+  flex: 1;
+  min-width: 0;
+  min-height: 20px;
+  padding: 0 4px;
+}
+
+.layers-meta {
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+.layers-actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  padding: var(--space-1) var(--space-2);
+  border-top: 1px solid var(--border);
+  flex: none;
+}
+
+.layers-actions .btn {
+  padding: 1px 8px;
+  font-size: 12px;
+}
