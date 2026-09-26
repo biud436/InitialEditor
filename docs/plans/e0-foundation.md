@@ -86,7 +86,7 @@
 
 ## 구현 노트 (2026-09-26)
 
-- **Yarn 은 Berry 4.3.1 이다.** `packageManager` 라벨은 `yarn@1.22.19` 이지만 `.yarnrc.yml` 의 `yarnPath` 가 가리키는 파일이 4.3.1 이고 락파일도 Berry 형식이다. 라벨을 4.3.1 로 바꾸면 corepack 이 그 버전을 내려받으려 들어 오히려 1.22 로 떨어졌다. 라벨은 그대로 두고 문서에 적는다. `yarn` 은 저장소 안에서 Berry 로 돈다.
+- **Yarn 은 Berry 4.3.1 이고 저장소에 들어 있다** (`.yarn/releases/yarn-4.3.1.cjs`, `.yarnrc.yml` 의 `yarnPath`, `packageManager: yarn@4.3.1`). 처음에는 저장소의 `yarnPath` 가 Yarn 1.22 classic 파일을 가리켜, 로컬에서는 저자 홈 폴더의 설정 덕에 Berry 가 돌고 CI 에서는 classic 이 Berry 잠금 파일을 무시하고 새로 풀었다. 그 결과 새로 나온 `@tauri-apps/api` 2.12 가 Rust 쪽 2.11 과 어긋나 Tauri 빌드가 깨졌다 (2026-09-26). 이제 CI 의 classic 도 저장소의 Berry 로 넘기고 `yarn install --immutable` 이 잠금 파일을 지킨다.
 - **테스트 러너는 Vitest 하나.** 코어까지 Vitest 로 돌린다 (빌드 없이 TS). 루트 `vitest.config.ts` 가 모든 패키지의 `*.test.ts(x)` 를 모은다. 서버를 띄우는 브리지 적합성 테스트만 `yarn test:conformance` 로 뗐다.
 - **core 는 `TextEncoder` 도 쓰지 않는다.** 타입이 DOM lib 에만 있어 DOM 을 켠 패키지와 안 켠 패키지 사이에서 전역 선언이 충돌했다. 작은 UTF-8 코덱(`utf8.ts`)을 코어에 두었다.
 - **절대 경로는 거부한다.** `normalizeRel("/etc/passwd")` 를 루트 기준으로 받으면 대화상자가 준 OS 경로가 프로젝트 안의 경로로 둔갑한다. `/` 하나만 루트로 본다.

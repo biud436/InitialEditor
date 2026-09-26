@@ -271,6 +271,82 @@ describe("MapDocument", () => {
     expect(doc.dirty).toBe(true);
   });
 
+  it("저장, 되돌리기, 다른 칸 칠하기와 저장 뒤 합쳐진 속성 입력은 dirty 로 남는다", async () => {
+    const be = new MemoryBackend({ "resources/maps/tiny.json": serializeMap(tiny()) });
+    await be.open("/mem");
+    const doc = await MapDocument.open(be, "resources/maps/tiny.json");
+    doc.apply(doc.model.paintCells(0, [{ index: 0, value: 7 }]));
+    await doc.save();
+    doc.undo.undo();
+    doc.apply(doc.model.paintCells(0, [{ index: 1, value: 9 }]));
+    expect(doc.dirty).toBe(true);
+    await doc.save();
+    expect(JSON.parse(await be.readText("resources/maps/tiny.json")).layers[0].data.slice(0, 2)).toEqual([1, 9]);
+
+    doc.apply(doc.model.addObject({ id: "start", type: "start", x: 8, y: 8, props: {}, extra: {} }));
+    doc.apply(doc.model.setObjectProp("start", "title", "a", "field#1"));
+    await doc.save();
+    doc.apply(doc.model.setObjectProp("start", "title", "ab", "field#1"));
+    expect(doc.dirty).toBe(true);
+  });
+
+  it("쓰는 동안 칠한 칸은 저장 뒤에도 dirty", async () => {
+    const be = new MemoryBackend({ "resources/maps/tiny.json": serializeMap(tiny()) });
+    await be.open("/mem");
+    const doc = await MapDocument.open(be, "resources/maps/tiny.json");
+    doc.apply(doc.model.paintCells(0, [{ index: 0, value: 7 }]));
+    let release!: () => void;
+    const write = be.writeText.bind(be);
+    be.writeText = async (rel, text) => {
+      await new Promise<void>((r) => (release = r));
+      return write(rel, text);
+    };
+    const saving = doc.save();
+    doc.apply(doc.model.paintCells(0, [{ index: 3, value: 12 }]));
+    release();
+    await saving;
+    expect(doc.dirty).toBe(true);
+    expect(JSON.parse(await be.readText("resources/maps/tiny.json")).layers[0].data[3]).toBe(1);
+  });
+
+  it("밖에서 바뀐 파일을 다시 읽지 못하면 저장을 막아 디스크의 새 내용을 지킨다", async () => {
+    const path = "resources/maps/tiny.json";
+    const be = new MemoryBackend({ [path]: serializeMap(tiny()) });
+    await be.open("/mem");
+    const doc = await MapDocument.open(be, path);
+    const newer = serializeMap(tiny()).replace('"version": 2', '"version": 3').replace('"name": "tiny"', '"name": "tiny", "newThing": 1');
+    be.simulateExternalChange(path, "modify", newer);
+    await expect(doc.reloadFromDisk()).rejects.toBeInstanceOf(MapFormatError);
+    expect(doc.externallyChanged).toBe(true);
+    expect(doc.reloadError).toContain("모르는 맵 버전이다: 3");
+    doc.apply(doc.model.paintCells(0, [{ index: 0, value: 5 }]));
+    await expect(doc.save()).rejects.toThrow(/저장을 막았다/);
+    expect(await be.readText(path)).toBe(newer);
+
+    // 쓰다 만 파일이 다시 온전해지면 다시 읽기가 막힘을 푼다
+    const broken = serializeMap(tiny()).replace('"tileWidth"', '"tileWidth" "x": 1,');
+    be.simulateExternalChange(path, "modify", broken);
+    await expect(doc.reloadFromDisk()).rejects.toThrow(/JSON 이 아니다/);
+    const fixed = serializeMap({ ...tiny(), name: "outside" });
+    be.simulateExternalChange(path, "modify", fixed);
+    await doc.reloadFromDisk();
+    expect(doc.model.name).toBe("outside");
+    expect(doc.saveBlocked).toBe(false);
+    expect(doc.externallyChanged).toBe(false);
+    expect(doc.dirty).toBe(false);
+
+    // 다시 실패한 뒤 내 것으로 덮어쓰기를 고르면 지금 내용이 저장된다
+    be.simulateExternalChange(path, "modify", newer);
+    await expect(doc.reloadFromDisk()).rejects.toThrow();
+    doc.allowOverwrite();
+    expect(doc.dirty).toBe(true);
+    await doc.save();
+    const saved = JSON.parse(await be.readText(path));
+    expect(saved.version).toBe(2);
+    expect(saved.name).toBe("outside");
+    expect(doc.dirty).toBe(false);
+  });
+
   it("도구와 대상", async () => {
     const be = new MemoryBackend({ "resources/maps/tiny.json": serializeMap(tiny()) });
     await be.open("/mem");

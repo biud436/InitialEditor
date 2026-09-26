@@ -3,7 +3,7 @@ import { MemoryBackend } from "@initial-editor/core/testing";
 import { MapDocument, parseObjectSchema, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import type { ConfirmOptions } from "../../modals";
-import { NO_PLAY_HINT } from "./rules";
+import { NO_PLAY_HINT, PLAY_POSITION_RULE } from "./rules";
 import { NEED_MAP_TAB, playHere, playHereHint, type PlayHost } from "./playHere";
 
 const MAP_PATH = "resources/maps/aldebaran_forest.json";
@@ -41,8 +41,27 @@ interface Fake {
   confirms: ConfirmOptions[];
   toasts: string[];
   saved: Document[];
-  support: { cursor: { x: number; y: number } | null; center: { x: number; y: number } | null };
+  support: { cursor: { x: number; y: number } | null; center: { x: number; y: number } | null; activeMap: unknown };
 }
+
+// 순찰 범위 칸이 있는 스키마 (resources/schema/map-objects.json과 같은 모양)
+const RANGE_SCHEMA = parseObjectSchema(
+  JSON.stringify({
+    version: 1,
+    types: [
+      {
+        type: "spawn",
+        fields: [
+          { name: "species", type: "enum", values: ["wolf"] },
+          { name: "minX", type: "number", role: "rangeMin", required: true },
+          { name: "maxX", type: "number", role: "rangeMax", required: true },
+        ],
+      },
+      { type: "start", unique: true },
+    ],
+    play: { env: { INITIAL2D_ALDEBARAN_STAGE: "{map.name}", INITIAL2D_ALDEBARAN_AT: "{x}" } },
+  }),
+);
 
 async function fake(opts: { reason?: string | null; hint?: string; schema?: MapObjectSchema | null; confirm?: boolean } = {}): Promise<Fake> {
   const mem = new MemoryBackend({ "game.json": "{}", [MAP_PATH]: MAP });
@@ -54,7 +73,7 @@ async function fake(opts: { reason?: string | null; hint?: string; schema?: MapO
   const confirms: ConfirmOptions[] = [];
   const toasts: string[] = [];
   const saved: Document[] = [];
-  const support: Fake["support"] = { cursor: null, center: null };
+  const support: Fake["support"] = { cursor: null, center: null, activeMap: doc };
   const toast = (level: string) => (text: string) => void toasts.push(`${level}: ${text}`);
   const host: PlayHost = {
     documents,
@@ -74,6 +93,9 @@ async function fake(opts: { reason?: string | null; hint?: string; schema?: MapO
     mapSupport: {
       get cursor() {
         return support.cursor;
+      },
+      get activeMap() {
+        return support.activeMap;
       },
       viewCenter: () => support.center,
     },
@@ -108,6 +130,35 @@ describe("여기서 실행", () => {
     expect(f.starts.map((s) => s.env?.INITIAL2D_ALDEBARAN_AT)).toEqual(["333", "512", "56"]);
   });
 
+  it("맵 밖에 남은 커서와 다른 맵의 커서는 쓰지 않고 화면 가운데로 간다", async () => {
+    const f = await fake();
+    f.support.center = { x: 512, y: 32 };
+    f.support.cursor = { x: -74, y: 32 };
+    await playHere(f.host);
+    f.support.cursor = { x: 4300, y: 32 };
+    await playHere(f.host);
+    f.support.cursor = { x: 138, y: -31 };
+    await playHere(f.host);
+    f.support.cursor = { x: 300, y: 20 };
+    f.support.activeMap = null;
+    await playHere(f.host);
+    f.support.activeMap = f.doc;
+    await playHere(f.host);
+    expect(f.starts.map((s) => s.env?.INITIAL2D_ALDEBARAN_AT)).toEqual(["512", "512", "512", "512", "300"]);
+  });
+
+  it("순찰 범위가 있는 몬스터를 고르면 범위 왼끝에서 48px 왼쪽에서 시작한다", async () => {
+    const f = await fake({ schema: RANGE_SCHEMA });
+    f.doc.apply(f.doc.model.setObjectProp("wolf_1", "minX", 640));
+    f.doc.select(["wolf_1"]);
+    await playHere(f.host);
+    expect(f.starts[0].env?.INITIAL2D_ALDEBARAN_AT).toBe("592");
+    expect(f.host.log.entries.some((e) => e.text.includes("x 592, y 48 (선택한 오브젝트 wolf_1, 순찰 범위 왼끝 640에서 48px 왼쪽)"))).toBe(true);
+    f.doc.select(["start"]);
+    await playHere(f.host);
+    expect(f.starts[1].env?.INITIAL2D_ALDEBARAN_AT).toBe("56");
+  });
+
   it("저장하지 않은 맵은 저장할지 묻고, 저장하고 실행을 고르면 저장한 뒤 띄운다", async () => {
     const f = await fake();
     f.doc.apply(f.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
@@ -140,6 +191,7 @@ describe("여기서 실행", () => {
     const noTab = await fake();
     noTab.host.documents.activate(null);
     expect(playHereHint(noTab.host)).toBe(NEED_MAP_TAB);
+    expect(NEED_MAP_TAB).toContain(PLAY_POSITION_RULE);
 
     const noPlay = await fake({ schema: { ...SCHEMA, play: null } });
     expect(playHereHint(noPlay.host)).toBe(NO_PLAY_HINT);

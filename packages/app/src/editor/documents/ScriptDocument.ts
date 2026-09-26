@@ -97,9 +97,11 @@ export class ScriptDocument extends Document {
   async save(): Promise<void> {
     const model = this.model;
     if (!this.path || !model) return;
+    // 쓰는 동안 들어온 편집은 dirty 로 남도록, 쓰기 전의 판을 저장된 판으로 삼는다
+    const version = model.getAlternativeVersionId();
     await this.backend.writeText(this.path, model.getValue(LF()));
-    this.savedVersionId = model.getAlternativeVersionId();
-    this.markSaved();
+    this.savedVersionId = version;
+    if (model.getAlternativeVersionId() === version) this.markSaved();
   }
 
   /** 디스크 내용으로 바꾼다. 되돌리기 스택은 남긴다 (setValue 는 스택을 지우므로 편집으로 넣는다) */

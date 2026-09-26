@@ -4,7 +4,7 @@
 import { compound, typeOf, type MapDocument, type MapObject, type ObjectProblem } from "@initial-editor/ext-tilemap/model";
 import type { Command, LogStore } from "@initial-editor/core";
 import { runInAction } from "mobx";
-import { PATROL_RADIUS, planDuplicate, planNewObject, rangeFields, validateRename, type MapGeometry, type Point } from "./rules";
+import { PATROL_RADIUS, planDuplicate, planNewObject, rangeAround, rangeFields, validateRename, type MapGeometry, type Point } from "./rules";
 
 const LOG = "maps";
 
@@ -151,9 +151,42 @@ export function clearObjectProps(doc: MapDocument, id: string, keys: readonly st
   doc.apply(present.length === 1 ? doc.model.setObjectProp(id, present[0], undefined) : compound(`속성 지우기: ${id} ${present.join(", ")}`, present.map((k) => doc.model.setObjectProp(id, k, undefined))));
 }
 
+/** x, y, 폭, 높이 하나. 순찰 범위가 있는 오브젝트의 x 를 바꾸면 범위도 같은 만큼 옮긴다 (맵 뷰에서 끌 때와 같다) */
 export function setObjectGeometry(doc: MapDocument, id: string, field: "x" | "y" | "width" | "height", value: number | undefined, session?: string): void {
-  if (!doc.model.findObject(id)) return;
-  doc.apply(doc.model.setObjectField(id, field, value, session));
+  const o = doc.model.findObject(id);
+  if (!o) return;
+  const range = field === "x" && value !== undefined ? rangeFields(typeOf(doc.schema, o.type)) : null;
+  const lo = range ? o.props[range.min.name] : undefined;
+  const hi = range ? o.props[range.max.name] : undefined;
+  if (!range || typeof lo !== "number" || typeof hi !== "number") {
+    doc.apply(doc.model.setObjectField(id, field, value, session));
+    return;
+  }
+  const dx = (value as number) - o.x;
+  const cmds: Command[] = [
+    doc.model.setObjectField(id, "x", value),
+    doc.model.setObjectProp(id, range.min.name, lo + dx),
+    doc.model.setObjectProp(id, range.max.name, hi + dx),
+  ];
+  doc.apply(sessionCompound(`오브젝트 이동: ${id}`, cmds, session));
+}
+
+/** 여러 명령을 한 단계로 묶고, 같은 세션(타이핑)의 다음 묶음은 여기에 합친다. 되돌리면 첫 묶음 이전으로 간다 */
+function sessionCompound(label: string, cmds: Command[], key?: string): Command {
+  const first = cmds;
+  let latest = cmds;
+  const cmd: Command & { cmds: Command[] } = {
+    label,
+    coalesceKey: key,
+    cmds,
+    execute: () => latest.forEach((c) => c.execute()),
+    undo: () => [...first].reverse().forEach((c) => c.undo()),
+    merge(next) {
+      latest = (next as typeof cmd).cmds;
+      return true;
+    },
+  };
+  return cmd;
 }
 
 /** 범위 칸 한 쌍을 x 기준 ±radius로 (맵 폭 안으로 자른다). 범위 칸이 없으면 false */
@@ -161,8 +194,7 @@ export function setRangeAround(doc: MapDocument, id: string, radius = PATROL_RAD
   const o = doc.model.findObject(id);
   const range = rangeFields(typeOf(doc.schema, o?.type ?? ""));
   if (!o || !range) return false;
-  const lo = Math.max(0, Math.round(o.x - radius));
-  const hi = Math.min(doc.model.pixelWidth, Math.round(o.x + radius));
+  const { min: lo, max: hi } = rangeAround(o.x, doc.model.pixelWidth, radius);
   const cmds: Command[] = [doc.model.setObjectProp(id, range.min.name, lo), doc.model.setObjectProp(id, range.max.name, hi)];
   doc.apply(compound(`범위: ${id} ${lo}..${hi}`, cmds));
   return true;

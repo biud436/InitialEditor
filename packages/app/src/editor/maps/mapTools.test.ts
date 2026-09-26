@@ -1,7 +1,9 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { MemoryBackend } from "@initial-editor/core";
-import { MapDocument, parseMap, parseObjectSchema, singleBrush } from "@initial-editor/ext-tilemap/model";
-import { MapToolController, type ToolPointer } from "./mapTools";
+import { MapDocument, parseMap, parseObjectSchema, singleBrush, validateObjects } from "@initial-editor/ext-tilemap/model";
+import { HIDDEN_TARGET_NOTICE, MapToolController, type ToolPointer } from "./mapTools";
 
 const W = 10;
 const H = 6;
@@ -85,6 +87,42 @@ describe("타일 도구", () => {
     doc.undo.undo();
     expect(ground(doc).every((v) => v === 1)).toBe(true);
     expect(doc.dirty).toBe(false);
+  });
+
+  it("숨긴 레이어에는 칠하지 않고 알린다. 붓 미리보기 없이 금지 커서다", () => {
+    const doc = makeDoc();
+    const notices: string[] = [];
+    const tools = new MapToolController({ document: doc, zoom: () => 1, changed: () => {}, notice: (m) => notices.push(m) });
+    const at = (x: number, y: number): ToolPointer => ({ world: { x, y }, button: 0, shift: false, alt: false });
+    doc.setTarget({ kind: "layer", index: 1 });
+    doc.toggleLayer(1);
+    doc.setBrush(singleBrush(5));
+    tools.pointerMove(at(8, 8));
+    expect(tools.preview).toEqual({ kind: "none" });
+    expect(tools.cursor).toBe("not-allowed");
+    for (const tool of ["pen", "rect", "fill", "erase"] as const) {
+      doc.setTool(tool);
+      tools.pointerDown(at(8, 8));
+      tools.pointerMove(at(40, 8));
+      tools.pointerUp(at(40, 8));
+    }
+    expect(doc.model.layers[1].data.every((v) => v === 0)).toBe(true);
+    expect(doc.undo.depth).toBe(0);
+    expect(doc.dirty).toBe(false);
+    expect(notices).toEqual([HIDDEN_TARGET_NOTICE, HIDDEN_TARGET_NOTICE, HIDDEN_TARGET_NOTICE, HIDDEN_TARGET_NOTICE]);
+    // 숨긴 통행도 칠하지 않는다
+    doc.setTool("collision");
+    doc.showCollision = false;
+    tools.pointerDown(at(8, 8));
+    tools.pointerUp(at(8, 8));
+    expect(doc.model.collision).toBeNull();
+    // 다시 보이면 칠한다
+    doc.toggleLayer(1);
+    doc.setTarget({ kind: "layer", index: 1 });
+    doc.setTool("pen");
+    tools.pointerDown(at(8, 8));
+    tools.pointerUp(at(8, 8));
+    expect(doc.model.layers[1].data[0]).toBe(5);
   });
 
   it("같은 값을 찍으면 명령이 없다 (문서가 더러워지지 않는다)", () => {
@@ -305,5 +343,197 @@ describe("오브젝트 도구", () => {
     doc.setTool("pen");
     tools.refresh();
     expect(tools.cursor).toBe("crosshair");
+  });
+});
+
+describe("오브젝트 도구: 손잡이와 범위", () => {
+  it("범위 손잡이를 누르고 문턱 아래로 떨린 클릭은 값을 바꾸지 않는다", () => {
+    const { doc, tools, at } = setup();
+    doc.setTool("object");
+    tools.pointerDown(at(45, 40));
+    tools.pointerMove(at(45.5, 40));
+    tools.pointerUp(at(45.5, 40));
+    expect(doc.model.findObject("wolf")!.props).toMatchObject({ minX: 40, maxX: 120 });
+    expect(doc.undo.depth).toBe(0);
+    expect(doc.dirty).toBe(false);
+    expect(doc.selectedIds).toEqual(["wolf"]);
+  });
+
+  it("띠 가장자리를 누르고 문턱 아래로 떨린 클릭은 폭을 바꾸지 않는다", () => {
+    const { doc, tools, at } = setup();
+    doc.setTool("object");
+    tools.pointerDown(at(129, 60));
+    tools.pointerMove(at(129.5, 60));
+    tools.pointerUp(at(129.5, 60));
+    expect(doc.model.findObject("tracks")).toMatchObject({ x: 100, width: 32 });
+    expect(doc.undo.depth).toBe(0);
+  });
+
+  it("손잡이 끌기는 누른 점과의 차이만큼 옮긴다 (손잡이가 커서로 튀지 않는다)", () => {
+    const { doc, drag } = setup();
+    doc.setTool("object");
+    drag([45, 40], [55, 40]);
+    expect(doc.model.findObject("wolf")!.props).toMatchObject({ minX: 50 });
+    drag([129, 60], [139, 60]);
+    expect(doc.model.findObject("tracks")).toMatchObject({ x: 100, width: 42 });
+  });
+
+  it("범위가 있는 점을 끌면 범위도 같이 옮기고 되돌리기 한 단계다. Alt는 몸통만", () => {
+    const { doc, drag } = setup();
+    doc.setTool("object");
+    drag([80, 40], [110, 40]);
+    expect(doc.model.findObject("wolf")).toMatchObject({ x: 110, props: { minX: 70, maxX: 150 } });
+    expect(doc.undo.depth).toBe(1);
+    doc.undo.undo();
+    expect(doc.model.findObject("wolf")).toMatchObject({ x: 80, props: { minX: 40, maxX: 120 } });
+    drag([80, 40], [100, 40], { alt: true });
+    expect(doc.model.findObject("wolf")).toMatchObject({ x: 100, props: { minX: 40, maxX: 120 } });
+  });
+
+  it("방향키로 옮겨도 범위가 같이 간다", () => {
+    const { doc, tools } = setup();
+    doc.setTool("object");
+    doc.select(["wolf"]);
+    tools.keyDown({ key: "ArrowRight", shift: true, alt: false, mod: false });
+    expect(doc.model.findObject("wolf")).toMatchObject({ x: 96, props: { minX: 56, maxX: 136 } });
+    expect(doc.undo.depth).toBe(1);
+  });
+});
+
+describe("오브젝트 도구: 실제 맵 (aldebaran_forest)", () => {
+  const dir = path.join(__dirname, "__fixtures__");
+  const forestText = readFileSync(path.join(dir, "aldebaran_forest.json"), "utf8");
+  const schema = parseObjectSchema(readFileSync(path.join(dir, "map-objects.json"), "utf8"));
+
+  function forest(zoom = 1, viewWidth = 1200) {
+    const doc = new MapDocument(new MemoryBackend(), "resources/maps/aldebaran_forest.json", parseMap(forestText), schema);
+    doc.setTool("object");
+    const tools = new MapToolController({ document: doc, zoom: () => zoom, viewWidth: () => viewWidth, changed: () => {} });
+    const at = (x: number, y: number, extra: Partial<ToolPointer> = {}): ToolPointer => ({ world: { x, y }, button: 0, shift: false, alt: false, ...extra });
+    const x = (id: string) => doc.model.findObject(id)!.x;
+    return { doc, tools, at, x };
+  }
+
+  it("흔적 띠의 안쪽을 끌면 흔적이 옮겨지고 구간은 그대로다", () => {
+    const { doc, tools, at, x } = forest();
+    tools.pointerDown(at(324, 200));
+    tools.pointerMove(at(344, 200));
+    tools.pointerMove(at(364, 200));
+    tools.pointerUp(at(364, 200));
+    expect(doc.selectedIds).toEqual(["tracks"]);
+    expect(x("tracks")).toBe(340);
+    expect(x("section_entrance")).toBe(0);
+    expect(doc.undo.depth).toBe(1);
+  });
+
+  it("흔적 띠 안쪽 클릭은 둘러싼 구간이 아니라 흔적을 고른다", () => {
+    const { doc, tools, at } = forest();
+    tools.pointerDown(at(2464, 120));
+    tools.pointerUp(at(2464, 120));
+    expect(doc.selectedIds).toEqual(["cage"]);
+  });
+
+  it("구간만 덮은 빈 땅에서 끌면 상자 선택이고 아무것도 옮기지 않는다", () => {
+    const { doc, tools, at, x } = forest();
+    doc.select(["spawn_8"]);
+    tools.pointerDown(at(2250, 250));
+    tools.pointerMove(at(2290, 300));
+    expect(tools.preview.kind).toBe("box");
+    tools.pointerMove(at(2330, 340));
+    tools.pointerUp(at(2330, 340));
+    expect(doc.selectedIds).toEqual(["spawn_9"]);
+    expect(x("section_gorge")).toBe(1599);
+    expect(doc.undo.depth).toBe(0);
+    expect(doc.dirty).toBe(false);
+    expect(validateObjects(doc.model.objects, schema)).toEqual([]);
+  });
+
+  it("빈 땅에서 넓게 끈 상자는 가로로 다 든 흔적까지 고르고 구간은 고르지 않는다", () => {
+    const { doc, tools, at, x } = forest();
+    tools.pointerDown(at(100, 50));
+    tools.pointerMove(at(250, 250));
+    tools.pointerMove(at(400, 420));
+    tools.pointerUp(at(400, 420));
+    expect(doc.selectedIds.sort()).toEqual(["spawn_1", "tracks"]);
+    expect(x("section_entrance")).toBe(0);
+    expect(doc.undo.depth).toBe(0);
+  });
+
+  it("넓은 구간은 클릭하면 고르고, Shift 클릭은 더한다", () => {
+    const { doc, tools, at } = forest();
+    tools.pointerDown(at(100, 50));
+    tools.pointerUp(at(100, 50));
+    expect(doc.selectedIds).toEqual(["section_entrance"]);
+    tools.pointerDown(at(1000, 50, { shift: true }));
+    tools.pointerUp(at(1000, 50, { shift: true }));
+    expect(doc.selectedIds).toEqual(["section_entrance", "section_road"]);
+    // 고른 구간은 몸통을 끌어 옮긴다 (되돌리기 한 단계)
+    doc.select(["section_entrance"]);
+    tools.pointerDown(at(100, 50));
+    tools.pointerMove(at(150, 50));
+    tools.pointerMove(at(200, 50));
+    tools.pointerUp(at(200, 50));
+    expect(doc.model.findObject("section_entrance")!.x).toBe(100);
+    expect(doc.undo.depth).toBe(1);
+  });
+
+  for (const zoom of [0.25, 0.5, 1, 2]) {
+    it(`줌 ${zoom}: 고르지 않은 구간 안쪽을 끌면 상자 선택이고 구간은 그대로다`, () => {
+      const { doc, tools, at, x } = forest(zoom);
+      tools.pointerDown(at(2250, 250));
+      tools.pointerMove(at(2290, 300));
+      expect(tools.preview.kind).toBe("box");
+      tools.pointerMove(at(2330, 340));
+      tools.pointerUp(at(2330, 340));
+      expect(x("section_gorge")).toBe(1599);
+      expect(doc.undo.depth).toBe(0);
+    });
+  }
+
+  it("맞닿은 구간의 경계는 누른 쪽 구간의 가장자리를 끈다", () => {
+    const { doc, tools, at } = forest();
+    tools.pointerDown(at(765, 200));
+    tools.pointerMove(at(745, 200));
+    tools.pointerUp(at(745, 200));
+    expect(doc.model.findObject("section_entrance")).toMatchObject({ x: 0, width: 747 });
+    expect(doc.model.findObject("section_road")).toMatchObject({ x: 767, width: 832 });
+    doc.undo.undo();
+    tools.pointerDown(at(769, 200));
+    tools.pointerMove(at(789, 200));
+    tools.pointerUp(at(789, 200));
+    expect(doc.model.findObject("section_road")).toMatchObject({ x: 787, width: 812 });
+    expect(doc.model.findObject("section_entrance")).toMatchObject({ x: 0, width: 767 });
+  });
+
+  it("구간 경계 근처를 문턱 아래로 떨며 클릭해도 구간이 바뀌지 않는다", () => {
+    const { doc, tools, at } = forest(0.5);
+    tools.pointerDown(at(761, 200));
+    tools.pointerMove(at(762, 200));
+    tools.pointerUp(at(762, 200));
+    expect(doc.model.findObject("section_entrance")).toMatchObject({ x: 0, width: 767 });
+    expect(doc.model.findObject("section_road")).toMatchObject({ x: 767, width: 832 });
+    expect(doc.undo.depth).toBe(0);
+  });
+
+  it("늑대를 끌면 순찰 범위가 같이 가서 검사에 걸리지 않는다", () => {
+    const { doc, tools, at } = forest();
+    tools.pointerDown(at(1990, 304));
+    tools.pointerMove(at(2020, 304));
+    tools.pointerMove(at(2054, 304));
+    tools.pointerUp(at(2054, 304));
+    expect(doc.model.findObject("spawn_8")).toMatchObject({ x: 2054, props: { minX: 2014, maxX: 2094 } });
+    expect(doc.undo.depth).toBe(1);
+    expect(validateObjects(doc.model.objects, schema)).toEqual([]);
+  });
+
+  it("고르지 않은 큰 구간 위의 커서는 옮기기 모양이 아니고, 고르면 옮기기 모양이다", () => {
+    const { doc, tools, at } = forest();
+    tools.pointerMove(at(100, 50));
+    expect(tools.cursor).toBe("default");
+    doc.select(["section_entrance"]);
+    tools.pointerMove(at(101, 50));
+    expect(tools.cursor).toBe("move");
+    tools.pointerMove(at(324, 200));
+    expect(tools.cursor).toBe("move");
   });
 });
