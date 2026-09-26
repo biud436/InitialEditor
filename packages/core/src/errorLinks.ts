@@ -59,8 +59,8 @@ export function parseErrorLinks(line: string): ErrorLink[] {
   return out;
 }
 
-// 오류: Lua PANIC, 예외와 백트레이스, 실패 보고. 경고: warning, SDL_LogWarn 의 WARN, 자원을 못 찾았지만 계속 도는 경우
-const ERROR_PATTERN = /PANIC|error|uncaught exception|attempt to |undefined method|stack traceback|most recent call last|\bfailed\b|cannot open|^\s*\[\d+\] /i;
+// 오류: Lua PANIC, 예외와 백트레이스, 실패 보고, 웹 엔진의 치명적 오류(fatal:). 경고: warning, SDL_LogWarn 의 WARN, 자원을 못 찾았지만 계속 도는 경우
+const ERROR_PATTERN = /PANIC|error|uncaught exception|attempt to |undefined method|stack traceback|most recent call last|\bfailed\b|cannot open|^\s*\[\d+\] |^fatal:/i;
 const WARN_PATTERN = /warning|\bWARN\b|cannot load|cannot write/i;
 
 /** 엔진 출력 한 줄의 콘솔 수준. stderr 인지가 아니라 내용으로 정한다 (SDL_Log 는 전부 stderr 로 간다) */

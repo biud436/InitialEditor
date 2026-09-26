@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { CommandRegistry } from "@initial-editor/core";
 import { describe, expect, it, vi } from "vitest";
-import { allowedInEditable, installShortcuts, isEditableTarget, resolveShortcut } from "./shortcuts";
+import { allowedInEditable, installShortcuts, installUnloadGuard, isBoundKey, isEditableTarget, resolveShortcut } from "./shortcuts";
 
 function registry(platform: "mac" | "win" = "mac") {
   const commands = new CommandRegistry({ platform });
   const calls: string[] = [];
-  const add = (id: string, shortcut: string, enabled = true) => commands.register({ id, label: id, shortcut, enabled: () => enabled, run: () => void calls.push(id) });
+  const add = (id: string, shortcut: string | undefined, enabled: boolean | (() => boolean) = true) =>
+    commands.register({ id, label: id, shortcut, enabled: typeof enabled === "function" ? enabled : () => enabled, run: () => void calls.push(id) });
   add("file.save", "Ctrl+S");
   add("edit.undo", "Ctrl+Z");
   add("edit.redo", "Ctrl+Shift+Z");
@@ -32,7 +33,7 @@ describe("단축키 규칙", () => {
     expect(resolveShortcut(commands, key("n", { meta: true, shift: true }), false)).toBe("scene.new");
   });
 
-  it("입력 칸 안에서는 file.* 와 되돌리기와 다시 실행만 통한다", () => {
+  it("입력 칸 안에서는 file.* 와 run.* 와 F5 계열과 되돌리기와 다시 실행만 통한다", () => {
     const { commands } = registry();
     expect(resolveShortcut(commands, key("s", { meta: true }), true)).toBe("file.save");
     expect(resolveShortcut(commands, key("z", { meta: true }), true)).toBe("edit.undo");
@@ -40,12 +41,33 @@ describe("단축키 규칙", () => {
     expect(resolveShortcut(commands, key("f", { meta: true }), true)).toBeNull();
     expect(resolveShortcut(commands, key("n", { meta: true, shift: true }), true)).toBeNull();
     expect(allowedInEditable("file.openProject")).toBe(true);
+    expect(allowedInEditable("run.start")).toBe(true);
+    expect(allowedInEditable("run.reload")).toBe(true);
     expect(allowedInEditable("scene.new")).toBe(false);
   });
 
-  it("비활성 커맨드는 잡지 않는다 (F5 는 브라우저 새로 고침으로 남는다)", () => {
+  it("스크립트 편집기(textarea) 안에서도 실행 키가 통한다: F5, Shift+F5, Ctrl+F5, 리로드, F5 에 묶인 다른 커맨드", () => {
+    const commands = new CommandRegistry({ platform: "mac" });
+    const add = (id: string, shortcut: string) => commands.register({ id, label: id, shortcut, run: () => {} });
+    add("run.start", "F5");
+    add("run.stop", "Shift+F5");
+    add("run.fromScene", "Ctrl+F5");
+    add("run.reload", "Ctrl+Shift+R");
+    add("map.debugHere", "Alt+F5");
+    add("edit.find", "Ctrl+F");
+    expect(resolveShortcut(commands, key("F5"), true)).toBe("run.start");
+    expect(resolveShortcut(commands, key("F5", { shift: true }), true)).toBe("run.stop");
+    expect(resolveShortcut(commands, key("F5", { meta: true }), true)).toBe("run.fromScene");
+    expect(resolveShortcut(commands, key("r", { meta: true, shift: true }), true)).toBe("run.reload");
+    expect(resolveShortcut(commands, key("F5", { alt: true }), true)).toBe("map.debugHere");
+    expect(resolveShortcut(commands, key("f", { meta: true }), true)).toBeNull();
+  });
+
+  it("비활성 커맨드는 실행하지 않지만 키에 묶여 있는 것은 안다", () => {
     const { commands } = registry();
     expect(resolveShortcut(commands, key("F5"), false)).toBeNull();
+    expect(isBoundKey(commands, key("F5"))).toBe(true);
+    expect(isBoundKey(commands, key("F6"))).toBe(false);
   });
 
   it("mac 은 Cmd, 그 밖은 Ctrl", () => {
@@ -92,5 +114,71 @@ describe("단축키 규칙", () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", metaKey: true, bubbles: true }));
     await Promise.resolve();
     expect(calls).toEqual(["file.save"]);
+  });
+
+  it("installShortcuts: 스크립트 편집기 안의 F5 는 실행하고 기본 동작(새로 고침)을 막는다", async () => {
+    let running = false;
+    const commands = new CommandRegistry({ platform: "mac" });
+    const calls: string[] = [];
+    commands.register({ id: "run.start", label: "실행", shortcut: "F5", enabled: () => !running, run: () => void calls.push("run.start") });
+    commands.register({ id: "run.stop", label: "정지", shortcut: "Shift+F5", enabled: () => running, run: () => void calls.push("run.stop") });
+    const off = installShortcuts(commands, window);
+    const textarea = document.createElement("textarea");
+    document.body.append(textarea);
+
+    const f5 = new KeyboardEvent("keydown", { key: "F5", bubbles: true, cancelable: true });
+    textarea.dispatchEvent(f5);
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start"]);
+    expect(f5.defaultPrevented).toBe(true);
+
+    running = true;
+    const stop = new KeyboardEvent("keydown", { key: "F5", shiftKey: true, bubbles: true, cancelable: true });
+    textarea.dispatchEvent(stop);
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start", "run.stop"]);
+    expect(stop.defaultPrevented).toBe(true);
+
+    // 실행 중이라 F5 커맨드가 비활성이어도 페이지를 새로 고치지 않는다
+    const again = new KeyboardEvent("keydown", { key: "F5", bubbles: true, cancelable: true });
+    window.dispatchEvent(again);
+    await Promise.resolve();
+    expect(calls).toEqual(["run.start", "run.stop"]);
+    expect(again.defaultPrevented).toBe(true);
+
+    // 묶이지 않은 기능 키는 건드리지 않는다
+    const f6 = new KeyboardEvent("keydown", { key: "F6", bubbles: true, cancelable: true });
+    window.dispatchEvent(f6);
+    expect(f6.defaultPrevented).toBe(false);
+    off();
+  });
+});
+
+describe("installUnloadGuard", () => {
+  /** BeforeUnloadEvent 처럼 returnValue 가 글인 이벤트 (jsdom 의 Event.returnValue 는 불리언이다) */
+  function beforeUnload(): Event {
+    const ev = new Event("beforeunload", { cancelable: true });
+    Object.defineProperty(ev, "returnValue", { value: "", writable: true });
+    return ev;
+  }
+
+  it("저장하지 않은 문서가 있을 때만 떠나기 전에 묻는다", () => {
+    let dirty = false;
+    const target = new EventTarget();
+    const off = installUnloadGuard(() => dirty, target);
+    const clean = beforeUnload();
+    target.dispatchEvent(clean);
+    expect(clean.defaultPrevented).toBe(false);
+
+    dirty = true;
+    const ev = beforeUnload();
+    target.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(true);
+    expect((ev as unknown as { returnValue: unknown }).returnValue).toBeTruthy();
+
+    off();
+    const after = beforeUnload();
+    target.dispatchEvent(after);
+    expect(after.defaultPrevented).toBe(false);
   });
 });

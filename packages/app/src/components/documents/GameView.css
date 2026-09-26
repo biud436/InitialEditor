@@ -21,7 +21,8 @@
   color: var(--success);
 }
 
-.game-view-state.phase-failed {
+.game-view-state.phase-failed,
+.game-view-state.is-error {
   color: var(--danger);
 }
 

@@ -87,6 +87,7 @@ describe("classifyEngineLine", () => {
       "HotReload: reload failed — restart the app",
       "mruby: cannot open ./scripts/ruby/main.rb",
       "Error: 파일을 읽지 못했다",
+      "fatal: C++ 예외 std::bad_alloc: std::bad_alloc",
     ]) {
       expect(classifyEngineLine(line), line).toBe("error");
     }

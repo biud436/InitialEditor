@@ -23,6 +23,7 @@ import {
   type SettingsStore,
 } from "@initial-editor/core";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
+import { errorText } from "../gameView/errorText";
 import { ENGINE_FILE, ENGINE_SOURCE_LABELS, engineCandidates, type EngineCandidate, type EngineSource } from "./engineCandidates";
 import { collectHmrFiles } from "./hmrCollect";
 
@@ -37,6 +38,14 @@ export interface RunnerHost {
   readonly platform: Platform;
 }
 
+/** 에디터 안 리로드의 결과 */
+export interface EmbeddedReload {
+  /** 다시 올린 파일 수 */
+  count: number;
+  /** 스크립트 오류로 VM 이 다시 뜨지 못했다 (오류 줄은 이미 콘솔에 있고 엔진은 계속 돈다) */
+  scriptsFailed: boolean;
+}
+
 /** 에디터 안 실행 (게임 탭의 웹 엔진) */
 export interface EmbeddedEngine {
   /** 웹 엔진의 기능 ("lua", "wasm"). engine/MANIFEST.json 에서 읽는다 */
@@ -45,8 +54,8 @@ export interface EmbeddedEngine {
   launch(opts: { env: Record<string, string> }): Promise<RunHandle>;
   /** 시작 중(파일 올리는 중)이면 그만둔다 */
   abort(): void;
-  /** paths(없으면 scripts 와 씬과 맵 전부)를 다시 올리고 VM 을 다시 시작한다. 올린 파일 수 */
-  reload(paths?: readonly string[]): Promise<number>;
+  /** paths(없으면 scripts 와 씬과 맵 전부)를 다시 올리고 VM 을 다시 시작한다. 엔진이 예외로 죽으면 던진다 */
+  reload(paths?: readonly string[]): Promise<EmbeddedReload>;
   /** 상태 바 툴팁 (웹 엔진의 기능과 커밋) */
   readonly description: string | null;
 }
@@ -340,7 +349,7 @@ export class RunnerStore {
         found = { candidate, features };
         break;
       } catch (e) {
-        failures.push(`${candidate.path}: ${(e as Error).message}`);
+        failures.push(`${candidate.path}: ${errorText(e)}`);
       }
     }
     if (token !== this.resolveToken) return this.enginePath; // 그사이 다시 탐색했다
@@ -435,7 +444,7 @@ export class RunnerStore {
         runInAction(() => (this.features = features));
       } catch (e) {
         runInAction(() => this.setEngine(null, "none", null));
-        return this.failStart(`엔진을 부를 수 없다: ${(e as Error).message}`);
+        return this.failStart(`엔진을 부를 수 없다: ${errorText(e)}`);
       }
     }
     const script = project.gameJson.script === "mruby" ? "mruby" : "lua";
@@ -465,7 +474,7 @@ export class RunnerStore {
     try {
       features = await embedded.loadFeatures();
     } catch (e) {
-      return this.failStart((e as Error).message);
+      return this.failStart(errorText(e));
     }
     const script = this.host.project.gameJson.script === "mruby" ? "mruby" : "lua";
     if (script === "mruby" && !features.includes("mruby")) {
@@ -478,11 +487,11 @@ export class RunnerStore {
     try {
       handle = await embedded.launch({ env });
     } catch (e) {
-      if ((e as Error).name === "AbortError") {
+      if ((e as Error | null)?.name === "AbortError") {
         this.host.log.info(LOG_SOURCE, "실행을 그만뒀다");
         return null;
       }
-      return this.failStart(`에디터 안 엔진을 띄우지 못했다: ${(e as Error).message}`);
+      return this.failStart(`에디터 안 엔진을 띄우지 못했다: ${errorText(e)}`);
     }
     const summary = `엔진 시작: 에디터 안 (웹 엔진, ${features.join(" ")}), 언어 ${script}${opts.scene ? `, 씬 ${opts.scene}` : ""}${envSuffix(opts.env, " (", ")")}`;
     return { handle, summary };
@@ -531,7 +540,7 @@ export class RunnerStore {
     try {
       await handle.stop();
     } catch (e) {
-      this.host.log.warn(LOG_SOURCE, `정지 요청이 실패했다: ${(e as Error).message}`);
+      this.host.log.warn(LOG_SOURCE, `정지 요청이 실패했다: ${errorText(e)}`);
     }
     if (!(await exited) && this.handle === handle) {
       this.host.log.warn(LOG_SOURCE, "종료 이벤트가 오지 않아 상태를 정리한다");
@@ -573,7 +582,7 @@ export class RunnerStore {
       try {
         files = await collectHmrFiles(backend);
       } catch (e) {
-        const message = `핫 리로드 묶음을 모으지 못했다: ${(e as Error).message}`;
+        const message = `핫 리로드 묶음을 모으지 못했다: ${errorText(e)}`;
         log.error(LOG_SOURCE, message);
         toasts.error(message);
         return null;
@@ -597,18 +606,26 @@ export class RunnerStore {
     }
   }
 
-  /** 에디터 안 엔진: 바뀐 파일(없으면 scripts 와 씬과 맵)을 다시 올리고 VM 을 다시 시작한다 */
+  /**
+   * 에디터 안 엔진: 바뀐 파일(없으면 scripts 와 씬과 맵)을 다시 올리고 VM 을 다시 시작한다.
+   * 스크립트 오류면 경고만 하고 게임은 계속 돈다. 엔진이 예외로 죽었으면 세션은 이미 끝났고 종료 알림이 토스트를 띄운다
+   */
   private async reloadEmbedded(paths?: readonly string[]): Promise<{ count: number } | null> {
     const { log, toasts } = this.host;
     try {
-      const count = await this.embedded!.reload(paths);
+      const { count, scriptsFailed } = await this.embedded!.reload(paths);
       runInAction(() => (this.lastReload = { count, at: this.clock() }));
-      log.info(LOG_SOURCE, `핫 리로드: 에디터 안 엔진, ${count}개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)`);
+      if (scriptsFailed) {
+        log.warn(LOG_SOURCE, `핫 리로드: 에디터 안 엔진, ${count}개 파일을 다시 올렸지만 스크립트 오류로 VM 이 다시 뜨지 못했다. 위의 오류 줄을 누르면 그 자리로 간다`);
+        toasts.warn("핫 리로드: 스크립트 오류. 콘솔의 오류 줄을 본다");
+      } else {
+        log.info(LOG_SOURCE, `핫 리로드: 에디터 안 엔진, ${count}개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)`);
+      }
       return { count };
     } catch (e) {
-      const message = `핫 리로드 실패: ${(e as Error).message}`;
+      const message = `핫 리로드 실패: ${errorText(e)}`;
       log.error(LOG_SOURCE, message);
-      toasts.error(message);
+      if (this.embeddedRunning) toasts.error(message);
       return null;
     }
   }

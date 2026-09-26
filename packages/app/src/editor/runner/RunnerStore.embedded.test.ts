@@ -1,4 +1,5 @@
 // 실행 방식 나누기 (E4): 에디터 안 실행(가짜 EmbeddedEngine)과 프로세스 실행을 RunnerStore 가 고르는가.
+// 엔진이 던진 값(WebAssembly.Exception 처럼 message 가 없는 것)이 콘솔과 토스트에 "undefined" 로 나오지 않는가.
 
 import { LogStore, MemorySettingsStorage, Project, SettingsStore, type OutputStream, type ProjectBackend, type RunHandle, type RunSpec } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
@@ -43,11 +44,18 @@ class FakeEmbedded implements EmbeddedEngine {
   description = "기능 lua wasm, 엔진 커밋 abc1234";
   /** launch 를 멈춰 두는 약속 (abort 검사) */
   gate: Promise<void> | null = null;
+  /** 있으면 loadFeatures 나 launch 가 이것을 던진다 */
+  featuresError: { value: unknown } | null = null;
+  launchError: { value: unknown } | null = null;
+  /** reload 의 결과: 스크립트 오류, 또는 던질 값 (던지면 게임 뷰처럼 세션을 종료 코드 1 로 끝낸다) */
+  reloadResult: "ok" | "scriptError" | { throws: unknown } = "ok";
   async loadFeatures() {
+    if (this.featuresError) throw this.featuresError.value;
     return this.features;
   }
   async launch(opts: { env: Record<string, string> }) {
     this.launches.push(opts.env);
+    if (this.launchError) throw this.launchError.value;
     if (this.gate) await this.gate;
     if (this.aborted) {
       const e = new Error("실행을 그만뒀다");
@@ -63,7 +71,12 @@ class FakeEmbedded implements EmbeddedEngine {
   }
   async reload(paths?: readonly string[]) {
     this.reloads.push(paths);
-    return paths?.length ?? 5;
+    const result = this.reloadResult;
+    if (typeof result === "object") {
+      this.handles.at(-1)?.exit(1);
+      throw result.throws;
+    }
+    return { count: paths?.length ?? 5, scriptsFailed: result === "scriptError" };
   }
 }
 
@@ -102,6 +115,11 @@ async function setup(opts: { tauri?: boolean; runMode?: "process" | "embedded"; 
 }
 
 const texts = (log: LogStore) => log.entries.map((e) => `${e.level}/${e.source}: ${e.text}`);
+
+function wasmException(): unknown {
+  const ns = WebAssembly as unknown as { Tag: new (t: { parameters: string[] }) => object; Exception: new (tag: object, payload: unknown[]) => object };
+  return new ns.Exception(new ns.Tag({ parameters: [] }), []);
+}
 
 describe("RunnerStore 실행 방식", () => {
   it("프로세스를 못 띄우는 백엔드는 늘 에디터 안이고 실행 버튼이 켜진다", async () => {
@@ -233,5 +251,42 @@ describe("RunnerStore 실행 방식", () => {
     expect(runner.exitCode).toBe(1);
     expect(runner.statusText).toBe("엔진 (에디터 안): 종료 코드 1");
     expect(toasts.at(-1)).toContain("종료 코드 1");
+  });
+
+  it("엔진이 던진 값이 message 가 없어도 콘솔과 토스트는 읽는 글이다", async () => {
+    const { runner, embedded, toasts, log } = await setup();
+    embedded.launchError = { value: wasmException() };
+    await runner.start();
+    expect(runner.state).toBe("idle");
+    expect(toasts.at(-1)).toMatch(/^error: 에디터 안 엔진을 띄우지 못했다: C\+\+ 예외/);
+    embedded.launchError = null;
+    embedded.featuresError = { value: undefined };
+    await runner.start();
+    expect(toasts.at(-1)).toMatch(/^error: 알 수 없는 오류/);
+    for (const line of [...toasts, ...texts(log)]) expect(line).not.toContain("undefined");
+  });
+
+  it("리로드가 스크립트 오류면 경고만 하고 게임은 계속 돈다", async () => {
+    const { runner, embedded, toasts, log } = await setup();
+    await runner.start();
+    embedded.reloadResult = "scriptError";
+    expect(await runner.reload(["scripts/lua/main.lua"])).toEqual({ count: 1 });
+    expect(runner.state).toBe("running");
+    expect(texts(log)).toContainEqual(
+      "warn/runner: 핫 리로드: 에디터 안 엔진, 1개 파일을 다시 올렸지만 스크립트 오류로 VM 이 다시 뜨지 못했다. 위의 오류 줄을 누르면 그 자리로 간다",
+    );
+    expect(toasts.at(-1)).toBe("warn: 핫 리로드: 스크립트 오류. 콘솔의 오류 줄을 본다");
+  });
+
+  it("리로드에서 엔진이 예외로 죽으면 읽는 글로 남기고 토스트는 종료 알림 하나다", async () => {
+    const { runner, embedded, toasts, log } = await setup();
+    await runner.start();
+    embedded.reloadResult = { throws: wasmException() };
+    expect(await runner.reload(["scripts/lua/main.lua"])).toBeNull();
+    expect(runner.state).toBe("idle");
+    expect(runner.exitCode).toBe(1);
+    expect(texts(log).find((l) => l.startsWith("error/runner: 핫 리로드 실패: "))).toMatch(/C\+\+ 예외/);
+    expect(toasts.filter((t) => t.startsWith("error:"))).toEqual(["error: 엔진이 종료 코드 1 로 끝났다. 콘솔을 본다"]);
+    for (const line of texts(log)) expect(line).not.toContain("undefined");
   });
 });

@@ -66,11 +66,18 @@ export function gridDifference(a: CanvasStats, b: CanvasStats): number {
   return sum / n;
 }
 
-/** 다음 애니메이션 프레임에서 canvas 를 2D 로 복사해 통계를 낸다 (엔진이 그린 직후) */
-export function captureCanvasStats(canvas: HTMLCanvasElement): Promise<CanvasStats> {
+/**
+ * 다음 애니메이션 프레임에서 canvas 를 2D 로 복사해 통계를 낸다 (엔진이 그린 직후).
+ * 그 프레임에 alive() 가 false 이거나 canvas 크기가 0 이면(게임이 끝나 SDL 이 창을 닫았다) 읽지 않고 null
+ */
+export function captureCanvasStats(canvas: HTMLCanvasElement, alive: () => boolean = () => true): Promise<CanvasStats | null> {
   return new Promise((resolve, reject) => {
     requestAnimationFrame(() => {
       try {
+        if (!alive() || canvas.width === 0 || canvas.height === 0) {
+          resolve(null);
+          return;
+        }
         const copy = document.createElement("canvas");
         copy.width = canvas.width;
         copy.height = canvas.height;

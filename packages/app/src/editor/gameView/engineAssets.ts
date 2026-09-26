@@ -2,12 +2,16 @@
 // 로더(initial2d-loader.js)는 번들러를 거치지 않는 ES 모듈이라 실행할 때 URL 로 import 한다.
 // 계약은 엔진 저장소 docs/plans/r3-emscripten.md 5절이다.
 
+import { errorText } from "./errorText";
+
 export type StageData = Uint8Array | ArrayBuffer | string;
 
 export interface EngineModule {
   FS: { readFile(path: string): Uint8Array; writeFile(path: string, data: Uint8Array | string): void };
   /** SDL2 포트의 오디오 상태 (Web Audio) */
   SDL2?: { audioContext?: AudioContext };
+  /** Emscripten 의 C++ 예외 메시지 도우미 ([타입, 메시지]). 빌드가 내보낼 때만 있다 */
+  getExceptionMessage?: (e: unknown) => [string, string] | unknown;
   [key: string]: unknown;
 }
 
@@ -21,16 +25,26 @@ export interface BootOptions {
   jsUrl?: string;
   cwd?: string;
   moduleOverrides?: Record<string, unknown>;
+  /** 엔진의 메인 루프가 멈출 때 한 번 (0: quit 이나 정상 종료, 1: 치명적 오류). 이것을 모르는 로더는 무시한다 */
+  onExit?: (code: number) => void;
 }
 
-/** bootInitial2D 가 돌려주는 핸들 */
+/**
+ * bootInitial2D 가 돌려주는 핸들. frames 와 errorText 는 엔진 저장소 로더 계약(onExit, frames, errorText)을
+ * 따르는 빌드에만 있고, 그 빌드의 reload 는 스크립트가 깨끗이 다시 떴는지를 true 나 false 로 돌려준다.
+ * 계약을 따르지 않는 빌드의 reload 는 아무것도 돌려주지 않는다. 쓰는 쪽은 있는지 보고 쓴다.
+ */
 export interface EngineGame {
   module: EngineModule;
   exitCode: number;
   stage(files: Record<string, StageData>): void;
-  reload(files?: Record<string, StageData>, envPatch?: Record<string, string>): void;
+  reload(files?: Record<string, StageData>, envPatch?: Record<string, string>): boolean | void;
   quit(): void;
   features(): string;
+  /** 지금까지 돈 엔진 프레임 수 */
+  frames?: () => number;
+  /** wasm 밖으로 나온 것을 읽는 글로 (undefined 를 돌려주지 않는다) */
+  errorText?: (e: unknown) => string;
 }
 
 export type BootEngine = (options: BootOptions) => Promise<EngineGame>;
@@ -79,7 +93,7 @@ async function loadRuntime(base: string): Promise<EngineRuntime> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     manifest = (await res.json()) as EngineManifest;
   } catch (e) {
-    throw new Error(`${ENGINE_MISSING}: ${(e as Error).message}`);
+    throw new Error(`${ENGINE_MISSING}: ${errorText(e)}`);
   }
   if (!Array.isArray(manifest.features)) manifest.features = ["lua", "wasm"];
   const loaderUrl = new URL("initial2d-loader.js", base).href;

@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { useEditor } from "../editor/EditorContext";
 import { installNativeMenu } from "../editor/nativeMenu";
-import { installShortcuts } from "../editor/shortcuts";
+import { installShortcuts, installUnloadGuard } from "../editor/shortcuts";
 import { Dock } from "./Dock";
 import { MenuBar } from "./MenuBar";
 import { Modals } from "./Modals";
@@ -16,6 +16,9 @@ export const App = observer(function App() {
   const editor = useEditor();
 
   useEffect(() => installShortcuts(editor.commands), [editor]);
+
+  // 브라우저 모드: 저장하지 않은 문서가 있으면 새로 고침이나 탭 닫기 전에 묻는다
+  useEffect(() => (editor.isBrowser ? installUnloadGuard(() => editor.documents.dirtyDocuments.length > 0) : undefined), [editor]);
 
   useEffect(() => {
     let dispose: (() => void) | null = null;

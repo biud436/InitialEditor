@@ -1,7 +1,7 @@
 // 게임 탭 (E4). 위에 상태 띠(상태, FPS, 소리 켜기, 실행과 정지와 다시 시작), 아래에 웹 엔진이 그리는 canvas.
 // canvas 는 GameViewStore 가 실행마다 새로 만들고 여기서는 붙이기만 한다. 크기는 game.json 의 창 크기에 패널에 맞춘
-// 배율(fitScale)을 곱한 CSS 크기다. 탭이 활성이 되면 canvas 가 키를 받는다. 실행 단축키(F5, Shift+F5 등)는
-// 게임(SDL 이 기본 동작을 막는다)보다 먼저 여기서 받아 에디터 커맨드로 돌린다.
+// 배율(fitScale)을 곱한 CSS 크기다. 탭이 활성이 되거나 게임 탭 제목을 누르면(DocumentTab) canvas 가 키를 받는다.
+// 실행 단축키(F5, Shift+F5 등)는 게임(SDL 이 기본 동작을 막는다)보다 먼저 여기서 받아 에디터 커맨드로 돌린다.
 
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
@@ -20,7 +20,7 @@ function phaseText(store: GameViewStore): string {
     case "running":
       return "실행 중";
     case "ended":
-      return "끝남";
+      return store.lastExitCode ? `오류로 끝남 (종료 코드 ${store.lastExitCode})` : "끝남";
     case "failed":
       return "실패";
     default:
@@ -80,30 +80,24 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
   const running = store.phase === "running";
   useEffect(() => {
     if (!active || !canvas || !running) return;
-    let frame = 0;
-    let tries = 0;
-    const focus = () => {
-      if (canvas.isConnected) canvas.focus({ preventScroll: true });
-      else if (tries++ < 30) frame = requestAnimationFrame(focus);
-    };
-    frame = requestAnimationFrame(focus);
-    return () => cancelAnimationFrame(frame);
-  }, [active, canvas, running]);
+    return store.focusCanvas();
+  }, [store, active, canvas, running]);
 
   const busy = store.phase === "staging" || store.phase === "booting";
+  const endedWithError = store.phase === "ended" && !!store.lastExitCode;
   const run = (id: string) => () => void editor.commands.execute(id);
 
   return (
     <div className="game-view" data-testid="game-view" data-phase={store.phase} data-scale={scale}>
       <div className="doc-header game-view-header">
-        <span className={`game-view-state phase-${store.phase}`} data-testid="game-state">
+        <span className={`game-view-state phase-${store.phase}${endedWithError ? " is-error" : ""}`} data-testid="game-state" data-exit-code={store.lastExitCode ?? undefined}>
           {phaseText(store)}
         </span>
         <span title="game.json 의 창 크기와 보이는 배율">
           {store.gameSize.width} x {store.gameSize.height}, {Math.round(scale * 100)}%
         </span>
         {running && store.fps !== null ? (
-          <span className="game-view-fps" data-testid="game-fps" title="초당 프레임 (엔진 루프는 화면 주사율에 맞춰 돈다)">
+          <span className="game-view-fps" data-testid="game-fps" title="초당 프레임 (엔진이 돈 프레임. 엔진 루프는 화면 주사율에 맞춰 돈다)">
             {store.fps} FPS
           </span>
         ) : null}
