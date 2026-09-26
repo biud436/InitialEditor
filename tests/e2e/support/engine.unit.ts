@@ -160,9 +160,17 @@ describe("로그 읽기", () => {
     expect(parsePlacement("알데바란: 시작 지점이 없다")).toBeNull();
   });
 
-  it("배치 줄이 아닌 알데바란 줄은 스테이지 문제다", () => {
-    const log = [CLEAN, "알데바란: 시작 x 2120 → 2104 (구덩이 위라 가까운 땅으로)", "알데바란: 시작 x 1966 (y 304)", "알데바란: 모르는 스테이지 'nope'"].join("\n");
-    expect(stageProblemLines(log)).toEqual(["알데바란: 모르는 스테이지 'nope'"]);
+  it("배치 줄도 검수 줄도 아닌 알데바란 줄은 스테이지 문제다", () => {
+    const log = [
+      CLEAN,
+      "알데바란: 맵 ./resources/maps/aldebaran_forest.json 타일 221069392",
+      "알데바란: 시작 x 2120 → 2104 (구덩이 위라 가까운 땅으로)",
+      "알데바란: 시작 x 1966 (y 304)",
+      "알데바란: 몬스터 wolf x 1990 범위 1950..2030",
+      "알데바란: 모르는 스테이지 'nope'",
+      "알데바란: 맵 파일을 읽지 못했다: nope.json",
+    ].join("\n");
+    expect(stageProblemLines(log)).toEqual(["알데바란: 모르는 스테이지 'nope'", "알데바란: 맵 파일을 읽지 못했다: nope.json"]);
     expect(stageProblemLines(CLEAN)).toEqual([]);
   });
 });

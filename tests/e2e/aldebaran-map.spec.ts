@@ -3,9 +3,13 @@
 // 흐름: 트리에서 aldebaran_forest.json 열기, 타일맵 레이아웃, 팔레트에서 타일 고르기, ground 레이어에 세 칸 붓질,
 //       오브젝트 도구(V)로 첫 늑대를 64px 오른쪽으로, Ctrl+S, 저장한 파일 검사 (v2, 고정 형식, 붓질한 칸과 늑대만 바뀜),
 //       늑대를 고른 채 Ctrl+F5 (맵 탭이면 여기서 실행 커맨드). 브라우저 모드의 러너는 엔진을 못 띄우므로 러너만 감싸
-//       커맨드가 넘긴 환경 변수를 받고(support/runCapture.ts), 그 변수로 엔진을 헤드리스로 띄운다 (Lua, 빌드에 mruby가 있으면 Ruby도).
-// 엔진 쪽 검사: 종료 코드 0, 오류 줄 없음, 스테이지를 열었다, 배치 줄("알데바란: 시작 x ...")의 x가 넘긴 x이고 설 자리가 그 근처,
+//       커맨드가 넘긴 환경 변수를 받고(support/runCapture.ts), 그 변수에 검수 줄 변수(INITIAL2D_ALDEBARAN_TRACE=1)를 더해
+//       엔진을 헤드리스로 띄운다 (Lua, 빌드에 mruby가 있으면 Ruby도).
+// 엔진 쪽 검사: 종료 코드 0, 오류 줄 없음, 스테이지를 열었다, 엔진이 그 맵을 읽었다(검수 줄 "알데바란: 맵 <경로> 타일 <검사합>"의
+//       경로가 사본의 숲 맵이고 검사합이 저장한 파일에서 계산한 것과 같으며 원본의 것과 다르다. 몬스터 줄이 저장한 파일의 spawn
+//       그대로이고 옮긴 늑대의 줄이 새 x와 범위다), 배치 줄("알데바란: 시작 x ...")의 x가 넘긴 x이고 설 자리가 그 근처,
 //       프레임 240 스크린샷이 빈 화면이 아니고 같은 변수에서 시작 x만 뺀 실행(스테이지의 시작 지점)과 화면이 크게 다르다.
+// 엔진은 검수 줄을 찍는 빌드여야 한다 (INITIAL2D_ALDEBARAN_TRACE, 엔진 README의 "맵 오브젝트").
 // 엔진 실행 파일이나 맵이나 브리지 서버가 없으면 건너뛴다. KEEP_WORKDIR=1이면 임시 폴더(사본 프로젝트와 스크린샷)를 남긴다.
 // 도우미(support/)의 단위 테스트는 support/*.unit.ts (vitest)이다.
 
@@ -32,6 +36,7 @@ import { engineLayout, errorLines, missingFiles, parsePlacement, probeFeatures, 
 import { cellEdits, objectEdits, structureChanges } from "./support/mapEdits";
 import { expectedRangePlayX, PLAY_RANGE_GAP } from "./support/play";
 import { freePort, GAME_JSON, makeTempProject, startBridge, type Bridge, type TempProject } from "./support/project";
+import { expectedMonsters, parseMapTrace, parseMonsterTraces, tileChecksum, TRACE_VAR } from "./support/trace";
 import { cellCenter, insideBox, pickStrokeCells, visibleWorldRect, worldToPage, type Cell } from "./support/view";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
@@ -223,6 +228,14 @@ test.describe("알데바란 숲 (브리지 모드, 엔진의 실제 맵)", () =>
     ew.props.minX = min0 + MOVE_PX;
     ew.props.maxX = max0 + MOVE_PX;
     expect(savedText === serializeMap(expected), "저장한 파일이 원본에 의도한 편집만 더한 것과 다르다").toBe(true);
+    // 엔진이 이 파일을 읽었는지 맞춰 볼 값: 타일 검사합(원본과 달라야 가린다)과 몬스터 줄
+    const savedSum = tileChecksum(savedText);
+    const originalSum = tileChecksum(originalText);
+    expect(savedSum, "붓질한 칸이 검사합을 바꾸지 않았다").not.toBe(originalSum);
+    const savedMonsters = expectedMonsters(savedText);
+    const wolfIndex = saved.objects.filter((o) => o.type === "spawn").findIndex((o) => o.id === wolf.id);
+    const movedWolf = { species: "wolf", x: wolf.x + MOVE_PX, minX: min0 + MOVE_PX, maxX: max0 + MOVE_PX };
+    expect(savedMonsters[wolfIndex]).toEqual(movedWolf);
 
     // ---- 여기서 실행: 늑대를 고른 채 Ctrl+F5 (맵 탭이면 map.playHere). 커맨드가 러너에 넘긴 환경 변수를 받는다 ----
     const movedMin = min0 + MOVE_PX;
@@ -256,8 +269,9 @@ test.describe("알데바란 숲 (브리지 모드, 엔진의 실제 맵)", () =>
     const languages: ScriptLanguage[] = features.has("mruby") ? ["lua", "mruby"] : ["lua"];
     for (const script of languages) {
       await test.step(`엔진 (${script})`, async () => {
+        // 에디터가 넘긴 변수에 검수 줄 변수를 더한다
         const run = (prefix: string, playEnv: Record<string, string>) =>
-          runEngine({ exe: ENGINE.exe, cwd: project, script, playEnv, exitAfter: EXIT_AFTER, shot: { dir: tmp!.root, prefix, frame: SHOT_FRAME }, timeoutMs: 30_000 });
+          runEngine({ exe: ENGINE.exe, cwd: project, script, playEnv: { ...playEnv, [TRACE_VAR]: "1" }, exitAfter: EXIT_AFTER, shot: { dir: tmp!.root, prefix, frame: SHOT_FRAME }, timeoutMs: 30_000 });
         const here = await run(`forest-${script}`, env);
         const home = await run(`forest-${script}-start`, startEnv);
         const out = (r: EngineRun) => `\n--- 엔진 출력 (${script}) ---\n${r.log.trim()}`;
@@ -267,6 +281,22 @@ test.describe("알데바란 숲 (브리지 모드, 엔진의 실제 맵)", () =>
           expect.soft(errorLines(r.log), `오류 줄${out(r)}`).toEqual([]);
           expect.soft(stageProblemLines(r.log), `스테이지를 열지 못했다${out(r)}`).toEqual([]);
         }
+
+        // 엔진이 읽은 맵: 사본의 숲 맵이고, 타일 검사합이 저장한 파일의 것이다 (원본을 읽었으면 원본의 것이 나온다)
+        for (const r of [here, home]) {
+          const mapLine = parseMapTrace(r.log);
+          expect.soft(mapLine, `맵 검수 줄이 없다. 엔진은 ${TRACE_VAR}=1이면 "알데바란: 맵 <경로> 타일 <검사합>"을 찍는다${out(r)}`).not.toBeNull();
+          if (!mapLine) continue;
+          expect.soft(path.resolve(project, mapLine.path), `엔진이 연 맵이 사본의 숲 맵이 아니다: ${mapLine.line}`).toBe(mapFile);
+          expect.soft(mapLine.checksum, `엔진이 읽은 타일이 원본 그대로다 (원본 ${originalSum}): ${mapLine.line}`).not.toBe(originalSum);
+          expect.soft(mapLine.checksum, `엔진이 읽은 타일의 검사합이 저장한 파일의 것(${savedSum})과 다르다: ${mapLine.line}`).toBe(savedSum);
+          // 몬스터 줄: 저장한 파일의 spawn 순서와 값 그대로 (다시 세우면 줄이 더 찍힐 수 있어 앞의 것만 본다)
+          const monsters = parseMonsterTraces(r.log);
+          expect.soft(monsters.slice(0, savedMonsters.length), `몬스터 줄이 저장한 파일의 spawn과 다르다${out(r)}`).toEqual(savedMonsters);
+        }
+        // 옮긴 늑대: 엔진이 세운 자리가 새 x와 새 순찰 범위다
+        const hereWolf = parseMonsterTraces(here.log)[wolfIndex];
+        expect.soft(hereWolf, `옮긴 늑대(${wolf.id})의 몬스터 줄이 새 자리가 아니다 (원래 x ${wolf.x} 범위 ${min0}..${max0})${out(here)}`).toEqual(movedWolf);
 
         // 배치 줄: 엔진이 받은 x가 에디터가 넘긴 x이고, 선 자리가 그 근처다. 시작 x를 빼면 찍지 않는다
         const placement = parsePlacement(here.log);

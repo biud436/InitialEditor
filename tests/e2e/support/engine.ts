@@ -5,6 +5,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { isTraceLine } from "./trace";
 
 export interface EngineLayout {
   dir: string;
@@ -146,10 +147,10 @@ export function parsePlacement(log: string): Placement | null {
   return null;
 }
 
-/** 배치 줄이 아닌 "알데바란:" 줄 (예: 모르는 스테이지). 스테이지를 못 열었다는 뜻이다 */
+/** 배치 줄도 검수 줄(trace.ts)도 아닌 "알데바란:" 줄 (예: 모르는 스테이지). 스테이지를 못 열었다는 뜻이다 */
 export function stageProblemLines(log: string): string[] {
   return log
     .split("\n")
     .map((l) => l.trim())
-    .filter((l) => l.startsWith("알데바란:") && !PLACEMENT_LINE.test(l));
+    .filter((l) => l.startsWith("알데바란:") && !PLACEMENT_LINE.test(l) && !isTraceLine(l));
 }
