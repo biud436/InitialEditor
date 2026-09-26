@@ -68,7 +68,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await openSample(page);
     const mod = await primaryKey(page);
     await expect(page.getByTestId("hierarchy")).toContainText("씬을 열면 여기에 오브젝트가 보인다");
-    const path = await newScene(page, "stage1");
+    await newScene(page, "stage1");
     const hierarchy = page.getByTestId("hierarchy");
     await expect(hierarchy).toContainText("그리기 순서: 위가 먼저");
     await expect(page.getByTestId("inspector")).toContainText("오브젝트 0개");

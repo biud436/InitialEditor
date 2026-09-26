@@ -1,0 +1,15 @@
+// e2e 스펙과 도우미 (yarn typecheck). 도우미 단위 테스트가 앱 소스(playHere, RunnerStore)를 불러오므로 앱과 같은 jsx와 vite 타입을 쓴다
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "allowImportingTsExtensions": true
+  },
+  "include": ["e2e", "../packages/app/src/vite-env.d.ts"]
+}
