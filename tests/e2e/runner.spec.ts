@@ -4,6 +4,8 @@
 // 진짜 엔진 프로세스와의 핫 리로드는 scripts/e2e-engine-hotreload.mjs (yarn test:engine).
 
 import { expect, test, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 const LAYOUT_KEY = "initial-editor.layout";
 
@@ -36,7 +38,8 @@ test.describe("실행기 (메모리 모드)", () => {
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await expect(engine).toHaveText("엔진 (에디터 안): 대기");
-    await expect(engine).toHaveAttribute("title", /기능 lua wasm, 엔진 커밋 [0-9a-f]{7}/);
+    const manifest = JSON.parse(readFileSync(path.resolve("packages/app/public/engine/MANIFEST.json"), "utf8")) as { features: string[]; engineCommit: string };
+    await expect(engine).toHaveAttribute("title", new RegExp(`기능 ${manifest.features.join(" ")}, 엔진 커밋 ${manifest.engineCommit.slice(0, 7)}`));
     await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다");
     // 실행 전이라 정지는 꺼져 있고 실행 표시도 없다
     const toolbar = page.getByTestId("toolbar");
