@@ -20,6 +20,14 @@ This project allows you to edit multi dimensional tile map on my own game engine
 
 <img width="1392" alt="image" src="https://user-images.githubusercontent.com/13586185/189561657-2fb02462-0f7e-47ab-bc35-dab68e3a395f.png">
 
+## Roadmap
+
+The next version of this editor is planned in [docs/plans/index.md](./docs/plans/index.md) (Korean):
+a Tauri 2 desktop shell on the existing TypeScript + React stack, a genre-neutral scene editor with
+tilemap as an extension, script editing with hot reload, and a play button that runs the game either
+as the Initial2D executable or inside the editor. The engine-side work it depends on is tracked in
+the Initial2D repository's `docs/plans/index.md`.
+
 ## How to start (New way)
 
 you have to run the following command in the terminal.
