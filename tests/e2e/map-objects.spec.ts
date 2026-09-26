@@ -3,8 +3,10 @@
 // 오브젝트 셋(start, slime_1, sign_1)이 든 resources/maps/sample.json이 있다.
 // 흐름: 맵 열기 → 묶음과 수 → 몬스터 고르기와 종 바꾸기 → 순찰 범위 → 흔적 추가 → 여러 줄 한글 글 저장 →
 //       겹치는 id 거부 → 삭제와 되돌리기 → 뒤집힌 범위의 검사 결과 → 여기서 실행은 브라우저 모드에서 꺼져 있다.
+// 둘째 테스트: 스키마의 play.maps에 맞지 않는 맵에서는 여기서 실행이 꺼지고 이유를 보인다 (러너는 감싸서 띄운 척한다).
 
 import { expect, test, type Page } from "@playwright/test";
+import { captureRunStarts, restoreRunner, runStarts } from "./support/editorPage";
 
 const LAYOUT_KEY = "initial-editor.layout";
 const MAP_PATH = "resources/maps/sample.json";
@@ -22,7 +24,7 @@ type EditorLike = {
       undo: { depth: number };
     } | null;
   };
-  backend: { readText(p: string): Promise<string> };
+  backend: { readText(p: string): Promise<string>; writeText(p: string, text: string): Promise<void> };
   commands: { isEnabled(id: string): boolean };
   commandHint(id: string): string | undefined;
   commandLabel(id: string): string;
@@ -201,5 +203,44 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     await page.keyboard.press("Escape");
     expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere")])).toEqual([false, BROWSER_NO_RUN]);
     expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene"), e.commandLabel("run.fromScene")])).toEqual([false, BROWSER_NO_RUN, "여기서 실행 (맵)"]);
+  });
+
+  test("여기서 실행: 스키마의 play.maps에 맞지 않는 맵은 꺼지고 이유를 보이며, 맞는 맵은 그 맵으로 띄운다", async ({ page }) => {
+    await openSampleMap(page);
+    await captureRunStarts(page);
+    // 샘플 스키마에 play.maps를 더한다 (파일이 바뀌면 스키마 저장소가 다시 읽는다)
+    await withEditor(page, async (e) => {
+      const path = "resources/schema/map-objects.json";
+      const schema = JSON.parse(await e.backend.readText(path));
+      schema.play.maps = ["meadow*"];
+      await e.backend.writeText(path, JSON.stringify(schema, null, 2));
+    });
+    const reason = "맵 sample은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: meadow*";
+    await expect.poll(() => withEditor(page, (e) => e.commandHint("map.playHere"))).toBe(reason);
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene")])).toEqual([false, false, reason]);
+
+    // 메뉴 항목이 꺼져 있고 이유가 툴팁에 있다
+    const branch = (await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).count()) > 0 ? "맵" : "실행";
+    await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
+    const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
+    await expect(playHere).toBeDisabled();
+    await expect(playHere).toHaveAttribute("title", reason);
+    await page.keyboard.press("Escape");
+    // Ctrl+F5도 띄우지 않는다
+    await page.getByTestId("map-view").filter({ visible: true }).locator(".map-view-host").focus();
+    await page.keyboard.press("ControlOrMeta+F5");
+    expect(await runStarts(page)).toEqual([]);
+
+    // 맞는 맵(meadow)에서는 켜지고 그 맵의 이름으로 띄운다
+    await page.getByTestId("project-tree").locator('[data-path="resources/maps/meadow.json"]').dblclick();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await expect.poll(() => withEditor(page, (e) => e.commands.isEnabled("map.playHere"))).toBe(true);
+    expect(await withEditor(page, (e) => e.commandHint("map.playHere"))).not.toContain("play.maps");
+    await page.getByTestId("map-view").filter({ visible: true }).locator(".map-view-host").focus();
+    await page.keyboard.press("ControlOrMeta+F5");
+    await expect.poll(async () => (await runStarts(page)).length).toBe(1);
+    const [started] = await runStarts(page);
+    expect(started.env).toMatchObject({ INITIAL2D_SCENE: "main", INITIAL2D_SAMPLE_MAP: "meadow" });
+    await restoreRunner(page);
   });
 });

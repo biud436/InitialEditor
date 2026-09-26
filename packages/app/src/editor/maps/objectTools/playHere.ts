@@ -1,5 +1,6 @@
 // 여기서 실행: 활성 맵의 한 자리에서 엔진을 띄운다. 환경 변수는 스키마의 play.env가 정하고
 // ({map.name}, {map.file}, {x}, {y}), 러너의 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT) 뒤에 덧씌운다.
+// 스키마에 play.maps가 있으면 그 글롭에 맞는 맵에서만 켜진다 (다른 맵이면 꺼지고 이유를 안내한다).
 // 위치 규칙은 rules.ts의 playPosition이다. 커서는 이 맵의 뷰에 남은 것만 쓴다.
 // 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
 
@@ -8,7 +9,7 @@ import type { MapDocument, MapObjectSchema } from "@initial-editor/ext-tilemap/m
 import type { ConfirmOptions } from "../../modals";
 import { asMapDocument } from "../schemaStore";
 import { cursorOf, geometryOf, mapSupportOf, viewCenterOf, type MapObjectHost } from "./actions";
-import { buildPlayEnv, mapNameFor, NO_PLAY_HINT, PLAY_POSITION_RULE, PLAY_SOURCE_LABELS, playPosition, type PlayPosition, type Point } from "./rules";
+import { buildPlayEnv, mapNameFor, NO_PLAY_HINT, PLAY_POSITION_RULE, PLAY_SOURCE_LABELS, playMapRefusal, playPosition, type PlayPosition, type Point } from "./rules";
 
 const LOG = "maps";
 export const NEED_MAP_TAB = `맵 탭이 활성일 때 그 맵에서 실행한다. ${PLAY_POSITION_RULE}`;
@@ -39,7 +40,10 @@ export function playHereHint(host: PlayHost): string | undefined {
   if (reason) return reason;
   const doc = activeMapOf(host);
   if (!doc) return NEED_MAP_TAB;
-  if (!schemaOf(host, doc)?.play) return NO_PLAY_HINT;
+  const schema = schemaOf(host, doc);
+  if (!schema?.play) return NO_PLAY_HINT;
+  const refusal = playMapRefusal(schema, { name: doc.model.name, path: doc.path });
+  if (refusal) return refusal;
   return host.runner.startHint;
 }
 

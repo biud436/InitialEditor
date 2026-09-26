@@ -8,6 +8,7 @@ import {
   PLAY_POSITION_RULE,
   planDuplicate,
   planNewObject,
+  playMapRefusal,
   playPosition,
   rangeAround,
   rangeFields,
@@ -234,6 +235,21 @@ describe("여기서 실행", () => {
     });
     expect(buildPlayEnv({ ...SCHEMA, play: null }, { name: "forest", path: null }, { x: 0, y: 0 })).toBeNull();
     expect(buildPlayEnv(null, { name: "forest", path: null }, { x: 0, y: 0 })).toBeNull();
+  });
+
+  it("play.maps: 맞는 맵이나 목록이 없으면 null, 맞지 않으면 맵 이름과 목록을 든 이유", () => {
+    const listed = { ...SCHEMA, play: { env: { STAGE: "{map.name}" }, maps: ["aldebaran_*", "boss?"] } };
+    expect(playMapRefusal(listed, { name: "aldebaran_forest", path: "resources/maps/aldebaran_forest.json" })).toBeNull();
+    expect(playMapRefusal(listed, { name: "boss1", path: null })).toBeNull();
+    expect(playMapRefusal(listed, { name: "vm_a", path: "resources/maps/vm_a.json" })).toBe("맵 vm_a은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*, boss?");
+    expect(playMapRefusal(listed, { name: "항구 마을", path: "resources/maps/port_town.json" })).toContain("맵 항구 마을은(는)");
+    // 파일의 name이 비었으면 {map.name}과 같이 파일 이름으로 본다
+    expect(playMapRefusal(listed, { name: "", path: "resources/maps/aldebaran_tomb.json" })).toBeNull();
+    expect(playMapRefusal({ ...listed, play: { env: {}, maps: [] } }, { name: "a", path: null })).toBe("맵 a은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: 비었다");
+    // 목록이 없거나 play나 스키마가 없으면 이 규칙은 막지 않는다
+    expect(playMapRefusal({ ...SCHEMA, play: { env: {} } }, { name: "vm_a", path: null })).toBeNull();
+    expect(playMapRefusal({ ...SCHEMA, play: null }, { name: "vm_a", path: null })).toBeNull();
+    expect(playMapRefusal(null, { name: "vm_a", path: null })).toBeNull();
   });
 
   it("맵 이름이 비었으면 파일 이름에서 .json 을 뺀 것", () => {

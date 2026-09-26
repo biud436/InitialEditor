@@ -4,11 +4,12 @@
 //   - 새 오브젝트: unique 타입 거부, defaultProps, 띠와 사각형의 기본 크기, 겹치지 않는 id,
 //     범위 칸(rangeMin/rangeMax)은 스키마 기본값이 없으면 x 기준 ±PATROL_RADIUS
 //   - 복제: 새 id, 16px 옆(순찰 범위도 같이), unique 타입은 건너뛴다
-//   - 여기서 실행의 위치(맵 안으로 자른다)와 환경 변수
+//   - 여기서 실행의 위치(맵 안으로 자른다)와 환경 변수, play.maps가 받지 않는 맵의 이유
 
 import {
   cloneObject,
   defaultProps,
+  playAllowsMap,
   playEnv,
   shiftObject,
   typeOf,
@@ -249,6 +250,16 @@ export function mapNameFor(name: string, path: string | null): string {
 export function buildPlayEnv(schema: MapObjectSchema | null, map: { name: string; path: string | null }, at: Point): Record<string, string> | null {
   if (!schema?.play) return null;
   return playEnv(schema, { mapName: mapNameFor(map.name, map.path), mapFile: map.path ?? "", x: at.x, y: at.y });
+}
+
+/** 스키마의 play.maps가 이 맵을 받지 않으면 그 이유. 받거나 play.maps가 없으면 null */
+export function playMapRefusal(schema: MapObjectSchema | null, map: { name: string; path: string | null }): string | null {
+  const play = schema?.play;
+  if (!play?.maps) return null;
+  const name = mapNameFor(map.name, map.path);
+  if (playAllowsMap(play, name)) return null;
+  const list = play.maps.length > 0 ? play.maps.join(", ") : "비었다";
+  return `맵 ${name || "(이름 없음)"}은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: ${list}`;
 }
 
 export const NO_PLAY_HINT = '스키마에 play 가 없다. resources/schema/map-objects.json 에 "play": { "env": { "INITIAL2D_SCENE": "...", "변수": "{map.name}", "위치": "{x}" } } 를 더하면 켜진다';

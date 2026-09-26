@@ -17,8 +17,12 @@
 //     { "type": "landmark", "label": "흔적", "shape": "band", "defaultWidth": 48,
 //       "fields": [ { "name": "text", "type": "text" } ] }
 //   ],
-//   "play": { "env": { "INITIAL2D_ALDEBARAN_STAGE": "{map.name}", "INITIAL2D_ALDEBARAN_START": "{x},{y}" } }
+//   "play": { "env": { "INITIAL2D_ALDEBARAN_STAGE": "{map.name}", "INITIAL2D_ALDEBARAN_START": "{x},{y}" },
+//             "maps": ["aldebaran_*"] }
 // }
+//
+// play.maps는 여기서 실행을 켤 맵 이름의 글롭 목록이다 (*는 아무 글자열, ?는 한 글자). 맵 이름은 {map.name}에 들어가는 값이다.
+// 없으면 모든 맵에서 켜진다.
 
 import type { MapObject } from "./format";
 
@@ -57,6 +61,8 @@ export interface ObjectTypeSchema {
 export interface PlaySpec {
   /** 값 안의 {map.name}, {map.file}, {x}, {y} 를 채운다 */
   env: Record<string, string>;
+  /** 여기서 실행을 켤 맵 이름의 글롭. 없으면 모든 맵 */
+  maps?: string[];
 }
 
 export interface MapObjectSchema {
@@ -116,13 +122,19 @@ export function parseObjectSchema(text: string): MapObjectSchema {
       fields,
     };
   });
-  let play: PlaySpec | null = null;
-  if (isRecord(raw.play) && isRecord(raw.play.env)) {
-    const env: Record<string, string> = {};
-    for (const [k, v] of Object.entries(raw.play.env)) if (typeof v === "string") env[k] = v;
-    play = { env };
+  return { version: 1, types, play: parsePlay(raw.play) };
+}
+
+/** play 칸: env가 객체일 때만 있다. maps는 비지 않은 글의 배열이어야 한다 */
+function parsePlay(raw: unknown): PlaySpec | null {
+  if (!isRecord(raw) || !isRecord(raw.env)) return null;
+  const env: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw.env)) if (typeof v === "string") env[k] = v;
+  if (raw.maps === undefined) return { env };
+  if (!Array.isArray(raw.maps) || raw.maps.some((m) => typeof m !== "string" || m.trim() === "")) {
+    throw new SchemaError("play.maps는 맵 이름 글롭(비지 않은 글)의 배열이어야 한다");
   }
-  return { version: 1, types, play };
+  return { env, maps: raw.maps as string[] };
 }
 
 function parseField(f: unknown, where: string): FieldSpec {
@@ -249,4 +261,17 @@ export function playEnv(schema: MapObjectSchema | null, vars: { mapName: string;
       .replaceAll("{y}", String(Math.round(vars.y)));
   }
   return out;
+}
+
+/** 맵 이름이 글롭에 맞는가. * 는 아무 글자열(빈 것도), ? 는 한 글자, 나머지는 그대로 (대소문자를 가린다) */
+export function matchesMapGlob(pattern: string, name: string): boolean {
+  const source = [...pattern].map((c) => (c === "*" ? ".*" : c === "?" ? "." : c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))).join("");
+  return new RegExp(`^${source}$`, "su").test(name);
+}
+
+/** 이 맵에서 여기서 실행을 켜는가. play가 없으면 false, play.maps가 없으면 모든 맵 */
+export function playAllowsMap(play: PlaySpec | null | undefined, mapName: string): boolean {
+  if (!play) return false;
+  if (!play.maps) return true;
+  return play.maps.some((p) => matchesMapGlob(p, mapName));
 }

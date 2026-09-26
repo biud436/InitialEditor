@@ -227,6 +227,29 @@ describe("여기서 실행", () => {
     expect(playHereHint(noEngine.host)).toBe("엔진을 찾지 못했다");
   });
 
+  it("play.maps에 맞지 않는 맵이면 꺼지고 이유를 알리며, 맞는 맵이면 켜진다", async () => {
+    const only = (maps: string[]) => ({ ...SCHEMA, play: { ...SCHEMA.play!, maps } });
+    const other = await fake({ schema: only(["aldebaran_*"]) });
+    const reason = "맵 forest은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*";
+    expect(playHereHint(other.host)).toBe(reason);
+    expect(await playHere(other.host)).toBe(false);
+    expect(other.toasts).toEqual([`warn: ${reason}`]);
+    expect(other.starts).toEqual([]);
+    expect(other.confirms).toEqual([]);
+
+    const match = await fake({ schema: only(["aldebaran_*", "for?st"]) });
+    expect(playHereHint(match.host)).toBeUndefined();
+    expect(await playHere(match.host)).toBe(true);
+    expect(match.starts[0].env?.INITIAL2D_ALDEBARAN_STAGE).toBe("forest");
+
+    // 러너가 못 띄우면 그 이유가 먼저다
+    const browser = await fake({ reason: "브라우저 모드에서는 엔진을 띄울 수 없다", schema: only(["aldebaran_*"]) });
+    expect(playHereHint(browser.host)).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    // 저장소의 스키마로 볼 때도 같다
+    const fromStore = await fake({ schema: null });
+    expect(playHereHint({ ...fromStore.host, mapSchema: { current: only(["aldebaran_*"]) } })).toBe(reason);
+  });
+
   it("문서에 스키마가 아직 없으면 저장소의 스키마를 쓴다", async () => {
     const f = await fake({ schema: null });
     const host: PlayHost = { ...f.host, mapSchema: { current: SCHEMA } };
