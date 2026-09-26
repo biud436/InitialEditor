@@ -190,6 +190,9 @@ export class BridgeBackend implements ProjectBackend {
   }
 
   whenWatching(timeoutMs = 5000): Promise<void> {
+    if (typeof WebSocket === "undefined") {
+      return Promise.reject(new BackendError("이 실행 환경에는 WebSocket 이 없어 변경 알림을 받을 수 없다 (브라우저나 Node 22 이상이 필요하다)", "unsupported"));
+    }
     if (this.socketReady || this.watchers.size === 0) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
