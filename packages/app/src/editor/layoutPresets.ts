@@ -3,7 +3,7 @@
 
 import type { AddPanelOptions, DockviewApi } from "dockview";
 
-export const PANEL_IDS = ["hierarchy", "project", "inspector", "extensions", "console"] as const;
+export const PANEL_IDS = ["hierarchy", "project", "inspector", "extensions", "console", "find"] as const;
 export type PanelId = (typeof PANEL_IDS)[number];
 
 export const PANEL_TITLES: Record<PanelId, string> = {
@@ -12,6 +12,7 @@ export const PANEL_TITLES: Record<PanelId, string> = {
   inspector: "인스펙터",
   extensions: "확장 패널",
   console: "콘솔",
+  find: "찾기",
 };
 
 export type PresetName = "scene" | "script" | "tilemap";
@@ -59,6 +60,10 @@ export function defaultPlacement(api: DockviewApi, id: PanelId): Placement {
       if (has("inspector")) return { referencePanel: "inspector", direction: "below" };
       return doc ? { referencePanel: doc, direction: "right" } : { direction: "right" };
     case "console":
+      return doc ? { referencePanel: doc, direction: "below" } : { direction: "below" };
+    case "find":
+      // 프로젝트 찾기(E1)는 콘솔 옆 탭으로. 콘솔이 없으면 문서 아래
+      if (has("console")) return { referencePanel: "console", direction: "within" };
       return doc ? { referencePanel: doc, direction: "below" } : { direction: "below" };
   }
 }

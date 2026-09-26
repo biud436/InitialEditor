@@ -15,6 +15,14 @@ export interface EditorSettings {
   recentProjects: string[];
   /** 브라우저 모드의 브리지 URL */
   bridgeUrl: string;
+  /** 스크립트 편집기(Monaco)의 글꼴 크기 (px) */
+  editorFontSize: number;
+  /** 스크립트 편집기의 탭 크기 (칸) */
+  editorTabSize: number;
+  /** 스크립트 편집기의 자동 줄바꿈 */
+  editorWordWrap: boolean;
+  /** 스크립트 편집기의 미니맵 */
+  editorMinimap: boolean;
 }
 
 export const DEFAULT_SETTINGS: EditorSettings = {
@@ -23,7 +31,19 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   reloadOnSave: true,
   recentProjects: [],
   bridgeUrl: "http://127.0.0.1:5960",
+  editorFontSize: 13,
+  editorTabSize: 2,
+  editorWordWrap: false,
+  editorMinimap: false,
 };
+
+export const EDITOR_FONT_SIZE_RANGE = { min: 8, max: 40 } as const;
+export const EDITOR_TAB_SIZE_RANGE = { min: 1, max: 8 } as const;
+
+function clampInt(value: unknown, min: number, max: number, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
 
 export interface SettingsStorage {
   load(): Promise<Partial<EditorSettings> | null>;
@@ -58,6 +78,10 @@ export class SettingsStore {
     const next: EditorSettings = { ...this.settings, ...patch };
     if (!["system", "dark", "light"].includes(next.theme)) next.theme = "system";
     if (!Array.isArray(next.recentProjects)) next.recentProjects = [];
+    next.editorFontSize = clampInt(next.editorFontSize, EDITOR_FONT_SIZE_RANGE.min, EDITOR_FONT_SIZE_RANGE.max, DEFAULT_SETTINGS.editorFontSize);
+    next.editorTabSize = clampInt(next.editorTabSize, EDITOR_TAB_SIZE_RANGE.min, EDITOR_TAB_SIZE_RANGE.max, DEFAULT_SETTINGS.editorTabSize);
+    next.editorWordWrap = !!next.editorWordWrap;
+    next.editorMinimap = !!next.editorMinimap;
     this.settings = next;
     if (persist) void this.persist();
   }

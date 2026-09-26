@@ -56,6 +56,32 @@
   font-size: 12px;
 }
 
+/* 실행 중 표시: 초록 점, PID, 경과 시간 */
+.toolbar-running {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding: 0 8px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--badge-bg);
+  color: var(--fg);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.toolbar-running.starting .toolbar-dot {
+  background: var(--warning);
+}
+
 .toolbar-field {
   display: inline-flex;
   align-items: center;

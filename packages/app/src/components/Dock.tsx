@@ -12,6 +12,7 @@ import { DocumentPanel } from "./panels/DocumentPanel";
 import { DocumentTab } from "./DocumentTab";
 import { ConsolePanel } from "./panels/ConsolePanel";
 import { ExtensionsPanel } from "./panels/ExtensionsPanel";
+import { FindPanel } from "./panels/FindPanel";
 import { HierarchyPanel } from "./panels/HierarchyPanel";
 import { InspectorPanel } from "./panels/InspectorPanel";
 import { ProjectPanel } from "./panels/ProjectPanel";
@@ -26,6 +27,7 @@ const components: Record<string, FunctionComponent<IDockviewPanelProps>> = {
   inspector: InspectorPanel,
   extensions: ExtensionsPanel,
   console: ConsolePanel,
+  find: FindPanel,
   [DOCUMENT_COMPONENT]: DocumentPanel,
 };
 

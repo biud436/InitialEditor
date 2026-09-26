@@ -34,10 +34,23 @@ export function parseQuery(search: string): StartupQuery {
   };
 }
 
-export function chooseMode(query: StartupQuery, env: { VITE_DEFAULT_BACKEND?: string } = {}, tauri = isTauri()): BackendMode {
+/** 브리지 서버(127.0.0.1)에 닿을 수 있는 곳에서 열렸는가. 배포된 페이지(Cloudflare Pages 등)는 아니다 */
+export function isLocalHost(hostname: string): boolean {
+  return hostname === "" || hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]" || hostname === "::1";
+}
+
+export function chooseMode(
+  query: StartupQuery,
+  env: { VITE_DEFAULT_BACKEND?: string } = {},
+  tauri = isTauri(),
+  hostname: string = typeof location !== "undefined" ? location.hostname : "",
+): BackendMode {
   if (tauri) return "tauri";
   const wanted = query.backend ?? env.VITE_DEFAULT_BACKEND;
-  return wanted === "memory" ? "memory" : "bridge";
+  if (wanted === "memory") return "memory";
+  if (wanted === "bridge") return "bridge";
+  // 명시가 없으면: 로컬에서 띄운 페이지만 브리지에 닿는다. 밖에 배포된 페이지는 서버 없이 도는 메모리 모드
+  return isLocalHost(hostname) ? "bridge" : "memory";
 }
 
 export function createSettingsStorage(mode: BackendMode): SettingsStorage {

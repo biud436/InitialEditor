@@ -58,6 +58,7 @@ test.describe("브리지 모드", () => {
     await expect(tree.locator('[data-path="scripts/lua"]')).toBeVisible();
     await tree.locator('[data-path="scripts/lua"]').click();
     await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
-    await expect(page.getByTestId("text-preview")).toContainText("function init()");
+    // E1 부터 스크립트는 Monaco 편집기로 열린다
+    await expect(page.locator(".monaco-editor .view-lines")).toContainText("function init()");
   });
 });
