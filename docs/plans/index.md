@@ -123,7 +123,7 @@ E2의 씬 포맷, E4의 파일 스테이징)는 Fable 5.
 
 | 단계 | 상태 | 마지막 갱신 | 메모 |
 |---|---|---|---|
-| E0. 토대 | ⬜ 대기 | 2026-09-26 | 계획만 있다. 시작 조건: Rust 툴체인 갱신(설치된 1.61은 2022년판, Tauri 2는 더 새 버전이 필요하다) |
+| E0. 토대 | ✅ 완료 | 2026-09-26 | 완료 기준 6개 충족 (Tauri 창의 폴더 선택과 화면은 저자 확인 필요). 워크스페이스를 `core`, `backend-bridge`, `backend-tauri`, `app`, `ext-tilemap`, `src-tauri` 로 재편하고 옛 패키지는 `legacy/`(테스트 23건과 빌드 그대로). 코어(백엔드 계약, 경로, 문서와 되돌리기, 커맨드와 단축키, 메뉴, 확장 API, 프로젝트, 로그, 설정, UTF-8) 단위 48건. 브리지 백엔드는 엔진 브리지 0.2.0(PR #38: 폴더 API, `game.json`, `.rb` 리로드, 변경 종류)에 기대며 적합성 14건이 메모리와 브리지 양쪽 통과. Rust 셸은 명령 18개(표 + `project_close`, `startup_open_path`), `cargo test` 38건(원자 쓰기 경쟁, 심링크 탈출, I2DH 픽스처가 엔진 인코더와 바이트 일치, notify 감시의 self/external). React 셸은 dockview 패널 여섯과 프리셋 셋, HTML 메뉴 바와 Tauri 네이티브 메뉴가 같은 커맨드 레지스트리에서, 프로젝트 트리와 콘솔과 상태 바와 토스트와 모달, 미리보기 문서 셋, 테마 토큰과 색 리터럴 검사. 검수: 타입과 린트, Vitest 69건, Playwright 6건(메모리 5, 브리지 1), `yarn tauri build --debug` 로 .app 과 .dmg, 빌드한 앱이 임시 프로젝트를 열어 레이아웃 파일을 쓰는 것까지. **배운 것** 은 e0 문서 구현 노트 (Yarn 은 Berry, Vitest 하나, `TextEncoder` 대신 UTF-8 코덱, 절대 경로 거부, Tailwind 제외, Berry 의 `yarn workspace <옛 패키지> run` 문제). **남은 것**: Windows 와 Linux 는 E1 과 E6 에서, CI 의 GitHub 첫 실행은 PR 에서 본다 |
 | E1. 스크립트 워크플로우와 실행 | ⬜ 대기 | 2026-09-26 | 옛 `LuaEditor.tsx`의 정책을 그대로 가져온다 |
 | E2. 씬과 오브젝트 | ⬜ 대기 | 2026-09-26 | R1(엔진 씬 로더)과 포맷을 함께 정한다. 픽스처는 엔진 저장소에 둔다 |
 | E3. 타일맵 확장 | ⬜ 대기 | 2026-09-26 | 엔진 `12-editor-events.md` 마일스톤 1(v2 열고 `events` 보존)을 여기서 먼저 한다 |

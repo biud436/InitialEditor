@@ -1,0 +1,33 @@
+{
+  "name": "@initial-editor/app",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "React 셸: 도킹, 패널, 메뉴, 단축키, 테마. 브라우저와 Tauri 두 모드",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@initial-editor/backend-bridge": "2.0.0-dev",
+    "@initial-editor/backend-tauri": "2.0.0-dev",
+    "@initial-editor/core": "2.0.0-dev",
+    "@initial-editor/ext-tilemap": "2.0.0-dev",
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "^2.0.0",
+    "dockview": "^4.0.0",
+    "mobx": "^6.13.0",
+    "mobx-react-lite": "^4.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "vite": "^6.0.0"
+  }
+}

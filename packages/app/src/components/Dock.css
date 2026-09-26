@@ -1,0 +1,100 @@
+.dock {
+  width: 100%;
+  height: 100%;
+}
+
+/* 문서 탭 (DocumentTab.tsx) */
+.doc-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 6px 0 10px;
+}
+
+.doc-tab-title {
+  white-space: nowrap;
+}
+
+.doc-tab-dirty,
+.doc-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg-muted);
+  padding: 0;
+}
+
+.doc-tab-dirty {
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.doc-tab-close:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.doc-tab.is-dirty .doc-tab-close {
+  display: none;
+}
+
+.doc-tab.is-dirty:hover .doc-tab-close {
+  display: inline-flex;
+}
+
+.doc-tab.is-dirty:hover .doc-tab-dirty {
+  display: none;
+}
+
+/* 문서 본문 */
+.document {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-panel);
+}
+
+.document-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.doc-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--warning);
+  border-left: 4px solid var(--warning);
+}
+
+.doc-banner span {
+  flex: 1;
+}
+
+.doc-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.doc-header-path {
+  color: var(--fg);
+  font-family: var(--font-mono);
+}
+
+.doc-header-spacer {
+  flex: 1;
+}
