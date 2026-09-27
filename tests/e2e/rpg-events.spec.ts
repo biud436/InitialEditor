@@ -13,6 +13,9 @@
 //               game.json 이 mruby 여도 RPG 실행은 play.env 의 INITIAL2D_SCRIPT=lua 로 뜬다 (언어 검사는 덧씌운 값으로 한다).
 //               씬을 바꾸는 배(ship)의 자동 재생은 새 게임으로 다시 시작하는 자리에서 러너가 멈추고 이유를 콘솔과 알림에 남긴다.
 //               이 판은 rpg-game.json의 play에서 INITIAL2D_RPG_TRACE를 빼고 돈다: 지켜보는 줄은 에디터가 자동 재생에 늘 넣는 trace로 나온다.
+//   브리지 모드의 레이아웃: RPG 프로젝트에서 타일맵 레이아웃(이벤트 탭)을 지은 뒤 같은 브라우저의 메모리 모드에서 RPG 스키마가 없는
+//               샘플 프로젝트를 열면 브라우저 저장소에서 되살린 레이아웃에 이벤트 탭이 없다. RPG 프로젝트로 돌아오면 그 프로젝트의
+//               layout.json 에서 이벤트 탭이 되살아난다.
 
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -360,5 +363,66 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     expect(lines).toContain("rpg:message:|배는 저녁 물때에 항구를 떠났다.");
     expect(lines).not.toContain("rpg:route:done");
     expect(lines.filter((l) => l.startsWith("rpg:error"))).toEqual([]);
+  });
+});
+
+test.describe("RPG 이벤트 (브리지 모드, 레이아웃)", () => {
+  test.skip(!hasEngineRepo, `엔진 저장소가 없거나 M2 전이다: ${engineDir} (INITIAL2D_DIR 로 위치를 준다)`);
+
+  let bridge: Bridge | null = null;
+  let projectDir = "";
+
+  test.beforeAll(async () => {
+    projectDir = copyEngineProject("lua");
+    bridge = await startBridge({ serverScript, project: projectDir, port: BRIDGE_PORT });
+  });
+
+  test.afterAll(async () => {
+    await bridge?.stop();
+    bridge = null;
+    if (projectDir && process.env.KEEP_WORKDIR !== "1") rmSync(projectDir, { recursive: true, force: true });
+  });
+
+  test("RPG 프로젝트의 이벤트 탭은 스키마 없는 프로젝트의 되살린 레이아웃에서 빠지고, RPG 프로젝트의 layout.json 에는 남는다", async ({ page }) => {
+    test.setTimeout(120_000);
+    const layoutFile = path.join(projectDir, ".initial-editor", "layout.json");
+    const savedLayout = () => (existsSync(layoutFile) ? readFileSync(layoutFile, "utf8") : "");
+    const eventsOpen = () => ev<boolean>(page, "(e) => e.layout.isPanelOpen('ext:rpg.events')");
+    const bridgeUrl = `/?backend=bridge&url=${encodeURIComponent(bridge!.url)}`;
+
+    await page.goto(bridgeUrl);
+    await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
+    await page.reload();
+    await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible({ timeout: 15_000 });
+    await waitRpgLoaded(page);
+    await openMap(page, PORT, "port_town.json");
+    await ev(page, "(e) => e.commands.execute('window.layout.tilemap')");
+    await expect.poll(eventsOpen).toBe(true);
+    await expect.poll(savedLayout).toContain("ext:rpg.events");
+    await expect.poll(() => page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).toContain("ext:rpg.events");
+
+    // 같은 브라우저의 메모리 모드: 샘플 프로젝트에는 layout.json 이 없어 브라우저 저장소의 레이아웃을 되살린다
+    await page.goto("/?backend=memory");
+    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    // 되살린 타일맵 레이아웃에서는 프로젝트 트리가 가려진 탭일 수 있어 프로젝트가 열렸는지로 기다린다
+    await expect.poll(() => ev<boolean>(page, "(e) => e.project.isOpen")).toBe(true);
+    await openMap(page, MEADOW, "meadow.json");
+    await expect.poll(() => ev<boolean>(page, "(e) => e.extensions.exportsOf('rpg').store.loaded")).toBe(true);
+    await expect.poll(eventsOpen).toBe(false);
+    await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
+    await expect(page.locator(".dv-tab").filter({ hasText: /^이벤트$/ })).toHaveCount(0);
+    await expect(page.getByText("이 맵에는 이벤트 레이어가 없다")).toHaveCount(0);
+    // 사용자가 닫은 것이 아니다. 나머지 타일맵 레이아웃은 그대로다
+    expect(await ev<boolean>(page, "(e) => e.layout.userClosed.has('ext:rpg.events')")).toBe(false);
+    expect(await ev<boolean>(page, "(e) => e.layout.isPanelOpen('mapLayers')")).toBe(true);
+
+    // RPG 프로젝트로 돌아오면 그 프로젝트의 layout.json 에서 이벤트 탭이 되살아난다
+    await page.goto(bridgeUrl);
+    await expect.poll(() => ev<boolean>(page, "(e) => e.project.isOpen"), { timeout: 15_000 }).toBe(true);
+    await waitRpgLoaded(page);
+    await expect.poll(eventsOpen).toBe(true);
+    await expect(page.getByTestId("rpg-events-panel")).toHaveCount(1);
+    await page.waitForTimeout(1_000);
+    expect(savedLayout()).toContain("ext:rpg.events");
   });
 });

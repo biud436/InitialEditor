@@ -33,7 +33,7 @@ export function registerExtensionPanelCommands(host: ExtensionPanelHost): () => 
         id: commandId,
         label: spec.title,
         category: "window",
-        visible: spec.visible ? () => spec.visible!() : undefined,
+        visible: spec.visible ? () => spec.visible!() === true : undefined,
         run: () => host.layout.togglePanel(dockId),
       });
       host.setChecked(commandId, () => host.layout.isPanelOpen(dockId));

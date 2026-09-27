@@ -1,12 +1,13 @@
 // 도킹 레이아웃 상태: dockview api를 쥐고 저장과 복원과 프리셋과 패널 토글을 맡는다.
 // 저장은 layoutPersistence.ts, 프리셋은 layoutPresets.ts, 문서 탭 동기화는 documentDock.ts.
-// 확장 패널(ext:<id>)도 도구 패널이다: 창 메뉴로 켜고 끄고, 레이아웃이 기억한다. 되살린 레이아웃에 등록되지 않은
-// 확장의 패널이 있으면 뺀다 (그 확장이 없다). visible이 거짓인 확장 패널은 새로 열지 않는다 (닫기는 된다).
+// 확장 패널(ext:<id>)도 도구 패널이다: 창 메뉴로 켜고 끄고, 레이아웃이 기억한다. 되살린 레이아웃(프로젝트의 layout.json 이든
+// 브라우저 저장소든)에서 등록되지 않은 확장의 패널과 visible이 거짓인 패널을 뺀다. visible이 아직 모름(undefined)이면 답이 날 때까지
+// 두고 거짓이 되면 뺀다 (그 패널이 보이는 프로젝트의 레이아웃에서는 빠지지 않는다). visible이 거짓인 확장 패널은 새로 열지 않는다 (닫기는 된다).
 
 import type { DockviewApi } from "dockview";
 
 type IDisposable = { dispose(): void };
-import { action, makeObservable, observable, runInAction } from "mobx";
+import { action, comparer, makeObservable, observable, reaction, runInAction } from "mobx";
 import type { DocumentDock } from "./documentDock";
 import { type LayoutJson, type LayoutPersistence, restoreLayout } from "./layoutPersistence";
 import {
@@ -15,6 +16,7 @@ import {
   applyPresetSizes,
   buildPreset,
   extPanelKey,
+  extPanelVisibility,
   firstDocPanelId,
   isBuiltinPanelId,
   isExtPanelId,
@@ -54,6 +56,8 @@ export class LayoutStore {
   readonly userClosed = new Set<string>();
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private disposables: IDisposable[] = [];
+  /** 되살린 레이아웃에서 visible이 아직 모름인 확장 패널을 지켜보는 것. 답이 다 나면 멈춘다 */
+  private stopPending: (() => void) | null = null;
 
   constructor(private readonly deps: LayoutDeps) {
     makeObservable(this, { api: observable.ref, syncOpenPanels: action });
@@ -83,6 +87,7 @@ export class LayoutStore {
   }
 
   detach(): void {
+    this.watchPending([]);
     for (const d of this.disposables) d.dispose();
     this.disposables = [];
     this.deps.documents.detach();
@@ -105,7 +110,7 @@ export class LayoutStore {
         () => buildPreset(api, DEFAULT_PRESET, this.extensionPanels()),
         this.deps.warn,
       );
-      this.dropUnknownExtensionPanels();
+      this.watchPending(this.dropExtensionPanels());
       this.deps.documents.reconcile();
       if (!restored) applyPresetSizes(api, DEFAULT_PRESET);
     });
@@ -169,15 +174,65 @@ export class LayoutStore {
     return this.deps.extensionPanels?.() ?? [];
   }
 
-  /** 되살린 레이아웃에서 등록되지 않은 확장의 패널을 뺀다 */
-  private dropUnknownExtensionPanels(): void {
+  /**
+   * 되살린 레이아웃에서 등록되지 않은 확장의 패널과 visible이 거짓인 패널을 뺀다.
+   * visible이 아직 모름인 패널의 도킹 id 를 돌려준다 (watchPending 이 답을 기다린다)
+   */
+  private dropExtensionPanels(): string[] {
     const api = this.api;
-    if (!api) return;
-    const known = new Set(this.extensionPanels().map((p) => p.id));
+    if (!api) return [];
+    const specs = new Map(this.extensionPanels().map((p) => [p.id, p]));
+    const pending: string[] = [];
     for (const panel of [...api.panels]) {
       const key = extPanelKey(panel.id);
-      if (key !== null && !known.has(key)) api.removePanel(panel);
+      if (key === null) continue;
+      const spec = specs.get(key);
+      const visible = spec ? extPanelVisibility(spec) : false;
+      if (visible === false) api.removePanel(panel);
+      else if (visible === undefined) pending.push(panel.id);
     }
+    return pending;
+  }
+
+  /** 되살린 레이아웃의 visible이 아직 모름인 확장 패널: 거짓이 되면 빼고(사용자의 닫기가 아니다), 참이 되면 둔다 */
+  private watchPending(ids: string[]): void {
+    this.stopPending?.();
+    this.stopPending = null;
+    if (ids.length === 0) return;
+    const waiting = new Set(ids);
+    const decided = () => {
+      const out: Array<[string, boolean]> = [];
+      for (const id of waiting) {
+        const key = extPanelKey(id);
+        const spec = key === null ? undefined : this.extensionPanels().find((p) => p.id === key);
+        const visible = spec ? extPanelVisibility(spec) : false;
+        if (visible !== undefined) out.push([id, visible]);
+      }
+      return out;
+    };
+    this.stopPending = reaction(decided, (answers) => {
+      const api = this.api;
+      if (!api) return;
+      let removed = false;
+      this.withApplying(() => {
+        for (const [id, visible] of answers) {
+          waiting.delete(id);
+          const panel = api.getPanel(id);
+          if (!visible && panel) {
+            api.removePanel(panel);
+            removed = true;
+          }
+        }
+      });
+      if (waiting.size === 0) {
+        this.stopPending?.();
+        this.stopPending = null;
+      }
+      if (removed) {
+        this.syncOpenPanels();
+        this.schedulePersist();
+      }
+    }, { equals: comparer.structural });
   }
 
   /**

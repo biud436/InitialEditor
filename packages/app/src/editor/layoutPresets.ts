@@ -23,12 +23,17 @@ export interface ExtPanelSpec {
   title: string;
   defaultDock?: "left" | "right" | "bottom" | "center";
   presets?: string[];
-  /** 거짓이면 이 프로젝트에 해당하지 않는 패널이다. 생략하면 늘 보인다 */
-  visible?(): boolean;
+  /** 거짓이면 이 프로젝트에 해당하지 않는 패널이다. undefined 는 아직 모른다. 생략하면 늘 보인다 */
+  visible?(): boolean | undefined;
 }
 
-/** 이 프로젝트에서 보이는 확장 패널인가 (visible이 없으면 늘) */
+/** 이 프로젝트에서 보이는 확장 패널인가 (visible이 없으면 늘, 아직 모르면 아니다) */
 export function isExtPanelVisible(spec: Pick<ExtPanelSpec, "visible">): boolean {
+  return spec.visible ? spec.visible() === true : true;
+}
+
+/** 확장 패널이 이 프로젝트에 있는가: 참, 거짓, 아직 모름(undefined) */
+export function extPanelVisibility(spec: Pick<ExtPanelSpec, "visible">): boolean | undefined {
   return spec.visible ? spec.visible() : true;
 }
 

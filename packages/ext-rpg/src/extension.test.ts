@@ -103,6 +103,22 @@ describe("rpgExtension", () => {
     expect(b.registries.panels.get(EVENTS_PANEL_ID)?.visible?.()).toBe(false);
   });
 
+  it("목록 패널의 visible은 프로젝트를 다 읽기 전에는 모름(undefined)이다 (되살린 레이아웃이 패널을 두고 기다린다)", async () => {
+    const withSchema = await boot();
+    const panel = () => withSchema.registries.panels.get(EVENTS_PANEL_ID)!;
+    expect(panel().visible?.()).toBeUndefined();
+    await withSchema.m.open();
+    await vi.waitFor(() => expect(withSchema.rpg.store.loaded).toBe(true));
+    expect(panel().visible?.()).toBe(true);
+    const files = rpgProjectFiles();
+    delete files[EVENT_SCHEMA_PATH];
+    const without = await boot(files);
+    expect(without.registries.panels.get(EVENTS_PANEL_ID)!.visible?.()).toBeUndefined();
+    await without.m.open();
+    await vi.waitFor(() => expect(without.rpg.store.loaded).toBe(true));
+    expect(without.registries.panels.get(EVENTS_PANEL_ID)!.visible?.()).toBe(false);
+  });
+
   it("RPG 프로젝트면 이벤트 명령과 레이어 도구와 목록 패널이 메뉴에 보인다", async () => {
     const b = await boot();
     await b.m.open();

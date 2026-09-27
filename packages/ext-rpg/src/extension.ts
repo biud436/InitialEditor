@@ -102,7 +102,8 @@ export const rpgExtension: Extension = {
       Component: makeEventsPanel({ services, hint: (doc) => layer.hint?.(doc) }),
       defaultDock: "left",
       presets: ["tilemap"],
-      visible: () => store.schemaPresent,
+      // 첫 읽기 전에는 모른다: 되살린 레이아웃이 이 패널을 읽기가 끝날 때까지 둔다
+      visible: () => (store.loaded ? store.schemaPresent : undefined),
     });
     return { store, layer, services };
   },

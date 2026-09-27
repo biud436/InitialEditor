@@ -367,6 +367,44 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
   });
 
+  test("되살린 레이아웃의 이벤트 탭: 브라우저 저장소에서 온 것도 프로젝트의 layout.json 에서 온 것도 스키마가 없으면 빠진다", async ({ page }) => {
+    const eventsOpen = () => ev<boolean>(page, "(e) => e.layout.isPanelOpen('ext:rpg.events')");
+    // RPG 프로젝트(메모리 모드의 픽스처)에서 타일맵 레이아웃을 지어 브라우저 저장소와 프로젝트의 layout.json 에 이벤트 탭을 남긴다
+    await openRpgProject(page);
+    await openMap(page, PORT, "port_town.json");
+    await ev(page, "(e) => e.commands.execute('window.layout.tilemap')");
+    await expect.poll(eventsOpen).toBe(true);
+    await expect.poll(() => page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).toContain("ext:rpg.events");
+    const withEvents = (await page.evaluate((key) => localStorage.getItem(key), LAYOUT_KEY))!;
+
+    // layout.json 길: 스키마를 지우고 프로젝트를 다시 연다 (닫을 때 이벤트 탭이 든 레이아웃을 layout.json 에 쓴다)
+    await ev(page, "(e) => e.backend.remove('resources/schema/event-commands.json')");
+    await expect.poll(() => ev<boolean>(page, "(e) => e.extensions.exportsOf('rpg').store.schemaPresent")).toBe(false);
+    expect(await eventsOpen()).toBe(true);
+    await ev(page, "(e) => e.openProject('memory://sample')");
+    expect(await ev<string>(page, "(e) => e.backend.readText('.initial-editor/layout.json')")).toContain("ext:rpg.events");
+    await expect.poll(() => ev<boolean>(page, "(e) => e.extensions.exportsOf('rpg').store.loaded")).toBe(true);
+    await expect.poll(eventsOpen).toBe(false);
+    await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
+    expect(await ev<boolean>(page, "(e) => e.layout.userClosed.has('ext:rpg.events')")).toBe(false);
+
+    // 브라우저 저장소 길: 저장소에는 이제 이벤트 탭이 없는 레이아웃이 있다. 타일맵 레이아웃을 지은 때의 것(이벤트 탭)으로 되돌려 두고,
+    // 새 메모리 백엔드(스키마 없는 샘플, layout.json 없음)로 연다. 프로젝트를 열기 전(모름)에는 탭을 둔다
+    expect(await page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).not.toContain("ext:rpg.events");
+    await page.goto("/?backend=memory");
+    await page.evaluate(([key, layout]) => localStorage.setItem(key, layout), [LAYOUT_KEY, withEvents] as const);
+    await page.reload();
+    await expect.poll(eventsOpen).toBe(true);
+    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    // 되살린 타일맵 레이아웃에서는 프로젝트 트리가 가려진 탭일 수 있어 프로젝트가 열렸는지로 기다린다
+    await expect.poll(() => ev<boolean>(page, "(e) => e.project.isOpen")).toBe(true);
+    await openMap(page, MEADOW, "meadow.json");
+    await expect.poll(() => ev<boolean>(page, "(e) => e.extensions.exportsOf('rpg').store.loaded")).toBe(true);
+    await expect.poll(eventsOpen).toBe(false);
+    await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
+    await expect(page.getByText("이 맵에는 이벤트 레이어가 없다")).toHaveCount(0);
+  });
+
   test("RPG 프로젝트에서는 같은 항목이 보인다 (대조)", async ({ page }) => {
     await openRpgProject(page);
     await openMap(page, PORT, "port_town.json");

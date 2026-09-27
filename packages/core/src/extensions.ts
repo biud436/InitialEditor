@@ -54,8 +54,12 @@ export interface PanelSpec {
   icon?: string;
   /** 이 패널을 넣을 레이아웃 프리셋 이름 (앱의 scene, script, tilemap). 없으면 창 메뉴로만 연다 */
   presets?: string[];
-  /** 거짓이면 이 프로젝트에 해당하지 않는 패널이다: 창 메뉴와 확장 패널 목록에 보이지 않고 프리셋도 열지 않는다. 생략하면 늘 보인다 */
-  visible?(): boolean;
+  /**
+   * 거짓이면 이 프로젝트에 해당하지 않는 패널이다: 창 메뉴와 확장 패널 목록에 보이지 않고 프리셋도 열지 않으며, 되살린 레이아웃에서 뺀다.
+   * undefined 는 아직 모른다 (확장이 프로젝트를 읽는 중): 메뉴와 프리셋은 보이지 않는 것처럼 다루고, 되살린 레이아웃은 답이 날 때까지 패널을 둔다.
+   * 생략하면 늘 보인다. 관찰 가능해야 메뉴와 레이아웃이 따라온다
+   */
+  visible?(): boolean | undefined;
 }
 
 export interface ToolSpec {

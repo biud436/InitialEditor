@@ -181,6 +181,60 @@ describe("확장 패널의 탭", () => {
     store.dispose();
   });
 
+  const RESTORED = {
+    grid: { root: {}, width: 1, height: 1, orientation: "HORIZONTAL" },
+    panels: {
+      console: { component: "console", title: "콘솔" },
+      "ext:rpg.events": { component: EXT_PANEL_COMPONENT, title: "이벤트", params: { panelId: "rpg.events" } },
+      "ext:notes": { component: EXT_PANEL_COMPONENT, title: "메모", params: { panelId: "notes" } },
+    },
+  } as unknown as LayoutJson;
+
+  it("되살린 레이아웃의 확장 패널은 visible이 거짓이면 빠진다 (사용자의 닫기가 아니다). 참인 것과 visible이 없는 것은 남는다", async () => {
+    const { dock, store } = await setup([{ ...EVENTS, visible: () => false }, { ...NOTES, visible: () => true }], RESTORED);
+    expect(dock.panels.map((p) => p.id)).toEqual(["console", "ext:notes"]);
+    expect(store.isPanelOpen("ext:rpg.events")).toBe(false);
+    expect(store.userClosed.has("ext:rpg.events")).toBe(false);
+    store.dispose();
+    const plain = await setup([EVENTS, NOTES], RESTORED);
+    expect(plain.dock.panels.map((p) => p.id)).toEqual(["console", "ext:rpg.events", "ext:notes"]);
+    plain.store.dispose();
+  });
+
+  it("visible이 아직 모름(undefined)이면 답이 날 때까지 두고, 거짓이 되면 빼고 참이 되면 둔다. 답이 난 뒤의 바뀜은 따르지 않는다", async () => {
+    const events = observable.box<boolean | undefined>(undefined);
+    const notes = observable.box<boolean | undefined>(undefined);
+    const { dock, store } = await setup([{ ...EVENTS, visible: () => events.get() }, { ...NOTES, visible: () => notes.get() }], RESTORED);
+    expect(dock.panels.map((p) => p.id)).toEqual(["console", "ext:rpg.events", "ext:notes"]);
+    expect(store.isPanelOpen("ext:rpg.events")).toBe(true);
+    runInAction(() => notes.set(true));
+    runInAction(() => events.set(false));
+    expect(dock.panels.map((p) => p.id)).toEqual(["console", "ext:notes"]);
+    expect(store.isPanelOpen("ext:rpg.events")).toBe(false);
+    expect(store.userClosed.has("ext:rpg.events")).toBe(false);
+    // 답이 난 뒤: 메모가 거짓이 되어도 빼지 않는다 (열린 패널은 사용자가 닫는다)
+    runInAction(() => notes.set(false));
+    expect(dock.panels.map((p) => p.id)).toEqual(["console", "ext:notes"]);
+    store.dispose();
+  });
+
+  it("기다리는 동안 사용자가 닫은 패널은 사용자의 닫기이고, 답이 거짓이어도 다른 패널을 건드리지 않는다. 다시 되살리면 새로 기다린다", async () => {
+    const events = observable.box<boolean | undefined>(undefined);
+    const { dock, store } = await setup([{ ...EVENTS, visible: () => events.get() }, NOTES], RESTORED);
+    store.togglePanel("ext:rpg.events");
+    expect(store.userClosed.has("ext:rpg.events")).toBe(true);
+    runInAction(() => events.set(false));
+    expect(dock.panels.map((p) => p.id)).toEqual(["console", "ext:notes"]);
+    expect(store.userClosed.has("ext:rpg.events")).toBe(true);
+    // 다른 프로젝트: 되살린 레이아웃에 다시 있고 아직 모른다. 참이 되면 남는다
+    runInAction(() => events.set(undefined));
+    await store.restore();
+    expect(dock.panels.map((p) => p.id)).toEqual(["console", "ext:rpg.events", "ext:notes"]);
+    runInAction(() => events.set(true));
+    expect(dock.getPanel("ext:rpg.events")).toBeDefined();
+    store.dispose();
+  });
+
   it("자리: 왼쪽은 맵 오브젝트, 계층, 프로젝트 옆 탭, 아래는 콘솔 옆, 가운데는 문서 옆, 오른쪽은 확장 패널이나 인스펙터 옆", () => {
     const has = (ids: string[]) => (id: string) => ids.includes(id);
     expect(extPanelPlacement(has(["hierarchy", "mapObjects"]), "left", "doc:a")).toEqual({ referencePanel: "mapObjects", direction: "within" });
