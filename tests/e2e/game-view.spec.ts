@@ -115,6 +115,19 @@ function blockAt(lines: string[], first: string, length: number): string[] {
 }
 
 /** 메모리 백엔드의 프로젝트에 파일을 쓴다 (열린 문서가 없는 파일) */
+/**
+ * 페이지의 처리되지 않은 오류를 모은다. Monaco 의 Ruby 문법 강조(monarch)가 문자열 안의 #{...} 에서 던지는
+ * "ruby: trying to pop an empty stack in rule" 은 게임과 무관한 편집기 쪽 오류라 뺀다 (Monaco 가 뒤늦게 다시 던진다)
+ */
+function collectPageErrors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => {
+    if (/^ruby: trying to pop an empty stack in rule/.test(e.message)) return;
+    errors.push(e.message);
+  });
+  return errors;
+}
+
 async function writeProjectFile(page: Page, rel: string, text: string): Promise<void> {
   await page.evaluate(
     ([p, t]) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText(p, t),
@@ -830,8 +843,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
   test("Ruby 의 C 를 거치는 끝없는 재귀는 네이티브처럼 SystemStackError 와 역추적을 찍고 종료 코드 1 로 끝나며, rescue 로 잡으면 게임이 돈다", async ({ page }) => {
     test.skip(!engineFeatures().includes("mruby"), "public/engine 의 웹 빌드에 mruby 가 없다 (MANIFEST 의 기능)");
-    const pageErrors: string[] = [];
-    page.on("pageerror", (e) => pageErrors.push(e.message));
+    const pageErrors = collectPageErrors(page);
     await writeProjectFile(page, "scripts/ruby/main.rb", RUBY_STACK_MAIN);
     await setLanguage(page, "mruby");
     await page.keyboard.press("F5");
@@ -891,8 +903,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
   test("Ruby 바인딩 안의 C++ 예외는 RuntimeError 라서 rescue 로 잡히고 게임이 돌며, 잡지 않으면 네이티브처럼 오류 줄을 찍고 종료 코드 1 로 끝난다", async ({ page }) => {
     test.skip(!engineFeatures().includes("mruby"), "public/engine 의 웹 빌드에 mruby 가 없다 (MANIFEST 의 기능)");
-    const pageErrors: string[] = [];
-    page.on("pageerror", (e) => pageErrors.push(e.message));
+    const pageErrors = collectPageErrors(page);
     await writeProjectFile(page, "resources/maps/bad.json", RUBY_CPP_MAP);
     await writeProjectFile(page, "scripts/ruby/main.rb", RUBY_CPP_MAIN);
     await setLanguage(page, "mruby");
