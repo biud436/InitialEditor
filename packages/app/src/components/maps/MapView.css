@@ -95,7 +95,9 @@
   flex-direction: column;
 }
 
+/* 고르기 띠는 캔버스 위에 겹친다. 누름은 띠를 지나 아래 타일로 가고, 취소 단추만 누름을 받는다 */
 .map-view-pick {
+  pointer-events: none;
   position: absolute;
   top: var(--space-2);
   left: 50%;
@@ -114,6 +116,7 @@
 }
 
 .map-view-pick .btn {
+  pointer-events: auto;
   padding: 1px 8px;
   font-size: 12px;
 }

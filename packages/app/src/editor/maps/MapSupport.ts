@@ -62,9 +62,15 @@ export class MapSupport {
       editableFocus: observable,
       renderersVersion: observable,
       activeMap: computed,
+      toolKeysOff: computed,
       openCount: computed,
       setCursor: action,
     });
+  }
+
+  /** 도구 단축키(한 글자)를 끈다: 초점이 입력 칸에 있거나 맵 뷰에서 타일을 고르는 중이다 */
+  get toolKeysOff(): boolean {
+    return this.editableFocus || this.picker.active !== null;
   }
 
   /** 활성 탭의 맵 문서. 다른 종류의 탭이면 null */

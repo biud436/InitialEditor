@@ -35,7 +35,7 @@ async function setup(ensure: () => unknown) {
   const a = await MapDocument.open(be, "resources/maps/a.json");
   const b = await MapDocument.open(be, "resources/maps/b.json");
   const scene = await SceneDocument.open(be, "resources/scenes/s.json", () => new Set(["node"]));
-  return { support, documents, log, a, b, scene: scene as Document };
+  return { support, documents, log, a, b, scene: scene as Document, commands: editor.commands };
 }
 
 describe("MapSupport와 맵 패널", () => {
@@ -101,6 +101,21 @@ describe("맵 뷰 길 (pickCell, revealCell)", () => {
     expect(documents.active).toBe(a);
     expect(await support.pickCell({ path: "resources/maps/none.json", prompt: "p", returnTo: a })).toBeNull();
     expect(support.picker.active).toBeNull();
+    support.dispose();
+  });
+
+  it("타일을 고르는 동안 도구 단축키(map.tool.*)가 꺼지고, 고르기가 끝나면 다시 켜진다", async () => {
+    const { support, documents, a, commands } = await setup(() => {});
+    documents.open(a);
+    const key = (k: string) => commands.findByKey({ key: k, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false });
+    expect([support.toolKeysOff, commands.isEnabled("map.tool.pen"), key("b"), key("c")]).toEqual([false, true, "map.tool.pen", "map.tool.collision"]);
+    const result = support.pickCell({ path: "resources/maps/a.json", prompt: "타일을 클릭", returnTo: a });
+    await expect.poll(() => support.picker.active !== null).toBe(true);
+    expect([support.toolKeysOff, commands.isEnabled("map.tool.pen"), key("b"), key("c")]).toEqual([true, false, null, null]);
+    expect(a.tool).toBe("pen");
+    support.picker.cancel();
+    expect(await result).toBeNull();
+    expect([support.toolKeysOff, commands.isEnabled("map.tool.pen"), key("b")]).toEqual([false, true, "map.tool.pen"]);
     support.dispose();
   });
 

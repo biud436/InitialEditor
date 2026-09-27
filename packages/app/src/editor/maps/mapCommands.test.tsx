@@ -61,7 +61,7 @@ async function setup(open = true) {
     get activeMap() {
       return documents.active instanceof MapDocument ? documents.active : null;
     },
-    editableFocus: false,
+    toolKeysOff: false,
     view: { grid: true, dimAbove: false, toggleGrid() {}, toggleDimAbove() {} },
     rendererFor: () => null,
     lastLayer: () => 0,

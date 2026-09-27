@@ -130,7 +130,7 @@ describe("레이어 커맨드", () => {
     const menus = new MenuRegistry();
     const checked = new Map<string, () => boolean>();
     const hints = new Map<string, () => string | undefined>();
-    const support = observable({ activeMap: f.doc as MapDocument | null, editableFocus: false }, { activeMap: observable.ref });
+    const support = observable({ activeMap: f.doc as MapDocument | null, toolKeysOff: false }, { activeMap: observable.ref });
     const host = { tilemap: f.contrib, commands, menus, setChecked: (id: string, fn: () => boolean) => checked.set(id, fn), setHint: (id: string, fn: () => string | undefined) => hints.set(id, fn) };
     const off = registerLayerCommands(host, support);
     return { ...f, commands, menus, checked, hints, support, off };
@@ -150,13 +150,16 @@ describe("레이어 커맨드", () => {
     expect(f.checked.get(id)!()).toBe(true);
   });
 
-  it("맵 탭이 아니거나, 이 맵에 레이어가 없거나, 입력 칸에 초점이 있으면 꺼진다", async () => {
+  it("맵 탭이 아니거나, 이 맵에 레이어가 없거나, 도구 단축키가 꺼졌으면(입력 칸의 초점, 타일 고르기) 꺼진다", async () => {
     const f = commandSetup();
     const id = layerCommandId("test.marks");
+    const m = { key: "m", ctrlKey: false, metaKey: false, shiftKey: false, altKey: false };
     expect(f.commands.isEnabled(id)).toBe(true);
-    runInAction(() => (f.support.editableFocus = true));
+    runInAction(() => (f.support.toolKeysOff = true));
     expect(f.commands.isEnabled(id)).toBe(false);
-    runInAction(() => (f.support.editableFocus = false));
+    expect(f.commands.findByKey(m)).toBeNull();
+    runInAction(() => (f.support.toolKeysOff = false));
+    expect(f.commands.findByKey(m)).toBe(id);
     const other = new MapDocument(new MemoryBackend(), OTHER, parseMap(mapText()));
     f.documents.open(other);
     runInAction(() => (f.support.activeMap = other));

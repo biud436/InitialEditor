@@ -2,7 +2,7 @@
 //   map.new (Ctrl+Alt+M): 새 맵 대화상자 (newMap.ts, components/maps/NewMapDialog.tsx). 프로젝트가 열려 있을 때
 //   map.resize: 크기 바꾸기 대화상자 (resize.ts, components/maps/ResizeMapDialog.tsx). 맵 탭이 활성일 때
 //   map.tool.<도구>: 펜 B, 사각형 R, 채우기 G, 지우개 E, 스포이드 I, 통행 C, 오브젝트 V.
-//     맵 탭이 활성이고 초점이 입력 칸에 없을 때만 켜진다 (한 글자 단축키가 입력을 먹지 않게)
+//     맵 탭이 활성이고 초점이 입력 칸에 없고 타일을 고르는 중이 아닐 때만 켜진다 (MapSupport.toolKeysOff)
 //   map.layer.<id>: 확장 레이어를 대상으로 (단축키는 레이어의 toolKey). extLayers.ts 가 등록한다
 //   map.toggleGrid, map.toggleCollision, map.toggleObjects, map.toggleDimAbove: 보기 토글 (체크 표시)
 //   map.zoomIn (Ctrl+=), map.zoomOut (Ctrl+-), map.zoomReset (Ctrl+0), map.fit: 맵 탭이 활성일 때.
@@ -103,7 +103,7 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
       label: spec.label,
       category: "map",
       shortcut: spec.key,
-      enabled: () => hasMap() && !support.editableFocus,
+      enabled: () => hasMap() && !support.toolKeysOff,
       run: withMap((doc) => selectMapTool(support, doc, spec.tool)),
     });
     editor.setChecked(id, () => support.activeMap?.tool === spec.tool);

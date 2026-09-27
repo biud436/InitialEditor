@@ -1,7 +1,7 @@
 // 확장 레이어의 앱 쪽 자리 (docs/plans/e5-rpg.md 2.3). 타일맵 확장이 내보낸 TilemapApi(editor.tilemap)의 레이어를
 // 맵 뷰와 레이어 패널과 인스펙터와 커맨드가 여기서 읽는다.
 //   - 레이어마다 커맨드 map.layer.<id>: 대상을 그 레이어로 (단축키는 toolKey, 맵 메뉴의 "<이름> 도구").
-//     맵 탭이 활성이고, 그 맵에 레이어 상태가 붙었고, 초점이 입력 칸에 없을 때만 켜진다. 레이어의 visible 이 거짓이면
+//     맵 탭이 활성이고, 그 맵에 레이어 상태가 붙었고, 도구 단축키가 켜졌을 때만(MapSupport.toolKeysOff) 켜진다. 레이어의 visible 이 거짓이면
 //     (이 프로젝트에 그 레이어가 없다) 메뉴에서 빠진다
 //   - 저장 전 질문: 레이어 상태에 오류가 있는 맵은 목록을 보이고 "그래도 저장"을 묻는다
 
@@ -41,7 +41,7 @@ export function selectExtLayer(doc: MapDocument, id: string): boolean {
 }
 
 /** 레이어마다 커맨드와 메뉴를 둔다. 레이어가 등록되거나 거둬지면 따라간다. 돌려주는 함수로 뗀다 */
-export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapSupport, "activeMap" | "editableFocus">): () => void {
+export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapSupport, "activeMap" | "toolKeysOff">): () => void {
   const placed = new Map<string, { spec: MapLayerSpec; off: () => void }>();
   const sync = (specs: MapLayerSpec[]) => {
     for (const [id, entry] of [...placed]) {
@@ -58,7 +58,7 @@ export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapS
         label: `${spec.label} 도구`,
         category: "map",
         shortcut: spec.toolKey,
-        enabled: () => attached() && !support.editableFocus,
+        enabled: () => attached() && !support.toolKeysOff,
         visible: () => spec.visible?.() ?? true,
         run: () => {
           const doc = support.activeMap;

@@ -3,7 +3,8 @@
 // data-zoom, data-pan-x, data-pan-y는 월드 → 화면 변환(screen = world * zoom + pan)이다. e2e가 칸과 오브젝트를
 // 캔버스 픽셀로 옮길 때 쓴다. data-tool, data-target은 문서의 편집 상태, data-ready는 타일셋까지 그린 뒤 true.
 // 확장이 이 맵에서 타일을 고르는 동안(MapSupport.picker) 캔버스 위 가운데에 요청의 글과 취소 단추를 띄우고(캔버스가 밀리지
-// 않게 겹쳐 그린다), 캔버스 자리에 data-pick-surface를 달아 그 밖의 누름이 고르기를 취소하게 하고, 캔버스 자리에 초점을 준다.
+// 않게 겹쳐 그린다. 띠 위의 누름은 취소 단추 말고는 아래 타일로 간다), 캔버스 자리에 data-pick-surface를 달아 그 밖의 누름이
+// 고르기를 취소하게 하고, 캔버스 자리에 초점을 준다.
 // data-picking은 고르는 중이면 true.
 
 import type { MapDocument, MapTarget } from "@initial-editor/ext-tilemap/model";
