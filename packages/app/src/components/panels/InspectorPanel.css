@@ -87,7 +87,10 @@ textarea.field-text {
   font-family: var(--font-ui);
 }
 
+/* 고른 값의 글은 select 상자 안에서 자른다 (WebKit 은 넘친 글을 조상의 가로 스크롤 폭에 넣는다) */
 .field-select {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-ui);
 }
 

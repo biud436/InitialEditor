@@ -1,4 +1,5 @@
 // file: 프로젝트 파일 고르기 (accept 확장자, dir 아래가 먼저). 값은 "./resources/..." 꼴로 쓴다 (M2 2.6).
+// 상자보다 긴 경로는 상자 안에서 잘리고 온전한 글은 title 로 보인다.
 
 import { useMemo } from "react";
 import { bareProjectPath } from "../../model/game";
@@ -11,6 +12,7 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
   const current = isJsonText(value) && value !== "" ? bareProjectPath(value) : "";
   const missing = current !== "" && !ctx.files.includes(current);
   const wrong = value !== undefined && !isJsonText(value);
+  const shown = missing ? `${current} (프로젝트에 없음)` : current;
   return (
     <>
       <select
@@ -19,6 +21,7 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
         disabled={ctx.disabled}
         data-testid={testId}
         aria-label={spec.label}
+        title={shown || undefined}
         onChange={(e) => onChange(e.target.value === "" ? undefined : fileArgValue(e.target.value))}
       >
         {(!spec.required || current === "") && (
@@ -26,7 +29,7 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
             {spec.required ? "파일 고르기" : emptyText(spec)}
           </option>
         )}
-        {missing && <option value={current}>{current} (프로젝트에 없음)</option>}
+        {missing && <option value={current}>{shown}</option>}
         {files.map((f) => (
           <option key={f} value={f}>
             {f}

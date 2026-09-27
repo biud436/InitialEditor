@@ -1,6 +1,6 @@
 // face, charset: 논리 이름(스키마 assets)이나 파일을 고르고, 시트 격자를 눌러 번호를 고른다.
 // 격자는 FaceSet 4x4, CharSet 8명(서 있는 정면 프레임)이라 범위 밖 번호를 만들지 않는다.
-// 논리 이름의 그림은 후보 중 프로젝트에 있는 첫 파일이다 (엔진 Assets.pick 과 같다).
+// 논리 이름의 그림은 후보 중 프로젝트에 있는 첫 파일이다 (엔진 Assets.pick 과 같다). 고른 이름과 파일의 온전한 글은 title 로 보인다.
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { assetIndex, charsetFrame, faceRect, resolveAssetFile, type Rect } from "../../model/assets";
@@ -156,6 +156,8 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
   const set = field(value, "set");
   const file = field(value, "file");
   const fileBare = isJsonText(file) ? bareProjectPath(file) : "";
+  const setShown = isJsonText(set) && sets.includes(set) ? set : `${jsonValueText(set)} (모르는 이름)`;
+  const fileShown = pngs.includes(fileBare) ? fileBare : `${fileBare || "(비었다)"} (프로젝트에 없음)`;
   return (
     <div className="rpg-asset">
       <span className="rpg-arg-inline">
@@ -169,8 +171,16 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
           </option>
         </select>
         {mode === "set" && (
-          <select className="input field-select" value={jsonValueText(set)} disabled={ctx.disabled} data-testid={`${testId}-set`} aria-label={`${spec.label} 이름`} onChange={(e) => setSet(e.target.value)}>
-            {!isJsonText(set) || !sets.includes(set) ? <option value={jsonValueText(set)}>{jsonValueText(set)} (모르는 이름)</option> : null}
+          <select
+            className="input field-select"
+            value={jsonValueText(set)}
+            disabled={ctx.disabled}
+            data-testid={`${testId}-set`}
+            aria-label={`${spec.label} 이름`}
+            title={setShown}
+            onChange={(e) => setSet(e.target.value)}
+          >
+            {!isJsonText(set) || !sets.includes(set) ? <option value={jsonValueText(set)}>{setShown}</option> : null}
             {sets.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -179,8 +189,16 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
           </select>
         )}
         {mode === "file" && (
-          <select className="input field-select" value={fileBare} disabled={ctx.disabled} data-testid={`${testId}-file`} aria-label={`${spec.label} 파일`} onChange={(e) => setFile(e.target.value)}>
-            {!pngs.includes(fileBare) && <option value={fileBare}>{fileBare || "(비었다)"} (프로젝트에 없음)</option>}
+          <select
+            className="input field-select"
+            value={fileBare}
+            disabled={ctx.disabled}
+            data-testid={`${testId}-file`}
+            aria-label={`${spec.label} 파일`}
+            title={fileShown}
+            onChange={(e) => setFile(e.target.value)}
+          >
+            {!pngs.includes(fileBare) && <option value={fileBare}>{fileShown}</option>}
             {pngs.map((f) => (
               <option key={f} value={f}>
                 {f}

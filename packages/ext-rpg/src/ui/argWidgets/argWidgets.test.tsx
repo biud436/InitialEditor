@@ -270,6 +270,7 @@ describe("boolean, enum, scalar", () => {
     cleanup();
     renderArg(argOf("turn", "dir"), bigIntValue("12345678901234567890"));
     expect(optionTexts(select("arg"))[0]).toBe("12345678901234567890 (목록에 없음)");
+    expect(select("arg").title).toBe("12345678901234567890 (목록에 없음)");
   });
 });
 
@@ -319,14 +320,18 @@ describe("file", () => {
   it("확장자에 맞는 파일만, 시작 폴더가 먼저. 값은 ./ 꼴", () => {
     const r = renderArg(argOf("playSe", "file"), undefined);
     expect(optionTexts(select("arg"))).toEqual(["파일 고르기", "resources/audio/bell.ogg", "resources/audio/door.wav", "resources/bgm/harbor.ogg"]);
+    expect(select("arg").hasAttribute("title")).toBe(false);
     fireEvent.change(select("arg"), { target: { value: "resources/audio/door.wav" } });
     expect(r.last()).toBe("./resources/audio/door.wav");
     expect(select("arg").value).toBe("resources/audio/door.wav");
+    // 상자보다 긴 경로도 읽을 수 있게 고른 값의 글을 title 로 둔다
+    expect(select("arg").title).toBe("resources/audio/door.wav");
   });
 
   it("프로젝트에 없는 파일은 그렇다고 보이고, 고를 파일이 없으면 알린다", () => {
     renderArg(argOf("playSe", "file"), "./resources/audio/gone.wav");
     expect(optionTexts(select("arg"))[0]).toBe("resources/audio/gone.wav (프로젝트에 없음)");
+    expect(select("arg").title).toBe("resources/audio/gone.wav (프로젝트에 없음)");
     cleanup();
     renderArg(argOf("playSe", "file"), undefined, { files: ["resources/images/a.png"] });
     expect(screen.getByTestId("arg-none").textContent).toContain("wav, ogg");

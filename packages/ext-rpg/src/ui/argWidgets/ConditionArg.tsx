@@ -38,7 +38,15 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
 
   return (
     <div className="rpg-condition" data-testid={testId}>
-      <select className="input field-select" value={kind?.kind ?? ""} disabled={ctx.disabled} aria-label={`${spec.label} 꼴`} data-testid={`${testId}-kind`} onChange={(e) => setKind(e.target.value)}>
+      <select
+        className="input field-select"
+        value={kind?.kind ?? ""}
+        disabled={ctx.disabled}
+        aria-label={`${spec.label} 꼴`}
+        title={kind?.label ?? "빈 조건 (늘 참)"}
+        data-testid={`${testId}-kind`}
+        onChange={(e) => setKind(e.target.value)}
+      >
         {!kind && <option value="">빈 조건 (늘 참)</option>}
         {schema.conditions.map((c) => (
           <option key={c.kind} value={c.kind}>

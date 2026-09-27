@@ -118,11 +118,12 @@ export function BooleanArg({ spec, value, onChange, ctx, testId }: ArgWidgetProp
   );
 }
 
-/** enum: 고르기. 파일의 값이 목록에 없으면 그 값을 덧붙여 보인다. 선택 인자는 비울 수 있다 */
+/** enum: 고르기. 파일의 값이 목록에 없으면 그 값을 덧붙여 보인다. 선택 인자는 비울 수 있다. 고른 값의 글은 title 로도 보인다 */
 export function EnumArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) {
   const values = spec.values ?? [];
   const current = value === undefined ? "" : jsonValueText(value);
   const outside = value !== undefined && (!isJsonText(value) || !values.includes(value));
+  const shown = outside ? `${current} (목록에 없음)` : current;
   return (
     <select
       className="input field-select"
@@ -130,6 +131,7 @@ export function EnumArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
       disabled={ctx.disabled}
       data-testid={testId}
       aria-label={spec.label}
+      title={shown || undefined}
       onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
     >
       {(!spec.required || value === undefined) && (
@@ -137,7 +139,7 @@ export function EnumArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
           {spec.required ? "고르기" : emptyText(spec)}
         </option>
       )}
-      {outside && <option value={current}>{current} (목록에 없음)</option>}
+      {outside && <option value={current}>{shown}</option>}
       {values.map((v) => (
         <option key={v} value={v}>
           {v}
