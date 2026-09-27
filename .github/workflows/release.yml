@@ -314,6 +314,10 @@ jobs:
           deb=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb)
           rm -rf "$RUNNER_TEMP/deb" && dpkg-deb -x "$deb" "$RUNNER_TEMP/deb"
           meta=$(find "$RUNNER_TEMP/deb" -path '*/engine/engine.json' | head -1)
+          if [ -z "$meta" ]; then
+            echo "deb 에 engine/engine.json 이 없다 (tauri.sidecar.conf.json 의 리소스)"
+            exit 1
+          fi
           node scripts/check-sidecar.mjs "$RUNNER_TEMP/deb/usr/bin/Initial2D" --engine-json "$meta"
 
       - name: deb 설치와 엔진 --version

@@ -29,7 +29,7 @@ const sidecar = (await import(pathToFileURL(path.join(REPO, "scripts", "check-si
   parseMinos(text: string): string | null;
   parseLdd(text: string): { libs: string[]; missing: string[] };
   linuxDepProblems(libs: string[]): string[];
-  locate(target: string, engineJson: string | null): { exe?: string; meta?: string | null; error?: string };
+  locate(target: string, engineJson: string | null): { exe?: string; meta?: string | null; looked?: string[]; error?: string };
 };
 const dist = (await import(pathToFileURL(path.join(REPO, "scripts", "lib", "engineDist.mjs")).href)) as {
   hostTriple(platform?: string, arch?: string): string | null;
@@ -495,15 +495,56 @@ describe("check-sidecar", () => {
     expect(sidecar.linuxDepProblems(withX.libs)).toEqual(["libX11.so.6"]);
   });
 
-  it("앱 번들과 폴더에서 사이드카와 engine.json 을 찾는다", () => {
+  it("앱 번들과 폴더와 받은 사이드카에서 사이드카와 engine.json 을 찾는다", () => {
     const app = path.join(tmp, "InitialEditor.app");
     write(path.join(app, "Contents", "MacOS", "Initial2D"), "x");
     write(path.join(app, "Contents", "Resources", "engine", "engine.json"), "{}");
-    expect(sidecar.locate(app, null)).toEqual({ exe: path.join(app, "Contents", "MacOS", "Initial2D"), meta: path.join(app, "Contents", "Resources", "engine", "engine.json") });
+    const appMeta = path.join(app, "Contents", "Resources", "engine", "engine.json");
+    expect(sidecar.locate(app, null)).toEqual({ exe: path.join(app, "Contents", "MacOS", "Initial2D"), meta: appMeta, looked: [appMeta] });
+    // 개발 빌드: target/debug/ 옆의 engine/engine.json
     const debug = path.join(tmp, "target", "debug");
     write(path.join(debug, "Initial2D"), "x");
-    expect(sidecar.locate(debug, null)).toEqual({ exe: path.join(debug, "Initial2D"), meta: null });
+    expect(sidecar.locate(debug, null)).toEqual({ exe: path.join(debug, "Initial2D"), meta: null, looked: [path.join(debug, "engine", "engine.json"), path.join(debug, "engine.json")] });
+    write(path.join(debug, "engine", "engine.json"), "{}");
+    expect(sidecar.locate(path.join(debug, "Initial2D"), null).meta).toBe(path.join(debug, "engine", "engine.json"));
+    // yarn engine:fetch: src-tauri/binaries/ 에 사이드카와 engine.json 이 나란히
+    const binaries = path.join(tmp, "src-tauri", "binaries");
+    write(path.join(binaries, `Initial2D-${TRIPLE}`), "x");
+    write(path.join(binaries, "engine.json"), "{}");
+    expect(sidecar.locate(path.join(binaries, `Initial2D-${TRIPLE}`), null).meta).toBe(path.join(binaries, "engine.json"));
+    // --engine-json 을 주면 그곳만 본다
+    expect(sidecar.locate(path.join(binaries, `Initial2D-${TRIPLE}`), path.join(tmp, "nope.json"))).toMatchObject({ meta: null, looked: [path.join(tmp, "nope.json")] });
     expect(sidecar.locate(path.join(tmp, "nope"), null).error).toContain("없다");
+  });
+
+  it.skipIf(!unix)("engine.json 이 없으면 찾아본 곳과 함께 실패하고, --no-engine-json 이면 뺀다고 밝힌다", () => {
+    const repo = fakeRepo();
+    const exe = fakeEngine();
+    const log = capture();
+    expect(sidecar.main([exe], { repo, platform: "other", log: log.log })).toBe(1);
+    const fails = log.lines.filter((l) => l.includes("FAIL"));
+    expect(fails).toHaveLength(1);
+    expect(fails[0]).toContain(`engine.json 이 없다 (찾아본 곳: ${path.join(tmp, "bin", "engine", "engine.json")}, ${path.join(tmp, "bin", "engine.json")})`);
+    const bare = capture();
+    expect(sidecar.main([exe, "--no-engine-json"], { repo, platform: "other", log: bare.log })).toBe(0);
+    expect(bare.lines).toContain("engine.json: (보지 않는다, --no-engine-json)");
+    const missing = capture();
+    expect(sidecar.main([exe, "--engine-json", path.join(tmp, "nope.json")], { repo, platform: "other", log: missing.log })).toBe(1);
+    expect(missing.lines.join("\n")).toContain("engine.json 이 없다 (찾아본 곳: " + path.join(tmp, "nope.json") + ")");
+    expect(sidecar.main([exe, "--engine-json"], { repo, log: missing.log })).toBe(2);
+    expect(sidecar.main([exe, "--engine-json", "a.json", "--no-engine-json"], { repo, log: missing.log })).toBe(2);
+  });
+
+  it.skipIf(!unix)("받은 사이드카 옆의 engine.json 을 찾아 그 커밋을 대조한다 (README 의 명령 그대로)", () => {
+    const repo = fakeRepo();
+    const exe = fakeEngine();
+    const fetched = path.join(tmp, "binaries", `Initial2D-${TRIPLE}`);
+    write(fetched, fs.readFileSync(exe), 0o755);
+    write(path.join(tmp, "binaries", "engine.json"), JSON.stringify({ engineCommit: OTHER, sha256: "0".repeat(64) }));
+    const log = capture();
+    expect(sidecar.main([fetched], { repo, platform: "other", log: log.log })).toBe(1);
+    expect(log.lines).toContain(`engine.json: ${path.join(tmp, "binaries", "engine.json")}`);
+    expect(log.lines.filter((l) => l.includes("FAIL"))).toEqual(["  FAIL  engine.json 의 커밋 179cecc 이 실행 파일과 다르다"]);
   });
 
   /** --features, --version, --bogus 에 답하는 가짜 엔진 */
@@ -521,6 +562,7 @@ describe("check-sidecar", () => {
   it.skipIf(!unix)("인자 셋과 작업 폴더를 본다 (의존 검사는 가짜 도구로)", () => {
     const repo = fakeRepo();
     const exe = fakeEngine();
+    write(path.join(tmp, "bin", "engine.json"), JSON.stringify({ engineCommit: COMMIT, sha256: sha(fs.readFileSync(exe)) }));
     const log = capture();
     const tool = (cmd: string, args: string[]) => {
       if (cmd === "otool" && args[0] === "-L") return { status: 0, stdout: OTOOL_L, stderr: "" };

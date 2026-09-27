@@ -2,7 +2,11 @@
 // 번들 안 사이드카 검사 (docs/plans/e6-packaging.md 4.1 절의 bundle 잡, 4.3 절). 앱에 실린 엔진이 자립 실행 파일이고
 // 핀의 커밋에서 왔는지 본다. 엔진 저장소의 tools/check_dist.sh 와 같은 기준을 번들 안의 파일에 다시 댄다.
 //
-//   node scripts/check-sidecar.mjs <InitialEditor.app | 사이드카 실행 파일 | 그것이 든 폴더> [--engine-json <경로>] [--any-commit]
+//   node scripts/check-sidecar.mjs <InitialEditor.app | 사이드카 실행 파일 | 그것이 든 폴더> [--engine-json <경로> | --no-engine-json] [--any-commit]
+//
+// engine.json 은 .app 이면 Contents/Resources/engine/, 파일이나 폴더면 그 옆의 engine/ 과 그 옆(yarn engine:fetch 가 쓰는
+// src-tauri/binaries/engine.json)에서 찾는다. 없으면 실패다 (앱에 싣는 사이드카는 늘 engine.json 과 함께다). 엔진 실행 파일만
+// 볼 때(엔진의 dist/ 등)는 --no-engine-json 으로 그 검사를 뺀다고 밝힌다.
 //
 // 보는 것:
 //   1. 동적 의존: macOS 는 otool -L 이 /usr/lib/ 와 /System/Library/ 뿐, minos 11.0, arm64, codesign --verify.
@@ -24,7 +28,7 @@ import { VERSION_RE, readJson, sha256File } from "./lib/engineDist.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const RUN_TIMEOUT_MS = 20_000;
-export const USAGE = "사용법: check-sidecar.mjs <InitialEditor.app | 사이드카 | 폴더> [--engine-json <경로>] [--any-commit]";
+export const USAGE = "사용법: check-sidecar.mjs <InitialEditor.app | 사이드카 | 폴더> [--engine-json <경로> | --no-engine-json] [--any-commit]";
 /** Linux ldd 의 허용 목록 (tools/check_dist.sh 와 같다) */
 export const LINUX_ALLOWED = [/^linux-vdso\.so/, /^libc\.so/, /^libm\.so/, /^libdl\.so/, /^libpthread\.so/, /^librt\.so/, /^ld-linux/, /^\/lib.*\/ld-linux/, /^libstdc\+\+\.so/, /^libgcc_s\.so/];
 
@@ -66,25 +70,29 @@ export function linuxDepProblems(libs) {
   return libs.filter((l) => !LINUX_ALLOWED.some((re) => re.test(l)));
 }
 
-/** 앱 번들이나 폴더에서 사이드카와 engine.json 을 찾는다 */
+/**
+ * 앱 번들이나 폴더에서 사이드카와 engine.json 을 찾는다. looked 는 engine.json 을 찾아본 곳 (없을 때 알린다).
+ * 파일이나 폴더면 옆의 engine/engine.json(개발 빌드의 target/debug/) 다음에 옆의 engine.json(yarn engine:fetch 의 binaries/)
+ */
 export function locate(target, engineJson) {
   const abs = path.resolve(target);
   if (!fs.existsSync(abs)) return { error: `없다: ${abs}` };
   let exe = abs;
-  let meta = engineJson ? path.resolve(engineJson) : null;
+  let looked;
   if (fs.statSync(abs).isDirectory()) {
     if (abs.endsWith(".app")) {
       exe = path.join(abs, "Contents", "MacOS", "Initial2D");
-      meta ??= path.join(abs, "Contents", "Resources", "engine", "engine.json");
+      looked = [path.join(abs, "Contents", "Resources", "engine", "engine.json")];
     } else {
       exe = ["Initial2D", "Initial2D.exe"].map((n) => path.join(abs, n)).find((p) => fs.existsSync(p)) ?? path.join(abs, "Initial2D");
-      meta ??= path.join(abs, "engine", "engine.json");
+      looked = [path.join(abs, "engine", "engine.json"), path.join(abs, "engine.json")];
     }
   } else {
-    meta ??= path.join(path.dirname(abs), "engine", "engine.json");
+    looked = [path.join(path.dirname(abs), "engine", "engine.json"), path.join(path.dirname(abs), "engine.json")];
   }
+  if (engineJson) looked = [path.resolve(engineJson)];
   if (!fs.existsSync(exe)) return { error: `사이드카가 없다: ${exe}` };
-  return { exe, meta: fs.existsSync(meta) ? meta : null };
+  return { exe, meta: looked.find((p) => fs.existsSync(p)) ?? null, looked };
 }
 
 function defaultTool(cmd, args) {
@@ -121,18 +129,25 @@ export function main(argv, deps = {}) {
   const platform = deps.platform ?? process.platform;
   let target = null;
   let engineJson = null;
+  let noEngineJson = false;
   let anyCommit = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--any-commit") anyCommit = true;
-    else if (a === "--engine-json") engineJson = argv[++i] ?? null;
-    else if (!a.startsWith("--") && !target) target = a;
+    else if (a === "--no-engine-json") noEngineJson = true;
+    else if (a === "--engine-json") {
+      engineJson = argv[++i];
+      if (!engineJson) {
+        log(`--engine-json 에 경로가 없다\n${USAGE}`);
+        return 2;
+      }
+    } else if (!a.startsWith("--") && !target) target = a;
     else {
       log(`모르는 인자: ${a}\n${USAGE}`);
       return 2;
     }
   }
-  if (!target) {
+  if (!target || (engineJson && noEngineJson)) {
     log(USAGE);
     return 2;
   }
@@ -141,7 +156,7 @@ export function main(argv, deps = {}) {
     log(where.error);
     return 1;
   }
-  const { exe, meta } = where;
+  const { exe, meta, looked } = where;
   const pin = readJson(path.join(repo, "engine-pin.json"));
   const metaData = meta ? readJson(meta) : null;
   let failed = 0;
@@ -152,7 +167,13 @@ export function main(argv, deps = {}) {
     log(`  FAIL  ${s}`);
   };
   log(`사이드카: ${exe}`);
-  log(`engine.json: ${meta ?? "(없음)"}`);
+  log(`engine.json: ${meta ?? (noEngineJson ? "(보지 않는다, --no-engine-json)" : "(없음)")}`);
+  if (!meta && !noEngineJson) {
+    bad(
+      `engine.json 이 없다 (찾아본 곳: ${looked.join(", ")}). yarn engine:fetch 는 사이드카 옆에, 번들은 Resources/engine/ 에 싣는다. ` +
+        "다른 곳이면 --engine-json <경로>, 엔진 실행 파일만 볼 때는 --no-engine-json",
+    );
+  }
 
   log("[의존]");
   if (platform === "darwin") {
