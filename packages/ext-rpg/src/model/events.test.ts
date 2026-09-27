@@ -1,15 +1,17 @@
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { UndoStack } from "@initial-editor/core";
 import { parseMap, serializeMap } from "@initial-editor/ext-tilemap/model";
-import { engineMapFiles, fixtureMap, fixtureSchema, HAS_ENGINE } from "../testing/fixtures";
+import { ENGINE, engineMapFiles, fixtureMap, fixtureSchema, HAS_ENGINE } from "../testing/fixtures";
 import { canonicalCommand, canonicalEvent, EventsSection, fileArgValue, fixShapes, orderCommand, orderCondition, orderEvent, sameProjectFile } from "./events";
 import { EventEditor, newCommand } from "./commands";
 import { commandSpec, type EventSchema } from "./schema";
-import { validateEvents } from "./validate";
+import { engineProblems, validateEvents } from "./validate";
 import { walkCommands } from "./tree";
-import { field, isPlainObject } from "./json";
+import { field, isPlainObject, ordered } from "./json";
 import { REF_KEYS, WANDER_KEYS, AREA_KEYS } from "./events";
 
 const schema = fixtureSchema();
@@ -230,5 +232,166 @@ describe("대사 글 왕복 (줄바꿈, 따옴표, 한글)", () => {
     // 원래 이벤트의 줄은 한 줄도 바뀌지 않았다: 새 이벤트 앞까지 같다
     const cut = text.lastIndexOf("\n    }\n  ]");
     expect(saved.slice(0, cut)).toBe(text.slice(0, cut));
+  });
+});
+
+describe("최상위 events 의 null 과 빈 {} (M2 3.1)", () => {
+  const { text } = fixtureMap("inn");
+  const raw = JSON.parse(text) as Record<string, unknown>;
+  const withEvents = (events: unknown) => JSON.stringify({ ...raw, events });
+  const without = (() => {
+    const r = { ...raw };
+    delete r.events;
+    return serializeMap(parseMap(JSON.stringify(r)));
+  })();
+
+  it("null 은 없는 키: 열리고, 엔진 검사에 문제가 없고, 저장하면 키가 없다 (mapfile.py 와 같다)", () => {
+    const map = parseMap(withEvents(null));
+    expect(map.events).toBeNull();
+    expect(engineProblems(null, schema)).toEqual([]);
+    expect(roundTrip(withEvents(null))).toBe(without);
+    expect(roundTrip(withEvents(null))).not.toContain('"events"');
+  });
+
+  it("빈 {} 와 값이 전부 null 인 객체는 빈 배열: 열리고, 문제가 없고, 저장하면 [] 다", () => {
+    for (const v of [{}, { a: null }]) {
+      const map = parseMap(withEvents(v));
+      expect(map.events).toEqual([]);
+      expect(engineProblems(v, schema)).toEqual([]);
+      const back = roundTrip(withEvents(v));
+      expect(back).toMatch(/\n {2}"events": \[\],?\n/);
+      expect(JSON.parse(back).events).toEqual([]);
+      expect(roundTrip(back)).toBe(back);
+    }
+  });
+
+  it("EventsSection(null) 은 쓸 수 있다: 이벤트가 없으면 키를 쓰지 않고, 더하면 배열로 쓴다", () => {
+    const map = parseMap(withEvents(null));
+    const section = new EventsSection(null, schema);
+    expect(section.usable).toBe(true);
+    expect(section.shapeError).toBeNull();
+    expect(section.list).toEqual([]);
+    expect(section.serialize()).toBeUndefined();
+    const ed = new EventEditor(section, () => ({ schema, map }));
+    const stack = new UndoStack();
+    stack.push(ed.addEvent({ x: 5, y: 8 }));
+    expect(section.serialize()).toEqual([{ id: "event_1", x: 5, y: 8, trigger: "action", commands: [] }]);
+    stack.undo();
+    expect(section.serialize()).toBeUndefined();
+    // 다시 읽기(reset)의 null 도 같다
+    section.reset([{ id: "a", x: 0, y: 0 }]);
+    section.reset(null);
+    expect(section.usable).toBe(true);
+    expect(section.serialize()).toBeUndefined();
+  });
+
+  it("배열 자리가 아닌 값은 여전히 틀린 파일이다", () => {
+    for (const v of [{ a: 1 }, { "1": { id: "a" } }, "x", 3, true]) expect(() => parseMap(withEvents(v))).toThrow(/events 는 배열이어야 한다/);
+  });
+});
+
+describe("모르는 키 \"__proto__\"", () => {
+  const { text } = fixtureMap("inn");
+  const ID = '      "id": "innkeeper",\n';
+  const text0 = text.replace(ID, `${ID}      "__proto__": {\n        "note": 1\n      },\n`);
+
+  it("ordered 는 제 칸으로 남기고 프로토타입을 바꾸지 않는다", () => {
+    const out = ordered(JSON.parse('{"b": 2, "__proto__": {"note": 1}, "a": 3}') as Record<string, unknown>, ["a"]);
+    expect(Object.keys(out)).toEqual(["a", "b", "__proto__"]);
+    expect(Object.getPrototypeOf(out)).toBe(Object.prototype);
+    expect(JSON.stringify(out)).toBe('{"a":3,"b":2,"__proto__":{"note":1}}');
+  });
+
+  it("손대지 않으면 바이트가 그대로이고, 고친 이벤트에서는 정해진 키 뒤에 남는다", () => {
+    expect(text0).not.toBe(text);
+    expect(roundTrip(text0)).toBe(text0);
+    const map = parseMap(text0);
+    const section = new EventsSection(map.events, schema);
+    const ed = new EventEditor(section, () => ({ schema, map }));
+    const stack = new UndoStack();
+    const i = section.indexOfId("innkeeper");
+    stack.push(ed.setField(i, "solid", true));
+    stack.push(ed.renameEvent(i, "keeper"));
+    const ev = section.list[i] as Record<string, unknown>;
+    expect(Object.getPrototypeOf(ev)).toBe(Object.prototype);
+    expect(Object.prototype.hasOwnProperty.call(ev, "__proto__")).toBe(true);
+    expect(ev.note).toBeUndefined();
+    const keys = Object.keys(ev);
+    expect(keys[keys.length - 1]).toBe("__proto__");
+    const saved = serializeMap({ ...map, events: section.serialize() as unknown[] });
+    const back = JSON.parse(saved) as { events: Array<Record<string, unknown>> };
+    const kept = back.events.find((e) => e.id === "keeper")!;
+    expect(Object.prototype.hasOwnProperty.call(kept, "__proto__")).toBe(true);
+    expect(Object.getOwnPropertyDescriptor(kept, "__proto__")!.value).toEqual({ note: 1 });
+    // 되돌리면 원래 글
+    stack.undo();
+    stack.undo();
+    expect(serializeMap({ ...map, events: section.serialize() as unknown[] })).toBe(text0);
+  });
+});
+
+// 정수처럼 생긴 키("2")는 JS 객체가 늘 맨 앞에 오름차순으로 둔다. 맵의 고정 형식(엔진 tools/mapfile.py 의 _js_keys)도
+// 같은 규칙이라, 고정 형식의 파일은 바이트가 그대로이고 형식에 맞지 않는 파일은 mapfile.py format 이 쓰는 글로 바뀐다
+describe("정수처럼 생긴 모르는 키 (맵 고정 형식의 규칙)", () => {
+  const { text } = fixtureMap("inn");
+  const ID = '      "id": "innkeeper",\n';
+  const NOTE = '      "2": "note",\n';
+  /** 고정 형식: 정수 모양의 키가 맨 앞 */
+  const canonical = text.replace(ID, NOTE + ID);
+  /** 형식에 맞지 않는 파일: 정수 모양의 키가 id 뒤 */
+  const shuffled = text.replace(ID, ID + NOTE);
+
+  function edit(source: string, fn: (ed: EventEditor, section: EventsSection) => void): string {
+    const map = parseMap(source);
+    const section = new EventsSection(map.events, schema);
+    fn(new EventEditor(section, () => ({ schema, map })), section);
+    return serializeMap({ ...map, events: section.serialize() as unknown[] });
+  }
+
+  it("고정 형식의 파일: 손대지 않은 이벤트는 바이트가 그대로다 (다른 이벤트를 고쳐도)", () => {
+    expect(canonical).not.toBe(text);
+    expect(serializeMap(parseMap(canonical))).toBe(canonical);
+    expect(roundTrip(canonical)).toBe(canonical);
+    const moved = edit(canonical, (ed, section) => new UndoStack().push(ed.moveEvents([section.indexOfId("guestbook")], 0, 1)));
+    const innkeeper = (t: string) => t.slice(t.indexOf(NOTE), t.indexOf('"id": "guestbook"'));
+    expect(innkeeper(moved)).toBe(innkeeper(canonical));
+    expect(moved).not.toBe(canonical);
+  });
+
+  it("고친 이벤트에서도 그 키는 정해진 키 뒤가 아니라 맨 앞이다", () => {
+    const saved = edit(canonical, (ed, section) => new UndoStack().push(ed.setField(section.indexOfId("innkeeper"), "solid", false)));
+    expect(saved).toContain(`    {\n${NOTE}${ID}`);
+    expect(saved).toContain('"solid": false');
+  });
+
+  it("형식에 맞지 않는 파일: 손대지 않아도 그 키를 맨 앞으로 옮긴 고정 형식으로 쓴다", () => {
+    expect(shuffled).not.toBe(canonical);
+    expect(roundTrip(shuffled)).toBe(canonical);
+  });
+
+  const MAPFILE = path.join(ENGINE, "tools", "mapfile.py");
+  const hasPython = spawnSync("python3", ["--version"]).status === 0;
+  it.skipIf(!existsSync(MAPFILE) || !hasPython)("엔진 mapfile.py 와 대조: 에디터가 쓴 글은 check 를 통과하고 format 의 글과 같다", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "ext-rpg-mapfile-"));
+    const file = path.join(dir, "inn.json");
+    const run = (cmd: "check" | "format", body: string) => {
+      writeFileSync(file, body);
+      const r = spawnSync("python3", [MAPFILE, cmd, file], { encoding: "utf8" });
+      return { status: r.status, text: readFileSync(file, "utf8") };
+    };
+    try {
+      // 원래 글 조각을 그대로 쓰면 고정 형식이 아니다 (그래서 조각을 보존하지 않는다)
+      expect(run("check", shuffled).status).toBe(1);
+      expect(run("format", shuffled).text).toBe(roundTrip(shuffled));
+      expect(run("check", canonical).status).toBe(0);
+      expect(run("check", edit(canonical, (ed, section) => new UndoStack().push(ed.setField(section.indexOfId("innkeeper"), "solid", false)))).status).toBe(0);
+      // 최상위 events 의 null 은 두 도구 다 키를 쓰지 않는다. 빈 {} 는 에디터가 [] 로 고쳐 쓰고(M2 3.1) 그 글도 고정 형식이다
+      const raw = JSON.parse(text) as Record<string, unknown>;
+      const nullText = JSON.stringify({ ...raw, events: null });
+      expect(run("format", nullText).text).toBe(roundTrip(nullText));
+      expect(run("check", roundTrip(JSON.stringify({ ...raw, events: {} }))).status).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

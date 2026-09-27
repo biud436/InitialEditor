@@ -78,6 +78,29 @@ describe("엔진과 같은 검사의 모양 규칙", () => {
     expect(paths([{ id: "a", x: 0, y: 0, commands: [{ code: "setVar", key: "k", value: Infinity }] }])).toEqual(["events[1].commands[1].value"]);
   });
 
+  it("스크립트: 빈 이름과 없는 이름은 name 자리의 엔진 오류다 (등록된 이름일 수 없다)", () => {
+    const withScript = (cmd: Record<string, unknown>) => [{ id: "a", x: 0, y: 0, trigger: "auto", commands: [cmd, { code: "message", text: "뒤" }] }];
+    expect(paths(withScript({ code: "script", name: "" }))).toEqual(["events[1].commands[1].name"]);
+    expect(paths(withScript({ code: "script" }))).toEqual(["events[1].commands[1].name"]);
+    expect(paths(withScript({ code: "script", name: null }))).toEqual(["events[1].commands[1].name"]);
+    expect(paths(withScript({ code: "script", name: 3 }))).toEqual(["events[1].commands[1].name"]);
+    // 비지 않은 이름은 엔진만 가린다 (정의 파일의 scripts)
+    expect(paths(withScript({ code: "script", name: "boss" }))).toEqual([]);
+    // 하위 목록 안에서도
+    expect(paths([{ id: "a", x: 0, y: 0, commands: [{ code: "if", cond: { flag: "f" }, thenDo: [{ code: "script", name: "" }] }] }])).toEqual(["events[1].commands[1].thenDo[1].name"]);
+    // validateEvents 에서는 엔진 무리의 오류이고, 정보는 비지 않은 이름에만 붙는다
+    for (const name of ["", undefined]) {
+      const problems = validateEvents(withScript(name === undefined ? { code: "script" } : { code: "script", name }), { schema });
+      expect(problems.filter((p) => p.severity !== "info" || p.location.startsWith("events[1].commands"))).toEqual([
+        expect.objectContaining({ severity: "error", source: "engine", location: "events[1].commands[1].name", eventIndex: 0, eventId: "a" }),
+      ]);
+      expect(hasErrors(problems)).toBe(true);
+    }
+    const named = validateEvents(withScript({ code: "script", name: "boss" }), { schema });
+    expect(named.filter((p) => p.location.startsWith("events[1].commands")).map((p) => [p.severity, p.location, p.source])).toEqual([["info", "events[1].commands[1]", "editor"]]);
+    expect(hasErrors(named)).toBe(false);
+  });
+
   it("스키마 밖의 이름은 프로토타입 키에 속지 않는다", () => {
     expect(paths([{ id: "a", x: 0, y: 0, commands: [{ code: "constructor" }] }])).toEqual(["events[1].commands[1]"]);
     expect(paths([{ id: "a", x: 0, y: 0, charset: { set: "toString" } }])).toEqual(["events[1].charset.set"]);

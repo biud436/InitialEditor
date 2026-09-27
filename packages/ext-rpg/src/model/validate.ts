@@ -192,6 +192,9 @@ export function checkCommand(schema: EventSchema, cmd: unknown, here: string, ad
     return;
   }
   for (const a of spec.args) checkArg(schema, a, field(cmd, a.name), `${here}.${a.name}`, add);
+  // 엔진의 따로 규칙(등록된 스크립트인가) 가운데 에디터도 가릴 수 있는 것: 빈 이름은 등록된 이름일 수 없다.
+  // 없는 이름은 필수 검사가 같은 자리에 낸다. 비지 않은 이름은 엔진만 가린다 (에디터만의 정보)
+  if (spec.code === "script" && field(cmd, "name") === "") add(`${here}.name`, "등록되지 않은 스크립트 (이름이 비었다)");
   checkSubLists(schema, spec, cmd, here, add);
 }
 
@@ -462,7 +465,10 @@ function checkCommandEditor(cmd: JsonObject, here: string, spec: CommandSpec, sc
   if (spec.code === "transfer" && (field(cmd, "x") === undefined) !== (field(cmd, "y") === undefined)) {
     scope.add("warning", here, "x 와 y 중 하나만 있다 (없는 쪽은 정의 파일의 시작 값을 쓴다)");
   }
-  if (spec.code === "script") scope.add("info", here, "스크립트 이름은 엔진만 확인할 수 있다 (정의 파일의 scripts)");
+  const scriptName = field(cmd, "name");
+  if (spec.code === "script" && typeof scriptName === "string" && scriptName !== "") {
+    scope.add("info", here, "스크립트 이름은 엔진만 확인할 수 있다 (정의 파일의 scripts)");
+  }
   checkUnknownKeys(
     cmd,
     ["code", ...spec.args.map((a) => a.name), ...spec.lists.map((l) => l.name)],

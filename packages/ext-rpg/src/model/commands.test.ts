@@ -235,6 +235,21 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect(section.list[0]).toEqual(ev("a", 0, 0));
   });
 
+  it("스크립트: 이름이 비었거나 없으면 넣지도 비우지도 못한다 (엔진이 그 이벤트를 건너뛴다)", () => {
+    const { section, ed, stack } = setup([ev("a", 0, 0, { trigger: "auto" })]);
+    expect(newCommand(schema, "script")).toEqual({ code: "script", name: "" });
+    expect(() => ed.insertCommands(0, [], 0, [newCommand(schema, "script")])).toThrow(EditRefused);
+    expect(() => ed.insertCommands(0, [], 0, [newCommand(schema, "script")])).toThrow(/commands\[1\]\.name.*등록되지 않은 스크립트/);
+    expect(() => ed.insertCommands(0, [], 0, [{ code: "script" }])).toThrow(/\.name/);
+    expect(section.list[0]).toEqual(ev("a", 0, 0, { trigger: "auto" }));
+    stack.push(ed.insertCommands(0, [], 0, [newCommand(schema, "script", { name: "boss" })]));
+    expect(at(section, 0).commands).toEqual([{ code: "script", name: "boss" }]);
+    expect(() => ed.setArg(0, P(0), "name", "")).toThrow(/name: 등록되지 않은 스크립트/);
+    expect(() => ed.setArg(0, P(0), "name", undefined)).toThrow(/필요하다/);
+    stack.push(ed.setArg(0, P(0), "name", "boss2"));
+    expect(at(section, 0).commands).toEqual([{ code: "script", name: "boss2" }]);
+  });
+
   it("빼기와 옮기기", () => {
     const { section, ed, stack } = setup([ev("a", 0, 0, { commands: [{ code: "message", text: "1" }, { code: "if", cond: { flag: "f" }, thenDo: [] }, { code: "message", text: "3" }] })]);
     stack.push(ed.moveCommands(0, P(0), 1, { list: [{ at: 1, list: "thenDo" }], index: 0 }));
@@ -349,6 +364,11 @@ describe("newCommand 와 항구 마을", () => {
     expect(newCommand(schema, "playSe")).toEqual({ code: "playSe" });
     expect(Object.keys(newCommand(schema, "transfer", { dir: "up", map: "inn", y: 2, x: 1 }))).toEqual(["code", "map", "x", "y", "dir"]);
     expect(() => newCommand(schema, "zzz")).toThrow(EditRefused);
+    // 스키마에 없는 값도 제 칸으로 싣는다 ("__proto__" 도 프로토타입이 아니라 칸이다)
+    const extra = newCommand(schema, "message", JSON.parse('{"text": "t", "__proto__": {"note": 1}}') as Record<string, unknown>);
+    expect(Object.keys(extra)).toEqual(["code", "text", "__proto__"]);
+    expect(Object.getPrototypeOf(extra)).toBe(Object.prototype);
+    expect(JSON.stringify(extra)).toBe('{"code":"message","text":"t","__proto__":{"note":1}}');
   });
 
   it("항구 마을: 이벤트 하나를 옮긴 diff 는 그 이벤트의 x, y 줄뿐이다", () => {

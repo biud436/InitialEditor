@@ -12,7 +12,14 @@
 //   구역            x, y, w, h
 //
 // 스키마에 없는 키는 정해진 키 뒤에 원래 순서대로 둔다. 이전 도구(tools/export_events.lua)도 같은 표를 쓴다.
-// 한계: JS 객체는 정수처럼 생긴 키("1")를 늘 앞에 두므로 그런 모르는 키는 원래 자리를 잃는다.
+//
+// 정수처럼 생긴 키("2", "10")는 예외다. JS 객체는 그런 키를 늘 맨 앞에 오름차순으로 두고, 맵의 고정 형식(엔진
+// tools/mapfile.py 의 _js_keys)도 같은 규칙으로 쓴다. 그래서
+//   고정 형식의 파일      그런 키가 이미 맨 앞에 있다. 손대지 않은 이벤트는 바이트가 그대로다
+//   형식에 맞지 않는 파일  그런 키가 뒤에 있으면 손대지 않은 이벤트에서도 맨 앞으로 옮겨 쓴다. mapfile.py format 이 쓰는 글과 같다
+//   고친 객체와 새 객체    그런 모르는 키는 정해진 키 뒤가 아니라 맨 앞이다 (역시 mapfile.py 와 같다)
+// 손대지 않은 이벤트를 원래 글 조각으로 쓰지 않는 까닭은, 그러면 형식에 맞지 않는 파일에서 mapfile.py check 가 실패하는
+// 글을 쓰게 되기 때문이다.
 
 import { action, makeObservable, observable } from "mobx";
 import { asList, field, hasOwn, isArrayPlace, isObjectPlace, isPlainObject, ordered, type JsonObject } from "./json";
@@ -225,6 +232,7 @@ export function sameProjectFile(a: string, b: string): boolean {
 
 /**
  * 맵 문서 하나의 events 섹션. 값은 늘 새 배열로 갈아 끼운다 (명령의 되돌리기가 앞뒤 배열을 들고 있다).
+ * raw 가 null 이면 키가 없는 것과 같다 (M2 3.1). 이벤트가 없으면 키를 쓰지 않고, 이벤트를 더하면 배열로 쓴다.
  * raw 가 배열 자리가 아니면(글, 숫자, 비지 않은 객체) usable 이 거짓이고 저장할 때 원래 값을 그대로 쓴다.
  */
 export class EventsSection {
@@ -243,9 +251,10 @@ export class EventsSection {
   }
 
   private load(raw: unknown): void {
-    this.raw = raw;
-    this.hadKey = raw !== undefined;
-    this.items = asList(raw) ?? [];
+    // null 은 없는 키 (mapfile.py 도 null 인 events 는 쓰지 않는다)
+    this.raw = raw === null ? undefined : raw;
+    this.hadKey = this.raw !== undefined;
+    this.items = asList(this.raw) ?? [];
   }
 
   /** 지금 이벤트 목록 (JSON 그대로. null 칸과 틀린 값도 있다) */

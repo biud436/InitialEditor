@@ -81,15 +81,25 @@ export function stableKey(v: unknown): string {
 }
 
 /**
+ * 제 칸으로 넣는다. o[k] = v 는 키가 "__proto__" 면 칸을 만들지 않고 프로토타입을 바꾸므로,
+ * JSON.parse 처럼 늘 제 칸을 만든다 (모르는 키 "__proto__" 도 저장할 때 남는다)
+ */
+export function setOwn(o: JsonObject, key: string, value: unknown): void {
+  Object.defineProperty(o, key, { value, writable: true, enumerable: true, configurable: true });
+}
+
+/**
  * order 의 키를 그 순서로 앞에 두고, 나머지 키는 원래 순서대로 뒤에 둔 사본 (M2 2.6).
- * 값이 undefined 인 키는 뺀다. each 가 있으면 값마다 거친다
+ * 값이 undefined 인 키는 뺀다. each 가 있으면 값마다 거친다.
+ * 정수처럼 생긴 키("2")는 JS 객체가 늘 맨 앞에 오름차순으로 둔다. 맵의 고정 형식(엔진 tools/mapfile.py 의 _js_keys)도
+ * 같은 규칙이라, 저장한 글은 mapfile.py 가 쓰는 글과 같다 (events.ts 머리의 한계 참고)
  */
 export function ordered(o: JsonObject, order: readonly string[], each?: (key: string, value: unknown) => unknown): JsonObject {
   const out: JsonObject = {};
   const put = (k: string) => {
     const v = o[k];
     if (v === undefined) return;
-    out[k] = each ? each(k, v) : v;
+    setOwn(out, k, each ? each(k, v) : v);
   };
   for (const k of order) if (hasOwn(o, k)) put(k);
   for (const k of Object.keys(o)) if (!order.includes(k)) put(k);

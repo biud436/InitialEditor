@@ -8,7 +8,7 @@
 // 오류는 막지 않는다 (고치는 편집까지 막으면 안 된다). 잠긴 레이어(스키마 버전, RTP 쌍둥이 맵)는 모든 편집을 막는다.
 
 import type { Command } from "@initial-editor/core";
-import { asList, cloneJson, field, hasOwn, isArrayPlace, isInteger, isNonNegInt, isObjectPlace, isPlainObject, type JsonObject } from "./json";
+import { asList, cloneJson, field, hasOwn, isArrayPlace, isInteger, isNonNegInt, isObjectPlace, isPlainObject, setOwn, type JsonObject } from "./json";
 import { canonicalCommand, canonicalEvent, orderArea, orderCommand, orderEvent, orderRef, orderWander, type EventsSection } from "./events";
 import { commandSpec, fieldSpec, type ArgSpec, type EventSchema } from "./schema";
 import {
@@ -79,7 +79,10 @@ function errorKeys(problems: readonly EventProblem[]): Set<string> {
   return new Set(problems.filter((p) => p.severity === "error").map((p) => `${p.location}|${p.message}`));
 }
 
-/** 스키마 기본값으로 필수 인자를 채운 새 커맨드. values 가 먼저다. file 은 기본값이 없어 values 로 줘야 한다 */
+/**
+ * 스키마 기본값으로 필수 인자를 채운 새 커맨드. values 가 먼저다. file 은 기본값이 없어 values 로 줘야 한다.
+ * script 의 name 은 빈 글로 채워지고 빈 이름은 엔진이 건너뛰는 오류라, 이름을 values 로 주지 않으면 넣을 때 거절된다
+ */
 export function newCommand(schema: EventSchema, code: string, values: Record<string, unknown> = {}): JsonObject {
   const spec = commandSpec(schema, code);
   if (!spec) throw new EditRefused(`모르는 커맨드 ${code}`);
@@ -91,7 +94,7 @@ export function newCommand(schema: EventSchema, code: string, values: Record<str
       if (v !== undefined) cmd[a.name] = v;
     }
   }
-  for (const [k, v] of Object.entries(values)) if (!hasOwn(cmd, k) && v !== undefined) cmd[k] = v;
+  for (const [k, v] of Object.entries(values)) if (!hasOwn(cmd, k) && v !== undefined) setOwn(cmd, k, v);
   return canonicalCommand(cmd, schema) as JsonObject;
 }
 
