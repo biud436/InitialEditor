@@ -134,5 +134,8 @@ dist
 packages/*/dist
 src-tauri/target
 src-tauri/gen/schemas
+# 앱에 싣는 엔진과 그 고지 (yarn engine:fetch 가 받는다, e6-packaging.md 2.2 절)
+src-tauri/binaries/
+src-tauri/licenses/engine/
 test-results/
 playwright-report/
