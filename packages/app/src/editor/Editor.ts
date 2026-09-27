@@ -217,7 +217,10 @@ export class Editor {
     };
   }
 
-  /** 타일맵 확장의 자리: 기본 실행 제공자(map-objects.json 의 play), 확장의 실행 길(여기서 실행과 같은 길), 레이어 도구 커맨드 */
+  /**
+   * 타일맵 확장의 자리: 기본 실행 제공자(map-objects.json 의 play), 확장의 실행 길(여기서 실행과 같은 길), 레이어 도구 커맨드,
+   * 맵 뷰 길(맵 탭을 열고 타일 고르기, 타일을 뷰 가운데에 두기)
+   */
   private installTilemapPlaces(): void {
     const tilemap = this.extensions.exportsOf<TilemapApi>(TILEMAP_EXTENSION_ID) ?? null;
     runInAction(() => (this.tilemap = tilemap));
@@ -225,6 +228,7 @@ export class Editor {
     this.disposers.push(
       tilemap.registerPlayProvider(objectsPlayProvider((doc) => doc.schema ?? this.mapSchema?.current ?? null)),
       tilemap.setPlayer({ blocked: () => runnerBlocked(this), play: (doc, request) => playRequest(this, doc, request) }),
+      tilemap.setMapViews({ pickCell: (request) => this.mapSupport.pickCell(request), revealCell: (path, cell) => this.mapSupport.revealCell(path, cell) }),
       registerLayerCommands(this, this.mapSupport),
     );
   }

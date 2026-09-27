@@ -9,10 +9,12 @@
 //   실행 길       확장이 제 명령(예: 체크포인트 앞에서 실행)으로 맵을 띄울 때 play(doc, request) 를 부른다. 앱이 setPlayer 로
 //                 여기서 실행과 같은 길(러너 확인, 저장할지 묻기, 콘솔 한 줄, 러너 시작)을 넣는다. 계획의 watch 가 있으면 러너가
 //                 게임이 찍는 줄을 넘겨 끝났는지, 멈춰야 하는지 묻는다 (자동 재생이 끝나지 않는 실행을 멈춘다)
+//   맵 뷰         확장의 폼이 맵 위의 좌표를 받는다. pickCell 은 맵 파일을 탭으로 열고 그 뷰에서 타일 하나를 고르게 하고,
+//                 revealCell 은 맵 파일을 열고 타일을 뷰 가운데에 둔다. 앱이 setMapViews 로 맵 탭과 뷰를 다루는 길을 넣는다
 //
 // 뷰와 도구와 인스펙터는 앱이 붙인다. 여기 타입은 DOM 과 PIXI 를 모른다: PIXI 물체와 React 컴포넌트는 unknown 이고 앱이 좁혀 쓴다.
 
-import type { DocumentRegistry } from "@initial-editor/core";
+import type { Document, DocumentRegistry } from "@initial-editor/core";
 import { action, observable } from "mobx";
 import { sectionKeyProblem, type MapLayerBinding, type MapLayerState } from "./model/layers";
 import { MapDocument } from "./model/mapDocument";
@@ -187,6 +189,26 @@ export interface MapPlayer {
 
 export const NO_MAP_PLAYER = "맵을 띄울 길이 없다 (에디터가 실행기를 넣지 않았다)";
 
+/** 맵 뷰에서 타일 하나를 고르는 요청 */
+export interface CellPickRequest {
+  /** 고를 맵 파일 (프로젝트 경로). 탭으로 열고, 이미 열려 있으면 그 탭으로 간다 */
+  path: string;
+  /** 고르는 동안 맵 뷰 위의 띠에 보일 글 */
+  prompt: string;
+  /** 끝나면(타일을 고르거나 Esc 로 취소하면) 활성으로 돌릴 문서. 고르는 동안 이 문서가 닫히면 고르기를 취소한다 */
+  returnTo?: Document;
+}
+
+/** 맵 탭과 맵 뷰를 다루는 길. 앱이 setMapViews 로 넣는다 */
+export interface MapViews {
+  /** 고른 타일. 취소했거나 맵을 열지 못했으면 null. 새 요청은 앞의 요청을 취소한다 */
+  pickCell(request: CellPickRequest): Promise<Point | null>;
+  /** 맵 파일을 탭으로 열고 이 타일을 뷰 가운데에 둔다 (줌은 그대로). 열었으면 true */
+  revealCell(path: string, cell: Point): Promise<boolean>;
+}
+
+export const NO_MAP_VIEWS = "맵 뷰 없음 (에디터가 맵 뷰를 등록하지 않음)";
+
 export interface TilemapApi {
   registerMapLayer(spec: MapLayerSpec): () => void;
   registerPlayProvider(spec: PlayProviderSpec): () => void;
@@ -202,6 +224,14 @@ export interface TilemapApi {
   playBlocked(): string | undefined;
   /** 앱이 맵을 띄우는 길을 넣는다. 돌려준 함수로 뺀다 */
   setPlayer(player: MapPlayer): () => void;
+  /** 맵 파일의 뷰에서 타일 하나를 고른다 (앱이 넣은 길). 취소했거나 길이 없으면 null */
+  pickCell(request: CellPickRequest): Promise<Point | null>;
+  /** 맵 파일을 탭으로 열고 이 타일을 뷰 가운데에 둔다. 열었으면 true */
+  revealCell(path: string, cell: Point): Promise<boolean>;
+  /** 맵 뷰를 쓸 수 없는 이유. 쓸 수 있으면 undefined (관찰 가능) */
+  mapViewsBlocked(): string | undefined;
+  /** 앱이 맵 탭과 뷰를 다루는 길을 넣는다. 돌려준 함수로 뺀다 */
+  setMapViews(views: MapViews): () => void;
 }
 
 export interface TilemapContribDeps {
@@ -220,6 +250,7 @@ export class TilemapContrib implements TilemapApi {
   readonly layers = observable.map<string, MapLayerSpec>({}, { deep: false });
   private readonly providers = observable.array<PlayProviderSpec>([], { deep: false });
   private readonly player = observable.box<MapPlayer | null>(null, { deep: false });
+  private readonly views = observable.box<MapViews | null>(null, { deep: false });
   private offOpen: (() => void) | null = null;
 
   constructor(private readonly deps: TilemapContribDeps = {}) {
@@ -293,6 +324,35 @@ export class TilemapContrib implements TilemapApi {
     });
   }
 
+  pickCell(request: CellPickRequest): Promise<Point | null> {
+    const views = this.views.get();
+    if (!views) {
+      this.deps.warn?.(`타일 고르기 (${request.path}): ${NO_MAP_VIEWS}`);
+      return Promise.resolve(null);
+    }
+    return views.pickCell(request);
+  }
+
+  revealCell(path: string, cell: Point): Promise<boolean> {
+    const views = this.views.get();
+    if (!views) {
+      this.deps.warn?.(`타일 보기 (${path}): ${NO_MAP_VIEWS}`);
+      return Promise.resolve(false);
+    }
+    return views.revealCell(path, cell);
+  }
+
+  mapViewsBlocked(): string | undefined {
+    return this.views.get() ? undefined : NO_MAP_VIEWS;
+  }
+
+  setMapViews(views: MapViews): () => void {
+    action(() => this.views.set(views))();
+    return action(() => {
+      if (this.views.get() === views) this.views.set(null);
+    });
+  }
+
   refreshLayer(id: string): void {
     const spec = this.layers.get(id);
     if (!spec) return;
@@ -323,6 +383,7 @@ export class TilemapContrib implements TilemapApi {
       this.layers.clear();
       this.providers.clear();
       this.player.set(null);
+      this.views.set(null);
     })();
   }
 }

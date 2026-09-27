@@ -86,3 +86,44 @@ describe("MapSupport와 맵 패널", () => {
     expect(events.listenerCount("warn")).toBe(0);
   });
 });
+
+describe("맵 뷰 길 (pickCell, revealCell)", () => {
+  it("pickCell 은 맵을 탭으로 열고 그 뷰에서 고른다. 고르면 returnTo 로 돌아가고, 열지 못하면 null", async () => {
+    const { support, documents, a } = await setup(() => {});
+    documents.open(a);
+    const result = support.pickCell({ path: "resources/maps/b.json", prompt: "타일을 클릭", returnTo: a });
+    await expect.poll(() => support.picker.active?.doc.path).toBe("resources/maps/b.json");
+    const b = support.picker.active!.doc;
+    expect(documents.active).toBe(b);
+    expect(support.picker.active?.prompt).toBe("타일을 클릭");
+    support.picker.choose(b, { x: 1, y: 0 });
+    expect(await result).toEqual({ x: 1, y: 0 });
+    expect(documents.active).toBe(a);
+    expect(await support.pickCell({ path: "resources/maps/none.json", prompt: "p", returnTo: a })).toBeNull();
+    expect(support.picker.active).toBeNull();
+    support.dispose();
+  });
+
+  it("revealCell 은 맵을 열고 타일 가운데를 렌더러에 넘긴다. 렌더러가 아직 없으면 붙을 때 넘긴다", async () => {
+    const { support, documents, a } = await setup(() => {});
+    documents.open(a);
+    const reveals: unknown[] = [];
+    const renderer = { events: new Emitter<MapRendererEvents>(), reveal: (p: unknown) => void reveals.push(p) } as unknown as MapRenderer;
+    support.attachRenderer(a, renderer);
+    expect(await support.revealCell("resources/maps/a.json", { x: 1, y: 1 })).toBe(true);
+    expect(reveals).toEqual([{ x: 24, y: 24 }]);
+    expect(await support.revealCell("resources/maps/b.json", { x: 0, y: 1 })).toBe(true);
+    const b = documents.active as MapDocument;
+    expect(b.path).toBe("resources/maps/b.json");
+    expect(reveals).toHaveLength(1);
+    const later = { events: new Emitter<MapRendererEvents>(), reveal: (p: unknown) => void reveals.push(p) } as unknown as MapRenderer;
+    support.attachRenderer(b, later);
+    expect(reveals).toEqual([{ x: 24, y: 24 }, { x: 8, y: 24 }]);
+    // 한 번만 넘긴다
+    support.detachRenderer(b, later);
+    support.attachRenderer(b, later);
+    expect(reveals).toHaveLength(2);
+    expect(await support.revealCell("resources/maps/none.json", { x: 0, y: 0 })).toBe(false);
+    support.dispose();
+  });
+});

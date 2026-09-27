@@ -3,7 +3,7 @@
 import { CommandRegistry, DocumentRegistry, type Command, ExtensionHost, ExtensionRegistries, LogStore, MemoryBackend, MenuRegistry, type Workspace } from "@initial-editor/core";
 import { action, autorun, makeObservable, observable } from "mobx";
 import { describe, expect, it } from "vitest";
-import { NO_MAP_PLAYER, TilemapContrib, type MapLayerSpec, type MapPlayer, type PlayProviderSpec, type TilemapApi } from "./contrib";
+import { NO_MAP_PLAYER, NO_MAP_VIEWS, TilemapContrib, type CellPickRequest, type MapLayerSpec, type MapPlayer, type MapViews, type PlayProviderSpec, type TilemapApi } from "./contrib";
 import { tilemapExtension } from "./index";
 import { MapDocument, parseMap, type MapLayerState, type ObjectProblem } from "./model";
 
@@ -533,5 +533,54 @@ describe("타일맵 확장의 내보내기", () => {
     expect(s.disposed).toBe(true);
     expect(doc.layerIds).toEqual([]);
     expect(host.active.size).toBe(0);
+  });
+});
+
+describe("맵 뷰 길 (setMapViews, pickCell, revealCell)", () => {
+  it("길이 없으면 고르기는 null, 보기는 false 이고 콘솔에 남기며, mapViewsBlocked 가 그 이유다", async () => {
+    const f = await setup();
+    expect(f.contrib.mapViewsBlocked()).toBe(NO_MAP_VIEWS);
+    expect(await f.contrib.pickCell({ path: PATH, prompt: "타일을 클릭" })).toBeNull();
+    expect(await f.contrib.revealCell(PATH, { x: 1, y: 2 })).toBe(false);
+    expect(f.warnings).toEqual([`타일 고르기 (${PATH}): ${NO_MAP_VIEWS}`, `타일 보기 (${PATH}): ${NO_MAP_VIEWS}`]);
+  });
+
+  it("앱이 넣은 길로 요청을 그대로 넘기고 결과를 돌려준다. 뺀 뒤에는 다시 길이 없다 (다른 길을 넣었으면 그대로)", async () => {
+    const f = await setup();
+    const doc = await f.open(PATH);
+    const picks: CellPickRequest[] = [];
+    const reveals: Array<[string, unknown]> = [];
+    const views: MapViews = {
+      pickCell: async (req) => (picks.push(req), { x: 3, y: 4 }),
+      revealCell: async (path, cell) => (reveals.push([path, cell]), true),
+    };
+    const off = f.contrib.setMapViews(views);
+    expect(f.contrib.mapViewsBlocked()).toBeUndefined();
+    const request: CellPickRequest = { path: OTHER, prompt: "타일을 클릭", returnTo: doc };
+    expect(await f.contrib.pickCell(request)).toEqual({ x: 3, y: 4 });
+    expect(picks).toEqual([request]);
+    expect(picks[0].returnTo).toBe(doc);
+    expect(await f.contrib.revealCell(OTHER, { x: 5, y: 6 })).toBe(true);
+    expect(reveals).toEqual([[OTHER, { x: 5, y: 6 }]]);
+    off();
+    expect(f.contrib.mapViewsBlocked()).toBe(NO_MAP_VIEWS);
+    const offOther = f.contrib.setMapViews({ pickCell: async () => null, revealCell: async () => false });
+    off();
+    expect(f.contrib.mapViewsBlocked()).toBeUndefined();
+    offOther();
+    f.contrib.setMapViews(views);
+    f.contrib.dispose();
+    expect(f.contrib.mapViewsBlocked()).toBe(NO_MAP_VIEWS);
+    expect(f.warnings).toEqual([]);
+  });
+
+  it("mapViewsBlocked 는 관찰 가능하다", async () => {
+    const f = await setup();
+    const seen: Array<string | undefined> = [];
+    const stop = autorun(() => void seen.push(f.contrib.mapViewsBlocked()));
+    const off = f.contrib.setMapViews({ pickCell: async () => null, revealCell: async () => true });
+    off();
+    stop();
+    expect(seen).toEqual([NO_MAP_VIEWS, undefined, NO_MAP_VIEWS]);
   });
 });

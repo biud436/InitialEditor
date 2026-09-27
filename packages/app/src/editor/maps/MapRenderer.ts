@@ -14,6 +14,8 @@
 //   대상이 그 레이어가 될 때 만들고 MapToolController가 포인터와 키를 넘긴다.
 // 입력: 팬과 줌은 여기서, 도구는 mapTools.ts의 MapToolController가 맡는다. Space는 창 전체에서 듣는다:
 //   포인터가 캔버스 위에 있으면 초점이 팔레트나 도구 단추에 있어도 Space+끌기가 팬이다.
+// 타일 고르기(deps.pick, cellPick.ts): 고르는 동안 왼쪽 누름은 도구 대신 고르기로 가고(맵 밖이면 취소), 오른쪽 버튼은 팬이다.
+//   포인터 아래 타일에 테두리를 그리고, 도구는 포인터와 키와 두 번 누르기를 받지 않는다. 끝나면 도구가 그대로 이어진다.
 
 import { Emitter } from "@initial-editor/core";
 import type { MapLayerSpec, MapLayerTool, MapLayerToolContext, MapLayerView, MapLayerViewContext } from "@initial-editor/ext-tilemap";
@@ -46,7 +48,7 @@ import {
   type Point,
   type ViewTransform,
 } from "./mapGeometry";
-import { MapToolController, type ToolPointer } from "./mapTools";
+import { MapToolController, type ToolPointer, type ToolPreview } from "./mapTools";
 import type { MapViewState } from "./mapViewState";
 
 export interface MapRendererDeps {
@@ -60,6 +62,16 @@ export interface MapRendererDeps {
   onNotice?: (message: string) => void;
   /** 등록된 확장 레이어 (아래부터 그리는 순서). 관찰 가능하면 등록과 해제를 따라간다 */
   layers?: () => readonly MapLayerSpec[];
+  /** 이 뷰의 타일 고르기. 없으면 고르지 않는다 */
+  pick?: MapCellPick;
+}
+
+/** 렌더러가 보는 타일 고르기 (MapSupport.picker 를 이 문서로 좁힌 것) */
+export interface MapCellPick {
+  /** 이 뷰에서 고르는 중인가 (관찰 가능) */
+  active(): boolean;
+  /** 왼쪽 누름의 타일. 맵 밖이면 null (취소) */
+  choose(cell: Cell | null): void;
 }
 
 export interface MapRendererEvents {
@@ -161,6 +173,10 @@ export class MapRenderer {
   /** 타일셋 밖의 gid 경고를 다음 프레임에 다시 센다 */
   private needWarning = false;
   private initialViewDone = false;
+  /** 첫 화면을 맞춘 뒤 가운데에 둘 월드 점 (reveal) */
+  private pendingCenter: Point | null = null;
+  /** 고르는 동안 포인터 아래 타일 (맵 안일 때만) */
+  private pickHover: Cell | null = null;
   private scaleMode: "nearest" | "linear" = "nearest";
   private disposers: Array<() => void> = [];
   private disposed = false;
@@ -346,6 +362,33 @@ export class MapRenderer {
     this.setTransform(centerOn(this.transform, this.viewport(), world));
   }
 
+  /** 월드 점이 뷰 가운데 오게 한다. 첫 화면을 아직 맞추지 않았거나 뷰가 보이지 않으면 보일 때 옮긴다 */
+  reveal(world: Point): void {
+    this.pendingCenter = { x: world.x, y: world.y };
+    this.applyPendingCenter();
+  }
+
+  private applyPendingCenter(): void {
+    const p = this.pendingCenter;
+    if (!p || !this.initialViewDone || !this.host?.isConnected) return;
+    const vp = this.viewport();
+    if (vp.width <= 8 || vp.height <= 8) return;
+    this.pendingCenter = null;
+    this.centerOn(p);
+  }
+
+  /** 이 뷰에서 타일을 고르는 중인가 */
+  private picking(): boolean {
+    return this.deps.pick?.active() ?? false;
+  }
+
+  /** 월드 점의 타일. 맵 밖이면 null */
+  private cellInMap(world: Point): Cell | null {
+    const m = this.model;
+    const c = cellAt(world, m.tileWidth, m.tileHeight);
+    return c.x >= 0 && c.y >= 0 && c.x < m.width && c.y < m.height ? c : null;
+  }
+
   /** 테마가 바뀌었다: 색이 든 것을 전부 다시 그린다 */
   setTheme(theme: MapTheme): void {
     this.theme = theme;
@@ -410,13 +453,14 @@ export class MapRenderer {
       this.initialViewDone = true;
       this.setTransform(initialView({ width: w, height: h }, this.model.pixelWidth, this.model.pixelHeight, MARGIN));
     }
+    this.applyPendingCenter();
     this.needGrid = true;
   }
 
   private updateCursor(): void {
     const host = this.host;
     if (!host) return;
-    host.style.cursor = this.pan ? "grabbing" : this.spaceHeld ? "grab" : this.tools.cursor;
+    host.style.cursor = this.pan ? "grabbing" : this.spaceHeld ? "grab" : this.picking() ? "crosshair" : this.tools.cursor;
   }
 
   private toToolPointer(e: PointerEvent | MouseEvent, screen: Point): ToolPointer {
@@ -424,7 +468,7 @@ export class MapRenderer {
   }
 
   private onDoubleClick(e: MouseEvent): void {
-    if (e.button !== 0 || this.spaceHeld) return;
+    if (e.button !== 0 || this.spaceHeld || this.picking()) return;
     this.tools.doubleClick(this.toToolPointer(e as PointerEvent, this.screenPoint(e)));
   }
 
@@ -434,11 +478,19 @@ export class MapRenderer {
     if (!host || !app) return;
     host.focus({ preventScroll: true });
     const screen = this.screenPoint(e);
-    if (e.button === 1 || this.spaceHeld || (e.button === 2 && !this.tools.wantsRightButton())) {
+    const picking = this.picking();
+    if (e.button === 1 || this.spaceHeld || (e.button === 2 && (picking || !this.tools.wantsRightButton()))) {
       app.canvas.setPointerCapture(e.pointerId);
       this.pan = { last: screen, pointerId: e.pointerId };
       this.updateCursor();
       e.preventDefault();
+      return;
+    }
+    if (picking) {
+      if (e.button === 0) {
+        e.preventDefault();
+        this.deps.pick?.choose(this.cellInMap(screenToWorld(this.transform, screen)));
+      }
       return;
     }
     if ((e.button !== 0 && e.button !== 2) || this.toolPointer !== null) return;
@@ -461,6 +513,10 @@ export class MapRenderer {
     const px = { x: Math.floor(world.x), y: Math.floor(world.y) };
     runInAction(() => this.hover.set({ cell: cellAt(world, this.model.tileWidth, this.model.tileHeight), px }));
     this.deps.onCursor?.(px);
+    if (this.picking()) {
+      this.setPickHover(this.cellInMap(world));
+      return;
+    }
     this.tools.pointerMove(this.toToolPointer(e, screen));
   }
 
@@ -481,7 +537,15 @@ export class MapRenderer {
     this.hovering = false;
     if (this.tools.busy || this.pan) return;
     runInAction(() => this.hover.set(null));
+    this.setPickHover(null);
     this.tools.pointerLeave();
+  }
+
+  private setPickHover(cell: Cell | null): void {
+    const prev = this.pickHover;
+    if (prev === cell || (prev && cell && prev.x === cell.x && prev.y === cell.y)) return;
+    this.pickHover = cell;
+    this.needPreview = true;
   }
 
   private onWheel(e: WheelEvent): void {
@@ -500,8 +564,8 @@ export class MapRenderer {
   }
 
   private onKeyDown(e: KeyboardEvent): void {
-    // Space는 창의 onSpaceDown이 받는다
-    if (e.key === " ") return;
+    // Space는 창의 onSpaceDown이 받는다. 고르는 동안에는 도구가 키를 받지 않는다 (Esc는 고르기가 창에서 받는다)
+    if (e.key === " " || this.picking()) return;
     if (this.tools.keyDown({ key: e.key, shift: e.shiftKey, alt: e.altKey, mod: e.ctrlKey || e.metaKey })) {
       e.preventDefault();
       e.stopPropagation();
@@ -597,6 +661,14 @@ export class MapRenderer {
       reaction(
         () => [[...doc.hiddenExtLayers], doc.target],
         () => this.applyExtVisibility(),
+      ),
+      reaction(
+        () => this.picking(),
+        () => {
+          this.pickHover = null;
+          this.needPreview = true;
+          this.updateCursor();
+        },
       ),
     );
   }
@@ -812,6 +884,7 @@ export class MapRenderer {
   /** 렌더 직전(티커 우선순위 HIGH)에 모인 변경을 한 번에 반영한다 */
   private frame(): void {
     if (!this.app) return;
+    if (this.pendingCenter) this.applyPendingCenter();
     if (this.needLayers) this.rebuildLayers();
     const renders = this.tilesetsSettled ? this.flushTiles() : 0;
     if (this.needWarning && this.tilesetsSettled) {
@@ -1091,7 +1164,11 @@ export class MapRenderer {
     this.needPreview = false;
     const g = this.previewG;
     g.clear();
-    const p = this.tools.preview;
+    const p: ToolPreview = this.picking()
+      ? this.pickHover
+        ? { kind: "cells", x0: this.pickHover.x, y0: this.pickHover.y, x1: this.pickHover.x, y1: this.pickHover.y, tone: "accent", fill: true }
+        : { kind: "none" }
+      : this.tools.preview;
     const m = this.model;
     const colors = this.theme.colors;
     const tw = m.tileWidth;

@@ -2,6 +2,9 @@
 // 렌더러(MapRenderer)는 뷰마다 하나이고 내릴 때 버린다. 테마가 바뀌면 토큰을 다시 읽어 렌더러에 준다.
 // data-zoom, data-pan-x, data-pan-y는 월드 → 화면 변환(screen = world * zoom + pan)이다. e2e가 칸과 오브젝트를
 // 캔버스 픽셀로 옮길 때 쓴다. data-tool, data-target은 문서의 편집 상태, data-ready는 타일셋까지 그린 뒤 true.
+// 확장이 이 맵에서 타일을 고르는 동안(MapSupport.picker) 캔버스 위 가운데에 요청의 글과 취소 단추를 띄우고(캔버스가 밀리지
+// 않게 겹쳐 그린다), 캔버스 자리에 data-pick-surface를 달아 그 밖의 누름이 고르기를 취소하게 하고, 캔버스 자리에 초점을 준다.
+// data-picking은 고르는 중이면 true.
 
 import type { MapDocument, MapTarget } from "@initial-editor/ext-tilemap/model";
 import { reaction } from "mobx";
@@ -58,6 +61,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
         if (!editor.toasts.toasts.some((t) => t.text === message)) editor.toasts.warn(message);
       },
       layers: () => support.layers(),
+      pick: { active: () => support.picker.isPicking(doc), choose: (cell) => support.picker.choose(doc, cell) },
     });
     setRenderer(r);
     support.attachRenderer(doc, r);
@@ -74,6 +78,12 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       setRenderer(null);
     };
   }, [doc, editor, support]);
+
+  const pick = support.picker.active?.doc === doc ? support.picker.active : null;
+  const picking = pick !== null;
+  useEffect(() => {
+    if (picking) hostRef.current?.focus({ preventScroll: true });
+  }, [picking]);
 
   const m = doc.model;
   void m.revision;
@@ -97,6 +107,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       data-tool={doc.tool}
       data-target={targetKey(doc.target)}
       data-ready={status?.ready ? "true" : "false"}
+      data-picking={picking ? "true" : "false"}
       data-chunk-renders={renderer?.stats.chunkRenders ?? 0}
       data-chunk-textures={renderer?.stats.chunkTextures ?? 0}
     >
@@ -215,7 +226,24 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
           {status.warning}
         </div>
       ) : null}
-      <div className="map-view-host" ref={hostRef} tabIndex={0} role="application" aria-label={`맵 뷰: ${m.name || doc.title}`} />
+      <div className="map-view-stage">
+        <div
+          className="map-view-host"
+          ref={hostRef}
+          tabIndex={0}
+          role="application"
+          aria-label={`맵 뷰: ${m.name || doc.title}`}
+          data-pick-surface={picking ? "true" : undefined}
+        />
+        {pick ? (
+          <div className="map-view-pick" role="status" data-testid="map-pick-banner">
+            <span data-testid="map-pick-prompt">{pick.prompt}</span>
+            <button type="button" className="btn" data-testid="map-pick-cancel" onClick={() => support.picker.cancel()}>
+              취소
+            </button>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 });
