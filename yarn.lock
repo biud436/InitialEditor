@@ -868,6 +868,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@initial-editor/ext-rpg@workspace:packages/ext-rpg":
+  version: 0.0.0-use.local
+  resolution: "@initial-editor/ext-rpg@workspace:packages/ext-rpg"
+  dependencies:
+    "@initial-editor/core": "npm:2.0.0-dev"
+    "@initial-editor/ext-tilemap": "npm:2.0.0-dev"
+    mobx: "npm:^6.13.0"
+  languageName: unknown
+  linkType: soft
+
 "@initial-editor/ext-tilemap@npm:2.0.0-dev, @initial-editor/ext-tilemap@workspace:packages/ext-tilemap":
   version: 0.0.0-use.local
   resolution: "@initial-editor/ext-tilemap@workspace:packages/ext-tilemap"

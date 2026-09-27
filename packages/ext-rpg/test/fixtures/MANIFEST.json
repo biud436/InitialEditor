@@ -1,0 +1,59 @@
+{
+  "comment": "scripts/sync-engine-rpg.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 같은 경로",
+  "source": "checkout",
+  "syncCommand": "yarn sync:rpg",
+  "engineCommit": "fab471059ac20b6aedcbee0f3a743eaddec796b4",
+  "syncedAt": "2026-09-27",
+  "files": [
+    {
+      "path": "resources/schema/event-commands.json",
+      "size": 12640,
+      "sha256": "4644ed0a752b01a1a00d1f1eb80635799a5352474ddba1696ea9624cd56e35a0"
+    },
+    {
+      "path": "resources/data/rpg-game.json",
+      "size": 1046,
+      "sha256": "85c67063e447c34e4661424d5aee2657f240e5c3b96b5d6d8803b8fd8755fe18"
+    },
+    {
+      "path": "resources/data/items.json",
+      "size": 703,
+      "sha256": "693621237409da0bc650ad923f57a0f15339ba2acfe94c031a257af32657c790"
+    },
+    {
+      "path": "resources/maps/port_town.json",
+      "size": 40499,
+      "sha256": "a9c0d91d504794eb37bf8c5ebf5461e4869a2a70e7b0f4c5d1636c31956a0954"
+    },
+    {
+      "path": "resources/maps/inn.json",
+      "size": 13455,
+      "sha256": "1edf7fded395942e9b788a78965926ed2c80c9e9ce2e53566505181c0849853f"
+    },
+    {
+      "path": "tests/fixtures/events/invalid_events.json",
+      "size": 13260,
+      "sha256": "a03db949a0e18a2b146391b7e44017f0f4bf4513e79813cf104fd2b9ff19b0be"
+    },
+    {
+      "path": "tests/fixtures/events/invalid_events.paths.json",
+      "size": 3484,
+      "sha256": "3d114733594da0b53b449308cd47a56a25d81989dff6f5aa7869c1fd95eea5e0"
+    },
+    {
+      "path": "resources/charsets/placeholder.png",
+      "size": 10122,
+      "sha256": "b226aae41451ac413a27339cacf4820e6352e2840dab5fcee43db1c27ccba448"
+    },
+    {
+      "path": "resources/faces/placeholder.png",
+      "size": 5559,
+      "sha256": "9d33de50ad94304b3e96ed15e158c2907a4797c4816dd1c063ade3e25b4d7fea"
+    },
+    {
+      "path": "resources/tiles/port16.png",
+      "size": 11292,
+      "sha256": "18f549c99fd60665088bd2d660531ed8e8e1e2dcc7d2e221fee9479955c1d047"
+    }
+  ]
+}

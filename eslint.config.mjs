@@ -20,8 +20,9 @@ export default tseslint.config(
     plugins: { "react-hooks": reactHooks },
     rules: { "react-hooks/rules-of-hooks": "error" },
   },
+  // RPG 확장의 모델도 같다 (docs/plans/e5-rpg.md 2.3). 엔진 교차 검사가 Node 에서 그대로 부른다
   {
-    files: ["packages/core/src/**/*.ts"],
+    files: ["packages/core/src/**/*.ts", "packages/ext-rpg/src/model/**/*.ts"],
     rules: {
       "no-restricted-imports": ["error", { patterns: ["pixi.js", "pixi.js/*", "react", "react-dom", "monaco-editor", "dockview"] }],
       "no-restricted-globals": ["error", "document", "window", "navigator", "localStorage", "HTMLElement"],
