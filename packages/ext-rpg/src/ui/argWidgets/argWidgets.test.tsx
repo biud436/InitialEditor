@@ -345,7 +345,7 @@ describe("face, charset", () => {
     fireEvent.click(screen.getByTestId("arg-grid-5"));
     expect(r.last()).toEqual({ set: "npc", index: 5 });
     expect(screen.getByTestId("arg-grid-5").getAttribute("aria-pressed")).toBe("true");
-    const frame = screen.getByTestId("arg-grid-5").firstElementChild as HTMLElement;
+    const frame = screen.getByTestId("arg-grid-5").querySelector(".rpg-sheet-image") as HTMLElement;
     expect(frame.style.backgroundPosition).toBe("-48px -48px");
     expect(frame.style.backgroundImage).toContain("blob:resources/faces/placeholder.png");
     expect(imageUrl).toHaveBeenCalledWith("resources/faces/placeholder.png");
@@ -362,7 +362,7 @@ describe("face, charset", () => {
     expect(optionTexts(select("arg-set"))[0]).toBe("ghost (모르는 이름)");
     expect(within(screen.getByTestId("arg-grid")).getAllByRole("button")).toHaveLength(8);
     const frame = screen.getByTestId("arg-grid-6").firstElementChild as HTMLElement;
-    expect(frame.style.backgroundPosition).toBe("-168px -192px");
+    expect((frame.querySelector(".rpg-sheet-image") as HTMLElement).style.backgroundPosition).toBe("-168px -192px");
     expect(frame.textContent).toBe("6");
     fireEvent.change(select("arg-set"), { target: { value: "player" } });
     fireEvent.click(screen.getByTestId("arg-grid-6"));
@@ -370,6 +370,43 @@ describe("face, charset", () => {
       { set: "player", index: 1 },
       { set: "player", index: 6 },
     ]);
+  });
+
+  it("격자의 폭이 모자라면 칸의 그림을 같은 배율로 줄여 폭 안에 든다 (넉넉하면 원래 크기)", () => {
+    // jsdom 에는 배치가 없어 격자의 폭과 ResizeObserver 를 흉내 낸다
+    let width = 150;
+    const observers: Array<() => void> = [];
+    const saved = { ro: globalThis.ResizeObserver, cw: Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientWidth") };
+    globalThis.ResizeObserver = class {
+      constructor(private readonly cb: () => void) {}
+      observe() {
+        observers.push(this.cb);
+      }
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => width });
+    try {
+      renderArg(argOf("message", "face"), { set: "npc", index: 5 }, { imageUrl: (p) => `blob:${p}` });
+      const grid = screen.getByTestId("arg-grid");
+      const frame = (i: number) => screen.getByTestId(`arg-grid-${i}`).firstElementChild as HTMLElement;
+      const image = (i: number) => frame(i).querySelector(".rpg-sheet-image") as HTMLElement;
+      // 150px: 칸 테두리 4px 씩과 칸 사이 2px 셋을 빼면 칸마다 32px, 48px 얼굴의 2/3
+      expect(grid.dataset.scale).toBe("0.667");
+      expect([frame(5).style.width, frame(5).style.height]).toEqual(["32px", "32px"]);
+      expect(image(5).style.transform).toBe("scale(0.6666666666666666)");
+      expect([image(5).style.width, image(5).style.backgroundPosition]).toEqual(["48px", "-48px -48px"]);
+      // 넓어지면 원래 크기
+      width = 400;
+      act(() => observers.forEach((cb) => cb()));
+      expect(grid.dataset.scale).toBe("1.000");
+      expect(frame(5).style.width).toBe("48px");
+      expect(image(5).style.transform).toBe("");
+    } finally {
+      globalThis.ResizeObserver = saved.ro;
+      if (saved.cw) Object.defineProperty(HTMLElement.prototype, "clientWidth", saved.cw);
+      else delete (HTMLElement.prototype as { clientWidth?: number }).clientWidth;
+    }
   });
 
   it("그림 파일이 프로젝트에 없으면 알린다", () => {

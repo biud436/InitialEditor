@@ -91,7 +91,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   const baseId = useId();
 
   const [folded, setFolded] = useState<ReadonlySet<string>>(() => new Set());
-  const [cursorKey, setCursorKey] = useState<string>(() => endKey([]));
+  const [cursorKey, setCursorState] = useState<string>(() => endKey([]));
   const [anchorKey, setAnchorKey] = useState<string | null>(null);
   const [palette, setPalette] = useState<{ where: InsertWhere; target: { list: ListPath; index: number } } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -104,12 +104,19 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   // 두 번 누르기의 첫 누름이 고른 줄. 첫 누름이 열린 폼을 닫으면 줄이 밀려 둘째 누름과 dblclick 이 다른 줄에 떨어지므로
   // 둘째 누름은 버리고 dblclick 은 이 줄로 한다
   const pressedRow = useRef<string | null>(null);
+  // 사용자가 커서를 옮겼다 (키, 누르기, 문제 목록, 편집). 수가 늘 때마다 그린 뒤 커서 줄을 보이게 민다 (같은 줄이어도).
+  // 처음 그리기와 이벤트가 바뀐 뒤의 초기화는 밀지 않아 인스펙터가 맨 위에서 보인다
+  const [revealCount, setRevealCount] = useState(0);
+  const setCursorKey = useCallback((key: string) => {
+    setCursorState(key);
+    setRevealCount((n) => n + 1);
+  }, []);
 
   // 다른 이벤트로 바뀌면 고르기와 접기를 처음부터
   const eventIdentity = eventKey ?? eventIndex;
   useEffect(() => {
     setFolded(new Set());
-    setCursorKey(endKey([]));
+    setCursorState(endKey([]));
     setAnchorKey(null);
     setPalette(null);
     setNotice(null);
@@ -151,9 +158,9 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   }, [cursorPathKey]);
 
   useEffect(() => {
-    const el = treeRef.current?.querySelector<HTMLElement>(`[data-row-index="${cursorIndex}"]`);
-    el?.scrollIntoView?.({ block: "nearest" });
-  }, [cursorIndex]);
+    if (revealCount === 0) return;
+    treeRef.current?.querySelector<HTMLElement>(".rpg-row.is-cursor")?.scrollIntoView?.({ block: "nearest" });
+  }, [revealCount]);
 
   useEffect(() => {
     if (formFocus === 0) return;
@@ -168,7 +175,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
     setCursorKey(commandKey(path));
     setAnchorKey(null);
     treeRef.current?.focus();
-  }, []);
+  }, [setCursorKey]);
 
   // 같은 요청(nonce)은 한 번만 따른다
   const requestRef = useRef({ focusRequest, schema, eventIndex });

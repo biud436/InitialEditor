@@ -9,7 +9,7 @@
 import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
 import { field, isJsonText, isPlainObject, stringifyJsonLossless } from "../model/json";
 import { EventsLayerState } from "../model/layer";
 import type { RefSources } from "../model/refs";
@@ -172,6 +172,15 @@ const PlayButtons = observer(function PlayButtons({ doc, index, play }: { doc: M
   );
 });
 
+/** 가장 가까운 세로 스크롤 조상 (overflow-y 가 auto 나 scroll). 없으면 null */
+function scrollParent(el: HTMLElement | null): HTMLElement | null {
+  for (let a = el?.parentElement ?? null; a; a = a.parentElement) {
+    const o = getComputedStyle(a).overflowY;
+    if (o === "auto" || o === "scroll") return a;
+  }
+  return null;
+}
+
 /** 이 칸 자리의 문제 (events[n].name, 그 아래) */
 function fieldProblems(problems: readonly EventProblem[], index: number, name: string): EventProblem[] {
   const at = `events[${index + 1}].${name}`;
@@ -188,6 +197,12 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
   const request = state.focusRequest;
   const commands = field(ev, "commands");
   const hasCommands = Array.isArray(commands) && commands.length > 0;
+
+  // 이벤트를 고르거나 다른 이벤트로 바꾸면(열쇠가 바뀌어 새로 그린다) 인스펙터를 맨 위부터 보인다
+  useLayoutEffect(() => {
+    const scroller = scrollParent(rootRef.current);
+    if (scroller) scroller.scrollTop = 0;
+  }, []);
 
   useEffect(() => {
     if (!request || handledFocus.get(state) === request.nonce) return;

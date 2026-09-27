@@ -190,13 +190,21 @@
   margin-bottom: var(--space-1);
 }
 
+/* 이름은 한 덩어리로 두고 긴 경로가 줄을 바꾼다 */
 .rpg-cmd-form-title {
+  flex: none;
   font-weight: 600;
 }
 
+.rpg-cmd-form-head .rpg-path {
+  min-width: 0;
+}
+
+/* 값 열은 폼의 남은 폭이다 (내용이 넓어도 열이 늘어 폼 밖으로 나가지 않는다). 긴 경로와 id 는 아무 데서나 줄을 바꾼다 */
 .rpg-arg {
   display: grid;
-  grid-template-columns: 92px 1fr;
+  grid-template-columns: 92px minmax(0, 1fr);
+  overflow-wrap: anywhere;
   column-gap: var(--space-2);
   row-gap: 2px;
   margin-bottom: var(--space-1);
@@ -285,6 +293,7 @@
   flex-direction: column;
   gap: 2px;
   width: 100%;
+  min-width: 0;
 }
 
 /* 좁으면 글 칸이 한 줄을 차지하고 고르기와 단추(rpg-option-tools)가 다음 줄 오른쪽으로 내려간다 */
@@ -338,10 +347,11 @@
   gap: var(--space-1);
 }
 
+/* 격자는 폼의 폭을 다 받고(시트 격자의 배율을 이 폭으로 정한다), 칸은 왼쪽부터 놓는다. gap 은 AssetArg.tsx 의 CELL_GAP */
 .rpg-sheet-grid {
   display: grid;
-  gap: 2px;
   justify-content: start;
+  min-width: 0;
 }
 
 .rpg-sheet-cell {
@@ -357,14 +367,24 @@
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+/* 칸 안의 그림 자리 (배율을 곱한 크기). 그림은 원래 크기로 그리고 왼쪽 위를 기준으로 줄인다 */
 .rpg-sheet-frame {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
+  overflow: hidden;
   color: var(--fg-muted);
   font-size: 10px;
+}
+
+.rpg-sheet-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transform-origin: 0 0;
 }
 
 .rpg-unknown {

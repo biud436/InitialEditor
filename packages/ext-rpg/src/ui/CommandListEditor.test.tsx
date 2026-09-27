@@ -580,6 +580,68 @@ describe("문제 표시", () => {
   });
 });
 
+describe("커서 줄 보이기", () => {
+  /** scrollIntoView 를 부른 줄의 열쇠 (jsdom 에는 배치가 없어 부름만 센다) */
+  function spyReveal() {
+    const keys: Array<string | undefined> = [];
+    const proto = HTMLElement.prototype as { scrollIntoView?: (arg?: unknown) => void };
+    const had = Object.prototype.hasOwnProperty.call(proto, "scrollIntoView");
+    const old = proto.scrollIntoView;
+    proto.scrollIntoView = function (this: HTMLElement) {
+      keys.push(this.dataset.rowKey);
+    };
+    const restore = () => {
+      if (had) proto.scrollIntoView = old;
+      else delete proto.scrollIntoView;
+    };
+    return { keys, restore };
+  }
+
+  it("처음 그릴 때와 다른 이벤트로 바뀔 때는 밀지 않는다 (인스펙터가 맨 위에서 보인다)", () => {
+    const spy = spyReveal();
+    try {
+      const h = setup();
+      expect(cursorKey()).toBe("e.commands");
+      h.view.rerender(<CommandListEditor editor={h.editor} eventIndex={1} eventKey={2} schema={h.schema} apply={h.apply} />);
+      expect(cursorKey()).toBe("e.commands");
+      h.view.rerender(<CommandListEditor editor={h.editor} eventIndex={0} eventKey={1} schema={h.schema} apply={h.apply} />);
+      expect(spy.keys).toEqual([]);
+    } finally {
+      spy.restore();
+    }
+  });
+
+  it("키, 누르기, 문제 목록으로 커서를 옮기면 그 줄을 보이게 민다", () => {
+    const spy = spyReveal();
+    try {
+      const h = setup([{ code: "message" }, ...NESTED]);
+      // 처음 커서는 끝 줄이다. 같은 줄로 옮겨도(End) 민다
+      press("End");
+      expect(spy.keys).toEqual(["e.commands"]);
+      press("Home");
+      expect(spy.keys.at(-1)).toBe("c.commands[1]");
+      press("ArrowDown");
+      expect(spy.keys.at(-1)).toBe("c.commands[2]");
+      press("End");
+      expect(spy.keys.at(-1)).toBe("e.commands");
+      click("c.commands[4]");
+      expect(spy.keys.at(-1)).toBe("c.commands[4]");
+      fireEvent.click(screen.getByTestId("rpg-cmd-problems"));
+      fireEvent.click(screen.getAllByTestId("rpg-cmd-problem")[0]);
+      expect(cursorKey()).toBe("c.commands[1]");
+      expect(spy.keys.at(-1)).toBe("c.commands[1]");
+      // 다른 이벤트로 바뀐 뒤에도 키로 옮기면 민다
+      const n = spy.keys.length;
+      h.view.rerender(<CommandListEditor editor={h.editor} eventIndex={1} eventKey={2} schema={h.schema} apply={h.apply} />);
+      expect(spy.keys.length).toBe(n);
+      press("Home");
+      expect(spy.keys.at(-1)).toBe("c.commands[1]");
+    } finally {
+      spy.restore();
+    }
+  });
+});
+
 describe("다른 이벤트로 바뀌면", () => {
   it("고르기와 접기를 처음부터", () => {
     const h = setup();

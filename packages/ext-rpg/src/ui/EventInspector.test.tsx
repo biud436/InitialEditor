@@ -14,7 +14,7 @@ import type { RpgUiServices } from "./services";
 
 afterEach(cleanup);
 
-function setup(opts: { lockPort?: boolean; text?: string } = {}) {
+function setup(opts: { lockPort?: boolean; text?: string; slot?: boolean } = {}) {
   const sources = fixtureSources();
   if (opts.lockPort) {
     const game = sources.game!;
@@ -35,7 +35,16 @@ function setup(opts: { lockPort?: boolean; text?: string } = {}) {
     confirm: () => true,
   };
   const Inspector = makeEventInspector(services);
-  const view = render(<Inspector document={doc} state={st} />);
+  // slot: 앱의 인스펙터 자리처럼 세로 스크롤하는 틀 안에 그린다
+  const view = render(
+    opts.slot ? (
+      <div data-testid="slot" style={{ overflowY: "auto" }}>
+        <Inspector document={doc} state={st} />
+      </div>
+    ) : (
+      <Inspector document={doc} state={st} />
+    ),
+  );
   const idx = (id: string) => st.section.indexOfId(id);
   return { h, doc, st, view, idx, notified, sources, play };
 }
@@ -229,6 +238,28 @@ describe("이벤트 하나", () => {
     const tree = screen.getByTestId("rpg-cmd-tree");
     expect(document.activeElement).toBe(tree);
     expect((tree.querySelector(".is-cursor") as HTMLElement).dataset.rowKey).toBe("c.commands[1]");
+  });
+
+  it("이벤트를 고르거나 다른 이벤트로 바꾸면 스크롤하는 틀이 맨 위로 돌아간다. 같은 이벤트의 편집과 커서 옮기기는 그대로 둔다", () => {
+    const t = setup({ slot: true });
+    const slot = screen.getByTestId("slot");
+    slot.scrollTop = 300;
+    act(() => t.st.select([t.idx("kid")]));
+    expect(slot.scrollTop).toBe(0);
+    slot.scrollTop = 300;
+    act(() => t.st.select([t.idx("notice")]));
+    expect(screen.getByTestId("rpg-inspector-id").textContent).toBe("notice");
+    expect(slot.scrollTop).toBe(0);
+    slot.scrollTop = 300;
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    fireEvent.keyDown(tree, { key: "Home" });
+    fireEvent.change(input("rpg-field-x"), { target: { value: "12" } });
+    expect(field(t.st.section.list[t.idx("notice")], "x")).toBe(12);
+    expect(slot.scrollTop).toBe(300);
+    // 여럿을 거쳐 다시 하나
+    act(() => t.st.select([t.idx("kid"), t.idx("notice")]));
+    act(() => t.st.select([t.idx("notice")]));
+    expect(slot.scrollTop).toBe(0);
   });
 
   it("커맨드를 넣으면 같은 문서의 되돌리기 스택에 들어간다", () => {

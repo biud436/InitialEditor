@@ -52,8 +52,11 @@ export function ArgField(props: ArgWidgetProps) {
 /** 제 위젯 안에서 비울 수 있는 타입 (비움 고르기, 없음, 끄기) */
 const SELF_CLEARING = new Set(["boolean", "enum", "scalar", "file", "face", "charset", "wander"]);
 
-/** 줄마다 칸과 단추가 있는 목록 위젯: 이름을 위에 두고 폼의 폭을 다 쓴다 (기본 폭 280px 인스펙터에서도 칸이 보이게) */
-const WIDE_TYPES = new Set(["options", "route"]);
+/**
+ * 이름을 위에 두고 폼의 폭을 다 쓰는 위젯 (기본 폭 280px 인스펙터에서도 보이게): 줄마다 칸과 단추가 있는 목록,
+ * 시트 격자(얼굴 4열, 외형 4열), 제 안에 이름과 값의 줄을 두는 조건
+ */
+const WIDE_TYPES = new Set(["options", "route", "face", "charset", "condition"]);
 
 interface ArgRowProps extends ArgWidgetProps {
   /** 이 인자 자리의 문제 */

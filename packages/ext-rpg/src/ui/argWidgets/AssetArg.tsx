@@ -2,7 +2,7 @@
 // 격자는 FaceSet 4x4, CharSet 8명(서 있는 정면 프레임)이라 범위 밖 번호를 만들지 않는다.
 // 논리 이름의 그림은 후보 중 프로젝트에 있는 첫 파일이다 (엔진 Assets.pick 과 같다).
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { assetIndex, charsetFrame, faceRect, resolveAssetFile, type Rect } from "../../model/assets";
 import { bareProjectPath } from "../../model/game";
 import { fileArgValue } from "../../model/events";
@@ -41,13 +41,50 @@ interface SheetGridProps {
   testId: string;
 }
 
-/** 시트 한 장의 칸 격자 */
+/** 칸 하나의 테두리와 안쪽 여백 (CSS .rpg-sheet-cell 의 border 1px, padding 1px 의 양쪽) */
+const CELL_CHROME = 4;
+/** 칸 사이 (CSS .rpg-sheet-grid 의 gap) */
+const CELL_GAP = 2;
+/** 가장 작은 배율 (이보다 좁으면 격자가 폭을 넘는다) */
+const MIN_SCALE = 0.25;
+
+/** 격자의 폭(clientWidth). 바뀌면 다시 그린다. 잴 수 없으면(jsdom) null */
+function useInlineSize(ref: RefObject<HTMLElement>): number | null {
+  const [size, setSize] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    setSize(el.clientWidth);
+    const observer = new ResizeObserver(() => setSize(el.clientWidth));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+  return size;
+}
+
+/**
+ * 시트 한 장의 칸 격자. 시트의 열 수대로 놓고, 격자의 폭이 모자라면 칸의 그림을 같은 배율로 줄여 폭 안에 든다
+ * (그림은 원래 크기로 그린 뒤 transform 으로 줄인다)
+ */
 export function SheetGrid({ kind, schema, url, index, disabled, onPick, testId }: SheetGridProps) {
   const count = kind === "charset" ? schema.sheets.charset.perSheet : schema.sheets.face.perSheet;
   const cols = kind === "charset" ? schema.sheets.charset.sheetCols : schema.sheets.face.cols;
   const cells: Rect[] = Array.from({ length: count }, (_, i) => (kind === "charset" ? charsetFrame(schema, i) : faceRect(schema, i)));
+  const gridRef = useRef<HTMLDivElement>(null);
+  const width = useInlineSize(gridRef);
+  const frameW = Math.max(1, ...cells.map((r) => r.w));
+  const room = width === null ? null : width - cols * CELL_CHROME - (cols - 1) * CELL_GAP;
+  const scale = room === null ? 1 : Math.max(MIN_SCALE, Math.min(1, Math.floor(room / cols) / frameW));
   return (
-    <div className={`rpg-sheet-grid is-${kind}`} style={{ gridTemplateColumns: `repeat(${cols}, auto)` }} data-testid={testId} role="group" aria-label={kind === "charset" ? "외형 번호" : "얼굴 번호"}>
+    <div
+      ref={gridRef}
+      className={`rpg-sheet-grid is-${kind}`}
+      style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gap: CELL_GAP }}
+      data-testid={testId}
+      data-scale={scale.toFixed(3)}
+      role="group"
+      aria-label={kind === "charset" ? "외형 번호" : "얼굴 번호"}
+    >
       {cells.map((r, i) => (
         <button
           key={i}
@@ -59,15 +96,17 @@ export function SheetGrid({ kind, schema, url, index, disabled, onPick, testId }
           data-testid={`${testId}-${i}`}
           onClick={() => onPick(i)}
         >
-          <span
-            className="rpg-sheet-frame"
-            style={{
-              width: r.w,
-              height: r.h,
-              backgroundImage: url ? `url("${url}")` : undefined,
-              backgroundPosition: `-${r.x}px -${r.y}px`,
-            }}
-          >
+          <span className="rpg-sheet-frame" style={{ width: Math.floor(r.w * scale), height: Math.floor(r.h * scale) }}>
+            <span
+              className="rpg-sheet-image"
+              style={{
+                width: r.w,
+                height: r.h,
+                backgroundImage: url ? `url("${url}")` : undefined,
+                backgroundPosition: `-${r.x}px -${r.y}px`,
+                transform: scale === 1 ? undefined : `scale(${scale})`,
+              }}
+            />
             {url ? null : i}
           </span>
         </button>

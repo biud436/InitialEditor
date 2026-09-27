@@ -3,11 +3,15 @@
 //   맵 오브젝트 인스펙터: 샘플 맵에 문제 있는 몬스터를 더 넣고 하나 고르기(마지막 칸 레벨, 검사 줄)와 여럿 고르기(보스, 검사 줄)
 //   이벤트 인스펙터: 픽스처 port_town.json 의 kid 에 커맨드를 늘리고 문제 커맨드를 넣은 뒤, 커맨드 폼과 문제 목록을 연 채
 //                   맨 위 id, 문제 목록, 폼의 마지막 칸, 트리의 끝 줄
+//   이벤트 고르기: 맵을 눌러, 목록 패널에서 골라, 긴 이벤트 둘 사이를 오가도 인스펙터는 맨 위(자리의 scrollTop 0, id 칸이 보인다)에서
+//                  열린다. 트리의 키, 문제 목록으로 커서를 옮기면 그 줄이 보이게 민다
+//   커맨드 폼의 폭: 1280x600 과 1024x480 에서 모든 커맨드의 폼이 인스펙터 폭 안에 든다 (얼굴 격자의 칸이 자리 안, 트리와 자리에
+//                   가로 스크롤이 없다). 가지 안의 얼굴(들여 쓴 폼)도
 // "닿는다" 는 휠만으로 대상이 모든 잘라 내는 조상 안에 온전히 보이는 것이다. 그다음 초점을 줄 수 있고,
 // 초점을 주어도 dockview 그룹(overflow: hidden)이 몰래 밀려 탭 머리가 사라지지 않는다.
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { ev, LAYOUT_KEY, openMap, openRpgProject, PORT } from "./support/rpg";
+import { cellPoint, ev, LAYOUT_KEY, nextFrames, openMap, openRpgProject, PORT } from "./support/rpg";
 
 test.use({ viewport: { width: 1280, height: 600 } });
 
@@ -215,4 +219,204 @@ test.describe("인스펙터 스크롤 (낮은 창, 메모리 모드)", () => {
     // 세로 스크롤은 인스펙터 자리 하나 (트리는 줄 수만큼 자란다). 문제 목록은 제 최대 높이 안에서만 스크롤할 수 있다
     expect((await verticalScrollers(slot)).filter((s) => s !== "rpg-problem-list")).toEqual(["map-layer-inspector"]);
   });
+
+  test("이벤트 고르기: 맵을 눌러, 목록에서, 긴 이벤트 둘 사이를 오가도 맨 위에서 열리고, 키와 문제 목록은 커서 줄을 보인다", async ({ page }) => {
+    await openRpgProject(page);
+    // 긴 이벤트 둘: kid 와 notice. kid 의 끝에는 문제 커맨드(없는 아이템)
+    await ev(
+      page,
+      `async (e, p) => {
+        const map = JSON.parse(await e.backend.readText(p));
+        for (const id of ["kid", "notice"]) {
+          const ev = map.events.find((x) => x.id === id);
+          for (let i = 1; i <= 14; i++) ev.commands.push({ code: "message", text: id + " 긴 목록 " + i });
+        }
+        map.events.find((x) => x.id === "kid").commands.push({ code: "giveItem", item: "no_such_item" });
+        await e.backend.writeText(p, JSON.stringify(map, null, 2) + "\\n");
+      }`,
+      PORT,
+    );
+    await openMap(page, PORT, "port_town.json");
+    const view = page.getByTestId("map-view");
+    await page.getByTestId("map-fit").click();
+    await view.locator(".map-view-host").focus();
+    await page.keyboard.press("n");
+    await expect(view).toHaveAttribute("data-target", "ext:rpg.events");
+    const slot = page.getByTestId("map-layer-inspector");
+    const tree = page.getByTestId("rpg-cmd-tree");
+    const rows = tree.getByTestId("rpg-cmd-row");
+
+    /** 인스펙터가 맨 위에서 열렸다: 몇 프레임 뒤에도 자리의 scrollTop 이 0 이고 id 칸이 휠 없이 보인다 */
+    const opensAtTop = async (id: string, what: string) => {
+      await expect(page.getByTestId("rpg-inspector-id")).toHaveText(id);
+      await nextFrames(page);
+      await nextFrames(page);
+      expect(await slot.evaluate((el) => el.scrollTop), `${what}: 자리의 scrollTop`).toBe(0);
+      expect((await whereIs(page.getByTestId("rpg-field-id"))).shift, `${what}: id 칸`).toBe(0);
+      expect((await whereIs(page.getByTestId("rpg-inspector-id"))).shift, `${what}: 머리`).toBe(0);
+      expect(await hiddenShifts(page), what).toEqual([]);
+    };
+    /** 트리에 초점을 두되 스크롤은 하지 않는다 (키가 스스로 줄을 보여야 한다) */
+    const focusTreeInPlace = () => tree.evaluate((el: HTMLElement) => el.focus({ preventScroll: true }));
+    /** 커서 줄이 휠 없이 온전히 보인다 */
+    const cursorVisible = async (what: string) => {
+      const cursor = tree.locator(".rpg-row.is-cursor");
+      await expect(cursor).toHaveCount(1);
+      expect((await whereIs(cursor)).shift, what).toBe(0);
+      expect(await hiddenShifts(page), what).toEqual([]);
+    };
+
+    // 맵을 눌러 고른다 (kid 는 트리의 끝 줄이 자리 아래에 있을 만큼 길다)
+    const kidAt = await cellPoint(view, 14, 20);
+    await page.mouse.click(kidAt.x, kidAt.y);
+    await opensAtTop("kid", "맵을 눌러 고른 kid");
+    expect((await whereIs(rows.last())).shift, "kid 의 끝 줄은 자리 아래에 있다").toBeGreaterThan(0);
+
+    // 키: End 는 끝 줄, Home 은 첫 줄, 아래 화살표는 다음 줄을 보인다
+    await focusTreeInPlace();
+    await page.keyboard.press("End");
+    await cursorVisible("End");
+    expect(await slot.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press("Home");
+    await cursorVisible("Home");
+    for (let i = 0; i < 6; i++) await page.keyboard.press("ArrowDown");
+    await cursorVisible("아래 화살표 여섯 번");
+    await page.keyboard.press("End");
+    await cursorVisible("다시 End");
+
+    // 목록 패널에서 notice 를 고른다: 자리가 끝까지 내려가 있어도 맨 위에서 열린다
+    await page.getByRole("menubar").getByRole("menuitem", { name: "창", exact: true }).click();
+    await page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^이벤트$/ }) }).click();
+    const list = page.getByTestId("rpg-events-panel");
+    await list.locator('[data-testid="rpg-events-row"][data-id="notice"]').click();
+    await opensAtTop("notice", "목록에서 고른 notice");
+
+    // notice 에서 키로 끝까지 내린 뒤 맵을 눌러 kid 로 돌아가도 맨 위
+    await focusTreeInPlace();
+    await page.keyboard.press("End");
+    await cursorVisible("notice 의 End");
+    await page.mouse.click(kidAt.x, kidAt.y);
+    await opensAtTop("kid", "맵을 눌러 돌아온 kid");
+
+    // 목록에서 다시 notice, 그다음 kid (둘 다 긴 이벤트)
+    await list.locator('[data-testid="rpg-events-row"][data-id="notice"]').click();
+    await opensAtTop("notice", "목록에서 다시 고른 notice");
+    await list.locator('[data-testid="rpg-events-row"][data-id="kid"]').click();
+    await opensAtTop("kid", "목록에서 고른 kid");
+
+    // 고른 뒤에도 키는 줄을 보인다
+    await focusTreeInPlace();
+    await page.keyboard.press("End");
+    await cursorVisible("돌아온 kid 의 End");
+    await page.keyboard.press("Home");
+    await cursorVisible("돌아온 kid 의 Home");
+
+    // 문제 목록의 문제를 누르면 그 커맨드 줄(트리의 끝 쪽)로 가서 보인다
+    const toggle = page.getByTestId("rpg-cmd-problems");
+    await reach(page, toggle, "문제 단추");
+    await toggle.click();
+    const problem = page.getByTestId("rpg-cmd-problem-list").getByTestId("rpg-cmd-problem").filter({ hasText: "no_such_item" });
+    await reach(page, problem, "문제 목록의 없는 아이템");
+    await problem.click();
+    await expect(tree).toBeFocused();
+    await expect(tree.locator(".rpg-row.is-cursor")).toContainText("no_such_item");
+    await cursorVisible("문제 목록으로 간 줄");
+  });
+
+  for (const size of [
+    { width: 1280, height: 600 },
+    { width: 1024, height: 480 },
+  ]) {
+    test(`커맨드 폼의 폭 (${size.width}x${size.height}): 모든 커맨드의 폼과 얼굴 격자가 인스펙터 폭 안에 든다`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await openRpgProject(page);
+      // kid 에 커맨드마다 하나씩, 그리고 조건 분기 안 선택지 가지 안의 대사(들여 쓴 폼의 얼굴 격자)
+      await ev(
+        page,
+        `async (e, p) => {
+          const map = JSON.parse(await e.backend.readText(p));
+          const kid = map.events.find((x) => x.id === "kid");
+          kid.commands = [
+            { code: "message", name: "아이", text: "얼굴이 있는 대사", face: { set: "npc", index: 5 } },
+            { code: "choice", options: ["배를 탄다", "여관에 간다", "그만둔다"], cancel: 2, branches: [[], [], []] },
+            { code: "wait", ms: 300 },
+            { code: "transfer", map: "port_town", x: 3, y: 4, dir: "down" },
+            { code: "moveRoute", target: "kid", route: ["up", "left", "wait:450", "turn:down"], wait: true },
+            { code: "turn", target: "kid", dir: "down" },
+            { code: "setFlag", key: "arrived", value: true },
+            { code: "setVar", key: "coins", op: "add", value: 12 },
+            { code: "giveItem", item: "shell", count: 2 },
+            { code: "takeItem", item: "shell", count: 1 },
+            { code: "if", cond: { item: "shell", op: ">=", value: 2 }, thenDo: [
+              { code: "choice", options: ["예", "아니요"], branches: [[{ code: "message", text: "가지 안의 얼굴", face: { file: "./resources/faces/placeholder.png", index: 9 } }], []] },
+            ], elseDo: [] },
+            { code: "playSe", file: "./resources/se/bell.ogg" },
+            { code: "playBgm", file: "./resources/bgm/port.ogg", volume: 80, fade: 500 },
+            { code: "showLocation", text: "항구 마을", seconds: 2 },
+            { code: "scene", name: "title", fade: true },
+            { code: "script", name: "portGreeting", args: { speaker: "kid", lines: ["하나", "둘"] } },
+            { code: "comment", text: "메모 한 줄" },
+          ];
+          await e.backend.writeText(p, JSON.stringify(map, null, 2) + "\\n");
+        }`,
+        PORT,
+      );
+      await openMap(page, PORT, "port_town.json");
+      await ev(page, "(e) => { const doc = e.documents.active; doc.setTarget({ kind: 'ext', id: 'rpg.events' }); const s = doc.layerState('rpg.events'); s.select([s.section.indexOfId('kid')]); }");
+      await expect(page.getByTestId("rpg-inspector-id")).toHaveText("kid");
+      const slot = page.getByTestId("map-layer-inspector");
+      const tree = page.getByTestId("rpg-cmd-tree");
+      const rows = tree.locator('.rpg-row.is-command[data-testid="rpg-cmd-row"]');
+      const count = await rows.count();
+      expect(count).toBe(19);
+
+      /** 폼 안의 요소 가운데 자리의 가로 범위를 벗어난 것 (보이는 것만), 트리와 자리의 가로 넘침 */
+      const overflow = () =>
+        slot.evaluate((s) => {
+          const box = s.getBoundingClientRect();
+          const out: string[] = [];
+          const form = s.querySelector<HTMLElement>('[data-testid="rpg-cmd-form"]');
+          for (const el of form ? [form, ...form.querySelectorAll<HTMLElement>("*")] : []) {
+            const r = el.getBoundingClientRect();
+            if (r.width === 0 || r.height === 0) continue;
+            if (r.left < box.left - 0.5 || r.right > box.right + 0.5) out.push(`${el.dataset.testid ?? el.className} ${Math.round(r.left)}..${Math.round(r.right)} / ${Math.round(box.left)}..${Math.round(box.right)}`);
+          }
+          const tree = s.querySelector<HTMLElement>('[data-testid="rpg-cmd-tree"]')!;
+          if (tree.scrollWidth > tree.clientWidth) out.push(`트리의 가로 넘침 ${tree.scrollWidth} > ${tree.clientWidth}`);
+          if (s.scrollWidth > s.clientWidth) out.push(`자리의 가로 넘침 ${s.scrollWidth} > ${s.clientWidth}`);
+          return out;
+        });
+
+      let faces = 0;
+      for (let i = 0; i < count; i++) {
+        const row = rows.nth(i);
+        const key = await row.getAttribute("data-row-key");
+        await row.scrollIntoViewIfNeeded();
+        await row.click();
+        await expect(page.getByTestId("rpg-cmd-form")).toBeVisible();
+        await nextFrames(page);
+        expect(await overflow(), `${key} 의 폼`).toEqual([]);
+        const cells = page.getByTestId("rpg-cmd-form").locator('[data-testid^="rpg-arg-face-grid-"]');
+        const n = await cells.count();
+        if (n === 0) continue;
+        faces++;
+        expect(n, key!).toBe(16);
+        const box = (await slot.boundingBox())!;
+        for (let c = 0; c < n; c++) {
+          const cell = (await cells.nth(c).boundingBox())!;
+          expect(cell.x, `${key} 얼굴 ${c} 의 왼쪽`).toBeGreaterThanOrEqual(box.x - 0.5);
+          expect(cell.x + cell.width, `${key} 얼굴 ${c} 의 오른쪽`).toBeLessThanOrEqual(box.x + box.width + 0.5);
+        }
+        // 고른 얼굴 칸은 누를 수 있다 (가려지지 않았다)
+        await cells.nth(c0(key!)).click({ trial: true });
+      }
+      expect(faces, "얼굴 격자가 있는 폼 (위의 대사, 가지 안의 대사)").toBe(2);
+    });
+  }
 });
+
+/** 얼굴 격자에서 눌러 볼 칸 (위의 대사는 5번, 가지 안은 9번) */
+function c0(rowKey: string): number {
+  return rowKey === "c.commands[1]" ? 5 : 9;
+}
+
