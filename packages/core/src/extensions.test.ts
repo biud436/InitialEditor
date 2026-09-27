@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { autorun } from "mobx";
+import { describe, expect, it, vi } from "vitest";
 import type { ChangeEvent } from "./backend";
 import { CommandRegistry } from "./commands";
 import { DocumentRegistry } from "./document";
@@ -82,6 +83,30 @@ describe("ExtensionHost", () => {
     await expect(h.host.activate(bad)).rejects.toThrow(/이미 있다/);
     expect(h.host.active.has("bad")).toBe(false);
     expect(h.registries.objectTypes.size).toBe(0);
+  });
+
+  it("누가 보고 있는 레지스트리에 등록해도 액션 밖 변경 경고가 없다", async () => {
+    const h = host();
+    const seen: number[] = [];
+    const stop = autorun(() => seen.push(h.registries.panels.size + h.registries.objectTypes.size + h.registries.validators.length));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await h.host.activate({
+        id: "p",
+        name: "p",
+        activate(api) {
+          api.registerPanel({ id: "p.list", title: "목록", Component: null });
+          api.registerObjectType({ type: "x", label: "x", defaults: {} });
+          api.registerValidator(() => []);
+        },
+      });
+      await h.host.deactivate("p");
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+      stop();
+    }
+    expect(seen).toEqual([0, 1, 2, 3, 2, 1, 0]);
   });
 
   it("의존하는 확장을 먼저 해제하면 뒤따르는 확장도 해제된다", async () => {

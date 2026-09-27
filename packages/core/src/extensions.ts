@@ -7,7 +7,7 @@
 // 확장끼리: activate 가 돌려준 값이 그 확장의 내보내기다. dependsOn 에 적은 확장의 것만 api.exportsOf 로 받는다
 // (docs/plans/e5-rpg.md 2.1). 확장이 프로젝트와 문서를 보는 길은 api.workspace 의 읽기 전용 손잡이다.
 
-import { action, makeObservable, observable } from "mobx";
+import { action, makeObservable, observable, runInAction } from "mobx";
 import type { ChangeEvent, ProjectBackend } from "./backend";
 import { CommandRegistry, type EditorCommand } from "./commands";
 import { DocumentRegistry } from "./document";
@@ -187,7 +187,7 @@ export class ExtensionRegistries {
 
 function putUnique<T>(map: Map<string, T>, key: string, value: T, what: string): () => void {
   if (map.has(key)) throw new Error(`${what}이(가) 이미 있다: ${key}`);
-  map.set(key, value);
+  runInAction(() => map.set(key, value));
   return action(() => {
     if (map.get(key) === value) map.delete(key);
   });
@@ -253,7 +253,7 @@ export class ExtensionHost {
       registerCommand: (cmd) => d.add(commands.register(cmd)),
       registerMenu: (spec) => d.add(menus.register(spec)),
       registerValidator: (fn) => {
-        registries.validators.push(fn);
+        runInAction(() => registries.validators.push(fn));
         return d.add(
           action(() => {
             registries.validators.remove(fn);
