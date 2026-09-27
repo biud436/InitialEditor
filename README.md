@@ -168,8 +168,9 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 - 시작 상태: 이벤트 패널의 시작 상태 칸에 적은 값이 세 실행에 `INITIAL2D_RPG_STATE`로 실립니다. 비우면 새 게임 그대로입니다.
   데모의 대사는 대부분 깃발과 아이템으로 갈리므로(`arrived,heardAltar`면 아이가 조개 목걸이를 줍니다) 여기에 적어 두고 봅니다.
 - 실행의 변수와 콘솔: `play.env`의 `INITIAL2D_SCRIPT=lua`, `INITIAL2D_SCENE=rpg`, `INITIAL2D_MAP`, `INITIAL2D_RPG_AT`, `INITIAL2D_RPG_STATE`,
-  `INITIAL2D_RPG_TRACE=1`에 자동 재생은 `play.probe`의 `INITIAL2D_AUTOPLAY=1`, `INITIAL2D_RPG_ROUTE`를 더합니다. 프로세스 실행과 게임 탭(웹 엔진)
-  모두 같은 변수이고, 콘솔에 `rpg:player:`(선 칸과 방향), `rpg:event:`, `rpg:message:이름|대사`, `rpg:route:done` 줄이 남습니다.
+  `INITIAL2D_RPG_TRACE=1`에 자동 재생은 `play.probe`의 `INITIAL2D_AUTOPLAY=1`, `INITIAL2D_RPG_ROUTE`를 더합니다. 자동 재생은 에디터가
+  게임의 줄을 지켜보므로 `play`에 없어도 `INITIAL2D_RPG_TRACE=1`을 늘 넣고, `play.probe`의 `{event}`는 그 이벤트의 id로 채웁니다.
+  프로세스 실행과 게임 탭(웹 엔진) 모두 같은 변수이고, 콘솔에 `rpg:player:`(선 칸과 방향), `rpg:event:`, `rpg:message:이름|대사`, `rpg:route:done` 줄이 남습니다.
   `game.json`이 mruby여도 RPG 실행은 `INITIAL2D_SCRIPT=lua`로 덮으므로 언어 검사는 덮은 값으로 합니다.
 
 - 픽스처: 모델 테스트는 엔진 파일의 사본(`packages/ext-rpg/test/fixtures/`)으로 돕니다. 이벤트 스키마, 게임 설정, 아이템 표,

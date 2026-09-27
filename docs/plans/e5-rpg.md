@@ -145,6 +145,8 @@ E3 는 구현이 들어가 있지만 단계는 🟡 이고(e3 문서의 완료 �
 검수 뒤 더한 것 하나: **커맨드와 패널의 `visible`.** `EditorCommand.visible` 과 `PanelSpec.visible` 이 거짓이면 그 항목이 메뉴(HTML 메뉴 바와
 네이티브 메뉴가 함께 쓰는 `visibleMenu`)에서 빠지고 커맨드는 비활성이다. 이 프로젝트에 해당하지 않는 확장의 항목(스키마가 없는 프로젝트의
 이벤트 명령)을 꺼진 채 보이지 않게 하는 자리다 (2.5). 꺼 두고 이유를 보여야 하는 것은 그대로 `enabled` 다.
+패널의 `visible`은 패널을 싣거나 여는 모든 자리가 따른다 (두 번째 검수 뒤): 창 메뉴, 확장 패널 목록(`ExtensionsPanel`), 레이아웃 프리셋의
+`presets`, 커맨드로 여는 길(`LayoutStore`가 열지 않고 알린다). 이미 열린 탭은 닫을 수 있다.
 
 ### 2.2 타일맵 확장이 여는 자리 (`packages/ext-tilemap/src/contrib.ts`, 새 파일)
 
@@ -391,7 +393,7 @@ RTP 쌍둥이 맵(마을, 오두막): `rpg-game.json` 의 항목에 `alt` 가 �
 |---|---|---|
 | 여기서 실행 (Ctrl+F5, 맵 탭) | 고른 이벤트가 있으면 그 앞, 없으면 커서 칸, 없으면 뷰 가운데. 커서와 뷰 가운데는 **가장 가까운 설 수 있는 칸**으로 옮기고 아래를 본다 | `play.env` |
 | 이 이벤트 앞에서 실행 (이벤트 우클릭, 목록) | 이벤트 앞 칸 | `play.env` |
-| 이 이벤트 자동 재생 | 이벤트 앞 칸. action 은 경로 `talk`, touch 는 이벤트 쪽으로 한 걸음, auto 는 위치 없이 빈 경로 (맵에 들어올 때 auto 가 병합 순서대로 돌고 끝나면 `rpg:route:done`, 5.1). parallel 은 끄고 이유를 띄운다 ("parallel 은 끝나지 않는다"). auto 가 전부 도는 것은 M2 의 엔진 고치기에 기댄다 (에디터 작업보다 먼저 들어간다, 의존 관계). 러너가 게임의 줄을 지켜본다 (검수 뒤): 새 게임으로 다시 시작하면(`rpg:transfer:` 없이 온 두 번째 `rpg:map:`) 멈추고 이유를 남기고, 코드 0 으로 끝났는데 `rpg:event:<id>` 가 없었으면 실패로 알린다 | `play.env` + `play.probe` |
+| 이 이벤트 자동 재생 | 이벤트 앞 칸. action은 경로 `talk`, touch는 이벤트 쪽으로 한 걸음, auto는 위치 없이 빈 경로 (맵에 들어올 때 auto가 병합 순서대로 돌고 끝나면 `rpg:route:done`, 5.1). parallel은 끄고 이유를 띄운다 ("parallel은 끝나지 않는다"). auto가 전부 도는 것은 M2의 엔진 고치기에 기댄다 (에디터 작업보다 먼저 들어간다, 의존 관계). 러너가 게임의 줄을 지켜본다 (검수 뒤): 새 게임으로 다시 시작하면(`rpg:transfer:` 없이 온 두 번째 `rpg:map:`) 멈추고 이유를 남기고, 코드 0으로 끝났는데 `rpg:event:<id>`가 없었으면 실패로 알린다 | `play.env` + `play.probe`, 그리고 늘 `INITIAL2D_RPG_TRACE=1` (지켜보는 줄이 trace라 프로젝트 설정에 기대지 않는다). `play.probe`의 `{event}`는 이벤트 id다 |
 
 - **"앞 칸"** 은 `play.ts` 가 고른다: 외형이 있고 `dir` 이 있으면 그 이벤트가 바라보는 칸, 아니면 아래, 왼쪽, 오른쪽, 위 순서로
   맵 안이고 통행 0 이고 막는 이벤트가 없는 첫 칸. 플레이어는 이벤트 쪽을 본다. 네 칸이 다 막혔으면 아래의 "가장 가까운 칸" 규칙으로 넘어간다
@@ -978,7 +980,7 @@ E5 는 🟡 로 둔다. 완료 기준 일곱 중 넷(둘째, 넷째, 다섯째, 
 - 새 변수 `INITIAL2D_RPG_HOLD=<이벤트 id>`. `scripts/lua/games/rpgdemo/game.lua` 의 `init` 이 `INITIAL2D_RPG_ROUTE` 와 함께 읽고, `spawnEvent` 가
   `def.id` 가 그 id 면 `setWander` 를 부르지 않는다 (그 NPC 는 맵 파일의 칸에 서 있다). trace 에 `rpg:hold:<id>` 를 한 번 찍는다
 - `resources/data/rpg-game.json` 의 `play.probe` 에 `"INITIAL2D_RPG_HOLD": "{event}"`. M2 문서 5.2 의 표에 변수를, `playenv` 테스트에 읽기를 더한다
-- 에디터는 `probeEnv` 의 값에 `event`(이벤트 id)를 더한다. 지금의 `fillPlayEnv` 는 모르는 자리표시자가 든 변수를 빼므로 엔진이 먼저 들어가도 깨지지 않는다
+- 에디터는 `probeEnv`의 값에 `event`(이벤트 id)를 더한다 (두 번째 검수 뒤에 했다). `fillPlayEnv`는 채울 값이 없는 자리표시자가 든 변수를 빼므로 id 없는 이벤트에는 그 변수가 없다
 - 엔진 테스트 `test_rpg_play_here` 에 kid 를 새 게임(시작 상태 없음)으로 자동 재생해 `rpg:event:kid` 와 대사 셋이 나오는 판을 더한다
 
 | 물음 | 결정 |
@@ -1009,3 +1011,36 @@ engine-events: 판 10, 검사 105개 통과, 엔진 419a829daccb67276aca7d0ef857
 단위 테스트가 문제를 되살리면 깨지는 것을 보았다 (바꾸고 돌린 뒤 되돌렸다): 원본을 옮기지 않으면 크기 바꾸기 판 1건, 열쇠 대신 번호로 고르면 레이어와 인스펙터의 되돌리기 판 둘(과 고르기 판 셋), 칸이 밖의 값을 따라가지 않으면 `packages/ui` 3건과 ext-rpg 위젯 5건과 인스펙터 1건, dblclick 이 포인터 밑의 줄을 먼저 쓰면 트리 1건.
 
 E5 는 🟡 로 둔다. 남은 것: 완료 기준 첫째의 Tauri 창(웹 번들로는 확인), 셋째(저자가 Tauri 의 프로세스 모드를 한 번 눌러 보기), 일곱째(엔진 README 와 `index.md`), 마일스톤 3 의 사람 브리지 왕복, 마일스톤 5 의 맵 이동 대상 고르기, 엔진의 `INITIAL2D_RPG_HOLD`.
+
+### 두 번째 레이어 검수 뒤 고친 것 (2026-09-27, `feat/e5-layer`)
+
+위의 고침을 다시 검수해 가벼운 문제 다섯이 나왔다. 하나는 큰 정수 고침이 만든 회귀다.
+
+| 문제 | 고친 것 |
+|---|---|
+| 큰 정수를 표식 글로 싣자, 수 인자(`setVar.value`)의 64비트 정수가 "수가 아니다" 오류로 저장 대화상자를 띄우고, 폼에 `\u0000INT:…`가 보이고, 사본 글(시스템 클립보드)에 표식이 샌다 | 표식 글은 파일에서 수이므로 값을 보는 쪽이 모두 수로 다룬다. 타일맵 `format.ts`에 도우미 `isJsonNumber`, `isJsonInteger`, `jsonNumber`(견주기용 가까운 수), `isJsonText`(표식은 글이 아니다), `jsonValueText`(숫자 그대로 보이기), `numberFromText`(적은 큰 정수를 표식으로)를 두고 ext-rpg `model/json.ts`가 내보낸다. 엔진과 같은 검사(수, 정수, 범위, 칸, 속도, 외형 번호, 배회)는 표식을 수로, 글 자리에서는 틀린 값으로 본다. 2^53을 넘는 칸은 엔진 검사를 지나므로 에디터가 "맵 밖이다" 오류를 낸다. 숫자 칸(`NumberInput`)은 숫자 그대로 보이고 `exact` 인 칸(수 인자, 스칼라, 배회)은 적은 큰 정수를 그대로 보낸다. 글, 고르기, 파일, 참조 칸은 표식을 틀린 값으로 알리고 숫자로 보인다. 트리의 요약, 틀린 값 알림, 목록 패널의 찾기와 짧은 글은 `stringifyJsonLossless`다. 커맨드와 이벤트 클립보드는 `stringifyJsonLossless`로 쓰고 `parseJsonLossless`로 읽는다. 맵 오브젝트도 같다: 스키마 검사의 숫자와 정수 칸, 인스펙터는 bigint로 넘겨 숫자 그대로(`packages/ui`의 숫자 칸이 bigint를 보인다), 스키마 없는 타입의 props 글 |
+| 자동 재생의 지켜보기가 프로젝트 `play.env`의 `INITIAL2D_RPG_TRACE`에 기댄다. 빼면 모든 실행이 거짓 실패로 끝나고 배는 다시 끝없이 돈다 | `probeEnv`가 늘 `INITIAL2D_RPG_TRACE=1`을 맨 뒤에 덮는다 (`PROBE_TRACE_ENV`). 손으로 하는 실행은 프로젝트 설정 그대로다. 같은 자리에서 `{event}`를 이벤트 id로 채운다 (엔진이 `play.probe`에 `INITIAL2D_RPG_HOLD`를 더할 자리) |
+| RPG 스키마가 없는 프로젝트에서 타일맵 레이아웃과 확장 패널 목록이 이벤트 패널을 연다 | 패널의 `visible`을 모든 자리가 따른다 (2.1): `buildPreset`은 넣지 않고, `ExtensionsPanel`은 싣지 않고, `LayoutStore`는 커맨드로 불러도 열지 않고 "이 프로젝트에 해당하지 않는 확장 패널이다"를 남긴다 |
+| 이미 고른 CharSet 칸을 다시 누르면 빈 되돌리기 단계가 쌓이고 저장 안 됨이 켜진다 | 코어 `Command.unchanged`: 참이면 `UndoStack.push`가 실행하지도 쌓지도 않는다. ext-rpg의 `EventListCommand`는 목록의 내용(키 순서까지 같은 JSON)이 그대로면 참이라 외형, 얼굴, 모든 이벤트 칸과 인자가 같은 값이면 단계가 없다. 씬(`setProp`, `setField`, `moveObjects`)과 맵 오브젝트(`setObjectProp`, `setObjectField`, `moveObjects`, `compound`)와 앱의 묶음 명령도 같은 규칙이다 |
+| `packages/app`의 새 주석에 RPG 낱말 | `playHere.ts`의 watch 설명을 장르 없이 ("멈출 이유나 알릴 실패는 계획을 세운 제공자가 정한다") |
+
+| 물음 | 결정 |
+|---|---|
+| 표식 글을 없애고 다른 것으로 실을까 | 그대로 둔다 (위의 결정). 대신 값을 보는 쪽이 하나의 도우미로 수로 본다. 칸 수를 적는 자리(맵 크기, 타일 배열, 오브젝트의 x, y)는 그대로 수만 받는다 |
+| 같은 값 명령을 누가 거르나 | 명령이 만들 때의 문서와 견줘 `unchanged`를 들고, 스택이 거른다. 입력 칸마다 견주면 칸 종류마다 규칙이 갈린다. 합치기 세션의 중간에 온 같은 값도 걸러져 상태 id가 그대로다 |
+| trace를 누가 켜나 | 에디터. 지켜보기는 에디터의 기능이라 프로젝트가 `play.env`에서 빼도 자동 재생은 돈다. 엔진 쪽도 `play.probe`에 더하지만 에디터가 기대지 않는다 |
+
+검수:
+
+| 검사 | 결과 |
+|---|---|
+| `yarn typecheck`, `yarn lint`, `yarn check:colors` | 통과 |
+| Vitest (`INITIAL2D_DIR=/Users/u/Initial2D`) | 119 파일, 1360건 통과, 1건 건너뜀, 1건 실패. 실패는 앞과 같은 `templates.test.ts`(엔진 `e897f95`의 `hangul.fnt`)이고 엔진 PR 병합 뒤 템플릿을 다시 맞출 때 풀린다 |
+| `yarn build` | 통과 |
+| Playwright `rpg-editor.spec.ts`, `rpg-events.spec.ts` (포트 4750, 브리지 6550) | 12건과 4건 통과 (브리지의 배 자동 재생은 trace를 뺀 프로젝트로 약 18초에 멈춘다). 전체도 돌렸다: 94건 통과, load average가 200을 넘던 동안 시간이 넘은 다섯(`map-view.spec.ts` 둘, `map-objects.spec.ts`, `rpg-editor.spec.ts`, `rpg-events.spec.ts`의 메모리 모드 하나씩)은 따로 다시 돌려 모두 통과했다 |
+| `INITIAL2D_DIR=/Users/u/Initial2D yarn test:engine-events` | 건너뛰지 않음. 판 10, 검사 105개 통과, 엔진 `cdaf1ee`. 명령의 요청과 `probeEnv`의 대조는 `event`를 넣어 견준다 |
+
+새 테스트: 타일맵 도우미와 오브젝트 검사의 큰 정수, 같은 값 명령(타일맵, 씬, 코어 스택), ext-rpg 검사와 위젯과 요약과 두 클립보드의 큰 정수, 자동 재생 변수의 trace와 `{event}`, 인스펙터의 외형과 얼굴 다시 누르기, 확장 패널 목록과 프리셋과 커맨드의 `visible`, 맵 오브젝트 인스펙터의 큰 정수. e2e: `rpg-editor.spec.ts`에 큰 정수 인자(폼, 트리 줄, 오류 없는 저장, 시스템 클립보드)와 외형 다시 누르기, RPG 스키마 없는 프로젝트의 확장 패널 목록과 타일맵 레이아웃(대조는 RPG 프로젝트), `rpg-events.spec.ts`의 배 자동 재생은 `play`에서 trace를 뺀 프로젝트로 돈다. 스택의 거르기를 끄면 코어, 씬, 타일맵, 인스펙터의 새 판 넷이 깨진다.
+
+남은 것은 위의 마지막 줄 그대로다. 엔진이 `play.probe`에 `INITIAL2D_RPG_HOLD`를 더하면 에디터는 이미 `{event}`를 채운다. 픽스처와 템플릿의 다시 맞추기(`yarn sync:rpg`, `yarn sync:templates`)는 엔진 PR이 병합된 뒤에 한다.
+
