@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { FieldRow, MIXED_LABEL, newSession, NumberField, TextField } from "./fields";
-import { EMPTY_LABEL, OptionalNumberField, SchemaFieldInput, type SchemaFieldSpec } from "./schemaField";
+import { EMPTY_LABEL, exactBigInt, OptionalNumberField, SchemaFieldInput, type SchemaFieldSpec } from "./schemaField";
 
 afterEach(cleanup);
 
@@ -156,6 +156,24 @@ describe("OptionalNumberField", () => {
     fireEvent.change(input, { target: { value: "7" } });
     expect(c.list.map(([v]) => v)).toEqual([7]);
   });
+
+  it("exact 면 수로 바꾸면 자릿수를 잃는 정수를 bigint 로 보낸다 (범위 밖이면 자른 수). 아니면 가까운 수다", () => {
+    const c = calls();
+    const { unmount } = render(<OptionalNumberField value={undefined} exact max={1e30} onChange={c.on} sessionPrefix="o" testId="o" />);
+    const input = screen.getByTestId("o") as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "12345678901234567890" } });
+    fireEvent.change(input, { target: { value: "9007199254740991" } });
+    fireEvent.change(input, { target: { value: "1e40" } });
+    fireEvent.change(input, { target: { value: "-0012345678901234567890" } });
+    expect(c.list.map(([v]) => v)).toEqual([12345678901234567890n, 9007199254740991, 1e30, -12345678901234567890n]);
+    unmount();
+    const plain = calls();
+    render(<OptionalNumberField value={undefined} onChange={plain.on} sessionPrefix="p" testId="p" />);
+    fireEvent.change(screen.getByTestId("p"), { target: { value: "12345678901234567890" } });
+    expect(plain.list.map(([v]) => v)).toEqual([Number("12345678901234567890")]);
+    expect([exactBigInt("12345678901234567890"), exactBigInt(" 7 "), exactBigInt("10000000000000000"), exactBigInt("1.5e20"), exactBigInt("")]).toEqual([12345678901234567890n, null, null, null, null]);
+  });
 });
 
 describe("SchemaFieldInput", () => {
@@ -178,6 +196,17 @@ describe("SchemaFieldInput", () => {
     expect(screen.getByText(MIXED_LABEL)).toBeTruthy();
     fireEvent.click(box);
     expect(c.list).toEqual([[true, undefined]]);
+  });
+
+  it("숫자 칸의 exact 는 OptionalNumberField 로 간다: 큰 정수는 bigint 이고 보인 bigint 가 그대로 돌아오면 글을 두다", () => {
+    const c = calls();
+    const { rerender } = render(<SchemaFieldInput field={field({ type: "integer" })} value={5} exact onChange={c.on} sessionPrefix="s" testId="s" />);
+    const input = screen.getByTestId("s") as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "12345678901234567890" } });
+    expect(c.list.map(([v]) => v)).toEqual([12345678901234567890n]);
+    rerender(<SchemaFieldInput field={field({ type: "integer" })} value={12345678901234567890n} exact onChange={c.on} sessionPrefix="s" testId="s" />);
+    expect(input.value).toBe("12345678901234567890");
   });
 
   it("integer 는 반올림하고 min, max 로 자른다. text 는 여러 줄이다", () => {

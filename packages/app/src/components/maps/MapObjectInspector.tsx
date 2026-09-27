@@ -7,7 +7,7 @@
 // 변경은 전부 objectTools/actions.ts를 거쳐 명령이 된다.
 
 import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
-import { bigIntText, stringifyJsonLossless, typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
+import { bigIntText, numberFromText, stringifyJsonLossless, typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useEditor } from "../../editor/EditorContext";
@@ -32,6 +32,11 @@ function shownValue(v: unknown): unknown {
 function shownNumber(v: unknown): number | bigint | undefined {
   const shown = shownValue(v);
   return typeof shown === "number" || typeof shown === "bigint" ? shown : undefined;
+}
+
+/** 칸이 보낸 값을 파일의 값으로: 적은 큰 정수(bigint)는 표식 글로 실어 저장할 때 숫자 그대로 쓴다 */
+function storedValue(v: unknown): unknown {
+  return typeof v === "bigint" ? numberFromText(v.toString()) : v;
 }
 
 function prefix(doc: MapDocument, id: string, key: string): string {
@@ -96,13 +101,14 @@ function ClearButton({ onClick, testId, label }: { onClick: () => void; testId: 
 const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: MapDocument; object: MapObject; min: FieldSpec; max: FieldSpec }) {
   const lo = object.props[min.name];
   const hi = object.props[max.name];
-  const set = (field: FieldSpec, v: number, session: string) => setObjectsProp(doc, [object.id], field.name, v, session);
+  const set = (field: FieldSpec, v: number | bigint, session: string) => setObjectsProp(doc, [object.id], field.name, storedValue(v), session);
   const clear = () => clearObjectProps(doc, object.id, [min.name, max.name]);
   return (
     <div className="map-range" data-testid="map-range">
       <FieldRow label={RANGE_LABEL} hint={`${min.label} (${min.name}) ~ ${max.label} (${max.name})`}>
         <OptionalNumberField
           value={shownNumber(lo)}
+          exact
           onChange={(v, s) => set(min, v, s)}
           sessionPrefix={prefix(doc, object.id, min.name)}
           integer={min.type === "integer"}
@@ -114,6 +120,7 @@ const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: Ma
         <span className="muted map-range-sep">~</span>
         <OptionalNumberField
           value={shownNumber(hi)}
+          exact
           onChange={(v, s) => set(max, v, s)}
           sessionPrefix={prefix(doc, object.id, max.name)}
           integer={max.type === "integer"}
@@ -146,7 +153,7 @@ const SchemaFields = observer(function SchemaFields({ doc, object, spec }: { doc
         return (
           <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
             <FieldRow label={f.label} hint={`${f.name} (${f.type}${f.required ? ", 필수" : ""})`}>
-              <SchemaFieldInput field={f} value={shownValue(value)} onChange={(v, s) => setObjectsProp(doc, [object.id], f.name, v, s)} sessionPrefix={prefix(doc, object.id, f.name)} testId={`map-field-${f.name}`} />
+              <SchemaFieldInput field={f} value={shownValue(value)} exact onChange={(v, s) => setObjectsProp(doc, [object.id], f.name, storedValue(v), s)} sessionPrefix={prefix(doc, object.id, f.name)} testId={`map-field-${f.name}`} />
               {!f.required && value !== undefined && <ClearButton onClick={() => setObjectsProp(doc, [object.id], f.name, undefined)} testId={`map-field-${f.name}-clear`} label={f.label} />}
             </FieldRow>
           </div>
