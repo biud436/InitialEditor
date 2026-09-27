@@ -1,6 +1,8 @@
-# CI (docs/plans/e0-foundation.md 마일스톤 6): 타입 검사, 린트, 단위 테스트, 빌드, 색 리터럴 검사, Playwright 스모크,
-# 그리고 Rust 명령의 cargo test 와 Tauri 디버그 빌드. 엔진 저장소(biud436/Initial2D)를 형제 폴더로 받아
-# 브리지 스모크와 적합성 테스트가 진짜 브리지 서버를 띄우게 한다.
+# CI (docs/plans/e0-foundation.md 마일스톤 6, e6-packaging.md 4.1 절): 타입 검사, 린트, 단위 테스트, 빌드, 색 리터럴 검사,
+# Playwright 스모크, 판과 제3자 고지 대조, 웹판 dist 와 Pages 헤더 검사, 그리고 Rust 명령의 cargo test(세 OS)와 Tauri 디버그 빌드.
+# 엔진 저장소(biud436/Initial2D)를 형제 폴더로 받아 브리지 스모크와 적합성 테스트가 진짜 브리지 서버를 띄우게 한다.
+# 엔진은 engine-pin.json 의 커밋으로 받는다 (ciEngineRef 가 있으면 그것). 엔진 기본 브랜치가 앞서 나가도 매일의 CI 가 흔들리지 않는다.
+# 설치 파일과 자가 검사는 release.yml 이다.
 
 name: CI
 
@@ -21,10 +23,20 @@ jobs:
         with:
           path: InitialEditor
 
-      - name: 엔진 저장소 (브리지 서버와 픽스처)
+      - name: 엔진 핀
+        id: pin
+        run: |
+          node -e '
+            const p = require("./InitialEditor/engine-pin.json");
+            console.log("ref=" + (p.ciEngineRef || p.engineCommit || ""));
+          ' >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+      - name: 엔진 저장소 (브리지 서버와 픽스처, 핀의 커밋)
         uses: actions/checkout@v4
         with:
           repository: biud436/Initial2D
+          ref: ${{ steps.pin.outputs.ref }}
           path: Initial2D
 
       - uses: actions/setup-node@v4
@@ -36,6 +48,14 @@ jobs:
       - name: 의존성
         working-directory: InitialEditor
         run: yarn install --immutable
+
+      - name: 판 (루트 package.json 하나)
+        working-directory: InitialEditor
+        run: yarn version:check
+
+      - name: 제3자 고지 (src-tauri/licenses/THIRD-PARTY-editor.md)
+        working-directory: InitialEditor
+        run: node scripts/gen-licenses.mjs --check
 
       - name: 타입 검사
         working-directory: InitialEditor
@@ -59,6 +79,10 @@ jobs:
         working-directory: InitialEditor
         run: yarn build
 
+      - name: 웹판 dist 검사 (_headers, 엔진 MANIFEST, Pages 한도)
+        working-directory: InitialEditor
+        run: node scripts/check-web-dist.mjs
+
       - name: 색 리터럴 검사
         working-directory: InitialEditor
         run: node scripts/check-color-literals.mjs
@@ -67,12 +91,21 @@ jobs:
         working-directory: InitialEditor
         run: yarn playwright install chromium
 
-      - name: Playwright 스모크 (메모리 모드와 브리지 모드)
+      # pages.spec.ts 는 PAGES_WRANGLER=1 이면 npx wrangler@3 pages dev dist 를 띄워 _headers 까지 본다
+      - name: Playwright 스모크 (메모리 모드, 브리지 모드, 로컬 Pages)
         working-directory: InitialEditor
         env:
           CI: "1"
           INITIAL2D_DIR: ${{ github.workspace }}/Initial2D
+          PAGES_WRANGLER: "1"
+          PAGES_PORT: "8788"
         run: yarn test:e2e
+
+      - name: 데스크톱 프런트 (소스맵 없음)
+        working-directory: InitialEditor
+        run: |
+          yarn build:desktop
+          node scripts/check-web-dist.mjs --desktop
 
       - name: Playwright 결과 보관
         if: failure()
@@ -85,8 +118,12 @@ jobs:
           retention-days: 7
 
   rust:
-    name: Rust (cargo test)
-    runs-on: macos-latest
+    name: Rust (cargo test, ${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-22.04, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -95,6 +132,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
+
+      - name: 의존성 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: cargo test
         working-directory: src-tauri
