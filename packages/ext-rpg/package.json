@@ -7,7 +7,8 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:engine-events": "vitest run --root . --config ./vitest.engine.config.ts"
   },
   "dependencies": {
     "@initial-editor/core": "2.0.0-dev",
