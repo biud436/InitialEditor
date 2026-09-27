@@ -1,10 +1,49 @@
 // 도킹 프리셋 셋 (02-scope-and-screens.md 3절 "레이아웃"). 씬(기본), 스크립트, 타일맵(맵 편집).
 // JSON 을 손으로 적지 않고 addPanel 의 상대 위치로 짓는다. dockview 의 직렬화 모양이 바뀌어도 살아남게.
+// 확장이 registerPanel 로 등록한 패널은 제 탭이다 (docs/plans/e5-rpg.md 2.1): 도킹 id 는 ext:<id>, 컴포넌트는 하나
+// (EXT_PANEL_COMPONENT)이고 params.panelId 로 등록된 패널을 찾는다. 패널의 presets 에 든 프리셋을 지을 때 함께 넣는다.
 
 import type { AddPanelOptions, DockviewApi } from "dockview";
 
 export const PANEL_IDS = ["hierarchy", "project", "inspector", "extensions", "console", "find", "mapObjects", "mapPalette", "mapLayers"] as const;
 export type PanelId = (typeof PANEL_IDS)[number];
+
+/** 확장 패널의 도킹 id */
+export type ExtPanelId = `ext:${string}`;
+/** 도구 패널 (앱의 것과 확장의 것) */
+export type ToolPanelId = PanelId | ExtPanelId;
+
+/** 확장 패널을 그리는 dockview 컴포넌트 이름 */
+export const EXT_PANEL_COMPONENT = "extPanel";
+
+/** 확장 패널이 도킹에서 보는 것 (코어 PanelSpec 의 일부) */
+export interface ExtPanelSpec {
+  id: string;
+  title: string;
+  defaultDock?: "left" | "right" | "bottom" | "center";
+  presets?: string[];
+}
+
+export interface ExtPanelParams {
+  panelId: string;
+}
+
+export function extPanelId(id: string): ExtPanelId {
+  return `ext:${id}`;
+}
+
+export function isExtPanelId(id: string): id is ExtPanelId {
+  return id.startsWith("ext:");
+}
+
+export function isBuiltinPanelId(id: string): id is PanelId {
+  return (PANEL_IDS as readonly string[]).includes(id);
+}
+
+/** 확장 패널의 등록 id (ext:<id> 의 <id>). 확장 패널이 아니면 null */
+export function extPanelKey(id: string): string | null {
+  return isExtPanelId(id) ? id.slice("ext:".length) : null;
+}
 
 export const PANEL_TITLES: Record<PanelId, string> = {
   hierarchy: "계층",
@@ -39,6 +78,37 @@ export function addToolPanel(api: DockviewApi, id: PanelId, placement?: Placemen
   if (api.getPanel(id)) return;
   // inactive 로 더하면 새 그룹에 활성 패널이 없어 내용이 안 그려진다. 활성으로 더하고 문서 쪽이 뒤에 초점을 되찾는다
   api.addPanel({ id, component: id, title: PANEL_TITLES[id], position: toPosition(placement ?? defaultPlacement(api, id)) });
+}
+
+/** 확장 패널을 더한다 (이미 있으면 그대로). 자리를 주지 않으면 defaultDock 에 따라 이웃 옆 탭으로 */
+export function addExtensionPanel(api: DockviewApi, spec: ExtPanelSpec, placement?: Placement): void {
+  const id = extPanelId(spec.id);
+  if (api.getPanel(id)) return;
+  const params: ExtPanelParams = { panelId: spec.id };
+  const has = (p: string) => !!api.getPanel(p);
+  api.addPanel({ id, component: EXT_PANEL_COMPONENT, title: spec.title, params, position: toPosition(placement ?? extPanelPlacement(has, spec.defaultDock, firstDocPanelId(api))) });
+}
+
+/**
+ * 확장 패널의 자리: 왼쪽은 맵 오브젝트나 계층이나 프로젝트 옆 탭, 아래는 콘솔 옆 탭, 가운데는 문서 옆 탭,
+ * 오른쪽(기본)은 확장 패널이나 인스펙터 옆 탭. 기댈 패널이 없으면 문서 옆, 문서도 없으면 가장자리
+ */
+export function extPanelPlacement(has: (id: string) => boolean, dock: ExtPanelSpec["defaultDock"], docPanel: string | undefined): Placement {
+  const within = (candidates: string[], fallback: Direction): Placement => {
+    const ref = candidates.find(has);
+    if (ref) return { referencePanel: ref, direction: "within" };
+    return docPanel ? { referencePanel: docPanel, direction: fallback } : { direction: fallback === "within" ? "right" : fallback };
+  };
+  switch (dock) {
+    case "left":
+      return within(["mapObjects", "hierarchy", "project"], "left");
+    case "bottom":
+      return within(["console", "find"], "below");
+    case "center":
+      return docPanel ? { referencePanel: docPanel, direction: "within" } : { direction: "right" };
+    default:
+      return within(["extensions", "inspector", "mapLayers"], "right");
+  }
 }
 
 export function firstDocPanelId(api: DockviewApi): string | undefined {
@@ -130,7 +200,7 @@ function size(api: DockviewApi, id: string, dim: { width?: number; height?: numb
  * 프리셋을 짓는다. 문서 그룹은 여기서 만들지 않는다: DocumentDock.reconcile 이 열린 문서를
  * 콘솔 위(가운데)에 놓는다. 크기는 문서 그룹이 생긴 뒤 applyPresetSizes 로 맞춘다.
  */
-export function buildPreset(api: DockviewApi, name: PresetName): void {
+export function buildPreset(api: DockviewApi, name: PresetName, extPanels: readonly ExtPanelSpec[] = []): void {
   api.clear();
   const add = (id: PanelId, placement?: Placement) => addToolPanel(api, id, placement ?? { direction: "right" });
   switch (name) {
@@ -157,6 +227,7 @@ export function buildPreset(api: DockviewApi, name: PresetName): void {
       add("mapLayers", { referencePanel: "inspector", direction: "below" });
       break;
   }
+  for (const spec of extPanels) if (spec.presets?.includes(name)) addExtensionPanel(api, spec);
 }
 
 /** 문서 그룹이 놓인 뒤 부르는 크기 조정 */

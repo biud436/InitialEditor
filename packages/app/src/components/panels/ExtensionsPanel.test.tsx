@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { ExtensionRegistries } from "@initial-editor/core";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { runInAction } from "mobx";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Editor } from "../../editor/Editor";
@@ -11,12 +11,15 @@ afterEach(cleanup);
 
 function setup() {
   const registries = new ExtensionRegistries();
+  const shown: string[] = [];
+  const open = new Set<string>(["ext:open"]);
+  const layout = { isPanelOpen: (id: string) => open.has(id), showPanel: (id: string) => void shown.push(id) };
   render(
-    <EditorProvider value={{ registries } as unknown as Editor}>
+    <EditorProvider value={{ registries, layout } as unknown as Editor}>
       <ExtensionsPanel />
     </EditorProvider>,
   );
-  return registries;
+  return { registries, shown };
 }
 
 describe("확장 패널", () => {
@@ -28,11 +31,23 @@ describe("확장 패널", () => {
     expect(hint).not.toContain("E3");
   });
 
-  it("확장이 등록한 패널을 제목과 함께 그린다", () => {
-    const registries = setup();
-    act(() => runInAction(() => registries.panels.set("demo", { id: "demo", title: "데모", Component: () => <p>데모 본문</p> })));
+  it("확장이 등록한 패널은 제 탭이라 여기는 제목과 열림 상태의 목록이고, 누르면 그 탭을 연다", () => {
+    const { registries, shown } = setup();
+    act(() =>
+      runInAction(() => {
+        registries.panels.set("demo", { id: "demo", title: "데모", Component: () => <p>데모 본문</p> });
+        registries.panels.set("open", { id: "open", title: "열린 것", Component: () => <p>열린 본문</p> });
+      }),
+    );
     expect(screen.queryByTestId("extensions-empty")).toBeNull();
-    expect(screen.getByText("데모")).toBeTruthy();
-    expect(screen.getByText("데모 본문")).toBeTruthy();
+    const entries = screen.getAllByTestId("extension-panel-entry");
+    expect(entries.map((e) => [e.getAttribute("data-panel"), e.textContent])).toEqual([
+      ["demo", "데모닫힘"],
+      ["open", "열린 것열림"],
+    ]);
+    // 본문은 제 탭(ExtensionPanelHost)이 그린다
+    expect(screen.queryByText("데모 본문")).toBeNull();
+    fireEvent.click(screen.getByText("데모"));
+    expect(shown).toEqual(["ext:demo"]);
   });
 });

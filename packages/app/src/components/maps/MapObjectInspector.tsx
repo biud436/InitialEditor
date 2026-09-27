@@ -3,17 +3,18 @@
 //             그다음 스키마 칸마다 입력 하나. rangeMin/rangeMax 칸은 "순찰 범위" 한 줄로 묶는다
 //   같은 타입 여럿: 함께 고쳐도 뜻이 있는 칸(enum, boolean)만, 묶음 명령 하나로
 //   아무것도 안 고름: 맵 요약 (크기, 레이어, 타입별 수)과 스키마 출처
+//   대상이 확장 레이어: 그 레이어의 Inspector 자리 (docs/plans/e5-rpg.md 2.3). Inspector 가 없거나 상태가 없으면 위의 규칙대로
 // 변경은 전부 objectTools/actions.ts를 거쳐 명령이 된다.
 
+import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
 import { typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { clearObjectProps, renameMapObject, selectProblem, setObjectGeometry, setObjectsProp, setRangeAround } from "../../editor/maps/objectTools/actions";
-import { OptionalNumberField, SchemaFieldInput } from "../../editor/maps/objectTools/fieldInputs";
 import { bulkEditableFields, groupObjects, PATROL_RADIUS, rangeFields } from "../../editor/maps/objectTools/rules";
 import { asMapDocument } from "../../editor/maps/schemaStore";
-import { FieldRow, NumberField } from "../../editor/scene/fields";
+import { FieldRow, NumberField, OptionalNumberField, SchemaFieldInput } from "@initial-editor/ui";
 import "./MapObjectInspector.css";
 
 export const RANGE_LABEL = "순찰 범위";
@@ -288,16 +289,32 @@ const MapSummary = observer(function MapSummary({ doc }: { doc: MapDocument }) {
           </FieldRow>
         </div>
         <div className="panel-hint">맵 오브젝트 목록이나 맵 뷰에서 오브젝트를 고르면 속성이 보인다</div>
-        <ProblemList doc={doc} problems={doc.problems} testId="map-inspector-problems" />
+        <ProblemList doc={doc} problems={doc.objectProblems} testId="map-inspector-problems" />
       </div>
     </div>
   );
 });
 
+/** 대상 확장 레이어의 인스펙터. 그릴 것이 없으면 null */
+function layerInspectorFor(editor: ReturnType<typeof useEditor>, doc: MapDocument) {
+  if (doc.target.kind !== "ext") return null;
+  const spec = editor.tilemap?.layers.get(doc.target.id);
+  const state = doc.layerState(doc.target.id);
+  const Inspector = spec?.Inspector as ComponentType<MapLayerInspectorProps> | undefined;
+  if (!spec || !state || !Inspector) return null;
+  return (
+    <div className="map-layer-inspector" data-testid="map-layer-inspector" data-layer={spec.id}>
+      <Inspector document={doc} state={state} />
+    </div>
+  );
+}
+
 export const MapObjectInspector = observer(function MapObjectInspector() {
   const editor = useEditor();
   const doc = asMapDocument(editor.documents.active);
   if (!doc) return null;
+  const layer = layerInspectorFor(editor, doc);
+  if (layer) return layer;
   const objects = doc.selectedIds.map((id) => doc.model.findObject(id)).filter((o): o is MapObject => !!o);
   if (objects.length === 0) return <MapSummary doc={doc} />;
   if (objects.length === 1) return <SingleObject key={objects[0].id} doc={doc} object={objects[0]} />;

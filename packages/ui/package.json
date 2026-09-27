@@ -1,0 +1,25 @@
+{
+  "name": "@initial-editor/ui",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "React 입력 부품: 인스펙터의 숫자, 글, 범위, 스키마 칸 입력. 앱과 확장이 함께 쓴다",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^18.3.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

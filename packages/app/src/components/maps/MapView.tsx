@@ -9,19 +9,23 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { MapRenderer, readMapTheme } from "../../editor/maps";
+import { layerCommandId } from "../../editor/maps/extLayers";
 import { MAP_TOOLS } from "../../editor/maps/mapCommands";
 import { targetHidden } from "../../editor/maps/mapTools";
 import { MapSizeButton } from "./MapSizeButton";
 import "./MapView.css";
 
 export function targetKey(target: MapTarget): string {
-  return target.kind === "layer" ? `layer:${target.index}` : target.kind;
+  if (target.kind === "layer") return `layer:${target.index}`;
+  if (target.kind === "ext") return `ext:${target.id}`;
+  return target.kind;
 }
 
-function targetLabel(doc: MapDocument): string {
+function targetLabel(doc: MapDocument, extLabel: (id: string) => string | undefined): string {
   const t = doc.target;
   if (t.kind === "collision") return "통행";
   if (t.kind === "objects") return "오브젝트";
+  if (t.kind === "ext") return extLabel(t.id) ?? t.id;
   return doc.model.layers[t.index]?.name ?? `레이어 ${t.index}`;
 }
 
@@ -53,6 +57,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       onNotice: (message) => {
         if (!editor.toasts.toasts.some((t) => t.text === message)) editor.toasts.warn(message);
       },
+      layers: () => support.layers(),
     });
     setRenderer(r);
     support.attachRenderer(doc, r);
@@ -79,7 +84,8 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
   const run = (id: string) => () => {
     void editor.commands.execute(id);
   };
-  const paintsHidden = doc.tool !== "object" && doc.tool !== "pick" && targetHidden(doc);
+  const paintsHidden = doc.tool !== "object" && doc.tool !== "pick" && doc.tool !== "ext" && targetHidden(doc);
+  const extTools = support.layers().filter((spec) => doc.layerState(spec.id) !== null);
 
   return (
     <div
@@ -146,9 +152,26 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
               </button>
             );
           })}
+          {extTools.map((spec) => {
+            const on = doc.target.kind === "ext" && doc.target.id === spec.id;
+            return (
+              <button
+                key={spec.id}
+                type="button"
+                className={"btn map-view-tool" + (on ? " is-on" : "")}
+                aria-pressed={on}
+                data-testid={`map-tool-ext-${spec.id}`}
+                title={spec.toolKey ? `${spec.label} (${spec.toolKey})` : spec.label}
+                onClick={run(layerCommandId(spec.id))}
+              >
+                {spec.label}
+                {spec.toolKey ? <kbd className="map-view-key">{spec.toolKey}</kbd> : null}
+              </button>
+            );
+          })}
         </span>
         <span className="map-view-target" title="칠하거나 고르는 대상 (레이어 패널에서 바꾼다)">
-          대상 <b data-testid="map-target">{targetLabel(doc)}</b>
+          대상 <b data-testid="map-target">{targetLabel(doc, (id) => support.layer(id)?.label)}</b>
         </span>
         {paintsHidden ? (
           <span className="map-view-hidden-hint" data-testid="map-target-hidden" title="레이어 패널에서 눈을 켜면 칠할 수 있다">

@@ -172,9 +172,11 @@ export function defaultProps(spec: ObjectTypeSchema): Record<string, unknown> {
 export interface ObjectProblem {
   severity: "error" | "warning";
   message: string;
-  /** objects[3].props.species 꼴 */
+  /** objects[3].props.species 꼴. 확장 레이어의 문제는 그 레이어의 표기 */
   location: string;
   objectId?: string;
+  /** 확장 레이어의 문제면 그 레이어 id (MapDocument.problems 가 채운다) */
+  layer?: string;
 }
 
 /** 오브젝트를 스키마에 대어 본다. 스키마가 없으면 id 겹침만 본다 */

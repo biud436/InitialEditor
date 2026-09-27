@@ -1,7 +1,7 @@
 // PIXI 8 맵 뷰 렌더러. 맵 문서 하나에 렌더러 하나, 뷰(탭)마다 따로 만든다.
 //
 //   world (팬과 줌) ─ backdrop ─ layerRoot (레이어마다 Container, 그 안에 덩어리 스프라이트) ─ collisionRoot
-//                   ─ gridG ─ boundsG ─ objectsG ─ labelRoot ─ ghost (붓 미리보기) ─ previewG
+//                   ─ gridG ─ boundsG ─ objectsG ─ labelRoot ─ extRoot (확장 레이어마다 Container) ─ ghost (붓 미리보기) ─ previewG
 //
 // 타일: 레이어를 CHUNK_TILES 칸 정사각 덩어리로 나눈다. 덩어리마다 칸 스프라이트를 떼어 둔 Container에 두고
 //   RenderTexture 한 장에 그리고, 화면에는 그 텍스처의 스프라이트 하나만 올린다. 모델의 "cells" 이벤트로 바뀐 칸의
@@ -9,10 +9,14 @@
 // 타일 텍스처: 타일셋 이미지를 TextureCache로 한 번 읽고 gid마다 frame을 자른 Texture를 캐시한다 (nearest).
 // 통행: 덩어리마다 Graphics 하나. 막힌 칸을 행 단위 구간으로 묶어 --danger로 옅게 칠한다.
 // 오브젝트: Graphics 하나에 전부 다시 그린다 (수가 적다). 글자는 오브젝트마다 Text 하나이고 줌의 역수로 배율을 준다.
+// 확장 레이어(docs/plans/e5-rpg.md 2.2): 상태가 붙은 레이어마다 Container 하나를 order 순으로 extRoot에 두고 createView를 부른다.
+//   눈을 끄면 숨기고, 대상이 다른 레이어면 반투명이다. 줌이나 테마가 바뀌면 뷰의 redraw를 부른다. 도구(createTool)는
+//   대상이 그 레이어가 될 때 만들고 MapToolController가 포인터와 키를 넘긴다.
 // 입력: 팬과 줌은 여기서, 도구는 mapTools.ts의 MapToolController가 맡는다. Space는 창 전체에서 듣는다:
 //   포인터가 캔버스 위에 있으면 초점이 팔레트나 도구 단추에 있어도 Space+끌기가 팬이다.
 
 import { Emitter } from "@initial-editor/core";
+import type { MapLayerSpec, MapLayerTool, MapLayerToolContext, MapLayerView, MapLayerViewContext } from "@initial-editor/ext-tilemap";
 import { tileSource, typeOf, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, UPDATE_PRIORITY } from "pixi.js";
@@ -54,6 +58,8 @@ export interface MapRendererDeps {
   onCursor?: (p: Point) => void;
   /** 도구가 사용자에게 짧게 알린다 (숨긴 레이어에 칠하려 할 때) */
   onNotice?: (message: string) => void;
+  /** 등록된 확장 레이어 (아래부터 그리는 순서). 관찰 가능하면 등록과 해제를 따라간다 */
+  layers?: () => readonly MapLayerSpec[];
 }
 
 export interface MapRendererEvents {
@@ -79,6 +85,12 @@ interface LayerNode {
   chunks: Map<number, ChunkNode>;
 }
 
+interface ExtLayerNode {
+  spec: MapLayerSpec;
+  container: Container;
+  view: MapLayerView | null;
+}
+
 interface TilesetSlot {
   image: string;
   loaded: LoadedTexture | null;
@@ -97,6 +109,8 @@ const LABEL_FONT_SIZE = 11;
 const DIM_ALPHA = 0.35;
 const COLLISION_ALPHA = 0.4;
 const GHOST_ALPHA = 0.6;
+/** 대상이 아닌 확장 레이어의 투명도 */
+export const EXT_DIM_ALPHA = 0.5;
 
 export class MapRenderer {
   /** 화면 변환 (screen = world * zoom + pan). 뷰가 data-zoom, data-pan-x, data-pan-y로 내보낸다 */
@@ -118,6 +132,9 @@ export class MapRenderer {
   private readonly boundsG = new Graphics();
   private readonly objectsG = new Graphics();
   private readonly labelRoot = new Container();
+  private readonly extRoot = new Container();
+  private readonly extNodes = new Map<string, ExtLayerNode>();
+  private readonly extTools = new Map<string, { spec: MapLayerSpec; tool: MapLayerTool | null }>();
   private readonly ghost = new Container();
   private readonly previewG = new Graphics();
   private layers: LayerNode[] = [];
@@ -164,6 +181,7 @@ export class MapRenderer {
         this.deps.onNotice?.(message);
         this.events.emit("warn", message);
       },
+      layerTool: (id) => this.layerTool(id),
     });
   }
 
@@ -212,7 +230,7 @@ export class MapRenderer {
     app.stage.eventMode = "none";
     this.ghost.alpha = GHOST_ALPHA;
     this.collisionRoot.visible = this.document.showCollision;
-    this.world.addChild(this.backdrop, this.layerRoot, this.collisionRoot, this.gridG, this.boundsG, this.objectsG, this.labelRoot, this.ghost, this.previewG);
+    this.stackWorld();
     app.stage.addChild(this.world);
     host.appendChild(app.canvas);
     app.canvas.style.display = "block";
@@ -224,6 +242,11 @@ export class MapRenderer {
     this.drawStatic();
   }
 
+  /** 월드의 겹 순서 (아래부터). 확장 레이어는 오브젝트 글자 위, 붓 미리보기 아래다 */
+  private stackWorld(): void {
+    this.world.addChild(this.backdrop, this.layerRoot, this.collisionRoot, this.gridG, this.boundsG, this.objectsG, this.labelRoot, this.extRoot, this.ghost, this.previewG);
+  }
+
   dispose(): void {
     this.disposed = true;
     this.events.clear();
@@ -231,6 +254,9 @@ export class MapRenderer {
     this.disposers = [];
     for (const node of this.layers) this.destroyLayer(node);
     this.layers = [];
+    for (const id of [...this.extNodes.keys()]) this.removeExtNode(id);
+    for (const { tool } of this.extTools.values()) tool?.dispose?.();
+    this.extTools.clear();
     for (const g of this.collisionChunks.values()) g.destroy();
     this.collisionChunks.clear();
     this.releaseTileTextures();
@@ -263,6 +289,7 @@ export class MapRenderer {
     this.world.scale.set(t.zoom);
     this.world.position.set(t.panX, t.panY);
     for (const label of this.labels.values()) label.scale.set(1 / t.zoom);
+    this.redrawExtViews();
     this.applyScaleMode();
     this.needGrid = true;
     this.needObjects = true;
@@ -327,6 +354,7 @@ export class MapRenderer {
     this.labels.clear();
     this.dirtyCollision = "all";
     this.drawStatic();
+    this.redrawExtViews();
     this.needGrid = true;
     this.needObjects = true;
     this.needPreview = true;
@@ -359,6 +387,7 @@ export class MapRenderer {
     });
     on(canvas, "pointerleave", () => this.onPointerLeave());
     on(canvas, "wheel", (e) => this.onWheel(e), { passive: false });
+    on(canvas, "dblclick", (e) => this.onDoubleClick(e));
     on(canvas, "contextmenu", (e) => e.preventDefault());
     on(host, "keydown", (e) => this.onKeyDown(e));
     onWindow("keydown", (e) => this.onSpaceDown(e));
@@ -390,8 +419,13 @@ export class MapRenderer {
     host.style.cursor = this.pan ? "grabbing" : this.spaceHeld ? "grab" : this.tools.cursor;
   }
 
-  private toToolPointer(e: PointerEvent, screen: Point): ToolPointer {
-    return { world: screenToWorld(this.transform, screen), button: e.button === 2 ? 2 : 0, shift: e.shiftKey, alt: e.altKey };
+  private toToolPointer(e: PointerEvent | MouseEvent, screen: Point): ToolPointer {
+    return { world: screenToWorld(this.transform, screen), button: e.button === 2 ? 2 : 0, shift: e.shiftKey, alt: e.altKey, mod: e.ctrlKey || e.metaKey };
+  }
+
+  private onDoubleClick(e: MouseEvent): void {
+    if (e.button !== 0 || this.spaceHeld) return;
+    this.tools.doubleClick(this.toToolPointer(e as PointerEvent, this.screenPoint(e)));
   }
 
   private onPointerDown(e: PointerEvent): void {
@@ -555,7 +589,98 @@ export class MapRenderer {
         () => [doc.tool, doc.target, doc.brush, [...doc.hiddenLayers], doc.showCollision],
         () => this.tools.refresh(),
       ),
+      reaction(
+        () => (this.deps.layers?.() ?? []).filter((spec) => doc.layerState(spec.id) !== null),
+        (specs) => this.syncExtLayers(specs),
+        { fireImmediately: true, equals: comparer.shallow },
+      ),
+      reaction(
+        () => [[...doc.hiddenExtLayers], doc.target],
+        () => this.applyExtVisibility(),
+      ),
     );
+  }
+
+  // ---- 확장 레이어 ----
+
+  /** 상태가 붙은 레이어 (아래부터)에 맞춰 Container와 뷰를 더하고 빼고 순서를 맞춘다. 거둔 레이어의 도구도 버린다 */
+  private syncExtLayers(specs: readonly MapLayerSpec[]): void {
+    const keep = new Set(specs.map((s) => s.id));
+    for (const id of [...this.extNodes.keys()]) if (!keep.has(id) || this.extNodes.get(id)!.spec !== specs.find((s) => s.id === id)) this.removeExtNode(id);
+    for (const [id, entry] of [...this.extTools]) {
+      if (keep.has(id) && specs.find((s) => s.id === id) === entry.spec) continue;
+      entry.tool?.dispose?.();
+      this.extTools.delete(id);
+    }
+    specs.forEach((spec, i) => {
+      let node = this.extNodes.get(spec.id);
+      if (!node) {
+        const container = new Container();
+        container.label = `ext:${spec.id}`;
+        node = { spec, container, view: null };
+        this.extNodes.set(spec.id, node);
+        node.view = spec.createView?.(this.viewContext(container)) ?? null;
+      }
+      this.extRoot.addChildAt(node.container, Math.min(i, this.extRoot.children.length));
+    });
+    this.applyExtVisibility();
+    this.tools.refresh();
+  }
+
+  private removeExtNode(id: string): void {
+    const node = this.extNodes.get(id);
+    if (!node) return;
+    this.extNodes.delete(id);
+    node.view?.dispose();
+    node.container.destroy({ children: true });
+  }
+
+  private viewContext(container: Container): MapLayerViewContext {
+    return {
+      document: this.document,
+      container,
+      zoom: () => this.transform.zoom,
+      color: (token) => (this.theme.colors as Record<string, number>)[token] ?? this.theme.colors.fg,
+      font: (token) => (this.theme.fonts as unknown as Record<string, string>)[token] ?? this.theme.fonts["font-ui"],
+      loadTexture: (path) => this.deps.textures.load(path).then((t) => ({ texture: t.texture, width: t.width, height: t.height })),
+    };
+  }
+
+  private toolContext(): MapLayerToolContext {
+    return {
+      document: this.document,
+      zoom: () => this.transform.zoom,
+      changed: () => {
+        this.needPreview = true;
+        this.updateCursor();
+      },
+      notice: (message) => this.deps.onNotice?.(message),
+    };
+  }
+
+  /** 확장 레이어의 도구 (처음 부를 때 만든다). 등록되지 않았거나 도구가 없으면 null */
+  layerTool(id: string): MapLayerTool | null {
+    const spec = this.deps.layers?.().find((s) => s.id === id);
+    if (!spec) return null;
+    const cached = this.extTools.get(id);
+    if (cached && cached.spec === spec) return cached.tool;
+    cached?.tool?.dispose?.();
+    const tool = spec.createTool?.(this.toolContext()) ?? null;
+    this.extTools.set(id, { spec, tool });
+    return tool;
+  }
+
+  /** 눈을 끈 레이어는 숨기고, 대상이 아닌 레이어는 반투명이다 */
+  private applyExtVisibility(): void {
+    const doc = this.document;
+    for (const [id, node] of this.extNodes) {
+      node.container.visible = !doc.hiddenExtLayers.has(id);
+      node.container.alpha = doc.target.kind === "ext" && doc.target.id === id ? 1 : EXT_DIM_ALPHA;
+    }
+  }
+
+  private redrawExtViews(): void {
+    for (const node of this.extNodes.values()) node.view?.redraw?.();
   }
 
   private markCells(layer: number | "collision", indices: number[]): void {

@@ -1,5 +1,5 @@
 // 맵 크기 바꾸기 (맵/크기 바꾸기). 대화상자(components/maps/ResizeMapDialog.tsx)가 새 크기와 기준점을 받고,
-// 여기서 명령(MapModel.resize)으로 넣는다. 되돌리기 한 단계다. 맵 밖으로 나간 오브젝트는 지우지 않고 알린다.
+// 여기서 명령(MapDocument.resizeCommand: 모델과 확장 레이어의 칸)으로 넣는다. 되돌리기 한 단계다. 맵 밖으로 나간 오브젝트는 지우지 않고 알린다.
 
 import type { LogStore } from "@initial-editor/core";
 import { ANCHOR_LABELS, resizeSummary, validateMapSize, type MapDocument, type ResizeAnchor, type ResizeSource, type ResizeSummary } from "@initial-editor/ext-tilemap/model";
@@ -12,9 +12,11 @@ export interface ResizeRequest {
   anchor: ResizeAnchor;
 }
 
+/** 크기 바꾸기의 원본. events 는 지금 값이다 (확장 레이어 상태가 붙었으면 그 값) */
 export function resizeSourceOf(doc: MapDocument): ResizeSource {
   const m = doc.model;
-  return { width: m.width, height: m.height, tileWidth: m.tileWidth, tileHeight: m.tileHeight, objects: m.objects, events: m.rpgEvents };
+  const events = doc.sectionValue("events");
+  return { width: m.width, height: m.height, tileWidth: m.tileWidth, tileHeight: m.tileHeight, objects: m.objects, events: Array.isArray(events) ? events : null };
 }
 
 /** 대화상자의 미리 보기 */
@@ -47,7 +49,7 @@ export function applyResize(host: ResizeHost, doc: MapDocument, req: ResizeReque
   }
   const from = `${m.width}x${m.height}`;
   const summary = previewResize(doc, req);
-  doc.apply(m.resize(req.width, req.height, req.anchor, doc.schema));
+  doc.apply(doc.resizeCommand(req.width, req.height, req.anchor));
   const warnings = outsideWarnings(summary);
   const tail = warnings.map((w) => `, ${w}`).join("");
   host.log.info(LOG, `맵 크기를 바꿨다: ${doc.title} ${from} → ${req.width}x${req.height} 칸 (기준 ${ANCHOR_LABELS[req.anchor]}, ${describeOffset(summary)}${tail})`);

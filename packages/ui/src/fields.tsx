@@ -1,8 +1,9 @@
 // 인스펙터의 입력 칸. 값은 문서(명령)에서 오고, 타이핑은 초점이 있는 동안 한 세션으로 합쳐져 되돌리기 한 번에
 // 돌아간다 (docs/plans/e2-scene.md 마일스톤 3: 연속 변경은 하나로). 초점을 잃거나 Enter 를 누르면 세션이 끝난다.
 // 여러 오브젝트를 골라 값이 다르면 value 가 null 이고 "여러 값" 으로 보인다.
+// 모양(field-row, field-number 등의 클래스)은 앱의 테마가 준다.
 
-import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 
 let sessionCounter = 0;
 
@@ -184,7 +185,7 @@ export function RangeField({ value, onChange, sessionPrefix, min, max, step = 1,
   );
 }
 
-export function FieldRow({ label, htmlFor, children, hint }: { label: string; htmlFor?: string; children: React.ReactNode; hint?: string }) {
+export function FieldRow({ label, htmlFor, children, hint }: { label: string; htmlFor?: string; children: ReactNode; hint?: string }) {
   return (
     <div className="field-row" title={hint}>
       <label className="field-label" htmlFor={htmlFor}>

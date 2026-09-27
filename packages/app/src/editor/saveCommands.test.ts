@@ -407,3 +407,51 @@ describe("문서 저장 (Editor.saveDocument)", () => {
     expect(t.saved).toEqual([]);
   });
 });
+
+describe("저장 전 질문 (beforeSave)", () => {
+  function beforeSaveSetup(answers: boolean[]) {
+    const asked: string[] = [];
+    const pending: Array<(ok: boolean) => void> = [];
+    const beforeSave = (d: Document) => {
+      asked.push(d.title);
+      return new Promise<boolean>((resolve) => pending.push(resolve));
+    };
+    const reply = async () => {
+      for (let i = 0; i < 50 && pending.length === 0; i++) await Promise.resolve();
+      pending.shift()!(answers.shift()!);
+    };
+    return { asked, beforeSave, reply };
+  }
+
+  it("아니라고 하면 디스크를 보지도 쓰지도 않고 취소다. 맞다고 하면 저장한다", async () => {
+    const t = await saverSetup();
+    const writes = holdWrites(t.backend);
+    const q = beforeSaveSetup([false, true]);
+    const save = createDocumentSaver({ guard: t.guard, beforeSave: q.beforeSave, onSaved: (d) => void t.saved.push(d), log: { info: (_s, text) => void t.logs.push(text), error: () => {} } });
+    const first = save(t.doc);
+    await q.reply();
+    expect(await first).toBe("cancelled");
+    expect(writes.writes).toEqual([]);
+    expect(t.logs).toEqual(["저장을 취소했다: notes.txt"]);
+    expect(t.doc.dirty).toBe(true);
+
+    const second = save(t.doc);
+    await q.reply();
+    expect(await second).toBe("saved");
+    expect(q.asked).toEqual(["notes.txt", "notes.txt"]);
+    expect(await t.backend.readText("notes.txt")).toBe("mine");
+    expect(t.saved).toEqual([t.doc]);
+  });
+
+  it("묻는 동안 들어온 같은 문서의 저장은 그 질문에 합친다", async () => {
+    const t = await saverSetup();
+    const q = beforeSaveSetup([true]);
+    const save = createDocumentSaver({ guard: t.guard, beforeSave: q.beforeSave, onSaved: () => {}, log: { info: () => {}, error: () => {} } });
+    const a = save(t.doc);
+    const b = save(t.doc);
+    expect(b).toBe(a);
+    await q.reply();
+    expect(await a).toBe("saved");
+    expect(q.asked).toEqual(["notes.txt"]);
+  });
+});

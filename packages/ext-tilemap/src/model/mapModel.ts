@@ -62,6 +62,27 @@ export class MapModel {
   get rpgEvents(): readonly unknown[] | null {
     return this.data.events;
   }
+
+  /**
+   * 확장이 맡는 최상위 섹션의 원본 (읽기 전용 사본): events 나 모르는 키. 없으면 undefined.
+   * 레이어 상태가 붙은 섹션은 상태가 진실이고, 이 값은 붙기 전의 원본이다 (크기 바꾸기는 events 의 칸을 옮긴다)
+   */
+  rawSection(key: string): unknown {
+    const v = key === "events" ? (this.data.events ?? undefined) : Object.prototype.hasOwnProperty.call(this.data.extra, key) ? this.data.extra[key] : undefined;
+    return v === undefined ? undefined : structuredCloneJson(v);
+  }
+
+  /** 섹션 원본을 바꾼다 (되돌리기 밖). 레이어 상태를 뗄 때 그 값을 남기는 데만 쓴다. undefined 면 키를 뺀다 */
+  setRawSection(key: string, value: unknown): void {
+    if (key === "events") {
+      this.data.events = value === undefined || value === null ? null : (structuredCloneJson(value) as unknown[]);
+    } else if (value === undefined) {
+      delete this.data.extra[key];
+    } else {
+      this.data.extra[key] = structuredCloneJson(value);
+    }
+    this.bump();
+  }
   /** 픽셀 크기 */
   get pixelWidth(): number {
     return this.data.width * this.data.tileWidth;

@@ -16,6 +16,7 @@
     "@initial-editor/backend-tauri": "2.0.0-dev",
     "@initial-editor/core": "2.0.0-dev",
     "@initial-editor/ext-tilemap": "2.0.0-dev",
+    "@initial-editor/ui": "2.0.0-dev",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "dockview": "^4.0.0",

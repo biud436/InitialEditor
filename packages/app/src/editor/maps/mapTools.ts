@@ -11,10 +11,13 @@
 //            방향키 1px(Shift는 한 칸), Delete는 지우기, Escape는 선택 풀기.
 //            뷰 폭의 반보다 넓은 띠(구간)의 안쪽은 클릭하면 고르고, 끌면 옮기지 않고 상자 선택이다.
 //            순찰 범위가 있는 점을 옮기면 범위도 같이 옮긴다 (Alt는 몸통만)
+//   ext      대상이 확장 레이어(docs/plans/e5-rpg.md 2.2)면 포인터와 키를 그 레이어의 도구(MapLayerTool)에 넘긴다.
+//            키는 Ctrl 조합도 여기의 다른 규칙보다 먼저 넘긴다. 도구가 처리하면 렌더러가 전파를 막아 전역 단축키에 닿지 않는다
 // 대상이 통행이면 타일 도구도 통행을 칠한다 (펜과 사각형과 채우기는 1, 지우개는 0).
 // 대상 레이어나 통행을 숨겼으면 칠하지 않는다 (ctx.notice로 알린다).
 
 import type { Command } from "@initial-editor/core";
+import type { MapLayerPointer, MapLayerTool } from "@initial-editor/ext-tilemap";
 import { runInAction } from "mobx";
 import {
   ERASER,
@@ -60,6 +63,8 @@ export interface ToolPointer {
   button: number;
   shift: boolean;
   alt: boolean;
+  /** Ctrl이나 Cmd (확장 레이어 도구에 넘긴다) */
+  mod?: boolean;
 }
 
 export interface ToolKey {
@@ -93,6 +98,8 @@ export interface ToolContext {
   notice?(message: string): void;
   /** 알림과 함께 콘솔에 경고 한 줄을 남긴다 (한도에 닿은 채우기). 없으면 notice로 알린다 */
   warn?(message: string): void;
+  /** 확장 레이어의 도구 (렌더러가 레이어마다 만든다). 없으면 null */
+  layerTool?(id: string): MapLayerTool | null;
 }
 
 /** 채우기가 한도에 닿았을 때의 안내 */
@@ -122,6 +129,9 @@ type Gesture =
   /** 넓은 띠의 안쪽을 눌렀다: 놓으면 고르고, 끌면 상자 선택 */
   | { kind: "bandPress"; id: string; start: Point; additive: boolean }
   | { kind: "box"; start: Point; current: Point; additive: boolean };
+
+/** 혼자서는 확장 레이어 도구에 넘기지 않는 조합 키 */
+const MODIFIER_KEYS: ReadonlySet<string> = new Set(["Control", "Meta", "Shift", "Alt", "AltGraph", "CapsLock", "Fn"]);
 
 /** 이만큼(화면 픽셀) 움직여야 오브젝트 끌기다 */
 export const DRAG_THRESHOLD_PX = 3;
@@ -166,7 +176,18 @@ export class MapToolController {
 
   /** 지금 끄는 중인가 */
   get busy(): boolean {
-    return this.gesture !== null;
+    return this.gesture !== null || (this.extTool()?.busy?.() ?? false);
+  }
+
+  /** 대상이 상태가 붙은 확장 레이어면 그 도구. 아니면 null */
+  extTool(): MapLayerTool | null {
+    const t = this.doc.target;
+    if (t.kind !== "ext" || this.doc.tool !== "ext" || !this.doc.layerState(t.id)) return null;
+    return this.ctx.layerTool?.(t.id) ?? null;
+  }
+
+  private layerPointer(p: ToolPointer): MapLayerPointer {
+    return { world: p.world, cell: this.cellOf(p.world), button: p.button, shift: p.shift, alt: p.alt, mod: p.mod ?? false };
   }
 
   /** 칠할 대상. 타일 레이어 번호나 통행. 오브젝트가 대상이거나 대상을 숨겼으면 null */
@@ -187,6 +208,7 @@ export class MapToolController {
   /** 오른쪽 버튼을 도구가 쓰는가 (통행 칠하기의 지우기). 아니면 렌더러가 팬으로 쓴다 */
   wantsRightButton(): boolean {
     const tool = this.doc.tool;
+    if (tool === "ext") return this.extTool()?.wantsRightButton?.() ?? false;
     return this.paintTarget() === "collision" && tool !== "pick" && tool !== "object";
   }
 
@@ -222,6 +244,11 @@ export class MapToolController {
   pointerDown(p: ToolPointer): void {
     this.hover = p.world;
     const tool = this.doc.tool;
+    if (tool === "ext") {
+      this.extTool()?.pointerDown?.(this.layerPointer(p));
+      this.update();
+      return;
+    }
     if (tool === "object") {
       this.objectDown(p);
       this.update();
@@ -261,6 +288,11 @@ export class MapToolController {
 
   pointerMove(p: ToolPointer): void {
     this.hover = p.world;
+    if (this.doc.tool === "ext") {
+      this.extTool()?.pointerMove?.(this.layerPointer(p));
+      this.update();
+      return;
+    }
     const g = this.gesture;
     if (g) {
       const cell = this.cellOf(p.world);
@@ -289,6 +321,7 @@ export class MapToolController {
     const g = this.gesture;
     this.gesture = null;
     if (p) this.hover = p.world;
+    if (this.doc.tool === "ext" && p) this.extTool()?.pointerUp?.(this.layerPointer(p));
     if (g?.kind === "rect") {
       const r = cellRange(g.from, g.to);
       this.apply(g.target, rectFill(this.model, g.brush, r.x0, r.y0, r.x1, r.y1));
@@ -309,10 +342,19 @@ export class MapToolController {
     this.update();
   }
 
+  /** 더블클릭 (확장 레이어 도구만 받는다) */
+  doubleClick(p: ToolPointer): void {
+    this.hover = p.world;
+    if (this.doc.tool !== "ext") return;
+    this.extTool()?.doubleClick?.(this.layerPointer(p));
+    this.update();
+  }
+
   /** 포인터가 뷰를 떠났다. 끄는 중이 아니면 미리보기를 지운다 */
   pointerLeave(): void {
-    if (this.gesture) return;
+    if (this.busy) return;
     this.hover = null;
+    this.extTool()?.pointerLeave?.();
     this.update();
   }
 
@@ -469,6 +511,13 @@ export class MapToolController {
   /** 뷰에 초점이 있을 때의 키. 처리했으면 true (렌더러가 기본 동작을 막는다) */
   keyDown(k: ToolKey): boolean {
     const doc = this.doc;
+    // 확장 레이어 도구가 먼저 받는다 (Ctrl+C, Ctrl+V, Ctrl+D, Delete 도). 아래의 Ctrl 거르기보다 앞이다.
+    // 조합 키만 누른 것(Control, Meta 등)은 넘기지 않는다
+    const ext = MODIFIER_KEYS.has(k.key) ? null : this.extTool();
+    if (ext?.keyDown?.({ key: k.key, shift: k.shift, alt: k.alt, mod: k.mod })) {
+      this.update();
+      return true;
+    }
     if (k.key === "Escape") {
       if (this.gesture) {
         this.cancel();
@@ -514,7 +563,7 @@ export class MapToolController {
     if (g?.kind === "box") return { kind: "box", rect: rectFromPoints(g.start, g.current) };
     if (!this.hover || g) return { kind: "none" };
     const tool = this.doc.tool;
-    if (tool === "object") return { kind: "none" };
+    if (tool === "object" || tool === "ext") return { kind: "none" };
     if (tool !== "pick" && targetHidden(this.doc)) return { kind: "none" };
     const cell = this.cellOf(this.hover);
     if (cell.x < 0 || cell.y < 0 || cell.x >= this.model.width || cell.y >= this.model.height) return { kind: "none" };
@@ -526,6 +575,7 @@ export class MapToolController {
   private computeCursor(): string {
     const g = this.gesture;
     const tool = this.doc.tool;
+    if (tool === "ext") return this.extTool()?.cursor?.() ?? "default";
     if (tool !== "object") return tool !== "pick" && targetHidden(this.doc) ? "not-allowed" : "crosshair";
     if (g?.kind === "move") return "move";
     if (g?.kind === "range" || g?.kind === "band") return "ew-resize";

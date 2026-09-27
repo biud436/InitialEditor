@@ -1,12 +1,23 @@
-// 맵 오브젝트 인스펙터의 입력 칸. 스키마 칸 하나를 입력 하나로 그린다.
+// 스키마 칸의 입력. 스키마 칸 하나를 입력 하나로 그린다 (맵 오브젝트 스키마의 칸 꼴).
 //   string: 한 줄 입력, text: 여러 줄 입력, number/integer: 숫자 입력 (integer는 반올림),
 //   boolean: 체크 상자, enum: 고르기
 // 값이 없으면(undefined) "비어 있음"으로 보이고, 여러 오브젝트의 값이 다르면(null) "여러 값"이다.
-// 타이핑은 초점 하나가 한 세션이고 같은 합치기 키로 들어가 되돌리기 한 번에 돌아간다 (scene/fields.tsx와 같은 방식).
+// 타이핑은 초점 하나가 한 세션이고 같은 합치기 키로 들어가 되돌리기 한 번에 돌아간다 (fields.tsx와 같은 방식).
 
-import type { FieldSpec } from "@initial-editor/ext-tilemap/model";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { MIXED_LABEL, newSession, TextField } from "../../scene/fields";
+import { MIXED_LABEL, newSession, TextField } from "./fields";
+
+export type SchemaFieldType = "string" | "text" | "number" | "integer" | "boolean" | "enum";
+
+/** 입력 하나가 보는 칸의 꼴 (타일맵의 FieldSpec 이 이 모양을 채운다) */
+export interface SchemaFieldSpec {
+  name: string;
+  type: SchemaFieldType;
+  label: string;
+  values?: string[];
+  min?: number;
+  max?: number;
+}
 
 export const EMPTY_LABEL = "비어 있음";
 
@@ -89,7 +100,7 @@ export function OptionalNumberField({ value, onChange, sessionPrefix, integer, m
 }
 
 interface SchemaFieldInputProps {
-  field: FieldSpec;
+  field: SchemaFieldSpec;
   value: FieldValue;
   /** session은 타이핑 세션의 합치기 키. 고르기와 체크 상자는 undefined (한 번이 한 단계) */
   onChange: (value: unknown, session?: string) => void;

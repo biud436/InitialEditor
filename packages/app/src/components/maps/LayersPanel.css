@@ -72,6 +72,38 @@
   font-family: var(--font-mono);
 }
 
+.layers-lock,
+.layers-errors {
+  padding: 0 4px;
+  border-radius: var(--radius);
+  font-size: 11px;
+}
+
+.layers-lock {
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.layers-errors {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.layers-lock-reason {
+  padding: 0 var(--space-2) var(--space-1) calc(var(--space-2) + 44px);
+  color: var(--fg-muted);
+  font-size: 11px;
+  white-space: normal;
+}
+
+.layers-hint {
+  margin-top: var(--space-2);
+  padding: 0 var(--space-2);
+  color: var(--fg-muted);
+  font-size: 11px;
+  white-space: normal;
+}
+
 .layers-actions {
   display: flex;
   gap: var(--space-1);

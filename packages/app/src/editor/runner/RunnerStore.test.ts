@@ -283,6 +283,27 @@ describe("RunnerStore 실행", () => {
     expect(logTexts(h.log).some((l) => l.startsWith(`error/runner: ${NO_MRUBY}`))).toBe(true);
   });
 
+  it("언어 검사는 덧씌운 INITIAL2D_SCRIPT 로 한다: mruby 프로젝트라도 lua 로 덮은 실행은 mruby 없는 빌드로 띄운다", async () => {
+    const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
+    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    await runner.start({ env: { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" } });
+    expect(h.toasts).toEqual([]);
+    expect(h.handles).toHaveLength(1);
+    expect(h.handles[0].spec.env).toEqual({ INITIAL2D_HMR: "1", INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" });
+    expect(logTexts(h.log)).toContainEqual(`info/runner: 엔진 시작: PID 4321, ${ENGINE}, 언어 lua (INITIAL2D_HMR=1, INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg)`);
+    await runner.stop();
+    // 덮지 않은 실행은 여전히 막고, lua 프로젝트를 mruby 로 덮은 실행도 막는다
+    await runner.start();
+    await runner.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
+    const lua = await harness();
+    const other = new RunnerStore(lua.host, { probe: probeFor(lua, { [ENGINE]: ["lua"] }) });
+    await other.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
+    expect(h.handles).toHaveLength(1);
+    expect(lua.handles).toHaveLength(0);
+    expect(h.toasts.filter((t) => t.startsWith(`error: ${NO_MRUBY}`))).toHaveLength(2);
+    expect(lua.toasts).toEqual([`error: ${NO_MRUBY}`]);
+  });
+
   it("실행 중에 다시 start 하면 먼저 것을 정지하고 새로 띄운다", async () => {
     const h = await harness();
     const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });

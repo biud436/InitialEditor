@@ -1,5 +1,7 @@
 // 도킹 레이아웃 상태: dockview api를 쥐고 저장과 복원과 프리셋과 패널 토글을 맡는다.
 // 저장은 layoutPersistence.ts, 프리셋은 layoutPresets.ts, 문서 탭 동기화는 documentDock.ts.
+// 확장 패널(ext:<id>)도 도구 패널이다: 창 메뉴로 켜고 끄고, 레이아웃이 기억한다. 되살린 레이아웃에 등록되지 않은
+// 확장의 패널이 있으면 뺀다 (그 확장이 없다).
 
 import type { DockviewApi } from "dockview";
 
@@ -8,29 +10,37 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import type { DocumentDock } from "./documentDock";
 import { type LayoutJson, type LayoutPersistence, restoreLayout } from "./layoutPersistence";
 import {
+  addExtensionPanel,
   addToolPanel,
   applyPresetSizes,
   buildPreset,
+  extPanelKey,
   firstDocPanelId,
+  isBuiltinPanelId,
+  isExtPanelId,
   MAP_PANEL_HEIGHTS,
   mapPanelPlacement,
   missingMapPanels,
   PANEL_IDS,
+  type ExtPanelSpec,
   type PanelId,
   type PresetName,
+  type ToolPanelId,
 } from "./layoutPresets";
 
 export interface LayoutDeps {
   persistence: LayoutPersistence;
   documents: DocumentDock;
   warn(message: string): void;
+  /** 확장이 등록한 패널 (registries.panels). 없으면 확장 패널이 없다 */
+  extensionPanels?(): readonly ExtPanelSpec[];
 }
 
 export const DEFAULT_PRESET: PresetName = "scene";
 const PERSIST_DELAY_MS = 400;
 
-function isPanelId(id: string): id is PanelId {
-  return (PANEL_IDS as readonly string[]).includes(id);
+function isToolPanelId(id: string): id is ToolPanelId {
+  return isBuiltinPanelId(id) || isExtPanelId(id);
 }
 
 export class LayoutStore {
@@ -59,11 +69,11 @@ export class LayoutStore {
         if (!this.applying) this.schedulePersist();
       }),
       api.onDidRemovePanel((panel) => {
-        if (!this.applying && isPanelId(panel.id)) this.userClosed.add(panel.id);
+        if (!this.applying && isToolPanelId(panel.id)) this.userClosed.add(panel.id);
         this.syncOpenPanels();
       }),
       api.onDidAddPanel((panel) => {
-        if (isPanelId(panel.id)) this.userClosed.delete(panel.id);
+        if (isToolPanelId(panel.id)) this.userClosed.delete(panel.id);
         this.syncOpenPanels();
       }),
     );
@@ -91,9 +101,10 @@ export class LayoutStore {
       restored = restoreLayout(
         persisted,
         (layout) => api.fromJSON(layout as Parameters<DockviewApi["fromJSON"]>[0]),
-        () => buildPreset(api, DEFAULT_PRESET),
+        () => buildPreset(api, DEFAULT_PRESET, this.extensionPanels()),
         this.deps.warn,
       );
+      this.dropUnknownExtensionPanels();
       this.deps.documents.reconcile();
       if (!restored) applyPresetSizes(api, DEFAULT_PRESET);
     });
@@ -106,7 +117,7 @@ export class LayoutStore {
     const api = this.api;
     if (!api) return;
     this.withApplying(() => {
-      buildPreset(api, name);
+      buildPreset(api, name, this.extensionPanels());
       this.deps.documents.reconcile();
       applyPresetSizes(api, name);
     });
@@ -118,17 +129,53 @@ export class LayoutStore {
     this.applyPreset(DEFAULT_PRESET);
   }
 
-  isPanelOpen(id: PanelId): boolean {
+  isPanelOpen(id: ToolPanelId): boolean {
     return this.openPanels.has(id);
   }
 
-  togglePanel(id: PanelId): void {
+  togglePanel(id: ToolPanelId): void {
     const api = this.api;
     if (!api) return;
     const panel = api.getPanel(id);
     if (panel) api.removePanel(panel);
-    else addToolPanel(api, id);
+    else this.addPanel(api, id);
     this.syncOpenPanels();
+  }
+
+  /** 패널을 열고 활성으로 (이미 있으면 활성으로만) */
+  showPanel(id: ToolPanelId): void {
+    const api = this.api;
+    if (!api) return;
+    const panel = api.getPanel(id);
+    if (panel) panel.api.setActive();
+    else this.addPanel(api, id);
+    this.syncOpenPanels();
+  }
+
+  private addPanel(api: DockviewApi, id: ToolPanelId): void {
+    if (isBuiltinPanelId(id)) {
+      addToolPanel(api, id);
+      return;
+    }
+    const key = extPanelKey(id);
+    const spec = this.extensionPanels().find((p) => p.id === key);
+    if (spec) addExtensionPanel(api, spec);
+    else this.deps.warn(`등록되지 않은 확장 패널이다: ${id}`);
+  }
+
+  private extensionPanels(): readonly ExtPanelSpec[] {
+    return this.deps.extensionPanels?.() ?? [];
+  }
+
+  /** 되살린 레이아웃에서 등록되지 않은 확장의 패널을 뺀다 */
+  private dropUnknownExtensionPanels(): void {
+    const api = this.api;
+    if (!api) return;
+    const known = new Set(this.extensionPanels().map((p) => p.id));
+    for (const panel of [...api.panels]) {
+      const key = extPanelKey(panel.id);
+      if (key !== null && !known.has(key)) api.removePanel(panel);
+    }
   }
 
   /**
@@ -163,6 +210,9 @@ export class LayoutStore {
       if (api?.getPanel(id)) this.openPanels.add(id);
       else this.openPanels.delete(id);
     }
+    const ext = new Set((api?.panels ?? []).map((p) => p.id).filter(isExtPanelId));
+    for (const id of [...this.openPanels]) if (isExtPanelId(id) && !ext.has(id)) this.openPanels.delete(id);
+    for (const id of ext) this.openPanels.add(id);
   }
 
   /** 겹쳐 불려도 바깥 것이 끝날 때까지 applying을 둔다 */

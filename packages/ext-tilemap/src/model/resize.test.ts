@@ -164,6 +164,20 @@ describe("오브젝트와 이벤트 옮기기", () => {
     ]);
   });
 
+  it("배회 구역도 같은 만큼 옮기고 키 순서와 다른 칸은 그대로 둔다", () => {
+    const ev = { id: "kid", x: 4, y: 5, wander: { minWait: 30, area: { x: 3, y: 4, w: 3, h: 2 }, note: 1 }, commands: [] };
+    const [moved] = shiftEvents([ev], { dx: -2, dy: 3 });
+    const expected = { id: "kid", x: 2, y: 8, wander: { minWait: 30, area: { x: 1, y: 7, w: 3, h: 2 }, note: 1 }, commands: [] };
+    expect(JSON.stringify(moved)).toBe(JSON.stringify(expected));
+    // 구역이 없거나 좌표가 수가 아니면 배회는 같은 객체다
+    const noArea = { id: "a", x: 0, y: 0, wander: { minWait: 1 } };
+    const badArea = { id: "b", x: 0, y: 0, wander: { area: { x: "1", y: 0 } } };
+    const [a, b] = shiftEvents([noArea, badArea], { dx: 1, dy: 1 }) as Array<Record<string, unknown>>;
+    expect(a.wander).toBe(noArea.wander);
+    expect(b.wander).toBe(badArea.wander);
+    expect(ev.wander.area).toEqual({ x: 3, y: 4, w: 3, h: 2 });
+  });
+
   it("미리 보기: 맵 밖으로 나가는 오브젝트와 이벤트, 잘림", () => {
     const m = small();
     const src = { ...m, events: m.events };

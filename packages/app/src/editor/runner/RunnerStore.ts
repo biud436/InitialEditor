@@ -132,6 +132,11 @@ export function formatElapsed(ms: number): string {
   return h > 0 ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
 }
 
+/** 띄울 언어. 덧씌운 INITIAL2D_SCRIPT 가 있으면 그것이다 (게임 설정이 mruby 여도 맵의 실행 변수가 lua 로 덮을 수 있다) */
+export function runLanguage(gameScript: unknown, env?: Record<string, string>): "lua" | "mruby" {
+  return (env?.INITIAL2D_SCRIPT ?? gameScript) === "mruby" ? "mruby" : "lua";
+}
+
 /** 덧씌운 환경 변수를 로그 한 줄로: ", A=1 B=2" */
 function envSuffix(env: Record<string, string> | undefined, open = ", ", close = ""): string {
   if (!env || Object.keys(env).length === 0) return "";
@@ -526,7 +531,7 @@ export class RunnerStore {
         return this.failStart(`엔진을 부를 수 없다: ${errorText(e)}`);
       }
     }
-    const script = project.gameJson.script === "mruby" ? "mruby" : "lua";
+    const script = runLanguage(project.gameJson.script, opts.env);
     if (script === "mruby" && this.features && !this.features.includes("mruby")) {
       return this.failStart(`${NO_MRUBY} (--features: ${this.features.join(" ") || "(없음)"}). 언어를 Lua 로 바꾸거나 mruby 를 넣어 빌드한다`, NO_MRUBY);
     }
@@ -555,7 +560,7 @@ export class RunnerStore {
     } catch (e) {
       return this.failStart(errorText(e));
     }
-    const script = this.host.project.gameJson.script === "mruby" ? "mruby" : "lua";
+    const script = runLanguage(this.host.project.gameJson.script, opts.env);
     if (script === "mruby" && !features.includes("mruby")) {
       return this.failStart(this.host.backend.capabilities.run ? WASM_NO_MRUBY : `${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱에서)`);
     }

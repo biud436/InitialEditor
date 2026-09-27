@@ -90,3 +90,12 @@
 .inspector-problem.is-link:hover {
   background: var(--bg-hover);
 }
+
+/* 확장 레이어의 인스펙터 자리: 레이어의 컴포넌트가 채운다 */
+.map-layer-inspector {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-panel);
+}

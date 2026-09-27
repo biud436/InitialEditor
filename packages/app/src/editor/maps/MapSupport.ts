@@ -5,12 +5,15 @@
 //   - 맵 커맨드와 메뉴 (mapCommands.ts), 맵 오브젝트 클립보드 (mapClipboard.ts, 편집 메뉴가 쓴다)
 //   - 붙은 렌더러의 도구 경고(한도에 닿은 채우기)를 콘솔에 남긴다
 //   - 맵 탭이 활성이 되면 레이아웃에 없는 맵 패널(팔레트, 레이어, 맵 오브젝트)을 더한다 (LayoutStore.ensureMapPanels)
+//   - 확장 레이어 목록(layers, 타일맵 확장의 editor.tilemap): 맵 뷰와 레이어 패널과 인스펙터가 본다
 
+import type { MapLayerSpec } from "@initial-editor/ext-tilemap";
 import { MapDocument, MapFormatError, isMapPath, typeOf, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { action, computed, makeObservable, observable, reaction, runInAction } from "mobx";
 import type { Editor } from "../Editor";
 import { TextureCache } from "../sceneView/textures";
 import { isEditableTarget } from "../shortcuts";
+import { mapLayerSpecs } from "./extLayers";
 import { registerMapCommands } from "./mapCommands";
 import { shapeBounds, shapeOf } from "./mapGeometry";
 import { MapClipboard } from "./mapClipboard";
@@ -66,6 +69,16 @@ export class MapSupport {
   /** 열린 맵 문서 수 */
   get openCount(): number {
     return this.editor.documents.documents.filter((d) => d instanceof MapDocument).length;
+  }
+
+  /** 등록된 확장 레이어 (아래부터 그리는 순서). 관찰 가능: 등록과 해제를 따라간다 */
+  layers(): MapLayerSpec[] {
+    return mapLayerSpecs(this.editor.tilemap);
+  }
+
+  /** id 의 확장 레이어 */
+  layer(id: string): MapLayerSpec | undefined {
+    return this.editor.tilemap?.layers.get(id);
   }
 
   /** 지금 스키마 (editor.mapSchema가 있으면 그것의 current) */
