@@ -146,6 +146,8 @@ async function setup(opts: { tauri?: boolean; memory?: boolean; browser?: boolea
     embedded,
     unavailableReason: "브라우저 모드에서는 엔진을 띄울 수 없다",
     probe: opts.tauri ? async () => ["lua"] : undefined,
+    // 프로젝트의 build/ 를 엔진으로 쓴다 (신뢰 확인에 허용으로 답한다. 규칙 자체는 RunnerStore.trust.test.ts)
+    askTrust: async () => "allow",
     stopTimeoutMs: 200,
   });
   return { runner, embedded, specs, log, toasts, settings, mem, backend };

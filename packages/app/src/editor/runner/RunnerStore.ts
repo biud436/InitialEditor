@@ -9,10 +9,16 @@
 // 실행 방식은 둘이다 (settings.runMode). process 는 위의 엔진 프로세스, embedded 는 웹 엔진을 에디터의 게임 탭에서
 // 돌린다 (E4, gameView/GameViewStore.ts 가 EmbeddedEngine 을 구현한다). 프로세스를 띄우지 못하는 백엔드(브라우저)는
 // 늘 embedded 다. 게임 탭의 세션도 RunHandle 이라 출력, 종료, 정지는 두 방식이 같은 길을 쓴다.
+// 프로세스 방식인데 엔진 실행 파일을 못 찾으면 그 실행만 에디터 안으로 넘어간다 (E6 2.3 절. 설정은 그대로).
+//
+// 엔진 탐색(E6 2.3 절): 설정 > .initial-editor/engine > build/ > 앱에 든 엔진 > 형제 폴더. 프로젝트가 가리키는 후보는
+// 신뢰를 받은 뒤에만 실행한다 (engineTrust.ts). 앱에 든 엔진은 첫 실행의 격리 검사로 느릴 수 있어 15초를 주고 한 번 더 찌른다.
 
+import type { BundledEngine } from "@initial-editor/backend-tauri";
 import {
   BackendError,
   classifyEngineLine,
+  type EngineTrustRecord,
   type HmrFile,
   type LogStore,
   type Platform,
@@ -25,6 +31,7 @@ import {
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { errorText } from "../gameView/errorText";
 import { ENGINE_FILE, ENGINE_SOURCE_LABELS, engineCandidates, type EngineCandidate, type EngineSource } from "./engineCandidates";
+import { decideTrust, type TrustAnswer, type TrustQuestion } from "./engineTrust";
 import { collectHmrFiles } from "./hmrCollect";
 
 export type RunnerState = "idle" | "starting" | "running" | "stopping";
@@ -70,9 +77,20 @@ export interface EmbeddedEngine {
   readonly description: string | null;
 }
 
+export interface ProbeOptions {
+  /** 없으면 셸의 기본 5초 */
+  timeoutMs?: number;
+}
+
 export interface RunnerOptions {
   /** `exe --features` 를 부른다 (Tauri 의 engineFeatures). 없으면 엔진을 찾지 못한다 */
-  probe?: (exe: string) => Promise<string[]>;
+  probe?: (exe: string, opts?: ProbeOptions) => Promise<string[]>;
+  /** 경로마다 파일이 있는지 (Tauri 의 engineExists). 실행하지 않는다. 신뢰를 묻기 전에 본다 */
+  exists?: (paths: string[]) => Promise<boolean[]>;
+  /** 앱에 든 엔진 (Tauri 의 engineBundled). 없으면 그 후보가 없다 */
+  bundled?: () => Promise<BundledEngine | null>;
+  /** 프로젝트가 가리키는 엔진을 실행할지 묻는다 (EngineTrustDialog.tsx). 없으면 그 후보는 늘 건너뛴다 */
+  askTrust?: (q: TrustQuestion) => Promise<TrustAnswer>;
   /** backend.capabilities.run 이 false 일 때 사용자에게 보일 이유 */
   unavailableReason?: string;
   /** 정지 뒤 종료 이벤트를 기다리는 시간 */
@@ -106,6 +124,8 @@ export interface StartOptions {
   scene?: string;
   /** 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT, INITIAL2D_SCENE) 뒤에 덧씌우는 환경 변수 (맵의 여기서 실행) */
   env?: Record<string, string>;
+  /** 이 실행만의 방식 (자가 검사). 없으면 설정. 설정의 runMode 는 바꾸지 않는다 */
+  mode?: RunMode;
 }
 
 export const NO_MRUBY = "이 엔진 빌드에는 mruby 가 없다";
@@ -116,8 +136,21 @@ export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인
 export const HMR_NO_ENGINE_SKIPPED = "엔진이 떠 있지 않아 리로드를 건너뛰었다";
 export const START_ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
 export const ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
+/** 프로세스 방식인데 엔진을 못 찾아 그 실행을 에디터 안으로 넘길 때 (E6 2.3 절) */
+export const FALLBACK_NOTICE = "엔진 실행 파일을 찾지 못해 에디터 안에서 돈다";
+/** 앱에 든 엔진의 --features 시간 제한. 다운로드한 앱의 첫 실행은 macOS 의 격리 검사로 몇 초 걸린다 */
+export const BUNDLED_PROBE_TIMEOUT_MS = 15_000;
 const LOG_SOURCE = "runner";
 const DEFAULT_STOP_TIMEOUT_MS = 4000;
+
+/** "앱에 든 엔진 v2.0.0-alpha.1 (abc1234, lua mruby)". 태그가 없으면 커밋만 */
+export function bundledEngineLabel(bundled: BundledEngine | null, features: string[] | null): string {
+  const meta = bundled?.meta ?? null;
+  const words = (features ?? meta?.features ?? []).join(" ");
+  const parts = [meta ? meta.engineCommit.slice(0, 7) : "", words].filter(Boolean);
+  const tag = meta?.engineTag ? ` ${meta.engineTag}` : "";
+  return `${ENGINE_SOURCE_LABELS.bundled}${tag}${parts.length ? ` (${parts.join(", ")})` : ""}`;
+}
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -158,8 +191,19 @@ export class RunnerStore {
   now: number;
   /** 지금(또는 마지막) 실행의 방식. 실행 중에 설정을 바꿔도 이것은 그대로다 */
   activeMode: RunMode | null = null;
+  /** 지금(또는 마지막) 실행이 프로세스 방식으로 시작해 엔진을 못 찾고 넘어간 방식. 넘어가지 않았으면 null */
+  fallback: RunMode | null = null;
+  /** 앱에 든 엔진 (마지막 탐색에서 본 것). 개발 빌드는 null */
+  bundled: BundledEngine | null = null;
+  /** 마지막 탐색에서 파일은 있지만 신뢰하지 않아 찌르지 않은 후보 */
+  skipped: EngineCandidate[] = [];
 
-  private readonly probe: ((exe: string) => Promise<string[]>) | null;
+  private readonly probe: ((exe: string, opts?: ProbeOptions) => Promise<string[]>) | null;
+  private readonly exists: ((paths: string[]) => Promise<boolean[]>) | null;
+  private readonly findBundled: (() => Promise<BundledEngine | null>) | null;
+  private readonly askTrust: ((q: TrustQuestion) => Promise<TrustAnswer>) | null;
+  /** 떠 있는 신뢰 질문. 탐색이 겹쳐도 같은 질문을 두 번 띄우지 않는다 */
+  private pendingTrust: { key: string; answer: Promise<TrustAnswer> } | null = null;
   private readonly unavailableText: string;
   private readonly stopTimeoutMs: number;
   private readonly clock: () => number;
@@ -179,6 +223,9 @@ export class RunnerStore {
     opts: RunnerOptions = {},
   ) {
     this.probe = opts.probe ?? null;
+    this.exists = opts.exists ?? null;
+    this.findBundled = opts.bundled ?? null;
+    this.askTrust = opts.askTrust ?? null;
     this.unavailableText = opts.unavailableReason ?? "이 백엔드는 엔진을 띄우지 못한다";
     this.stopTimeoutMs = opts.stopTimeoutMs ?? DEFAULT_STOP_TIMEOUT_MS;
     this.clock = opts.now ?? (() => Date.now());
@@ -198,7 +245,12 @@ export class RunnerStore {
       lastReload: observable.ref,
       now: observable,
       activeMode: observable,
+      fallback: observable,
+      bundled: observable.ref,
+      skipped: observable.ref,
       mode: computed,
+      engineDescription: computed,
+      trustRecord: computed,
       shownMode: computed,
       modeHint: computed,
       embeddedRunning: computed,
@@ -225,9 +277,35 @@ export class RunnerStore {
 
   /** 다음 실행의 방식. 프로세스를 띄우지 못하는 백엔드는 embedded, 아니면 설정 */
   get mode(): RunMode {
+    return this.pickMode(this.host.settings.settings.runMode);
+  }
+
+  /** 원하는 방식을 이 백엔드와 실행기가 할 수 있는 것으로 */
+  private pickMode(wanted: RunMode | undefined): RunMode {
     if (!this.embedded) return "process";
     if (!this.host.backend.capabilities.run) return "embedded";
-    return this.host.settings.settings.runMode === "embedded" ? "embedded" : "process";
+    return wanted === "embedded" ? "embedded" : "process";
+  }
+
+  /** 프로세스 방식인데 찾아본 뒤에도 엔진이 없어 F5 가 에디터 안으로 넘어가는 상태 */
+  private get fallsBack(): boolean {
+    return this.mode === "process" && !!this.embedded && !this.enginePath && !this.resolving && this.candidates.length > 0;
+  }
+
+  /** 찾은 엔진 한 줄: 앱에 든 엔진은 판, 나머지는 경로와 기능과 출처. 없으면 null */
+  get engineDescription(): string | null {
+    if (!this.enginePath) return null;
+    if (this.engineSource === "bundled") return bundledEngineLabel(this.bundled, this.features);
+    const features = this.features?.length ? ` (${this.features.join(" ")})` : "";
+    return `${this.enginePath}${features}, ${ENGINE_SOURCE_LABELS[this.engineSource]}`;
+  }
+
+  /** 못 찾았을 때의 한 줄: 찾아본 곳과 신뢰하지 않아 건너뛴 곳 */
+  private notFoundText(lead: string): string {
+    const skipped = new Set(this.skipped.map((c) => c.path));
+    const tried = this.candidates.filter((c) => !skipped.has(c.path)).map((c) => c.path).join(", ");
+    const rest = this.skipped.length ? `. 신뢰하지 않아 건너뛴 곳: ${this.skipped.map((c) => c.path).join(", ")}` : "";
+    return `${lead}. 찾아본 곳: ${tried || "(없음)"}${rest}`;
   }
 
   /** 상태 바에 보일 방식: 실행 중이거나 종료 코드를 보일 때는 그 실행의 방식 */
@@ -237,7 +315,8 @@ export class RunnerStore {
 
   /** 실행 버튼이 켜져 있을 때 툴팁에 붙는 설명 */
   get modeHint(): string | undefined {
-    return this.mode === "embedded" ? EMBEDDED_HINT : undefined;
+    if (this.mode === "embedded") return EMBEDDED_HINT;
+    return this.fallsBack ? FALLBACK_NOTICE : undefined;
   }
 
   /** 에디터 안 엔진이 돌고 있다 (리로드가 그쪽으로 간다) */
@@ -273,8 +352,8 @@ export class RunnerStore {
     if (this.mode === "embedded") return undefined; // mruby 는 시작할 때 이유를 알린다
     if (!this.enginePath) {
       if (this.resolving) return "엔진을 찾는 중이다";
-      const tried = this.candidates.map((c) => c.path).join(", ");
-      return `엔진을 찾지 못했다. 찾아본 곳: ${tried || "(없음)"}. 설정의 엔진 경로에 적는다`;
+      if (this.embedded) return undefined; // 에디터 안으로 넘어간다 (modeHint)
+      return `${this.notFoundText("엔진을 찾지 못했다")}. 설정의 엔진 경로에 적는다`;
     }
     if (this.host.project.gameJson.script === "mruby" && this.features && !this.features.includes("mruby")) return NO_MRUBY;
     return undefined;
@@ -341,9 +420,11 @@ export class RunnerStore {
   get statusTitle(): string | undefined {
     if (this.shownMode === "embedded") return `${EMBEDDED_HINT}. ${this.embedded?.description ?? ""}`.trim();
     if (this.unavailableReason) return this.unavailableReason;
-    if (!this.enginePath) return this.host.project.isOpen ? this.startHint : undefined;
-    const features = this.features?.length ? ` (${this.features.join(" ")})` : "";
-    return `${this.enginePath}${features}, ${ENGINE_SOURCE_LABELS[this.engineSource]}`;
+    if (!this.enginePath) {
+      if (!this.host.project.isOpen) return undefined;
+      return this.fallsBack ? this.notFoundText(FALLBACK_NOTICE) : this.startHint;
+    }
+    return this.engineDescription ?? undefined;
   }
 
   /** 툴바의 실행 표시: PID 1234 00:42 또는 에디터 안 00:42 */
@@ -371,15 +452,17 @@ export class RunnerStore {
 
   /**
    * 후보를 순서대로 `exe --features` 로 찔러 본다 (engineCandidates.ts). 처음 응답하는 것이 엔진이다.
+   * 프로젝트가 가리키는 후보는 신뢰를 받은 것만 찌른다 (engineTrust.ts). askTrust 가 거짓이면 이번에는 묻지 않고 건너뛴다.
    * 결과는 콘솔에 남긴다. 브라우저 모드는 찾지 않는다.
    */
-  async resolveEngine(): Promise<string | null> {
+  async resolveEngine(opts: { askTrust?: boolean } = {}): Promise<string | null> {
     const token = ++this.resolveToken;
     const { backend, project, settings, log } = this.host;
     if (!backend.capabilities.run || !this.probe) {
       runInAction(() => {
         this.setEngine(null, "none", null);
         this.candidates = [];
+        this.skipped = [];
       });
       return null;
     }
@@ -391,12 +474,40 @@ export class RunnerStore {
     } catch {
       projectFile = null; // 없는 것이 보통이다
     }
-    const candidates = engineCandidates({ root: project.root, settingsPath: settings.settings.enginePath, projectFile, platform: this.host.platform });
+    let bundled: BundledEngine | null = null;
+    try {
+      bundled = this.findBundled ? await this.findBundled() : null;
+    } catch {
+      bundled = null;
+    }
+    const root = project.root;
+    const candidates = engineCandidates({ root, settingsPath: settings.settings.enginePath, projectFile, platform: this.host.platform, bundledPath: bundled?.path ?? null });
+    let allowed: ReadonlySet<string> | null = null;
+    let skipped: EngineCandidate[] = [];
     let found: { candidate: EngineCandidate; features: string[] } | null = null;
     const failures: string[] = [];
     for (const candidate of candidates) {
+      if (candidate.needsTrust) {
+        if (!allowed) {
+          const decision = await decideTrust({
+            root,
+            candidates: candidates.filter((c) => c.needsTrust),
+            exists: this.exists ?? undefined,
+            record: settings.settings.engineTrust[root],
+            askTrust: this.askTrust ? (q) => this.askOnce(q) : undefined,
+            ask: opts.askTrust !== false,
+            hasBundled: !!bundled,
+          });
+          // 답은 그사이 다시 탐색했어도 남긴다 (사람이 고른 것이다)
+          if (decision.record) settings.setEngineTrust(root, decision.record);
+          if (token !== this.resolveToken) return this.enginePath; // 묻는 사이 다시 탐색했다
+          allowed = decision.allowed;
+          skipped = decision.skipped;
+        }
+        if (!allowed.has(candidate.path)) continue;
+      }
       try {
-        const features = await this.probe(candidate.path);
+        const features = await this.probeCandidate(candidate);
         found = { candidate, features };
         break;
       } catch (e) {
@@ -406,17 +517,71 @@ export class RunnerStore {
     if (token !== this.resolveToken) return this.enginePath; // 그사이 다시 탐색했다
     runInAction(() => {
       this.candidates = candidates;
+      this.skipped = skipped;
+      this.bundled = bundled;
       this.resolving = false;
       if (found) this.setEngine(found.candidate.path, found.candidate.source, found.features);
       else this.setEngine(null, "none", null);
     });
+    if (skipped.length) {
+      log.info(LOG_SOURCE, `프로젝트가 가리키는 엔진을 신뢰하지 않아 실행하지 않았다: ${skipped.map((c) => c.path).join(", ")}. 설정에서 다시 물을 수 있다`);
+    }
     if (found) {
-      log.info(LOG_SOURCE, `엔진: ${found.candidate.path} (${ENGINE_SOURCE_LABELS[found.candidate.source]}, 기능: ${found.features.join(" ") || "(없음)"})`);
+      const label = found.candidate.source === "bundled" ? bundledEngineLabel(bundled, []) : ENGINE_SOURCE_LABELS[found.candidate.source];
+      log.info(LOG_SOURCE, `엔진: ${found.candidate.path} (${label}, 기능: ${found.features.join(" ") || "(없음)"})`);
     } else {
-      log.warn(LOG_SOURCE, `엔진을 찾지 못했다. 찾아본 곳: ${candidates.map((c) => c.path).join(", ")}. 설정의 엔진 경로에 적는다`);
+      const lead = this.embedded && this.mode === "process" ? FALLBACK_NOTICE : "엔진을 찾지 못했다";
+      log.warn(LOG_SOURCE, `${this.notFoundText(lead)}. 설정의 엔진 경로에 적는다`);
       for (const f of failures) log.append("debug", LOG_SOURCE, f);
     }
     return this.enginePath;
+  }
+
+  /** 후보 하나를 찌른다. 앱에 든 엔진은 15초를 주고, 파일이 없는 것 말고의 실패(시간 초과)면 한 번 더 */
+  private async probeCandidate(candidate: { path: string; source: EngineSource }): Promise<string[]> {
+    const probe = this.probe!;
+    if (candidate.source !== "bundled") return probe(candidate.path);
+    try {
+      return await probe(candidate.path, { timeoutMs: BUNDLED_PROBE_TIMEOUT_MS });
+    } catch (e) {
+      if ((e as BackendError | null)?.code === "engine_not_found") throw e;
+      this.host.log.append("debug", LOG_SOURCE, `${candidate.path}: ${errorText(e)}. 한 번 더 찔러 본다`);
+      return probe(candidate.path, { timeoutMs: BUNDLED_PROBE_TIMEOUT_MS });
+    }
+  }
+
+  /** 같은 질문이 떠 있으면 그 답을 기다린다 */
+  private askOnce(q: TrustQuestion): Promise<TrustAnswer> {
+    const key = `${q.root}\n${q.candidates.map((c) => c.path).join("\n")}`;
+    if (this.pendingTrust?.key === key) return this.pendingTrust.answer;
+    const answer = this.askTrust!(q).finally(() => {
+      if (this.pendingTrust?.key === key) this.pendingTrust = null;
+    });
+    this.pendingTrust = { key, answer };
+    return answer;
+  }
+
+  /** 열린 프로젝트가 가리키는 엔진에 대한 답 (설정). 없으면 null */
+  get trustRecord(): EngineTrustRecord | null {
+    const { project, settings } = this.host;
+    if (!project.isOpen) return null;
+    return settings.settings.engineTrust[project.root] ?? null;
+  }
+
+  /** 신뢰 취소: 답을 지우고 이번에는 묻지 않고 다시 찾는다 (다음에 열 때 다시 묻는다) */
+  async revokeTrust(): Promise<void> {
+    const { project, settings } = this.host;
+    if (!project.isOpen) return;
+    settings.clearEngineTrust(project.root);
+    await this.resolveEngine({ askTrust: false });
+  }
+
+  /** 거절한 답을 지우고 지금 다시 묻는다 */
+  async askTrustAgain(): Promise<void> {
+    const { project, settings } = this.host;
+    if (!project.isOpen) return;
+    settings.clearEngineTrust(project.root);
+    await this.resolveEngine();
   }
 
   // ---- 실행 ----
@@ -446,12 +611,25 @@ export class RunnerStore {
       await this.stopCurrent();
     }
     this.lastStart = opts;
-    const mode = this.mode;
+    let mode = this.pickMode(opts.mode ?? this.host.settings.settings.runMode);
     runInAction(() => {
       this.state = "starting";
       this.exitCode = null;
       this.activeMode = mode;
+      this.fallback = null;
     });
+    // 프로세스 방식인데 엔진이 없으면 이 실행만 에디터 안으로 (설정은 그대로)
+    if (mode === "process" && this.embedded) {
+      if (!this.enginePath) await this.resolveEngine();
+      if (!this.enginePath) {
+        mode = "embedded";
+        log.info(LOG_SOURCE, `${this.notFoundText(FALLBACK_NOTICE)}. 설정의 실행 방식은 그대로다`);
+        runInAction(() => {
+          this.activeMode = "embedded";
+          this.fallback = "embedded";
+        });
+      }
+    }
 
     const launched = mode === "embedded" ? await this.launchEmbedded(opts) : await this.launchProcess(opts);
     if (!launched) {
@@ -519,7 +697,7 @@ export class RunnerStore {
     // 실행 직전에 기능을 다시 묻는다 (그사이 다시 빌드했을 수 있다)
     if (this.probe) {
       try {
-        const features = await this.probe(exe);
+        const features = await this.probeCandidate({ path: exe, source: this.engineSource });
         runInAction(() => (this.features = features));
       } catch (e) {
         runInAction(() => this.setEngine(null, "none", null));
@@ -748,7 +926,9 @@ export class RunnerStore {
     runInAction(() => {
       this.setEngine(null, "none", null);
       this.candidates = [];
+      this.skipped = [];
       this.exitCode = null;
+      this.fallback = null;
     });
   }
 

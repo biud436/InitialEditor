@@ -20,3 +20,42 @@ describe("SettingsStore 실행 방식", () => {
     expect(store.settings.runMode).toBe("process");
   });
 });
+
+describe("SettingsStore 엔진 신뢰", () => {
+  it("기본은 비어 있고, 남긴 답은 저장소에 쓰이고, 지우면 사라진다", async () => {
+    const storage = new MemorySettingsStorage();
+    const store = new SettingsStore(storage);
+    expect(DEFAULT_SETTINGS.engineTrust).toEqual({});
+    expect(store.settings.engineTrust).toEqual({});
+    store.setEngineTrust("/home/u/Initial2D", { allow: true, exes: ["/home/u/Initial2D/build/Initial2D"] });
+    await Promise.resolve();
+    expect(storage.data?.engineTrust).toEqual({ "/home/u/Initial2D": { allow: true, exes: ["/home/u/Initial2D/build/Initial2D"] } });
+    store.setEngineTrust("/home/u/game", { allow: false, exes: ["/home/u/Initial2D/build/Initial2D"] });
+    store.clearEngineTrust("/home/u/Initial2D");
+    await Promise.resolve();
+    expect(Object.keys(storage.data?.engineTrust ?? {})).toEqual(["/home/u/game"]);
+    // 없는 것을 지우면 저장하지 않는다
+    storage.data = null;
+    store.clearEngineTrust("/nope");
+    await Promise.resolve();
+    expect(storage.data).toBeNull();
+  });
+
+  it("손으로 고친 설정 파일의 틀린 항목은 버린다", async () => {
+    const storage = new MemorySettingsStorage();
+    storage.data = {
+      engineTrust: {
+        "/ok": { allow: true, exes: ["/ok/build/Initial2D", 3, ""] },
+        "/no-allow": { exes: [] },
+        "/no-exes": { allow: true },
+        "/null": null,
+      } as unknown as EditorSettings["engineTrust"],
+    };
+    const store = new SettingsStore(storage);
+    await store.load();
+    expect(store.settings.engineTrust).toEqual({ "/ok": { allow: true, exes: ["/ok/build/Initial2D"] } });
+    storage.data = { engineTrust: ["/x"] as unknown as EditorSettings["engineTrust"] };
+    await store.load();
+    expect(store.settings.engineTrust).toEqual({});
+  });
+});
