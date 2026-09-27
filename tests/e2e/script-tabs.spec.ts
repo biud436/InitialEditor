@@ -61,12 +61,19 @@ function tabOf(page: Page, title: string) {
 /** 초점을 옮기지 않고 스크립트 탭을 연다 (콘솔 링크나 명령이 여는 것과 같다) */
 async function openScript(page: Page, path: string) {
   await page.evaluate((p) => (window as unknown as TestWindow).initialEditor.scripting.openScript(p), path);
-  await expect(editorOf(page, path).locator(".view-lines")).toBeVisible();
+  await expect(editorOf(page, path).locator(".editor-scrollable")).toBeVisible();
+}
+
+/** 그 편집기의 글이 보이는 창(.editor-scrollable) 왼쪽 위 안쪽을 눌러 초점을 둔다 */
+async function focusEditor(page: Page, path: string) {
+  const editor = editorOf(page, path);
+  await editor.locator(".editor-scrollable").click({ position: { x: 40, y: 12 } });
+  await expect(editor.locator("textarea.inputarea")).toBeFocused();
 }
 
 /** 그 편집기를 눌러 파일 끝으로 가서 친다 */
 async function typeAtEnd(page: Page, path: string, text: string) {
-  await editorOf(page, path).locator(".view-lines").click();
+  await focusEditor(page, path);
   await page.evaluate((p) => (window as unknown as TestWindow).initialEditor.documents.findByPath(p)?.reveal(1e9, 1e9), path);
   await page.keyboard.type(text);
 }
@@ -158,8 +165,8 @@ test.describe("스크립트 탭 여럿 (메모리 모드)", () => {
       right.api.moveTo({ group: api.addGroup({ referenceGroup: left.group, direction: "right" }) });
       left.api.setActive();
     }, [A, B]);
-    await expect(editorOf(page, A).locator(".view-lines")).toBeVisible();
-    await expect(editorOf(page, B).locator(".view-lines")).toBeVisible();
+    await expect(editorOf(page, A).locator(".editor-scrollable")).toBeVisible();
+    await expect(editorOf(page, B).locator(".editor-scrollable")).toBeVisible();
 
     await typeAtEnd(page, B, "# b1\n");
     await typeAtEnd(page, A, "-- a2\n");
@@ -172,7 +179,7 @@ test.describe("스크립트 탭 여럿 (메모리 모드)", () => {
   test("둘째 탭에서 누른 되돌리기와 찾기와 바꾸기 단축키는 그 탭의 파일에만 듣는다", async ({ page }) => {
     await openSampleWith(page, { [A]: "x = 1\n", [B]: "x = 1\n" });
     await openScript(page, A);
-    await editorOf(page, A).locator(".view-lines").click();
+    await focusEditor(page, A);
     await openScript(page, B);
     await typeAtEnd(page, B, "y");
     await expectTexts(page, { [A]: "x = 1\n", [B]: "x = 1\ny" });
