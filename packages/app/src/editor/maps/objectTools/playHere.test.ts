@@ -376,6 +376,23 @@ describe("확장의 실행 길 (playRequest: 타일맵의 play 가 부른다)", 
     expect(f.host.log.entries.some((e) => e.text === "이 표식 앞에서 실행: forest x 3, y 4 (표식 wolf_1 앞) INITIAL2D_SCENE=rpg INITIAL2D_RPG_AT=3,4,up")).toBe(true);
   });
 
+  it("계획에 watch 가 있으면 러너에 실행마다 새로 만드는 watch 를 넘긴다", async () => {
+    const f = await fake();
+    let made = 0;
+    const watch = () => {
+      made++;
+      return { line: () => undefined };
+    };
+    expect(await playRequest(f.host, f.doc, { label: "이 표식 자동 재생", plan: () => ({ env: { A: "1" }, at: null, watch }) })).toBe(true);
+    expect(f.starts).toHaveLength(1);
+    const start = f.starts[0] as { env?: Record<string, string>; watch?: () => unknown };
+    expect(start.env).toEqual({ A: "1" });
+    expect(typeof start.watch).toBe("function");
+    start.watch!();
+    start.watch!();
+    expect(made).toBe(2);
+  });
+
   it("plan 이 이유를 주면 띄우지 않고 그 이유를 토스트와 콘솔로 알린다", async () => {
     const f = await fake();
     expect(await playRequest(f.host, f.doc, { label: "이 표식 자동 재생", plan: () => "parallel 은 끝나지 않는다" })).toBe(false);

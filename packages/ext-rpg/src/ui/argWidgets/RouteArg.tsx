@@ -132,15 +132,17 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
             ) : (
               <span className="rpg-arg-note is-warning">{JSON.stringify(raw)} (글이 아니다)</span>
             )}
-            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 걸음 위로`} data-testid={`${testId}-${k}-up`} onClick={() => move(k, k - 1)}>
-              ↑
-            </button>
-            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 걸음 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => move(k, k + 1)}>
-              ↓
-            </button>
-            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled} aria-label={`${k + 1}번 걸음 빼기`} data-testid={`${testId}-${k}-remove`} onClick={() => remove(k)}>
-              ✕
-            </button>
+            <span className="rpg-option-tools">
+              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 걸음 위로`} data-testid={`${testId}-${k}-up`} onClick={() => move(k, k - 1)}>
+                ↑
+              </button>
+              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 걸음 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => move(k, k + 1)}>
+                ↓
+              </button>
+              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled} aria-label={`${k + 1}번 걸음 빼기`} data-testid={`${testId}-${k}-remove`} onClick={() => remove(k)}>
+                ✕
+              </button>
+            </span>
           </div>
         );
       })}

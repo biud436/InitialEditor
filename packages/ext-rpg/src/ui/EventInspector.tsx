@@ -56,7 +56,8 @@ export const EventInspector = observer(function EventInspector({ document, state
   }
   if (selected.length === 0) return <EventsSummary doc={document} state={state} />;
   if (selected.length > 1) return <ManySelected state={state} indices={selected} services={services} />;
-  return <SingleEvent key={selected[0]} doc={document} state={state} index={selected[0]} services={services} />;
+  // 같은 이벤트면 번호가 바뀌어도(앞의 이벤트를 지우거나 되돌렸다) 같은 인스펙터다
+  return <SingleEvent key={state.section.keyAt(selected[0]) ?? selected[0]} doc={document} state={state} index={selected[0]} services={services} />;
 });
 
 function LockBanner({ reason }: { reason: string | null }) {
@@ -279,6 +280,7 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
         <CommandListEditor
           editor={state.editor}
           eventIndex={index}
+          eventKey={state.section.keyAt(index)}
           schema={schema}
           apply={(c) => doc.apply(c)}
           problems={state.eventProblems}

@@ -202,3 +202,12 @@
   font-family: var(--font-mono);
   font-size: 11px;
 }
+
+.rpg-events-row.is-broken .rpg-events-cell {
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--danger);
+}

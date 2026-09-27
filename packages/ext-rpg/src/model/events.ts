@@ -230,13 +230,62 @@ export function sameProjectFile(a: string, b: string): boolean {
 
 // ---- 섹션 ----
 
+let keyCounter = 0;
+
+function freshKeys(n: number): number[] {
+  return Array.from({ length: n }, () => ++keyCounter);
+}
+
+/**
+ * 새 목록의 칸마다 이어받을 열쇠. 옛 목록에 같은 값(객체는 같은 객체)이 있으면 그 열쇠, 목록을 떠났던 객체가 돌아오면(되돌리기,
+ * 다시 실행) 떠날 때의 열쇠, 같은 자리의 옛 칸이 아직 남았으면 그 열쇠(그 자리의 이벤트를 고쳐 새 객체가 되었다), 모두 아니면
+ * 새 열쇠다. 그래서 지우기와 그 되돌리기, 더하기와 다시 실행, 옮기기, 크기 바꾸기를 지나도 같은 이벤트는 같은 열쇠다.
+ * retired 는 목록을 떠난 객체의 열쇠를 적어 두는 곳이다 (이 함수가 채운다)
+ */
+function carryKeys(before: readonly unknown[], keys: readonly number[], after: readonly unknown[], retired: WeakMap<object, number>): number[] {
+  const unused = new Map<unknown, number[]>();
+  before.forEach((v, i) => {
+    const at = unused.get(v);
+    if (at) at.push(i);
+    else unused.set(v, [i]);
+  });
+  const taken = new Array<boolean>(before.length).fill(false);
+  const used = new Set<number>();
+  const out = new Array<number | undefined>(after.length);
+  const give = (j: number, key: number, from: number) => {
+    out[j] = key;
+    used.add(key);
+    if (from >= 0) taken[from] = true;
+  };
+  after.forEach((v, j) => {
+    const i = unused.get(v)?.shift();
+    if (i !== undefined) give(j, keys[i], i);
+  });
+  after.forEach((v, j) => {
+    if (out[j] !== undefined || typeof v !== "object" || v === null) return;
+    const key = retired.get(v);
+    if (key !== undefined && !used.has(key)) give(j, key, keys.indexOf(key));
+  });
+  after.forEach((_, j) => {
+    if (out[j] === undefined && j < before.length && !taken[j]) give(j, keys[j], j);
+  });
+  before.forEach((v, i) => {
+    if (!taken[i] && typeof v === "object" && v !== null) retired.set(v, keys[i]);
+  });
+  return Array.from(out, (k) => k ?? ++keyCounter);
+}
+
 /**
  * 맵 문서 하나의 events 섹션. 값은 늘 새 배열로 갈아 끼운다 (명령의 되돌리기가 앞뒤 배열을 들고 있다).
  * raw 가 null 이면 키가 없는 것과 같다 (M2 3.1). 이벤트가 없으면 키를 쓰지 않고, 이벤트를 더하면 배열로 쓴다.
  * raw 가 배열 자리가 아니면(글, 숫자, 비지 않은 객체) usable 이 거짓이고 저장할 때 원래 값을 그대로 쓴다.
+ * 칸마다 열쇠(keyAt)가 있어 목록이 바뀌어도 같은 이벤트를 가리킨다 (고르기가 번호 대신 쓴다)
  */
 export class EventsSection {
   private items: readonly unknown[] = [];
+  private itemKeys: readonly number[] = [];
+  /** 목록을 떠난 이벤트 객체의 열쇠 (되돌리기로 돌아오면 같은 열쇠) */
+  private readonly retired = new WeakMap<object, number>();
   private raw: unknown = undefined;
   private hadKey = false;
   /** 바뀔 때마다 오른다 (MobX 반응용) */
@@ -247,7 +296,7 @@ export class EventsSection {
     private schema: EventSchema,
   ) {
     this.load(raw);
-    makeObservable<EventsSection, "items">(this, { items: observable.ref, revision: observable, replace: action, reset: action });
+    makeObservable<EventsSection, "items" | "itemKeys">(this, { items: observable.ref, itemKeys: observable.ref, revision: observable, replace: action, reset: action });
   }
 
   private load(raw: unknown): void {
@@ -255,11 +304,22 @@ export class EventsSection {
     this.raw = raw === null ? undefined : raw;
     this.hadKey = this.raw !== undefined;
     this.items = asList(this.raw) ?? [];
+    this.itemKeys = freshKeys(this.items.length);
   }
 
   /** 지금 이벤트 목록 (JSON 그대로. null 칸과 틀린 값도 있다) */
   get list(): readonly unknown[] {
     return this.items;
+  }
+
+  /** index 번째 이벤트의 열쇠 (목록이 바뀌어도 같은 이벤트면 같다). 목록 밖이면 undefined */
+  keyAt(index: number): number | undefined {
+    return this.itemKeys[index];
+  }
+
+  /** 열쇠의 지금 번호. 없으면 -1 */
+  indexOfKey(key: number): number {
+    return this.itemKeys.indexOf(key);
   }
 
   /** 배열 자리의 값이었는가. 아니면 편집을 막는다 */
@@ -278,6 +338,7 @@ export class EventsSection {
 
   /** 명령만 부른다 */
   replace(list: readonly unknown[]): void {
+    this.itemKeys = carryKeys(this.items, this.itemKeys, list, this.retired);
     this.items = list;
     this.revision++;
   }

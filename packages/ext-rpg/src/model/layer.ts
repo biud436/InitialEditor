@@ -5,7 +5,7 @@
 //   잠금      스키마를 읽지 못함(모르는 버전 포함), 스키마가 사라짐, 설정을 읽지 못함, 등록에서 빠짐, alt 가 있는 맵,
 //             events 가 배열이 아님. 잠겨도 떼지 않는다 (편집 중인 값은 되돌리기 스택과 함께 남고 저장된다)
 //   문제      validateEvents 의 오류와 경고가 레이어의 문제다. 정보는 인스펙터에만 보인다
-//   고른 것   이벤트 번호. 목록이 줄어 밖으로 나간 번호는 보지 않는다
+//   고른 것   이벤트의 열쇠 (EventsSection.keyAt). 다른 이벤트를 지우거나 되돌려 번호가 바뀌어도 같은 이벤트가 골라져 있다
 
 import type { Command } from "@initial-editor/core";
 import type { MapLayerSpec } from "@initial-editor/ext-tilemap";
@@ -79,8 +79,8 @@ export class EventsLayerState implements MapLayerState {
   /** 마지막으로 받은 스키마. 스키마 파일이 사라지거나 버전이 바뀌어도 들고 있어 편집 중인 값을 쓴다 */
   schema: EventSchema | null = null;
   locked: string | null = null;
-  /** 고른 이벤트 번호 (목록 밖의 번호는 selected 가 뺀다) */
-  readonly selection = observable.set<number>();
+  /** 고른 이벤트의 열쇠 (섹션의 keyAt). 목록이 바뀌어도 같은 이벤트를 가리키고, 목록에 없는 열쇠는 selected 가 뺀다 */
+  private readonly selection = observable.set<number>();
   drag: EventDrag | null = null;
   /** 인스펙터에 초점을 보내 달라는 요청 (nonce 가 바뀔 때마다) */
   focusRequest: { target: FocusTarget; nonce: number } | null = null;
@@ -203,13 +203,30 @@ export class EventsLayerState implements MapLayerState {
     return this.section.shapeError;
   }
 
-  /** 맵 크기 바꾸기가 칸을 옮긴다. 원본이 붙기 전에 받는 것과 같은 함수라 되돌리기가 정확하다 */
+  /**
+   * 맵 크기 바꾸기가 칸을 옮긴다. 원본이 붙기 전에 받는 것과 같은 함수라 되돌리기가 정확하다.
+   * 스키마 없이 붙은 상태(모르는 버전)는 저장할 때 원본을 그대로 쓰므로 원본도 같이 옮긴다 (타일만 옮겨지고 이벤트가 옛 칸에 남지 않게)
+   */
   shift(offset: CellOffset): Command | null {
     if (!this.section.usable) return null;
     const before = this.section.list;
     const after = shiftEvents(before, offset);
     if (after.every((e, i) => e === before[i])) return null;
-    return new EventListCommand("이벤트 옮기기 (맵 크기)", this.section, before, after, []);
+    const moved = new EventListCommand("이벤트 옮기기 (맵 크기)", this.section, before, after, []);
+    if (this.schema) return moved;
+    const rawBefore = this.raw;
+    const rawAfter = Array.isArray(rawBefore) ? after : rawBefore;
+    return {
+      label: moved.label,
+      execute: () => {
+        moved.execute();
+        this.raw = rawAfter;
+      },
+      undo: () => {
+        moved.undo();
+        this.raw = rawBefore;
+      },
+    };
   }
 
   dispose(): void {
@@ -218,10 +235,13 @@ export class EventsLayerState implements MapLayerState {
 
   // ---- 고르기 ----
 
-  /** 고른 번호, 오름차순 (목록 밖은 뺀다) */
+  /** 고른 번호, 오름차순 (목록에 없는 이벤트는 뺀다) */
   get selected(): number[] {
-    const n = this.section.list.length;
-    return [...this.selection].filter((i) => i >= 0 && i < n).sort((a, b) => a - b);
+    void this.section.list;
+    return [...this.selection]
+      .map((key) => this.section.indexOfKey(key))
+      .filter((i) => i >= 0)
+      .sort((a, b) => a - b);
   }
 
   /** 하나만 골랐으면 그 번호 */
@@ -232,12 +252,17 @@ export class EventsLayerState implements MapLayerState {
 
   select(indices: Iterable<number>, additive = false): void {
     if (!additive) this.selection.clear();
-    for (const i of indices) this.selection.add(i);
+    for (const i of indices) {
+      const key = this.section.keyAt(i);
+      if (key !== undefined) this.selection.add(key);
+    }
   }
 
   toggle(index: number): void {
-    if (this.selection.has(index)) this.selection.delete(index);
-    else this.selection.add(index);
+    const key = this.section.keyAt(index);
+    if (key === undefined) return;
+    if (this.selection.has(key)) this.selection.delete(key);
+    else this.selection.add(key);
   }
 
   clearSelection(): void {
@@ -311,6 +336,8 @@ export function eventsLayerCore(sources: RpgSources): MapLayerSpec {
     toolKey: EVENTS_TOOL_KEY,
     attach: (doc) => attachEventsLayer(doc, sources),
     hint: (doc) => eventsLayerHint(doc, sources),
+    // 스키마 파일이 없는 프로젝트(플래피)에서는 이벤트 도구의 커맨드와 메뉴가 빠진다 (문서 2.5)
+    visible: () => sources.schemaPresent,
   };
 }
 

@@ -54,6 +54,8 @@ export interface PanelSpec {
   icon?: string;
   /** 이 패널을 넣을 레이아웃 프리셋 이름 (앱의 scene, script, tilemap). 없으면 창 메뉴로만 연다 */
   presets?: string[];
+  /** 거짓이면 창 메뉴에 보이지 않는다 (이 프로젝트에 해당하지 않는 패널). 생략하면 늘 보인다 */
+  visible?(): boolean;
 }
 
 export interface ToolSpec {

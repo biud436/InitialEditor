@@ -2,7 +2,7 @@
 // RPG 확장의 등록 (e5 문서 2.4, 2.5): 타일맵 확장과 함께 켜면 이벤트 레이어와 목록 패널이 생기고, 프로젝트의 스키마를 읽는
 // 즉시 열린 맵에 붙는다 (문서가 먼저 열려도). 등록되지 않은 맵은 힌트, 스키마 없는 프로젝트는 아무것도 없다,
 // 스키마의 버전이 바뀌면 잠긴다, 확장을 끄면 레이어와 패널이 빠지고 저장 글은 그대로다.
-import { CommandRegistry, ExtensionHost, ExtensionRegistries, MenuRegistry } from "@initial-editor/core";
+import { CommandRegistry, ExtensionHost, ExtensionRegistries, MenuRegistry, visibleMenu } from "@initial-editor/core";
 import { NO_MAP_PLAYER, tilemapExtension, type PlayPlan, type TilemapApi } from "@initial-editor/ext-tilemap";
 import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it, vi } from "vitest";
@@ -93,6 +93,23 @@ describe("rpgExtension", () => {
     const doc = await b.openMap("resources/maps/port_town.json");
     expect(eventsStateOf(doc)).toBeNull();
     expect(b.rpg.layer.hint?.(doc)).toBeUndefined();
+    // 메뉴도 없다 (문서 2.5): 이벤트 실행 명령 둘과 레이어 도구는 보이지 않고, 이벤트 목록 패널도 창 메뉴에 없다
+    const menuCommands = () => visibleMenu(b.menus.tree(), (id) => b.commands.isVisible(id)).flatMap((n) => n.children.map((c) => c.commandId));
+    for (const id of Object.values(EVENT_PLAY_COMMAND_IDS)) {
+      expect(b.commands.isVisible(id)).toBe(false);
+      expect(menuCommands()).not.toContain(id);
+    }
+    expect(b.rpg.layer.visible?.()).toBe(false);
+    expect(b.registries.panels.get(EVENTS_PANEL_ID)?.visible?.()).toBe(false);
+  });
+
+  it("RPG 프로젝트면 이벤트 명령과 레이어 도구와 목록 패널이 메뉴에 보인다", async () => {
+    const b = await boot();
+    await b.m.open();
+    await vi.waitFor(() => expect(b.rpg.store.loaded).toBe(true));
+    for (const id of Object.values(EVENT_PLAY_COMMAND_IDS)) expect(b.commands.isVisible(id)).toBe(true);
+    expect(b.rpg.layer.visible?.()).toBe(true);
+    expect(b.registries.panels.get(EVENTS_PANEL_ID)?.visible?.()).toBe(true);
   });
 
   it("스키마의 버전이 바뀌면 붙은 레이어가 잠기고, 되돌리면 풀린다", async () => {
@@ -180,9 +197,19 @@ describe("rpgExtension 의 실행", () => {
     await b.commands.execute(EVENT_PLAY_COMMAND_IDS.probe);
     await b.commands.execute(EVENT_PLAY_COMMAND_IDS.play);
     const at = { INITIAL2D_RPG_AT: "14,21,up", INITIAL2D_RPG_STATE: "arrived" };
-    expect(p.played).toEqual([
-      { label: "이 이벤트 자동 재생", plan: { env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk" }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞에서 말 걸기, 시작 상태 arrived" } },
-      { label: "이 이벤트 앞에서 실행", plan: { env: { ...BASE, ...at }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞, 시작 상태 arrived" } },
+    // 자동 재생의 계획은 러너가 지켜볼 것(watch)을 들고, 앞에서 실행은 들지 않는다
+    const [probe, play] = p.played.map(({ label, plan }) => {
+      if (typeof plan === "string") return { label, plan, watch: "none" };
+      const { watch, ...rest } = plan;
+      return { label, plan: rest, watch: typeof watch };
+    });
+    expect([probe, play]).toEqual([
+      {
+        label: "이 이벤트 자동 재생",
+        plan: { env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk" }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞에서 말 걸기, 배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다, 시작 상태 arrived" },
+        watch: "function",
+      },
+      { label: "이 이벤트 앞에서 실행", plan: { env: { ...BASE, ...at }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞, 시작 상태 arrived" }, watch: "undefined" },
     ]);
   });
 

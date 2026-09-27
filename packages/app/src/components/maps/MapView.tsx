@@ -84,7 +84,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
   const run = (id: string) => () => {
     void editor.commands.execute(id);
   };
-  const paintsHidden = doc.tool !== "object" && doc.tool !== "pick" && doc.tool !== "ext" && targetHidden(doc);
+  const paintsHidden = doc.tool !== "object" && doc.tool !== "pick" && targetHidden(doc);
   const extTools = support.layers().filter((spec) => doc.layerState(spec.id) !== null);
 
   return (
@@ -174,8 +174,8 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
           대상 <b data-testid="map-target">{targetLabel(doc, (id) => support.layer(id)?.label)}</b>
         </span>
         {paintsHidden ? (
-          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title="레이어 패널에서 눈을 켜면 칠할 수 있다">
-            숨김, 칠하지 않는다
+          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title={doc.tool === "ext" ? "레이어 패널에서 눈을 켜면 고칠 수 있다" : "레이어 패널에서 눈을 켜면 칠할 수 있다"}>
+            {doc.tool === "ext" ? "숨김, 고치지 않는다" : "숨김, 칠하지 않는다"}
           </span>
         ) : null}
         <span className="doc-header-spacer" />

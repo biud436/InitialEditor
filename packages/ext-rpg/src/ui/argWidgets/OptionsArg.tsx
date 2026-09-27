@@ -1,6 +1,6 @@
 // options: 항목 목록. 항목을 더하고 빼고 옮기면 가지(branches)와 취소 번호(cancel)가 함께 따라간다.
 // 그 맞추기는 모델의 항목 명령(addOption, removeOption, moveOption, setOption)이 하고, 위젯은 ops 로 부른다.
-// 가지에 커맨드가 있는 항목을 빼면 먼저 묻는다.
+// 가지에 커맨드가 있는 항목을 빼면 먼저 묻는다. 좁은 인스펙터에서는 글 칸이 한 줄을 차지하고 고르기와 단추가 다음 줄로 내려간다.
 
 import { asList, engineLength, isInteger } from "../../model/json";
 import type { ArgSpec } from "../../model/schema";
@@ -60,21 +60,23 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
             testId={`${testId}-${k}-text`}
             ariaLabel={`${k + 1}번 항목`}
           />
-          {hasCancel && (
-            <label className="rpg-option-cancel" title="취소키를 누르면 이 항목을 고른 것으로 친다">
-              <input type="radio" name={name} checked={cancelNo === k + 1} disabled={ctx.disabled} onChange={() => ops.setCancel?.(k + 1)} data-testid={`${testId}-${k}-cancel`} />
-              취소
-            </label>
-          )}
-          <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 항목 위로`} data-testid={`${testId}-${k}-up`} onClick={() => ops.move(k, k - 1)}>
-            ↑
-          </button>
-          <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 항목 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => ops.move(k, k + 1)}>
-            ↓
-          </button>
-          <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || list.length <= (spec.min ?? 1)} aria-label={`${k + 1}번 항목 빼기`} data-testid={`${testId}-${k}-remove`} onClick={() => void remove(k)}>
-            ✕
-          </button>
+          <span className="rpg-option-tools">
+            {hasCancel && (
+              <label className="rpg-option-cancel" title="취소키를 누르면 이 항목을 고른 것으로 친다">
+                <input type="radio" name={name} checked={cancelNo === k + 1} disabled={ctx.disabled} onChange={() => ops.setCancel?.(k + 1)} data-testid={`${testId}-${k}-cancel`} />
+                취소
+              </label>
+            )}
+            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 항목 위로`} data-testid={`${testId}-${k}-up`} onClick={() => ops.move(k, k - 1)}>
+              ↑
+            </button>
+            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 항목 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => ops.move(k, k + 1)}>
+              ↓
+            </button>
+            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || list.length <= (spec.min ?? 1)} aria-label={`${k + 1}번 항목 빼기`} data-testid={`${testId}-${k}-remove`} onClick={() => void remove(k)}>
+              ✕
+            </button>
+          </span>
         </div>
       ))}
       <div className="rpg-options-foot">

@@ -71,6 +71,80 @@ describe("TextField", () => {
   });
 });
 
+describe("초점이 있는 동안 밖에서 바뀐 값 (입력 칸 안의 Ctrl+Z)", () => {
+  it("TextField: 글이 되돌린 값을 따라가고, 다음 타이핑은 되돌린 글을 되살리지 않는 새 세션이다", () => {
+    const c = calls();
+    const view = (value: string) => <TextField value={value} onChange={c.on} sessionPrefix="t" multiline testId="t" />;
+    const { rerender } = render(view("잘 왔네."));
+    const input = screen.getByTestId("t") as HTMLTextAreaElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "잘 왔네. XYZ" } });
+    rerender(view("잘 왔네. XYZ"));
+    expect(input.value).toBe("잘 왔네. XYZ");
+    rerender(view("잘 왔네."));
+    expect(input.value).toBe("잘 왔네.");
+    fireEvent.change(input, { target: { value: "잘 왔네.Q" } });
+    expect(c.list.map(([v]) => v)).toEqual(["잘 왔네. XYZ", "잘 왔네.Q"]);
+    expect(c.list[1][1]).not.toBe(c.list[0][1]);
+  });
+
+  it("NumberField: 칸이 보낸 값이 돌아오면 글을 두고(4.6 은 5 로 보냈다), 다른 값이면 따라간다", () => {
+    const c = calls();
+    const view = (value: number) => <NumberField value={value} onChange={c.on} sessionPrefix="n" integer testId="n" />;
+    const { rerender } = render(view(3));
+    const input = screen.getByTestId("n") as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "4.6" } });
+    rerender(view(5));
+    expect(input.value).toBe("4.6");
+    rerender(view(3));
+    expect(input.value).toBe("3");
+    fireEvent.change(input, { target: { value: "8" } });
+    expect(c.list.map(([v]) => v)).toEqual([5, 8]);
+    expect(c.list[1][1]).not.toBe(c.list[0][1]);
+  });
+
+  it("OptionalNumberField 도 같다", () => {
+    const c = calls();
+    const view = (value: number | undefined) => <OptionalNumberField value={value} onChange={c.on} sessionPrefix="o" testId="o" />;
+    const { rerender } = render(view(1));
+    const input = screen.getByTestId("o") as HTMLInputElement;
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "2" } });
+    rerender(view(2));
+    rerender(view(1));
+    expect(input.value).toBe("1");
+  });
+});
+
+describe("Enter", () => {
+  it("기본은 초점을 놓고, stay 는 초점을 두고 세션만 끝낸다", () => {
+    const c = calls();
+    render(
+      <>
+        <TextField value="" onChange={c.on} sessionPrefix="a" testId="blur" />
+        <TextField value="" onChange={c.on} sessionPrefix="b" enter="stay" testId="stay" />
+        <NumberField value={1} onChange={c.on} sessionPrefix="c" enter="stay" testId="num" />
+      </>,
+    );
+    const blur = screen.getByTestId("blur") as HTMLInputElement;
+    blur.focus();
+    fireEvent.keyDown(blur, { key: "Enter" });
+    expect(document.activeElement).not.toBe(blur);
+    const stay = screen.getByTestId("stay") as HTMLInputElement;
+    stay.focus();
+    fireEvent.change(stay, { target: { value: "a" } });
+    fireEvent.keyDown(stay, { key: "Enter" });
+    expect(document.activeElement).toBe(stay);
+    fireEvent.change(stay, { target: { value: "ab" } });
+    expect(c.list[1][1]).not.toBe(c.list[0][1]);
+    const num = screen.getByTestId("num") as HTMLInputElement;
+    num.focus();
+    fireEvent.keyDown(num, { key: "Enter" });
+    expect(document.activeElement).toBe(num);
+  });
+});
+
 describe("OptionalNumberField", () => {
   it("비어 있으면 비어 있음이라 보이고, 비운 채 두면 값을 바꾸지 않는다", () => {
     const c = calls();

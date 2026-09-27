@@ -270,6 +270,67 @@ describe("RunnerStore 실행", () => {
     runner.dispose();
   });
 
+  it("watch 를 주면 줄마다 넘기고, 멈출 이유가 오면 콘솔과 알림에 남기고 멈춘다 (한 번만). 그 실행의 exit 는 부르지 않는다", async () => {
+    const h = await harness();
+    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const seen: string[] = [];
+    const exits: Array<number | null> = [];
+    let made = 0;
+    const watch = () => {
+      made++;
+      return {
+        line: (text: string) => {
+          seen.push(text);
+          return text === "again" ? "게임이 처음부터 다시 시작해서 멈췄다" : undefined;
+        },
+        exit: (code: number | null) => {
+          exits.push(code);
+          return "불리면 안 된다";
+        },
+      };
+    };
+    await runner.start({ env: { A: "1" }, watch });
+    const handle = h.handles[0];
+    handle.emit("rpg:map:port_town");
+    handle.emit("again");
+    handle.emit("again");
+    await flush();
+    await flush();
+    expect(seen).toEqual(["rpg:map:port_town", "again"]);
+    expect(handle.stopped).toBe(1);
+    expect(runner.state).toBe("idle");
+    expect(logTexts(h.log)).toContainEqual("warn/runner: 게임이 처음부터 다시 시작해서 멈췄다");
+    expect(h.toasts).toContainEqual("warn: 게임이 처음부터 다시 시작해서 멈췄다");
+    expect(exits).toEqual([]);
+    // 다시 시작하면 새로 만든다
+    await runner.restart();
+    expect(made).toBe(2);
+    runner.dispose();
+  });
+
+  it("스스로 끝난 실행은 watch 의 exit 가 알린 실패를 오류 줄과 알림으로 남긴다. 핫 리로드는 restarted 를 먼저 부른다", async () => {
+    const h = await harness();
+    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const calls: string[] = [];
+    await runner.start({
+      watch: () => ({
+        line: () => undefined,
+        exit: (code) => (code === 0 ? "이벤트 kid 가 돌지 않았다" : undefined),
+        restarted: () => void calls.push("restarted"),
+      }),
+    });
+    await runner.reload();
+    expect(calls).toEqual(["restarted"]);
+    h.handles[0].exit(0);
+    expect(logTexts(h.log)).toContainEqual("error/runner: 이벤트 kid 가 돌지 않았다");
+    expect(h.toasts).toContainEqual("warn: 이벤트 kid 가 돌지 않았다");
+    // watch 없는 실행은 그대로다
+    await runner.start();
+    h.handles[1].exit(0);
+    expect(logTexts(h.log).filter((l) => l.includes("돌지 않았다"))).toHaveLength(1);
+    runner.dispose();
+  });
+
   it("mruby 프로젝트인데 빌드에 mruby 가 없으면 띄우지 않고 알린다", async () => {
     const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
     const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });

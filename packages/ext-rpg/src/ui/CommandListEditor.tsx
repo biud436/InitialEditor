@@ -13,6 +13,7 @@
 //   Insert             팔레트 (고른 줄 위에 넣기)
 //   Ctrl+C, Ctrl+V     복사와 붙여넣기 (여러 줄, JSON. 붙이면 고른 줄 아래)
 //   Escape             넓힌 고르기 풀기
+//   그 밖의 글자 키    트리가 먹는다 (맵 도구의 한 글자 단축키에 닿지 않는다)
 
 import type { Command } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
@@ -49,6 +50,8 @@ export interface CommandListEditorProps {
   editor: EventEditor;
   /** 섹션 목록의 이벤트 번호 (0부터) */
   eventIndex: number;
+  /** 이벤트의 열쇠 (섹션의 keyAt). 있으면 이것이 바뀔 때만 고르기와 접기를 처음부터 한다 (번호만 바뀌면 그대로) */
+  eventKey?: number;
   schema: EventSchema;
   /** 명령을 문서에 넣는다 (맵 문서의 doc.apply) */
   apply: (cmd: Command) => void;
@@ -79,7 +82,7 @@ function defaultConfirm(message: string): boolean {
 }
 
 export const CommandListEditor = observer(function CommandListEditor(props: CommandListEditorProps) {
-  const { editor, eventIndex, schema, apply, locked = null, onRefused, focusRequest, onSelect } = props;
+  const { editor, eventIndex, eventKey, schema, apply, locked = null, onRefused, focusRequest, onSelect } = props;
   const events = editor.section.list;
   const ev = events[eventIndex];
   const commands = isPlainObject(ev) ? field(ev, "commands") : undefined;
@@ -98,8 +101,12 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   const treeRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const lastIndex = useRef(0);
+  // 두 번 누르기의 첫 누름이 고른 줄. 첫 누름이 열린 폼을 닫으면 줄이 밀려 둘째 누름과 dblclick 이 다른 줄에 떨어지므로
+  // 둘째 누름은 버리고 dblclick 은 이 줄로 한다
+  const pressedRow = useRef<string | null>(null);
 
   // 다른 이벤트로 바뀌면 고르기와 접기를 처음부터
+  const eventIdentity = eventKey ?? eventIndex;
   useEffect(() => {
     setFolded(new Set());
     setCursorKey(endKey([]));
@@ -107,7 +114,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
     setPalette(null);
     setNotice(null);
     setStatus(null);
-  }, [eventIndex]);
+  }, [eventIdentity]);
 
   const rows = useMemo(() => (commandsOk ? buildRows(commands, schema, folded) : []), [commands, commandsOk, schema, folded]);
   let cursorIndex = rows.findIndex((r) => r.key === cursorKey);
@@ -313,6 +320,8 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
     else if (key === "Escape" && anchorKey !== null) setAnchorKey(null);
     else if (mod && !e.altKey && key === "c") copy();
     else if (mod && !e.altKey && key === "v") paste();
+    // 글자 키는 트리가 먹는다: 맵 도구의 한 글자 단축키(B, R, N 등)가 인스펙터를 두고 도구를 바꾸지 않게
+    else if (key.length === 1 && !mod && !e.altKey) handled = true;
     else handled = false;
     if (handled) {
       e.preventDefault();
@@ -321,6 +330,11 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   };
 
   const onRowClick = (row: TreeRow, e: MouseEvent) => {
+    if (e.detail >= 2 && pressedRow.current !== null) {
+      focusTree();
+      return;
+    }
+    pressedRow.current = e.detail === 1 ? row.key : null;
     if (e.shiftKey && row.kind === "command" && cursor?.kind === "command" && sameList(row.path.list, cursor.path.list)) {
       if (anchorKey === null || anchor?.kind !== "command") setAnchorKey(cursor.key);
     } else {
@@ -328,6 +342,19 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
     }
     setCursorKey(row.key);
     focusTree();
+  };
+
+  /**
+   * 트리의 dblclick: 첫 누름의 줄(pressedRow)로 한다. 줄이 밀려 포인터 밑이 다른 줄이나 빈 곳이어도 그렇다.
+   * 첫 누름이 줄이 아니었으면(폼의 글자를 두 번 눌러 고르기) 포인터 밑의 줄, 그것도 없으면 아무것도 하지 않는다
+   */
+  const onTreeDoubleClick = (e: MouseEvent) => {
+    const pressed = pressedRow.current;
+    pressedRow.current = null;
+    const hit = (e.target as HTMLElement).closest?.<HTMLElement>("[data-row-key]") ?? null;
+    const key = pressed ?? hit?.dataset.rowKey;
+    const row = key === undefined ? undefined : rows.find((r) => r.key === key);
+    if (row) onRowDoubleClick(row);
   };
 
   const onRowDoubleClick = (row: TreeRow) => {
@@ -455,6 +482,11 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
           aria-activedescendant={cursor ? `${baseId}-r${cursorIndex}` : undefined}
           data-testid="rpg-cmd-tree"
           onKeyDown={onTreeKey}
+          onClickCapture={(e) => {
+            // 새 누름의 시작: 줄의 onClick 이 다시 적는다 (줄 밖, 폼, 접기 단추의 누름은 두 번 누르기의 첫 줄이 아니다)
+            if (e.detail <= 1) pressedRow.current = null;
+          }}
+          onDoubleClick={onTreeDoubleClick}
         >
           {rows.map((row, i) => {
             const problems = byRow.get(row.key) ?? [];
@@ -475,7 +507,6 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
                 data-row-key={row.key}
                 data-testid="rpg-cmd-row"
                 onClick={(e) => onRowClick(row, e)}
-                onDoubleClick={() => onRowDoubleClick(row)}
               >
                 {row.kind === "header" && (
                   <button

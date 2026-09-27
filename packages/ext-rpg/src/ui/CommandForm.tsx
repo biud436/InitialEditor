@@ -2,6 +2,7 @@
 // 타이핑은 초점 한 번이 되돌리기 한 단계이고(합치기 키), 고르기와 누르기는 한 번이 한 단계다.
 
 import type { Command } from "@initial-editor/core";
+import { stringifyJsonLossless } from "@initial-editor/ext-tilemap/model";
 import { asList, engineLength, field, type JsonObject } from "../model/json";
 import type { EventEditor } from "../model/commands";
 import type { CommandSpec } from "../model/schema";
@@ -85,7 +86,7 @@ export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, pro
           <div className="muted">스키마에 없는 인자 (지우지 않고 그대로 둔다)</div>
           {unknown.map((k) => (
             <div key={k} className="rpg-unknown-row">
-              <code>{k}</code>: <code>{JSON.stringify(cmd[k])}</code>
+              <code>{k}</code>: <code>{stringifyJsonLossless(cmd[k])}</code>
             </div>
           ))}
         </div>

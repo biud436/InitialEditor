@@ -11,6 +11,7 @@
 //               "자동 재생"을 누르면 내장 게임 뷰(웹 엔진)가 뜨고, 콘솔에 rpg:player(이벤트 앞 칸과 방향), rpg:event:kid,
 //               시작 상태가 고른 가지의 rpg:message 줄, rpg:route:done 이 차례로 나오고 게임이 스스로 끝난다.
 //               game.json 이 mruby 여도 RPG 실행은 play.env 의 INITIAL2D_SCRIPT=lua 로 뜬다 (언어 검사는 덧씌운 값으로 한다).
+//               씬을 바꾸는 배(ship)의 자동 재생은 새 게임으로 다시 시작하는 자리에서 러너가 멈추고 이유를 콘솔과 알림에 남긴다.
 
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -46,6 +47,8 @@ function drawnMarkers(page: Page): Promise<Drawn[]> {
 }
 
 const SIGN_TEXT = '어서 오세요.\n"항구 마을" 입니다.';
+/** 배회하는 이벤트(kid)의 자동 재생 설명 */
+const WANDER_NOTE = "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다";
 
 test.describe("RPG 이벤트 (메모리 모드)", () => {
   test("힌트, 표식 17개, 놓기와 끌기와 인스펙터, 커맨드 넣기와 되돌리기, 맵 뷰의 Ctrl+C, 저장 글과 키 순서", async ({ page }) => {
@@ -195,9 +198,10 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     await page.getByTestId("rpg-inspector-probe").click();
     const base = { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg", INITIAL2D_MAP: "port_town", INITIAL2D_RPG_TRACE: "1", INITIAL2D_RPG_STATE: "arrived,heardAltar" };
     const probe = { INITIAL2D_AUTOPLAY: "1" };
-    await expect.poll(() => runStarts(page)).toEqual([{ env: { ...base, ...probe, INITIAL2D_RPG_AT: "14,21,up", INITIAL2D_RPG_ROUTE: "talk" } }]);
+    // 자동 재생은 러너가 게임의 줄을 지켜보게 한다 (watch)
+    await expect.poll(() => runStarts(page)).toEqual([{ env: { ...base, ...probe, INITIAL2D_RPG_AT: "14,21,up", INITIAL2D_RPG_ROUTE: "talk" }, watch: "function" }]);
     const logs = await editorLogTexts(page);
-    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, 시작 상태 arrived,heardAltar) INITIAL2D_SCRIPT=lua"))).toBe(true);
+    expect(logs.some((l) => l.startsWith(`이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, ${WANDER_NOTE}, 시작 상태 arrived,heardAltar) INITIAL2D_SCRIPT=lua`))).toBe(true);
 
     // 맵 메뉴: 이 이벤트 앞에서 실행 (자동 재생 변수 없이)
     await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).click();
@@ -213,7 +217,7 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     await panel.getByTestId("rpg-events-menu-probe").click();
     await expect(panel.getByTestId("rpg-events-menu")).toHaveCount(0);
     await expect.poll(async () => (await runStarts(page)).length).toBe(3);
-    expect((await runStarts(page))[2]).toEqual({ env: { ...base, ...probe, INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_ROUTE: "up" } });
+    expect((await runStarts(page))[2]).toEqual({ env: { ...base, ...probe, INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_ROUTE: "up" }, watch: "function" });
 
     // 여기서 실행(Ctrl+F5): 고른 이벤트(여관 문)의 앞, 자동 재생 변수 없이. rpgPlay 가 기본 제공자(샘플의 play)보다 먼저다
     await host.focus();
@@ -311,8 +315,41 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     // game.json 은 mruby 지만 RPG 실행은 play.env 의 lua 로 뜬다
     const logs = await editorLogTexts(page);
     expect(logs.some((l) => /^엔진 시작: 에디터 안 \(웹 엔진, [^)]*\), 언어 lua /.test(l)), logs.join("\n")).toBe(true);
-    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, 시작 상태 arrived,heardAltar)"))).toBe(true);
+    expect(logs.some((l) => l.startsWith(`이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, ${WANDER_NOTE}, 시작 상태 arrived,heardAltar)`))).toBe(true);
+    // 이벤트가 돌았으니 지켜보는 것이 실패를 알리지 않는다
+    expect(logs.some((l) => l.includes("돌지 않았다")), logs.join("\n")).toBe(false);
     const shot = process.env.RPG_EVENTS_SCREENSHOT;
     if (shot) await page.screenshot({ path: shot });
+  });
+
+  test("씬을 바꾸는 배(ship)의 자동 재생: 게임이 새 게임으로 다시 시작하는 자리에서 러너가 멈추고 이유를 남긴다 (되풀이하지 않는다)", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.goto(`/?backend=bridge&url=${encodeURIComponent(bridge!.url)}`);
+    await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
+    await page.reload();
+    await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible({ timeout: 15_000 });
+    await waitRpgLoaded(page);
+    await openMap(page, PORT, "port_town.json");
+    // 앞의 판이 연 목록 패널이 프로젝트의 레이아웃에 남아 있을 수 있다 (창 메뉴는 켜고 끈다)
+    const panel = page.getByTestId("rpg-events-panel");
+    if (!(await panel.isVisible())) {
+      await page.getByRole("menubar").getByRole("menuitem", { name: "창", exact: true }).click();
+      await page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^이벤트$/ }) }).click();
+    }
+    await panel.getByTestId("rpg-start-state-input").fill("arrived");
+    await panel.getByTestId("rpg-start-state-input").press("Enter");
+    await panel.locator('[data-testid="rpg-events-row"][data-id="ship"]').click();
+    await expect(page.getByTestId("rpg-inspector-id")).toHaveText("ship");
+    await page.getByTestId("rpg-inspector-probe").click();
+
+    const stopped = "자동 재생을 멈췄다: 이벤트 ship 뒤에 게임이 새 게임으로 처음부터 다시 시작했다";
+    await expect.poll(async () => (await editorLogTexts(page)).some((l) => l.startsWith(stopped)), { timeout: 90_000 }).toBe(true);
+    await expect.poll(() => ev<string>(page, "(e) => e.runner.state"), { timeout: 15_000 }).toBe("idle");
+    await expect(page.getByTestId("toasts")).toContainText(stopped);
+    const lines = (await engineLines(page)).filter((l) => l.startsWith("rpg:"));
+    expect(lines.filter((l) => l === "rpg:event:ship"), lines.join("\n")).toHaveLength(1);
+    expect(lines).toContain("rpg:message:|배는 저녁 물때에 항구를 떠났다.");
+    expect(lines).not.toContain("rpg:route:done");
+    expect(lines.filter((l) => l.startsWith("rpg:error"))).toEqual([]);
   });
 });

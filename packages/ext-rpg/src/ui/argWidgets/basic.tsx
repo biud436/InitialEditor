@@ -1,7 +1,10 @@
 // 글, 여러 줄 글, 정수와 수, 참거짓, 고르기, 스칼라, JSON 위젯 (엔진 M2 2.3).
 
-import { useEffect, useId, useRef, useState } from "react";
-import { newSession, NumberInput, TextField } from "../fields";
+import { parseJsonLossless, stringifyJsonLossless } from "@initial-editor/ext-tilemap/model";
+import { useFieldText } from "@initial-editor/ui";
+import { useEffect, useId, useState } from "react";
+import { stableKey } from "../../model/json";
+import { NumberInput, TextField } from "../fields";
 import { emptyText, textValue, type ArgWidgetProps } from "./context";
 
 function shown(v: unknown): string {
@@ -203,7 +206,12 @@ export function ScalarArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
 }
 
 function jsonText(v: unknown): string {
-  return v === undefined ? "" : JSON.stringify(v, null, 2);
+  return v === undefined ? "" : stringifyJsonLossless(v, 2);
+}
+
+/** 같은 뜻의 JSON 인가 (모델이 키 순서를 고쳐 돌려준다) */
+function sameJson(a: unknown, b: unknown): boolean {
+  return stableKey(a) === stableKey(b);
 }
 
 /** 해석 결과 한 줄 */
@@ -217,43 +225,44 @@ export function jsonKind(v: unknown): string {
   return typeof v;
 }
 
-/** json: 글 상자와 해석 결과. 해석되지 않는 동안은 값을 바꾸지 않는다. 비우면(선택 인자) 인자를 지운다 */
+/**
+ * json: 글 상자와 해석 결과. 해석되지 않는 동안은 값을 바꾸지 않는다. 비우면(선택 인자) 인자를 지운다.
+ * 2^53 을 넘는 정수는 숫자 그대로 보이고 그대로 돌아간다 (타일맵의 parseJsonLossless)
+ */
 export function JsonArg({ spec, value, onChange, ctx, sessionPrefix, testId }: ArgWidgetProps) {
-  const [text, setText] = useState(jsonText(value));
-  const [focused, setFocused] = useState(false);
+  const field = useFieldText(value, jsonText, sessionPrefix, sameJson);
   const [error, setError] = useState<string | null>(null);
-  const session = useRef("");
+  const text = field.text;
 
+  // 글이 값을 따라갈 때(초점 밖, 밖에서 바뀜) 옛 해석 오류를 지운다
+  const shownValue = jsonText(value);
   useEffect(() => {
-    if (!focused) {
-      setText(jsonText(value));
-      setError(null);
-    }
-  }, [value, focused]);
+    if (text === shownValue) setError(null);
+  }, [text, shownValue]);
 
   const commit = (raw: string) => {
-    setText(raw);
-    if (!session.current) session.current = newSession(sessionPrefix);
+    field.setText(raw);
     if (raw.trim() === "") {
       setError(spec.required ? "값이 필요하다" : null);
-      if (!spec.required) onChange(undefined, session.current);
+      if (!spec.required) onChange(undefined, field.send(undefined));
       return;
     }
     let parsed: unknown;
     try {
-      parsed = JSON.parse(raw);
+      parsed = parseJsonLossless(raw);
     } catch (e) {
       setError(`JSON 이 아니다: ${(e as Error).message}`);
       return;
     }
     setError(null);
-    onChange(parsed === null && !spec.required ? undefined : parsed, session.current);
+    const next = parsed === null && !spec.required ? undefined : parsed;
+    onChange(next, field.send(next));
   };
 
   let result: string | null = null;
   if (!error && text.trim() !== "") {
     try {
-      result = jsonKind(JSON.parse(text));
+      result = jsonKind(parseJsonLossless(text));
     } catch {
       result = null;
     }
@@ -269,14 +278,8 @@ export function JsonArg({ spec, value, onChange, ctx, sessionPrefix, testId }: A
         placeholder={spec.required ? undefined : emptyText(spec)}
         aria-label={spec.label}
         data-testid={testId}
-        onFocus={() => {
-          setFocused(true);
-          session.current = newSession(sessionPrefix);
-        }}
-        onBlur={() => {
-          setFocused(false);
-          session.current = "";
-        }}
+        onFocus={field.focus}
+        onBlur={field.blur}
         onChange={(e) => commit(e.target.value)}
       />
       {error ? (

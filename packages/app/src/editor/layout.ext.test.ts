@@ -1,8 +1,8 @@
 // 확장 패널은 제 도킹 탭이다 (docs/plans/e5-rpg.md 2.1): 프리셋의 presets, 창 메뉴의 켜고 끄기, 레이아웃이 기억한 패널의
 // 복원(확장이 없으면 뺀다), 열린 패널 거울, 자리. dockview 대신 자리만 기억하는 가짜 api 로 돈다.
-import { CommandRegistry, ExtensionRegistries, MenuRegistry, type PanelSpec } from "@initial-editor/core";
+import { CommandRegistry, ExtensionRegistries, MenuRegistry, visibleMenu, type PanelSpec } from "@initial-editor/core";
 import type { DockviewApi } from "dockview";
-import { runInAction } from "mobx";
+import { observable, runInAction } from "mobx";
 import { describe, expect, it } from "vitest";
 import type { DocumentDock } from "./documentDock";
 import { extPanelCommandId, registerExtensionPanelCommands } from "./extensionPanels";
@@ -196,6 +196,22 @@ describe("확장 패널의 창 메뉴", () => {
     expect(menus.items.some((m) => m.commandId === id)).toBe(false);
     off();
     expect(commands.get(extPanelCommandId("rpg.events"))).toBeUndefined();
+    store.dispose();
+  });
+
+  it("패널의 visible 이 거짓이면(이 프로젝트에 해당하지 않는 패널) 창 메뉴에서 빠진다", async () => {
+    const shown = observable.box(false);
+    const { registries, store } = await setup([{ ...EVENTS, visible: () => shown.get() }]);
+    const commands = new CommandRegistry({ platform: "mac" });
+    const menus = new MenuRegistry();
+    const off = registerExtensionPanelCommands({ registries, commands, menus, layout: store, setChecked: () => {} });
+    const id = extPanelCommandId("rpg.events");
+    const windowMenu = () => visibleMenu(menus.tree(), (cid) => commands.isVisible(cid)).find((n) => n.label === "창")?.children.map((n) => n.label) ?? [];
+    expect(commands.isVisible(id)).toBe(false);
+    expect(windowMenu()).toEqual([]);
+    runInAction(() => shown.set(true));
+    expect(windowMenu()).toEqual(["이벤트"]);
+    off();
     store.dispose();
   });
 });

@@ -7,7 +7,8 @@
 //                 이미 붙은 상태는 떼지 않는다. 등록을 거두면 문서마다 상태의 값을 원본에 남기고 뗀다
 //   실행 제공자   "여기서 실행"을 priority 높은 것부터 묻고 첫 applies 의 plan 으로 띄운다 (앱의 objectTools/playHere.ts)
 //   실행 길       확장이 제 명령(예: 체크포인트 앞에서 실행)으로 맵을 띄울 때 play(doc, request) 를 부른다. 앱이 setPlayer 로
-//                 여기서 실행과 같은 길(러너 확인, 저장할지 묻기, 콘솔 한 줄, 러너 시작)을 넣는다
+//                 여기서 실행과 같은 길(러너 확인, 저장할지 묻기, 콘솔 한 줄, 러너 시작)을 넣는다. 계획의 watch 가 있으면 러너가
+//                 게임이 찍는 줄을 넘겨 끝났는지, 멈춰야 하는지 묻는다 (자동 재생이 끝나지 않는 실행을 멈춘다)
 //
 // 뷰와 도구와 인스펙터는 앱이 붙인다. 여기 타입은 DOM 과 PIXI 를 모른다: PIXI 물체와 React 컴포넌트는 unknown 이고 앱이 좁혀 쓴다.
 
@@ -112,12 +113,30 @@ export interface MapLayerSpec extends MapLayerBinding {
   attach(doc: MapDocument): MapLayerState | null;
   /** attach 가 null 일 때 레이어 패널 아래에 옅게 보일 한 줄. undefined 면 아무것도 안 보인다 */
   hint?(doc: MapDocument): string | undefined;
+  /**
+   * 이 프로젝트에 이 레이어가 있을 수 있는가 (예: 레이어의 스키마 파일이 있다). 거짓이면 앱이 레이어의 도구 커맨드와 메뉴를 숨긴다.
+   * 생략하면 늘 참이다. 관찰 가능해야 메뉴가 따라온다
+   */
+  visible?(): boolean;
   /** PIXI 뷰. 앱의 MapRenderer 가 오브젝트 위에 붙인다 */
   createView?(ctx: MapLayerViewContext): MapLayerView;
   /** 대상이 이 레이어일 때의 포인터와 키 */
   createTool?(ctx: MapLayerToolContext): MapLayerTool;
   /** 대상이 이 레이어일 때 인스펙터 자리에 그릴 컴포넌트 (앱에서는 React 컴포넌트, props 는 MapLayerInspectorProps) */
   readonly Inspector?: unknown;
+}
+
+/**
+ * 실행 하나를 지켜보는 것 (예: 자동 재생이 끝났는가, 게임이 처음부터 다시 시작했는가). 앱의 러너가 게임이 찍은 줄마다 line 을,
+ * 게임이 끝나면 exit 를 부른다. 실행마다 새로 만든다 (PlayPlan.watch)
+ */
+export interface PlayWatch {
+  /** 게임이 찍은 줄 하나. 실행을 멈출 이유를 돌려주면 러너가 그 글을 콘솔에 남기고 게임을 멈춘다 */
+  line(text: string): string | undefined;
+  /** 게임이 스스로 끝났다 (code 는 종료 코드, 정지면 null). 알릴 실패가 있으면 그 글 (콘솔 오류와 알림) */
+  exit?(code: number | null): string | undefined;
+  /** 핫 리로드로 스크립트가 처음부터 다시 돈다 (그 뒤의 줄은 새 판이다) */
+  restarted?(): void;
 }
 
 export interface PlayPlan {
@@ -127,6 +146,8 @@ export interface PlayPlan {
   at: Point | null;
   /** "이벤트 captain 앞" 같은 설명 */
   note?: string;
+  /** 실행을 지켜볼 것을 만든다 (실행마다 한 번). 없으면 러너가 줄을 흘려보내기만 한다 */
+  watch?(): PlayWatch;
 }
 
 export interface PlayContext {

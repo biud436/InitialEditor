@@ -3,7 +3,11 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { UndoStack } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
-import { parseMap, serializeMap, MapFormatError, type MapData } from "./format";
+import { bigIntText, bigIntValue, parseJsonLossless, parseMap, serializeMap, stringifyJsonLossless, MapFormatError, type MapData } from "./format";
+
+function field(o: unknown, key: string): unknown {
+  return typeof o === "object" && o !== null ? (o as Record<string, unknown>)[key] : undefined;
+}
 import { MapModel, uniqueMapObjectId } from "./mapModel";
 import { MapDocument, isMapPath } from "./mapDocument";
 import { floodFill, lineCells, paletteBrush, pickBrush, rectFill, singleBrush, stamp, tileSource } from "./tiles";
@@ -78,6 +82,27 @@ describe("맵 파일", () => {
       expect(parseMap(text).events).toEqual([]);
     }
     for (const v of [{ a: 1 }, { "0": null, "1": {} }, "x", 0, false]) expect(() => parseMap(withEvents(v))).toThrow(/events 는 배열이어야 한다/);
+  });
+
+  it("2^53 을 넘는 정수는 읽고 다시 써도 숫자 글이 그대로다 (글 안의 숫자와 안전한 수는 그대로 수)", () => {
+    const base = JSON.parse(serializeMap(tiny())) as Record<string, unknown>;
+    const events = '[{"id":"a","x":1,"y":2,"data":{"seed":12345678901234567890,"neg":-98765432109876543210,"ok":9007199254740991,"text":"12345678901234567890"}}]';
+    const text = JSON.stringify({ ...base, events: "@@" }, null, 2).replace('"@@"', events) + "\n";
+    const m = parseMap(text);
+    const data = field(m.events?.[0], "data") as Record<string, unknown>;
+    expect(bigIntText(data.seed)).toBe("12345678901234567890");
+    expect(bigIntText(data.neg)).toBe("-98765432109876543210");
+    expect(data.ok).toBe(9007199254740991);
+    expect(data.text).toBe("12345678901234567890");
+    const out = serializeMap(m);
+    expect(out).toContain('"seed": 12345678901234567890,');
+    expect(out).toContain('"neg": -98765432109876543210,');
+    expect(out).toContain('"text": "12345678901234567890"');
+    // 사본(JSON 왕복)을 지나도 그대로다
+    expect(serializeMap(parseMap(out))).toBe(out);
+    expect(stringifyJsonLossless(JSON.parse(JSON.stringify(data)))).toBe('{"seed":12345678901234567890,"neg":-98765432109876543210,"ok":9007199254740991,"text":"12345678901234567890"}');
+    expect(parseJsonLossless("[12345678901234567890]")).toEqual([bigIntValue("12345678901234567890")]);
+    expect(parseJsonLossless('{"a":1e30,"b":1.5,"c":10000000000000000}')).toEqual({ a: 1e30, b: 1.5, c: 10000000000000000 });
   });
 
   it("잘못된 파일은 자리를 말한다", () => {

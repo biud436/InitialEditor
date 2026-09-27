@@ -26,6 +26,11 @@ export interface EditorCommand {
   run(): void | Promise<void>;
   /** 생략하면 늘 활성 */
   enabled?(): boolean;
+  /**
+   * 거짓이면 메뉴에 보이지 않고 비활성이다 (이 프로젝트에 해당하지 않는 확장의 커맨드). 생략하면 늘 보인다.
+   * 꺼 두고 이유를 보여야 하는 커맨드는 enabled 를 쓴다
+   */
+  visible?(): boolean;
 }
 
 export interface KeyLike {
@@ -127,8 +132,15 @@ export class CommandRegistry {
 
   isEnabled(id: string): boolean {
     const cmd = this.commands.get(id);
-    if (!cmd) return false;
+    if (!cmd || !this.isVisible(id)) return false;
     return cmd.enabled ? cmd.enabled() : true;
+  }
+
+  /** 메뉴에 보이는가 (없는 커맨드는 거짓) */
+  isVisible(id: string): boolean {
+    const cmd = this.commands.get(id);
+    if (!cmd) return false;
+    return cmd.visible ? cmd.visible() : true;
   }
 
   async execute(id: string): Promise<boolean> {

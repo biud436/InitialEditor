@@ -102,6 +102,43 @@ describe("이벤트 하나", () => {
     expect(field((field(t.st.section.list[bench], "commands") as unknown[])[0], "target")).toBe("captain");
   });
 
+  it("앞의 이벤트를 지우고 되돌려도 인스펙터는 같은 이벤트를 보인다 (번호가 바뀌어도 커맨드 트리를 새로 열지 않는다)", () => {
+    const t = setup();
+    act(() => void t.st.run((ed) => ed.removeEvents([t.idx("notice")])));
+    act(() => t.st.select([t.idx("kid")]));
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    fireEvent.click(within(tree).getAllByTestId("rpg-cmd-row")[0]);
+    const cursor = () => (tree.querySelector(".is-cursor") as HTMLElement | null)?.dataset.rowKey;
+    const before = cursor();
+    expect(before).toBe("c.commands[1]");
+    act(() => void t.doc.undo.undo());
+    expect(t.idx("notice")).toBeGreaterThanOrEqual(0);
+    expect(screen.getByTestId("rpg-inspector-id").textContent).toBe("kid");
+    expect(Number(screen.getByTestId("rpg-inspector").dataset.index)).toBe(t.idx("kid"));
+    expect(screen.getByTestId("rpg-cmd-tree")).toBe(tree);
+    expect(cursor()).toBe(before);
+  });
+
+  it("대사를 타이핑하다 되돌리면(입력 칸 안의 Ctrl+Z) 칸이 되돌린 글을 보이고, 다음 타이핑이 되돌린 글을 되살리지 않는다", () => {
+    const t = setup();
+    act(() => t.st.select([t.idx("crates")]));
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    fireEvent.click(within(tree).getAllByTestId("rpg-cmd-row")[0]);
+    const box = screen.getByTestId("rpg-arg-text") as HTMLTextAreaElement;
+    const original = box.value;
+    act(() => box.focus());
+    fireEvent.change(box, { target: { value: `${original} XYZ` } });
+    const depth = t.doc.undo.depth;
+    act(() => void t.doc.undo.undo());
+    expect(t.doc.undo.depth).toBe(depth - 1);
+    expect(box.value).toBe(original);
+    expect(document.activeElement).toBe(box);
+    fireEvent.change(box, { target: { value: `${original}Q` } });
+    const crates = t.st.section.list[t.idx("crates")];
+    expect(field((field(crates, "commands") as unknown[])[0], "text")).toBe(`${original}Q`);
+    expect(t.doc.undo.depth).toBe(depth);
+  });
+
   it("거절된 편집(겹치는 id)은 문서를 바꾸지 않고 알림 줄에 이유를 보인다", () => {
     const t = setup();
     act(() => t.st.select([t.idx("captain")]));

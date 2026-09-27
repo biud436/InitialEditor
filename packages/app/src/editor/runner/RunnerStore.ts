@@ -101,11 +101,24 @@ export function isHmrRefused(e: unknown): boolean {
   return err?.code === "hmr_unreachable" && /ECONNREFUSED|connection refused/i.test(err.message ?? "");
 }
 
+/**
+ * 실행 하나를 지켜보는 것 (타일맵 확장의 PlayWatch 와 같은 모양, 실행 제공자가 만든다). 게임이 찍은 줄마다 line 을 부르고
+ * 멈출 이유를 돌려주면 그 글을 콘솔과 알림에 남기고 게임을 멈춘다. 게임이 끝나면 exit 가 알릴 실패를 돌려줄 수 있다.
+ * 핫 리로드로 스크립트가 처음부터 다시 돌면 restarted 를 부른다
+ */
+export interface RunWatch {
+  line(text: string): string | undefined;
+  exit?(code: number | null): string | undefined;
+  restarted?(): void;
+}
+
 export interface StartOptions {
   /** INITIAL2D_SCENE (E2 의 현재 씬부터 실행) */
   scene?: string;
   /** 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT, INITIAL2D_SCENE) 뒤에 덧씌우는 환경 변수 (맵의 여기서 실행) */
   env?: Record<string, string>;
+  /** 실행을 지켜볼 것을 만든다 (다시 시작할 때마다 새로). 맵의 실행 제공자가 준다 */
+  watch?: () => RunWatch;
 }
 
 export const NO_MRUBY = "이 엔진 빌드에는 mruby 가 없다";
@@ -178,6 +191,8 @@ export class RunnerStore {
   private queuedReload: Set<string> | "all" | null = null;
   /** 떴지만 아직 첫 프레임을 돌지 않은 에디터 안 실행. 그동안의 리로드도 모은다 */
   private awaitingFrame: RunHandle | null = null;
+  /** 지금 실행을 지켜보는 것과, 그것이 멈추게 했는가 */
+  private watch: { handle: RunHandle; watch: RunWatch; stopped: boolean } | null = null;
 
   constructor(
     private readonly host: RunnerHost,
@@ -474,12 +489,27 @@ export class RunnerStore {
     });
     this.startTicker();
     log.info(LOG_SOURCE, summary);
+    const watch = opts.watch?.() ?? null;
+    this.watch = watch ? { handle, watch, stopped: false } : null;
     handle.onOutput((line) => {
       log.append(classifyEngineLine(line), "engine", line);
+      this.watchLine(handle, line);
     });
     if (mode === "embedded") this.awaitingFrame = handle;
     handle.onExit((code) => this.onExit(handle, code));
     if (mode === "embedded") void this.reloadQueuedAfterFirstFrame(handle);
+  }
+
+  /** 지켜보는 것에 줄을 넘기고, 멈출 이유가 오면 콘솔과 알림에 남기고 멈춘다 (한 번만) */
+  private watchLine(handle: RunHandle, line: string): void {
+    const w = this.watch;
+    if (!w || w.handle !== handle || w.stopped || this.handle !== handle) return;
+    const reason = w.watch.line(line);
+    if (!reason) return;
+    w.stopped = true;
+    this.host.log.warn(LOG_SOURCE, reason);
+    this.host.toasts.warn(reason);
+    void this.stop();
   }
 
   /**
@@ -602,6 +632,14 @@ export class RunnerStore {
       log.error(LOG_SOURCE, `엔진 종료 코드 ${code} (경과 ${elapsed}). 위의 오류 줄을 누르면 그 자리로 간다`);
       toasts.error(`엔진이 종료 코드 ${code} 로 끝났다. 콘솔을 본다`);
     }
+    const w = this.watch?.handle === handle ? this.watch : null;
+    this.watch = null;
+    // 지켜보는 것이 멈추게 한 실행은 이미 이유를 남겼다
+    const failure = w && !w.stopped ? w.watch.exit?.(code) : undefined;
+    if (failure) {
+      log.error(LOG_SOURCE, failure);
+      toasts.warn(failure);
+    }
     if (this.awaitingFrame === handle) this.dropQueuedReload();
   }
 
@@ -685,6 +723,8 @@ export class RunnerStore {
       }
     }
     try {
+      // 스크립트가 처음부터 다시 돈다: 지켜보는 것에 먼저 알린다 (새 판의 줄이 리로드 응답보다 먼저 올 수 있다)
+      this.watch?.watch.restarted?.();
       const result = await backend.hmrPush(files);
       runInAction(() => (this.lastReload = { count: result.count, at: this.clock() }));
       log.info(LOG_SOURCE, `핫 리로드: ${result.count}개 파일을 보냈다. 엔진이 VM 을 다시 시작한다 (씬 상태는 처음으로)`);
@@ -721,6 +761,7 @@ export class RunnerStore {
   private async reloadEmbedded(paths?: readonly string[], droppedLine = ENDED_RELOAD_DROPPED): Promise<{ count: number } | null> {
     const { log, toasts } = this.host;
     try {
+      this.watch?.watch.restarted?.();
       const { count, scriptsFailed, dropped } = await this.embedded!.reload(paths);
       if (dropped) {
         log.info(LOG_SOURCE, droppedLine);

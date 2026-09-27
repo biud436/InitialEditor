@@ -73,6 +73,8 @@ export interface FakeLayerOptions {
   /** 도구가 처리하는 키 (mod 는 Ctrl 조합). 기본: Ctrl+C, Delete */
   handles?: (k: MapLayerKey) => boolean;
   Inspector?: unknown;
+  /** 이 프로젝트에 레이어가 있을 수 있는가 (없으면 늘 참) */
+  visible?: () => boolean;
 }
 
 /** 가짜 레이어와 그 기록 */
@@ -90,6 +92,7 @@ export function fakeLayer(opts: FakeLayerOptions = {}): { spec: MapLayerSpec; lo
       return new FakeMarksState(doc.model.rawSection(opts.section ?? "marks"));
     },
     hint: () => opts.hint,
+    visible: opts.visible,
     createView(ctx) {
       const entry = { ctx, redraws: 0, disposed: false };
       log.views.push(entry);

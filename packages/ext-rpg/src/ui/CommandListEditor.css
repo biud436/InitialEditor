@@ -226,10 +226,19 @@
   min-width: 80px;
 }
 
+.rpg-arg.is-wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .rpg-arg-problem,
 .rpg-arg-note {
   grid-column: 2;
   font-size: 11px;
+}
+
+.rpg-arg.is-wide .rpg-arg-problem,
+.rpg-arg.is-wide .rpg-arg-note {
+  grid-column: 1;
 }
 
 .rpg-arg-problem.is-error,
@@ -276,15 +285,33 @@
   width: 100%;
 }
 
+/* 좁으면 글 칸이 한 줄을 차지하고 고르기와 단추(rpg-option-tools)가 다음 줄 오른쪽으로 내려간다 */
 .rpg-option,
 .rpg-route-step {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1);
 }
 
-.rpg-option .field-text {
-  flex: 1;
+.rpg-option .field-text,
+.rpg-route-step .field-text {
+  flex: 1 1 140px;
+  min-width: 120px;
+}
+
+.rpg-route-step .field-select,
+.rpg-route-step .field-number {
+  flex: 1 1 72px;
+  min-width: 64px;
+}
+
+.rpg-option-tools {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
 }
 
 .rpg-option-no {

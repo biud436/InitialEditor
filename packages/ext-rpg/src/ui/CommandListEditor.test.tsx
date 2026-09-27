@@ -218,6 +218,22 @@ describe("키", () => {
     }
   });
 
+  it("글자 키는 트리가 먹어 맵 도구의 한 글자 단축키(B, R, N)에 닿지 않는다. 조합 키는 흘려보낸다", () => {
+    setup();
+    const seen = vi.fn();
+    window.addEventListener("keydown", seen);
+    try {
+      click("c.commands[1]");
+      for (const key of ["b", "r", "N", " "]) press(key);
+      expect(seen).not.toHaveBeenCalled();
+      press("b", { ctrlKey: true });
+      press("F5");
+      expect(seen).toHaveBeenCalledTimes(2);
+    } finally {
+      window.removeEventListener("keydown", seen);
+    }
+  });
+
   it("폼의 입력 칸에서 누른 키는 트리가 받지 않는다", () => {
     const { stack } = setup();
     click("c.commands[1]");
@@ -287,6 +303,42 @@ describe("넣기", () => {
     fireEvent.click(screen.getByTestId("rpg-palette-item-comment"));
     expect(field(commandsNow()[2], "thenDo")).toEqual([{ code: "comment" }]);
     expect(Object.keys(commandsNow()[2] as object)).toEqual(["code", "cond", "thenDo", "elseDo"]);
+  });
+
+  it("두 번 누르기의 첫 누름이 폼을 닫아 줄이 밀려도 첫 누름의 끝 줄에 넣는다", () => {
+    const { commandsNow } = setup([
+      { code: "message", text: "a" },
+      { code: "if", cond: { flag: "f1" }, thenDo: [{ code: "wait", ms: 1 }] },
+    ]);
+    // 조건 분기의 폼이 열린 채 참이면 가지의 끝 줄을 두 번 누른다. 첫 누름이 폼을 닫아 둘째 누름과 dblclick 은
+    // 밀려 올라온 다른 줄(맨 바깥의 끝 줄)에 떨어진다
+    click("c.commands[2]");
+    expect(screen.queryByTestId("rpg-arg-cond-row")).not.toBeNull();
+    fireEvent.click(row("e.commands[2].thenDo"), { detail: 1 });
+    fireEvent.click(row("e.commands"), { detail: 2 });
+    expect(cursorKey()).toBe("e.commands[2].thenDo");
+    fireEvent.doubleClick(row("e.commands"));
+    expect(screen.getByTestId("rpg-cmd-palette").textContent).toContain("events[1].commands[2].thenDo[2]");
+    fireEvent.click(screen.getByTestId("rpg-palette-item-comment"));
+    expect(field(commandsNow()[1], "thenDo")).toEqual([{ code: "wait", ms: 1 }, { code: "comment" }]);
+    expect(commandsNow()).toHaveLength(2);
+    // 둘째 누름이 줄 밖(트리의 빈 곳)에 떨어져도 첫 누름의 줄이다
+    fireEvent.click(row("e.commands[2].thenDo"), { detail: 1 });
+    fireEvent.click(tree(), { detail: 2 });
+    fireEvent.doubleClick(tree());
+    expect(screen.getByTestId("rpg-cmd-palette").textContent).toContain("events[1].commands[2].thenDo[3]");
+  });
+
+  it("폼의 글자를 두 번 눌러 고르는 것은 줄의 두 번 누르기가 아니다", () => {
+    setup();
+    click("e.commands", { detail: 1 });
+    click("c.commands[1]", { detail: 1 });
+    const text = screen.getByTestId("rpg-arg-text");
+    fireEvent.click(text, { detail: 1 });
+    fireEvent.click(text, { detail: 2 });
+    fireEvent.doubleClick(text);
+    expect(screen.queryByTestId("rpg-cmd-palette")).toBeNull();
+    expect(cursorKey()).toBe("c.commands[1]");
   });
 
   it("효과음은 파일을, 스크립트는 이름을 먼저 묻는다 (없으면 엔진이 건너뛸 커맨드라)", () => {

@@ -1,7 +1,8 @@
 // 브라우저 모드의 HTML 메뉴 바. menus.tree() 를 그리고 라벨과 단축키와 활성 상태는 커맨드 레지스트리에서 읽는다.
+// 보이지 않는 커맨드(visible 거짓, 이 프로젝트에 해당하지 않는 확장의 항목)는 빼고 그린다 (visibleMenu).
 // Tauri 모드는 네이티브 메뉴(editor/nativeMenu.ts)를 쓰므로 이 바를 숨긴다.
 
-import type { MenuNode } from "@initial-editor/core";
+import { visibleMenu, type MenuNode } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useEditor } from "../editor/EditorContext";
@@ -9,7 +10,7 @@ import "./MenuBar.css";
 
 export const MenuBar = observer(function MenuBar() {
   const editor = useEditor();
-  const tree = editor.menus.tree();
+  const tree = visibleMenu(editor.menus.tree(), (id) => editor.commands.isVisible(id));
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
 

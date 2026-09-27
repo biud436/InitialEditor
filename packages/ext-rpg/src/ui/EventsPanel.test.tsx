@@ -5,14 +5,14 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { afterEach, describe, expect, it } from "vitest";
 import { EVENTS_LAYER_ID } from "../model/layer";
-import { FakePlay, fixtureSources, layerHarness, MEADOW, PORT_TOWN, stateOf } from "../testing/layerHarness";
+import { FakePlay, fixtureSources, layerHarness, mapText, MEADOW, PORT_TOWN, stateOf } from "../testing/layerHarness";
 import { EventClipboard } from "./eventClipboard";
 import { makeEventsPanel } from "./EventsPanel";
 import type { RpgUiServices } from "./services";
 
 afterEach(cleanup);
 
-function setup(opts: { lockPort?: boolean; open?: string } = {}) {
+function setup(opts: { lockPort?: boolean; open?: string; text?: string } = {}) {
   const sources = fixtureSources();
   if (opts.lockPort) {
     const game = sources.game!;
@@ -25,7 +25,7 @@ function setup(opts: { lockPort?: boolean; open?: string } = {}) {
   const view = render(<Panel />);
   let doc!: MapDocument;
   act(() => {
-    doc = h.open(opts.open ?? PORT_TOWN);
+    doc = h.open(opts.open ?? PORT_TOWN, opts.text);
   });
   return { h, sources, view, doc, play };
 }
@@ -51,6 +51,35 @@ describe("목록", () => {
     const door = rows().find((r) => r.dataset.id === "inn_door")!;
     expect(door.textContent).toContain("밟");
     expect(door.textContent).toContain("13,29");
+  });
+
+  it("객체가 아닌 칸은 엔진 표기와 함께 틀린 줄로 보인다 (undefined 가 아니다). 칸이 틀린 이벤트도 그렇다고", () => {
+    const data = JSON.parse(mapText(PORT_TOWN)) as { events: unknown[] };
+    data.events.push(null, "oops", { id: "odd", x: "3", y: 1 });
+    setup({ text: JSON.stringify(data) });
+    const all = rows();
+    expect(all).toHaveLength(20);
+    const [nul, str, odd] = all.slice(17);
+    expect(nul.dataset.broken).toBe("true");
+    expect(nul.textContent).toBe("!events[18]객체가 아니다 (null)");
+    expect(str.textContent).toBe('!events[19]객체가 아니다 ("oops")');
+    expect(odd.dataset.broken).toBeUndefined();
+    expect(odd.textContent).toContain("칸이 틀렸다");
+    for (const r of all) expect(r.textContent).not.toContain("undefined");
+  });
+
+  it("글자 키는 목록이 먹는다 (맵 도구의 한 글자 단축키에 닿지 않는다)", () => {
+    setup();
+    const seen: string[] = [];
+    const on = (e: KeyboardEvent) => void seen.push(e.key);
+    window.addEventListener("keydown", on);
+    try {
+      fireEvent.keyDown(rows()[0], { key: "b" });
+      fireEvent.keyDown(rows()[0], { key: "z", ctrlKey: true });
+    } finally {
+      window.removeEventListener("keydown", on);
+    }
+    expect(seen).toEqual(["z"]);
   });
 
   it("찾기는 id, 트리거, 커맨드 안의 글로 거른다", () => {

@@ -2,7 +2,8 @@
 // 이벤트 실행 명령을 등록한다.
 //   - 프로젝트의 event-commands.json, rpg-game.json, 아이템 표를 읽고 바뀌면 다시 읽는다 (RpgProjectStore).
 //     읽기가 끝날 때마다 refreshLayer 로 열린 맵에 레이어를 붙이거나 새로 고친다
-//   - 스키마 파일이 없는 프로젝트(플래피)에서는 레이어 줄도 힌트도 나오지 않는다
+//   - 스키마 파일이 없는 프로젝트(플래피)에서는 레이어 줄도 힌트도 나오지 않고, 맵 메뉴의 이벤트 항목 셋과 창 메뉴의 이벤트도 빠진다
+//     (커맨드와 패널의 visible, 문서 2.5)
 //   - 복사, 붙여넣기, 복제, 지우기는 커맨드가 아니라 레이어 도구의 키다 (전역 edit.* 와 겹치지 않는다)
 //   - 여기서 실행(Ctrl+F5)은 rpgPlay 제공자(priority 10)가 받는다. 이 이벤트 앞에서 실행과 자동 재생은 고른 이벤트 하나에 걸리는
 //     명령(맵 메뉴, 인스펙터의 단추, 목록의 우클릭)이고 타일맵의 실행 길(play)로 띄운다. 앱이 저장할지 묻고 러너에 넘긴다
@@ -83,6 +84,7 @@ export const rpgExtension: Extension = {
         id,
         label: EVENT_PLAY_LABELS[mode],
         category: "map",
+        visible: () => store.schemaPresent,
         enabled: () => {
           const t = selectedEvent();
           return t !== null && play.blocked(t.doc, t.index, mode) === undefined;
@@ -100,6 +102,7 @@ export const rpgExtension: Extension = {
       Component: makeEventsPanel({ services, hint: (doc) => layer.hint?.(doc) }),
       defaultDock: "left",
       presets: ["tilemap"],
+      visible: () => store.schemaPresent,
     });
     return { store, layer, services };
   },

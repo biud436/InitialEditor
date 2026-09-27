@@ -52,6 +52,9 @@ export function ArgField(props: ArgWidgetProps) {
 /** 제 위젯 안에서 비울 수 있는 타입 (비움 고르기, 없음, 끄기) */
 const SELF_CLEARING = new Set(["boolean", "enum", "scalar", "file", "face", "charset", "wander"]);
 
+/** 줄마다 칸과 단추가 있는 목록 위젯: 이름을 위에 두고 폼의 폭을 다 쓴다 (기본 폭 280px 인스펙터에서도 칸이 보이게) */
+const WIDE_TYPES = new Set(["options", "route"]);
+
 interface ArgRowProps extends ArgWidgetProps {
   /** 이 인자 자리의 문제 */
   problems?: readonly EventProblem[];
@@ -63,7 +66,7 @@ export function ArgRow({ problems = [], children, ...props }: ArgRowProps) {
   const { spec, value, onChange, ctx, testId } = props;
   const clearable = !spec.required && value !== undefined && !SELF_CLEARING.has(spec.type);
   return (
-    <div className="rpg-arg" data-testid={`${testId}-row`}>
+    <div className={"rpg-arg" + (WIDE_TYPES.has(spec.type) ? " is-wide" : "")} data-testid={`${testId}-row`}>
       <div className="rpg-arg-label">
         {spec.label}
         {spec.required && (

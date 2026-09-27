@@ -183,6 +183,17 @@ describe("편집과 되돌리기", () => {
     expect(doc.text()).toBe(moved);
   });
 
+  it("손대지 않은 이벤트의 2^53 을 넘는 정수는 다른 이벤트를 옮겨 저장해도 그대로다", () => {
+    // mapfile.py 형식의 항구 마을에서 crates 에 data 를 더한다 (엔진은 64비트 정수로 읽는다)
+    const text = PORT_TEXT.replace('"id": "crates",', '"id": "crates",\n      "data": {\n        "seed": 12345678901234567890\n      },');
+    expect(text).not.toBe(PORT_TEXT);
+    const doc = layerHarness().open(PORT_TOWN, text);
+    expect(doc.text()).toBe(text);
+    const st = stateOf(doc);
+    st.run((ed) => ed.moveEvents([st.section.indexOfId("bench")], -1, 0));
+    expect(changedLines(text, doc.text())).toEqual([['      "x": 19,', '      "x": 18,']]);
+  });
+
   it("배회하는 이벤트를 옮기면 구역도 같은 명령으로 옮겨진다 (keepArea 면 구역은 둔다)", () => {
     const doc = layerHarness().open(PORT_TOWN);
     const st = stateOf(doc);
@@ -205,6 +216,32 @@ describe("편집과 되돌리기", () => {
     expect(st.canRun((ed) => ed.addEvent({ x: 16, y: 44 }))).toBe(false);
     expect(st.canRun((ed) => ed.addEvent({ x: 2, y: 44 }))).toBe(true);
     expect(doc.undo.depth).toBe(0);
+  });
+
+  it("앞의 이벤트를 지우고 되돌려도 고른 것은 같은 이벤트다 (번호가 아니라 이벤트를 고른다)", () => {
+    const doc = layerHarness().open(PORT_TOWN);
+    const st = stateOf(doc);
+    const notice = st.section.indexOfId("notice");
+    const kidBefore = st.section.indexOfId("kid");
+    expect(notice).toBeLessThan(kidBefore);
+    st.run((ed) => ed.removeEvents([notice]));
+    const kid = st.section.indexOfId("kid");
+    st.select([kid]);
+    doc.undo.undo();
+    expect(st.section.indexOfId("kid")).toBe(kidBefore);
+    expect(st.selected).toEqual([kidBefore]);
+    expect(idAt(st.section.list, st.primary!)).toBe("kid");
+    // 옮기기(새 객체)와 그 되돌리기, 다시 실행을 지나도 같은 이벤트다
+    st.run((ed) => ed.moveEvents([kidBefore], 1, 0));
+    doc.undo.undo();
+    doc.undo.redo();
+    expect(idAt(st.section.list, st.primary!)).toBe("kid");
+    // 지운 이벤트를 고른 채 되돌리면 그 이벤트가 다시 골라진다
+    st.select([notice]);
+    st.run((ed) => ed.removeEvents([notice]));
+    expect(st.selected).toEqual([]);
+    doc.undo.undo();
+    expect(st.selected.map((i) => idAt(st.section.list, i))).toEqual(["notice"]);
   });
 
   it("고른 번호는 목록 밖으로 나가면 보지 않는다", () => {
@@ -280,6 +317,29 @@ describe("크기 바꾸기와 다시 읽기", () => {
     expect(field(field(st.section.list[kid], "wander"), "area")).toEqual({ x: 16, y: 19, w: 6, h: 6 });
     doc.undo.undo();
     expect(doc.text()).toBe(PORT_TEXT);
+  });
+
+  it("모르는 스키마 버전으로 잠겨 붙은 맵도 크기를 바꾸면 이벤트가 타일과 함께 옮겨져 저장되고, 되돌리면 바이트까지 같다", () => {
+    const sources = fixtureSources({ schema: null, schemaProblem: VERSION_LOCK });
+    const h = layerHarness({ sources });
+    const doc = h.open(INN);
+    const st = stateOf(doc);
+    expect([st.schema, st.locked]).toEqual([null, VERSION_LOCK]);
+    const innText = doc.text();
+    const before = parseMap(innText).events ?? [];
+    doc.apply(doc.resizeCommand(doc.model.width + 1, doc.model.height + 1, "bottom-right"));
+    const saved = parseMap(doc.text());
+    // 저장할 글(doc.text)이 옮긴 칸을 싣는다: 타일은 +1,+1 로 옮겨졌는데 이벤트만 옛 칸에 남으면 안 된다
+    expect((saved.events ?? []).map((e) => [field(e, "id"), field(e, "x"), field(e, "y")])).toEqual(before.map((e) => [field(e, "id"), (field(e, "x") as number) + 1, (field(e, "y") as number) + 1]));
+    expect(st.section.list.map((e) => field(e, "x"))).toEqual(before.map((e) => (field(e, "x") as number) + 1));
+    // 스키마가 돌아와도 같은 글이다 (원본과 섹션이 어긋나지 않는다)
+    const shifted = doc.text();
+    sources.set({ schema: fixtureSources().schema, schemaProblem: null });
+    h.contrib.refreshLayer(EVENTS_LAYER_ID);
+    expect(st.locked).toBeNull();
+    expect(doc.text()).toBe(shifted);
+    doc.undo.undo();
+    expect(doc.text()).toBe(innText);
   });
 
   it("파일을 다시 읽으면 reset: 새 이벤트, 고르기와 되돌리기가 비워진다", async () => {

@@ -10,11 +10,12 @@
 //      그 안의 eventPlayPlan, probeEnv 와 같은 값인지도 본다
 //   5. trace 줄로 본다: 선 자리와 방향, 대사 순서와 분기 결과, rpg:route:done, rpg:error 없음
 // 판 다섯: 말 걸기(action), 밟기(touch 와 transfer 의 x, y, dir), auto 둘이 차례로, 시작 상태 arrived,
-// 여기서 실행(고른 이벤트 앞, 경로 없이 유한 실행).
+// 여기서 실행(고른 이벤트 앞, 경로 없이 유한 실행). 그리고 자동 재생을 앱의 러너처럼 지켜보는 판 둘: 씬을 바꾸는 배(ship)는
+// 새 게임으로 다시 시작하는 자리에서 멈추고, 배회하는 kid 는 이벤트가 돌지 않았으면 실패로 알린다.
 // 그리고 대조 셋: 저장한 transfer 에서 x, y, dir 을 하나씩 빼면 둘째 판의 도착 검사가 실패하는지 본다.
 // 엔진 실행 파일이 없거나 M2 전 엔진이면 "SKIP: 이유" 한 줄을 찍고 통과한다 (완료 기준은 건너뛰지 않은 실행 기록을 요구한다).
 
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -54,7 +55,7 @@ import {
   type PlayAt,
   type RpgPlaySources,
 } from "../../src/model";
-import type { PlayPlan } from "@initial-editor/ext-tilemap";
+import type { PlayPlan, PlayWatch } from "@initial-editor/ext-tilemap";
 
 const ENGINE_DIR = path.resolve(process.env.INITIAL2D_DIR ?? path.join(__dirname, "..", "..", "..", "..", "..", "Initial2D"));
 const EXE = path.join(ENGINE_DIR, "build", process.platform === "win32" ? "Initial2D.exe" : "Initial2D");
@@ -129,6 +130,55 @@ function runEngine(env: Record<string, string>): Run {
   });
   const stdout = r.stdout ?? "";
   return { status: r.status, lines: stdout.split(/\r?\n/).filter((l) => l.startsWith("rpg:")), log: stdout + (r.stderr ?? "") };
+}
+
+interface WatchedRun extends Run {
+  /** 지켜보는 것이 멈추게 한 이유 (없으면 스스로 끝났다) */
+  stopped: string | undefined;
+  /** 스스로 끝났을 때 exit 가 알린 실패 */
+  failure: string | undefined;
+  ms: number;
+}
+
+/**
+ * 앱의 러너처럼 줄마다 지켜보는 것(PlayWatch)에 넘기며 띄운다. 멈출 이유가 오면 그 자리에서 엔진을 멈춘다 (러너의 정지).
+ * 스스로 끝나면 exit 에 종료 코드를 넘긴다. 안전장치: INITIAL2D_EXIT_AFTER 와 시간 제한
+ */
+function runWatched(env: Record<string, string>, watch: PlayWatch): Promise<WatchedRun> {
+  runs++;
+  const base: Record<string, string> = {};
+  for (const [k, v] of Object.entries(process.env)) if (v !== undefined && !k.startsWith("INITIAL2D_")) base[k] = v;
+  const t0 = Date.now();
+  return new Promise((resolve) => {
+    const child = spawn(EXE, [], {
+      cwd: work,
+      env: { ...base, SDL_VIDEODRIVER: "dummy", SDL_AUDIODRIVER: "dummy", INITIAL2D_NO_RTP: "1", INITIAL2D_EXIT_AFTER: "6000", ...env },
+    });
+    const lines: string[] = [];
+    let log = "";
+    let rest = "";
+    let stopped: string | undefined;
+    const timer = setTimeout(() => child.kill("SIGKILL"), 170_000);
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => {
+      log += chunk;
+      const parts = (rest + chunk).split(/\r?\n/);
+      rest = parts.pop() ?? "";
+      for (const line of parts) {
+        if (line.startsWith("rpg:")) lines.push(line);
+        if (stopped !== undefined) continue;
+        stopped = watch.line(line);
+        if (stopped !== undefined) child.kill("SIGTERM");
+      }
+    });
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk: string) => (log += chunk));
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      const failure = stopped === undefined ? watch.exit?.(code) : undefined;
+      resolve({ status: code, lines, log, stopped, failure, ms: Date.now() - t0 });
+    });
+  });
 }
 
 /** trace 의 대사 줄 꼴 (PlayEnv.escape: CR 은 빼고 LF 는 \n 두 글자) */
@@ -516,5 +566,46 @@ if (skipReason !== null) {
     check("[5] rpg:error 가 없다", !lines.some((l) => l.startsWith("rpg:error")), lines);
     check("[5] 첫 판과 같은 앞 칸에 이벤트 쪽을 보고 선다", landing(lines, "port_town") === playerLine("port_town", plan1.at), lines.slice(0, 4));
     check("[5] 경로가 없어 rpg:route:done 이 없다", !lines.includes("rpg:route:done"), lines.slice(-3));
+  });
+
+  it("[6] 씬을 바꾸는 이벤트(ship)의 자동 재생: 게임이 새 게임으로 다시 시작하는 자리에서 러너가 멈춘다", async () => {
+    const i = section.indexOfId("ship");
+    check("[6] 항구 마을에 ship 이 있다", i >= 0);
+    const plan = probeRequestEnv(i);
+    check("[6] 자동 재생의 계획에 지켜볼 것이 있다", typeof plan.watch === "function");
+    const run = await runWatched(plan.env, plan.watch!());
+    const lines = run.lines;
+    console.log(`[6] rc=${String(run.status)} ${run.ms}ms 멈춘 이유: ${String(run.stopped)}\n  ${lines.join("\n  ")}`);
+    const iEvent = indexOf(lines, "rpg:event:ship");
+    const iLeft = indexOf(lines, messageLine("", "배는 저녁 물때에 항구를 떠났다."));
+    const maps = lines.map((l, k) => (l.startsWith("rpg:map:") ? k : -1)).filter((k) => k >= 0);
+    check("[6] 배의 이벤트가 돌고 첫 항목(떠난다)의 대사가 나온다", iEvent >= 0 && iEvent < iLeft, lines);
+    check("[6] 그 뒤 게임이 transfer 없이 맵을 다시 연다 (새 게임)", maps.length >= 2 && maps[1] > iLeft && !lines.slice(0, maps[1]).some((l) => l.startsWith("rpg:transfer:")), lines);
+    check("[6] 러너가 이유를 들고 멈췄다", run.stopped !== undefined && run.stopped.includes("ship") && run.stopped.includes("처음부터 다시 시작"), run.stopped);
+    check("[6] 두 번째 판의 배 이벤트까지 가지 않았다 (되풀이가 없다)", lines.filter((l) => l === "rpg:event:ship").length === 1, lines);
+    check("[6] 경로가 끝나지 않았다 (rpg:route:done 없이 멈춘 것이다)", !lines.includes("rpg:route:done"), lines.slice(-3));
+    check("[6] 안전장치(EXIT_AFTER) 한참 전에 끝났다", run.ms < 120_000, { status: run.status, ms: run.ms });
+    check("[6] rpg:error 가 없다", !lines.some((l) => l.startsWith("rpg:error")), lines);
+  });
+
+  it("[7] 배회하는 NPC(kid)의 자동 재생: 이벤트가 돌지 않고 끝나면 성공이 아니라 실패로 알린다", async () => {
+    const i = section.indexOfId("kid");
+    check("[7] 항구 마을에 배회하는 kid 가 있다", i >= 0 && field(section.list[i], "wander") !== undefined);
+    const plan = probeRequestEnv(i);
+    check("[7] 계획의 설명이 배회를 알린다", (plan.note ?? "").includes("배회"), plan.note);
+    const run = await runWatched(plan.env, plan.watch!());
+    const lines = run.lines;
+    const ran = lines.includes("rpg:event:kid");
+    console.log(`[7] rc=${String(run.status)} kid 가 ${ran ? "돌았다" : "돌지 않았다"}, 알림: ${String(run.failure)}\n  ${lines.join("\n  ")}`);
+    check("[7] 경로를 다 걷고 스스로 끝난다", run.status === 0 && lines[lines.length - 1] === "rpg:route:done" && run.stopped === undefined, lines.slice(-3));
+    check("[7] 이벤트가 돌지 않았으면 실패를 알리고, 돌았으면 알리지 않는다", ran ? run.failure === undefined : (run.failure ?? "").includes("kid 이(가) 돌지 않았다"), { ran, failure: run.failure });
+    // 같은 줄로 다시: 줄에 rpg:event:kid 를 넣으면 알림이 없다 (지켜보는 것이 줄을 본다는 대조)
+    const replay = plan.watch!();
+    for (const l of lines) replay.line(l);
+    replay.line("rpg:event:kid");
+    check("[7 대조] rpg:event:kid 가 있으면 알림이 없다", replay.exit?.(0) === undefined);
+    const empty = plan.watch!();
+    for (const l of lines.filter((l) => l !== "rpg:event:kid")) empty.line(l);
+    check("[7 대조] rpg:event:kid 가 없으면 알린다", (empty.exit?.(0) ?? "").includes("rpg:event:kid"));
   });
 });

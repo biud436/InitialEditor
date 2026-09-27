@@ -14,7 +14,7 @@
 //   ext      대상이 확장 레이어(docs/plans/e5-rpg.md 2.2)면 포인터와 키를 그 레이어의 도구(MapLayerTool)에 넘긴다.
 //            키는 Ctrl 조합도 여기의 다른 규칙보다 먼저 넘긴다. 도구가 처리하면 렌더러가 전파를 막아 전역 단축키에 닿지 않는다
 // 대상이 통행이면 타일 도구도 통행을 칠한다 (펜과 사각형과 채우기는 1, 지우개는 0).
-// 대상 레이어나 통행을 숨겼으면 칠하지 않는다 (ctx.notice로 알린다).
+// 대상 레이어나 통행을 숨겼으면 칠하지 않는다 (ctx.notice로 알린다). 숨긴 확장 레이어도 포인터와 편집 키를 도구에 넘기지 않고 알린다.
 
 import type { Command } from "@initial-editor/core";
 import type { MapLayerPointer, MapLayerTool } from "@initial-editor/ext-tilemap";
@@ -108,13 +108,22 @@ export function fillLimitNotice(filled: number, limit: number): string {
 }
 
 export const HIDDEN_TARGET_NOTICE = "숨긴 레이어에는 칠하지 않는다. 눈을 켜고 칠한다";
+export const HIDDEN_EXT_NOTICE = "숨긴 레이어는 고치지 않는다. 눈을 켜고 고친다";
 
-/** 칠할 대상(타일 레이어나 통행)을 숨겼는가 */
+/** 칠하거나 고칠 대상(타일 레이어, 통행, 확장 레이어)을 숨겼는가 */
 export function targetHidden(doc: MapDocument): boolean {
   const t = doc.target;
   if (t.kind === "collision") return !doc.showCollision;
   if (t.kind === "layer") return doc.hiddenLayers.has(t.index);
+  if (t.kind === "ext") return doc.hiddenExtLayers.has(t.id);
   return false;
+}
+
+/** 숨긴 확장 레이어가 대상일 때 도구에 넘기지 않고 알리는 편집 키 (지우기, 옮기기, 붙여넣기, 복제, 잘라내기) */
+function isEditKey(k: ToolKey): boolean {
+  if (k.alt) return false;
+  if (k.mod) return ["v", "d", "x"].includes(k.key.toLowerCase());
+  return k.key === "Delete" || k.key === "Backspace" || k.key.startsWith("Arrow");
 }
 
 type Gesture =
@@ -177,6 +186,12 @@ export class MapToolController {
   /** 지금 끄는 중인가 */
   get busy(): boolean {
     return this.gesture !== null || (this.extTool()?.busy?.() ?? false);
+  }
+
+  /** 대상인 확장 레이어의 눈을 껐는가. 그러면 포인터와 편집 키를 도구에 넘기지 않는다 */
+  extHidden(): boolean {
+    const t = this.doc.target;
+    return t.kind === "ext" && this.doc.hiddenExtLayers.has(t.id);
   }
 
   /** 대상이 상태가 붙은 확장 레이어면 그 도구. 아니면 null */
@@ -245,7 +260,8 @@ export class MapToolController {
     this.hover = p.world;
     const tool = this.doc.tool;
     if (tool === "ext") {
-      this.extTool()?.pointerDown?.(this.layerPointer(p));
+      if (this.extHidden()) this.ctx.notice?.(HIDDEN_EXT_NOTICE);
+      else this.extTool()?.pointerDown?.(this.layerPointer(p));
       this.update();
       return;
     }
@@ -289,7 +305,7 @@ export class MapToolController {
   pointerMove(p: ToolPointer): void {
     this.hover = p.world;
     if (this.doc.tool === "ext") {
-      this.extTool()?.pointerMove?.(this.layerPointer(p));
+      if (!this.extHidden()) this.extTool()?.pointerMove?.(this.layerPointer(p));
       this.update();
       return;
     }
@@ -321,7 +337,7 @@ export class MapToolController {
     const g = this.gesture;
     this.gesture = null;
     if (p) this.hover = p.world;
-    if (this.doc.tool === "ext" && p) this.extTool()?.pointerUp?.(this.layerPointer(p));
+    if (this.doc.tool === "ext" && p && !this.extHidden()) this.extTool()?.pointerUp?.(this.layerPointer(p));
     if (g?.kind === "rect") {
       const r = cellRange(g.from, g.to);
       this.apply(g.target, rectFill(this.model, g.brush, r.x0, r.y0, r.x1, r.y1));
@@ -346,7 +362,8 @@ export class MapToolController {
   doubleClick(p: ToolPointer): void {
     this.hover = p.world;
     if (this.doc.tool !== "ext") return;
-    this.extTool()?.doubleClick?.(this.layerPointer(p));
+    if (this.extHidden()) this.ctx.notice?.(HIDDEN_EXT_NOTICE);
+    else this.extTool()?.doubleClick?.(this.layerPointer(p));
     this.update();
   }
 
@@ -514,6 +531,12 @@ export class MapToolController {
     // 확장 레이어 도구가 먼저 받는다 (Ctrl+C, Ctrl+V, Ctrl+D, Delete 도). 아래의 Ctrl 거르기보다 앞이다.
     // 조합 키만 누른 것(Control, Meta 등)은 넘기지 않는다
     const ext = MODIFIER_KEYS.has(k.key) ? null : this.extTool();
+    if (ext && this.extHidden()) {
+      // 숨긴 레이어는 고치지 않는다 (타일 레이어의 칠하기와 같다). 편집 키만 알리고 나머지(되돌리기, 저장)는 흘려보낸다
+      if (!isEditKey(k)) return false;
+      this.ctx.notice?.(HIDDEN_EXT_NOTICE);
+      return true;
+    }
     if (ext?.keyDown?.({ key: k.key, shift: k.shift, alt: k.alt, mod: k.mod })) {
       this.update();
       return true;
@@ -575,7 +598,7 @@ export class MapToolController {
   private computeCursor(): string {
     const g = this.gesture;
     const tool = this.doc.tool;
-    if (tool === "ext") return this.extTool()?.cursor?.() ?? "default";
+    if (tool === "ext") return this.extHidden() ? "not-allowed" : (this.extTool()?.cursor?.() ?? "default");
     if (tool !== "object") return tool !== "pick" && targetHidden(this.doc) ? "not-allowed" : "crosshair";
     if (g?.kind === "move") return "move";
     if (g?.kind === "range" || g?.kind === "band") return "ew-resize";

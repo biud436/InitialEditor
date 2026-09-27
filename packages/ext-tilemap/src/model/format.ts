@@ -99,10 +99,79 @@ function numberArray(v: unknown, length: number, where: string): number[] {
   return v as number[];
 }
 
+// ---- 2^53 을 넘는 정수 ----
+//
+// JSON.parse 는 안전한 범위 밖의 정수(12345678901234567890)를 가까운 실수로 바꿔 저장하면 다른 숫자가 된다. 엔진은 64비트 정수로
+// 읽으므로(엔진 47e4fca) 손대지 않은 이벤트의 data 같은 값이 저장만으로 바뀌면 안 된다. 그래서 읽을 때 그런 정수를 원래 글을 든
+// 표식 글("\u0000INT:<숫자>\u0000")로 싣고, 쓸 때 표식을 벗겨 숫자 그대로 쓴다. 표식은 글이라 사본(JSON 왕복)과 되돌리기를
+// 지나도 그대로다. 숫자 자리의 검사는 이 값을 수로 보지 않는다 (그런 값이 맵 칸에 올 일은 없다).
+
+const BIG_INT_MARK = "\u0000INT:";
+const BIG_INT_END = "\u0000";
+/** JSON.stringify 가 쓴 표식 글 (NUL 은 \u0000 여섯 글자로 나온다) */
+const BIG_INT_JSON = /(?<!\\)"\\u0000INT:(-?\d+)\\u0000"/g;
+
+/** 표식 글이면 원래 숫자 글, 아니면 null */
+export function bigIntText(v: unknown): string | null {
+  if (typeof v !== "string" || !v.startsWith(BIG_INT_MARK) || !v.endsWith(BIG_INT_END)) return null;
+  const digits = v.slice(BIG_INT_MARK.length, v.length - BIG_INT_END.length);
+  return /^-?\d+$/.test(digits) ? digits : null;
+}
+
+/** 숫자 글을 표식 글로 (테스트와 JSON 칸이 쓴다) */
+export function bigIntValue(digits: string): string {
+  return `${BIG_INT_MARK}${digits}${BIG_INT_END}`;
+}
+
+/** 수로 다시 쓰면 글이 바뀌는 정수 토큰(16자리 이상)을 표식 글로 바꾼 JSON 글. 글 안의 숫자는 건드리지 않는다 */
+function markBigInts(text: string): string {
+  const token = /-?\d+(\.\d+)?([eE][+-]?\d+)?/y;
+  let out = "";
+  let last = 0;
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '"') {
+      for (i++; i < text.length; i++) {
+        if (text[i] === "\\") i++;
+        else if (text[i] === '"') break;
+      }
+      i++;
+      continue;
+    }
+    if (c === "-" || (c >= "0" && c <= "9")) {
+      token.lastIndex = i;
+      const m = token.exec(text);
+      if (m) {
+        const tok = m[0];
+        if (!m[1] && !m[2] && /\d{16}/.test(tok) && String(Number(tok)) !== tok) {
+          out += text.slice(last, i) + JSON.stringify(bigIntValue(tok));
+          last = i + tok.length;
+        }
+        i += tok.length;
+        continue;
+      }
+    }
+    i++;
+  }
+  return last === 0 ? text : out + text.slice(last);
+}
+
+/** JSON.parse 와 같되 2^53 을 넘는 정수는 표식 글로 싣는다 (stringifyJsonLossless 가 숫자 그대로 쓴다) */
+export function parseJsonLossless(text: string): unknown {
+  return JSON.parse(/\d{16}/.test(text) ? markBigInts(text) : text);
+}
+
+/** JSON.stringify 와 같되 표식 글은 숫자 그대로 쓴다 */
+export function stringifyJsonLossless(value: unknown, space?: number): string {
+  const text = JSON.stringify(value, null, space);
+  return text === undefined ? text : text.replace(BIG_INT_JSON, "$1");
+}
+
 export function parseMap(text: string): MapData {
   let raw: unknown;
   try {
-    raw = JSON.parse(text);
+    raw = parseJsonLossless(text);
   } catch (e) {
     throw new MapFormatError(`JSON 이 아니다: ${(e as Error).message}`);
   }
@@ -224,7 +293,7 @@ export function serializeMap(map: MapData): string {
   if (map.objects.length > 0) out.objects = map.objects.map(serializeObject);
   Object.assign(out, without(map.extra, ROOT_KEYS));
 
-  const text = JSON.stringify(out, null, 2);
+  const text = stringifyJsonLossless(out, 2);
   // JSON.stringify 는 자리표시자의 NUL 을 \u0000 으로 쓴다. 그 줄을 "키: [ 행들 ]" 로 바꾼다
   const re = /^( *)(.*?)"\\u0000ROWS:(\d+)\\u0000"(,?)$/gm;
   return (

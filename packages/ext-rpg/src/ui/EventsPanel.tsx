@@ -3,22 +3,23 @@
 //   시작 상태  INITIAL2D_RPG_STATE 꼴 한 줄 (arrived,heardWarehouse,item:warehouse_key=1). 맵마다 .initial-editor/rpg-play.json 에 기억한다.
 //              제안은 이 프로젝트에서 쓰인 깃발과 변수, 아이템 표의 아이템. Enter 나 초점을 잃으면 저장, Escape 는 되돌리기
 //   찾기       id, 트리거, 커맨드 안의 글
-//   줄         트리거 표식, id, 칸, 문제 표식. 누르면 고르고 대상을 이벤트 레이어로 (Shift 는 더하기, Ctrl 은 넣고 빼기).
-//              두 번 누르면 커맨드 편집기로 초점. 위아래 키, Delete, Enter 는 목록이 받는다
+//   줄         트리거 표식, id, 칸, 문제 표식. 객체가 아닌 칸은 ! 표식과 엔진 표기(events[n]), 칸 자리에 "객체가 아니다".
+//              누르면 고르고 대상을 이벤트 레이어로 (Shift 는 더하기, Ctrl 은 넣고 빼기).
+//              두 번 누르면 커맨드 편집기로 초점. 위아래 키, Delete, Enter 는 목록이 받고, 글자 키는 목록이 먹는다
 //   우클릭     이 이벤트 앞에서 실행, 이 이벤트 자동 재생 (메뉴 키나 Shift+F10 도). 못 띄우면 항목이 꺼지고 툴팁이 이유다
 // 고르기는 레이어 상태에 있어 맵 뷰와 인스펙터가 같은 것을 본다.
 
 import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
 import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
-import { field } from "../model/json";
+import { field, isPlainObject } from "../model/json";
 import { EVENTS_LAYER_ID, eventsStateOf, type EventsLayerState } from "../model/layer";
 import { itemIds } from "../model/game";
 import { parseStartState } from "../model/play";
 import { EVENT_PLAY_LABELS, type EventPlayMode } from "../model/rpgPlay";
 import { startStateSuggestions } from "../model/refs";
 import type { EventProblem } from "../model/validate";
-import { triggerBadge } from "./markers";
+import { eventCell, triggerBadge } from "./markers";
 import type { RpgPlayActions, RpgUiServices } from "./services";
 import "./CommandListEditor.css";
 import "./EventsLayer.css";
@@ -65,6 +66,15 @@ function searchText(ev: unknown): string {
   const id = field(ev, "id");
   const trigger = field(ev, "trigger") ?? "action";
   return `${typeof id === "string" ? id : ""} ${String(trigger)} ${JSON.stringify(field(ev, "commands") ?? "")}`.toLowerCase();
+}
+
+/** 객체가 아닌 칸의 표식 (엔진이 건너뛰는 이벤트) */
+const BROKEN_BADGE = { letter: "!", token: "danger", label: "객체가 아니라 엔진이 건너뛴다" } as const;
+
+/** 줄에 보일 짧은 JSON (40자에서 자른다) */
+function shortJson(v: unknown): string {
+  const text = JSON.stringify(v) ?? String(v);
+  return text.length > 40 ? `${text.slice(0, 40)}…` : text;
 }
 
 function worst(problems: readonly EventProblem[]): "error" | "warning" | null {
@@ -140,6 +150,9 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
       e.stopPropagation();
       target();
       state.requestFocus("commands");
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      // 글자 키는 목록이 먹는다: 맵 도구의 한 글자 단축키가 대상을 바꾸지 않게
+      e.stopPropagation();
     }
   };
 
@@ -182,20 +195,22 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
       <div className="rpg-events-list" role="listbox" aria-multiselectable="true" aria-label="이벤트" data-testid="rpg-events-list" ref={listRef} onKeyDown={onKey}>
         {rows.length === 0 && <div className="panel-hint">{list.length === 0 ? "이벤트가 없다. 맵 빈 칸을 두 번 누르면 놓는다" : "찾는 이벤트가 없다"}</div>}
         {rows.map(({ ev, index }) => {
-          const badge = triggerBadge(field(ev, "trigger"));
+          const broken = !isPlainObject(ev);
+          const badge = broken ? BROKEN_BADGE : triggerBadge(field(ev, "trigger"));
           const id = field(ev, "id");
           const sev = worst(state.problemsOf(index));
-          const x = field(ev, "x");
-          const y = field(ev, "y");
+          const cell = eventCell(ev);
+          const where = broken ? `객체가 아니다 (${shortJson(ev)})` : cell ? `${cell.x},${cell.y}` : "칸이 틀렸다";
           return (
             <div
               key={index}
               role="option"
               tabIndex={0}
               aria-selected={selected.has(index)}
-              className={"rpg-events-row" + (selected.has(index) ? " is-selected" : "")}
+              className={"rpg-events-row" + (selected.has(index) ? " is-selected" : "") + (broken ? " is-broken" : "")}
               data-testid="rpg-events-row"
               data-index={index}
+              data-broken={broken ? "true" : undefined}
               data-id={typeof id === "string" ? id : ""}
               onClick={(e) => pick(e, index)}
               onContextMenu={(e) => {
@@ -213,8 +228,8 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
                 {badge.letter}
               </span>
               <span className="rpg-events-id">{typeof id === "string" && id !== "" ? id : `events[${index + 1}]`}</span>
-              <span className="muted rpg-events-cell">
-                {String(x)},{String(y)}
+              <span className="muted rpg-events-cell" data-testid="rpg-events-cell">
+                {where}
               </span>
               {sev && <span className={`rpg-marker is-${sev}`} data-testid="rpg-events-marker" aria-label={sev === "error" ? "오류" : "경고"} />}
             </div>

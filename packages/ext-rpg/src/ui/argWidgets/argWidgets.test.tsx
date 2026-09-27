@@ -3,6 +3,7 @@
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { commandSpec, fieldSpec, type ArgSpec } from "../../model/schema";
 import { editorHarness, TEST_FILES } from "../../testing/editorHarness";
 import { ArgRow } from "./ArgField";
@@ -62,6 +63,76 @@ function blur(el: HTMLElement) {
 const input = (id = "arg") => screen.getByTestId(id) as HTMLInputElement;
 const select = (id: string) => screen.getByTestId(id) as HTMLSelectElement;
 const optionTexts = (el: HTMLElement) => [...el.querySelectorAll("option")].map((o) => o.textContent);
+
+/** 값을 밖에서 바꿀 수 있는 Host (되돌리기가 모델의 값을 바꾸는 것과 같다) */
+function renderControlled(spec: ArgSpec, initial: unknown) {
+  const calls: Call[] = [];
+  const ctx: ArgContext = { schema, refs, files: TEST_FILES, confirm: () => true };
+  let set: (v: unknown) => void = () => {};
+  function Host() {
+    const [value, setValue] = useState(initial);
+    set = setValue;
+    return (
+      <ArgRow
+        spec={spec}
+        value={value}
+        onChange={(v, s) => {
+          calls.push([v, s]);
+          setValue(v);
+        }}
+        ctx={ctx}
+        sessionPrefix="t"
+        testId="arg"
+      />
+    );
+  }
+  render(<Host />);
+  return { calls, setValue: (v: unknown) => act(() => set(v)) };
+}
+
+describe("초점이 있는 칸과 되돌리기 (입력 칸 안의 Ctrl+Z 는 모델을 되돌린다)", () => {
+  const cases: Array<{ label: string; spec: () => ArgSpec; start: unknown; typed: string; sent: unknown; shown: string; retyped: string; resent: unknown }> = [
+    { label: "여러 줄 대사", spec: () => argOf("message", "text"), start: "잘 왔네.", typed: "잘 왔네. XYZ", sent: "잘 왔네. XYZ", shown: "잘 왔네.", retyped: "잘 왔네.Q", resent: "잘 왔네.Q" },
+    { label: "한 줄 글", spec: () => argOf("message", "name"), start: "선장", typed: "선장님", sent: "선장님", shown: "선장", retyped: "선장Q", resent: "선장Q" },
+    { label: "제안 목록이 붙는 글", spec: () => argOf("scene", "name"), start: "title", typed: "titles", sent: "titles", shown: "title", retyped: "titleQ", resent: "titleQ" },
+    { label: "숫자", spec: () => argOf("wait", "ms"), start: 300, typed: "450", sent: 450, shown: "300", retyped: "301", resent: 301 },
+    { label: "JSON", spec: () => argOf("script", "args"), start: { a: 1 }, typed: '{"a": 2}', sent: { a: 2 }, shown: '{\n  "a": 1\n}', retyped: '{"a": 3}', resent: { a: 3 } },
+  ];
+  for (const c of cases) {
+    it(`${c.label}: 되돌린 값을 칸이 따라가고, 다음 타이핑은 되돌린 글을 되살리지 않는 새 세션이다`, () => {
+      const r = renderControlled(c.spec(), c.start);
+      const box = input();
+      focus(box);
+      typeIn(box, c.typed);
+      r.setValue(c.start);
+      expect(box.value).toBe(c.shown);
+      expect(document.activeElement).toBe(box);
+      typeIn(box, c.retyped);
+      expect(r.calls.map((x) => x[0])).toEqual([c.sent, c.resent]);
+      expect(r.calls[1][1]).not.toBe(r.calls[0][1]);
+    });
+  }
+});
+
+describe("한 줄 칸의 Enter", () => {
+  for (const [label, spec, typed] of [
+    ["글", () => argOf("message", "name"), "선장"],
+    ["제안 목록이 붙는 글", () => argOf("scene", "name"), "title"],
+    ["숫자", () => argOf("wait", "ms"), "12"],
+  ] as const) {
+    it(`${label}: 넣고 초점을 폼에 둔다. 다음 타이핑은 새 세션이다`, () => {
+      const r = renderControlled(spec(), undefined);
+      const box = input();
+      focus(box);
+      typeIn(box, typed);
+      fireEvent.keyDown(box, { key: "Enter" });
+      expect(document.activeElement).toBe(box);
+      typeIn(box, `${typed}3`);
+      expect(r.calls).toHaveLength(2);
+      expect(r.calls[1][1]).not.toBe(r.calls[0][1]);
+    });
+  }
+});
 
 describe("string, text", () => {
   it("선택 글 칸은 비우면 인자를 지운다. suggest 는 제안 목록이다", () => {
@@ -400,6 +471,14 @@ describe("json", () => {
     typeIn(input(), "null");
     typeIn(input(), "");
     expect(r.values()).toEqual([[1, 2], undefined, undefined]);
+  });
+
+  it("2^53 을 넘는 정수는 숫자 그대로 보이고, 고친 글에서도 그대로 간다", () => {
+    const r = renderArg(argOf("script", "args"), { seed: bigIntValue("12345678901234567890") });
+    expect(input().value).toBe('{\n  "seed": 12345678901234567890\n}');
+    focus(input());
+    typeIn(input(), '{"seed": 98765432109876543210, "n": 1}');
+    expect(r.last()).toEqual({ seed: bigIntValue("98765432109876543210"), n: 1 });
   });
 });
 

@@ -1,5 +1,5 @@
 // 확장 패널의 창 메뉴 (docs/plans/e5-rpg.md 2.1). 확장이 registerPanel 로 등록한 패널마다 커맨드 window.panel.ext:<id> 와
-// "창/<제목>" 메뉴를 둔다. 등록과 해제를 따라간다. 패널 자체는 제 도킹 탭이다 (layoutPresets.ts, components/panels/ExtensionPanelHost.tsx).
+// "창/<제목>" 메뉴를 둔다 (패널의 visible 이 거짓이면 메뉴에서 빠진다). 등록과 해제를 따라간다. 패널 자체는 제 도킹 탭이다 (layoutPresets.ts, components/panels/ExtensionPanelHost.tsx).
 
 import type { CommandRegistry, ExtensionRegistries, MenuRegistry, PanelSpec } from "@initial-editor/core";
 import { reaction } from "mobx";
@@ -29,7 +29,13 @@ export function registerExtensionPanelCommands(host: ExtensionPanelHost): () => 
       if (placed.has(spec.id)) return;
       const dockId = extPanelId(spec.id);
       const commandId = extPanelCommandId(spec.id);
-      const offCommand = host.commands.register({ id: commandId, label: spec.title, category: "window", run: () => host.layout.togglePanel(dockId) });
+      const offCommand = host.commands.register({
+        id: commandId,
+        label: spec.title,
+        category: "window",
+        visible: spec.visible ? () => spec.visible!() : undefined,
+        run: () => host.layout.togglePanel(dockId),
+      });
       host.setChecked(commandId, () => host.layout.isPanelOpen(dockId));
       const offMenu = host.menus.register({ path: `창/${spec.title}`, commandId, order: 10 + PANEL_IDS.length + i });
       placed.set(spec.id, {

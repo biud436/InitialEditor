@@ -1,5 +1,5 @@
 // 확장 레이어의 앱 쪽 자리: 도구 넘기기(mapTools), 레이어 커맨드와 단축키, 저장 전 질문. 가짜 레이어로 RPG 없이 본다.
-import { CommandRegistry, DocumentRegistry, MemoryBackend, MenuRegistry } from "@initial-editor/core";
+import { CommandRegistry, DocumentRegistry, MemoryBackend, MenuRegistry, visibleMenu } from "@initial-editor/core";
 import { TilemapContrib } from "@initial-editor/ext-tilemap";
 import { MapDocument, parseMap } from "@initial-editor/ext-tilemap/model";
 import { observable, runInAction } from "mobx";
@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { ConfirmOptions } from "../modals";
 import { FakeMarksState, fakeLayer } from "./__fixtures__/fakeLayer";
 import { confirmLayerErrors, layerCommandId, layerErrorsMessage, registerLayerCommands, selectExtLayer } from "./extLayers";
-import { MapToolController, type ToolPointer } from "./mapTools";
+import { HIDDEN_EXT_NOTICE, MapToolController, targetHidden, type ToolPointer } from "./mapTools";
 
 const PATH = "resources/maps/town.json";
 const OTHER = "resources/maps/other.json";
@@ -94,6 +94,35 @@ describe("도구 넘기기", () => {
   });
 });
 
+describe("숨긴 확장 레이어", () => {
+  it("눈을 끈 레이어는 포인터와 편집 키를 도구에 넘기지 않고 알린다 (타일 레이어처럼). 되돌리기와 저장 키는 흘려보낸다", () => {
+    const f = setup();
+    const notices: string[] = [];
+    const tool = f.spec.createTool!({ document: f.doc, zoom: () => 2, changed: () => {}, notice: () => {} });
+    const tools = new MapToolController({ document: f.doc, zoom: () => 2, changed: () => {}, notice: (m) => void notices.push(m), layerTool: () => tool });
+    f.doc.setTarget({ kind: "ext", id: "test.marks" });
+    f.doc.toggleExtLayer("test.marks");
+    expect(targetHidden(f.doc)).toBe(true);
+    tools.pointerDown(f.at(40, 20));
+    tools.pointerMove(f.at(50, 36));
+    tools.pointerUp(f.at(50, 36));
+    tools.doubleClick(f.at(17, 33));
+    const key = (k: string, mod = false) => tools.keyDown({ key: k, shift: false, alt: false, mod });
+    expect([key("Delete"), key("Backspace"), key("ArrowLeft"), key("v", true), key("d", true)]).toEqual([true, true, true, true, true]);
+    expect([key("z", true), key("s", true), key("Escape")]).toEqual([false, false, false]);
+    expect(f.log.pointers).toEqual([]);
+    expect(f.log.keys).toEqual([]);
+    expect(notices).toEqual(new Array(7).fill(HIDDEN_EXT_NOTICE));
+    expect(tools.cursor).toBe("not-allowed");
+    // 눈을 켜면 다시 도구가 받는다
+    f.doc.toggleExtLayer("test.marks");
+    tools.pointerDown(f.at(40, 20));
+    expect(key("Delete")).toBe(true);
+    expect(f.log.pointers.map(([kind]) => kind)).toEqual(["down"]);
+    expect(f.log.keys.map((k) => k.key)).toEqual(["Delete"]);
+  });
+});
+
 describe("레이어 커맨드", () => {
   function commandSetup() {
     const f = setup({ paths: [PATH] });
@@ -138,6 +167,22 @@ describe("레이어 커맨드", () => {
     expect(other.target).toEqual({ kind: "layer", index: 0 });
     runInAction(() => (f.support.activeMap = null));
     expect(f.hints.get(id)!()).toBe("맵 탭이 활성일 때");
+  });
+
+  it("레이어의 visible 이 거짓이면(이 프로젝트에 없는 레이어) 커맨드가 메뉴에서 빠지고 단축키도 듣지 않는다", () => {
+    const f = commandSetup();
+    const shown = observable.box(false);
+    const other = fakeLayer({ id: "test.rpgish", label: "이벤트", section: "rpgish", toolKey: "N", visible: () => shown.get() });
+    f.contrib.registerMapLayer(other.spec);
+    const id = layerCommandId("test.rpgish");
+    const menu = () => visibleMenu(f.menus.tree(), (cid) => f.commands.isVisible(cid)).find((n) => n.label === "맵")!.children.map((n) => n.label);
+    expect(f.commands.isVisible(id)).toBe(false);
+    expect(f.commands.isEnabled(id)).toBe(false);
+    expect(f.commands.findByKey({ key: "n", ctrlKey: false, metaKey: false, shiftKey: false, altKey: false })).toBeNull();
+    expect(menu()).toEqual(["표식 도구"]);
+    runInAction(() => shown.set(true));
+    expect(f.commands.isVisible(id)).toBe(true);
+    expect(menu()).toEqual(["표식 도구", "이벤트 도구"]);
   });
 
   it("나중에 등록한 레이어도 커맨드가 생기고, 거두면 커맨드와 메뉴가 빠진다", () => {

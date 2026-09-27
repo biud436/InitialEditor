@@ -1,7 +1,8 @@
 // 확장 레이어의 앱 쪽 자리 (docs/plans/e5-rpg.md 2.3). 타일맵 확장이 내보낸 TilemapApi(editor.tilemap)의 레이어를
 // 맵 뷰와 레이어 패널과 인스펙터와 커맨드가 여기서 읽는다.
 //   - 레이어마다 커맨드 map.layer.<id>: 대상을 그 레이어로 (단축키는 toolKey, 맵 메뉴의 "<이름> 도구").
-//     맵 탭이 활성이고, 그 맵에 레이어 상태가 붙었고, 초점이 입력 칸에 없을 때만 켜진다
+//     맵 탭이 활성이고, 그 맵에 레이어 상태가 붙었고, 초점이 입력 칸에 없을 때만 켜진다. 레이어의 visible 이 거짓이면
+//     (이 프로젝트에 그 레이어가 없다) 메뉴에서 빠진다
 //   - 저장 전 질문: 레이어 상태에 오류가 있는 맵은 목록을 보이고 "그래도 저장"을 묻는다
 
 import type { CommandRegistry, Document, MenuRegistry } from "@initial-editor/core";
@@ -58,6 +59,7 @@ export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapS
         category: "map",
         shortcut: spec.toolKey,
         enabled: () => attached() && !support.editableFocus,
+        visible: () => spec.visible?.() ?? true,
         run: () => {
           const doc = support.activeMap;
           if (doc) selectExtLayer(doc, spec.id);

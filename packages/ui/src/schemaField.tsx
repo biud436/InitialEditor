@@ -4,8 +4,8 @@
 // 값이 없으면(undefined) "비어 있음"으로 보이고, 여러 오브젝트의 값이 다르면(null) "여러 값"이다.
 // 타이핑은 초점 하나가 한 세션이고 같은 합치기 키로 들어가 되돌리기 한 번에 돌아간다 (fields.tsx와 같은 방식).
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { MIXED_LABEL, newSession, TextField } from "./fields";
+import { useEffect, useRef, type KeyboardEvent } from "react";
+import { MIXED_LABEL, TextField, useFieldText } from "./fields";
 
 export type SchemaFieldType = "string" | "text" | "number" | "integer" | "boolean" | "enum";
 
@@ -42,34 +42,27 @@ function numberText(value: number | undefined | null): string {
 
 /** 비어 있을 수 있는 숫자 칸. 비운 채 두면 값을 바꾸지 않는다 (지우기는 따로) */
 export function OptionalNumberField({ value, onChange, sessionPrefix, integer, min, max, testId, ariaLabel, className }: OptionalNumberProps) {
-  const [text, setText] = useState(numberText(value));
-  const [focused, setFocused] = useState(false);
-  const session = useRef("");
-
-  useEffect(() => {
-    if (!focused) setText(numberText(value));
-  }, [value, focused]);
+  const field = useFieldText(value, numberText, sessionPrefix);
 
   const commit = (raw: string) => {
-    setText(raw);
+    field.setText(raw);
     if (raw.trim() === "") return;
     let n = Number(raw);
     if (!Number.isFinite(n)) return;
     if (integer) n = Math.round(n);
     if (min !== undefined) n = Math.max(min, n);
     if (max !== undefined) n = Math.min(max, n);
-    if (!session.current) session.current = newSession(sessionPrefix);
-    onChange(n, session.current);
+    onChange(n, field.send(n));
   };
 
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      session.current = "";
+      field.endSession();
       e.currentTarget.blur();
     } else if (e.key === "Escape") {
       e.preventDefault();
-      setText(numberText(value));
+      field.revert();
       e.currentTarget.blur();
     }
   };
@@ -78,21 +71,15 @@ export function OptionalNumberField({ value, onChange, sessionPrefix, integer, m
     <input
       type="number"
       className={"input field-number" + (className ? ` ${className}` : "")}
-      value={text}
+      value={field.text}
       placeholder={value === null ? MIXED_LABEL : EMPTY_LABEL}
       step={integer ? 1 : "any"}
       min={min}
       max={max}
       aria-label={ariaLabel}
       data-testid={testId}
-      onFocus={() => {
-        setFocused(true);
-        session.current = newSession(sessionPrefix);
-      }}
-      onBlur={() => {
-        setFocused(false);
-        session.current = "";
-      }}
+      onFocus={field.focus}
+      onBlur={field.blur}
       onChange={(e) => commit(e.target.value)}
       onKeyDown={onKey}
     />

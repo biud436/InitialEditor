@@ -6,9 +6,10 @@
 //                    셋 다 없으면 위치 변수를 넣지 않아 정의 파일의 시작에 선다
 //   eventPlay        이 이벤트 앞에서 실행(play)과 이 이벤트 자동 재생(probe, play.probe 를 더한다). 자리와 경로는 play.ts 의 eventPlayPlan
 //   시작 상태         맵마다 기억한 글을 {state} 로 넘긴다. 비었으면 INITIAL2D_RPG_STATE 를 넣지 않는다
+//   지켜보기         자동 재생은 러너가 게임의 줄을 넘겨 지켜보게 한다 (probeWatch: 새 게임으로 다시 시작하면 멈춘다, 이벤트가 돌지 않았으면 알린다)
 // 레이어가 붙지 않은 맵(스키마를 읽는 중이거나 없다)도 맵 파일의 events 원본으로 자리를 고른다.
 
-import type { PlayContext, PlayPlan, PlayProviderSpec, PlayRequest } from "@initial-editor/ext-tilemap";
+import type { PlayContext, PlayPlan, PlayProviderSpec, PlayRequest, PlayWatch } from "@initial-editor/ext-tilemap";
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { EVENTS_SECTION } from "./events";
 import { GAME_CONFIG_MISSING, itemIds, mapEntryFor, type MapEntry, type PlaySection } from "./game";
@@ -127,16 +128,71 @@ export function rpgPlayProvider(sources: RpgPlaySources): PlayProviderSpec {
   };
 }
 
-/** 이 이벤트 앞에서 실행과 자동 재생의 계획. 못 띄우면 이유 */
+// ---- 자동 재생 지켜보기 ----
+//
+// 러너가 게임의 줄을 넘긴다 (타일맵의 PlayWatch). 두 가지를 본다.
+//   다시 시작  rpg:transfer: 없이 온 두 번째 rpg:map: 은 새 게임이다. 씬을 바꾸는 커맨드(데모의 배, scene title)가 타이틀로
+//              나가면 자동 시연(INITIAL2D_AUTOPLAY)이 새 게임을 열고 게임이 같은 시작 칸과 경로를 다시 걷는다. 끝나지 않으므로
+//              그 자리에서 멈추고 이유를 남긴다
+//   돌지 않음  게임이 코드 0 으로 끝났는데 rpg:event:<id> 가 없었으면 자동 재생이 이벤트에 닿지 못했다 (배회하는 NPC 가 앞의
+//              auto 이벤트 동안 자리를 떠났다). 성공처럼 보이지 않게 알린다
+
+/** 자동 재생을 지켜본다. eventId 가 없으면(이름 없는 이벤트) 다시 시작만 본다 */
+export function probeWatch(eventId: string | null, opts: { wanders?: boolean } = {}): PlayWatch {
+  let starts = 0;
+  let transferring = false;
+  let ran = false;
+  const name = eventId ?? "(이름 없음)";
+  return {
+    line(text) {
+      const t = text.trim();
+      if (t.startsWith("rpg:transfer:")) {
+        transferring = true;
+      } else if (t.startsWith("rpg:map:")) {
+        if (transferring) {
+          transferring = false;
+          return undefined;
+        }
+        starts++;
+        if (starts < 2) return undefined;
+        return ran
+          ? `자동 재생을 멈췄다: 이벤트 ${name} 뒤에 게임이 새 게임으로 처음부터 다시 시작했다 (씬을 바꾸는 커맨드). 자동 재생은 위의 줄까지다`
+          : `자동 재생을 멈췄다: 이벤트 ${name} 이(가) 돌기 전에 게임이 새 게임으로 처음부터 다시 시작했다`;
+      } else if (eventId !== null && t === `rpg:event:${eventId}`) {
+        ran = true;
+      }
+      return undefined;
+    },
+    exit(code) {
+      if (code !== 0 || eventId === null || ran) return undefined;
+      const why = opts.wanders
+        ? " 배회하는 이벤트라 앞의 auto 이벤트가 도는 동안 자리를 떠났을 수 있다. 시작 상태로 그 auto 이벤트를 건너뛰거나 이 이벤트 앞에서 실행으로 손수 말을 건다"
+        : "";
+      return `자동 재생이 끝났지만 이벤트 ${eventId} 이(가) 돌지 않았다 (rpg:event:${eventId} 줄이 없다).${why}`;
+    },
+    restarted() {
+      starts = 0;
+      transferring = false;
+    },
+  };
+}
+
+/** 이 이벤트 앞에서 실행과 자동 재생의 계획. 못 띄우면 이유. 자동 재생은 러너가 지켜보게 한다 (probeWatch) */
 export function eventPlay(sources: RpgPlaySources, doc: MapDocument, index: number, mode: EventPlayMode): PlayPlan | string {
   const t = targetOf(sources, doc);
   if (!t.ok) return t.reason ?? "rpg-game.json 이 없어 RPG 로 실행하지 않는다";
-  const r = eventPlayPlan(mapGeometryOf(doc), mapEventsOf(doc), index, mode);
+  const events = mapEventsOf(doc);
+  const r = eventPlayPlan(mapGeometryOf(doc), events, index, mode);
   if (!r.ok) return r.reason;
   const state = startStateOf(sources, doc);
   const target = { map: t.entry.name, at: r.plan.at, state: state.text };
-  const env = mode === "probe" ? probeEnv(t.play, { ...target, route: r.plan.route ?? "" }) : planEnv(t.play, target);
-  return toPlan(env, r.plan, state.note);
+  if (mode !== "probe") return toPlan(planEnv(t.play, target), r.plan, state.note);
+  const ev = events[index];
+  const id = field(ev, "id");
+  const eventId = typeof id === "string" && id !== "" ? id : null;
+  const wanders = field(ev, "wander") !== undefined && field(ev, "charset") !== undefined;
+  const extra = [wanders ? "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다" : null, state.note].filter((x): x is string => !!x).join(", ");
+  return { ...toPlan(probeEnv(t.play, { ...target, route: r.plan.route ?? "" }), r.plan, extra || null), watch: () => probeWatch(eventId, { wanders }) };
 }
 
 /** 이 이벤트로 띄울 수 없는 이유. 띄울 수 있으면 undefined */
