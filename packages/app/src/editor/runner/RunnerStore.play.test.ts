@@ -81,7 +81,8 @@ async function setup() {
   const toast = (level: string) => (text: string) => void toasts.push(`${level}: ${text}`);
   const toastsApi = { info: toast("info"), success: toast("success"), warn: toast("warn"), error: toast("error") };
   const runnerHost: RunnerHost = { backend, project, settings: new SettingsStore(new MemorySettingsStorage()), log, platform: "mac", toasts: toastsApi };
-  const runner = new RunnerStore(runnerHost, { probe: async (exe) => (exe === ENGINE ? ["lua"] : Promise.reject(new Error("없다"))) });
+  // 형제 폴더의 엔진을 쓴다 (신뢰 확인에 허용으로 답한다. 규칙 자체는 RunnerStore.trust.test.ts)
+  const runner = new RunnerStore(runnerHost, { askTrust: async () => "allow", probe: async (exe) => (exe === ENGINE ? ["lua"] : Promise.reject(new Error("없다"))) });
   expect(await runner.resolveEngine()).toBe(ENGINE);
   // 게임의 언어(mruby)만 보면 막히지만, 맵의 실행은 덮은 INITIAL2D_SCRIPT 로 다시 본다
   expect(runner.startHint).toBe(NO_MRUBY);

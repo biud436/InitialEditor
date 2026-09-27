@@ -339,7 +339,7 @@ describe("RunnerStore 실행", () => {
 
   it("watch 를 주면 줄마다 넘기고, 멈출 이유가 오면 콘솔과 알림에 남기고 멈춘다 (한 번만). 그 실행의 exit 는 부르지 않는다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     const seen: string[] = [];
     const exits: Array<number | null> = [];
     let made = 0;
@@ -377,7 +377,7 @@ describe("RunnerStore 실행", () => {
 
   it("스스로 끝난 실행은 watch 의 exit 가 알린 실패를 오류 줄과 알림으로 남긴다. 핫 리로드는 restarted 를 먼저 부른다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     const calls: string[] = [];
     await runner.start({
       watch: () => ({
@@ -413,7 +413,7 @@ describe("RunnerStore 실행", () => {
 
   it("언어 검사는 덧씌운 INITIAL2D_SCRIPT 로 한다: mruby 프로젝트라도 lua 로 덮은 실행은 mruby 없는 빌드로 띄운다", async () => {
     const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     await runner.start({ env: { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" } });
     expect(h.toasts).toEqual([]);
     expect(h.handles).toHaveLength(1);
@@ -424,7 +424,7 @@ describe("RunnerStore 실행", () => {
     await runner.start();
     await runner.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
     const lua = await harness();
-    const other = new RunnerStore(lua.host, { probe: probeFor(lua, { [ENGINE]: ["lua"] }) });
+    const other = new RunnerStore(lua.host, { ...trusting, probe: probeFor(lua, { [ENGINE]: ["lua"] }) });
     await other.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
     expect(h.handles).toHaveLength(1);
     expect(lua.handles).toHaveLength(0);
