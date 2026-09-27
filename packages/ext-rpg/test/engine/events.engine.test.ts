@@ -2,11 +2,15 @@
 //
 // "에디터로만 만든 이벤트가 게임에서 돈다"를 사람이 아니라 스크립트가 확인한다.
 //   1. 임시 작업 폴더: 엔진의 scripts/ 를 복사하고 resources/ 는 하위 폴더마다 심링크, 단 resources/maps/ 는 복사한다
-//   2. 그 폴더의 port_town.json 을 모델만으로 연다 (ext-tilemap parseMap, ext-rpg EventsSection, 저장은 serializeMap)
-//   3. ext-rpg 모델의 명령만으로 이벤트를 만든다 (UI 가 부를 것과 같은 EventEditor 와 newCommand)
-//   4. 자동 재생과 같은 함수(eventPlayPlan, probeEnv)로 변수를 만들어 엔진을 프로세스로 헤드리스로 띄운다
+//   2. 그 폴더의 port_town.json 을 앱과 같은 길로 연다: MapDocument 를 열린 문서에 넣으면 타일맵 자리(TilemapContrib)가
+//      이벤트 레이어를 붙인다 (eventsLayerCore, 앱의 ext-rpg 와 같은 붙이기 규칙). 편집은 doc.apply, 저장은 doc.text()
+//   3. ext-rpg 모델의 명령만으로 이벤트를 만든다 (레이어 상태의 EventEditor 와 newCommand, UI 가 부르는 것과 같다)
+//   4. 에디터의 실행 명령과 같은 함수로 변수를 만들어 엔진을 프로세스로 헤드리스로 띄운다: 이 이벤트 자동 재생은
+//      eventPlayRequest(확장의 명령이 타일맵의 실행 길에 넘기는 요청), 여기서 실행은 타일맵 자리에 등록한 rpgPlay 제공자.
+//      그 안의 eventPlayPlan, probeEnv 와 같은 값인지도 본다
 //   5. trace 줄로 본다: 선 자리와 방향, 대사 순서와 분기 결과, rpg:route:done, rpg:error 없음
-// 판 넷: 말 걸기(action), 밟기(touch 와 transfer 의 x, y, dir), auto 둘이 차례로, 시작 상태 arrived.
+// 판 다섯: 말 걸기(action), 밟기(touch 와 transfer 의 x, y, dir), auto 둘이 차례로, 시작 상태 arrived,
+// 여기서 실행(고른 이벤트 앞, 경로 없이 유한 실행).
 // 그리고 대조 셋: 저장한 transfer 에서 x, y, dir 을 하나씩 빼면 둘째 판의 도착 검사가 실패하는지 본다.
 // 엔진 실행 파일이 없거나 M2 전 엔진이면 "SKIP: 이유" 한 줄을 찍고 통과한다 (완료 기준은 건너뛰지 않은 실행 기록을 요구한다).
 
@@ -15,32 +19,42 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { UndoStack } from "@initial-editor/core";
-import { parseMap, serializeMap, type MapData } from "@initial-editor/ext-tilemap/model";
+import { DocumentRegistry, type Command, type ProjectBackend } from "@initial-editor/core";
+import { TilemapContrib } from "@initial-editor/ext-tilemap";
+import { MapDocument, parseMap } from "@initial-editor/ext-tilemap/model";
 import {
   cellsByDistance,
+  defFileIds,
   eventPlayPlan,
   EventEditor,
+  eventsLayerCore,
   EventsSection,
+  eventsStateOf,
   field,
   fileArgValue,
   frontCell,
   isStandable,
-  itemIds,
   mapByName,
   newCommand,
   parseEventSchema,
   parseGameConfig,
   parseItemTable,
+  planEnv,
   probeEnv,
-  validateEvents,
+  eventPlayRequest,
+  rpgPlayProvider,
+  RPG_PLAY_PROVIDER_ID,
   type Cell,
   type EventSchema,
+  type EventsLayerState,
   type GameConfig,
   type ItemTable,
   type MapEntry,
+  type MapGeometry,
   type PlayAt,
+  type RpgPlaySources,
 } from "../../src/model";
+import type { PlayPlan } from "@initial-editor/ext-tilemap";
 
 const ENGINE_DIR = path.resolve(process.env.INITIAL2D_DIR ?? path.join(__dirname, "..", "..", "..", "..", "..", "Initial2D"));
 const EXE = path.join(ENGINE_DIR, "build", process.platform === "win32" ? "Initial2D.exe" : "Initial2D");
@@ -142,23 +156,40 @@ let schema: EventSchema;
 let game: GameConfig;
 let items: ItemTable;
 let entry: MapEntry;
-let map: MapData;
+let doc: MapDocument;
+let state: EventsLayerState;
+let map: MapGeometry;
 let section: EventsSection;
 let ed: EventEditor;
-let stack: UndoStack;
 let mapFile = "";
 let baseCount = 0;
 let start: PlayAt;
+let sources: RpgPlaySources;
+let contrib: TilemapContrib;
+/** 맵마다의 시작 상태 (앱의 이벤트 목록 패널이 기억하는 값) */
+const startStates = new Map<string, string>();
+
+/** 이 이벤트 자동 재생의 변수: 확장의 명령이 타일맵의 실행 길에 넘기는 요청의 계획 (저장한 뒤에 세운다) */
+function probeRequestEnv(index: number): PlayPlan {
+  const plan = eventPlayRequest(sources, doc, index, "probe").plan(doc);
+  if (typeof plan === "string") throw new Error(plan);
+  return plan;
+}
 
 function readWork(rel: string): string {
   return fs.readFileSync(path.join(work, rel), "utf8");
 }
 
+/** 앱의 저장과 같은 글 (doc.text: 레이어가 붙은 events 섹션은 상태의 serialize 값) */
 function save(): string {
-  const events = section.serialize() as unknown[] | undefined;
-  const text = serializeMap({ ...map, events: events ?? null });
+  const text = doc.text();
   fs.writeFileSync(mapFile, text);
   return text;
+}
+
+/** 편집은 앱처럼 문서의 되돌리기 스택에 (doc.apply) */
+function apply(cmd: Command): void {
+  doc.apply(cmd);
 }
 
 /** 정의 파일의 start = { x = .., y = .., dir = ".." } */
@@ -182,8 +213,9 @@ function placeNear(probe: Record<string, unknown>): Cell {
   throw new Error("놓을 칸이 없다");
 }
 
+/** 레이어 상태의 문제 (앱의 인스펙터와 레이어 패널이 보는 것: 설정, 아이템 표, 정의 파일, 파일 있음까지) */
 function problemsOf(id: string) {
-  return validateEvents(section.list, { schema, map, game, items: itemIds(items) }).filter((p) => p.eventId === id && p.severity !== "info");
+  return state.eventProblems.filter((p) => p.eventId === id && p.severity !== "info");
 }
 
 /** 맵을 연 뒤 처음 선 자리의 trace 줄 (rpg:map:<맵> 다음의 첫 rpg:player:) */
@@ -243,13 +275,37 @@ if (skipReason !== null) {
     entry = mapByName(game, "port_town")!;
     mapFile = path.join(work, entry.file);
     const text0 = fs.readFileSync(mapFile, "utf8");
-    map = parseMap(text0);
-    section = new EventsSection(map.events ?? undefined, schema);
-    ed = new EventEditor(section, () => ({ schema, map }));
-    stack = new UndoStack();
+    // 앱과 같은 길: 타일맵 자리에 이벤트 레이어를 등록하고 맵 문서를 열린 문서에 넣으면 붙는다
+    const defs = new Map<string, ReadonlySet<string>>();
+    for (const m of game.maps) if (fs.existsSync(path.join(work, m.def))) defs.set(m.def, defFileIds(readWork(m.def)));
+    sources = {
+      schema,
+      schemaPresent: true,
+      schemaProblem: null,
+      game,
+      gameProblem: null,
+      items,
+      defIds: (p) => defs.get(p) ?? null,
+      fileExists: (p) => fs.existsSync(path.join(work, p)),
+      startState: (p) => startStates.get(p) ?? "",
+    };
+    const documents = new DocumentRegistry();
+    contrib = new TilemapContrib({ documents });
+    contrib.registerMapLayer(eventsLayerCore(sources));
+    contrib.registerPlayProvider(rpgPlayProvider(sources));
+    const backend = { readText: async (rel: string) => readWork(rel) } as unknown as ProjectBackend;
+    doc = new MapDocument(backend, entry.file, parseMap(text0));
+    documents.open(doc);
+    const attached = eventsStateOf(doc);
+    check("이벤트 레이어가 붙었다 (등록된 맵, 잠금 없음)", attached !== null && attached.locked === null, attached?.locked);
+    state = attached!;
+    section = state.section;
+    ed = state.editor;
+    map = doc.model;
     baseCount = section.list.length;
     start = defStart(readWork(entry.def));
-    check("모델로 읽고 다시 쓰면 바이트가 같다", save() === text0);
+    check("문서로 열고 다시 쓰면 바이트가 같다", save() === text0);
+    check("붙인 레이어의 이벤트에 오류가 없다", !state.eventProblems.some((p) => p.severity === "error"), state.eventProblems.filter((p) => p.severity === "error"));
   });
 
   afterAll(() => {
@@ -261,28 +317,28 @@ if (skipReason !== null) {
   it("[1] action 이벤트: 앞 칸에서 이벤트 쪽을 보고 서고, 대사와 분기가 순서대로 나온다", () => {
     const cell = placeNear({ charset: { set: "npc", index: 2 } });
     const add = ed.addEvent(cell);
-    stack.push(add);
+    apply(add);
     const i = add.focus[0];
-    stack.push(ed.renameEvent(i, "e2e_sign"));
-    stack.push(ed.setField(i, "charset", { set: "npc", index: 2 }));
-    stack.push(ed.insertCommands(i, [], 0, [newCommand(schema, "message", { text: "", name: "표지판", face: { set: "npc", index: 1 } })]));
+    apply(ed.renameEvent(i, "e2e_sign"));
+    apply(ed.setField(i, "charset", { set: "npc", index: 2 }));
+    apply(ed.insertCommands(i, [], 0, [newCommand(schema, "message", { text: "", name: "표지판", face: { set: "npc", index: 1 } })]));
     // 타이핑: 한 초점의 입력은 되돌리기 한 단계
-    const depth = stack.depth;
-    stack.push(ed.setArg(i, { list: [], index: 0 }, "text", SIGN_TEXT.slice(0, 10), { mergeKey: "typing" }));
-    stack.push(ed.setArg(i, { list: [], index: 0 }, "text", SIGN_TEXT, { mergeKey: "typing" }));
-    check("타이핑 두 번이 한 단계로 합쳐진다", stack.depth === depth + 1, stack.depth);
-    stack.push(ed.insertCommands(i, [], 1, [newCommand(schema, "giveItem", { item: "shell" })]));
-    stack.push(ed.insertCommands(i, [], 2, [newCommand(schema, "if", { cond: { item: "shell" } })]));
-    stack.push(ed.insertCommands(i, [{ at: 2, list: "thenDo" }], 0, [newCommand(schema, "message", { text: "A" })]));
-    stack.push(ed.insertCommands(i, [{ at: 2, list: "elseDo" }], 0, [newCommand(schema, "message", { text: "B" })]));
-    stack.push(ed.insertCommands(i, [], 3, [newCommand(schema, "choice", { options: ["예", "아니요"] })]));
-    stack.push(ed.insertCommands(i, [{ at: 3, list: "branches", branch: 0 }], 0, [newCommand(schema, "setFlag", { key: "e2e" })]));
-    stack.push(ed.insertCommands(i, [], 4, [newCommand(schema, "if", { cond: { flag: "e2e" } })]));
-    stack.push(ed.insertCommands(i, [{ at: 4, list: "thenDo" }], 0, [newCommand(schema, "message", { text: "C" })]));
+    const depth = doc.undo.depth;
+    apply(ed.setArg(i, { list: [], index: 0 }, "text", SIGN_TEXT.slice(0, 10), { mergeKey: "typing" }));
+    apply(ed.setArg(i, { list: [], index: 0 }, "text", SIGN_TEXT, { mergeKey: "typing" }));
+    check("타이핑 두 번이 한 단계로 합쳐진다", doc.undo.depth === depth + 1, doc.undo.depth);
+    apply(ed.insertCommands(i, [], 1, [newCommand(schema, "giveItem", { item: "shell" })]));
+    apply(ed.insertCommands(i, [], 2, [newCommand(schema, "if", { cond: { item: "shell" } })]));
+    apply(ed.insertCommands(i, [{ at: 2, list: "thenDo" }], 0, [newCommand(schema, "message", { text: "A" })]));
+    apply(ed.insertCommands(i, [{ at: 2, list: "elseDo" }], 0, [newCommand(schema, "message", { text: "B" })]));
+    apply(ed.insertCommands(i, [], 3, [newCommand(schema, "choice", { options: ["예", "아니요"] })]));
+    apply(ed.insertCommands(i, [{ at: 3, list: "branches", branch: 0 }], 0, [newCommand(schema, "setFlag", { key: "e2e" })]));
+    apply(ed.insertCommands(i, [], 4, [newCommand(schema, "if", { cond: { flag: "e2e" } })]));
+    apply(ed.insertCommands(i, [{ at: 4, list: "thenDo" }], 0, [newCommand(schema, "message", { text: "C" })]));
     check("검사에 문제가 없다", problemsOf("e2e_sign").length === 0, problemsOf("e2e_sign"));
 
     text1 = save();
-    depth1 = stack.depth;
+    depth1 = doc.undo.depth;
     const saved = (parseMap(text1).events ?? []).find((e) => field(e, "id") === "e2e_sign");
     const expected = {
       id: "e2e_sign",
@@ -304,8 +360,9 @@ if (skipReason !== null) {
     if (!planned.ok || !planned.plan.at || planned.plan.route === null) throw new Error(planned.ok ? "자리 없음" : planned.reason);
     plan1 = { at: planned.plan.at, route: planned.plan.route };
     check("자동 재생은 talk 한 번", plan1.route === "talk");
-    const env = probeEnv(game.play, { map: entry.name, at: plan1.at, state: null, route: plan1.route });
-    check("실행 변수", env.INITIAL2D_MAP === "port_town" && env.INITIAL2D_RPG_AT === `${plan1.at.x},${plan1.at.y},${plan1.at.dir}` && env.INITIAL2D_RPG_ROUTE === "talk" && !("INITIAL2D_RPG_STATE" in env), env);
+    const env = probeRequestEnv(i).env;
+    check("실행 변수 (명령의 요청)", env.INITIAL2D_MAP === "port_town" && env.INITIAL2D_RPG_AT === `${plan1.at.x},${plan1.at.y},${plan1.at.dir}` && env.INITIAL2D_RPG_ROUTE === "talk" && !("INITIAL2D_RPG_STATE" in env), env);
+    check("명령의 요청이 probeEnv 와 같다", JSON.stringify(env) === JSON.stringify(probeEnv(game.play, { map: entry.name, at: plan1.at, state: null, route: plan1.route })), env);
 
     const run = runEngine(env);
     const lines = run.lines;
@@ -338,13 +395,13 @@ if (skipReason !== null) {
     );
     const cell = placeNear({ trigger: "touch" });
     const add = ed.addEvent(cell);
-    stack.push(add);
+    apply(add);
     const j = add.focus[0];
     door = j;
-    stack.push(ed.renameEvent(j, "e2e_door"));
-    stack.push(ed.setField(j, "trigger", "touch"));
-    stack.push(ed.insertCommands(j, [], 0, [newCommand(schema, "playSe", { file: fileArgValue("resources/audio/door.wav") })]));
-    stack.push(ed.insertCommands(j, [], 1, [newCommand(schema, "transfer", { map: inn.entry.name, x: target.x, y: target.y, dir: target.dir })]));
+    apply(ed.renameEvent(j, "e2e_door"));
+    apply(ed.setField(j, "trigger", "touch"));
+    apply(ed.insertCommands(j, [], 0, [newCommand(schema, "playSe", { file: fileArgValue("resources/audio/door.wav") })]));
+    apply(ed.insertCommands(j, [], 1, [newCommand(schema, "transfer", { map: inn.entry.name, x: target.x, y: target.y, dir: target.dir })]));
     check("[2] 검사에 문제가 없다", problemsOf("e2e_door").length === 0, problemsOf("e2e_door"));
     text2 = save();
     const savedDoor = (parseMap(text2).events ?? []).find((e) => field(e, "id") === "e2e_door");
@@ -355,7 +412,8 @@ if (skipReason !== null) {
     if (!planned.ok || !planned.plan.at || planned.plan.route === null) throw new Error(planned.ok ? "자리 없음" : planned.reason);
     const { at, route } = planned.plan;
     check("[2] 자동 재생은 이벤트 쪽으로 한 걸음", route === at.dir);
-    env2 = probeEnv(game.play, { map: entry.name, at, route });
+    env2 = probeRequestEnv(j).env;
+    check("[2] 명령의 요청이 probeEnv 와 같다", JSON.stringify(env2) === JSON.stringify(probeEnv(game.play, { map: entry.name, at, route })), env2);
     const run = runEngine(env2);
     const lines = run.lines;
     commonChecks("2", run);
@@ -379,8 +437,8 @@ if (skipReason !== null) {
       { key: "dir", lands: { ...target, dir: innStart.dir } },
     ];
     for (const { key, lands } of cases) {
-      const depth = stack.depth;
-      stack.push(ed.setArg(door, { list: [], index: 1 }, key, undefined));
+      const depth = doc.undo.depth;
+      apply(ed.setArg(door, { list: [], index: 1 }, key, undefined));
       const savedDoor = (parseMap(save()).events ?? []).find((e) => field(e, "id") === "e2e_door");
       const transfer = (field(savedDoor, "commands") as unknown[])[1];
       check(`[2 대조 ${key}] 저장한 transfer 에 ${key} 가 없다`, field(transfer, key) === undefined && field(transfer, "map") === "inn", transfer);
@@ -388,8 +446,8 @@ if (skipReason !== null) {
       commonChecks(`2 대조 ${key}`, run);
       check(`[2 대조 ${key}] [2] 의 도착 검사가 실패한다`, landing(run.lines, "inn") !== playerLine("inn", target), run.lines);
       check(`[2 대조 ${key}] 빠진 ${key} 는 정의 파일의 시작 값이다`, landing(run.lines, "inn") === playerLine("inn", lands), run.lines);
-      stack.undo();
-      check(`[2 대조 ${key}] 되돌리면 되돌리기 깊이가 그대로다`, stack.depth === depth, stack.depth);
+      doc.undo.undo();
+      check(`[2 대조 ${key}] 되돌리면 되돌리기 깊이가 그대로다`, doc.undo.depth === depth, doc.undo.depth);
     }
     check("[2 대조] 되돌린 맵이 [2] 의 맵과 바이트가 같다", save() === text2);
   });
@@ -397,18 +455,18 @@ if (skipReason !== null) {
   it("[3] auto 이벤트: 맵에 들어올 때 arrival 뒤에 차례로 돌고 스스로 끝난다", () => {
     const cell = placeNear({ trigger: "auto" });
     const add = ed.addEvent(cell);
-    stack.push(add);
+    apply(add);
     const k = add.focus[0];
-    stack.push(ed.renameEvent(k, "e2e_auto"));
-    stack.push(ed.setField(k, "trigger", "auto"));
-    stack.push(ed.insertCommands(k, [], 0, [newCommand(schema, "message", { text: "D" })]));
+    apply(ed.renameEvent(k, "e2e_auto"));
+    apply(ed.setField(k, "trigger", "auto"));
+    apply(ed.insertCommands(k, [], 0, [newCommand(schema, "message", { text: "D" })]));
     check("[3] 검사에 문제가 없다", problemsOf("e2e_auto").length === 0, problemsOf("e2e_auto"));
     save();
 
     const planned = eventPlayPlan(map, section.list, k, "probe");
     if (!planned.ok) throw new Error(planned.reason);
     check("[3] 위치 없이 빈 경로", planned.plan.at === null && planned.plan.route === "");
-    const env = probeEnv(game.play, { map: entry.name, at: null, route: "" });
+    const env = probeRequestEnv(k).env;
     check("[3] AT 를 넣지 않고 빈 ROUTE 를 넣는다", !("INITIAL2D_RPG_AT" in env) && env.INITIAL2D_RPG_ROUTE === "", env);
     const run = runEngine(env);
     const lines = run.lines;
@@ -422,10 +480,13 @@ if (skipReason !== null) {
   });
 
   it("[4] 되돌리기로 첫 판의 맵으로 돌아가 시작 상태 arrived 로 띄우면 선장의 인사가 없다", () => {
-    while (stack.depth > depth1) stack.undo();
+    while (doc.undo.depth > depth1) doc.undo.undo();
     check("[4] 되돌린 맵이 첫 판의 맵과 바이트가 같다", save() === text1);
-    const env = probeEnv(game.play, { map: entry.name, at: plan1.at, state: "arrived", route: plan1.route });
+    // 이벤트 목록 패널의 시작 상태 칸에 적은 값 (맵마다 기억한다)
+    startStates.set(entry.file, "arrived");
+    const env = probeRequestEnv(section.indexOfId("e2e_sign")).env;
     check("[4] 시작 상태 변수", env.INITIAL2D_RPG_STATE === "arrived", env);
+    check("[4] 명령의 요청이 probeEnv 와 같다", JSON.stringify(env) === JSON.stringify(probeEnv(game.play, { map: entry.name, at: plan1.at, state: "arrived", route: plan1.route })), env);
     const run = runEngine(env);
     const lines = run.lines;
     commonChecks("4", run);
@@ -435,5 +496,25 @@ if (skipReason !== null) {
     const iC = indexOf(lines, messageLine("", "C"));
     check("[4] 표지판의 대사는 그대로", iFirst >= 0 && iFirst < iC, lines);
     check("[4] 두 번째 판의 이벤트는 없다", !lines.includes("rpg:event:e2e_door") && !lines.includes("rpg:event:e2e_auto"), lines);
+  });
+
+  it("[5] 여기서 실행 (rpgPlay 제공자): 고른 이벤트 앞에 이벤트 쪽을 보고 서고, 경로 없이 돈다", () => {
+    startStates.delete(entry.file);
+    const i = section.indexOfId("e2e_sign");
+    state.select([i]);
+    const provider = contrib.providerFor(doc);
+    check("[5] 이 맵은 rpgPlay 가 받는다 (priority 10)", provider?.id === RPG_PLAY_PROVIDER_ID && provider.priority === 10, provider?.id);
+    const plan = provider!.plan(doc, { cursor: null, viewCenter: null });
+    if (!plan) throw new Error("rpgPlay 가 계획을 내지 않았다");
+    check("[5] 설명은 이벤트 앞", plan.note === "이벤트 e2e_sign 앞", plan.note);
+    check("[5] 변수는 planEnv 와 같고 자동 재생 변수가 없다", JSON.stringify(plan.env) === JSON.stringify(planEnv(game.play, { map: entry.name, at: plan1.at })) && !("INITIAL2D_AUTOPLAY" in plan.env) && !("INITIAL2D_RPG_ROUTE" in plan.env), plan.env);
+    // 손으로 하는 실행이라 스스로 끝나지 않는다: 짧은 유한 실행으로 선 자리만 본다
+    const run = runEngine({ ...plan.env, INITIAL2D_EXIT_AFTER: "240" });
+    const lines = run.lines;
+    console.log(`[5] rc=${String(run.status)}\n  ${lines.join("\n  ")}`);
+    check("[5] 정상 종료", run.status === 0, `rc=${String(run.status)}\n${run.log.slice(-800)}`);
+    check("[5] rpg:error 가 없다", !lines.some((l) => l.startsWith("rpg:error")), lines);
+    check("[5] 첫 판과 같은 앞 칸에 이벤트 쪽을 보고 선다", landing(lines, "port_town") === playerLine("port_town", plan1.at), lines.slice(0, 4));
+    check("[5] 경로가 없어 rpg:route:done 이 없다", !lines.includes("rpg:route:done"), lines.slice(-3));
   });
 });

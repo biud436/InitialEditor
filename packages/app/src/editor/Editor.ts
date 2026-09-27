@@ -21,6 +21,7 @@ import {
   type SettingsStorage,
   type Workspace,
 } from "@initial-editor/core";
+import { rpgExtension } from "@initial-editor/ext-rpg";
 import { TILEMAP_EXTENSION_ID, tilemapExtension, type TilemapApi } from "@initial-editor/ext-tilemap";
 import { makeObservable, observable, runInAction } from "mobx";
 import { matchMediaSource, ThemeController, type SystemThemeSource, type ThemeTarget } from "../theme/ThemeController";
@@ -181,7 +182,7 @@ export class Editor {
     installMapSchema(this);
     this.disposers.push(registerExtensionPanelCommands(this));
     try {
-      const ids = await this.extensions.activateAll([tilemapExtension]);
+      const ids = await this.extensions.activateAll([tilemapExtension, rpgExtension]);
       this.log.info("editor", `확장 활성: ${ids.join(", ")}`);
     } catch (e) {
       this.log.error("editor", `확장 활성 실패: ${(e as Error).message}`);

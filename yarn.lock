@@ -815,6 +815,7 @@ __metadata:
     "@initial-editor/backend-fsaccess": "npm:2.0.0-dev"
     "@initial-editor/backend-tauri": "npm:2.0.0-dev"
     "@initial-editor/core": "npm:2.0.0-dev"
+    "@initial-editor/ext-rpg": "npm:2.0.0-dev"
     "@initial-editor/ext-tilemap": "npm:2.0.0-dev"
     "@initial-editor/ui": "npm:2.0.0-dev"
     "@tauri-apps/api": "npm:^2.0.0"
@@ -869,7 +870,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@initial-editor/ext-rpg@workspace:packages/ext-rpg":
+"@initial-editor/ext-rpg@npm:2.0.0-dev, @initial-editor/ext-rpg@workspace:packages/ext-rpg":
   version: 0.0.0-use.local
   resolution: "@initial-editor/ext-rpg@workspace:packages/ext-rpg"
   dependencies:
@@ -881,10 +882,12 @@ __metadata:
     "@types/react": "npm:^18.3.0"
     mobx: "npm:^6.13.0"
     mobx-react-lite: "npm:^4.0.0"
+    pixi.js: "npm:^8.6.0"
     react: "npm:^18.3.0"
     react-dom: "npm:^18.3.0"
   peerDependencies:
     mobx-react-lite: ^4.0.0
+    pixi.js: ^8.6.0
     react: ^18.3.0
   languageName: unknown
   linkType: soft

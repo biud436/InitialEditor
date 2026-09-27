@@ -79,16 +79,35 @@ describe("에디터의 타일맵 자리", () => {
     await editor.start();
     const tilemap = editor.tilemap!;
     expect(tilemap).not.toBeNull();
-    expect(tilemap.playProviders.map((p) => [p.id, p.priority])).toEqual([[OBJECTS_PLAY_PROVIDER_ID, 0]]);
+    // 기본 제공자(0) 앞에 에디터가 켠 RPG 확장의 제공자(10)가 있다
+    expect(tilemap.playProviders.map((p) => [p.id, p.priority])).toEqual([
+      ["rpg.play", 10],
+      [OBJECTS_PLAY_PROVIDER_ID, 0],
+    ]);
     // 확장의 실행 길은 앱이 넣은 것이다 (여기서 실행과 같이 러너의 이유를 따른다)
     expect(tilemap.playBlocked()).toBe(editor.runner.startHint);
     expect(tilemap.playBlocked()).toBe("프로젝트를 먼저 연다");
     const off = tilemap.registerMapLayer(fakeLayer({ toolKey: "M" }).spec);
     expect(editor.commands.get(layerCommandId("test.marks"))?.shortcut).toBe("M");
-    expect(editor.mapSupport.layers().map((l) => l.id)).toEqual(["test.marks"]);
+    // 에디터가 켠 RPG 확장의 이벤트 레이어(order 10)가 가짜 레이어(order 0) 위에 있다
+    expect(editor.mapSupport.layers().map((l) => l.id)).toEqual(["test.marks", "rpg.events"]);
     off();
     expect(editor.commands.get(layerCommandId("test.marks"))).toBeUndefined();
-    expect(editor.mapSupport.layers()).toEqual([]);
+    expect(editor.mapSupport.layers().map((l) => l.id)).toEqual(["rpg.events"]);
+    editor.dispose();
+  });
+
+  it("RPG 확장을 켠다: 이벤트 레이어 커맨드(N)와 타일맵 프리셋의 이벤트 목록 패널", async () => {
+    const editor = makeEditor(new MemoryBackend());
+    await editor.start();
+    expect([...editor.extensions.active.keys()]).toEqual(["tilemap", "rpg"]);
+    expect(editor.commands.get(layerCommandId("rpg.events"))?.shortcut).toBe("N");
+    expect(editor.registries.panels.get("rpg.events")).toMatchObject({ title: "이벤트", presets: ["tilemap"] });
+    // 이벤트 실행 명령 둘이 맵 메뉴의 여기서 실행 뒤에 있다
+    expect(editor.commands.get("rpg.playEvent")?.label).toBe("이 이벤트 앞에서 실행");
+    expect(editor.commands.get("rpg.probeEvent")?.label).toBe("이 이벤트 자동 재생");
+    const mapItems = editor.menus.items.filter((i) => i.path.startsWith("맵/") && (i.order ?? 100) >= 900).sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
+    expect(mapItems.map((i) => i.commandId)).toEqual(["map.playHere", "rpg.playEvent", "rpg.probeEvent"]);
     editor.dispose();
   });
 });
