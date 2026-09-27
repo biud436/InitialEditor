@@ -8,8 +8,9 @@
 //   mac, linux  플래피 Lua 와 Ruby, 타일맵을 앱에 든 엔진으로 (필수), 플래피 Lua 를 에디터 안에서 (시도). 창을 보인다
 //   windows     앱에 든 엔진이 없다: 플래피 Lua 를 프로세스 방식으로 시작해 에디터 안으로 넘어가 돈다 (필수). 창을 보인다
 //   local       mac 과 같되 프로세스 실행만이고 창을 숨긴다 (yarn selftest:app 의 기본). --embedded 면 에디터 안 실행을 더하고 창을 보인다
-//   --forest    엔진 저장소의 알데바란 숲(resources/maps/aldebaran_forest.json)을 맵 뷰로 열고, 게임을 같은 카메라로 돌려
-//               맵 뷰의 타일과 게임 화면을 견준다 (E3 완료 기준 1). 게임에 필요한 것만 <workDir>-forest 로 복사한다
+//   --forest    엔진 저장소의 알데바란 숲(resources/maps/aldebaran_forest.json)을 맵 뷰로 열어 deco 레이어의 빈 하늘 칸 하나를
+//               칠해 저장하고, 게임을 같은 카메라로 돌려 맵 뷰의 타일과 게임 화면을, 그리고 판정이 저장한 맵으로 그린 기준과
+//               게임 화면을 견준다 (E3 완료 기준 1. 레이어마다, 칠한 칸까지). 게임에 필요한 것만 <workDir>-forest 로 복사한다
 //
 // workDir 은 아직 없어야 한다 (셸이 만든다). 보고서는 <workDir>/report.json, 로그와 스크린샷은 <workDir>/logs/.
 
@@ -26,6 +27,12 @@ export const FOREST_AT = 1200;
 export const FOREST_VIEW = { width: 384, height: 448 };
 /** 엔진의 배치 줄 "알데바란: 시작 x <x> (y <y>)" 또는 옮겼으면 "알데바란: 시작 x <x> → <새 x>" */
 export const FOREST_PLACEMENT = "^알데바란: 시작 x (-?\\d+(?:\\.\\d+)?)(?: → (-?\\d+(?:\\.\\d+)?))?";
+/**
+ * 숲에서 칠해 볼 칸: deco 레이어(1)의 빈 하늘 칸 (80, 8) 을 통나무 타일(gid 36, 256 픽셀이 불투명)로. FOREST_AT 의 카메라
+ * (x 1008 부터 384 픽셀) 안이고 주인공, 몬스터, HUD 와 겹치지 않는다. deco 는 통행에 쓰이지 않아 게임의 움직임은 그대로다.
+ * 판정은 이 칸이 게임 화면에 있는지로 "게임이 저장한 맵을 읽었다" 를 본다
+ */
+export const FOREST_EDIT = { kind: "paintTile", map: FOREST_MAP, layer: 1, x: 80, y: 8, gid: 36 };
 /** 숲 사본에 복사할 엔진 저장소의 경로 (RTP 와 그 변환물은 싣지 않는다. INITIAL2D_NO_RTP=1 로 돈다) */
 export const FOREST_COPY = ["scripts", "resources/maps", "resources/aldebaran", "resources/fonts", "resources/schema", "resources/data", "resources/tiles", "resources/audio", "resources/ui", "resources/icons"];
 export const FOREST_GAME_JSON = { name: "aldebaran-selftest", windowWidth: 768, windowHeight: 896, renderScale: 1, script: "lua" };
@@ -73,6 +80,7 @@ export function forestProject(workDir, root) {
     id: "forest",
     root,
     language: "lua",
+    edit: { ...FOREST_EDIT },
     openMap: FOREST_MAP,
     runs: [
       {

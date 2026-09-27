@@ -98,3 +98,187 @@ export function compareMapFrame(map, frame, tol = CHANNEL_TOLERANCE) {
   }
   return { opaque, match, ratio: opaque ? match / opaque : 0, opaqueShare: opaque / (map.width * map.height), scale };
 }
+
+// ---- 저장한 맵으로 그린 기준 (숲, E3 완료 기준 1) ----
+// 맵 뷰 뽑기와 게임 화면을 서로만 견주면, 게임이 레이어 하나를 통째로 빼고 그려도(숲의 deco) 그 레이어가 사각형에서 차지하는
+// 몫이 작아 비율 문턱을 넘는다. 그래서 판정이 저장한 맵 파일과 타일셋 그림으로 기준을 직접 그리고, 레이어마다 "그 레이어를
+// 빼면 달라지는 픽셀" 과 칠한 칸마다 "칠하기 전 gid 로 그리면 달라지는 픽셀" 이 게임 화면에 있는지 따로 본다.
+
+/** 레이어마다, 칠한 칸마다 게임 화면과 같아야 하는 비율 (그 위의 스프라이트 몫을 넘긴다) */
+export const LAYER_MIN_RATIO = 0.9;
+/** 레이어와 칠한 칸이 사각형 안에서 이만큼은 보여야 증명이 된다 */
+export const LAYER_MIN_PIXELS = 64;
+/** 맵 뷰 뽑기가 기준과 같아야 하는 비율 (둘 다 같은 타일셋을 1배로 그린다) */
+export const VIEW_REFERENCE_MIN_RATIO = 0.999;
+
+/** { width, height, rgba } 에 pixel(x, y) 를 붙인다 (tests/e2e/support/bmp.ts 의 readBmp 와 같은 꼴) */
+export function rgbaImage(width, height, rgba) {
+  return {
+    width,
+    height,
+    rgba,
+    pixel(x, y) {
+      const i = (y * width + x) * 4;
+      return { r: rgba[i], g: rgba[i + 1], b: rgba[i + 2], a: rgba[i + 3] };
+    },
+  };
+}
+
+/** gid 가 속한 타일셋 (firstGid 가 gid 이하인 것 가운데 가장 큰 것). 없으면 null */
+function tilesetFor(tilesets, gid) {
+  let best = null;
+  for (const t of tilesets ?? []) if (t.firstGid <= gid && (!best || t.firstGid > best.firstGid)) best = t;
+  return best;
+}
+
+/**
+ * 맵(포맷 v2 JSON)의 타일 레이어를 월드 픽셀 사각형 rect 안에서 1배로, 앞 레이어부터 알파로 겹쳐 그린다.
+ * images: 타일셋의 image 칸 → { width, height, rgba }. opts.skipLayer: 빼고 그릴 레이어 번호.
+ * opts.cell: { layer, x, y, gid } 그 칸만 이 gid 로 그린다. 돌려주는 것은 rgbaImage.
+ */
+export function renderMapRect(map, images, rect, opts = {}) {
+  const tw = map.tileWidth;
+  const th = map.tileHeight;
+  const out = new Uint8Array(rect.width * rect.height * 4);
+  const c0 = Math.max(0, Math.floor(rect.x / tw));
+  const c1 = Math.min(map.width - 1, Math.floor((rect.x + rect.width - 1) / tw));
+  const r0 = Math.max(0, Math.floor(rect.y / th));
+  const r1 = Math.min(map.height - 1, Math.floor((rect.y + rect.height - 1) / th));
+  (map.layers ?? []).forEach((layer, li) => {
+    if (li === opts.skipLayer) return;
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        const cell = opts.cell;
+        const gid = cell && cell.layer === li && cell.x === c && cell.y === r ? cell.gid : (layer.data?.[r * map.width + c] ?? 0);
+        if (!gid) continue;
+        const ts = tilesetFor(map.tilesets, gid);
+        if (!ts) throw new Error(`gid ${gid} 의 타일셋이 없다 (레이어 ${li}, 칸 ${c}, ${r})`);
+        const img = images.get(ts.image);
+        if (!img) throw new Error(`타일셋 그림이 없다: ${ts.image}`);
+        const index = gid - ts.firstGid;
+        const sx0 = (index % ts.columns) * tw;
+        const sy0 = Math.floor(index / ts.columns) * th;
+        for (let py = 0; py < th; py++) {
+          const oy = r * th + py - rect.y;
+          if (oy < 0 || oy >= rect.height || sy0 + py >= img.height) continue;
+          for (let px = 0; px < tw; px++) {
+            const ox = c * tw + px - rect.x;
+            if (ox < 0 || ox >= rect.width || sx0 + px >= img.width) continue;
+            const s = ((sy0 + py) * img.width + sx0 + px) * 4;
+            const sa = img.rgba[s + 3];
+            if (sa === 0) continue;
+            const d = (oy * rect.width + ox) * 4;
+            if (sa === 255) {
+              out[d] = img.rgba[s];
+              out[d + 1] = img.rgba[s + 1];
+              out[d + 2] = img.rgba[s + 2];
+              out[d + 3] = 255;
+              continue;
+            }
+            // 곧은 알파의 source-over
+            const a = sa / 255;
+            const da = out[d + 3] / 255;
+            const oa = a + da * (1 - a);
+            for (let k = 0; k < 3; k++) out[d + k] = Math.round((img.rgba[s + k] * a + out[d + k] * da * (1 - a)) / oa);
+            out[d + 3] = Math.round(oa * 255);
+          }
+        }
+      }
+    }
+  });
+  return rgbaImage(rect.width, rect.height, out);
+}
+
+function sameRgb(p, q, tol) {
+  return Math.abs(p.r - q.r) <= tol && Math.abs(p.g - q.g) <= tol && Math.abs(p.b - q.b) <= tol;
+}
+
+/** ref 의 불투명한 픽셀 가운데 pick(x, y) 가 고른 것이 게임 화면(배율 scale)의 같은 자리와 같은 수 */
+function matchFrame(ref, frame, scale, pick, tol) {
+  let count = 0;
+  let match = 0;
+  for (let y = 0; y < ref.height; y++) {
+    for (let x = 0; x < ref.width; x++) {
+      const p = ref.pixel(x, y);
+      if (p.a < 255 || !pick(x, y, p)) continue;
+      count++;
+      if (sameRgb(p, frame.pixel(x * scale, y * scale), tol)) match++;
+    }
+  }
+  return { count, match, ratio: count ? match / count : 0 };
+}
+
+const pct = (m) => `${m.match}/${m.count} (${(m.ratio * 100).toFixed(2)}%)`;
+
+/**
+ * 저장한 맵으로 그린 기준(레이어 전부)을 게임 화면과 맵 뷰 뽑기에 견준다. 돌려주는 것은 [{ name, ok, detail }].
+ *   - 맵 뷰 뽑기가 기준과 같다 (맵 뷰가 저장한 맵을 그렸다)
+ *   - 게임 화면의 불투명한 타일 픽셀이 기준과 같다 (MAP_FRAME_MIN_RATIO)
+ *   - 레이어마다: 그 레이어를 빼고 그리면 달라지는 픽셀이 LAYER_MIN_PIXELS 이상이고 게임 화면에서 LAYER_MIN_RATIO 이상 기준과 같다
+ *   - edit 이 있으면: 칠한 칸이 사각형 안이고, 그 칸을 cellBefore 로 그리면 달라지는 픽셀이 게임 화면에서 기준과 같다
+ * map: 저장한 맵 JSON, images: 타일셋 그림, rect: 게임의 카메라(월드 픽셀), frame: 게임 스크린샷, capture: 맵 뷰 뽑기(없으면 null)
+ */
+export function referenceChecks({ map, images, rect, frame, capture = null, edit = null, cellBefore = null, tol = CHANNEL_TOLERANCE }) {
+  const checks = [];
+  const scale = frame.width / rect.width;
+  if (!Number.isInteger(scale) || scale < 1 || frame.height !== rect.height * scale) {
+    checks.push({ name: "게임 화면이 카메라 사각형의 정수배다", ok: false, detail: `${frame.width}x${frame.height}, 사각형 ${rect.width}x${rect.height}` });
+    return checks;
+  }
+  const ref = renderMapRect(map, images, rect);
+
+  if (capture) {
+    let union = 0;
+    let agree = 0;
+    for (let y = 0; y < ref.height; y++) {
+      for (let x = 0; x < ref.width; x++) {
+        const p = ref.pixel(x, y);
+        const q = x < capture.width && y < capture.height ? capture.pixel(x, y) : { r: 0, g: 0, b: 0, a: 0 };
+        if (p.a < 255 && q.a < 255) continue;
+        union++;
+        if (p.a === 255 && q.a === 255 && sameRgb(p, q, tol)) agree++;
+      }
+    }
+    const ratio = union ? agree / union : 0;
+    checks.push({
+      name: `맵 뷰가 저장한 맵을 그렸다 (뽑기와 기준의 불투명 픽셀 ${VIEW_REFERENCE_MIN_RATIO * 100}% 이상)`,
+      ok: union > 0 && ratio >= VIEW_REFERENCE_MIN_RATIO,
+      detail: `${agree}/${union} (${(ratio * 100).toFixed(2)}%)`,
+    });
+  }
+
+  const all = matchFrame(ref, frame, scale, () => true, tol);
+  checks.push({ name: `게임 화면이 저장한 맵의 타일과 같다 (레이어 전부, ${MAP_FRAME_MIN_RATIO * 100}% 이상)`, ok: all.count > 0 && all.ratio >= MAP_FRAME_MIN_RATIO, detail: pct(all) });
+
+  (map.layers ?? []).forEach((layer, li) => {
+    const without = renderMapRect(map, images, rect, { skipLayer: li });
+    const m = matchFrame(ref, frame, scale, (x, y, p) => {
+      const q = without.pixel(x, y);
+      return q.a < 255 || !sameRgb(p, q, tol);
+    }, tol);
+    const name = layer.name ?? `#${li}`;
+    checks.push({
+      name: `레이어 ${name} 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 ${LAYER_MIN_PIXELS} 개 이상, ${LAYER_MIN_RATIO * 100}% 이상)`,
+      ok: m.count >= LAYER_MIN_PIXELS && m.ratio >= LAYER_MIN_RATIO,
+      detail: pct(m),
+    });
+  });
+
+  if (edit) {
+    const inside = edit.x * map.tileWidth >= rect.x && (edit.x + 1) * map.tileWidth <= rect.x + rect.width && edit.y * map.tileHeight >= rect.y && (edit.y + 1) * map.tileHeight <= rect.y + rect.height;
+    checks.push({ name: `칠한 칸 (${edit.x}, ${edit.y}) 이 카메라 안에 있다`, ok: inside, detail: JSON.stringify(rect) });
+    if (inside && Number.isInteger(cellBefore)) {
+      const before = renderMapRect(map, images, rect, { cell: { layer: edit.layer, x: edit.x, y: edit.y, gid: cellBefore } });
+      const m = matchFrame(ref, frame, scale, (x, y, p) => {
+        const q = before.pixel(x, y);
+        return q.a < 255 || !sameRgb(p, q, tol);
+      }, tol);
+      checks.push({
+        name: `칠한 칸 (${edit.x}, ${edit.y}) 이 게임 화면에 있다 (칠하기 전 gid ${cellBefore} 와 다른 픽셀 ${LAYER_MIN_PIXELS} 개 이상, ${LAYER_MIN_RATIO * 100}% 이상)`,
+        ok: m.count >= LAYER_MIN_PIXELS && m.ratio >= LAYER_MIN_RATIO,
+        detail: pct(m),
+      });
+    }
+  }
+  return checks;
+}

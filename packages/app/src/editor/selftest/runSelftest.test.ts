@@ -290,12 +290,13 @@ describe("자가 검사 흐름", () => {
     expect(t.runner.starts).toEqual([]);
   });
 
-  it("맵 문서에서 한 칸을 펜으로 칠하고 저장한다 (되돌리기 스택, 디스크에서 다시 읽어 본다)", async () => {
+  it("맵 문서에서 한 칸을 펜으로 칠하고 저장한다 (되돌리기 스택, 칠하기 전 칸을 적고, 디스크에서 다시 읽어 본다)", async () => {
     const t = makeHost();
     const edit = { kind: "paintTile", map: "resources/maps/start.json", layer: 0, x: 24, y: 28, gid: 45 };
     const report = await runSelftest(plan([{ id: "tilemap", template: "tilemap", edit, runs: [{ ...RUN, check: "tilemapPixel" }] }]), t.host, t.shell, fast);
     const p = report.projects[0];
-    expect(p.edit).toEqual({ ...edit, dirtyAfterPaint: true, saved: "saved", dirtyAfterSave: false, cellAfter: 45 });
+    // 템플릿 맵의 (24, 28) 은 잔디(gid 46)다
+    expect(p.edit).toEqual({ ...edit, cellBefore: 46, dirtyAfterPaint: true, saved: "saved", dirtyAfterSave: false, cellAfter: 45 });
     expect(p.mapView).toMatchObject({ path: "resources/maps/start.json", ready: true, width: 48, height: 56 });
     expect(p.problems).toEqual([]);
     const saved = JSON.parse(new TextDecoder().decode(t.disk("/tmp/run/tilemap").files.get("resources/maps/start.json")!)) as { width: number; layers: Array<{ data: number[] }> };

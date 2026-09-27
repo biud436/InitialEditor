@@ -19,7 +19,7 @@ interface Plan {
   report: string;
   totalTimeoutMs: number;
   showWindow: boolean;
-  projects: Array<{ id: string; template?: string; root?: string; language?: string; edit?: { x: number; y: number; gid: number }; runs: Array<Record<string, unknown> & { mode: string; check: string; optional?: boolean; env?: Record<string, string>; timeoutMs: number }> }>;
+  projects: Array<{ id: string; template?: string; root?: string; language?: string; edit?: { kind?: string; map?: string; layer?: number; x: number; y: number; gid: number }; runs: Array<Record<string, unknown> & { mode: string; check: string; optional?: boolean; env?: Record<string, string>; timeoutMs: number }> }>;
 }
 
 const planMod = await load<{
@@ -28,11 +28,19 @@ const planMod = await load<{
   main(argv: string[], deps?: Record<string, unknown>): number;
   FOREST_PLACEMENT: string;
   FOREST_COPY: string[];
+  FOREST_EDIT: { kind: string; map: string; layer: number; x: number; y: number; gid: number };
 }>("scripts/selftest-plan.mjs");
 type Judged = { failures: string[]; warnings: string[]; lines: string[] };
 const checkMod = await load<{ judge(plan: Plan, report: unknown, deps: { readBmp: typeof readBmp }): Judged; main(argv: string[], deps?: Record<string, unknown>): Promise<number> }>("scripts/selftest-check.mjs");
 const appMod = await load<{ resolveApp(target: string): string; parseArgs(argv: string[]): Record<string, unknown>; main(argv: string[], deps?: Record<string, unknown>): Promise<number> }>("scripts/selftest-app.mjs");
-const frame = await load<{ followCamera(x: number, w: number, h: number, mapW: number): { x: number; y: number; width: number; height: number }; placementX(log: string, re: string): number | null; compareMapFrame(a: unknown, b: unknown): { ratio: number; opaque: number } }>("scripts/lib/frameChecks.mjs");
+type Rect = { x: number; y: number; width: number; height: number };
+const frame = await load<{
+  followCamera(x: number, w: number, h: number, mapW: number): Rect;
+  placementX(log: string, re: string): number | null;
+  compareMapFrame(a: unknown, b: unknown): { ratio: number; opaque: number };
+  renderMapRect(map: unknown, images: Map<string, { width: number; height: number; rgba: Uint8Array }>, rect: Rect, opts?: { skipLayer?: number; cell?: { layer: number; x: number; y: number; gid: number } }): unknown;
+}>("scripts/lib/frameChecks.mjs");
+const pngMod = await load<{ encodePng(width: number, height: number, rgba: Uint8Array): Buffer }>("scripts/lib/png.mjs");
 
 let tmp = "";
 beforeEach(() => {
@@ -290,57 +298,202 @@ describe("자가 검사 판정 (selftest-check.mjs)", () => {
 describe("맵 뷰와 게임 화면 견주기 (mapFrame)", () => {
   const W = 384;
   const H = 448;
-  const mapJson = { version: 2, name: "forest", width: 256, height: 28, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [], collision: [], objects: [{ id: "a" }, { id: "b" }] };
+  const TILESET = "resources/aldebaran/forest16.png";
+  const MAP_W = 256;
+  const MAP_H = 28;
+  const RECT = { x: 1008, y: 0, width: W, height: H };
+  const BACKGROUND = [10, 10, 40];
 
-  function forestPlan(): Plan {
+  /** 128x80 타일셋 (8열 5줄, 타일 40). 타일마다 다른 무늬이고 gid 5 (번호 4)는 왼쪽 절반이 투명하다 */
+  function tilesetPng() {
+    const tw = 128;
+    const th = 80;
+    const rgba = new Uint8Array(tw * th * 4);
+    for (let y = 0; y < th; y++) {
+      for (let x = 0; x < tw; x++) {
+        const t = Math.floor(y / 16) * 8 + Math.floor(x / 16);
+        const alpha = t === 4 && x % 16 < 8 ? 0 : 255;
+        rgba.set([(t * 37 + (x % 16) * 5) & 255, (t * 91 + (y % 16) * 7) & 255, (t * 13 + 60) & 255, alpha], (y * tw + x) * 4);
+      }
+    }
+    return { png: pngMod.encodePng(tw, th, rgba), image: { width: tw, height: th, rgba } };
+  }
+
+  /** 숲 흉내: ground 는 20줄부터 gid 1..4, deco 는 카메라 안 (65..70, 19) 에 gid 5, edited 면 계획의 칸에 그 gid */
+  function forestMap(opts: { edited?: boolean; decoData?: "empty" } = {}) {
+    const ground = new Array(MAP_W * MAP_H).fill(0);
+    const deco = new Array(MAP_W * MAP_H).fill(0);
+    for (let y = 20; y < MAP_H; y++) for (let x = 0; x < MAP_W; x++) ground[y * MAP_W + x] = 1 + ((x + y) % 4);
+    for (let x = 65; x <= 70; x++) deco[19 * MAP_W + x] = 5;
+    const edit = planMod.FOREST_EDIT;
+    if (opts.edited !== false) deco[edit.y * MAP_W + edit.x] = edit.gid;
+    return {
+      version: 2,
+      name: "forest",
+      width: MAP_W,
+      height: MAP_H,
+      tileWidth: 16,
+      tileHeight: 16,
+      tilesets: [{ image: TILESET, firstGid: 1, columns: 8 }],
+      layers: [
+        { name: "ground", data: ground },
+        { name: "deco", data: opts.decoData === "empty" ? new Array(MAP_W * MAP_H).fill(0) : deco },
+      ],
+      collision: new Array(MAP_W * MAP_H).fill(0),
+      objects: [{ id: "a" }, { id: "b" }],
+    };
+  }
+
+  function forestPlan(saved = forestMap()): Plan {
     const root = path.join(tmp, "run-forest");
-    write(path.join(root, "resources/maps/aldebaran_forest.json"), JSON.stringify(mapJson));
+    write(path.join(root, "resources/maps/aldebaran_forest.json"), JSON.stringify(saved));
+    write(path.join(root, TILESET), tilesetPng().png);
     return planMod.buildPlan({ os: "local", workDir: path.join(tmp, "run"), forestRoot: root });
   }
 
-  /** 아래 절반이 타일(불투명), 위는 비었다. 게임 화면은 같은 타일을 2배로, 위는 배경 */
-  function images(differ = 0) {
-    const map = new Uint8Array(W * H * 4);
-    const game = new Uint8Array(W * 2 * H * 2 * 4);
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const tile = y >= H / 2;
-        const rgb = [(x * 7) & 255, (y * 3) & 255, 90];
-        if (tile) map.set([...rgb, 255], (y * W + x) * 4);
-        const shown = tile ? (y * W + x) % 100 < differ ? [255 - rgb[0], 0, 0] : rgb : [10, 10, 40];
-        for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) game.set([...shown, 255], ((y * 2 + dy) * W * 2 + x * 2 + dx) * 4);
-      }
-    }
-    return { map: encodeBmp32(W, H, map), game: encodeBmp32(W * 2, H * 2, game) };
+  type Img = { width: number; height: number; rgba: Uint8Array };
+  const images = () => new Map([[TILESET, tilesetPng().image]]);
+
+  /** 맵 뷰 뽑기: 타일 레이어만 1배 (투명한 곳은 알파 0) */
+  function captureOf(map: unknown) {
+    const img = frame.renderMapRect(map, images(), RECT) as Img;
+    return encodeBmp32(img.width, img.height, img.rgba);
   }
 
-  function forestReport(plan: Plan, rect: unknown) {
+  /** 게임 화면: 배경 위에 타일을 2배로, 주인공 자리에 땅을 조금 가리는 스프라이트 하나 (12x20) */
+  function gameOf(map: unknown, opts: { skipLayer?: number; noise?: number } = {}) {
+    const tiles = frame.renderMapRect(map, images(), RECT, opts.skipLayer === undefined ? {} : { skipLayer: opts.skipLayer }) as Img;
+    const out = new Uint8Array(W * 2 * H * 2 * 4);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        let rgb = tiles.rgba[i + 3] === 255 ? [tiles.rgba[i], tiles.rgba[i + 1], tiles.rgba[i + 2]] : BACKGROUND;
+        if (x >= 186 && x < 198 && y >= 310 && y < 330) rgb = [250, 0, 250];
+        if (opts.noise && (y * W + x) % 100 < opts.noise && tiles.rgba[i + 3] === 255) rgb = [255 - rgb[0], 0, 0];
+        for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) out.set([...rgb, 255], ((y * 2 + dy) * W * 2 + x * 2 + dx) * 4);
+      }
+    }
+    return encodeBmp32(W * 2, H * 2, out);
+  }
+
+  function forestReport(plan: Plan, rect: unknown, edit: Record<string, unknown> | null = { ...planMod.FOREST_EDIT, cellBefore: 0, saved: "saved", cellAfter: planMod.FOREST_EDIT.gid }) {
     const { report } = happy(plan);
     report.projects.push(
-      projectReport("forest", [runReport({ mapCapture: { file: "x", rect, placementX: 1200 } })], { mapView: { path: "resources/maps/aldebaran_forest.json", ready: true, width: 256, height: 28, objects: 2 } }),
+      projectReport("forest", [runReport({ mapCapture: { file: "x", rect, placementX: 1200 } })], { edit, mapView: { path: "resources/maps/aldebaran_forest.json", ready: true, width: MAP_W, height: MAP_H, objects: 2 } }),
     );
     return report;
   }
 
-  it("카메라는 자리 줄에서 셈하고, 불투명한 타일 픽셀만 견준다", () => {
+  const LOG = "알데바란: 맵 ./resources/maps/aldebaran_forest.json 타일 1\n알데바란: 시작 x 1200 (y 320)\n";
+  const failuresOf = (r: Judged) => r.failures.map((f) => f.replace(/^forest 실행 1 \(process, mapFrame\): /, ""));
+
+  it("계획: 숲은 deco 레이어의 빈 하늘 칸 하나를 칠해 저장하고, 그 칸은 게임의 카메라 안이다", () => {
     const plan = forestPlan();
-    const { logs } = happy(plan);
-    const { map, game } = images(1);
-    setup(plan, forestReport(plan, { x: 1008, y: 0, width: 384, height: 448 }), { ...logs, "forest-1.log": "알데바란: 맵 ./resources/maps/aldebaran_forest.json 타일 1\n알데바란: 시작 x 1200 (y 320)\n", "forest-1.map.bmp": map, "forest-1.bmp": game });
-    const r = judge(plan);
-    expect(r.failures).toEqual([]);
-    expect(r.lines.join("\n")).toMatch(/같음 \d+ \(99\.\d+%\)/);
+    const forest = plan.projects[3];
+    expect(forest.edit).toEqual({ kind: "paintTile", map: "resources/maps/aldebaran_forest.json", layer: 1, x: 80, y: 8, gid: 36 });
+    expect(parsePlan(plan).projects[3].edit).toEqual(forest.edit);
+    const cam = frame.followCamera(1200, W, H, MAP_W * 16);
+    expect(80 * 16).toBeGreaterThanOrEqual(cam.x);
+    expect(81 * 16).toBeLessThanOrEqual(cam.x + cam.width);
   });
 
-  it("타일이 많이 다르거나 사각형이 카메라가 아니거나 맵 뷰의 오브젝트 수가 다르면 실패", () => {
+  it("통과: 카메라는 자리 줄에서 셈하고, 맵 뷰와 게임 화면, 저장한 맵으로 그린 기준이 레이어마다, 칠한 칸까지 같다", () => {
     const plan = forestPlan();
     const { logs } = happy(plan);
-    const bad = images(10);
+    const map = forestMap();
+    setup(plan, forestReport(plan, RECT), { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(map), "forest-1.bmp": gameOf(map) });
+    const r = judge(plan);
+    expect(r.failures).toEqual([]);
+    const text = r.lines.join("\n");
+    expect(text).toMatch(/PASS {2}forest 실행 1 \(process, mapFrame\): 맵 뷰의 타일 픽셀이 게임 화면과 같다 .* 같음 \d+ \(99\.\d+%\)/);
+    expect(text).toContain("PASS  forest 실행 1 (process, mapFrame): 맵 뷰가 저장한 맵을 그렸다");
+    expect(text).toMatch(/PASS {2}forest 실행 1 \(process, mapFrame\): 레이어 ground 가 게임 화면에 있다 .* \(99\.\d+%\)/);
+    // deco 만 보이는 픽셀: gid 5 여섯 칸의 오른쪽 절반(128 x 6)과 칠한 칸(256)
+    expect(text).toContain("레이어 deco 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)  1024/1024 (100.00%)");
+    expect(text).toContain("칠한 칸 (80, 8) 이 게임 화면에 있다 (칠하기 전 gid 0 와 다른 픽셀 64 개 이상, 90% 이상)  256/256 (100.00%)");
+  });
+
+  it("실패: 게임이 deco 레이어를 그리지 않으면 (맵 뷰 뽑기와의 비율은 넘어도) 레이어 검사에서 떨어진다", () => {
+    const plan = forestPlan();
+    const { logs } = happy(plan);
+    const map = forestMap();
+    setup(plan, forestReport(plan, RECT), { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(map), "forest-1.bmp": gameOf(map, { skipLayer: 1 }) });
+    const r = judge(plan);
+    // 뽑기와 게임 화면의 비율 검사는 deco 몫(1024/약 55000)이 작아 통과한다. 그것만으로는 모자랐던 이유다
+    expect(r.lines.join("\n")).toMatch(/PASS {2}forest 실행 1 \(process, mapFrame\): 맵 뷰의 타일 픽셀이 게임 화면과 같다/);
+    expect(failuresOf(r)).toEqual([
+      "레이어 deco 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)",
+      "칠한 칸 (80, 8) 이 게임 화면에 있다 (칠하기 전 gid 0 와 다른 픽셀 64 개 이상, 90% 이상)",
+    ]);
+  });
+
+  it("실패: 저장한 맵의 deco 가 비었으면(판정이 그 파일로 그린다) 레이어를 증명할 수 없고 칠한 칸도 없다", () => {
+    const plan = forestPlan(forestMap({ decoData: "empty" }));
+    const { logs } = happy(plan);
+    const map = forestMap({ decoData: "empty" });
+    setup(plan, forestReport(plan, RECT), { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(map), "forest-1.bmp": gameOf(map) });
+    expect(failuresOf(judge(plan))).toEqual([
+      "저장한 맵 파일의 칸 (80, 8) 이 gid 36 다 (레이어 deco)",
+      "레이어 deco 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)",
+      "칠한 칸 (80, 8) 이 게임 화면에 있다 (칠하기 전 gid 0 와 다른 픽셀 64 개 이상, 90% 이상)",
+    ]);
+  });
+
+  it("실패: 게임이 칠하기 전 맵을 돌렸으면 칠한 칸 검사에서 떨어진다 (저장한 파일과 맵 뷰는 칠한 것)", () => {
+    const plan = forestPlan();
+    const { logs } = happy(plan);
+    setup(plan, forestReport(plan, RECT), { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(forestMap()), "forest-1.bmp": gameOf(forestMap({ edited: false })) });
+    expect(failuresOf(judge(plan))).toEqual([
+      "레이어 deco 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)",
+      "칠한 칸 (80, 8) 이 게임 화면에 있다 (칠하기 전 gid 0 와 다른 픽셀 64 개 이상, 90% 이상)",
+    ]);
+  });
+
+  it("실패: 저장하지 못했거나(파일이 칠하기 전) 보고서에 칠하기 전 칸이 없으면", () => {
+    const plan = forestPlan(forestMap({ edited: false }));
+    const { logs } = happy(plan);
+    const map = forestMap();
+    setup(plan, forestReport(plan, RECT, { ...planMod.FOREST_EDIT, saved: "saved", cellAfter: 36 }), { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(map), "forest-1.bmp": gameOf(map) });
+    expect(failuresOf(judge(plan))).toEqual([
+      "저장한 맵 파일의 칸 (80, 8) 이 gid 36 다 (레이어 deco)",
+      "칠하기 전 칸이 gid 36 가 아니었다 (칠한 것이 그림을 바꾼다)",
+      "맵 뷰가 저장한 맵을 그렸다 (뽑기와 기준의 불투명 픽셀 99.9% 이상)",
+    ]);
+  });
+
+  it("실패: 타일이 많이 다르거나 사각형이 카메라가 아니거나 맵 뷰의 오브젝트 수가 다르거나 타일셋 그림이 없으면", () => {
+    const plan = forestPlan();
+    const { logs } = happy(plan);
+    const map = forestMap();
     const report = forestReport(plan, { x: 1000, y: 0, width: 384, height: 448 });
     (report.projects[3] as unknown as { mapView: { objects: number } }).mapView.objects = 1;
-    setup(plan, report, { ...logs, "forest-1.log": "알데바란: 시작 x 1200 → 1210\n", "forest-1.map.bmp": bad.map, "forest-1.bmp": bad.game });
-    const names = judge(plan).failures.map((f) => f.replace(/^forest 실행 1 \(process, mapFrame\): /, ""));
-    expect(names).toEqual(["맵 뷰가 맵을 열었다 (오브젝트 2개)", "뽑은 사각형이 게임의 카메라다 (x 1018)", "맵 뷰의 타일 픽셀이 게임 화면과 같다 (97% 이상, 채널마다 ±8)"]);
+    setup(plan, report, { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(map), "forest-1.bmp": gameOf(map, { noise: 20 }) });
+    expect(failuresOf(judge(plan))).toEqual([
+      "맵 뷰가 맵을 열었다 (오브젝트 2개)",
+      "뽑은 사각형이 게임의 카메라다 (x 1008)",
+      "맵 뷰의 타일 픽셀이 게임 화면과 같다 (97% 이상, 채널마다 ±8)",
+      "게임 화면이 저장한 맵의 타일과 같다 (레이어 전부, 97% 이상)",
+      "레이어 ground 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)",
+      "레이어 deco 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)",
+      "칠한 칸 (80, 8) 이 게임 화면에 있다 (칠하기 전 gid 0 와 다른 픽셀 64 개 이상, 90% 이상)",
+    ]);
+    fs.rmSync(path.join(tmp, "run-forest", TILESET));
+    expect(failuresOf(judge(plan))).toContain("저장한 맵과 타일셋으로 기준을 그린다");
+  });
+
+  it("기준 그리기: 앞 레이어부터 알파로 겹치고, 레이어를 빼거나 칸 하나를 바꿔 그린다", () => {
+    const tiles = new Uint8Array(2 * 1 * 4 * 4);
+    // 2x1 픽셀 타일 둘: gid 1 은 빨강 불투명, gid 2 는 왼쪽 파랑 반투명(128), 오른쪽 투명
+    const ts = { width: 4, height: 1, rgba: tiles };
+    tiles.set([255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 255, 128, 0, 0, 0, 0]);
+    const map = { width: 2, height: 1, tileWidth: 2, tileHeight: 1, tilesets: [{ image: "t.png", firstGid: 1, columns: 2 }], layers: [{ data: [1, 0] }, { data: [2, 2] }] };
+    const img = frame.renderMapRect(map, new Map([["t.png", ts]]), { x: 0, y: 0, width: 4, height: 1 }) as Img;
+    expect(Array.from(img.rgba)).toEqual([127, 0, 128, 255, 255, 0, 0, 255, 0, 0, 255, 128, 0, 0, 0, 0]);
+    const noTop = frame.renderMapRect(map, new Map([["t.png", ts]]), { x: 0, y: 0, width: 4, height: 1 }, { skipLayer: 1 }) as Img;
+    expect(Array.from(noTop.rgba)).toEqual([255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const cell = frame.renderMapRect(map, new Map([["t.png", ts]]), { x: 1, y: 0, width: 2, height: 1 }, { cell: { layer: 0, x: 1, y: 0, gid: 1 } }) as Img;
+    expect(Array.from(cell.rgba)).toEqual([255, 0, 0, 255, 127, 0, 128, 255]);
+    expect(() => frame.renderMapRect({ ...map, tilesets: [] }, new Map(), { x: 0, y: 0, width: 4, height: 1 })).toThrow(/타일셋이 없다/);
   });
 
   it("셈: 자리 줄과 카메라와 배율 검사", () => {

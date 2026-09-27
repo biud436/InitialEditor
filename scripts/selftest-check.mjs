@@ -9,7 +9,10 @@
 //   flappy        로그 전체에서 종료 코드 0, 오류 줄 없음, 상태 전이 셋, flappyFinal ... ticks=900 과 best >= 1
 //   tilemapPixel  종료 코드 0, 오류 줄 없음, 저장한 칸이 gid, 스크린샷의 그 칸이 표식 색이고 옆 칸은 잔디
 //   mapFrame      종료 코드 0, 오류 줄 없음, 맵 뷰가 맵의 오브젝트를 다 가졌다, 로그의 자리에서 셈한 카메라가 뽑은 사각형과
-//                 같고, 맵 뷰의 불투명한 타일 픽셀이 게임 화면과 거의 같다 (MAP_FRAME_MIN_RATIO)
+//                 같고, 맵 뷰의 불투명한 타일 픽셀이 게임 화면과 거의 같다 (MAP_FRAME_MIN_RATIO). 그리고 판정이 저장한 맵 파일과
+//                 타일셋 그림(scripts/lib/png.mjs)으로 기준을 직접 그려 견준다: 맵 뷰 뽑기가 기준과 같고, 레이어마다 그 레이어만
+//                 보이는 픽셀이 게임 화면에 있고, 계획이 칠한 칸이 저장한 파일에 있고 게임 화면에도 있다 (칠하기 전 gid 와 다른 픽셀).
+//                 게임이 레이어 하나를 빼고 그리거나 칠하기 전 맵을 돌리면 여기서 떨어진다
 // 선택 실행의 실패는 WARN 줄만. 종료 코드: 0 통과, 1 실패, 2 인자 오류.
 // BMP 읽기는 tests/e2e/support/bmp.ts (단위 시험 있음)를 Vite 의 SSR 로 읽는다.
 
@@ -17,7 +20,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { flappyChecks, exitChecks } from "./lib/flappyChecks.mjs";
-import { compareMapFrame, followCamera, MAP_FRAME_MIN_OPAQUE, MAP_FRAME_MIN_RATIO, placementX, tilemapPixelChecks } from "./lib/frameChecks.mjs";
+import { compareMapFrame, followCamera, MAP_FRAME_MIN_OPAQUE, MAP_FRAME_MIN_RATIO, placementX, referenceChecks, tilemapPixelChecks } from "./lib/frameChecks.mjs";
+import { decodePng } from "./lib/png.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "..");
@@ -123,6 +127,21 @@ function judgeTilemap(project, run, rp, note, readBmp) {
   for (const c of tilemapPixelChecks(readBmp(fs.readFileSync(shot)), edit)) note(c.name, c.ok, c.detail);
 }
 
+/** 맵의 타일셋 그림을 프로젝트 폴더에서 읽는다: image 칸 → { width, height, rgba } */
+export function loadTilesetImages(root, map) {
+  const images = new Map();
+  for (const t of map.tilesets ?? []) {
+    if (images.has(t.image)) continue;
+    const file = path.join(root, String(t.image).replace(/^\.\//, ""));
+    try {
+      images.set(t.image, decodePng(fs.readFileSync(file)));
+    } catch (e) {
+      throw new Error(`${t.image}: ${e.message}`);
+    }
+  }
+  return images;
+}
+
 function judgeMapFrame(plan, project, run, rp, rr, log, note, readBmp) {
   const spec = run.mapCapture;
   const root = projectRoot(plan, project);
@@ -137,6 +156,16 @@ function judgeMapFrame(plan, project, run, rp, rr, log, note, readBmp) {
   const view = rp.mapView;
   note(`맵 뷰가 맵을 열었다 (오브젝트 ${objects}개)`, view?.path === spec.map && view?.objects === objects && view?.width === map.width && view?.height === map.height, JSON.stringify(view ?? null));
   if (plan.showWindow) note("맵 뷰가 그릴 준비가 됐다 (WebGL)", view?.ready === true, JSON.stringify(view ?? null));
+  // 게임이 저장한 맵을 읽었는지는 계획이 칠한 칸으로 본다 (판정은 보고서가 아니라 디스크의 파일을 읽는다)
+  const edit = project.edit && project.edit.map === spec.map ? project.edit : null;
+  note("계획이 이 맵의 한 칸을 칠한다 (게임이 저장한 맵을 읽었는지 본다)", edit !== null, JSON.stringify(project.edit ?? null));
+  const cellBefore = Number.isInteger(rp.edit?.cellBefore) ? rp.edit.cellBefore : null;
+  if (edit) {
+    const layerName = map.layers?.[edit.layer]?.name ?? `#${edit.layer}`;
+    const onDisk = map.layers?.[edit.layer]?.data?.[edit.y * map.width + edit.x];
+    note(`저장한 맵 파일의 칸 (${edit.x}, ${edit.y}) 이 gid ${edit.gid} 다 (레이어 ${layerName})`, onDisk === edit.gid, `파일 ${onDisk ?? "없음"}`);
+    note(`칠하기 전 칸이 gid ${edit.gid} 가 아니었다 (칠한 것이 그림을 바꾼다)`, cellBefore !== null && cellBefore !== edit.gid, `보고서의 cellBefore ${rp.edit?.cellBefore ?? "없음"}`);
+  }
   const x = placementX(log, spec.placement);
   note("로그에 자리 줄이 있다", x !== null, spec.placement);
   if (x === null) return;
@@ -152,9 +181,10 @@ function judgeMapFrame(plan, project, run, rp, rr, log, note, readBmp) {
   if (!hasMap || !hasShot) return;
   const mapImg = readBmp(fs.readFileSync(mapFile));
   note(`뽑은 타일이 ${spec.width}x${spec.height} 다`, mapImg.width === spec.width && mapImg.height === spec.height, `${mapImg.width}x${mapImg.height}`);
+  const frame = readBmp(fs.readFileSync(shot));
   let cmp;
   try {
-    cmp = compareMapFrame(mapImg, readBmp(fs.readFileSync(shot)));
+    cmp = compareMapFrame(mapImg, frame);
   } catch (e) {
     note("게임 화면과 견준다", false, e.message);
     return;
@@ -162,6 +192,16 @@ function judgeMapFrame(plan, project, run, rp, rr, log, note, readBmp) {
   const detail = `불투명 ${cmp.opaque} (${(cmp.opaqueShare * 100).toFixed(1)}%), 같음 ${cmp.match} (${(cmp.ratio * 100).toFixed(2)}%)`;
   note(`맵 뷰의 타일이 사각형의 ${MAP_FRAME_MIN_OPAQUE * 100}% 이상을 덮는다`, cmp.opaqueShare >= MAP_FRAME_MIN_OPAQUE, detail);
   note(`맵 뷰의 타일 픽셀이 게임 화면과 같다 (${MAP_FRAME_MIN_RATIO * 100}% 이상, 채널마다 ±8)`, cmp.ratio >= MAP_FRAME_MIN_RATIO, detail, true);
+
+  // 저장한 맵으로 그린 기준: 레이어마다, 칠한 칸까지 게임 화면에 있는가
+  let checks;
+  try {
+    checks = referenceChecks({ map, images: loadTilesetImages(root, map), rect: expected, frame, capture: mapImg, edit, cellBefore });
+  } catch (e) {
+    note("저장한 맵과 타일셋으로 기준을 그린다", false, e.message);
+    return;
+  }
+  for (const c of checks) note(c.name, c.ok, c.detail, true);
 }
 
 export function parseArgs(argv) {

@@ -113,7 +113,8 @@ export interface ProjectReport {
   language: string;
   files: number;
   entryScript: { path: string; opened: boolean };
-  edit: { map: string; layer: number; x: number; y: number; gid: number; dirtyAfterPaint: boolean; saved: SaveOutcome | null; dirtyAfterSave: boolean; cellAfter: number | null } | null;
+  /** cellBefore: 칠하기 전 그 칸의 gid (판정이 칠하기 전 맵의 그림을 셈할 때 쓴다), cellAfter: 저장한 파일을 다시 읽은 칸 */
+  edit: { map: string; layer: number; x: number; y: number; gid: number; cellBefore: number | null; dirtyAfterPaint: boolean; saved: SaveOutcome | null; dirtyAfterSave: boolean; cellAfter: number | null } | null;
   mapView: { path: string; ready: boolean; error: string | null; warning: string | null; width: number; height: number; pixelWidth: number; pixelHeight: number; objects: number } | null;
   problems: string[];
   runs: RunReport[];
@@ -327,12 +328,13 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     await progress({ project: project.id, step: "edit", map: edit.map });
     const doc = await mapDocument(edit.map);
     noteMapView(edit.map, doc, await waitMapView(doc), pr);
+    const index = edit.y * doc.model.width + edit.x;
+    const cellBefore = doc.model.layers[edit.layer]?.data[index] ?? null;
     doc.setTarget({ kind: "layer", index: edit.layer });
     doc.setBrush(singleBrush(edit.gid));
     doc.apply(doc.model.paintCells(edit.layer, stamp(doc.model, doc.brush, edit.x, edit.y), "selftest-pen"));
     const dirtyAfterPaint = doc.dirty;
     const saved = await withTimeout(host.saveDocument(doc), STEP_TIMEOUT_MS, "맵 저장");
-    const index = edit.y * doc.model.width + edit.x;
     let cellAfter: number | null = null;
     try {
       const disk = JSON.parse(await host.backend.readText(edit.map)) as { layers?: Array<{ data?: number[] }> };
@@ -340,7 +342,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     } catch (e) {
       pr.problems.push(`edit_read_back: ${message(e)}`);
     }
-    pr.edit = { ...edit, dirtyAfterPaint, saved, dirtyAfterSave: doc.dirty, cellAfter };
+    pr.edit = { ...edit, cellBefore, dirtyAfterPaint, saved, dirtyAfterSave: doc.dirty, cellAfter };
     if (saved !== "saved") pr.problems.push(`edit_not_saved: ${saved}`);
     if (cellAfter !== edit.gid) pr.problems.push(`edit_cell: 저장한 칸이 ${cellAfter} 다 (기대 ${edit.gid})`);
   }
