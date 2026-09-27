@@ -1,13 +1,73 @@
-// 설정 대화상자 (도구 > 설정). 테마, 실행 방식(E4), 엔진 경로(E1 이 쓴다), 저장 시 리로드, 편집기(글꼴, 탭, 줄바꿈, 미니맵),
-// 브리지 URL(브라우저 모드). 실행 방식은 프로세스를 띄울 수 있는 백엔드(Tauri)에서만 고른다.
+// 설정 대화상자 (도구 > 설정). 테마, 실행 방식(E4), 엔진 경로(E1 이 쓴다), 찾은 엔진과 신뢰 취소(E6), 저장 시 리로드,
+// 엔진 저장소(E6 안드로이드 스테이징), 편집기(글꼴, 탭, 줄바꿈, 미니맵), 브리지 URL(브라우저 모드).
+// 실행 방식은 프로세스를 띄울 수 있는 백엔드(Tauri)에서만 고른다.
 
 import { EDITOR_FONT_SIZE_RANGE, type RunMode, type ThemePreference } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
+import { foundEngineText } from "../editor/about";
 import type { Editor } from "../editor/Editor";
 import { useEditor } from "../editor/EditorContext";
 
 const TAB_SIZES = [2, 4, 8];
+
+/** 찾은 엔진 한 줄과, 열린 프로젝트가 가리키는 엔진에 대한 답(신뢰 취소, 다시 묻기) */
+export const FoundEngineRow = observer(function FoundEngineRow() {
+  const editor = useEditor();
+  const runner = editor.runner;
+  const trust = runner.trustRecord;
+  const found = foundEngineText(runner, editor.project.isOpen);
+  return (
+    <div className="form-row">
+      <label>찾은 엔진</label>
+      <div data-testid="settings-found-engine">{found}</div>
+      {trust && (
+        <div className="form-help" data-testid="settings-engine-trust">
+          이 프로젝트가 가리키는 엔진: {trust.allow ? "실행 허용" : "실행하지 않음"} ({trust.exes.join(", ")}){" "}
+          <button type="button" className="btn btn-ghost" onClick={() => void (trust.allow ? runner.revokeTrust() : runner.askTrustAgain())} data-testid="settings-engine-trust-reset">
+            {trust.allow ? "신뢰 취소" : "다시 묻기"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
+
+/** 안드로이드 스테이징의 엔진 저장소 (E6 6.3) 와, 열린 프로젝트에서 허용한 스테이징 스크립트의 신뢰 취소 */
+export const EngineRepoRow = observer(function EngineRepoRow() {
+  const editor = useEditor();
+  const settings = editor.settings;
+  const root = editor.project.isOpen ? editor.project.root : null;
+  const trust = root ? settings.settings.androidTrust[root] : undefined;
+  const revoke = () => {
+    if (!root) return;
+    const rest = { ...settings.settings.androidTrust };
+    delete rest[root];
+    settings.update({ androidTrust: rest });
+  };
+  return (
+    <div className="form-row">
+      <label htmlFor="settings-engine-repo">엔진 저장소</label>
+      <input
+        id="settings-engine-repo"
+        className="input"
+        value={settings.settings.engineRepoPath}
+        placeholder="비우면 자동 탐색 (열린 프로젝트, 찾은 엔진의 저장소, 형제 폴더)"
+        onChange={(e) => settings.update({ engineRepoPath: e.target.value })}
+        data-testid="settings-engine-repo"
+      />
+      <div className="form-help">안드로이드로 스테이징이 쓴다 (android/prepare_assets.sh 가 있는 Initial2D 체크아웃)</div>
+      {trust?.allow && (
+        <div className="form-help" data-testid="settings-android-trust">
+          이 프로젝트에서 허용한 스테이징 스크립트: {trust.exes.join(", ")}{" "}
+          <button type="button" className="btn btn-ghost" onClick={revoke} data-testid="settings-android-trust-reset">
+            신뢰 취소
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
 
 const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () => void }) {
   const editor = useEditor();
@@ -48,9 +108,11 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
         </div>
         <div className="form-row">
           <label htmlFor="settings-engine">엔진 경로</label>
-          <input id="settings-engine" className="input" value={s.enginePath} placeholder="비우면 자동 탐색 (../Initial2D/build/Initial2D)" onChange={(e) => update({ enginePath: e.target.value })} />
+          <input id="settings-engine" className="input" value={s.enginePath} placeholder="비우면 자동 탐색 (프로젝트의 build/, 앱에 든 엔진, 형제 폴더)" onChange={(e) => update({ enginePath: e.target.value })} />
           <div className="form-help">프로세스 실행이 쓴다</div>
         </div>
+        {canSpawn && <FoundEngineRow />}
+        {canSpawn && <EngineRepoRow />}
         <div className="form-row">
           <label htmlFor="settings-reload">저장 시 리로드</label>
           <label className="checkbox">
