@@ -4,7 +4,10 @@
 //               칠해지지 않고 도구가 그대로 돈다). 같은 맵에서 고르기(뷰가 그 맵에 머물고 도구가 이어진다). Tab 으로 단추에 가고
 //               Enter 로 시작, Esc 와 맵 밖 누름은 바꾼 것 없이 돌아온다. 고르는 동안 원래 탭을 닫으면 바꾸지 않고 끝난다.
 //               막는 이유(맵 미지정, 등록되지 않은 맵, 맵 파일 없음, 엔진이 열 수 없는 맵, x, y 미지정, 잠긴 스키마).
+//               대상 보기를 막는 x, y 의 이유(2^53을 넘는 정수, 음수, 소수, 여관 크기 밖, 한쪽만 미지정).
 //               대상 보기는 여관을 열고 10,12 타일을 뷰 가운데에 둔다 (이미 열린 탭도).
+//               1280x600 과 1024x480 에서 띠 아래의 타일도 고를 수 있다 (띠의 글 위 누름이 맵으로 간다. 취소 단추는 취소).
+//               고르는 동안 한 글자 도구 단축키(b, c, n)는 도구와 대상을 바꾸지 않고, Esc 뒤에도 이벤트 인스펙터가 남는다.
 //   브리지 모드: 엔진 저장소의 사본(resources 에서 rtp 와 zip 빼고, scripts)을 브리지로 열고 여관에서 고른 뒤 저장해 디스크의 글을 본다.
 
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -258,6 +261,147 @@ test.describe("맵 이동의 대상 고르기 (메모리 모드)", () => {
     await expect(pick).toBeDisabled();
     await expect(reveal).toBeEnabled();
     await expect(notes).toHaveText([/^맵에서 고르기: 읽기 전용: event-commands\.json 의 버전 2/]);
+  });
+
+  test("대상 보기를 막는 x, y 의 이유: 2^53을 넘는 정수, 음수, 소수, 여관(20x14) 밖, 한쪽만 미지정", async ({ page }) => {
+    await openRpgProject(page);
+    await ev(page, "(e, a) => e.backend.writeText(a.path, a.text)", { path: INN, text: readFileSync(path.join(FIXTURES, INN), "utf8") });
+    await expect.poll(() => ev<string | null>(page, MAP_PROBLEM, INN)).toBe(null);
+    // 2^53을 넘는 정수는 JSON 글에 숫자 그대로 넣는다 (맵 문서가 표식 글로 읽는다)
+    const cases: Array<[Cmd, string]> = [
+      [{ code: "transfer", map: "inn", x: "BIG_X", y: 3 }, "x 값이 맵 범위 밖: 12345678901234567890 (너비 20)"],
+      [{ code: "transfer", map: "inn", x: 2, y: -1 }, "y 값이 음수: -1"],
+      [{ code: "transfer", map: "inn", x: 1.5, y: 3 }, "x 값이 정수가 아님: 1.5"],
+      [{ code: "transfer", map: "inn", x: 20, y: 3 }, "x 값이 맵 범위 밖: 20 (너비 20)"],
+      [{ code: "transfer", map: "inn", x: 3, y: 14 }, "y 값이 맵 범위 밖: 14 (높이 14)"],
+      [{ code: "transfer", map: "inn", y: 3 }, "x 미지정"],
+      [{ code: "transfer", map: "inn" }, "x, y 미지정"],
+      [{ code: "transfer", map: "inn", x: 19, y: 13 }, ""],
+    ];
+    const first = await ev<number>(
+      page,
+      `async (e, a) => {
+        const map = JSON.parse(await e.backend.readText(a.path));
+        const notice = map.events.find((x) => x.id === "notice");
+        const first = notice.commands.length + 1;
+        notice.commands.push(...a.commands);
+        await e.backend.writeText(a.path, (JSON.stringify(map, null, 2) + "\\n").replace('"BIG_X"', "12345678901234567890"));
+        return first;
+      }`,
+      { path: PORT, commands: cases.map(([c]) => c) },
+    );
+    await openMap(page, PORT, "port_town.json");
+    await selectEvent(page, "notice");
+    const pick = page.getByTestId("rpg-location-pick");
+    const reveal = page.getByTestId("rpg-location-reveal");
+    const notes = page.getByTestId("rpg-location-note");
+    for (const [k, [, reason]] of cases.entries()) {
+      await openCommand(page, first + k);
+      await expect(pick).toBeEnabled();
+      if (reason === "") {
+        await expect(notes).toHaveCount(0);
+        await expect(reveal).toBeEnabled();
+        continue;
+      }
+      await expect(notes).toHaveText([`대상 보기: ${reason}`]);
+      await expect(reveal).toBeDisabled();
+      await expect(reveal).toHaveAttribute("title", reason);
+    }
+  });
+
+  for (const size of [
+    { width: 1280, height: 600 },
+    { width: 1024, height: 480 },
+  ]) {
+    test(`띠 아래의 타일 (${size.width}x${size.height}): 띠의 글 위 누름은 그 아래 타일을 고르고, 취소 단추는 취소다`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await openWithInn(page);
+      await selectEvent(page, "inn_door");
+      await openCommand(page, 2);
+      const view = page.getByTestId("map-view");
+      const start = async () => {
+        await page.getByTestId("rpg-location-pick").click();
+        await expect.poll(() => activePath(page)).toBe(INN);
+        await expect(view).toHaveAttribute("data-ready", "true");
+        await expect(view).toHaveAttribute("data-picking", "true");
+        await expect(page.getByTestId("map-pick-prompt")).toHaveText(PROMPT);
+      };
+      await start();
+      // 여관(20x14)이 캔버스를 덮게 확대하고 가운데 타일을 뷰 가운데에 둔다: 띠 아래에 여관의 타일이 있다
+      await ev(page, "(e) => { const r = [...e.mapSupport.renderers.get(e.documents.active)][0]; r.setZoom(3); r.centerOn({ x: 160, y: 112 }); }");
+      await expect(view).toHaveAttribute("data-zoom", "3");
+      const prompt = (await page.getByTestId("map-pick-prompt").boundingBox())!;
+      const at = { x: prompt.x + prompt.width / 2, y: prompt.y + prompt.height / 2 };
+      const canvas = (await view.locator("canvas").boundingBox())!;
+      const zoom = Number(await view.getAttribute("data-zoom"));
+      const panX = Number(await view.getAttribute("data-pan-x"));
+      const panY = Number(await view.getAttribute("data-pan-y"));
+      const cell = { x: Math.floor((at.x - canvas.x - panX) / zoom / 16), y: Math.floor((at.y - canvas.y - panY) / zoom / 16) };
+      expect(cell.x >= 0 && cell.x < 20 && cell.y >= 0 && cell.y < 14, `띠 아래의 타일 ${cell.x},${cell.y} 은 여관 안`).toBe(true);
+      expect(cell).not.toEqual({ x: 10, y: 12 });
+      // 누른 점은 띠 안이고 캔버스 안이다 (띠가 그 타일을 가린다)
+      const banner = (await page.getByTestId("map-pick-banner").boundingBox())!;
+      expect(at.y).toBeGreaterThan(canvas.y);
+      expect(at.y).toBeLessThan(banner.y + banner.height);
+      await page.mouse.click(at.x, at.y);
+      await expect.poll(() => activePath(page)).toBe(PORT);
+      expect(await ev<string | null>(page, "(e) => e.mapSupport.picker.lastEnd")).toBe("picked");
+      expect((await commandsOf(page, "inn_door"))![1]).toEqual({ code: "transfer", map: "inn", x: cell.x, y: cell.y, dir: "up" });
+
+      // 취소 단추는 누름을 받아 취소한다
+      await start();
+      await page.getByTestId("map-pick-cancel").click();
+      await expect.poll(() => activePath(page)).toBe(PORT);
+      expect(await ev<string | null>(page, "(e) => e.mapSupport.picker.lastEnd")).toBe("cancel");
+      expect((await commandsOf(page, "inn_door"))![1]).toEqual({ code: "transfer", map: "inn", x: cell.x, y: cell.y, dir: "up" });
+    });
+  }
+
+  test("고르는 동안 한 글자 도구 단축키는 도구와 대상을 바꾸지 않고, Esc 뒤에도 이벤트 인스펙터가 남는다", async ({ page }) => {
+    await openWithInn(page);
+    const view = page.getByTestId("map-view");
+    const toolAndTarget = async () => [await view.getAttribute("data-tool"), await view.getAttribute("data-target")];
+
+    // 같은 맵에서 고르기: 항구 마을의 대상은 이벤트 레이어다
+    await selectEvent(page, "notice");
+    const n = await appendCommands(page, "notice", [{ code: "transfer", map: "port_town", x: 1, y: 1 }]);
+    await openCommand(page, n);
+    const before = await toolAndTarget();
+    expect(before[1]).toBe("ext:rpg.events");
+    await page.getByTestId("rpg-location-pick").click();
+    await expect(view).toHaveAttribute("data-picking", "true");
+    await expect(view.locator(".map-view-host")).toBeFocused();
+    for (const key of ["b", "c", "v", "n"]) {
+      await page.keyboard.press(key);
+      expect(await toolAndTarget(), key).toEqual(before);
+    }
+    await expect(view).toHaveAttribute("data-picking", "true");
+    await page.keyboard.press("Escape");
+    await expect(view).toHaveAttribute("data-picking", "false");
+    expect(await toolAndTarget()).toEqual(before);
+    await expect(page.getByTestId("rpg-inspector-id")).toHaveText("notice");
+    await expect(page.getByTestId("rpg-cmd-form-path")).toHaveText(new RegExp(`\\.commands\\[${n}\\]$`));
+    expect((await commandsOf(page, "notice"))!.at(-1)).toEqual({ code: "transfer", map: "port_town", x: 1, y: 1 });
+
+    // 다른 맵에서 고르기: 여관의 도구와 대상도 그대로다
+    await selectEvent(page, "inn_door");
+    await openCommand(page, 2);
+    await page.getByTestId("rpg-location-pick").click();
+    await expect.poll(() => activePath(page)).toBe(INN);
+    await expect(view).toHaveAttribute("data-picking", "true");
+    const innBefore = await toolAndTarget();
+    for (const key of ["b", "c", "n", "r"]) {
+      await page.keyboard.press(key);
+      expect(await toolAndTarget(), key).toEqual(innBefore);
+    }
+    await page.keyboard.press("Escape");
+    await expect.poll(() => activePath(page)).toBe(PORT);
+    await expect(page.getByTestId("rpg-inspector-id")).toHaveText("inn_door");
+    expect(await view.getAttribute("data-target")).toBe("ext:rpg.events");
+    // 고르기가 끝나면 단축키가 다시 돈다
+    await view.locator(".map-view-host").focus();
+    await page.keyboard.press("b");
+    await expect(view).toHaveAttribute("data-tool", "pen");
   });
 
   test("대상 보기: 여관을 열고 10,12 타일을 뷰 가운데에 둔다. 이미 열린 탭도 다시 옮긴다", async ({ page }) => {
