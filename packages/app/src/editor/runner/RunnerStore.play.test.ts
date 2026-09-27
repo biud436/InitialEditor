@@ -158,7 +158,7 @@ describe("프로세스 실행: 실행 제공자의 plan.env 가 RunSpec.env 에 
     expect(t.commands.isEnabled(EVENT_PLAY_COMMAND_IDS.probe)).toBe(true);
     await t.commands.execute(EVENT_PLAY_COMMAND_IDS.probe);
     expect(t.specs.map((s) => s.env)).toEqual([
-      { INITIAL2D_HMR: "1", ...BASE, INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_STATE: "arrived,item:shell=1", INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "up" },
+      { INITIAL2D_HMR: "1", ...BASE, INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_STATE: "arrived,item:shell=1", INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "up", INITIAL2D_RPG_HOLD: "inn_door" },
     ]);
   });
 

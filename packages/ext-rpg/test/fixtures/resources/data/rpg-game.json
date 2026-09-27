@@ -40,7 +40,9 @@
     },
     "probe": {
       "INITIAL2D_AUTOPLAY": "1",
-      "INITIAL2D_RPG_ROUTE": "{route}"
+      "INITIAL2D_RPG_ROUTE": "{route}",
+      "INITIAL2D_RPG_HOLD": "{event}",
+      "INITIAL2D_RPG_TRACE": "1"
     }
   }
 }

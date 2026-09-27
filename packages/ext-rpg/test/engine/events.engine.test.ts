@@ -11,7 +11,7 @@
 //   5. trace 줄로 본다: 선 자리와 방향, 대사 순서와 분기 결과, rpg:route:done, rpg:error 없음
 // 판 다섯: 말 걸기(action), 밟기(touch 와 transfer 의 x, y, dir), auto 둘이 차례로, 시작 상태 arrived,
 // 여기서 실행(고른 이벤트 앞, 경로 없이 유한 실행). 그리고 자동 재생을 앱의 러너처럼 지켜보는 판 둘: 씬을 바꾸는 배(ship)는
-// 새 게임으로 다시 시작하는 자리에서 멈추고, 배회하는 kid 는 이벤트가 돌지 않았으면 실패로 알린다.
+// 새 게임으로 다시 시작하는 자리에서 멈추고, 배회하는 kid 는 play.probe 의 INITIAL2D_RPG_HOLD 로 제자리에 서서 이벤트까지 돈다.
 // 그리고 대조 셋: 저장한 transfer 에서 x, y, dir 을 하나씩 빼면 둘째 판의 도착 검사가 실패하는지 본다.
 // 엔진 실행 파일이 없거나 M2 전 엔진이면 "SKIP: 이유" 한 줄을 찍고 통과한다 (완료 기준은 건너뛰지 않은 실행 기록을 요구한다).
 
@@ -588,17 +588,18 @@ if (skipReason !== null) {
     check("[6] rpg:error 가 없다", !lines.some((l) => l.startsWith("rpg:error")), lines);
   });
 
-  it("[7] 배회하는 NPC(kid)의 자동 재생: 이벤트가 돌지 않고 끝나면 성공이 아니라 실패로 알린다", async () => {
+  it("[7] 배회하는 NPC(kid)의 자동 재생: play.probe 의 INITIAL2D_RPG_HOLD 로 제자리에 서서 이벤트가 돌고, 돌지 않고 끝나면 실패로 알린다", async () => {
     const i = section.indexOfId("kid");
     check("[7] 항구 마을에 배회하는 kid 가 있다", i >= 0 && field(section.list[i], "wander") !== undefined);
     const plan = probeRequestEnv(i);
-    check("[7] 계획의 설명이 배회를 알린다", (plan.note ?? "").includes("배회"), plan.note);
+    check("[7] 실행 변수가 kid 를 세운다 (INITIAL2D_RPG_HOLD=kid)", plan.env.INITIAL2D_RPG_HOLD === "kid", plan.env);
+    check("[7] 세운 이벤트라 설명에 배회의 까닭이 없다", !(plan.note ?? "").includes("배회"), plan.note);
     const run = await runWatched(plan.env, plan.watch!());
     const lines = run.lines;
     const ran = lines.includes("rpg:event:kid");
     console.log(`[7] rc=${String(run.status)} kid 가 ${ran ? "돌았다" : "돌지 않았다"}, 알림: ${String(run.failure)}\n  ${lines.join("\n  ")}`);
     check("[7] 경로를 다 걷고 스스로 끝난다", run.status === 0 && lines[lines.length - 1] === "rpg:route:done" && run.stopped === undefined, lines.slice(-3));
-    check("[7] 이벤트가 돌지 않았으면 실패를 알리고, 돌았으면 알리지 않는다", ran ? run.failure === undefined : (run.failure ?? "").includes("kid 이(가) 돌지 않았다"), { ran, failure: run.failure });
+    check("[7] kid 의 이벤트가 돌고(rpg:event:kid) 실패 알림이 없다", ran && run.failure === undefined, { ran, failure: run.failure, lines });
     // 같은 줄로 다시: 줄에 rpg:event:kid 를 넣으면 알림이 없다 (지켜보는 것이 줄을 본다는 대조)
     const replay = plan.watch!();
     for (const l of lines) replay.line(l);

@@ -51,7 +51,7 @@ function drawnMarkers(page: Page): Promise<Drawn[]> {
 }
 
 const SIGN_TEXT = '어서 오세요.\n"항구 마을" 입니다.';
-/** 배회하는 이벤트(kid)의 자동 재생 설명 */
+/** 배회하는 이벤트의 자동 재생 설명. 엔진의 play.probe 가 INITIAL2D_RPG_HOLD 로 그 이벤트를 세우면 붙지 않는다 */
 const WANDER_NOTE = "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다";
 
 test.describe("RPG 이벤트 (메모리 모드)", () => {
@@ -203,9 +203,10 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     const base = { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg", INITIAL2D_MAP: "port_town", INITIAL2D_RPG_TRACE: "1", INITIAL2D_RPG_STATE: "arrived,heardAltar" };
     const probe = { INITIAL2D_AUTOPLAY: "1" };
     // 자동 재생은 러너가 게임의 줄을 지켜보게 한다 (watch)
-    await expect.poll(() => runStarts(page)).toEqual([{ env: { ...base, ...probe, INITIAL2D_RPG_AT: "14,21,up", INITIAL2D_RPG_ROUTE: "talk" }, watch: "function" }]);
+    await expect.poll(() => runStarts(page)).toEqual([{ env: { ...base, ...probe, INITIAL2D_RPG_AT: "14,21,up", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" }, watch: "function" }]);
     const logs = await editorLogTexts(page);
-    expect(logs.some((l) => l.startsWith(`이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, ${WANDER_NOTE}, 시작 상태 arrived,heardAltar) INITIAL2D_SCRIPT=lua`))).toBe(true);
+    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, 시작 상태 arrived,heardAltar) INITIAL2D_SCRIPT=lua")), logs.join("\n")).toBe(true);
+    expect(logs.some((l) => l.includes(WANDER_NOTE))).toBe(false);
 
     // 맵 메뉴: 이 이벤트 앞에서 실행 (자동 재생 변수 없이)
     await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).click();
@@ -221,7 +222,7 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     await panel.getByTestId("rpg-events-menu-probe").click();
     await expect(panel.getByTestId("rpg-events-menu")).toHaveCount(0);
     await expect.poll(async () => (await runStarts(page)).length).toBe(3);
-    expect((await runStarts(page))[2]).toEqual({ env: { ...base, ...probe, INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_ROUTE: "up" }, watch: "function" });
+    expect((await runStarts(page))[2]).toEqual({ env: { ...base, ...probe, INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_ROUTE: "up", INITIAL2D_RPG_HOLD: "inn_door" }, watch: "function" });
 
     // 여기서 실행(Ctrl+F5): 고른 이벤트(여관 문)의 앞, 자동 재생 변수 없이. rpgPlay 가 기본 제공자(샘플의 play)보다 먼저다
     await host.focus();
@@ -319,7 +320,8 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     // game.json 은 mruby 지만 RPG 실행은 play.env 의 lua 로 뜬다
     const logs = await editorLogTexts(page);
     expect(logs.some((l) => /^엔진 시작: 에디터 안 \(웹 엔진, [^)]*\), 언어 lua /.test(l)), logs.join("\n")).toBe(true);
-    expect(logs.some((l) => l.startsWith(`이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, ${WANDER_NOTE}, 시작 상태 arrived,heardAltar)`))).toBe(true);
+    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, 시작 상태 arrived,heardAltar)")), logs.join("\n")).toBe(true);
+    expect(logs.some((l) => l.includes(WANDER_NOTE))).toBe(false);
     // 이벤트가 돌았으니 지켜보는 것이 실패를 알리지 않는다
     expect(logs.some((l) => l.includes("돌지 않았다")), logs.join("\n")).toBe(false);
     const shot = process.env.RPG_EVENTS_SCREENSHOT;

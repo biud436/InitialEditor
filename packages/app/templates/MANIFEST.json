@@ -2,7 +2,7 @@
   "comment": "scripts/sync-engine-templates.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 경로, to 는 새 프로젝트 안의 경로",
   "source": "checkout",
   "syncCommand": "yarn sync:templates",
-  "engineCommit": "cdaf1eeea90c12d639be9bb817bab3ebbb92f0e9",
+  "engineCommit": "ef00946666e35f48bc522aaa48828180aab5224b",
   "syncedAt": "2026-09-27",
   "files": [
     {

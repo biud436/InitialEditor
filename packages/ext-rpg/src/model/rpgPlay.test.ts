@@ -130,9 +130,9 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect(eventPlay(sources, doc, i, "play")).toEqual({ env: { ...BASE, ...at }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞, 시작 상태 arrived" });
     const { watch, ...probe } = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(probe).toEqual({
-      env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk" },
+      env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" },
       at: { x: 14, y: 21 },
-      note: "이벤트 kid 앞에서 말 걸기, 배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다, 시작 상태 arrived",
+      note: "이벤트 kid 앞에서 말 걸기, 시작 상태 arrived",
     });
     // 자동 재생은 러너가 지켜본다 (실행마다 새로 만든다)
     expect(typeof watch).toBe("function");
@@ -145,7 +145,7 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const door = eventPlay(sources, doc, indexOf(doc, "inn_door"), "probe") as PlayPlan;
     expect(door.env).toMatchObject({ INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_ROUTE: "up" });
     const { watch, ...arrival } = eventPlay(sources, doc, indexOf(doc, "arrival"), "probe") as PlayPlan;
-    expect(arrival).toEqual({ env: { ...BASE, INITIAL2D_MAP: "port_town", INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "" }, at: null, note: "auto 이벤트 arrival: 맵에 들어올 때 돈다" });
+    expect(arrival).toEqual({ env: { ...BASE, INITIAL2D_MAP: "port_town", INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "", INITIAL2D_RPG_HOLD: "arrival" }, at: null, note: "auto 이벤트 arrival: 맵에 들어올 때 돈다" });
     expect(typeof watch).toBe("function");
     const st = stateOf(doc);
     const i = indexOf(doc, "bench");
@@ -177,13 +177,16 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
       w.line("rpg:map:port_town events:17 skipped:0");
       return w.exit?.(0) ?? "";
     };
+    // 엔진의 play.probe 는 {event} 로 이 이벤트를 세운다 (INITIAL2D_RPG_HOLD)
+    const game = sources.game!;
+    expect(game.play!.probe.INITIAL2D_RPG_HOLD).toBe("{event}");
+    const { INITIAL2D_RPG_HOLD: _hold, ...unheld } = game.play!.probe;
+    sources.set({ game: { ...game, play: { ...game.play!, probe: unheld } } });
     const loose = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(loose.env).not.toHaveProperty("INITIAL2D_RPG_HOLD");
     expect(loose.note).toBe(`이벤트 kid 앞에서 말 걸기, ${WANDER}`);
     expect(failure(loose)).toContain("배회하는 이벤트라");
-    // play.probe 가 {event} 로 이 이벤트를 세운다 (엔진의 INITIAL2D_RPG_HOLD)
-    const game = sources.game!;
-    sources.set({ game: { ...game, play: { ...game.play!, probe: { ...game.play!.probe, INITIAL2D_RPG_HOLD: "{event}" } } } });
+    sources.set({ game });
     const held = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(held.env.INITIAL2D_RPG_HOLD).toBe("kid");
     expect(held.note).toBe("이벤트 kid 앞에서 말 걸기");
@@ -229,7 +232,7 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect(EVENT_PLAY_LABELS).toEqual({ play: "이 이벤트 앞에서 실행", probe: "이 이벤트 자동 재생" });
     // 앞의 이벤트를 지우면 번호가 바뀌어도 kid 를 찾는다
     st.run((ed) => ed.removeEvents([0]));
-    expect((req.plan(doc) as PlayPlan).note).toBe("이벤트 kid 앞에서 말 걸기, 배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다");
+    expect((req.plan(doc) as PlayPlan).note).toBe("이벤트 kid 앞에서 말 걸기");
     st.run((ed) => ed.removeEvents([st.section.indexOfId("kid")]));
     expect(req.plan(doc)).toBe("이벤트 kid 이(가) 이 맵에 없다");
   });

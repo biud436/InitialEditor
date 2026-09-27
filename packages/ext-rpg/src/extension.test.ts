@@ -222,7 +222,7 @@ describe("rpgExtension 의 실행", () => {
     expect([probe, play]).toEqual([
       {
         label: "이 이벤트 자동 재생",
-        plan: { env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk" }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞에서 말 걸기, 배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다, 시작 상태 arrived" },
+        plan: { env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞에서 말 걸기, 시작 상태 arrived" },
         watch: "function",
       },
       { label: "이 이벤트 앞에서 실행", plan: { env: { ...BASE, ...at }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞, 시작 상태 arrived" }, watch: "undefined" },
