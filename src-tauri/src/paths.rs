@@ -4,8 +4,15 @@
 // 프런트가 이미 정규화했더라도 믿지 않고 여기서 다시 검사한다.
 
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use crate::error::{BackendError, Result};
+
+/// 바꿔 치우는(원자적 쓰기의 rename) 순간의 파일을 canonicalize 하면 Windows 는 지워진 옛 파일의 자리
+/// (`\\?\C:\$Extend\$Deleted\...`)나 접근 거부를 돌려줄 수 있다. 루트 밖이나 거부로 나오면 이만큼 다시 본다.
+/// 다른 OS 의 realpath 는 경로로 풀어 이런 순간이 없다
+const REPLACE_RACE_RETRIES: u32 = if cfg!(windows) { 20 } else { 0 };
+const REPLACE_RACE_WAIT: Duration = Duration::from_millis(5);
 
 /// "./a//b/../c\\d" → "a/c/d". 루트는 "". 절대 경로(`/x`, `C:\x`)와 루트 밖(`../x`)은 outside_root.
 pub fn normalize_rel(input: &str) -> Result<String> {
@@ -50,8 +57,19 @@ pub fn resolve(root: &Path, rel: &str) -> Result<(String, PathBuf)> {
 /// 존재하는 가장 가까운 조상까지 realpath 를 구해 루트 안인지 본다 (브리지 서버의 assertInsideRoot 와 같다).
 fn assert_inside_root(root: &Path, abs: &Path, rel: &str) -> Result<()> {
     let mut probe = abs.to_path_buf();
+    let mut retries = REPLACE_RACE_RETRIES;
     loop {
-        match std::fs::canonicalize(&probe) {
+        let found = std::fs::canonicalize(&probe);
+        let settled = match &found {
+            Ok(real) => real == root || real.starts_with(root),
+            Err(e) => e.kind() != std::io::ErrorKind::PermissionDenied,
+        };
+        if !settled && retries > 0 {
+            retries -= 1;
+            std::thread::sleep(REPLACE_RACE_WAIT);
+            continue;
+        }
+        match found {
             Ok(real) => {
                 return if real == root || real.starts_with(root) {
                     Ok(())

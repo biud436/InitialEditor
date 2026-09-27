@@ -286,21 +286,22 @@ pub fn python_candidates(env: &dyn Fn(&str) -> Option<String>, windows: bool) ->
     dedupe(out, windows)
 }
 
-/// 같은 자리는 처음 것만. Windows 는 대소문자와 구분자를 가리지 않는다
+/// 같은 자리는 처음 것만. Windows 후보는 대소문자와 구분자를 가리지 않는다. 그 밖에는 경로를 구성 요소로 견준다
+/// ("/usr//bin/python3" 와 "/usr/bin/python3" 는 같은 자리다. Windows 에서 돌면 join 이 붙인 "\" 도 구분자다)
 fn dedupe(paths: Vec<PathBuf>, windows: bool) -> Vec<PathBuf> {
     let mut seen = std::collections::HashSet::new();
-    paths
-        .into_iter()
-        .filter(|p| {
-            let key = p.to_string_lossy();
-            let key = if windows {
-                key.replace('\\', "/").to_lowercase()
-            } else {
-                key.into_owned()
-            };
-            seen.insert(key)
-        })
-        .collect()
+    let mut out: Vec<PathBuf> = Vec::new();
+    for p in paths {
+        let fresh = if windows {
+            seen.insert(p.to_string_lossy().replace('\\', "/").to_lowercase())
+        } else {
+            !out.contains(&p)
+        };
+        if fresh {
+            out.push(p);
+        }
+    }
+    out
 }
 
 fn system_env(name: &str) -> Option<String> {
@@ -530,6 +531,16 @@ mod tests {
         assert_eq!(
             unix.iter()
                 .filter(|p| **p == PathBuf::from("/usr/bin/python3"))
+                .count(),
+            1
+        );
+        // 같은 자리를 다르게 적어도 한 번 ("//", 그리고 Windows 에서 돌면 join 이 붙인 "\")
+        let doubled = python_candidates(&env_of(&[("PATH", "/usr//bin")]), false);
+        assert_eq!(doubled[0], PathBuf::from("/usr//bin/python3"));
+        assert_eq!(
+            doubled
+                .iter()
+                .filter(|p| p.as_path() == Path::new("/usr/bin/python3"))
                 .count(),
             1
         );

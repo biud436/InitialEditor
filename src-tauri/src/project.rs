@@ -14,7 +14,9 @@ use std::time::{Duration, Instant, UNIX_EPOCH};
 use serde::Serialize;
 
 use crate::error::{BackendError, ErrorCode, Result};
-use crate::fsutil::{hash_bytes, lock, write_atomic};
+use crate::fsutil::{
+    hash_bytes, is_transient_lock, lock, retry_transient, write_atomic, READ_RETRY,
+};
 use crate::paths::{parent_rel, resolve};
 
 #[derive(Debug, Clone, Serialize)]
@@ -212,7 +214,9 @@ impl ProjectFs {
                 norm,
             ));
         }
-        fs::read(&abs).map_err(|e| BackendError::io(&e, Some(&norm)))
+        // Windows 는 바꿔 치우는 순간의 읽기를 잠깐 거부할 수 있다 (fsutil.rs)
+        retry_transient(READ_RETRY, is_transient_lock, || fs::read(&abs))
+            .map_err(|e| BackendError::io(&e, Some(&norm)))
     }
 
     pub fn read_text(&self, rel: &str) -> Result<String> {
