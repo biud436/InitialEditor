@@ -1,9 +1,10 @@
 // 맵 이동의 대상 고르기와 대상 보기 (locationPick.ts, e5 문서 4절): 단추의 막는 이유(맵 미지정, 등록되지 않은 맵, 맵 파일 없음,
-// 엔진이 열 수 없는 맵, 잠금, x, y 미지정, 맵 뷰 없음), 고르기의 흐름(한 명령, 원래 맵의 스택, 커맨드로 초점, 취소, 원래 맵이 닫힘,
+// 엔진이 열 수 없는 맵, 잠금, x, y 미지정, 맵 뷰 없음), 대상 보기의 x, y 판정(정수가 아님, 음수, 맵 범위 밖), 고르기의 흐름(한 명령, 원래 맵의 스택, 커맨드로 초점, 취소, 원래 맵이 닫힘,
 // 고르는 동안 바뀐 이벤트, 같은 값), 같은 맵에서 고르기, 대상 보기.
 import { NO_MAP_VIEWS } from "@initial-editor/ext-tilemap";
 import { runInAction } from "mobx";
 import { describe, expect, it } from "vitest";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { field } from "../model/json";
 import { FakeMapViews, fixtureSources, INN, layerHarness, PORT_TOWN, stateOf } from "../testing/layerHarness";
 import { LocationPicker, PICK_PROMPT } from "./locationPick";
@@ -47,11 +48,12 @@ describe("단추의 막는 이유", () => {
     const reasons = (map: unknown) => t.picker.blockers(t.st, { ...t.transfer(), map });
     expect(reasons("")).toEqual({ pick: "맵 미지정", reveal: "맵 미지정" });
     expect(reasons(undefined)).toEqual({ pick: "맵 미지정", reveal: "맵 미지정" });
+    expect(reasons(3)).toEqual({ pick: "맵 인자는 문자열이어야 함", reveal: "맵 인자는 문자열이어야 함" });
     expect(reasons("forest")).toEqual({ pick: "rpg-game.json 에 등록되지 않은 맵: forest", reveal: "rpg-game.json 에 등록되지 않은 맵: forest" });
     expect(reasons("village").pick).toBe("맵 파일 없음: resources/maps/village.json");
     t.sources.mapChecks.set("resources/maps/room.json", { kind: "invalid", reason: "타일셋이 없다" });
     expect(reasons("room")).toEqual({ pick: "엔진이 열 수 없는 맵: 타일셋이 없다", reveal: "엔진이 열 수 없는 맵: 타일셋이 없다" });
-    t.sources.mapChecks.set("resources/maps/inn.json", { kind: "ok", images: ["resources/tiles/none.png"] });
+    t.sources.mapChecks.set("resources/maps/inn.json", { kind: "ok", images: ["resources/tiles/none.png"], width: 20, height: 14 });
     expect(reasons("inn").pick).toBe("엔진이 열 수 없는 맵: 타일셋 그림 없음 (resources/tiles/none.png)");
   });
 
@@ -61,9 +63,49 @@ describe("단추의 막는 이유", () => {
     expect(b.pick).toMatch(/^읽기 전용: RTP 판과 기본 판/);
     expect(b.reveal).toBeUndefined();
     const t = setup();
-    expect(t.picker.blockers(t.st, { ...t.transfer(), x: undefined })).toEqual({ pick: undefined, reveal: "x, y 미지정" });
+    expect(t.picker.blockers(t.st, { ...t.transfer(), x: undefined, y: undefined })).toEqual({ pick: undefined, reveal: "x, y 미지정" });
+    expect(t.picker.blockers(t.st, { ...t.transfer(), x: undefined })).toEqual({ pick: undefined, reveal: "x 미지정" });
     runInAction(() => (t.views.blocked = NO_MAP_VIEWS));
     expect(t.picker.blockers(t.st, t.transfer())).toEqual({ pick: NO_MAP_VIEWS, reveal: NO_MAP_VIEWS });
+  });
+});
+
+describe("대상 보기의 x, y (대상 맵 inn 은 20x14)", () => {
+  const big = bigIntValue("12345678901234567890");
+  const cases: Array<[string, Record<string, unknown>, string | undefined]> = [
+    ["맵 안의 끝 타일", { x: 19, y: 13 }, undefined],
+    ["2.0 은 정수", { x: 2.0, y: 0 }, undefined],
+    ["2^53을 넘는 정수", { x: big, y: 1 }, "x 값이 맵 범위 밖: 12345678901234567890 (너비 20)"],
+    ["음의 큰 정수", { x: 1, y: bigIntValue("-12345678901234567890") }, "y 값이 음수: -12345678901234567890"],
+    ["음수", { x: -1, y: 2 }, "x 값이 음수: -1"],
+    ["소수", { x: 1.5, y: 2 }, "x 값이 정수가 아님: 1.5"],
+    ["너비 밖", { x: 20, y: 0 }, "x 값이 맵 범위 밖: 20 (너비 20)"],
+    ["높이 밖", { x: 0, y: 14 }, "y 값이 맵 범위 밖: 14 (높이 14)"],
+    ["수가 아닌 값", { x: "3", y: true }, 'x 값이 수가 아님: "3", y 값이 수가 아님: true'],
+    ["y 만 없음", { x: 3, y: undefined }, "y 미지정"],
+    ["x 는 없고 y 는 밖", { x: undefined, y: 99 }, "x 미지정, y 값이 맵 범위 밖: 99 (높이 14)"],
+  ];
+  for (const [what, xy, reveal] of cases) {
+    it(`${what}: ${reveal ?? "대상 보기 가능"}`, () => {
+      const t = setup();
+      expect(t.picker.blockers(t.st, { ...t.transfer(), ...xy })).toEqual({ pick: undefined, reveal });
+    });
+  }
+
+  it("맵 크기를 모르면 범위 끝은 보지 않지만 2^53을 넘는 정수는 범위 밖이다", () => {
+    const t = setup();
+    t.sources.mapSize = () => undefined;
+    expect(t.picker.blockers(t.st, { ...t.transfer(), x: 500, y: 500 })).toEqual({ pick: undefined, reveal: undefined });
+    expect(t.picker.blockers(t.st, { ...t.transfer(), x: big, y: 1 }).reveal).toBe("x 값이 맵 범위 밖: 12345678901234567890");
+  });
+
+  it("범위 밖의 x, y 로는 대상 보기를 부르지 않고 이유를 알린다. 고르기는 된다", async () => {
+    const t = setup();
+    t.setTransfer({ x: 25, y: 4 });
+    expect(await t.picker.reveal(t.st, t.door, TRANSFER)).toBe(false);
+    expect(t.notified).toEqual(["x 값이 맵 범위 밖: 25 (너비 20)"]);
+    expect(t.views.reveals).toEqual([]);
+    expect(t.picker.blockers(t.st, t.transfer()).pick).toBeUndefined();
   });
 });
 
@@ -162,7 +204,7 @@ describe("대상 보기", () => {
     const t = setup();
     expect(await t.picker.reveal(t.st, t.door, TRANSFER)).toBe(true);
     expect(t.views.reveals).toEqual([[INN, { x: 10, y: 12 }]]);
-    t.setTransfer({ x: undefined });
+    t.setTransfer({ x: undefined, y: undefined });
     expect(await t.picker.reveal(t.st, t.door, TRANSFER)).toBe(false);
     expect(t.notified).toEqual(["x, y 미지정"]);
     expect(t.views.reveals).toHaveLength(1);

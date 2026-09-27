@@ -3,7 +3,8 @@
 // 엄격한 곳(레이어와 타일셋이 비면 안 되고 collision 키가 있으면 칸 수가 맞아야 한다)이 모두 엔진 그대로다.
 // 타일셋 그림이 있는지는 파일 시스템을 봐야 하므로 부르는 쪽이 tilesetImages 로 받아 확인한다.
 
-export type EngineMapCheck = { ok: true; images: string[] } | { ok: false; reason: string };
+/** 받아들이면 타일셋 그림(프로젝트 기준)과 맵 크기(칸, jsoncpp 의 asInt 로 읽은 값) */
+export type EngineMapCheck = { ok: true; images: string[]; width: number; height: number } | { ok: false; reason: string };
 
 function isIntegral(v: unknown): v is number {
   return typeof v === "number" && Number.isInteger(v);
@@ -39,7 +40,7 @@ export function projectPathOf(image: string): string {
 }
 
 /**
- * 엔진의 Tilemap::load 가 이 글을 받아들이는지. 받아들이면 타일셋 그림 경로(프로젝트 기준)를 돌려준다.
+ * 엔진의 Tilemap::load 가 이 글을 받아들이는지. 받아들이면 타일셋 그림 경로(프로젝트 기준)와 맵 크기를 돌려준다.
  * 이유 글은 엔진의 오류와 같은 뜻의 한국어다
  */
 export function checkEngineMap(text: string): EngineMapCheck {
@@ -89,5 +90,5 @@ export function checkEngineMap(text: string): EngineMapCheck {
     }
     images.push(projectPathOf(image));
   }
-  return { ok: true, images };
+  return { ok: true, images, width: width!, height: height! };
 }

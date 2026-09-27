@@ -17,7 +17,7 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import { bareProjectPath, GAME_CONFIG_MISSING, GAME_CONFIG_PATH, parseGameConfig, parseItemTable, type GameConfig, type ItemTable } from "./model/game";
 import { asList, field, parseJsonLossless } from "./model/json";
 import type { RpgSources } from "./model/layer";
-import { checkMapFile, mapFileProblem, type MapFileCheck } from "./model/location";
+import { checkMapFile, mapFileProblem, mapSizeOf, type MapFileCheck, type MapSize } from "./model/location";
 import { PLAY_MEMORY_PATH, readPlayMemory, writePlayMemory } from "./model/play";
 import { EVENT_SCHEMA_PATH, parseEventSchema, schemaLockReason, type EventSchema } from "./model/schema";
 import { defFileIds } from "./model/validate";
@@ -124,6 +124,11 @@ export class RpgProjectStore implements RpgSources {
     const exists = this.fileExists;
     const imageExists = exists ? (p: string) => !(p === FILES_ROOT || p.startsWith(`${FILES_ROOT}/`)) || exists(p) : null;
     return mapFileProblem(key, this.mapChecks.get(key), imageExists);
+  }
+
+  /** 등록된 맵 파일의 크기 (칸). 엔진이 열 수 없거나 아직 모르면 undefined */
+  mapSize(path: string): MapSize | undefined {
+    return mapSizeOf(this.mapChecks.get(bareProjectPath(path)));
   }
 
   startState(mapPath: string): string {

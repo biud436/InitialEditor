@@ -137,8 +137,11 @@ describe("바뀐 파일", () => {
     expect(store.mapFileProblem("resources/maps/village.json")).toBeNull();
     // resources 밖의 그림은 파일 목록이 모르므로 있다고 본다
     await m.backend.writeText("resources/maps/village.json", JSON.stringify({ ...inn, tilesets: [{ image: "art/tiles.png", firstGid: 1, columns: 8 }] }));
-    await vi.waitFor(() => expect(store.mapChecks.get("resources/maps/village.json")).toEqual({ kind: "ok", images: ["art/tiles.png"] }));
+    await vi.waitFor(() => expect(store.mapChecks.get("resources/maps/village.json")).toEqual({ kind: "ok", images: ["art/tiles.png"], width: inn.width, height: inn.height }));
     expect(store.mapFileProblem("resources/maps/village.json")).toBeNull();
+    // 엔진이 열 수 있는 맵만 크기를 안다
+    expect(store.mapSize("./resources/maps/village.json")).toEqual({ width: inn.width, height: inn.height });
+    expect(store.mapSize("resources/maps/room.json")).toBeUndefined();
     await m.backend.remove("resources/maps/inn.json");
     await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/inn.json")).toBe("맵 파일 없음: resources/maps/inn.json"));
     m.close();

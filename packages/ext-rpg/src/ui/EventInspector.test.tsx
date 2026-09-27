@@ -419,7 +419,11 @@ describe("맵 이동의 대상 (맵에서 고르기, 대상 보기)", () => {
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "inn", x: undefined })));
     expect(button("rpg-location-pick").disabled).toBe(false);
     expect(button("rpg-location-reveal").disabled).toBe(true);
-    expect(notes()).toEqual(["대상 보기: x, y 미지정"]);
+    expect(notes()).toEqual(["대상 보기: x 미지정"]);
+    act(() => void t.st.run((ed) => ed.setArgs(i, P, { x: 30 })));
+    expect(button("rpg-location-reveal").disabled).toBe(true);
+    expect(button("rpg-location-reveal").title).toBe("x 값이 맵 범위 밖: 30 (너비 20)");
+    expect(notes()).toEqual(["대상 보기: x 값이 맵 범위 밖: 30 (너비 20)"]);
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "" })));
     expect(notes()).toEqual(["맵 미지정"]);
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "forest", x: 1 })));

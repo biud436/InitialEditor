@@ -8,7 +8,7 @@ import { action, makeObservable, observable } from "mobx";
 import type { GameConfig, ItemTable } from "../model/game";
 import { field } from "../model/json";
 import { EVENTS_LAYER_ID, eventsLayerCore, eventsStateOf, type EventsLayerState, type RpgSources } from "../model/layer";
-import { mapFileProblem, type MapFileCheck } from "../model/location";
+import { checkMapFile, mapFileProblem, mapSizeOf, type MapFileCheck, type MapSize } from "../model/location";
 import { eventPlayBlocked, mapEventsOf, type EventPlayMode } from "../model/rpgPlay";
 import type { EventSchema } from "../model/schema";
 import type { MapViewsPort } from "../ui/locationPick";
@@ -41,7 +41,7 @@ export class MutableSources implements RpgStoreView {
   items: ItemTable | null = fixtureItems();
   files: Set<string> | null = new Set(HARNESS_FILES);
   defs = new Map<string, ReadonlySet<string>>();
-  /** 맵 파일의 엔진 판정. 없는 경로는 파일 목록에 있으면 ok, 없으면 missing */
+  /** 맵 파일의 엔진 판정. 없는 경로는 파일 목록에 있으면 mapText 의 글로 판정하고, 없으면 missing */
   readonly mapChecks = observable.map<string, MapFileCheck>({}, { deep: false });
   readonly memory = new Map<string, string>();
   /** setStartState 로 쓴 것 */
@@ -72,9 +72,16 @@ export class MutableSources implements RpgStoreView {
     return files ? (p: string) => files.has(p.replace(/^\.\//, "")) : null;
   }
 
+  private mapCheck(path: string): MapFileCheck {
+    return this.mapChecks.get(path) ?? (this.files?.has(path) ? checkMapFile({ kind: "text", text: mapText(path) }) : { kind: "missing" });
+  }
+
   mapFileProblem(path: string): string | null | undefined {
-    const check = this.mapChecks.get(path) ?? (this.files?.has(path) ? { kind: "ok" as const, images: [] } : { kind: "missing" as const });
-    return mapFileProblem(path, check, this.fileExists);
+    return mapFileProblem(path, this.mapCheck(path), this.fileExists);
+  }
+
+  mapSize(path: string): MapSize | undefined {
+    return mapSizeOf(this.mapCheck(path));
   }
 
   defIds(path: string): ReadonlySet<string> | null {
