@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyEngineLine, parseErrorLinks, parseHotReloadCount } from "./errorLinks";
+import { classifyEngineLine, isScriptErrorLine, parseErrorLinks, parseHotReloadCount } from "./errorLinks";
 
 // 아래 줄들은 엔진을 헤드리스로 돌려 받아 적은 것이다 (errorLinks.ts 머리 주석).
 describe("parseErrorLinks", () => {
@@ -87,6 +87,7 @@ describe("classifyEngineLine", () => {
       "HotReload: reload failed — restart the app",
       "mruby: cannot open ./scripts/ruby/main.rb",
       "Error: 파일을 읽지 못했다",
+      "fatal: C++ 예외 std::bad_alloc: std::bad_alloc",
     ]) {
       expect(classifyEngineLine(line), line).toBe("error");
     }
@@ -104,6 +105,39 @@ describe("classifyEngineLine", () => {
     expect(classifyEngineLine("HotReload: listening on 127.0.0.1:5959 (tools/hmr_push.py)")).toBe("info");
     expect(classifyEngineLine("샘플 프로젝트 시작")).toBe("info");
     expect(classifyEngineLine("")).toBe("info");
+  });
+});
+
+describe("isScriptErrorLine", () => {
+  it("스크립트가 멈췄다고 알리는 첫 줄 (엔진이 찍는 형식). 모두 콘솔에서도 오류 줄이다", () => {
+    for (const line of [
+      "Lua error in update: ./scripts/lua/main.lua:23: boom in update",
+      "Lua error in init: (no message)",
+      "Lua error in scripts/lua/main.lua: ./scripts/lua/main.lua:1: unexpected symbol near '='",
+      "mruby: uncaught exception in update",
+      "PANIC: unprotected error in call to Lua API (./scripts/lua/main.lua:3: attempt to index a nil value (local 't'))",
+      "mruby: this build has no mruby. Install it (brew install mruby) and run cmake again,",
+      "script restart failed: std::runtime_error: boom",
+    ]) {
+      expect(isScriptErrorLine(line), line).toBe(true);
+      expect(classifyEngineLine(line), line).toBe("error");
+    }
+  });
+
+  it("역추적 줄, 자원 줄, 리로드 알림, 게임이 찍은 글은 아니다", () => {
+    for (const line of [
+      "trace (most recent call last):",
+      "\t[1] scripts/ruby/main.rb:8:in update",
+      "scripts/ruby/main.rb:2:in boom: undefined method 'bar' for NilClass (NoMethodError)",
+      "mruby: cannot open ./scripts/ruby/main.rb",
+      "HotReload: reload failed (web, script error), scripts stopped until the next reload",
+      "Error: 파일을 읽지 못했다",
+      "errors: 0, Lua error in update 는 없었다",
+      "INFO: Lua error in update",
+      "",
+    ]) {
+      expect(isScriptErrorLine(line), line).toBe(false);
+    }
   });
 });
 

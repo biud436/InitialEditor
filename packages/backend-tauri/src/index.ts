@@ -213,7 +213,7 @@ class TauriRunHandle implements RunHandle {
 
 export class TauriBackend implements ProjectBackend {
   readonly kind = "tauri" as const;
-  readonly capabilities: BackendCapabilities = { run: true, pickFolder: true, watch: true };
+  readonly capabilities: BackendCapabilities = { run: true, pickFolder: true, watch: true, hmr: true };
 
   private readonly changeHandlers = new Set<(e: ChangeEvent) => void>();
   private changeListener: Promise<UnlistenFn> | null = null;

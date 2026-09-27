@@ -24,6 +24,7 @@ import { makeObservable, observable, runInAction } from "mobx";
 import { matchMediaSource, ThemeController, type SystemThemeSource, type ThemeTarget } from "../theme/ThemeController";
 import { registerAppCommands } from "./appCommands";
 import { registerAppMenus } from "./appMenus";
+import { installGameView, type GameViewStore } from "./gameView";
 import { installRunner } from "./runner";
 import type { RunnerStore } from "./runner/RunnerStore";
 import { installScriptSupport } from "./scripting";
@@ -90,6 +91,8 @@ export class Editor {
   readonly events = new Emitter<{ documentSaved: Document; documentReloaded: Document; projectOpened: ProjectInfo; projectClosed: void }>();
   /** E1: 엔진 실행기 (installRunner 가 붙인다) */
   runner!: RunnerStore;
+  /** E4: 게임 탭의 웹 엔진 (installGameView 가 붙인다: 에디터 안 실행) */
+  gameView!: GameViewStore;
   /** E1: 스크립트 편집 지원 (installScriptSupport 가 붙인다) */
   scripting!: ScriptSupport;
   /** E2: 씬 뷰 (installSceneSupport 가 붙인다: 씬 문서 열기와 PIXI 씬 뷰) */
@@ -159,6 +162,7 @@ export class Editor {
     installSceneSupport(this); // 스크립트 지원 뒤에: openPath 를 바깥에서 감싸 resources/scenes/*.json 을 먼저 가로챈다
     installMapSupport(this); // 가장 바깥에서 resources/maps/*.json 을 가로챈다
     installSceneTools(this);
+    this.disposers.push(installGameView(this)); // 실행기보다 먼저: 실행기가 에디터 안 실행을 받는다
     installRunner(this);
     installMapSchema(this);
     try {

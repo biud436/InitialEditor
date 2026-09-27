@@ -2,7 +2,8 @@
 // 메모리 백엔드(?backend=memory)라 서버가 필요 없다. 샘플 프로젝트에는 resources/schema/map-objects.json과
 // 오브젝트 셋(start, slime_1, sign_1)이 든 resources/maps/sample.json이 있다.
 // 흐름: 맵 열기 → 묶음과 수 → 몬스터 고르기와 종 바꾸기 → 순찰 범위 → 흔적 추가 → 여러 줄 한글 글 저장 →
-//       겹치는 id 거부 → 삭제와 되돌리기 → 뒤집힌 범위의 검사 결과 → 여기서 실행은 브라우저 모드에서 꺼져 있다.
+//       겹치는 id 거부 → 삭제와 되돌리기 → 뒤집힌 범위의 검사 결과 → 여기서 실행은 브라우저 모드에서도 켜져 있다
+//       (에디터 안 게임 탭에서 돈다. 실제 실행은 game-view.spec.ts).
 // 둘째 테스트: 스키마의 play.maps에 맞지 않는 맵에서도 여기서 실행은 켜져 있고, 툴팁에 이유가 있으며, 누르면(Ctrl+F5)
 // 띄우지 않고 이유를 토스트와 콘솔로 알린다 (러너는 감싸서 띄운 척한다).
 
@@ -11,7 +12,6 @@ import { captureRunStarts, restoreRunner, runStarts } from "./support/editorPage
 
 const LAYOUT_KEY = "initial-editor.layout";
 const MAP_PATH = "resources/maps/sample.json";
-const BROWSER_NO_RUN = "브라우저 모드에서는 엔진을 띄울 수 없다";
 
 type MapObjectLike = { id: string; type: string; x: number; y: number; width?: number; props: Record<string, unknown> };
 type EditorLike = {
@@ -197,15 +197,16 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     await problem.click();
     await expect(inspector).toHaveAttribute("data-object", "slime_1");
 
-    // 여기서 실행: 브라우저 모드에서는 꺼져 있고 이유가 툴팁에 있다. Ctrl+F5(run.fromScene)도 맵에서는 같은 이유다
+    // 여기서 실행: 브라우저 모드에서도 켜져 있다 (에디터 안 게임 탭에서 돈다). Ctrl+F5(run.fromScene)도 맵에서는 여기서 실행이다
     const branch = (await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).count()) > 0 ? "맵" : "실행";
     await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
     const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
-    await expect(playHere).toBeDisabled();
-    await expect(playHere).toHaveAttribute("title", BROWSER_NO_RUN);
+    await expect(playHere).toBeEnabled();
     await page.keyboard.press("Escape");
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere")])).toEqual([false, BROWSER_NO_RUN]);
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene"), e.commandLabel("run.fromScene")])).toEqual([false, BROWSER_NO_RUN, "여기서 실행 (맵)"]);
+    // 켜져 있으면 안내는 위치를 정하는 규칙이다 (objectTools/rules.ts 의 PLAY_POSITION_RULE)
+    const rule = "위치는 하나만 고른 오브젝트 (순찰 범위가 있으면 왼끝에서 48px 왼쪽, 16 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서로 정하고 맵 안으로 자른다";
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere") ?? "(없음)"])).toEqual([true, rule]);
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, rule, "여기서 실행 (맵)"]);
   });
 
   test("여기서 실행: 스키마의 play.maps에 맞지 않는 맵은 누르면 띄우지 않고 이유를 알리며, 맞는 맵은 그 맵으로 띄운다", async ({ page }) => {

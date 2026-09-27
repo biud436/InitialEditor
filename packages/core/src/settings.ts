@@ -5,12 +5,18 @@ import { action, makeObservable, observable, toJS } from "mobx";
 
 export type ThemePreference = "system" | "dark" | "light";
 
+/** 실행 방식. process 는 엔진 실행 파일을 띄우고, embedded 는 웹 엔진(WASM)을 에디터의 게임 뷰에서 돌린다 (E4) */
+export type RunMode = "process" | "embedded";
+export const RUN_MODES: readonly RunMode[] = ["process", "embedded"];
+
 export interface EditorSettings {
   theme: ThemePreference;
   /** 엔진 실행 파일. 비우면 자동 탐색 (E1) */
   enginePath: string;
   /** 스크립트 저장 시 핫 리로드 push */
   reloadOnSave: boolean;
+  /** 실행 방식. 프로세스를 띄우지 못하는 백엔드(브라우저)는 이 값과 상관없이 embedded 다 */
+  runMode: RunMode;
   /** 최근 프로젝트 (Tauri 는 폴더 경로, 브리지는 URL). 앞이 최신 */
   recentProjects: string[];
   /** 브라우저 모드의 브리지 URL */
@@ -29,6 +35,7 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   theme: "system",
   enginePath: "",
   reloadOnSave: true,
+  runMode: "process",
   recentProjects: [],
   bridgeUrl: "http://127.0.0.1:5960",
   editorFontSize: 13,
@@ -77,6 +84,7 @@ export class SettingsStore {
   update(patch: Partial<EditorSettings>, persist = true): void {
     const next: EditorSettings = { ...this.settings, ...patch };
     if (!["system", "dark", "light"].includes(next.theme)) next.theme = "system";
+    if (!RUN_MODES.includes(next.runMode)) next.runMode = DEFAULT_SETTINGS.runMode;
     if (!Array.isArray(next.recentProjects)) next.recentProjects = [];
     next.editorFontSize = clampInt(next.editorFontSize, EDITOR_FONT_SIZE_RANGE.min, EDITOR_FONT_SIZE_RANGE.max, DEFAULT_SETTINGS.editorFontSize);
     next.editorTabSize = clampInt(next.editorTabSize, EDITOR_TAB_SIZE_RANGE.min, EDITOR_TAB_SIZE_RANGE.max, DEFAULT_SETTINGS.editorTabSize);

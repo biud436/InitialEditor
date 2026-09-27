@@ -1,5 +1,7 @@
 // 메모리 백엔드: 테스트와 스토리북용 ProjectBackend. 규칙(루트 밖 거부, 변경 알림, 정렬은 호출자)은
 // 진짜 백엔드와 같게 유지한다. 적합성 테스트(backend-bridge/test/conformance)가 이것도 돌린다.
+// 메모리 모드와 웹판의 "샘플로 해 보기"도 이것을 쓴다. 엔진이 없으므로 capabilities.hmr은 false이고(hmrPush는
+// 테스트가 보도록 받은 묶음을 pushed 에 남길 뿐이다), 쓴 것은 이 페이지에만 있으므로 volatileWrites로 센다.
 
 import {
   BackendError,
@@ -14,18 +16,21 @@ import {
   type RunSpec,
 } from "../backend";
 import { Emitter } from "../events";
-import { dirname, normalizeRel } from "../paths";
+import { dirname, isInside, normalizeRel } from "../paths";
+import { EDITOR_DIR } from "../project";
 import { decodeUtf8, encodeUtf8 } from "../utf8";
 
 export class MemoryBackend implements ProjectBackend {
   readonly kind = "bridge" as const;
-  readonly capabilities: BackendCapabilities = { run: false, pickFolder: false, watch: true };
+  readonly capabilities: BackendCapabilities = { run: false, pickFolder: false, watch: true, hmr: false };
   readonly files = new Map<string, Uint8Array>();
   readonly dirs = new Set<string>();
   private root: string | null = null;
   private readonly events = new Emitter<{ change: ChangeEvent }>();
   /** hmrPush 로 받은 묶음 (테스트가 본다) */
   readonly pushed: HmrFile[][] = [];
+  /** 이번 세션에 프로젝트에 쓴 횟수 (.initial-editor/ 아래는 빼고). 처음 파일과 밖의 변경 흉내는 세지 않는다 */
+  volatileWrites = 0;
 
   constructor(initial: Record<string, string | Uint8Array> = {}) {
     for (const [path, data] of Object.entries(initial)) {
@@ -49,6 +54,11 @@ export class MemoryBackend implements ProjectBackend {
     } catch (e) {
       throw new BackendError((e as Error).message, "outside_root", rel);
     }
+  }
+
+  /** 쓴 것을 센다. 에디터 자신의 상태(레이아웃 등, 브라우저 저장소에도 남는다)는 세지 않는다 */
+  private noteWrite(rel: string): void {
+    if (!isInside(EDITOR_DIR, rel)) this.volatileWrites++;
   }
 
   async open(root: string): Promise<ProjectInfo> {
@@ -95,6 +105,7 @@ export class MemoryBackend implements ProjectBackend {
     if (p === "" || this.dirs.has(p)) throw new BackendError(`폴더에는 쓸 수 없다: ${p}`, "io", p);
     const existed = this.files.has(p);
     this.put(p, data);
+    this.noteWrite(p);
     this.events.emit("change", { path: p, kind: existed ? "modify" : "create", origin: "self" });
   }
 
@@ -106,6 +117,7 @@ export class MemoryBackend implements ProjectBackend {
       this.dirs.add(d);
       d = dirname(d);
     }
+    this.noteWrite(p);
     this.events.emit("change", { path: p, kind: "create", origin: "self" });
   }
 
@@ -113,12 +125,14 @@ export class MemoryBackend implements ProjectBackend {
     const p = this.check(rel);
     if (p === "") throw new BackendError("루트는 지울 수 없다", "io", p);
     if (this.files.delete(p)) {
+      this.noteWrite(p);
       this.events.emit("change", { path: p, kind: "delete", origin: "self" });
       return;
     }
     if (!this.dirs.has(p)) throw new BackendError(`없다: ${p}`, "not_found", p);
     for (const f of [...this.files.keys()]) if (f.startsWith(p + "/")) this.files.delete(f);
     for (const d of [...this.dirs]) if (d === p || d.startsWith(p + "/")) this.dirs.delete(d);
+    this.noteWrite(p);
     this.events.emit("change", { path: p, kind: "delete", origin: "self" });
   }
 
@@ -142,6 +156,7 @@ export class MemoryBackend implements ProjectBackend {
     } else {
       throw new BackendError(`없다: ${from}`, "not_found", from);
     }
+    if (!isInside(EDITOR_DIR, from) || !isInside(EDITOR_DIR, to)) this.volatileWrites++;
     this.events.emit("change", { path: from, kind: "delete", origin: "self" });
     this.events.emit("change", { path: to, kind: "create", origin: "self" });
   }

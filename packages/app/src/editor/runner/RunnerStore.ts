@@ -5,6 +5,10 @@
 //
 // 동시에 하나만 띄운다. 실행 중에 start 를 부르면 재시작이다. 정지는 백엔드가 SIGTERM 뒤 시간 제한을 두고 강제
 // 종료하고(src-tauri/src/engine.rs), 여기서는 종료 이벤트가 오지 않아도 일정 시간 뒤 상태를 정리한다.
+//
+// 실행 방식은 둘이다 (settings.runMode). process 는 위의 엔진 프로세스, embedded 는 웹 엔진을 에디터의 게임 탭에서
+// 돌린다 (E4, gameView/GameViewStore.ts 가 EmbeddedEngine 을 구현한다). 프로세스를 띄우지 못하는 백엔드(브라우저)는
+// 늘 embedded 다. 게임 탭의 세션도 RunHandle 이라 출력, 종료, 정지는 두 방식이 같은 길을 쓴다.
 
 import {
   BackendError,
@@ -15,9 +19,11 @@ import {
   type Project,
   type ProjectBackend,
   type RunHandle,
+  type RunMode,
   type SettingsStore,
 } from "@initial-editor/core";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
+import { errorText } from "../gameView/errorText";
 import { ENGINE_FILE, ENGINE_SOURCE_LABELS, engineCandidates, type EngineCandidate, type EngineSource } from "./engineCandidates";
 import { collectHmrFiles } from "./hmrCollect";
 
@@ -32,6 +38,38 @@ export interface RunnerHost {
   readonly platform: Platform;
 }
 
+/** 에디터 안 리로드의 결과 */
+export interface EmbeddedReload {
+  /** 다시 올린 파일 수 */
+  count: number;
+  /** 스크립트 오류로 VM 이 다시 뜨지 못했다 (오류 줄은 이미 콘솔에 있고 엔진은 계속 돈다) */
+  scriptsFailed: boolean;
+  /** 게임이 끝났거나 끝나는 중이라(reload 밖의 스크립트 오류가 종료를 요청해 두었다) 올리지 않았다 */
+  dropped?: boolean;
+}
+
+/** 에디터 안 실행 (게임 탭의 웹 엔진) */
+export interface EmbeddedEngine {
+  /** 웹 엔진의 기능 ("lua", "mruby", "wasm"). engine/MANIFEST.json 에서 읽는다 */
+  loadFeatures(): Promise<string[]>;
+  /** 게임 탭을 열고 파일을 올리고 엔진을 띄운다. 그만두면 name 이 AbortError 인 오류를 던진다 */
+  launch(opts: { env: Record<string, string> }): Promise<RunHandle>;
+  /** 시작 중(파일 올리는 중)이면 그만둔다 */
+  abort(): void;
+  /**
+   * paths(없으면 scripts 와 씬과 맵 전부)를 다시 올리고 VM 을 다시 시작한다. 게임이 끝났거나 끝나는 중이면 올리지 않고
+   * dropped 로 답한다. 엔진이 예외로 죽으면 던진다
+   */
+  reload(paths?: readonly string[]): Promise<EmbeddedReload>;
+  /**
+   * launch가 돌려준 실행의 엔진이 프레임을 하나 이상 돌았고 끝나는 중이 아니면 true, 그 전에 끝나거나 끝나는 중이면 false.
+   * 시작 스크립트나 첫 프레임의 오류는 루프에 종료를 요청해 두므로, 그 뒤에 올린 고침은 받아들여지고도 게임이 끝난다
+   */
+  whenStepped(handle: RunHandle): Promise<boolean>;
+  /** 상태 바 툴팁 (웹 엔진의 기능과 커밋) */
+  readonly description: string | null;
+}
+
 export interface RunnerOptions {
   /** `exe --features` 를 부른다 (Tauri 의 engineFeatures). 없으면 엔진을 찾지 못한다 */
   probe?: (exe: string) => Promise<string[]>;
@@ -40,6 +78,27 @@ export interface RunnerOptions {
   /** 정지 뒤 종료 이벤트를 기다리는 시간 */
   stopTimeoutMs?: number;
   now?: () => number;
+  /** 에디터 안 실행. 없으면 process 만 있다 */
+  embedded?: EmbeddedEngine;
+}
+
+export interface ReloadOptions {
+  /** 저장 시 리로드 (SaveReloader). 브리지 너머에 엔진이 없으면(연결 거부) 토스트 없이 한 줄만 남긴다 */
+  fromSave?: boolean;
+}
+
+/** 엔진을 띄우지 못하는 백엔드로 프로젝트를 열 때 콘솔에 남기는 안내. 수동 리로드는 밖의 엔진으로 보낼 길이 있을 때만 적는다 */
+export function browserRunNotice(canPush: boolean): string {
+  const run = "브라우저 모드: 실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다.";
+  return canPush
+    ? `${run} 터미널에서 INITIAL2D_HMR=1 로 띄운 엔진에는 수동 리로드(Ctrl+Shift+R)가 간다`
+    : `${run} 밖에서 띄운 엔진으로는 보내지 않고, 저장한 파일은 게임 탭이 돌 때 다시 읽는다`;
+}
+
+/** 브리지가 전한 핫 리로드 실패가 엔진 쪽 포트의 연결 거부인가 (엔진이 떠 있지 않다) */
+export function isHmrRefused(e: unknown): boolean {
+  const err = e as BackendError | null;
+  return err?.code === "hmr_unreachable" && /ECONNREFUSED|connection refused/i.test(err.message ?? "");
 }
 
 export interface StartOptions {
@@ -50,7 +109,13 @@ export interface StartOptions {
 }
 
 export const NO_MRUBY = "이 엔진 빌드에는 mruby 가 없다";
+export const WASM_NO_MRUBY = "이 웹 엔진 빌드에는 mruby 가 없다. game.json 의 script 를 lua 로 바꾸거나, mruby 를 넣은 웹 빌드를 yarn sync:engine-web 으로 가져오거나, 실행 방식을 프로세스로";
+export const EMBEDDED_HINT = "에디터 안 게임 탭에서 돈다 (웹 엔진)";
+export const RUN_MODE_LABELS: Record<RunMode, string> = { process: "프로세스", embedded: "에디터 안" };
 export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
+export const HMR_NO_ENGINE_SKIPPED = "엔진이 떠 있지 않아 리로드를 건너뛰었다";
+export const START_ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
+export const ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다";
 const LOG_SOURCE = "runner";
 const DEFAULT_STOP_TIMEOUT_MS = 4000;
 
@@ -65,6 +130,12 @@ export function formatElapsed(ms: number): string {
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
   return h > 0 ? `${pad2(h)}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
+}
+
+/** 덧씌운 환경 변수를 로그 한 줄로: ", A=1 B=2" */
+function envSuffix(env: Record<string, string> | undefined, open = ", ", close = ""): string {
+  if (!env || Object.keys(env).length === 0) return "";
+  return `${open}${Object.entries(env).map(([k, v]) => `${k}=${v}`).join(" ")}${close}`;
 }
 
 export class RunnerStore {
@@ -85,16 +156,23 @@ export class RunnerStore {
   lastReload: { count: number; at: number } | null = null;
   /** 경과 시간 표시용. 실행 중 1초마다 갱신 */
   now: number;
+  /** 지금(또는 마지막) 실행의 방식. 실행 중에 설정을 바꿔도 이것은 그대로다 */
+  activeMode: RunMode | null = null;
 
   private readonly probe: ((exe: string) => Promise<string[]>) | null;
   private readonly unavailableText: string;
   private readonly stopTimeoutMs: number;
   private readonly clock: () => number;
+  private readonly embedded: EmbeddedEngine | null;
   private ticker: ReturnType<typeof setInterval> | null = null;
   private startPromise: Promise<void> | null = null;
   private lastStart: StartOptions = {};
   private resolveToken = 0;
   private exitWaiters: Array<() => void> = [];
+  /** 에디터 안 엔진이 뜨는 중에 들어온 리로드. 첫 프레임을 돈 뒤 한 번에 올린다 ("all" 은 scripts 와 씬과 맵 전부) */
+  private queuedReload: Set<string> | "all" | null = null;
+  /** 떴지만 아직 첫 프레임을 돌지 않은 에디터 안 실행. 그동안의 리로드도 모은다 */
+  private awaitingFrame: RunHandle | null = null;
 
   constructor(
     private readonly host: RunnerHost,
@@ -104,6 +182,7 @@ export class RunnerStore {
     this.unavailableText = opts.unavailableReason ?? "이 백엔드는 엔진을 띄우지 못한다";
     this.stopTimeoutMs = opts.stopTimeoutMs ?? DEFAULT_STOP_TIMEOUT_MS;
     this.clock = opts.now ?? (() => Date.now());
+    this.embedded = opts.embedded ?? null;
     this.now = this.clock();
     makeObservable(this, {
       state: observable,
@@ -118,16 +197,25 @@ export class RunnerStore {
       resolving: observable,
       lastReload: observable.ref,
       now: observable,
+      activeMode: observable,
+      mode: computed,
+      shownMode: computed,
+      modeHint: computed,
+      embeddedRunning: computed,
+      embeddedActive: computed,
       isRunning: computed,
       unavailableReason: computed,
       canRun: computed,
       startHint: computed,
       canReload: computed,
+      canPush: computed,
       reloadHint: computed,
       elapsedMs: computed,
       elapsedText: computed,
       statusText: computed,
       statusTitle: computed,
+      indicatorText: computed,
+      indicatorTitle: computed,
       setEngine: action,
       tick: action,
     });
@@ -135,14 +223,41 @@ export class RunnerStore {
 
   // ---- 상태 ----
 
+  /** 다음 실행의 방식. 프로세스를 띄우지 못하는 백엔드는 embedded, 아니면 설정 */
+  get mode(): RunMode {
+    if (!this.embedded) return "process";
+    if (!this.host.backend.capabilities.run) return "embedded";
+    return this.host.settings.settings.runMode === "embedded" ? "embedded" : "process";
+  }
+
+  /** 상태 바에 보일 방식: 실행 중이거나 종료 코드를 보일 때는 그 실행의 방식 */
+  get shownMode(): RunMode {
+    return (this.state !== "idle" || this.exitCode !== null) && this.activeMode ? this.activeMode : this.mode;
+  }
+
+  /** 실행 버튼이 켜져 있을 때 툴팁에 붙는 설명 */
+  get modeHint(): string | undefined {
+    return this.mode === "embedded" ? EMBEDDED_HINT : undefined;
+  }
+
+  /** 에디터 안 엔진이 돌고 있다 (리로드가 그쪽으로 간다) */
+  get embeddedRunning(): boolean {
+    return this.activeMode === "embedded" && this.state === "running";
+  }
+
+  /** 에디터 안 엔진이 뜨는 중(파일 올리는 중, 부팅 중)이거나 돌고 있다. 뜨는 중의 리로드는 뜬 뒤에 올린다 */
+  get embeddedActive(): boolean {
+    return this.activeMode === "embedded" && (this.state === "starting" || this.state === "running");
+  }
+
   /** 시작 중이거나 실행 중 (정지 버튼이 켜지는 조건) */
   get isRunning(): boolean {
     return this.state === "running" || this.state === "starting";
   }
 
-  /** 엔진을 못 띄우는 백엔드면 그 이유, 아니면 null */
+  /** 엔진을 못 띄우는 백엔드면 그 이유, 아니면 null (에디터 안 실행이 있으면 늘 띄울 수 있다) */
   get unavailableReason(): string | null {
-    return this.host.backend.capabilities.run ? null : this.unavailableText;
+    return this.host.backend.capabilities.run || this.mode === "embedded" ? null : this.unavailableText;
   }
 
   get canRun(): boolean {
@@ -155,6 +270,7 @@ export class RunnerStore {
     if (reason) return reason;
     if (!this.host.project.isOpen) return "프로젝트를 먼저 연다";
     if (this.state === "stopping") return "정지하는 중이다";
+    if (this.mode === "embedded") return undefined; // mruby 는 시작할 때 이유를 알린다
     if (!this.enginePath) {
       if (this.resolving) return "엔진을 찾는 중이다";
       const tried = this.candidates.map((c) => c.path).join(", ");
@@ -164,15 +280,31 @@ export class RunnerStore {
     return undefined;
   }
 
-  /** 리로드: 브리지 모드는 프로젝트가 열려 있으면 늘, Tauri 는 실행 중일 때만 */
+  /** 리로드: 브리지 모드는 프로젝트가 열려 있으면 늘, Tauri 는 실행 중일 때만, 메모리와 웹판은 게임 탭이 뜨는 중이거나 돌 때만 */
   get canReload(): boolean {
     return this.reloadHint === undefined;
   }
 
   get reloadHint(): string | undefined {
     if (!this.host.project.isOpen) return "프로젝트를 먼저 연다";
-    if (this.host.backend.capabilities.run && this.state !== "running") return "엔진이 실행 중일 때 보낼 수 있다";
+    if (this.state === "running" || this.embeddedActive) return undefined;
+    if (this.host.backend.capabilities.run) return "엔진이 실행 중일 때 보낼 수 있다";
+    if (!this.canPush) return "게임 탭에서 실행 중일 때 다시 읽는다";
     return undefined;
+  }
+
+  /**
+   * 밖에서 띄운 엔진의 핫 리로드 서버로 보낼 길이 있는가. 백엔드가 안다 (capabilities.hmr): 브라우저 폴더(웹판)와
+   * 메모리 백엔드(메모리 모드, 웹판의 샘플. 엔진이 없다)에는 없다
+   */
+  get canPush(): boolean {
+    return this.host.backend.capabilities.hmr;
+  }
+
+  /** 에디터 안 엔진이 뜨는 중이다: 파일 올리는 중, 부팅 중, 또는 떴지만 아직 첫 프레임 전 */
+  private get embeddedStarting(): boolean {
+    if (this.activeMode !== "embedded") return false;
+    return this.state === "starting" || (this.state === "running" && this.handle !== null && this.awaitingFrame === this.handle);
   }
 
   get elapsedMs(): number {
@@ -183,29 +315,46 @@ export class RunnerStore {
     return formatElapsed(this.elapsedMs);
   }
 
-  /** 상태 바 문구: 엔진: 없음 / 대기 / 시작 중 / 실행 중 PID 1234 00:42 / 정지 중 / 종료 코드 1 */
+  /**
+   * 상태 바 문구: 엔진: 없음 / 대기 / 시작 중 / 실행 중 PID 1234 00:42 / 정지 중 / 종료 코드 1.
+   * 에디터 안 실행이 있으면 방식을 붙인다: 엔진 (에디터 안): 실행 중 00:42, 엔진 (프로세스): 대기
+   */
   get statusText(): string {
+    const embedded = this.shownMode === "embedded";
+    const label = this.embedded ? `엔진 (${RUN_MODE_LABELS[this.shownMode]})` : "엔진";
     switch (this.state) {
       case "starting":
-        return "엔진: 시작 중";
+        return `${label}: 시작 중`;
       case "running":
-        return `엔진: 실행 중 PID ${this.pid ?? "?"} ${this.elapsedText}`;
+        return embedded ? `${label}: 실행 중 ${this.elapsedText}` : `${label}: 실행 중 PID ${this.pid ?? "?"} ${this.elapsedText}`;
       case "stopping":
-        return "엔진: 정지 중";
+        return `${label}: 정지 중`;
       default:
         break;
     }
-    if (this.exitCode !== null) return `엔진: 종료 코드 ${this.exitCode}`;
-    if (!this.enginePath) return "엔진: 없음";
-    return "엔진: 대기";
+    if (this.exitCode !== null) return `${label}: 종료 코드 ${this.exitCode}`;
+    if (!embedded && !this.enginePath) return `${label}: 없음`;
+    return `${label}: 대기`;
   }
 
-  /** 상태 바 툴팁: 없는 이유나 엔진 경로 */
+  /** 상태 바 툴팁: 없는 이유나 엔진 경로 (에디터 안이면 웹 엔진 설명) */
   get statusTitle(): string | undefined {
+    if (this.shownMode === "embedded") return `${EMBEDDED_HINT}. ${this.embedded?.description ?? ""}`.trim();
     if (this.unavailableReason) return this.unavailableReason;
     if (!this.enginePath) return this.host.project.isOpen ? this.startHint : undefined;
     const features = this.features?.length ? ` (${this.features.join(" ")})` : "";
     return `${this.enginePath}${features}, ${ENGINE_SOURCE_LABELS[this.engineSource]}`;
+  }
+
+  /** 툴바의 실행 표시: PID 1234 00:42 또는 에디터 안 00:42 */
+  get indicatorText(): string {
+    if (this.state === "starting") return "시작 중";
+    return this.activeMode === "embedded" ? `에디터 안 ${this.elapsedText}` : `PID ${this.pid ?? "?"} ${this.elapsedText}`;
+  }
+
+  get indicatorTitle(): string {
+    if (this.state === "starting") return "엔진을 띄우는 중";
+    return this.activeMode === "embedded" ? "에디터 안 게임 탭에서 실행 중 (웹 엔진)" : `${this.enginePath ?? "엔진"} 실행 중 (PID ${this.pid ?? "?"})`;
   }
 
   setEngine(path: string | null, source: EngineSource, features: string[] | null): void {
@@ -251,7 +400,7 @@ export class RunnerStore {
         found = { candidate, features };
         break;
       } catch (e) {
-        failures.push(`${candidate.path}: ${(e as Error).message}`);
+        failures.push(`${candidate.path}: ${errorText(e)}`);
       }
     }
     if (token !== this.resolveToken) return this.enginePath; // 그사이 다시 탐색했다
@@ -282,7 +431,7 @@ export class RunnerStore {
   }
 
   private async doStart(opts: StartOptions): Promise<void> {
-    const { backend, project, log, toasts } = this.host;
+    const { project, log, toasts } = this.host;
     const reason = this.unavailableReason;
     if (reason) {
       toasts.warn(reason);
@@ -297,20 +446,75 @@ export class RunnerStore {
       await this.stopCurrent();
     }
     this.lastStart = opts;
+    const mode = this.mode;
     runInAction(() => {
       this.state = "starting";
       this.exitCode = null;
+      this.activeMode = mode;
     });
 
-    if (!this.enginePath) await this.resolveEngine();
-    const exe = this.enginePath;
-    if (!exe) {
+    const launched = mode === "embedded" ? await this.launchEmbedded(opts) : await this.launchProcess(opts);
+    if (!launched) {
+      this.queuedReload = null;
       runInAction(() => (this.state = "idle"));
-      const message = this.startHint ?? "엔진을 찾지 못했다";
-      log.error(LOG_SOURCE, message);
-      toasts.error(message);
       return;
     }
+    const { handle, summary } = launched;
+    runInAction(() => {
+      this.handle = handle;
+      this.pid = handle.pid ?? null;
+      this.startedAt = this.clock();
+      this.now = this.startedAt;
+      this.state = "running";
+    });
+    this.startTicker();
+    log.info(LOG_SOURCE, summary);
+    handle.onOutput((line) => {
+      log.append(classifyEngineLine(line), "engine", line);
+    });
+    if (mode === "embedded") this.awaitingFrame = handle;
+    handle.onExit((code) => this.onExit(handle, code));
+    if (mode === "embedded") void this.reloadQueuedAfterFirstFrame(handle);
+  }
+
+  /**
+   * 뜨는 중에 모아 둔 리로드는 엔진이 첫 프레임을 돌고 끝나는 중이 아닐 때 올린다. 시작 스크립트나 첫 프레임이 오류로 끝나면
+   * 엔진은 이미 종료를 요청해 두어서 그 뒤에 올린 고침도 다음 프레임에 함께 끝난다. 그러면 버리고 한 줄 남긴다 (F5가 저장한 글로 돈다)
+   */
+  private async reloadQueuedAfterFirstFrame(handle: RunHandle): Promise<void> {
+    const stepped = await this.embedded!.whenStepped(handle);
+    if (this.awaitingFrame !== handle) return; // 끝나서 onExit가 이미 정리했다
+    if (!stepped || this.handle !== handle || !this.embeddedRunning) {
+      this.dropQueuedReload();
+      return;
+    }
+    this.awaitingFrame = null;
+    const queued = this.queuedReload;
+    this.queuedReload = null;
+    if (queued) await this.reloadEmbedded(queued === "all" ? undefined : [...queued], START_ENDED_RELOAD_DROPPED);
+  }
+
+  /** 첫 프레임 전에 게임이 끝났다. 모아 둔 리로드가 있으면 버리고 한 줄 남긴다 */
+  private dropQueuedReload(): void {
+    this.awaitingFrame = null;
+    if (!this.queuedReload) return;
+    this.queuedReload = null;
+    this.host.log.info(LOG_SOURCE, START_ENDED_RELOAD_DROPPED);
+  }
+
+  /** 실패를 콘솔과 토스트에 알리고 null */
+  private failStart(message: string, toast: string = message): null {
+    this.host.log.error(LOG_SOURCE, message);
+    this.host.toasts.error(toast);
+    return null;
+  }
+
+  /** 엔진 프로세스를 띄운다 (모드 A) */
+  private async launchProcess(opts: StartOptions): Promise<{ handle: RunHandle; summary: string } | null> {
+    const { backend, project } = this.host;
+    if (!this.enginePath) await this.resolveEngine();
+    const exe = this.enginePath;
+    if (!exe) return this.failStart(this.startHint ?? "엔진을 찾지 못했다");
 
     // 실행 직전에 기능을 다시 묻는다 (그사이 다시 빌드했을 수 있다)
     if (this.probe) {
@@ -318,22 +522,13 @@ export class RunnerStore {
         const features = await this.probe(exe);
         runInAction(() => (this.features = features));
       } catch (e) {
-        const message = `엔진을 부를 수 없다: ${(e as Error).message}`;
-        runInAction(() => {
-          this.state = "idle";
-          this.setEngine(null, "none", null);
-        });
-        log.error(LOG_SOURCE, message);
-        toasts.error(message);
-        return;
+        runInAction(() => this.setEngine(null, "none", null));
+        return this.failStart(`엔진을 부를 수 없다: ${errorText(e)}`);
       }
     }
     const script = project.gameJson.script === "mruby" ? "mruby" : "lua";
     if (script === "mruby" && this.features && !this.features.includes("mruby")) {
-      runInAction(() => (this.state = "idle"));
-      log.error(LOG_SOURCE, `${NO_MRUBY} (--features: ${this.features.join(" ") || "(없음)"}). 언어를 Lua 로 바꾸거나 mruby 를 넣어 빌드한다`);
-      toasts.error(NO_MRUBY);
-      return;
+      return this.failStart(`${NO_MRUBY} (--features: ${this.features.join(" ") || "(없음)"}). 언어를 Lua 로 바꾸거나 mruby 를 넣어 빌드한다`, NO_MRUBY);
     }
 
     const env: Record<string, string> = { INITIAL2D_HMR: "1", INITIAL2D_SCRIPT: script };
@@ -344,30 +539,41 @@ export class RunnerStore {
       handle = await backend.run({ exe, cwd: project.root, env, args: [] });
     } catch (e) {
       const err = e as BackendError;
-      const message = err.code === "engine_not_found" ? `엔진 실행 파일이 없다: ${exe}` : `엔진을 띄우지 못했다: ${err.message}`;
-      runInAction(() => {
-        this.state = "idle";
-        if (err.code === "engine_not_found") this.setEngine(null, "none", null);
-      });
-      log.error(LOG_SOURCE, message);
-      toasts.error(message);
-      return;
+      if (err.code === "engine_not_found") runInAction(() => this.setEngine(null, "none", null));
+      return this.failStart(err.code === "engine_not_found" ? `엔진 실행 파일이 없다: ${exe}` : `엔진을 띄우지 못했다: ${err.message}`);
     }
+    const summary = `엔진 시작: PID ${handle.pid ?? "?"}, ${exe}, 언어 ${script}${opts.scene ? `, 씬 ${opts.scene}` : ""} (INITIAL2D_HMR=1${envSuffix(opts.env)})`;
+    return { handle, summary };
+  }
 
-    runInAction(() => {
-      this.handle = handle;
-      this.pid = handle.pid ?? null;
-      this.startedAt = this.clock();
-      this.now = this.startedAt;
-      this.state = "running";
-    });
-    this.startTicker();
-    const extra = opts.env && Object.keys(opts.env).length > 0 ? `, ${Object.entries(opts.env).map(([k, v]) => `${k}=${v}`).join(" ")}` : "";
-    log.info(LOG_SOURCE, `엔진 시작: PID ${handle.pid ?? "?"}, ${exe}, 언어 ${script}${opts.scene ? `, 씬 ${opts.scene}` : ""} (INITIAL2D_HMR=1${extra})`);
-    handle.onOutput((line) => {
-      log.append(classifyEngineLine(line), "engine", line);
-    });
-    handle.onExit((code) => this.onExit(handle, code));
+  /** 웹 엔진을 게임 탭에서 띄운다 (모드 B, E4) */
+  private async launchEmbedded(opts: StartOptions): Promise<{ handle: RunHandle; summary: string } | null> {
+    const embedded = this.embedded!;
+    let features: string[];
+    try {
+      features = await embedded.loadFeatures();
+    } catch (e) {
+      return this.failStart(errorText(e));
+    }
+    const script = this.host.project.gameJson.script === "mruby" ? "mruby" : "lua";
+    if (script === "mruby" && !features.includes("mruby")) {
+      return this.failStart(this.host.backend.capabilities.run ? WASM_NO_MRUBY : `${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱에서)`);
+    }
+    const env: Record<string, string> = { INITIAL2D_SCRIPT: script };
+    if (opts.scene) env.INITIAL2D_SCENE = opts.scene;
+    if (opts.env) Object.assign(env, opts.env);
+    let handle: RunHandle;
+    try {
+      handle = await embedded.launch({ env });
+    } catch (e) {
+      if ((e as Error | null)?.name === "AbortError") {
+        this.host.log.info(LOG_SOURCE, "실행을 그만뒀다");
+        return null;
+      }
+      return this.failStart(`에디터 안 엔진을 띄우지 못했다: ${errorText(e)}`);
+    }
+    const summary = `엔진 시작: 에디터 안 (웹 엔진, ${features.join(" ")}), 언어 ${script}${opts.scene ? `, 씬 ${opts.scene}` : ""}${envSuffix(opts.env, " (", ")")}`;
+    return { handle, summary };
   }
 
   private onExit(handle: RunHandle, code: number | null): void {
@@ -391,10 +597,13 @@ export class RunnerStore {
       log.error(LOG_SOURCE, `엔진 종료 코드 ${code} (경과 ${elapsed}). 위의 오류 줄을 누르면 그 자리로 간다`);
       toasts.error(`엔진이 종료 코드 ${code} 로 끝났다. 콘솔을 본다`);
     }
+    if (this.awaitingFrame === handle) this.dropQueuedReload();
   }
 
   /** 정지. 시작 중이면 시작이 끝나기를 기다렸다가 정지한다. 이미 멈춰 있으면 아무것도 하지 않는다 */
   async stop(): Promise<void> {
+    // 게임 탭이 파일을 올리는 중이면 기다리지 않고 그만둔다
+    if (this.startPromise && this.state === "starting" && this.activeMode === "embedded") this.embedded?.abort();
     if (this.startPromise) await this.startPromise;
     await this.stopCurrent();
   }
@@ -411,7 +620,7 @@ export class RunnerStore {
     try {
       await handle.stop();
     } catch (e) {
-      this.host.log.warn(LOG_SOURCE, `정지 요청이 실패했다: ${(e as Error).message}`);
+      this.host.log.warn(LOG_SOURCE, `정지 요청이 실패했다: ${errorText(e)}`);
     }
     if (!(await exited) && this.handle === handle) {
       this.host.log.warn(LOG_SOURCE, "종료 이벤트가 오지 않아 상태를 정리한다");
@@ -441,16 +650,26 @@ export class RunnerStore {
   /**
    * 묶음을 엔진의 핫 리로드 서버로 보낸다. Tauri 는 여기서 모으고(hmrCollect.ts), 브리지는 서버가 모으므로 빈 목록.
    * 엔진은 받으면 VM 을 통째로 다시 시작한다 (씬 상태는 날아간다). 결과나 실패 이유를 콘솔에 남긴다.
+   * 에디터 안 엔진이 돌고 있으면 그쪽으로 paths 를 다시 올린다 (paths 가 없으면 scripts 와 씬과 맵 전부).
+   * 에디터 안 엔진이 뜨는 중이면(첫 프레임 전까지) 모아 두었다가 첫 프레임 뒤에 올린다. 보낼 길이 없는 백엔드
+   * (메모리, 웹판)는 보내지 않는다.
    */
-  async reload(): Promise<{ count: number } | null> {
+  async reload(paths?: readonly string[], opts: ReloadOptions = {}): Promise<{ count: number } | null> {
     const { backend, project, log, toasts } = this.host;
     if (!project.isOpen) return null;
+    if (this.embeddedStarting) {
+      this.queueReload(paths);
+      log.info(LOG_SOURCE, "핫 리로드: 에디터 안 엔진이 뜨는 중이다. 뜨면 바뀐 파일을 다시 올린다");
+      return null;
+    }
+    if (this.embeddedRunning) return this.reloadEmbedded(paths);
+    if (!this.canPush && this.state !== "running") return null;
     let files: HmrFile[] = [];
     if (backend.kind === "tauri") {
       try {
         files = await collectHmrFiles(backend);
       } catch (e) {
-        const message = `핫 리로드 묶음을 모으지 못했다: ${(e as Error).message}`;
+        const message = `핫 리로드 묶음을 모으지 못했다: ${errorText(e)}`;
         log.error(LOG_SOURCE, message);
         toasts.error(message);
         return null;
@@ -467,9 +686,53 @@ export class RunnerStore {
       return result;
     } catch (e) {
       const err = e as BackendError;
+      if (opts.fromSave && backend.kind === "bridge" && isHmrRefused(err)) {
+        log.info(LOG_SOURCE, HMR_NO_ENGINE_SKIPPED);
+        return null;
+      }
       const message = err.code === "hmr_unreachable" || err.code === "network" ? `핫 리로드 실패: ${HMR_UNREACHABLE_HINT} (${err.message})` : `핫 리로드 실패: ${err.message}`;
       log.error(LOG_SOURCE, message);
       toasts.error(message);
+      return null;
+    }
+  }
+
+  /** 뜨는 중에 들어온 리로드를 모은다. 경로가 없으면(수동 리로드) 전부 */
+  private queueReload(paths?: readonly string[]): void {
+    if (!paths || this.queuedReload === "all") {
+      this.queuedReload = "all";
+      return;
+    }
+    const set = this.queuedReload ?? new Set<string>();
+    for (const p of paths) set.add(p);
+    this.queuedReload = set;
+  }
+
+  /**
+   * 에디터 안 엔진: 바뀐 파일(없으면 scripts 와 씬과 맵)을 다시 올리고 VM 을 다시 시작한다.
+   * 스크립트 오류면 경고만 하고 게임은 계속 돈다. 게임이 끝났거나 끝나는 중이라 올리지 않았으면 droppedLine 한 줄만 남긴다.
+   * 엔진이 예외로 죽었으면 세션은 이미 끝났고 종료 알림이 토스트를 띄운다
+   */
+  private async reloadEmbedded(paths?: readonly string[], droppedLine = ENDED_RELOAD_DROPPED): Promise<{ count: number } | null> {
+    const { log, toasts } = this.host;
+    try {
+      const { count, scriptsFailed, dropped } = await this.embedded!.reload(paths);
+      if (dropped) {
+        log.info(LOG_SOURCE, droppedLine);
+        return null;
+      }
+      runInAction(() => (this.lastReload = { count, at: this.clock() }));
+      if (scriptsFailed) {
+        log.warn(LOG_SOURCE, `핫 리로드: 에디터 안 엔진, ${count}개 파일을 다시 올렸지만 스크립트 오류로 VM 이 다시 뜨지 못했다. 위의 오류 줄을 누르면 그 자리로 간다`);
+        toasts.warn("핫 리로드: 스크립트 오류. 콘솔의 오류 줄을 본다");
+      } else {
+        log.info(LOG_SOURCE, `핫 리로드: 에디터 안 엔진, ${count}개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)`);
+      }
+      return { count };
+    } catch (e) {
+      const message = `핫 리로드 실패: ${errorText(e)}`;
+      log.error(LOG_SOURCE, message);
+      if (this.embeddedRunning) toasts.error(message);
       return null;
     }
   }

@@ -1,5 +1,6 @@
 // 브라우저 모드 스모크 (docs/plans/e0-foundation.md 마일스톤 6). 메모리 백엔드(?backend=memory)라 서버가 필요 없다.
 // 흐름: 시작 탭 → 샘플 프로젝트 열기 → 파일 트리 → 편집기 탭(Monaco, E1) → 테마 전환 → 콘솔 패널 닫기가 새로 고침 뒤에도 남는가.
+// 메모리 프로젝트에 저장한 것은 페이지에만 있으므로 떠나기 전에 묻는다 (레이아웃만 바뀌었으면 묻지 않는다).
 
 import { expect, test, type Page } from "@playwright/test";
 
@@ -97,10 +98,15 @@ test.describe("메모리 모드 스모크", () => {
     await expect(page.getByTestId("console")).toBeVisible();
   });
 
-  test("실행 버튼은 비활성이고 이유가 툴팁에 있다", async ({ page }) => {
+  test("실행 버튼은 프로젝트를 열면 켜지고, 에디터 안에서 돈다는 것이 툴팁에 있다", async ({ page }) => {
     const run = page.getByTestId("toolbar").locator('[data-command="run.start"]');
+    const tip = page.getByTestId("toolbar").locator(".toolbar-tip").first();
     await expect(run).toBeDisabled();
-    await expect(page.getByTestId("toolbar").locator(".toolbar-tip").first()).toHaveAttribute("title", /브라우저 모드에서는 엔진을 띄울 수 없다/);
+    await expect(tip).toHaveAttribute("title", /프로젝트를 먼저 연다/);
+    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    // 브라우저 모드의 F5 는 웹 엔진을 게임 탭에서 돌린다 (E4, game-view.spec.ts)
+    await expect(run).toBeEnabled();
+    await expect(tip).toHaveAttribute("title", /^실행 \(F5\) ?: 에디터 안 게임 탭에서 돈다 \(웹 엔진\)$/);
   });
 
   test("오른쪽 클릭 메뉴는 누른 자리에 뜬다", async ({ page }) => {
@@ -119,6 +125,46 @@ test.describe("메모리 모드 스모크", () => {
     expect(Math.abs(m.y - y)).toBeLessThanOrEqual(1);
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
+  });
+
+  test("메모리 프로젝트에 저장한 것이 있으면 새로 고치기 전에 묻고, 문서를 열어 레이아웃만 바뀌었으면 묻지 않는다", async ({ page }) => {
+    const dialogs: string[] = [];
+    page.on("dialog", (dialog) => {
+      dialogs.push(dialog.type());
+      void dialog.dismiss();
+    });
+    const openMain = async () => {
+      await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+      const tree = page.getByTestId("project-tree");
+      await tree.locator('[data-path="scripts"]').click();
+      await tree.locator('[data-path="scripts/lua"]').click();
+      await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
+      await expect(page.locator(CODE)).toContainText("function init()");
+    };
+    type BackendWindow = { initialEditor: { backend: { exists(p: string): Promise<boolean>; volatileWrites?: number } } };
+
+    // 문서를 열면 레이아웃(.initial-editor/layout.json)만 쓴다. 저장한 것이 없어 묻지 않고 새로 고쳐진다
+    await openMain();
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as BackendWindow).initialEditor.backend.exists(".initial-editor/layout.json")))
+      .toBe(true);
+    await page.reload();
+    await expect(page.getByTestId("welcome")).toBeVisible();
+    expect(dialogs).toEqual([]);
+
+    // 고쳐 저장하면 문서는 깨끗해도 저장한 것이 페이지에만 있다. 새로 고치려 하면 묻고, 머무르면 프로젝트가 그대로다
+    await openMain();
+    await page.locator(CODE).click();
+    await page.keyboard.press("ControlOrMeta+End");
+    await page.keyboard.insertText("\n-- 저장한 것");
+    await page.keyboard.press("ControlOrMeta+s");
+    const tab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
+    await page.reload({ timeout: 3000 }).catch(() => {});
+    expect(dialogs).toEqual(["beforeunload"]);
+    await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
+    await expect(page.locator(CODE)).toContainText("-- 저장한 것");
+    expect(await page.evaluate(() => (window as unknown as BackendWindow).initialEditor.backend.volatileWrites)).toBeGreaterThan(0);
   });
 
   test("미리보기가 없는 파일은 토스트로 알린다", async ({ page }) => {

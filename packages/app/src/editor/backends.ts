@@ -1,21 +1,25 @@
-// 시작할 때 백엔드를 고른다 (docs/plans/03-project-and-runtime.md 2절).
+// 시작할 때 백엔드를 고른다 (docs/plans/03-project-and-runtime.md 2절, e4-embedded-play.md 웹판).
 //   Tauri 웹뷰 안이면 TauriBackend.
-//   브라우저에서는 URL 질의로 고른다: ?backend=memory (샘플 프로젝트, 의존성 없음), 그 밖은 브리지.
+//   브라우저에서는 URL 질의로 고른다: ?backend=memory (샘플 프로젝트, 의존성 없음), ?backend=bridge,
+//   ?backend=browser (폴더 열기), ?backend=opfs (브라우저 전용 저장소를 바로 연다. 테스트용).
+//   질의가 없으면 로컬 페이지는 브리지, 배포된 페이지(웹판)는 폴더 열기가 있으면 브라우저 폴더, 없으면 메모리.
 //   브리지 URL 은 ?url= > 설정의 bridgeUrl > DEFAULT_BRIDGE_URL.
 // yarn dev 는 VITE_DEFAULT_BACKEND=memory 가 있으면 메모리, 없으면 브리지로 연다.
 
 import { MemoryBackend, type ProjectBackend, type SettingsStorage } from "@initial-editor/core";
 import { BridgeBackend, DEFAULT_BRIDGE_URL } from "@initial-editor/backend-bridge";
+import { FsAccessBackend, OPFS_ROOT, supportsFolderPicker } from "@initial-editor/backend-fsaccess";
 import { isTauri, TauriBackend, TauriSettingsStorage } from "@initial-editor/backend-tauri";
 import { LocalStorageSettingsStorage } from "./LocalStorageSettingsStorage";
 import { SAMPLE_ROOT, sampleProjectFiles } from "./sampleProject";
 
-export type BackendMode = "tauri" | "bridge" | "memory";
+export type BackendMode = "tauri" | "bridge" | "memory" | "browser";
 
 export const MODE_LABELS: Record<BackendMode, string> = {
   tauri: "Tauri",
   bridge: "브리지",
   memory: "메모리",
+  browser: "브라우저 폴더",
 };
 
 export interface StartupQuery {
@@ -44,13 +48,26 @@ export function chooseMode(
   env: { VITE_DEFAULT_BACKEND?: string } = {},
   tauri = isTauri(),
   hostname: string = typeof location !== "undefined" ? location.hostname : "",
+  folderPicker: boolean = supportsFolderPicker(),
 ): BackendMode {
   if (tauri) return "tauri";
   const wanted = query.backend ?? env.VITE_DEFAULT_BACKEND;
   if (wanted === "memory") return "memory";
   if (wanted === "bridge") return "bridge";
-  // 명시가 없으면: 로컬에서 띄운 페이지만 브리지에 닿는다. 밖에 배포된 페이지는 서버 없이 도는 메모리 모드
-  return isLocalHost(hostname) ? "bridge" : "memory";
+  if (wanted === "browser" || wanted === "opfs") return "browser";
+  // 명시가 없으면: 로컬에서 띄운 페이지만 브리지에 닿는다. 배포된 페이지는 폴더 열기(크롬, 엣지)가 있으면
+  // 브라우저 폴더, 없으면(파이어폭스, 사파리) 서버 없이 도는 메모리 모드
+  if (isLocalHost(hostname)) return "bridge";
+  return folderPicker ? "browser" : "memory";
+}
+
+/** 배포된 페이지인데 폴더 열기가 없어 메모리 모드로 시작했는가 (시작 화면의 안내) */
+export function isFolderFallback(
+  mode: BackendMode,
+  hostname: string = typeof location !== "undefined" ? location.hostname : "",
+  folderPicker: boolean = supportsFolderPicker(),
+): boolean {
+  return mode === "memory" && !folderPicker && !isLocalHost(hostname);
 }
 
 export function createSettingsStorage(mode: BackendMode): SettingsStorage {
@@ -75,6 +92,8 @@ export function createBackend(mode: BackendMode, query: StartupQuery, settingsUr
       return { backend: new TauriBackend() };
     case "memory":
       return { backend: createMemoryBackend(query.sample) };
+    case "browser":
+      return { backend: new FsAccessBackend(), autoOpenRoot: query.backend === "opfs" ? OPFS_ROOT : undefined };
     case "bridge": {
       const url = resolveBridgeUrl(query, settingsUrl);
       return { backend: new BridgeBackend(url), autoOpenRoot: url, bridgeUrl: url };

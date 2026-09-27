@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { useEditor } from "../editor/EditorContext";
 import { installNativeMenu } from "../editor/nativeMenu";
-import { installShortcuts } from "../editor/shortcuts";
+import { installShortcuts, installUnloadGuard, losesWorkOnUnload } from "../editor/shortcuts";
 import { Dock } from "./Dock";
 import { MenuBar } from "./MenuBar";
 import { Modals } from "./Modals";
@@ -15,7 +15,15 @@ import { Toolbar } from "./Toolbar";
 export const App = observer(function App() {
   const editor = useEditor();
 
-  useEffect(() => installShortcuts(editor.commands), [editor]);
+  // 모달 대화상자가 떠 있으면 전역 단축키를 부르지 않는다
+  useEffect(() => installShortcuts(editor.commands, window, { suspended: () => editor.modals.top !== null }), [editor]);
+
+  // 브라우저 모드: 저장하지 않은 문서가 있거나, 메모리 백엔드에 이번 세션에 저장한 것이 있으면(그 파일은 페이지에만 있다)
+  // 새로 고침이나 탭 닫기 전에 묻는다
+  useEffect(
+    () => (editor.isBrowser ? installUnloadGuard(() => losesWorkOnUnload(editor.documents.dirtyDocuments.length, editor.backend)) : undefined),
+    [editor],
+  );
 
   useEffect(() => {
     let dispose: (() => void) | null = null;
