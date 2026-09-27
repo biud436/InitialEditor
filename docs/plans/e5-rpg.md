@@ -1153,3 +1153,32 @@ E5 는 🟡 로 둔다. 남은 것: 완료 기준 첫째의 Tauri 창(웹 번들
 | Playwright `rpg-transfer-pick.spec.ts`, `inspector-scroll.spec.ts`, `rpg-editor.spec.ts`, `rpg-events.spec.ts` (포트 4850, 브리지 6650, 워커 둘) | 31건 통과. 첫 판에서 24건이 통과하고, load average 20 넘는 동안 7건이 `openMap`의 맵 뷰 준비나 이벤트 탭의 5초 기다림을 넘었다. 그 7건은 따로 다시 돌려 모두 통과했다 |
 
 남은 것: 전체 Playwright는 다음 단계에서 돌린다 (맵 뷰의 `.map-view-stage` 틀이 다른 맵 spec에 주는 영향도 그때 본다). 나머지는 앞 두 절의 남은 것 그대로다.
+
+### 합친 뒤 검수에서 고친 것 (2026-09-27, `feat/e5-layer`)
+
+합친 가지의 검수가 낸 문제 여섯(중대 하나, 가벼운 다섯)을 고쳤다. 문제마다 고치기 전의 코드(`ee2b74a`)에서 깨지는 테스트를 더했다.
+
+| 문제 | 고친 것 |
+|---|---|
+| WebKit(Tauri macOS)에서 효과음과 음악 커맨드의 폼이 280px 인스펙터의 커맨드 트리를 가로로 넘친다 (329 > 262). 파일 고르기 select 의 긴 항목 글을 WebKit 이 조상의 스크롤 폭에 넣는다 | 앱의 `.field-select`가 `overflow: hidden`과 `text-overflow: ellipsis`로 고른 값의 글을 제 상자 안에서 자른다 (씬과 맵 오브젝트 인스펙터의 select 도 같다). 긴 값이 잘려도 읽을 수 있게 파일, 고르기, 외형과 얼굴의 이름과 파일, 조건의 꼴 select 에 고른 항목의 글을 `title`로 둔다 |
+| 고르기 띠가 타일을 가려 띠 위를 누르면 `data-pick-surface` 밖 누름이라 취소된다 | 띠는 `pointer-events: none`이고 취소 단추만 누름을 받는다. 띠 위의 누름은 아래 타일을 고른다 |
+| 큰 정수 깃발과 변수 키의 표식 글(`\u0000INT:...\u0000`)이 시작 상태 칸과 깃발, 변수 키의 제안에 보인다 | `usedStateNames`가 `isJsonText`로 글인 키만 모은다. 같은 판정을 더 찾아 `resolveAssetFile`의 `file`과 `set`도 고쳤다 (엔진 `assets.lua`의 `checkRef`처럼 글이 아닌 경로는 그림이 없다). 제안 목록은 이 둘과 이미 고친 캐릭터 제안뿐이다 |
+| 고르는 동안 한 글자 도구 단축키(b 등)가 도구와 대상 레이어를 바꾸고, Esc 뒤 이벤트 인스펙터가 타일 레이어 보기로 바뀐다 | `MapSupport.toolKeysOff`(초점이 입력 칸에 있거나 타일을 고르는 중)가 `map.tool.*`와 확장 레이어의 `map.layer.*`를 끈다. 앱의 코드에 RPG 낱말은 없다 |
+| 대상 보기가 x, y 가 있어도 쓸 수 없으면(큰 정수, 음수, 소수, 대상 맵 밖) "x, y 미지정"이라 한다 | `checkEngineMap`이 맵 크기를 돌려주고 저장소가 `mapSize`로 낸다. `location.ts`는 x, y 를 대상 맵 크기로 보고 이유를 따로 적는다: "x 미지정", "x 값이 수가 아님: ...", "x 값이 정수가 아님: 1.5", "x 값이 음수: -1", "x 값이 맵 범위 밖: 12345678901234567890 (너비 20)". 둘 다 틀리면 쉼표로 잇는다. 맵에서 고르기는 막지 않는다 |
+| 새 알림 글이 문장으로 끝난다 (`setArgs`의 셋, `location.ts`의 하나) | "스키마에 없는 커맨드: ...", "인자 없음: 맵 이동.zzz", "항목 인자는 항목 명령으로 수정해야 함: 선택지.options", "맵 인자는 문자열이어야 함". 다른 옛 글은 따로 고친다 |
+
+검수:
+
+| 검사 | 결과 |
+|---|---|
+| `yarn typecheck`, `yarn lint`, `yarn check:colors` | 통과 |
+| Vitest (`packages/app`, `packages/ext-rpg`, `packages/ext-tilemap`, `INITIAL2D_DIR=/Users/u/Initial2D`) | 96 파일, 1158건 통과, 1건 건너뜀, 1건 실패. 실패는 앞과 같은 `templates.test.ts`(엔진 `e897f95`의 `hangul.fnt`)다 |
+| `yarn build` | 통과 |
+| Playwright WebKit `inspector-scroll.spec.ts`, `rpg-transfer-pick.spec.ts` (포트 4910, 브리지 6710, 워커 하나) | 17건 가운데 16건 통과. 폼 폭 두 판(1280x600, 1024x480)이 통과한다. 남은 하나는 `rpg-transfer-pick.spec.ts`의 키보드 판으로, WebKit 은 Tab 으로 단추에 가지 않아 `ee2b74a` 빌드에서도 같은 줄에서 깨진다 |
+| Playwright WebKit `rpg-editor.spec.ts`, `rpg-events.spec.ts`, `rpg-layer.spec.ts`, `map-layer-ext.spec.ts`, `map-view.spec.ts` (워커 둘) | 23건 가운데 19건 통과, 따로 다시 돌려 하나 더 통과. 남은 셋은 `ee2b74a` 빌드에서도 WebKit 에서 깨진다: `clipboard-write` 권한 없음, 씬 인스펙터 판의 메뉴 누르기 시간 넘김, 스키마 없는 프로젝트의 되살린 레이아웃 판 |
+| Playwright 전체 Chromium (포트 4910, 브리지 6710, 워커 둘) | 115건 가운데 100건 통과. load average 30 가까운 동안 15건이 맵 뷰 준비(5초)나 테스트 시간을 넘었고, 그 15건을 워커 하나로 다시 돌려 모두 통과했다 |
+| 새 e2e 가 고치기 전의 코드에서 깨지는가 | `ee2b74a` 빌드에서 새 판이 Chromium 과 WebKit 모두 깨진다: 폼 폭(WebKit 은 이벤트 칸의 긴 외형 파일로 "자리의 가로 넘침 585 > 280", Chromium 은 select 의 `title` 없음), 띠 아래 타일 두 판(고르기가 `cancel`로 끝난다), 단축키(b 가 대상을 `layer:0`으로), x, y 의 이유("x, y 미지정") |
+
+새 테스트: 단위 테스트는 `MapSupport.test.ts`(고르는 동안 `map.tool.*`가 꺼지고 끝나면 켜진다), `extLayers.test.ts`(도구 단축키가 꺼지면 레이어 커맨드와 키도), `refs.test.ts` 둘과 `argWidgets.test.tsx`, `EventsPanel.test.tsx`의 표식 글 없는 제안, `assets.test.ts`의 글이 아닌 파일 참조, `locationPick.test.ts`의 x, y 판정 열셋, `engineLoad.test.ts`와 `projectStore.test.ts`의 맵 크기, 파일과 고르기 위젯의 `title`, 새 알림 글. e2e 는 `inspector-scroll.spec.ts`의 폼 폭 판에 긴 파일 이름(효과음, 얼굴, 이벤트의 외형), 목록에 없는 긴 방향과 트리거, 끊을 곳 없는 긴 글과 `title`을 더했고(커맨드 스물다섯), `rpg-transfer-pick.spec.ts`에 x, y 의 이유 여덟, 띠 아래의 타일(1280x600, 1024x480), 고르는 동안의 단축키(같은 맵과 여관)를 더했다.
+
+남은 것: WebKit 에서만 깨지는 옛 판 넷(Tab, 클립보드 권한, 씬 인스펙터 메뉴, 되살린 레이아웃)은 이 작업 전부터이고 따로 본다. 나머지는 앞 절 그대로다.
