@@ -16,7 +16,7 @@
     "dev": "yarn workspace @initial-editor/app dev",
     "build": "yarn workspace @initial-editor/app build",
     "preview": "yarn workspace @initial-editor/app preview",
-    "typecheck": "tsc -b packages/core packages/backend-bridge packages/backend-tauri packages/backend-fsaccess packages/ext-tilemap packages/app tests",
+    "typecheck": "tsc -b packages/core packages/backend-bridge packages/backend-tauri packages/backend-fsaccess packages/ext-tilemap packages/ext-rpg packages/ext-rpg/test packages/app tests",
     "lint": "eslint packages tests",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -25,7 +25,9 @@
     "test:e2e": "playwright test",
     "test:engine": "node scripts/e2e-engine-hotreload.mjs",
     "test:engine-scene": "node scripts/e2e-engine-scene.mjs",
+    "test:engine-events": "yarn workspace @initial-editor/ext-rpg test:engine-events",
     "sync:templates": "node scripts/sync-engine-templates.mjs",
+    "sync:rpg": "node scripts/sync-engine-rpg.mjs",
     "sync:engine-web": "node scripts/sync-engine-web.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
     "tauri": "tauri"

@@ -1,0 +1,12 @@
+// 엔진 교차 검사 (test/engine) 의 타입 검사. yarn typecheck 가 돈다
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["engine"]
+}

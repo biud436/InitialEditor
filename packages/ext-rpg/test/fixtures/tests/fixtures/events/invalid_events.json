@@ -1,0 +1,758 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "ok",
+      "x": 1,
+      "y": 1,
+      "dir": "down",
+      "trigger": "action",
+      "charset": {
+        "set": "npc",
+        "index": 2
+      },
+      "commands": [
+        {
+          "code": "message",
+          "text": "첫 줄\n\"둘째\" 줄",
+          "name": "주민",
+          "face": {
+            "set": "npc",
+            "index": 3
+          }
+        },
+        {
+          "code": "choice",
+          "options": [
+            "예",
+            "아니요"
+          ],
+          "cancel": 2,
+          "branches": [
+            [
+              {
+                "code": "setFlag",
+                "key": "yes"
+              }
+            ],
+            []
+          ]
+        },
+        {
+          "code": "if",
+          "cond": {
+            "item": "shell",
+            "op": ">=",
+            "value": 1
+          },
+          "thenDo": [
+            {
+              "code": "turn",
+              "target": "player",
+              "dir": "up"
+            }
+          ],
+          "elseDo": [
+            {
+              "code": "transfer",
+              "map": "inn",
+              "x": 10,
+              "y": 12,
+              "dir": "up"
+            }
+          ]
+        }
+      ]
+    },
+    "이벤트가 아니다",
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": 7,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "player",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "ok",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "id": "pos",
+      "x": -1,
+      "y": 1.5
+    },
+    {
+      "id": "pos_missing",
+      "x": "3"
+    },
+    {
+      "id": "dir",
+      "x": 0,
+      "y": 0,
+      "dir": "north"
+    },
+    {
+      "id": "trigger",
+      "x": 0,
+      "y": 0,
+      "trigger": "click"
+    },
+    {
+      "id": "charset_type",
+      "x": 0,
+      "y": 0,
+      "charset": "npc"
+    },
+    {
+      "id": "charset_both",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "set": "npc",
+        "file": "./resources/charsets/placeholder.png",
+        "index": 0
+      }
+    },
+    {
+      "id": "charset_none",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "index": 1
+      }
+    },
+    {
+      "id": "charset_set",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "set": "monster",
+        "index": 0
+      }
+    },
+    {
+      "id": "charset_index",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "file": "",
+        "index": 8
+      }
+    },
+    {
+      "id": "flags",
+      "x": 0,
+      "y": 0,
+      "through": "yes",
+      "solid": 1
+    },
+    {
+      "id": "speed_zero",
+      "x": 0,
+      "y": 0,
+      "speed": 0
+    },
+    {
+      "id": "speed_text",
+      "x": 0,
+      "y": 0,
+      "speed": "fast"
+    },
+    {
+      "id": "wander_wait",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "set": "npc",
+        "index": 0
+      },
+      "wander": {
+        "minWait": -1,
+        "maxWait": 2.5
+      }
+    },
+    {
+      "id": "wander_order",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "set": "npc",
+        "index": 0
+      },
+      "wander": {
+        "minWait": 50,
+        "maxWait": 10
+      }
+    },
+    {
+      "id": "wander_area",
+      "x": 0,
+      "y": 0,
+      "charset": {
+        "set": "npc",
+        "index": 0
+      },
+      "wander": {
+        "minWait": 10,
+        "maxWait": 20,
+        "area": {
+          "x": -1,
+          "y": 0,
+          "w": 0,
+          "h": 2
+        }
+      }
+    },
+    {
+      "id": "wander_type",
+      "x": 0,
+      "y": 0,
+      "wander": 5
+    },
+    {
+      "id": "commands_type",
+      "x": 0,
+      "y": 0,
+      "commands": "안녕"
+    },
+    {
+      "id": "commands",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "없는커맨드"
+        },
+        {
+          "code": "message",
+          "name": "대사 없음"
+        },
+        {
+          "code": "choice",
+          "options": []
+        },
+        {
+          "code": "choice",
+          "options": [
+            "가"
+          ],
+          "branches": [
+            [
+              {
+                "code": "wait"
+              }
+            ]
+          ]
+        },
+        {
+          "code": "if",
+          "thenDo": [
+            {
+              "code": "message",
+              "text": "조건이 없다"
+            }
+          ]
+        },
+        {
+          "code": "if",
+          "cond": {
+            "flag": "a"
+          },
+          "elseDo": [
+            {
+              "code": "giveItem",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faces",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "message",
+          "text": "a",
+          "face": 3
+        },
+        {
+          "code": "message",
+          "text": "b",
+          "face": {
+            "set": "npc",
+            "file": "./resources/faces/placeholder.png",
+            "index": 0
+          }
+        },
+        {
+          "code": "message",
+          "text": "c",
+          "face": {
+            "index": 1
+          }
+        },
+        {
+          "code": "message",
+          "text": "d",
+          "face": {
+            "set": "player",
+            "index": 0
+          }
+        },
+        {
+          "code": "message",
+          "text": "e",
+          "face": {
+            "set": "npc",
+            "index": 16
+          }
+        },
+        {
+          "code": "message",
+          "text": "f",
+          "face": {
+            "file": "",
+            "index": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "dirs",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "transfer",
+          "map": "inn",
+          "x": 1,
+          "y": 1,
+          "dir": "north"
+        },
+        {
+          "code": "turn",
+          "target": "player",
+          "dir": "sideways"
+        },
+        {
+          "code": "turn",
+          "target": "player"
+        }
+      ]
+    },
+    null,
+    [
+      1,
+      2
+    ],
+    {
+      "id": "wander_area_type",
+      "x": 0,
+      "y": 0,
+      "wander": {
+        "area": "넓게"
+      }
+    },
+    {
+      "id": "commands_object",
+      "x": 0,
+      "y": 0,
+      "commands": {
+        "first": {
+          "code": "message",
+          "text": "a"
+        }
+      }
+    },
+    {
+      "id": "command_shapes",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        "글",
+        null,
+        {
+          "code": "message"
+        },
+        {
+          "code": "if",
+          "cond": {
+            "flag": "a"
+          },
+          "thenDo": "없다",
+          "elseDo": [
+            {
+              "code": "wait",
+              "ms": 1
+            },
+            null,
+            {
+              "code": "wait"
+            }
+          ]
+        },
+        {
+          "code": "if",
+          "cond": {
+            "flag": "a"
+          },
+          "thenDo": {},
+          "elseDo": {
+            "k": []
+          }
+        },
+        {
+          "code": "choice",
+          "options": [
+            "가"
+          ],
+          "branches": {
+            "1": []
+          }
+        },
+        {
+          "code": "choice",
+          "options": [
+            "가",
+            "나",
+            "다"
+          ],
+          "branches": [
+            null,
+            "없다",
+            [
+              {
+                "code": "message",
+                "text": "b",
+                "face": {
+                  "set": "npc",
+                  "index": 99
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "option_shapes",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "choice",
+          "options": {
+            "a": "가"
+          }
+        },
+        {
+          "code": "choice",
+          "options": [
+            "가",
+            null,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty_shapes",
+      "x": 0,
+      "y": 0,
+      "through": "yes",
+      "wander": [],
+      "commands": {}
+    },
+    {
+      "id": "arg_verifier",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "playSe",
+          "file": "./resources/audio/door.wav",
+          "id": true
+        },
+        {
+          "code": "playSe",
+          "file": "./resources/audio/door.wav",
+          "id": {
+            "k": 1
+          }
+        },
+        {
+          "code": "message",
+          "text": "hi",
+          "name": {
+            "a": 1
+          }
+        },
+        {
+          "code": "message",
+          "text": "hi",
+          "name": true
+        },
+        {
+          "code": "playBgm",
+          "file": "./resources/audio/door.wav",
+          "volume": {
+            "a": 1
+          }
+        },
+        {
+          "code": "playBgm",
+          "file": "./resources/audio/door.wav",
+          "volume": "loud"
+        },
+        {
+          "code": "scene",
+          "name": "title",
+          "text": [
+            "x"
+          ]
+        },
+        {
+          "code": "transfer",
+          "map": "inn",
+          "x": {
+            "a": 1
+          },
+          "y": [
+            2
+          ]
+        },
+        {
+          "code": "transfer",
+          "map": "inn",
+          "x": "abc",
+          "y": 12
+        }
+      ]
+    },
+    {
+      "id": "arg_types",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "choice",
+          "options": [
+            "가"
+          ],
+          "cancel": 1.5
+        },
+        {
+          "code": "wait",
+          "ms": "100"
+        },
+        {
+          "code": "moveRoute",
+          "target": "player",
+          "route": [
+            "up",
+            5
+          ],
+          "wait": "yes",
+          "loop": 1
+        },
+        {
+          "code": "setFlag",
+          "key": "k",
+          "value": {
+            "a": 1
+          }
+        },
+        {
+          "code": "setVar",
+          "key": "k",
+          "op": "*",
+          "value": "3"
+        },
+        {
+          "code": "giveItem",
+          "item": "shell",
+          "count": 0
+        },
+        {
+          "code": "takeItem",
+          "item": 5
+        },
+        {
+          "code": "showLocation",
+          "text": "X",
+          "seconds": -1
+        },
+        {
+          "code": "scene",
+          "name": "title",
+          "fade": 30
+        },
+        {
+          "code": "playSe",
+          "file": ""
+        },
+        {
+          "code": "comment",
+          "text": 5
+        },
+        {
+          "code": "playBgm",
+          "file": "./resources/audio/door.wav",
+          "volume": 200,
+          "fade": -1
+        },
+        {
+          "code": "moveRoute",
+          "target": "player",
+          "route": {
+            "a": "up"
+          }
+        },
+        {
+          "code": "turn",
+          "target": 3,
+          "dir": "up"
+        }
+      ]
+    },
+    {
+      "id": "cond_types",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "if",
+          "cond": "a"
+        },
+        {
+          "code": "if",
+          "cond": {
+            "item": 5,
+            "op": "=>",
+            "value": 1.5
+          }
+        },
+        {
+          "code": "if",
+          "cond": {
+            "flag": "f",
+            "equals": {
+              "a": 1
+            }
+          }
+        },
+        {
+          "code": "if",
+          "cond": {
+            "var": "v",
+            "op": "==",
+            "value": "2"
+          }
+        },
+        {
+          "code": "if",
+          "cond": {
+            "item": "shell",
+            "value": -1
+          }
+        },
+        {
+          "code": "if",
+          "cond": [
+            1,
+            2
+          ]
+        },
+        {
+          "code": "if",
+          "cond": {
+            "flag": "f",
+            "value": "안 본다"
+          },
+          "thenDo": [
+            {
+              "code": "message",
+              "text": "t",
+              "name": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tail",
+      "x": 3,
+      "y": 3,
+      "trigger": "touch",
+      "charset": {
+        "file": "./resources/charsets/placeholder.png",
+        "index": 7
+      },
+      "through": true,
+      "speed": 2.5,
+      "wander": {
+        "minWait": 30,
+        "maxWait": 30,
+        "area": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      "commands": [
+        {
+          "code": "playSe",
+          "file": "./resources/audio/door.wav"
+        }
+      ]
+    },
+    {
+      "id": "reserved_keys",
+      "x": 0,
+      "y": 0,
+      "commands": [
+        {
+          "code": "setFlag",
+          "key": "items"
+        },
+        {
+          "code": "setVar",
+          "key": "items",
+          "value": 5
+        },
+        {
+          "code": "if",
+          "cond": {
+            "flag": "items"
+          },
+          "thenDo": []
+        },
+        {
+          "code": "if",
+          "cond": {
+            "var": "items",
+            "op": ">",
+            "value": 1
+          },
+          "thenDo": []
+        }
+      ]
+    }
+  ]
+}

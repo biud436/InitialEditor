@@ -64,6 +64,22 @@ describe("맵 파일", () => {
     expect(back.objects[1]).toEqual({ id: "tracks", type: "landmark", x: 300, y: 0, width: 48, props: { text: "발자국\n여럿" }, editorOnly: 1 });
   });
 
+  it("events: null 은 없는 키, 값이 전부 null 인 객체(빈 {} 포함)는 빈 배열로 읽고 [] 로 쓴다 (엔진 M2 3.1)", () => {
+    const base = JSON.parse(serializeMap(tiny())) as Record<string, unknown>;
+    const withEvents = (events: unknown) => JSON.stringify({ ...base, events });
+    const none = parseMap(withEvents(null));
+    expect(none.events).toBeNull();
+    expect(serializeMap(none)).toBe(serializeMap(tiny()));
+    for (const v of [{}, { a: null, b: null }]) {
+      const m = parseMap(withEvents(v));
+      expect(m.events).toEqual([]);
+      const text = serializeMap(m);
+      expect(text).toContain('\n  "events": [],\n');
+      expect(parseMap(text).events).toEqual([]);
+    }
+    for (const v of [{ a: 1 }, { "0": null, "1": {} }, "x", 0, false]) expect(() => parseMap(withEvents(v))).toThrow(/events 는 배열이어야 한다/);
+  });
+
   it("잘못된 파일은 자리를 말한다", () => {
     expect(() => parseMap('{"version": 3}')).toThrow(/모르는 맵 버전이다: 3/);
     expect(() => parseMap(JSON.stringify({ version: 1, width: 2, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "a", data: [1] }] }))).toThrow(/길이가 1/);

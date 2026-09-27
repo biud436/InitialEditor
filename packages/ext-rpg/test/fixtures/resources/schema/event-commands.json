@@ -1,0 +1,631 @@
+{
+  "version": 1,
+  "event": {
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "label": "id"
+      },
+      {
+        "name": "x",
+        "type": "integer",
+        "required": true,
+        "min": 0,
+        "label": "x (칸)"
+      },
+      {
+        "name": "y",
+        "type": "integer",
+        "required": true,
+        "min": 0,
+        "label": "y (칸)"
+      },
+      {
+        "name": "dir",
+        "type": "enum",
+        "values": [
+          "down",
+          "left",
+          "right",
+          "up"
+        ],
+        "label": "방향"
+      },
+      {
+        "name": "trigger",
+        "type": "enum",
+        "values": [
+          "action",
+          "touch",
+          "auto",
+          "parallel"
+        ],
+        "default": "action",
+        "label": "트리거"
+      },
+      {
+        "name": "charset",
+        "type": "charset",
+        "label": "외형"
+      },
+      {
+        "name": "through",
+        "type": "boolean",
+        "label": "외형이 있어도 지나간다"
+      },
+      {
+        "name": "solid",
+        "type": "boolean",
+        "label": "막는다 (비우면 외형 유무로)"
+      },
+      {
+        "name": "speed",
+        "type": "number",
+        "min": 1,
+        "label": "속도 (칸/초, 기본 3)"
+      },
+      {
+        "name": "wander",
+        "type": "wander",
+        "label": "배회"
+      },
+      {
+        "name": "commands",
+        "type": "list",
+        "label": "커맨드"
+      }
+    ],
+    "reserved": [
+      "player"
+    ]
+  },
+  "commands": [
+    {
+      "code": "message",
+      "label": "대화",
+      "group": "대화",
+      "summary": "{name}: {text}",
+      "args": [
+        {
+          "name": "text",
+          "type": "text",
+          "required": true,
+          "label": "대사"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "label": "이름"
+        },
+        {
+          "name": "face",
+          "type": "face",
+          "label": "얼굴"
+        }
+      ]
+    },
+    {
+      "code": "choice",
+      "label": "선택지",
+      "group": "대화",
+      "args": [
+        {
+          "name": "options",
+          "type": "options",
+          "required": true,
+          "min": 1,
+          "label": "항목"
+        },
+        {
+          "name": "cancel",
+          "type": "integer",
+          "min": 1,
+          "label": "취소키가 고르는 항목"
+        }
+      ],
+      "lists": [
+        {
+          "name": "branches",
+          "perOption": "options",
+          "label": "{n}. {option}"
+        }
+      ]
+    },
+    {
+      "code": "wait",
+      "label": "기다리기",
+      "group": "흐름",
+      "args": [
+        {
+          "name": "ms",
+          "type": "integer",
+          "required": true,
+          "min": 0,
+          "label": "시간 (ms)"
+        }
+      ]
+    },
+    {
+      "code": "transfer",
+      "label": "맵 이동",
+      "group": "이동",
+      "ends": true,
+      "args": [
+        {
+          "name": "map",
+          "type": "ref",
+          "ref": "map",
+          "required": true,
+          "label": "맵"
+        },
+        {
+          "name": "x",
+          "type": "integer",
+          "min": 0,
+          "label": "x (비우면 정의 파일의 시작)"
+        },
+        {
+          "name": "y",
+          "type": "integer",
+          "min": 0,
+          "label": "y (비우면 정의 파일의 시작)"
+        },
+        {
+          "name": "dir",
+          "type": "enum",
+          "values": [
+            "down",
+            "left",
+            "right",
+            "up"
+          ],
+          "label": "방향 (비우면 정의 파일의 시작)"
+        }
+      ]
+    },
+    {
+      "code": "moveRoute",
+      "label": "이동 루트",
+      "group": "이동",
+      "args": [
+        {
+          "name": "target",
+          "type": "ref",
+          "ref": "character",
+          "required": true,
+          "label": "대상"
+        },
+        {
+          "name": "route",
+          "type": "route",
+          "required": true,
+          "label": "걸음"
+        },
+        {
+          "name": "wait",
+          "type": "boolean",
+          "default": true,
+          "label": "끝날 때까지 기다린다"
+        },
+        {
+          "name": "loop",
+          "type": "boolean",
+          "label": "되풀이한다"
+        }
+      ]
+    },
+    {
+      "code": "turn",
+      "label": "방향 바꾸기",
+      "group": "이동",
+      "args": [
+        {
+          "name": "target",
+          "type": "ref",
+          "ref": "character",
+          "required": true,
+          "label": "대상"
+        },
+        {
+          "name": "dir",
+          "type": "enum",
+          "values": [
+            "down",
+            "left",
+            "right",
+            "up"
+          ],
+          "required": true,
+          "label": "방향"
+        }
+      ]
+    },
+    {
+      "code": "setFlag",
+      "label": "깃발",
+      "group": "상태",
+      "args": [
+        {
+          "name": "key",
+          "type": "ref",
+          "ref": "flag",
+          "required": true,
+          "label": "깃발"
+        },
+        {
+          "name": "value",
+          "type": "scalar",
+          "default": true,
+          "label": "값 (비우면 참)"
+        }
+      ]
+    },
+    {
+      "code": "setVar",
+      "label": "변수",
+      "group": "상태",
+      "args": [
+        {
+          "name": "key",
+          "type": "ref",
+          "ref": "var",
+          "required": true,
+          "label": "변수"
+        },
+        {
+          "name": "op",
+          "type": "enum",
+          "values": [
+            "=",
+            "+",
+            "-"
+          ],
+          "default": "=",
+          "label": "계산"
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "label": "값"
+        }
+      ]
+    },
+    {
+      "code": "giveItem",
+      "label": "아이템 얻기",
+      "group": "상태",
+      "args": [
+        {
+          "name": "item",
+          "type": "ref",
+          "ref": "item",
+          "required": true,
+          "label": "아이템"
+        },
+        {
+          "name": "count",
+          "type": "integer",
+          "min": 1,
+          "default": 1,
+          "label": "개수"
+        }
+      ]
+    },
+    {
+      "code": "takeItem",
+      "label": "아이템 잃기 (모자라면 아무것도 안 한다)",
+      "group": "상태",
+      "args": [
+        {
+          "name": "item",
+          "type": "ref",
+          "ref": "item",
+          "required": true,
+          "label": "아이템"
+        },
+        {
+          "name": "count",
+          "type": "integer",
+          "min": 1,
+          "default": 1,
+          "label": "개수"
+        }
+      ]
+    },
+    {
+      "code": "if",
+      "label": "조건 분기",
+      "group": "흐름",
+      "args": [
+        {
+          "name": "cond",
+          "type": "condition",
+          "required": true,
+          "label": "조건"
+        }
+      ],
+      "lists": [
+        {
+          "name": "thenDo",
+          "label": "참이면"
+        },
+        {
+          "name": "elseDo",
+          "label": "아니면"
+        }
+      ]
+    },
+    {
+      "code": "playSe",
+      "label": "효과음",
+      "group": "소리",
+      "args": [
+        {
+          "name": "file",
+          "type": "file",
+          "required": true,
+          "accept": [
+            "wav",
+            "ogg"
+          ],
+          "dir": "resources/audio",
+          "label": "파일"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "label": "채널 이름"
+        }
+      ]
+    },
+    {
+      "code": "playBgm",
+      "label": "배경음",
+      "group": "소리",
+      "args": [
+        {
+          "name": "file",
+          "type": "file",
+          "required": true,
+          "accept": [
+            "ogg",
+            "wav"
+          ],
+          "dir": "resources/audio",
+          "label": "파일"
+        },
+        {
+          "name": "volume",
+          "type": "integer",
+          "min": 0,
+          "max": 128,
+          "label": "음량 (0~128)"
+        },
+        {
+          "name": "fade",
+          "type": "integer",
+          "min": 0,
+          "label": "페이드 (ms, 지금 데모는 쓰지 않는다)"
+        }
+      ]
+    },
+    {
+      "code": "showLocation",
+      "label": "장소 이름",
+      "group": "화면",
+      "args": [
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "label": "장소 이름"
+        },
+        {
+          "name": "seconds",
+          "type": "number",
+          "min": 0,
+          "label": "보이는 시간 (초)"
+        }
+      ]
+    },
+    {
+      "code": "scene",
+      "label": "씬 바꾸기",
+      "group": "화면",
+      "ends": true,
+      "args": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "suggest": [
+            "title"
+          ],
+          "label": "씬"
+        },
+        {
+          "name": "fade",
+          "type": "boolean",
+          "label": "어두워진 뒤에 바꾼다"
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "label": "바꾸기 전에 띄울 글"
+        }
+      ]
+    },
+    {
+      "code": "script",
+      "label": "스크립트",
+      "group": "흐름",
+      "args": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "label": "이름 (정의 파일의 scripts)"
+        },
+        {
+          "name": "args",
+          "type": "json",
+          "label": "인자"
+        }
+      ]
+    },
+    {
+      "code": "comment",
+      "label": "메모",
+      "group": "흐름",
+      "args": [
+        {
+          "name": "text",
+          "type": "text",
+          "label": "메모"
+        }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "kind": "item",
+      "label": "아이템",
+      "args": [
+        {
+          "name": "item",
+          "type": "ref",
+          "ref": "item",
+          "required": true,
+          "label": "아이템"
+        },
+        {
+          "name": "op",
+          "type": "enum",
+          "values": [
+            "==",
+            "~=",
+            "<",
+            "<=",
+            ">",
+            ">="
+          ],
+          "label": "비교 (비우면 값이 있을 때 >=, 값도 없으면 하나 이상)"
+        },
+        {
+          "name": "value",
+          "type": "integer",
+          "min": 0,
+          "label": "개수 (비교만 있고 비우면 1)"
+        }
+      ]
+    },
+    {
+      "kind": "flag",
+      "label": "깃발",
+      "args": [
+        {
+          "name": "flag",
+          "type": "ref",
+          "ref": "flag",
+          "required": true,
+          "label": "깃발"
+        },
+        {
+          "name": "equals",
+          "type": "scalar",
+          "label": "값 (비우면 참인가)"
+        }
+      ]
+    },
+    {
+      "kind": "var",
+      "label": "변수",
+      "args": [
+        {
+          "name": "var",
+          "type": "ref",
+          "ref": "var",
+          "required": true,
+          "label": "변수"
+        },
+        {
+          "name": "op",
+          "type": "enum",
+          "values": [
+            "==",
+            "~=",
+            "<",
+            "<=",
+            ">",
+            ">="
+          ],
+          "default": "==",
+          "label": "비교"
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": 0,
+          "label": "값"
+        }
+      ]
+    }
+  ],
+  "assets": {
+    "charset": {
+      "player": [
+        "./resources/rtp/CharSet/Actor1.png",
+        "./resources/charsets/placeholder.png"
+      ],
+      "npc": [
+        "./resources/rtp/CharSet/People1.png",
+        "./resources/charsets/placeholder.png"
+      ]
+    },
+    "face": {
+      "npc": [
+        "./resources/rtp/FaceSet/People1.png",
+        "./resources/faces/placeholder.png"
+      ]
+    }
+  },
+  "sheets": {
+    "charset": {
+      "frameW": 24,
+      "frameH": 32,
+      "sheetCols": 4,
+      "perSheet": 8,
+      "patterns": 3,
+      "standPattern": 1,
+      "dirRows": {
+        "up": 0,
+        "right": 1,
+        "down": 2,
+        "left": 3
+      }
+    },
+    "face": {
+      "size": 48,
+      "cols": 4,
+      "perSheet": 16
+    }
+  },
+  "route": {
+    "moves": [
+      "up",
+      "down",
+      "left",
+      "right"
+    ],
+    "turnPrefix": "turn:",
+    "waitPrefix": "wait:"
+  },
+  "state": {
+    "reserved": [
+      "items"
+    ]
+  }
+}

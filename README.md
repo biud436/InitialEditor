@@ -128,6 +128,29 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 `알데바란: 시작 x <x> (y <y>)`를 찍고(엔진 PR #47 이후), `INITIAL2D_ALDEBARAN_TRACE=1`이면 맵과 몬스터 검수 줄을 찍는
 판(엔진 PR #48 이후)이어야 합니다. 검수 줄이 없는 엔진이면 테스트가 실패합니다.
 
+## RPG 이벤트 (E5, 진행 중)
+
+맵 파일의 `events`를 에디터에서 고치는 RPG 확장입니다. 지금은 `packages/ext-rpg`에 DOM 없는 모델만 있습니다.
+엔진의 이벤트 스키마(`resources/schema/event-commands.json`)와 게임 설정(`resources/data/rpg-game.json`)을 읽고,
+엔진과 같은 검사를 같은 경로(`events[3].commands[2].text`)로 내고, 되돌릴 수 있는 명령으로 이벤트와 커맨드를 고칩니다.
+맵 뷰의 이벤트 레이어와 커맨드 편집기는 다음 마일스톤입니다. 계약의 정본은 엔진의 `docs/plans/m2-rpg-events.md`입니다.
+
+- 픽스처: 모델 테스트는 엔진 파일의 사본(`packages/ext-rpg/test/fixtures/`)으로 돕니다. 이벤트 스키마, 게임 설정, 아이템 표,
+  항구 마을과 여관 맵, 경로 대조 픽스처, 플레이스홀더 그림입니다. 엔진 쪽 파일이 바뀌면 `yarn sync:rpg`로 다시 맞춥니다.
+  `MANIFEST.json`에 엔진 커밋(40자)과 sha256이 남고, 엔진 저장소가 옆에 있으면 사본이 엔진 파일과 같은지 테스트가 봅니다.
+  `resources/rtp/`는 복사하지 않습니다. 엔진 작업 트리가 커밋과 다르면 멈추고, 그래도 복사하려면 `--allow-dirty`를 줍니다.
+- 교차 검사: `yarn test:engine-events`는 엔진 저장소의 사본 프로젝트에서 항구 마을을 열어 모델의 명령만으로 이벤트를 만들고
+  저장한 뒤, 진짜 엔진을 헤드리스로 띄워 trace 줄(`rpg:player:`, `rpg:message:`, `rpg:route:done`)을 봅니다. 판은 넷입니다:
+  말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기, 되돌린 맵을 시작 상태 `arrived`로 다시 띄우기. 여관으로 옮기는 판은
+  대조 판 셋이 뒤따릅니다. `transfer`의 x, y, dir을 하나씩 빼고 띄워 도착 검사가 실제로 실패하는지 봅니다. 엔진 실행 파일이 없거나
+  M2 계약 전의 엔진(Initial2D `74febb4` 이전)이면 `SKIP:` 한 줄을 찍고 통과합니다. 엔진 저장소는 고치지 않습니다.
+
+```sh
+INITIAL2D_DIR=../Initial2D yarn sync:rpg              # 엔진 파일을 픽스처로 복사하고 MANIFEST 갱신
+INITIAL2D_DIR=../Initial2D yarn test:engine-events    # 엔진 빌드(build/Initial2D)가 있어야 한다
+KEEP_WORKDIR=1 yarn test:engine-events                # 사본 프로젝트를 남긴다 (경로를 마지막에 찍는다)
+```
+
 ## 프로젝트
 
 프로젝트는 `game.json`이 있는 폴더입니다. 엔진이 작업 폴더의 `./game.json`을 읽으므로 새 개념이 아닙니다.
@@ -143,6 +166,7 @@ packages/backend-fsaccess/ ProjectBackend 의 브라우저 폴더(File System Ac
 packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
 packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
 packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입
+packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 여기서 실행 변수)과 엔진 교차 검사
 src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push
 tests/e2e/                Playwright (브라우저 모드)와 알데바란 인수 테스트, 도우미는 tests/e2e/support/
 docs/plans/               계획과 진행 상황
@@ -153,12 +177,14 @@ docs/plans/               계획과 진행 상황
 | 명령 | 무엇 |
 |---|---|
 | `yarn dev`, `yarn build`, `yarn preview` | 앱 (Vite) |
-| `yarn typecheck`, `yarn lint` | TypeScript 와 ESLint (`core`는 DOM 과 PIXI 를 import 하지 못한다) |
+| `yarn typecheck`, `yarn lint` | TypeScript 와 ESLint (`core`와 `ext-rpg`의 모델은 DOM 과 PIXI 를 import 하지 못한다) |
 | `yarn test` | Vitest 단위 테스트 (모든 패키지와 e2e 도우미 `tests/e2e/support/*.unit.ts`) |
 | `yarn test:conformance` | 브리지 백엔드 적합성 (엔진 저장소의 브리지 서버를 임시 프로젝트로 띄운다. 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D`) |
 | `yarn test:rust` | `cargo test` (src-tauri) |
 | `yarn test:engine-scene` | 에디터 템플릿으로 만든 프로젝트(빈, 플래피 x Lua, Ruby)를 진짜 엔진이 돌리는 교차 검사 (`INITIAL2D_DIR`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(sha256)를 갱신 (`INITIAL2D_DIR`) |
+| `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
+| `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |
 | `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`) |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
