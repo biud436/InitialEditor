@@ -3,7 +3,8 @@
 // 에디터는 v1 과 v2 를 읽고 늘 v2 로 쓴다. 엔진의 C++ 로더는 필요한 키(크기, 타일셋, 레이어, collision)만
 // 읽고 나머지는 무시하므로, 에디터와 스크립트만 아는 키(events, objects)를 실어 나를 수 있다.
 //
-//   events  : RPG 이벤트 (칸 좌표, 커맨드 목록). 9단계의 것이며 에디터는 보존만 한다 (E5 가 편집)
+//   events  : RPG 이벤트 (칸 좌표, 커맨드 목록). 9단계의 것이며 에디터는 보존만 한다 (E5 가 편집).
+//             null 은 없는 키이고, 빈 {} 는 엔진에게 빈 배열이라 [] 로 읽고 쓴다 (엔진 M2 3.1)
 //   objects : 오브젝트 레이어 (픽셀 좌표, 타입과 속성). 게임이 정하는 배치 데이터 (시작 지점, 적, 흔적 등).
 //             타입과 칸은 프로젝트의 resources/schema/map-objects.json 이 정한다 (schema.ts)
 //
@@ -53,7 +54,7 @@ export interface MapData {
   /** 통행 (0 지나감, 그 밖은 막힘). 없으면 null */
   collision: number[] | null;
   tilesets: Tileset[];
-  /** RPG 이벤트 (보존만) */
+  /** RPG 이벤트 (보존만). null 이면 키가 없다 (파일의 "events": null 도 같다) */
   events: unknown[] | null;
   objects: MapObject[];
   extra: Record<string, unknown>;
@@ -126,11 +127,7 @@ export function parseMap(text: string): MapData {
     return { name: typeof l.name === "string" ? l.name : `layer${i + 1}`, data: [...numberArray(l.data, cells, `${where}.data`)], extra: extraOf(l, LAYER_KEYS) };
   });
   const collision = raw.collision === undefined || raw.collision === null ? null : [...numberArray(raw.collision, cells, "collision")];
-  let events: unknown[] | null = null;
-  if (raw.events !== undefined) {
-    if (!Array.isArray(raw.events)) throw new MapFormatError("events 는 배열이어야 한다", "events");
-    events = raw.events;
-  }
+  const events = eventsOf(raw.events);
   let objects: MapObject[] = [];
   if (raw.objects !== undefined) {
     if (!Array.isArray(raw.objects)) throw new MapFormatError("objects 는 배열이어야 한다", "objects");
@@ -151,6 +148,18 @@ export function parseMap(text: string): MapData {
     objects,
     extra: extraOf(raw, ROOT_KEYS),
   };
+}
+
+/**
+ * events 자리의 값 (엔진 M2 3.1). null 은 없는 키라 null 이다 (저장할 때 키를 쓰지 않는다, mapfile.py 와 같다).
+ * 값이 전부 null 인 객체(빈 {} 포함)는 엔진의 Json.Load 에게 빈 표, 곧 빈 배열이라 [] 로 읽는다 (저장할 때 [] 로 쓴다).
+ * 그 밖의 배열 아닌 값은 틀린 파일이다
+ */
+function eventsOf(v: unknown): unknown[] | null {
+  if (v === undefined || v === null) return null;
+  if (Array.isArray(v)) return v;
+  if (isRecord(v) && Object.values(v).every((x) => x === null)) return [];
+  throw new MapFormatError("events 는 배열이어야 한다", "events");
 }
 
 function parseObject(o: unknown, i: number): MapObject {
