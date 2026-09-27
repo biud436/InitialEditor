@@ -176,14 +176,16 @@ tools/build_dist.sh                                   # dist/Initial2D-<트리�
 yarn engine:fetch --from ../Initial2D/dist            # src-tauri/binaries/ 와 src-tauri/licenses/engine/ 으로 받는다
 node scripts/check-sidecar.mjs src-tauri/binaries/Initial2D-aarch64-apple-darwin
 yarn tauri dev --config src-tauri/tauri.sidecar.conf.json     # 앱에 든 엔진으로 개발 빌드
-yarn tauri build --config src-tauri/tauri.sidecar.conf.json   # 번들에 싣는다
-yarn engine:check                                     # 템플릿, 웹 엔진, 받은 엔진이 핀의 커밋인지
+yarn tauri build --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json   # 설치본 (.app 과 dmg)
+yarn engine:check                                     # 템플릿, 웹 엔진, RPG 픽스처, 받은 엔진이 핀의 커밋인지
 ```
+
+- 설치본 빌드는 덮어쓰기 설정 둘을 이 순서로 줍니다. `tauri.dist.conf.json` 이 소스맵 없는 프런트(`yarn build:desktop`)와 제3자 고지(`licenses/`)를, `tauri.sidecar.conf.json` 이 앱에 든 엔진과 `engine.json` 을 싣습니다. `--bundles` 를 주지 않으면 `.app` 과 함께 dmg 도 만들고, 그때 Finder 창이 잠깐 뜹니다. `.app` 만 만들려면 `--bundles app` 을 붙입니다.
 
 - `--from` 폴더는 엔진의 `dist/` 나 `dist.yml` 산출물 폴더입니다. 엔진 커밋이 핀과 다르면 받지 않고, 다른 엔진을 잠깐 시험할 때는 `--any-commit` 을 붙입니다. `--target <트리플>` 로 다른 타깃을 받고, Windows 타깃은 엔진이 없어 고지만 받습니다. `--templates <빈 폴더>` 는 엔진 대신 템플릿 묶음(`Initial2D-templates.zip`)을 풉니다.
 - 받은 파일은 gitignore 입니다: `src-tauri/binaries/Initial2D-<트리플>`, `src-tauri/binaries/engine.json`(판 정보. 상태 바 툴팁과 설정에 "앱에 든 엔진 (cac4b94, lua mruby)" 처럼 보입니다), `src-tauri/licenses/engine/THIRD-PARTY.md`.
-- `check-sidecar.mjs` 는 받은 파일이나 빌드한 `.app` 을 받아 동적 의존(Homebrew 경로가 없는지), `--features`, `--version` 의 커밋이 핀과 같은지, 모르는 인자에 종료 코드 2 인지 봅니다. 엔진은 버리는 임시 폴더에서 창 없이 돕니다.
-- 엔진을 올릴 때는 `engine-pin.json` 의 `engineCommit` 을 바꾸고, 그 커밋에서 `yarn sync:templates` 와 `yarn sync:engine-web` 을 다시 돌린 뒤 `yarn engine:check` 로 맞춰졌는지 봅니다. `ciEngineRef` 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸이라 릴리스 전에는 비웁니다.
+- `check-sidecar.mjs` 는 받은 파일이나 빌드한 `.app` 을 받아 동적 의존(Homebrew 경로가 없는지), `--features`, `--version` 의 커밋이 핀과 `engine.json` 에 같은지, 모르는 인자에 종료 코드 2 인지 봅니다. 엔진은 버리는 임시 폴더에서 창 없이 돕니다. `engine.json` 은 받은 파일 옆(`src-tauri/binaries/engine.json`)이나 앱의 `Contents/Resources/engine/` 에서 찾고, 없으면 실패합니다. 다른 곳에 있으면 `--engine-json <경로>`, 엔진 실행 파일만 볼 때는 `--no-engine-json` 을 붙입니다.
+- 엔진을 올릴 때는 `engine-pin.json` 의 `engineCommit` 을 바꾸고, 엔진 저장소를 그 커밋으로 체크아웃해 `yarn sync:templates`, `yarn sync:engine-web`, `yarn sync:rpg` 를 다시 돌린 뒤 `yarn engine:check` 로 맞춰졌는지 봅니다. `ciEngineRef` 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸이라 릴리스 전에는 비웁니다.
 
 ## 설치 파일과 자가 검사
 
@@ -210,13 +212,14 @@ yarn build:desktop                # 소스맵 없는 프런트 (릴리스 번들
 yarn engine:fetch --from ../Initial2D/dist
 yarn tauri build --bundles app --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json
 yarn selftest:app src-tauri/target/release/bundle/macos/InitialEditor.app
-yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲을 맵 뷰로 열어 게임 화면과 견주는 것까지
+yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲에 한 칸을 칠해 게임 화면과 견주는 것까지
 ```
 
 - `yarn selftest:app` 은 창을 띄우지 않습니다. 앱을 자가 검사 모드(`INITIAL_EDITOR_SELFTEST=<계획 파일>`)로 띄우면, 앱에 든 템플릿으로
   플래피 Lua, 플래피 Ruby, 타일맵 프로젝트를 임시 폴더에 만들고, 타일맵은 맵 문서로 한 칸을 칠해 저장한 뒤, 셋 다 앱에 든 엔진으로 돌립니다.
   끝나면 `scripts/selftest-check.mjs` 가 실행마다 남은 전체 로그와 스크린샷으로 판정합니다. 작업 폴더(보고서, 로그, 스크린샷)는 지우지 않고 경로를 찍습니다.
 - 자가 검사는 설정, 최근 프로젝트, 레이아웃, 창 위치, 웹뷰 저장소를 읽지도 쓰지도 않습니다. 확인 창이 뜨거나 웹뷰 보안 정책(CSP) 위반이 있으면 실패입니다.
+- `--forest <엔진 저장소>` 는 숲 맵의 사본을 맵 뷰로 열어 deco 레이어의 빈 칸 하나를 칠해 저장하고 앱에 든 엔진으로 돌린 뒤, 게임 화면을 맵 뷰와 견주고 저장한 맵과 타일셋으로 직접 그린 기준과도 견줍니다. 레이어마다, 칠한 칸까지 게임 화면에 있어야 통과합니다 (게임이 레이어 하나를 빼고 그리거나 칠하기 전 맵을 돌리면 실패).
 - `--embedded` 는 에디터 안 실행을 더하는데 창이 뜹니다. `--total-timeout <ms>` 로 전체 시간을 줄일 수 있습니다.
 - 로컬에서 dmg 까지 만들면(`--bundles app,dmg`) Finder 창이 잠깐 뜹니다. CI 에서는 뜨지 않습니다.
 - CSP 는 `src-tauri/tauri.conf.json` 의 `app.security.csp` 입니다. 새 기능이 막히면 자가 검사 보고서의 `cspViolations` 에 무엇이 막혔는지 나옵니다.
