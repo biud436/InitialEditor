@@ -60,7 +60,22 @@ async function openMainLua(page: Page): Promise<void> {
   await tree.locator('[data-path="scripts/lua"]').click();
   await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
   await expect(page.locator(CODE)).toContainText("function init()");
-  await page.locator(CODE).click();
+  await focusCode(page);
+}
+
+/**
+ * 스크립트 편집기에 초점을 둔다. 글 영역(.view-lines)은 가장 긴 줄과 줄 수만큼이라 좁은 그룹에서는 편집기보다 넓고 길다.
+ * 그 가운데를 누르면 세로 스크롤 막대 자리라 Monaco 의 스크롤과 겨루고, 기계가 바쁘면 막대가 클릭을 가로챈다.
+ * 글이 보이는 창(.editor-scrollable)의 왼쪽 위에서 조금 안쪽(스크롤 그림자 아래)을 마우스로 누른다
+ */
+async function focusCode(page: Page): Promise<void> {
+  const code = page.locator(CODE);
+  await expect(code).toBeVisible();
+  const point = await code.evaluate((el) => {
+    const view = (el.closest(".editor-scrollable") ?? el).getBoundingClientRect();
+    return { x: view.left + Math.min(40, view.width / 2), y: view.top + Math.min(40, view.height / 2) };
+  });
+  await page.mouse.click(point.x, point.y);
   await expect(page.locator(".monaco-editor textarea")).toBeFocused();
 }
 
@@ -87,7 +102,7 @@ async function moveCursor(page: Page, line: number, column = 1): Promise<void> {
 
 /** 편집기의 되돌리기(Ctrl+Z)로 글을 text 로 돌린다. Monaco 는 입력한 글을 단어와 줄바꿈 단위로 나눠 되돌린다 */
 async function undoTo(page: Page, text: string): Promise<void> {
-  await page.locator(CODE).click();
+  await focusCode(page);
   for (let i = 0; i < 50 && (await scriptText(page)) !== text; i++) await page.keyboard.press("ControlOrMeta+z");
   expect(await scriptText(page)).toBe(text);
 }
@@ -256,7 +271,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await tree.locator('[data-path="scripts/lua"]').click();
     await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
     await expect(page.locator(CODE)).toContainText("function init()");
-    await page.locator(CODE).click();
+    await focusCode(page);
     await page.evaluate(() =>
       (window as unknown as { initialEditor: { scripting: { activeScript: { reveal(line: number, column: number): void } } } }).initialEditor.scripting.activeScript.reveal(1, 1),
     );
@@ -334,7 +349,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     // 편집기로 돌아가 Shift+F5
-    await page.locator(CODE).click();
+    await focusCode(page);
     await expect(page.locator(".monaco-editor textarea")).toBeFocused();
     await markPage(page);
     await page.keyboard.press("Shift+F5");
@@ -483,7 +498,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     // 스테이징 중에 저장한다 (main.lua 는 이미 옛 글로 읽혔다)
     const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
     await scriptTab.click();
-    await page.locator(CODE).click();
+    await focusCode(page);
     await page.keyboard.press("ControlOrMeta+s");
     await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
     await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진이 뜨는 중이다")).toHaveCount(1);
@@ -510,7 +525,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
     const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
     await scriptTab.click();
-    await page.locator(CODE).click();
+    await focusCode(page);
     await moveCursor(page, 1);
     await page.keyboard.insertText("-- edit\n");
     await page.keyboard.press("ControlOrMeta+s");
@@ -556,7 +571,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
     await scriptTab.click();
     await page.evaluate((text) => (window as unknown as EditorWindow).initialEditor.documents.findByPath("scripts/lua/main.lua").model.setValue(text), original);
-    await page.locator(CODE).click();
+    await focusCode(page);
     await page.keyboard.press("ControlOrMeta+s");
     await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
     await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진이 뜨는 중이다")).toHaveCount(1);
@@ -633,7 +648,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
       const scriptTab = page.getByTestId("doc-tab").filter({ hasText: file });
       await scriptTab.click();
       await page.evaluate(([p, t]) => (window as unknown as EditorWindow).initialEditor.documents.findByPath(p)?.model.setValue(t), [main, fixed] as const);
-      await page.locator(CODE).click();
+      await focusCode(page);
       await page.keyboard.press("ControlOrMeta+s");
       await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
       await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진이 뜨는 중이다")).toHaveCount(1);
@@ -1147,7 +1162,7 @@ test.describe("게임 뷰 (브리지 모드, 알데바란)", () => {
 
     const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
     await scriptTab.click();
-    await page.locator(CODE).click();
+    await focusCode(page);
     await moveCursor(page, 1);
     await page.keyboard.insertText("-- edit\n");
     await page.keyboard.press("ControlOrMeta+s");
