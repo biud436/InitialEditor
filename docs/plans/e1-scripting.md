@@ -64,6 +64,7 @@
 
 - 단위: 오류 링크 파서(Lua, Ruby, 아무것도 아닌 줄), 엔진 경로 탐색 순서
 - Playwright(브라우저 모드): 스크립트 열기, 고치기, 저장 뒤 브리지의 파일 내용 확인, 외부 변경 배너
+- Playwright WebKit(`yarn test:e2e:webkit`, CI 의 web 잡): macOS 앱의 웹뷰가 WKWebView 라 스크립트 편집 스펙과 스크립트 탭 여럿 스펙(`tests/e2e/script-tabs.spec.ts`: 탭을 열고, 오가고, 닫고, 다시 열고, 나누며 친 글자와 단축키가 그 탭의 파일에만 들어가고 저장한 바이트도 같은지)을 WebKit 으로도 돌린다
 - 교차: 헤드리스 엔진(`INITIAL2D_HMR=1`, `SDL_VIDEODRIVER=dummy`)을 테스트가 띄우고 저장이 리로드로 이어지는지 로그로 확인
 - 손맛(글꼴, 리로드 지연, 콘솔 가독성)은 저자 확인
 
@@ -87,3 +88,4 @@
 - **번들이 3.5MB(gzip 0.9MB)** 가 되었다. Monaco 가 정적 import 라서다. 데스크톱 앱에는 문제가 없고, 브라우저 모드가 무거우면 동적 import 로 나눈다.
 - **명세의 언어별 키 (2026-09-27 수정).** 파서가 씬 계약의 `lua`, `ruby`, `luaRequired`, 함수의 `luaParams`, `rubyParams`, `luaReturns`, `rubyReturns`, `overloads`, `aliasOf`, `prelude`, 인자의 `default`, `rubyType`, `variadic`, 클래스의 `luaStyle`, 상수의 `values`, 최상위의 `engine`, `generatedFrom`, `types`를 버렸다. 그래서 Lua 씬 계약 스니펫과 새 Lua 씬 템플릿이 엔진이 부르지 않는 `function init()`을 넣었고, Ruby 전용 선택 인자(`Audio.play_music`의 `loop`)가 스니펫의 필수 인자로 들어갔다. 지금은 명세의 키를 이름 그대로 모두 옮기고, 자동완성과 시그니처 도움말(다른 인자 꼴 포함)과 호버가 언어별 인자, 타입, 반환, 기본값을 쓴다. 씬 계약 스니펫은 Lua `Initialize`, `Update(elapsed_ms)`, Ruby `init`, `update(elapsed_ms)`이고, 이미 정의한 함수는 그 이름으로 찾아 다시 내지 않는다. 컴포넌트 템플릿은 씬 로더가 부르는 언어 중립 이름(`init` 등)을 그대로 쓴다. `scripting/apiSpecReal.test.ts`가 앱의 엔진 사본, 내장 기본값, 엔진 원본(있으면)의 키가 파서에서 하나도 빠지지 않는지 본다.
 - **배포된 페이지는 메모리 모드.** Cloudflare Pages 가 `yarn build` 의 `dist/` 를 배포하므로 빌드 출력을 저장소 루트로 냈고, 로컬이 아닌 호스트에서 열리면 브리지 대신 메모리 모드로 시작한다 (브리지는 루프백 origin 만 받는다).
+- **WebKit 에서 둘째 스크립트 탭의 입력이 첫 탭의 파일로 갔다 (2026-09-27 고침).** dockview 는 가린 탭의 내용을 문서에서 떼는데, WebKit 은 초점을 가진 입력 영역이 떨어져도 blur 를 보내지 않는다. Monaco 는 그 편집기를 계속 초점 편집기로 보고, 타이핑(`type` 명령)과 단축키 액션(되돌리기, 찾기와 바꾸기)을 목록에서 먼저 만든 초점 편집기로 보내 다른 파일이 바뀌었다. 편집기마다 문서의 `focusin` 을 듣고, 초점이 밖으로 옮겨 갔는데 초점을 가졌다고 보는 편집기의 입력 영역에 blur 를 보낸다 (`scripting/editorFocus.ts`). Chromium 은 떼어 낼 때 blur 를 보내 드러나지 않았다
