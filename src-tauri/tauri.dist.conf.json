@@ -5,7 +5,8 @@
   },
   "bundle": {
     "resources": {
-      "licenses/": "licenses/"
+      "licenses/": "licenses/",
+      "../LICENSE": "licenses/LICENSE"
     }
   }
 }

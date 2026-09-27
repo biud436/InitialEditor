@@ -90,7 +90,7 @@ BMFont 는 새 프로젝트를 만들 때 템플릿에서 프로젝트로 복사
 | 엔진 판 정보 `engine.json` | 번들 리소스 `engine/engine.json` | `scripts/fetch-engine.mjs` | 엔진 태그, 커밋, 타깃, sha256, 기능. 앱이 보이는 엔진 판은 이것에서 온다 |
 | 웹 엔진 (js, wasm, 로더, MANIFEST, `THIRD-PARTY.md`) | `dist/engine/` (프런트) | `yarn engine:pin` (개발 중에는 `yarn sync:engine-web`) | E4 그대로. Pages 와 Tauri 둘 다 |
 | 새 프로젝트 템플릿 (씬 로더 두 언어, `scene_types`, 플래피, **타일맵**, `hangul.fnt`, API 명세, 진입 파일) | 프런트 번들 | `yarn engine:pin` 이 릴리스의 `Initial2D-templates.zip` 에서 (개발 중에는 `yarn sync:templates` 가 엔진 체크아웃에서) | E2 의 방식. MANIFEST 가 생성물(`generated: true`)을 표시한다 |
-| 제3자 라이선스 고지 | 번들 리소스 `licenses/` | 에디터 쪽 `src-tauri/licenses/THIRD-PARTY-editor.md`(커밋, `scripts/gen-licenses.mjs` 가 만들고 `--check` 로 최신인지 본다. `LICENSE` 는 두지 않는다, 결정 기록). 엔진 쪽 `licenses/engine/THIRD-PARTY.md`(gitignore, `yarn engine:fetch` 가 엔진 릴리스에서 받는다) | 엔진 고지: SDL2, SDL2_image, SDL2_mixer(zlib), stb, Lua(MIT), mruby(MIT), jsoncpp, SQLite, TinyXML, 나눔고딕(OFL, `hangul.fnt` 가 구운 글꼴). 웹판은 `dist/engine/THIRD-PARTY.md` 로 같은 고지를 낸다 |
+| 제3자 라이선스 고지 | 번들 리소스 `licenses/` | 에디터 쪽 `src-tauri/licenses/THIRD-PARTY-editor.md`(커밋, `scripts/gen-licenses.mjs` 가 만들고 `--check` 로 최신인지 본다)와 저장소 루트의 MIT `LICENSE`(번들의 `licenses/LICENSE`). 엔진 쪽 `licenses/engine/THIRD-PARTY.md`(gitignore, `yarn engine:fetch` 가 엔진 릴리스에서 받는다) | 엔진 고지: SDL2, SDL2_image, SDL2_mixer(zlib), stb, Lua(MIT), mruby(MIT), jsoncpp, SQLite, TinyXML, 나눔고딕(OFL, `hangul.fnt` 가 구운 글꼴). 웹판은 `dist/engine/THIRD-PARTY.md` 로 같은 고지를 낸다 |
 | 게임 (`game.json`, `scripts/`, `resources/`) | 사용자 프로젝트 | 사용자 | 엔진은 작업 폴더에서 읽는다 |
 | 맵 오브젝트 스키마 (`resources/schema/map-objects.json`) | 사용자 프로젝트 | 게임마다 (타일맵 템플릿이 장르 중립 한 장을 준다) | 에디터는 프로젝트의 것을 읽는다 |
 | **싣지 않는 것** | | | `resources/RTP.zip` 과 `resources/rtp/`, 알데바란 소재, 엔진 저장소의 게임과 테스트, 데스크톱 번들의 소스맵 |
@@ -122,10 +122,10 @@ shell 플러그인의 `Command::sidecar()` 는 쓰지 않는다. 이미 `engine.
 | 파일 | 내용 |
 |---|---|
 | `src-tauri/binaries/` (gitignore) | `Initial2D-aarch64-apple-darwin`, `Initial2D-x86_64-unknown-linux-gnu`, (R5 뒤) `Initial2D-x86_64-pc-windows-msvc.exe`, 그리고 `engine.json`. `yarn engine:fetch` 가 채운다 |
-| `src-tauri/licenses/` | 커밋: `THIRD-PARTY-editor.md`(npm 과 cargo 의존성, `node scripts/gen-licenses.mjs` 가 쓴다. `LICENSE` 는 결정 기록대로 두지 않는다). gitignore: `engine/THIRD-PARTY.md`(`yarn engine:fetch` 가 모든 타깃에서 받는다. 사이드카가 없는 Windows 도 웹 엔진을 싣기 때문이다). 폴더가 늘 있으므로 번들 리소스 경로가 비어 빌드가 깨지는 일이 없다 |
+| `src-tauri/licenses/` | 커밋: `THIRD-PARTY-editor.md`(npm 과 cargo 의존성, `node scripts/gen-licenses.mjs` 가 쓴다). 루트의 `LICENSE` 는 `tauri.dist.conf.json` 이 `licenses/LICENSE` 로 싣는다. gitignore: `engine/THIRD-PARTY.md`(`yarn engine:fetch` 가 모든 타깃에서 받는다. 사이드카가 없는 Windows 도 웹 엔진을 싣기 때문이다). 폴더가 늘 있으므로 번들 리소스 경로가 비어 빌드가 깨지는 일이 없다 |
 | `src-tauri/tauri.dist.conf.json` (새) | 모든 릴리스 빌드의 덮어쓰기. `build.beforeBuildCommand` 를 `yarn build:desktop`(소스맵 없는 빌드)으로, `bundle.resources` 에 `{"licenses/": "licenses/"}` |
 | `src-tauri/tauri.sidecar.conf.json` (새) | 사이드카가 있는 타깃의 덮어쓰기. `bundle.externalBin: ["binaries/Initial2D"]`, `bundle.resources` 에 `{"binaries/engine.json": "engine/engine.json"}` |
-| `src-tauri/tauri.conf.json` (고침) | `"version": "../package.json"` (9절). 창 `main` 에 `"create": false` (셸이 만든다, 아래 `lib.rs`). `app.security.csp` 와 `devCsp`, `dangerousDisableAssetCspModification: ["style-src"]` (2.5 절). 모든 빌드에 두는 칸: `publisher`(biud436), `copyright`, `shortDescription`, `longDescription`, `homepage`(에디터 저장소), `macOS.minimumSystemVersion: "11.0"`, `macOS.signingIdentity: "-"`, `windows.nsis.installMode: "currentUser"`, `windows.nsis.languages: ["Korean", "English"]`, `windows.webviewInstallMode: { "type": "downloadBootstrapper" }`. 결정 기록대로 `license` 와 `licenseFile` 은 두지 않는다. `targets` 는 "all" 로 두고 CI 가 `--bundles` 로 고른다 |
+| `src-tauri/tauri.conf.json` (고침) | `"version": "../package.json"` (9절). 창 `main` 에 `"create": false` (셸이 만든다, 아래 `lib.rs`). `app.security.csp` 와 `devCsp`, `dangerousDisableAssetCspModification: ["style-src"]` (2.5 절). 모든 빌드에 두는 칸: `publisher`(biud436), `copyright`, `shortDescription`, `longDescription`, `homepage`(에디터 저장소), `macOS.minimumSystemVersion: "11.0"`, `macOS.signingIdentity: "-"`, `windows.nsis.installMode: "currentUser"`, `windows.nsis.languages: ["Korean", "English"]`, `windows.webviewInstallMode: { "type": "downloadBootstrapper" }`. `license: "MIT"` 와 `licenseFile: "../LICENSE"` (2026-09-27 저자 위임 뒤의 결정 기록). `targets` 는 "all" 로 두고 CI 가 `--bundles` 로 고른다 |
 | `src-tauri/src/lib.rs` (고침) | `setup` 에서 창 `main` 을 설정 그대로 만든다 (`WebviewWindowBuilder::from_config`). 자가 검사 모드(5절, `selftest.rs`)면 계획의 `showWindow` 로 보임과 초점을 정하고, `window-state` 플러그인을 붙이지 않고, 웹뷰를 `incognito`(저장소를 남기지 않는다)와 `background_throttling(Disabled)`(숨은 WKWebView 는 몇 초 뒤 타이머를 멈춘다. macOS 14 이상)로 만든다. 숨은 창이면 macOS 에서 `ActivationPolicy::Accessory` 로 Dock 아이콘과 초점을 가져가지 않는다. 평소에는 전과 같다 |
 | `src-tauri/src/bundled.rs` (새) | `find(exe_dir, resource_dir) -> Option<BundledEngine>`: `std::env::current_exe()` 의 부모 폴더에서 `Initial2D`(Windows 는 `Initial2D.exe`)를 찾고, `resource_dir()/engine/engine.json` 을 읽어 붙인다. 명령 `engine_bundled` 는 `{ path, meta, metaError? }` 또는 null. `engine.json` 이 없거나 깨져도 엔진은 쓰고 `meta` 가 null 이다. 실행하지 않고 파일만 본다. 찾은 결과를 stderr 에 한 줄 남긴다 (CI 로그와 숨은 창 검수가 이 줄을 본다) |
 | `src-tauri/src/engine.rs` (고침) | `features(exe, timeout)`: 시간 제한을 인자로 받고, 작업 폴더를 끝나면 지우는 임시 폴더로 두고, 창과 소리는 dummy 드라이버다 (`--features` 를 모르는 옛 엔진이 게임을 띄워도 프로젝트에 `config.setting` 을 쓰지 않고 창도 뜨지 않게). 명령 `engine_features(exe, timeout_ms: Option<u64>)`, 없으면 5초, 가장 길게 60초. 결과를 stderr 에 한 줄 남긴다. 새 명령 `engine_exists(paths) -> Vec<bool>` 은 실행하지 않고 파일인지만 본다 (신뢰 확인용, 2.3) |
@@ -1057,8 +1057,8 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 
 ### 마일스톤 1: 번들 설정과 세 OS 빌드 (에디터)
 
-- [x] `src-tauri/tauri.conf.json` 번들 칸 (게시자, 저작권, 설명, 홈페이지, macOS 최소 11.0 과 ad-hoc 서명, NSIS 사용자 설치와 언어, WebView2 설치 방식), `version` 을 `"../package.json"` 으로. 라이선스 칸은 결정 기록대로 두지 않는다
-- [x] `src-tauri/licenses/` (`THIRD-PARTY-editor.md` 커밋, `engine/` 은 gitignore), `scripts/gen-licenses.mjs` 와 `--check` (`yarn licenses`. npm 은 앱의 런타임 의존, Cargo 는 `cargo metadata` 의 일반 의존으로 모든 OS 의 합, 고를 수 있으면 MIT 원문, 같은 원문은 한 번. 시험 `tests/scripts/licenses.unit.ts`). `LICENSE` 는 결정 기록대로 두지 않는다
+- [x] `src-tauri/tauri.conf.json` 번들 칸 (게시자, 저작권, 설명, 홈페이지, macOS 최소 11.0 과 ad-hoc 서명, NSIS 사용자 설치와 언어, WebView2 설치 방식), `version` 을 `"../package.json"` 으로. 라이선스 칸은 `MIT` 와 `licenseFile` (2026-09-27 저자 위임 뒤, 결정 기록)
+- [x] `src-tauri/licenses/` (`THIRD-PARTY-editor.md` 커밋, `engine/` 은 gitignore), `scripts/gen-licenses.mjs` 와 `--check` (`yarn licenses`. npm 은 앱의 런타임 의존, Cargo 는 `cargo metadata` 의 일반 의존으로 모든 OS 의 합, 고를 수 있으면 MIT 원문, 같은 원문은 한 번. 시험 `tests/scripts/licenses.unit.ts`). 루트 `LICENSE`(MIT)를 더했다 (2026-09-27 저자 위임 뒤, 결정 기록)
 - [x] `yarn build:desktop` (`VITE_SOURCEMAP=0`, `vite.config.ts` 가 읽는다. `emptyOutDir` 는 이미 한 번뿐이다), `src-tauri/tauri.dist.conf.json` (`beforeBuildCommand` 와 `licenses/` 리소스)
 - [x] `scripts/version.mjs` (`yarn version:set`, `yarn version:check`: package.json 일곱과 워크스페이스끼리의 의존, `Cargo.toml`, `Cargo.lock`, `tauri.conf.json` 의 경로 칸, `--tag`, `--bundles`) 와 `ci.yml` 의 대조. 시험 `tests/scripts/version.unit.ts` (이 저장소 자신이 맞는지도)
 - [ ] `ci.yml` 의 `rust` 잡을 세 OS 로 (워크플로는 됐다. Windows 에서 크레이트가 빌드되고 안드로이드의 Windows 시험이 도는지는 첫 CI 실행이 본다). Windows 전용 시험 (엔진 후보의 역슬래시 경로는 Vitest, 동봉 실행 파일 이름)
@@ -1233,7 +1233,7 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 | 물음 | 결정 |
 |---|---|
 | 서명과 공증 | 이 단계는 서명 없이(macOS ad-hoc) 만든다. 서명과 공증은 마일스톤 8, 저자 결정 |
-| 라이선스 | 저장소에 `LICENSE` 를 더하지 않고 `tauri.conf.json` 에 `license` 칸도 두지 않는다 (저자 결정). 제3자 고지(`THIRD-PARTY-editor.md`, 엔진 `THIRD-PARTY.md`)는 만든다. 고지는 의무이고 라이선스 선택이 아니기 때문이다 |
+| 라이선스 | **바뀌었다 (2026-09-27, 저자가 "알아서 판단하세요" 로 맡겼다).** 에디터는 MIT: 루트 `LICENSE` 를 더하고 `tauri.conf.json` 에 `license` 와 `licenseFile` 을 둔다. 옛 에디터의 `package.json` 이 이미 MIT 였다. 엔진에는 라이선스를 더하지 않는다: 오픈 소스 라이선스를 고르는 것은 되돌릴 수 없고, 엔진은 저자의 에디터에 실려 나가므로 따로 필요하지 않다. 제3자 고지(`THIRD-PARTY-editor.md`, 엔진 `THIRD-PARTY.md`)는 그대로 만든다 |
 | R5 (Windows SDL2 엔진) | 이 단계에서 하지 않는다. `RS_WINDOWS` 와 `RSLIB` 판정 줄을 포함해 GDI 쪽은 손대지 않는다. Windows 번들은 사이드카 없이 내고 F5 는 에디터 안(웹 엔진)으로 넘어간다 |
 | Intel 맥 | 지원하지 않는다 (arm64 만). 나중 후보 |
 | Pages 설정 | 대시보드 설정(프로젝트 이름, 주소, 프로덕션 브랜치)은 바꾸지 않는다. 저장소에는 `_headers`, 빌드 명령과 출력 폴더의 기록, `check-web-dist` 만 둔다. `main` 빨리 감기와 프로덕션 브랜치 정리는 저자 결정 |
