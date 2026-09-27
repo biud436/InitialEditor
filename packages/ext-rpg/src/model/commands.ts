@@ -419,7 +419,7 @@ export class EventEditor {
     if (names.length === 0) throw new EditRefused("바꿀 인자 없음");
     const cmd = this.commandAt(index, path, ctx.schema);
     const spec = commandSpec(ctx.schema, cmd.code);
-    if (!spec) throw new EditRefused(`모르는 커맨드 ${String(cmd.code)} 는 고칠 수 없다`);
+    if (!spec) throw new EditRefused(`모르는 커맨드 ${jsonValueText(cmd.code)} 는 고칠 수 없다`);
     const next: JsonObject = { ...cmd };
     for (const name of names) {
       const arg = spec.args.find((a) => a.name === name);
