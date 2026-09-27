@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { pascalCase, scriptPathFor, scriptTemplate, validateScriptName, type TemplateKind, type TemplateLanguage } from "./templates";
 
-const HOOKS = ["init", "update", "render", "destroy"];
+/** 진입점(scene)은 엔진이 부르는 이름, 컴포넌트는 언어 중립 이름 */
+const HOOKS: Record<TemplateLanguage, Record<TemplateKind, string[]>> = {
+  lua: { scene: ["Initialize", "Update", "Render", "Destroy"], component: ["init", "update", "render", "destroy"] },
+  ruby: { scene: ["init", "update", "render", "destroy"], component: ["init", "update", "render", "destroy"] },
+};
 
 describe("scriptTemplate", () => {
   it.each([
@@ -11,7 +15,7 @@ describe("scriptTemplate", () => {
     ["ruby", "component"],
   ] as Array<[TemplateLanguage, TemplateKind]>)("%s %s 템플릿에 씬 계약 네 함수가 있다", (language, kind) => {
     const text = scriptTemplate({ language, kind, name: "player" });
-    for (const hook of HOOKS) {
+    for (const hook of HOOKS[language][kind]) {
       const re = language === "lua" ? new RegExp(`function (Player\\.)?${hook}\\(`) : new RegExp(`def ${hook}\\b`);
       expect(text).toMatch(re);
     }
@@ -19,10 +23,14 @@ describe("scriptTemplate", () => {
     expect(text).not.toContain("\r");
   });
 
-  it("Lua 씬 템플릿은 전역 함수이고 update 는 elapsed 를 받는다", () => {
+  it("Lua 씬 템플릿은 엔진이 부르는 전역 함수(Initialize 등)이고 Update 는 elapsed 를 받는다", () => {
     const text = scriptTemplate({ language: "lua", kind: "scene", name: "main" });
-    expect(text).toContain("function init()\nend\n");
-    expect(text).toContain("function update(elapsed)\nend\n");
+    expect(text).toContain("function Initialize()\nend\n");
+    expect(text).toContain("function Update(elapsed)\nend\n");
+    expect(text).toContain("function Render()\nend\n");
+    expect(text).toContain("function Destroy()\nend\n");
+    expect(text).not.toMatch(/function (init|update|render|destroy)\(/);
+    expect(text).toContain("-- 필수 함수 (엔진이 정의 여부를 확인하지 않고 호출): Initialize, Update, Render, Destroy");
     expect(text).not.toContain("local ");
   });
 
@@ -50,14 +58,20 @@ describe("scriptTemplate", () => {
     expect(text.trimEnd().endsWith("end")).toBe(true);
   });
 
-  it("명세의 씬 계약이 있으면 그 이름과 인자를 쓴다", () => {
+  it("명세의 씬 계약이 있으면 그 이름과 인자를 쓴다 (진입점은 언어별 이름, 컴포넌트는 name)", () => {
     const hooks = [
-      { name: "init", params: [] },
-      { name: "update", params: [{ name: "elapsed_ms", type: "number" }] },
-      { name: "render", params: [] },
-      { name: "destroy", params: [] },
+      { name: "init", lua: "Initialize", ruby: "init", params: [], luaRequired: true },
+      { name: "update", lua: "Update", ruby: "update", params: [{ name: "elapsed_ms", type: "number" }], luaRequired: true },
+      { name: "render", lua: "Render", ruby: "render", params: [] },
+      { name: "destroy", lua: "Destroy", ruby: null, params: [] },
     ];
-    expect(scriptTemplate({ language: "lua", kind: "scene", name: "main", hooks })).toContain("function update(elapsed_ms)");
+    const luaScene = scriptTemplate({ language: "lua", kind: "scene", name: "main", hooks });
+    expect(luaScene).toContain("function Update(elapsed_ms)");
+    expect(luaScene).toContain("-- 필수 함수 (엔진이 정의 여부를 확인하지 않고 호출): Initialize, Update\n");
+    const rubyScene = scriptTemplate({ language: "ruby", kind: "scene", name: "main", hooks });
+    expect(rubyScene).toContain("def update(elapsed_ms)");
+    expect(rubyScene).not.toContain("def destroy");
+    expect(scriptTemplate({ language: "lua", kind: "component", name: "x", hooks })).toContain("function X.update(obj, scene, elapsed_ms)");
     expect(scriptTemplate({ language: "ruby", kind: "component", name: "x", hooks })).toContain("def update(obj, scene, elapsed_ms)");
   });
 });

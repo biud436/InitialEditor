@@ -1,6 +1,7 @@
 // 스크립트 편집 e2e (docs/plans/e1-scripting.md 마일스톤 1, 4, 5). 메모리 백엔드(?backend=memory)라 서버가 필요 없다.
 // 흐름: Monaco 로 열기 → 고치면 점 → 저장하면 점이 사라지고 토스트 → 다시 열면 남아 있다,
-//       외부 변경(미수정이면 다시 읽기, 수정 중이면 배너), 프로젝트 찾기, 자동완성, 새 스크립트, 수정한 탭 닫기 확인.
+//       외부 변경(미수정이면 다시 읽기, 수정 중이면 배너), 프로젝트 찾기, 자동완성(씬 계약 스니펫, 언어별 인자, Ruby Symbol 인자),
+//       새 스크립트, 수정한 탭 닫기 확인.
 
 import { expect, test, type Page } from "@playwright/test";
 
@@ -39,6 +40,34 @@ async function goTo(page: Page, line: number, column = 1) {
 
 function tabOf(page: Page, title: string) {
   return page.getByTestId("doc-tab").filter({ hasText: title });
+}
+
+/** 샘플 프로젝트를 열고 빈 스크립트를 만들어 편집기에 초점을 둔다 */
+async function openEmptyScript(page: Page, path: string, language: "lua" | "ruby") {
+  await openSample(page);
+  await createScript(page, path, language);
+}
+
+/** 열린 프로젝트에 빈 스크립트를 만들어 Monaco 로 열고 편집기에 초점을 둔다 */
+async function createScript(page: Page, path: string, language: "lua" | "ruby") {
+  await page.evaluate(async (p) => {
+    const editor = (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> }; scripting: { openScript(p: string): Promise<unknown> } } }).initialEditor;
+    await editor.backend.writeText(p, "");
+    await editor.scripting.openScript(p);
+  }, path);
+  await expect(page.getByTestId("script-editor")).toHaveAttribute("data-language", language);
+  await page.locator(CODE).click();
+  await goTo(page, 1, 1);
+}
+
+/** 활성 스크립트의 전체 텍스트 */
+function scriptText(page: Page) {
+  return page.evaluate(() => (window as unknown as { initialEditor: { scripting: { activeScript: { text: string } } } }).initialEditor.scripting.activeScript.text);
+}
+
+/** 완성 목록에서 씬 계약 스니펫(스니펫 아이콘)인 행 */
+function snippetRow(page: Page, label: string) {
+  return page.locator(".monaco-editor .suggest-widget .monaco-list-row", { has: page.locator(".codicon-symbol-snippet") }).filter({ hasText: new RegExp(`^${label}\\b`) });
 }
 
 test.describe("스크립트 편집 (메모리 모드)", () => {
@@ -146,6 +175,93 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await expect(hints).toBeVisible();
     await expect(hints).toContainText("IsKeyDown(key)");
     await page.keyboard.press("Escape");
+  });
+
+  test("씬 계약 스니펫: Lua 는 엔진이 부르는 Initialize 와 Update(elapsed), 이미 정의했으면 나오지 않는다", async ({ page }) => {
+    await openEmptyScript(page, "scripts/lua/hooks.lua", "lua");
+    const suggest = page.locator(".monaco-editor .suggest-widget");
+    await page.keyboard.type("Initi");
+    await expect(snippetRow(page, "Initialize")).toHaveCount(1);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toMatch(/^function Initialize\(\)\n\s*\nend$/);
+    await page.keyboard.press("Escape");
+    await goTo(page, 9999, 9999);
+    // 엔진이 부르지 않는 소문자 update 는 스니펫이 아니다
+    await page.keyboard.type("\nupd");
+    await expect(snippetRow(page, "Update")).toHaveCount(1);
+    await expect(snippetRow(page, "update")).toHaveCount(0);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toMatch(/\nfunction Update\(elapsed\)\n\s*\nend$/);
+    await page.keyboard.press("Escape");
+    await goTo(page, 9999, 9999);
+    // 정의한 Initialize 는 다시 나오지 않는다 (같은 목록의 Input 으로 목록이 뜬 것을 확인)
+    await page.keyboard.type("\nIn");
+    await expect(suggest).toContainText("Input");
+    await expect(snippetRow(page, "Initialize")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+  });
+
+  test("씬 계약 스니펫: Ruby 는 init 과 update(elapsed), 이미 정의했으면 나오지 않는다", async ({ page }) => {
+    await openEmptyScript(page, "scripts/ruby/hooks.rb", "ruby");
+    const suggest = page.locator(".monaco-editor .suggest-widget");
+    await page.keyboard.type("ini");
+    await expect(snippetRow(page, "init")).toHaveCount(1);
+    await expect(snippetRow(page, "Initialize")).toHaveCount(0);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toMatch(/^def init\n\s*\nend$/);
+    await page.keyboard.press("Escape");
+    await goTo(page, 9999, 9999);
+    await page.keyboard.type("\nupd");
+    await expect(snippetRow(page, "update")).toHaveCount(1);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toMatch(/\ndef update\(elapsed\)\n\s*\nend$/);
+    await page.keyboard.press("Escape");
+    await goTo(page, 9999, 9999);
+    await page.keyboard.type("\nIn");
+    await expect(suggest).toContainText("Input");
+    await expect(snippetRow(page, "init")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+  });
+
+  test("언어별 인자: Ruby Audio.play_music 의 loop 는 선택 인자, Lua PlayMusic 은 셋 다 필수", async ({ page }) => {
+    await openEmptyScript(page, "scripts/ruby/audio.rb", "ruby");
+    const suggest = page.locator(".monaco-editor .suggest-widget");
+    const hints = page.locator(".monaco-editor .parameter-hints-widget");
+    await page.keyboard.type("Audio.play_m");
+    await expect(suggest).toContainText("play_music");
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toBe("Audio.play_music(path, id)");
+    await page.keyboard.press("Escape");
+    await goTo(page, 9999, 9999);
+    await page.keyboard.type("\nAudio.play_music(");
+    await expect(hints).toBeVisible();
+    await expect(hints).toContainText("Audio.play_music(path, id, loop = true) -> boolean");
+    await page.keyboard.press("Escape");
+
+    await createScript(page, "scripts/lua/audio.lua", "lua");
+    await page.keyboard.type("Audio.PlayM");
+    await expect(suggest).toContainText("PlayMusic");
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toBe("Audio.PlayMusic(path, id, loop)");
+    await page.keyboard.press("Escape");
+    await goTo(page, 9999, 9999);
+    await page.keyboard.type("\nAudio.PlayMusic(");
+    await expect(hints).toBeVisible();
+    await expect(hints).toContainText("Audio.PlayMusic(path, id, loop) -> nil");
+    await page.keyboard.press("Escape");
+  });
+
+  test("Ruby Symbol 인자: key_down?(: 뒤에 Keys 의 Symbol 이 뜨고 :sp 로 거르면 :space 가 들어간다", async ({ page }) => {
+    await openEmptyScript(page, "scripts/ruby/keys.rb", "ruby");
+    const suggest = page.locator(".monaco-editor .suggest-widget");
+    const symbolRow = (label: string) => suggest.locator(".monaco-list-row").filter({ has: page.locator(".label-name", { hasText: new RegExp(`^${label}$`) }) });
+    await page.keyboard.type("Input.key_down?(:");
+    await expect(symbolRow(":a")).toHaveCount(1);
+    await page.keyboard.type("sp");
+    await expect(symbolRow(":space")).toHaveCount(1);
+    await expect(suggest.locator(".monaco-list-row.focused")).toContainText(":space");
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toBe("Input.key_down?(:space)");
   });
 
   test("편집 메뉴의 되돌리기와 다시 실행이 Monaco 의 스택을 쓴다", async ({ page }) => {

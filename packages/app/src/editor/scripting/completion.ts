@@ -2,7 +2,7 @@
 // 있고 여기서는 Monaco 의 모양으로 바꾸기만 한다. 명세가 바뀌면(reloadSpec) 돌려받은 함수로 떼고 다시 건다.
 
 import type { ApiSpec } from "./apiSpec";
-import { analyzePrefix, buildIndex, callContext, candidates, lookupCallable, lookupHover, type Lang, type LangIndex, type Suggestion } from "./completionModel";
+import { analyzePrefix, buildIndex, callContext, candidates, describe, lookupCallable, lookupHover, pickSignature, type Lang, type LangIndex, type Signature, type Suggestion } from "./completionModel";
 import { monaco } from "./monaco";
 
 type CompletionKind = monaco.languages.CompletionItemKind;
@@ -32,11 +32,8 @@ function kindOf(s: Suggestion): CompletionKind {
 }
 
 function docMarkdown(s: Suggestion): monaco.IMarkdownString | undefined {
-  const lines: string[] = [];
-  if (s.detail) lines.push("```\n" + s.detail + "\n```");
-  if (s.doc) lines.push(s.doc);
-  if (s.alias) lines.push("_별명_");
-  return lines.length ? { value: lines.join("\n\n") } : undefined;
+  const value = describe(s);
+  return value ? { value } : undefined;
 }
 
 function toItem(s: Suggestion, range: monaco.IRange, index: number): monaco.languages.CompletionItem {
@@ -50,7 +47,6 @@ function toItem(s: Suggestion, range: monaco.IRange, index: number): monaco.lang
     sortText: `${s.kind === "hook" ? "0" : "1"}${String(index).padStart(4, "0")}`,
   };
   if (s.snippet) item.insertTextRules = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
-  if (s.kind === "symbol") item.filterText = s.label.replace(/^:"?/, "");
   return item;
 }
 
@@ -58,14 +54,11 @@ function linePrefix(model: monaco.editor.ITextModel, position: monaco.Position):
   return model.getValueInRange({ startLineNumber: position.lineNumber, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column });
 }
 
-function signatureOf(s: Suggestion): monaco.languages.SignatureInformation {
+function signatureOf(sig: Signature, doc: string): monaco.languages.SignatureInformation {
   return {
-    label: s.detail,
-    documentation: s.doc ? { value: s.doc } : undefined,
-    parameters: s.params.map((p) => ({
-      label: p.optional ? `${p.name}?` : p.name,
-      documentation: [p.type ? `타입: ${p.type}` : "", p.doc ?? ""].filter(Boolean).join(". ") || undefined,
-    })),
+    label: sig.label,
+    documentation: doc ? { value: doc } : undefined,
+    parameters: sig.params.map((p) => ({ label: p.range, documentation: p.doc || undefined })),
   };
 }
 
@@ -78,7 +71,7 @@ function registerLanguage(lang: Lang, index: LangIndex): monaco.IDisposable[] {
       const ctx = analyzePrefix(prefix, lang);
       const list = candidates(index, ctx, lang, model.getValue());
       if (!list.length) return { suggestions: [] };
-      // 치던 단어를 통째로 바꾼다. Symbol 은 `:` 부터
+      // 치던 단어를 통째로 바꾼다. Symbol 은 `:` 부터라서 Monaco 는 친 `:sp` 를 라벨 `:space` 와 견준다
       const wordStart = position.column - ctx.word.length - (ctx.symbolArg && prefix.endsWith(":" + ctx.word) ? 1 : 0);
       const range: monaco.IRange = { startLineNumber: position.lineNumber, startColumn: Math.max(1, wordStart), endLineNumber: position.lineNumber, endColumn: position.column };
       return { suggestions: list.map((s, i) => toItem(s, range, i)) };
@@ -91,9 +84,11 @@ function registerLanguage(lang: Lang, index: LangIndex): monaco.IDisposable[] {
       const call = callContext(linePrefix(model, position));
       if (!call) return null;
       const s = lookupCallable(index, call.callee);
-      if (!s) return null;
+      if (!s || s.signatures.length === 0) return null;
+      const active = pickSignature(s.signatures, call.activeParameter);
+      const count = s.signatures[active].params.length;
       return {
-        value: { signatures: [signatureOf(s)], activeSignature: 0, activeParameter: Math.min(call.activeParameter, Math.max(0, s.params.length - 1)) },
+        value: { signatures: s.signatures.map((sig) => signatureOf(sig, s.doc)), activeSignature: active, activeParameter: Math.min(call.activeParameter, Math.max(0, count - 1)) },
         dispose() {},
       };
     },
