@@ -1,6 +1,6 @@
 {
   "comment": "에디터가 묶이는 엔진 커밋 (docs/plans/e6-packaging.md 4.2 절). 공개 릴리스가 없는 동안 CI 는 이 커밋을 체크아웃해 tools/build_dist.sh 로 엔진을 만들고 yarn engine:fetch --from 으로 받는다. 템플릿과 웹 엔진의 MANIFEST 커밋도 이것과 같아야 한다 (yarn engine:check). ciEngineRef 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸이고 릴리스 전에 비운다",
   "engineTag": null,
-  "engineCommit": "cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f",
+  "engineCommit": "419a829daccb67276aca7d0ef85744487598cb51",
   "ciEngineRef": null
 }
