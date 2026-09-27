@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "yarn workspace @initial-editor/app dev",
     "build": "yarn workspace @initial-editor/app build",
+    "build:desktop": "yarn workspace @initial-editor/app build:desktop",
     "preview": "yarn workspace @initial-editor/app preview",
     "typecheck": "tsc -b packages/core packages/backend-bridge packages/backend-tauri packages/backend-fsaccess packages/ext-tilemap packages/app tests",
     "lint": "eslint packages tests",
@@ -25,8 +26,15 @@
     "test:e2e": "playwright test",
     "test:engine": "node scripts/e2e-engine-hotreload.mjs",
     "test:engine-scene": "node scripts/e2e-engine-scene.mjs",
+    "test:android-stage": "node scripts/e2e-android-stage.mjs",
     "sync:templates": "node scripts/sync-engine-templates.mjs",
     "sync:engine-web": "node scripts/sync-engine-web.mjs",
+    "engine:fetch": "node scripts/fetch-engine.mjs",
+    "engine:check": "node scripts/check-engine-pin.mjs",
+    "version:set": "node scripts/version.mjs set",
+    "version:check": "node scripts/version.mjs check",
+    "licenses": "node scripts/gen-licenses.mjs",
+    "selftest:app": "node scripts/selftest-app.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
     "tauri": "tauri"
   },
