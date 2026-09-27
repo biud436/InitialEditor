@@ -1,72 +1,130 @@
 #!/usr/bin/env node
-// 진짜 엔진과의 씬 교차 검사 (docs/plans/e2-scene.md 마일스톤 7). "에디터가 만든 프로젝트와 씬이 게임에서 돈다"를
-// 사람이 아니라 스크립트가 확인한다. Playwright 의 브라우저 모드는 프로세스를 못 띄우므로 Node 에서 직접 한다.
+// 진짜 엔진과의 씬 교차 검사 (docs/plans/e2-scene.md 마일스톤 7, e6-packaging.md 마일스톤 3). "에디터가 만든 프로젝트와
+// 씬이 게임에서 돈다"를 사람이 아니라 스크립트가 확인한다. Playwright 의 브라우저 모드는 프로세스를 못 띄우므로 Node 에서 한다.
 //
-//   yarn test:engine-scene                         엔진 저장소는 INITIAL2D_DIR (기본 ../Initial2D)
-//   INITIAL2D_DIR=/path/to/Initial2D node scripts/e2e-engine-scene.mjs
+//   yarn test:engine-scene                                   엔진은 <INITIAL2D_DIR>/build/Initial2D (기본 ../Initial2D)
+//   INITIAL2D_EXE=/path/to/Initial2D yarn test:engine-scene  엔진 실행 파일을 직접 준다 (배포용 빌드, 사이드카)
+//   KEEP_WORKDIR=1 yarn test:engine-scene                    임시 프로젝트를 남긴다
 //
-// 하는 일 (템플릿 둘 x 언어 둘):
-//   1. 임시 폴더에 새 프로젝트를 만든다. 파일은 packages/app/templates/MANIFEST.json 이 정하는 목록을 그대로 복사한다
-//      (scene/projectTemplates.ts 와 같은 규칙: common + 템플릿 그룹, 그 언어의 파일만). game.json 도 같은 값이다
-//   2. 빈 프로젝트에는 코어가 저장하는 모양(serializeScene 과 같은 키 순서)으로 오브젝트 둘을 더 넣는다:
-//      스프라이트(플래피의 새 그림)와 컴포넌트가 붙은 노드. 컴포넌트는 에디터의 컴포넌트 템플릿과 같은 꼴이고 init 에서
-//      "hello:init" 을 찍는다. 그래서 스크립트 붙이기 계약(논리 이름, Ruby 는 CamelCase 클래스)까지 검사된다
-//   3. <엔진>/build/Initial2D 를 헤드리스로 띄운다 (SDL_VIDEODRIVER=dummy, INITIAL2D_SCENE=<시작 씬>, INITIAL2D_EXIT_AFTER,
-//      INITIAL2D_SCREENSHOT 으로 프레임 하나를 덤프). 종료 코드 0, 오류 줄 없음, 스크린샷 존재, 기대한 stdout 줄을 본다
-//   4. 플래피는 INITIAL2D_AUTOPLAY=1 로 자동 시연을 돌려 상태 전이(ready → play → dead → ready)와 900틱 종료 요약을 본다
-//      (엔진 저장소의 test_scene_flappy_* 와 같은 검사)
-// 엔진 실행 파일이 없으면 건너뛰고 0 으로 끝난다. mruby 가 없는 빌드면 Ruby 판만 건너뛴다.
+// 새 프로젝트는 앱과 같은 함수(scene/projectTemplates.ts 의 writeProjectTemplate)로 쓴다. TypeScript 모듈(그것과 맵 모델,
+// e2e 의 BMP 읽기 tests/e2e/support/bmp.ts)은 Vite 의 SSR 로 읽는다. 하는 일 (언어마다):
+//   1. 빈 프로젝트에 에디터가 하듯 오브젝트 둘(스프라이트와 컴포넌트가 붙은 노드)을 더해 돌리고 컴포넌트 init 을 본다
+//   2. 플래피는 INITIAL2D_AUTOPLAY=1 로 자동 시연을 돌려 상태 전이와 900틱 종료 요약을 본다
+//   3. 타일맵은 맵 문서(ext-tilemap 의 MapDocument)로 칸 (24, 28) 을 표식 타일(gid 45)로 칠해 저장하고, 시작 씬(game.json)
+//      으로 돌려 스크린샷의 그 칸이 표식 색 #d8c880 이고 옆 칸은 잔디인지 본다
+// 엔진은 헤드리스다 (SDL_VIDEODRIVER=dummy, SDL_AUDIODRIVER=dummy, INITIAL2D_EXIT_AFTER). <INITIAL2D_DIR>/build/Initial2D 가
+// 없으면 건너뛰고 0 으로 끝난다. INITIAL2D_EXE 로 준 파일이 없으면 실패다. mruby 가 없는 빌드면 Ruby 판만 건너뛴다.
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createServer } from "vite";
+import { errorLines, exitChecks, flappyChecks } from "./lib/flappyChecks.mjs";
+import { MARKER, tilemapPixelChecks } from "./lib/frameChecks.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "..");
 const templatesDir = path.join(repo, "packages", "app", "templates");
 const manifest = JSON.parse(fs.readFileSync(path.join(templatesDir, "MANIFEST.json"), "utf8"));
 const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? path.join(repo, "..", "Initial2D"));
-const exe = path.join(engineDir, "build", process.platform === "win32" ? "Initial2D.exe" : "Initial2D");
+const explicitExe = process.env.INITIAL2D_EXE ? path.resolve(process.env.INITIAL2D_EXE) : null;
+const exe = explicitExe ?? path.join(engineDir, "build", process.platform === "win32" ? "Initial2D.exe" : "Initial2D");
 const KEEP = process.env.KEEP_WORKDIR === "1";
 
-const START_SCENE = { empty: "main", flappy: "flappy" };
-const PROJECT_DIRS = ["resources/images", "resources/audio", "resources/fonts", "resources/scenes", "resources/maps"];
+// 타일맵 템플릿의 표식 칸과 색, 화면 검사는 scripts/lib/frameChecks.mjs (자가 검사의 판정과 같은 셈)
+const MAP_PATH = "resources/maps/start.json";
 
 function skip(reason) {
   console.log(`SKIP: ${reason}`);
   process.exit(0);
 }
 
-if (!fs.existsSync(exe)) skip(`엔진 실행 파일이 없다: ${exe} (INITIAL2D_DIR 로 저장소 위치를 주거나 cmake 로 빌드한다)`);
+function die(reason) {
+  console.error(`FAIL: ${reason}`);
+  process.exit(1);
+}
 
-const probe = spawnSync(exe, ["--features"], { encoding: "utf8", timeout: 30_000 });
+if (!fs.existsSync(exe)) {
+  if (explicitExe) die(`INITIAL2D_EXE 의 파일이 없다: ${exe}`);
+  skip(`엔진 실행 파일이 없다: ${exe} (INITIAL2D_DIR 로 저장소 위치를 주거나 cmake 로 빌드한다. INITIAL2D_EXE 로 직접 줄 수도 있다)`);
+}
+
+function caseDir(name) {
+  return fs.mkdtempSync(path.join(os.tmpdir(), `initial-editor-scene-${name}-`));
+}
+
+// --features 는 버리는 작업 폴더에서 (인자를 모르는 옛 엔진이 게임을 띄워도 저장소에 config.setting 을 쓰지 않게)
+const probeDir = caseDir("probe");
+const probe = spawnSync(exe, ["--features"], {
+  cwd: probeDir,
+  encoding: "utf8",
+  timeout: 30_000,
+  env: { ...process.env, SDL_VIDEODRIVER: "dummy", SDL_AUDIODRIVER: "dummy", INITIAL2D_EXIT_AFTER: "1" },
+});
+fs.rmSync(probeDir, { recursive: true, force: true });
 const features = new Set((probe.stdout ?? "").split(/\s+/).filter(Boolean));
-if (probe.status !== 0 || !features.has("lua")) skip(`엔진이 --features 에 답하지 않는다: ${(probe.stderr ?? "").trim() || probe.status}`);
+if (probe.status !== 0 || !features.has("lua")) {
+  const why = `엔진이 --features 에 답하지 않는다: ${(probe.stderr ?? "").trim() || probe.status}`;
+  if (explicitExe) die(why);
+  skip(why);
+}
 const hasMruby = features.has("mruby");
 console.log(`엔진: ${exe} (기능: ${[...features].join(" ")})`);
 
-// ---- 프로젝트 쓰기 (scene/projectTemplates.ts 와 같은 규칙) ----
+// ---- 에디터 모듈 (TypeScript) ----
 
-function plan(template, language) {
-  return manifest.files.filter((f) => (f.groups.includes("common") || f.groups.includes(template)) && (f.language === null || f.language === language));
+const vite = await createServer({
+  configFile: false,
+  root: repo,
+  logLevel: "error",
+  appType: "custom",
+  server: { middlewareMode: true, hmr: false, watch: null, ws: false },
+  optimizeDeps: { noDiscovery: true, include: [] },
+  resolve: { dedupe: ["mobx"] },
+});
+let editor;
+try {
+  const templates = await vite.ssrLoadModule("/packages/app/src/editor/scene/projectTemplates.ts");
+  const tilemap = await vite.ssrLoadModule("/packages/ext-tilemap/src/model/index.ts");
+  const bmp = await vite.ssrLoadModule("/tests/e2e/support/bmp.ts");
+  editor = { ...templates, ...tilemap, readBmp: bmp.readBmp };
+} finally {
+  await vite.close();
 }
 
-function writeProject(dir, template, language) {
+/** 프로젝트 폴더 하나를 보는 ProjectBackend (새 프로젝트 쓰기와 맵 문서가 부르는 것만) */
+function fsBackend(root) {
+  const abs = (rel) => {
+    const p = path.resolve(root, rel);
+    if (p !== root && !p.startsWith(root + path.sep)) throw new Error(`루트 밖의 경로다: ${rel}`);
+    return p;
+  };
+  const write = (rel, data) => {
+    fs.mkdirSync(path.dirname(abs(rel)), { recursive: true });
+    fs.writeFileSync(abs(rel), data);
+  };
+  return {
+    exists: async (rel) => fs.existsSync(abs(rel)),
+    readText: async (rel) => fs.readFileSync(abs(rel), "utf8"),
+    readBinary: async (rel) => new Uint8Array(fs.readFileSync(abs(rel))),
+    writeText: async (rel, text) => write(rel, text),
+    writeBinary: async (rel, data) => write(rel, data),
+    mkdir: async (rel) => void fs.mkdirSync(abs(rel), { recursive: true }),
+  };
+}
+
+/** 번들 대신 packages/app/templates/ 를 읽는 템플릿 소스 */
+const fsSource = {
+  text: (rel) => fs.readFileSync(path.join(templatesDir, rel), "utf8"),
+  binary: async (rel) => new Uint8Array(fs.readFileSync(path.join(templatesDir, rel))),
+};
+
+/** 새 프로젝트 대화상자의 "만들기" 와 같은 함수로 쓴다 */
+async function writeProject(dir, template, language) {
   const script = language === "ruby" ? "mruby" : "lua";
-  const game = { name: `e2e-${template}-${language}`, windowWidth: 768, windowHeight: 896, renderScale: 1, script, startScene: START_SCENE[template] };
-  fs.writeFileSync(path.join(dir, "game.json"), JSON.stringify(game, null, 2) + "\n");
-  const written = ["game.json"];
-  for (const f of plan(template, language)) {
-    const to = path.join(dir, f.to);
-    fs.mkdirSync(path.dirname(to), { recursive: true });
-    fs.copyFileSync(path.join(templatesDir, f.path), to);
-    written.push(f.to);
-  }
-  fs.writeFileSync(path.join(dir, ".gitignore"), ".initial-editor/\n");
-  for (const d of PROJECT_DIRS) fs.mkdirSync(path.join(dir, d), { recursive: true });
-  return written;
+  return editor.writeProjectTemplate(fsBackend(dir), { template, language: script, name: `e2e-${template}-${language}` }, fsSource);
 }
 
 /** 코어 serializeScene 과 같은 키 순서 (version, name, objects[id, type, x, y, visible(false 만), props, scripts]) */
@@ -146,6 +204,24 @@ function addEditorObjects(dir, language) {
   return componentPath;
 }
 
+/** 맵 문서를 열어 펜 한 번(붓 하나를 한 칸에)을 되돌리기 스택으로 적용하고 저장한다. 사용자가 칠하고 Ctrl+S 하는 길이다 */
+async function paintMarker(dir) {
+  const doc = await editor.MapDocument.open(fsBackend(dir), MAP_PATH);
+  doc.setBrush(editor.singleBrush(MARKER.gid));
+  const layer = doc.target.kind === "layer" ? doc.target.index : -1;
+  doc.apply(doc.model.paintCells(layer, editor.stamp(doc.model, doc.brush, MARKER.x, MARKER.y), "e2e-pen"));
+  const dirtyAfterPaint = doc.dirty;
+  await doc.save();
+  return { layer, dirtyAfterPaint, dirtyAfterSave: doc.dirty };
+}
+
+/** 두 맵의 타일 칸 가운데 다른 것 [레이어, 칸 번호, 전, 후] */
+function mapDiff(a, b) {
+  const out = [];
+  a.layers.forEach((l, li) => l.data.forEach((v, i) => v !== b.layers[li].data[i] && out.push([li, i, v, b.layers[li].data[i]])));
+  return out;
+}
+
 // ---- 엔진 실행 ----
 
 function runEngine(dir, { scene, script, exitAfter, shotFrame, extraEnv }) {
@@ -154,25 +230,19 @@ function runEngine(dir, { scene, script, exitAfter, shotFrame, extraEnv }) {
     SDL_VIDEODRIVER: "dummy",
     SDL_AUDIODRIVER: "dummy",
     INITIAL2D_SCRIPT: script,
-    INITIAL2D_SCENE: scene,
     INITIAL2D_EXIT_AFTER: String(exitAfter),
     INITIAL2D_SCREENSHOT: path.join(dir, "shot_%04ld.bmp"),
     INITIAL2D_SCREENSHOT_FRAME: String(shotFrame),
     ...extraEnv,
   };
   delete env.INITIAL2D_HMR;
+  // scene 이 null 이면 진입 파일이 game.json 의 startScene 을 연다
+  if (scene) env.INITIAL2D_SCENE = scene;
+  else delete env.INITIAL2D_SCENE;
   const result = spawnSync(exe, [], { cwd: dir, env, encoding: "utf8", timeout: 180_000, maxBuffer: 64 * 1024 * 1024 });
   const log = (result.stdout ?? "") + (result.stderr ?? "");
   const shot = path.join(dir, `shot_${String(shotFrame).padStart(4, "0")}.bmp`);
   return { result, log, shot };
-}
-
-/** 엔진 테스트 러너와 같은 기준: iCCP 경고를 뺀 뒤 error 가 없어야 한다 */
-function errorLines(log) {
-  return log
-    .split("\n")
-    .filter((l) => !/iccp/i.test(l))
-    .filter((l) => /error|panic|uncaught exception|scene: /i.test(l));
 }
 
 const failures = [];
@@ -191,20 +261,19 @@ function tail(log, n = 400) {
   return log.slice(-n).replace(/\n/g, " | ");
 }
 
-function caseDir(name) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `initial-editor-scene-${name}-`));
-}
-
 function cleanup(dir) {
   if (KEEP) console.log(`  작업 폴더를 남겼다: ${dir}`);
   else fs.rmSync(dir, { recursive: true, force: true });
 }
 
+function dumpOnFailure(result, log) {
+  if (result.status !== 0 || errorLines(log).length) console.log("  --- 엔진 출력 ---\n" + log.trim().split("\n").map((l) => "  " + l).join("\n"));
+}
+
 for (const language of ["lua", "ruby"]) {
   const script = language === "ruby" ? "mruby" : "lua";
   if (language === "ruby" && !hasMruby) {
-    console.log(`\n[empty/${language}] SKIP: 이 엔진 빌드에는 mruby 가 없다`);
-    console.log(`[flappy/${language}] SKIP: 이 엔진 빌드에는 mruby 가 없다`);
+    for (const t of ["empty", "flappy", "tilemap"]) console.log(`\n[${t}/${language}] SKIP: 이 엔진 빌드에는 mruby 가 없다`);
     continue;
   }
 
@@ -212,15 +281,14 @@ for (const language of ["lua", "ruby"]) {
   {
     const dir = caseDir(`empty-${language}`);
     console.log(`\n[empty/${language}] ${dir}`);
-    const written = writeProject(dir, "empty", language);
+    const written = await writeProject(dir, "empty", language);
     const component = addEditorObjects(dir, language);
     console.log(`  프로젝트 파일 ${written.length}개 + ${component} + 씬에 오브젝트 둘`);
     const { result, log, shot } = runEngine(dir, { scene: "main", script, exitAfter: 120, shotFrame: 30 });
-    check("프로세스 정상 종료 (코드 0)", result.status === 0, `status=${result.status} signal=${result.signal} | ${tail(log)}`);
-    check("스크립트 오류 없음", errorLines(log).length === 0, errorLines(log).join(" | "));
+    for (const c of exitChecks(log, result.status)) check(c.name, c.ok, `${c.detail} signal=${result.signal}`);
     check("컴포넌트 init 이 불렸다 (hello:init)", log.includes("hello:init"), tail(log));
     check("프레임 30 스크린샷", fs.existsSync(shot) && fs.statSync(shot).size > 1000, shot);
-    if (result.status !== 0 || errorLines(log).length) console.log("  --- 엔진 출력 ---\n" + log.trim().split("\n").map((l) => "  " + l).join("\n"));
+    dumpOnFailure(result, log);
     cleanup(dir);
   }
 
@@ -228,22 +296,41 @@ for (const language of ["lua", "ruby"]) {
   {
     const dir = caseDir(`flappy-${language}`);
     console.log(`\n[flappy/${language}] ${dir}`);
-    const written = writeProject(dir, "flappy", language);
+    const written = await writeProject(dir, "flappy", language);
     console.log(`  프로젝트 파일 ${written.length}개 (INITIAL2D_AUTOPLAY=1, 900틱 뒤 스스로 끝난다)`);
     const { result, log, shot } = runEngine(dir, { scene: "flappy", script, exitAfter: 60000, shotFrame: 150, extraEnv: { INITIAL2D_AUTOPLAY: "1" } });
-    check("프로세스 정상 종료 (코드 0)", result.status === 0, `status=${result.status} signal=${result.signal} | ${tail(log)}`);
-    check("스크립트 오류 없음", errorLines(log).length === 0, errorLines(log).join(" | "));
-    check("대기에서 시작한다 (flappy:state:ready)", log.includes("flappy:state:ready"), tail(log));
-    check("자동 시연이 플레이로 들어간다 (flappy:state:play)", log.includes("flappy:state:play"), tail(log));
-    check("부딪히면 게임 오버 (flappy:state:dead)", log.includes("flappy:state:dead"), tail(log));
-    const m = /flappyFinal state=(\w+) score=(\d+) best=(\d+) ticks=(\d+)/.exec(log);
-    check("최종 요약 (씬이 스스로 끝냈다)", m !== null, tail(log));
-    if (m) {
-      check("파이프를 하나 이상 지난다 (best >= 1)", Number(m[3]) >= 1, m[0]);
-      check("900틱에 끝낸다", Number(m[4]) === 900, m[0]);
-    }
+    for (const c of flappyChecks(log, result.status)) check(c.name, c.ok, c.detail);
     check("프레임 150 스크린샷", fs.existsSync(shot) && fs.statSync(shot).size > 1000, shot);
-    if (result.status !== 0 || errorLines(log).length) console.log("  --- 엔진 출력 ---\n" + log.trim().split("\n").map((l) => "  " + l).join("\n"));
+    dumpOnFailure(result, log);
+    cleanup(dir);
+  }
+
+  // 타일맵: 맵 문서로 표식 한 칸을 칠해 저장하고, 시작 씬으로 돌린 화면의 그 칸을 본다
+  {
+    const dir = caseDir(`tilemap-${language}`);
+    console.log(`\n[tilemap/${language}] ${dir}`);
+    const written = await writeProject(dir, "tilemap", language);
+    const game = JSON.parse(fs.readFileSync(path.join(dir, "game.json"), "utf8"));
+    console.log(`  프로젝트 파일 ${written.length}개, startScene=${game.startScene}. 칸 (${MARKER.x}, ${MARKER.y}) 을 gid ${MARKER.gid} 로 칠한다`);
+    const original = editor.parseMap(fs.readFileSync(path.join(dir, MAP_PATH), "utf8"));
+    const paint = await paintMarker(dir);
+    check("칠하면 맵 문서가 바뀜 표시, 저장하면 풀린다", paint.dirtyAfterPaint === true && paint.dirtyAfterSave === false, JSON.stringify(paint));
+    const saved = editor.parseMap(fs.readFileSync(path.join(dir, MAP_PATH), "utf8"));
+    const diff = mapDiff(original, saved);
+    const index = MARKER.y * saved.width + MARKER.x;
+    check(
+      "저장한 맵은 바닥 레이어의 그 칸 하나만 표식 타일이다",
+      diff.length === 1 && diff[0][0] === 0 && diff[0][1] === index && diff[0][3] === MARKER.gid,
+      JSON.stringify(diff.slice(0, 5)),
+    );
+    const { result, log, shot } = runEngine(dir, { scene: null, script, exitAfter: 20, shotFrame: 10 });
+    for (const c of exitChecks(log, result.status)) check(c.name, c.ok, `${c.detail} signal=${result.signal}`);
+    const hasShot = fs.existsSync(shot) && fs.statSync(shot).size > 1000;
+    check("프레임 10 스크린샷", hasShot, shot);
+    if (hasShot) {
+      for (const c of tilemapPixelChecks(editor.readBmp(fs.readFileSync(shot)))) check(c.name, c.ok, c.detail);
+    }
+    dumpOnFailure(result, log);
     cleanup(dir);
   }
 }

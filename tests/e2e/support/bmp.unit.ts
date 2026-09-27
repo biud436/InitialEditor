@@ -179,3 +179,27 @@ describe("frameDifference", () => {
     expect(() => frameDifference(img(gradient, 64, 32), img(gradient, 32, 32))).toThrow(/크기가 다르다/);
   });
 });
+
+describe("자가 검사가 쓰는 BMP (packages/app/src/editor/selftest/bmp.ts)", () => {
+  it("encodeBmp32 가 쓴 RGBA 를 알파까지 그대로 읽는다 (위에서 아래, V4 머리)", async () => {
+    const { encodeBmp32 } = await import("../../../packages/app/src/editor/selftest/bmp");
+    const width = 3;
+    const height = 2;
+    const rgba = new Uint8Array(width * height * 4);
+    for (let i = 0; i < width * height; i++) rgba.set([i * 10, 200 - i, i * 3 + 1, i === 4 ? 0 : 255], i * 4);
+    const img = readBmp(encodeBmp32(width, height, rgba));
+    expect([img.width, img.height, img.bitsPerPixel, img.topDown]).toEqual([3, 2, 32, true]);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = y * width + x;
+        expect(img.pixel(x, y)).toEqual({ r: i * 10, g: 200 - i, b: i * 3 + 1, a: i === 4 ? 0 : 255 });
+      }
+    }
+  });
+
+  it("크기와 픽셀 수가 맞지 않으면 쓰지 않는다", async () => {
+    const { encodeBmp32 } = await import("../../../packages/app/src/editor/selftest/bmp");
+    expect(() => encodeBmp32(2, 2, new Uint8Array(15))).toThrow(/픽셀 수/);
+    expect(() => encodeBmp32(0, 2, new Uint8Array(0))).toThrow(/크기/);
+  });
+});
