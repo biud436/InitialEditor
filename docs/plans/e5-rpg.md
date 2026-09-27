@@ -393,7 +393,7 @@ RTP 쌍둥이 맵(마을, 오두막): `rpg-game.json` 의 항목에 `alt` 가 �
 
 - 엔진 실행 파일이 없다 (`INITIAL2D_DIR` 또는 형제 저장소의 `build/Initial2D`): `SKIP: 엔진 실행 파일이 없다 ...`
 - `--features` 에 `lua` 가 없다: `SKIP: ...`
-- 엔진이 M2 전이다: 엔진 저장소에 `resources/schema/event-commands.json` 이 없거나 `scripts/lua/games/rpgdemo/game.lua` 에 `INITIAL2D_RPG_TRACE` 가 없으면 `SKIP: 엔진이 M2(RPG 이벤트 계약) 전이다. Initial2D 의 <M2 계약 PR 의 병합 커밋> 이후가 필요하다`. 옛 엔진으로 돌려 알아보기 힘든 실패를 내지 않는다. 병합 커밋은 M2 계약 PR 이 들어간 날 스크립트와 README 에 적는다
+- 엔진이 M2 전이다: 엔진 저장소에 `resources/schema/event-commands.json` 이 없거나 `scripts/lua/games/rpgdemo/game.lua` 에 `INITIAL2D_RPG_TRACE` 가 없으면 `SKIP: 엔진이 M2(RPG 이벤트 계약) 전이다. Initial2D 의 74febb4 이후가 필요하다`. 옛 엔진으로 돌려 알아보기 힘든 실패를 내지 않는다. 병합 커밋(`74febb4`, 엔진 PR #49)은 스크립트와 README 에 적었다
 - **완료 기준은 건너뛰지 않은 실행 기록을 요구한다**: 통과한 검사 수와 엔진 커밋이 찍힌 로그를 이 문서의 구현 노트에 남긴다
 
 1. 임시 작업 폴더: 엔진의 `scripts/` 를 복사하고 `resources/` 는 하위 폴더마다 심링크, 단 `resources/maps/` 는 복사한다 (엔진 저장소를 건드리지 않는다)
@@ -449,22 +449,22 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 
 ### 마일스톤 2: 이벤트 모델과 교차 검사 (`packages/ext-rpg/src/model`, DOM 없음, PR 3 의 앞)
 
-- [ ] 패키지 뼈대: `package.json`, `tsconfig.json`, 루트 `typecheck` 목록, `eslint.config.mjs` 의 모델 금지 규칙 (2.3). Vitest 는 기존 `include` 가 잡는다
-- [ ] `schema.ts`, `game.ts`(`mapEntryFor` 포함): 해석과 버전 잠금, 오류는 위치와 함께
-- [ ] `events.ts`: 섹션 읽기와 쓰기, 모르는 키 보존, 1.4절 키 순서 (중첩 값과 `file` 꼴까지)
-- [ ] `tree.ts`: 경로, 엔진 표기, 걷기, 넣기, 빼기, 옮기기, 복사, 같은 하위 목록 찾기
-- [ ] `commands.ts`: 이벤트 추가, 삭제, 이동(합치기, 배회 구역 함께), 칸 바꾸기(합치기), 이름 바꾸기(참조 함께), 커맨드 넣기, 빼기, 옮기기, 인자 바꾸기(합치기), 항목 바꾸기(가지와 cancel 함께), 배회 구역
-- [ ] `validate.ts`: 1.5 표의 검사(오류)와 에디터만의 검사(3절, 4절)
-- [ ] `assets.ts`, `refs.ts`, `play.ts`(앞 칸, 가장 가까운 설 수 있는 칸, 시작 상태 글, `planEnv`, `probeEnv`)
-- [ ] 픽스처 동기화 `scripts/sync-engine-rpg.mjs`(`yarn sync:rpg`): 두 스키마, 아이템 표, `port_town.json`, `inn.json`, 경로 픽스처, 플레이스홀더 CharSet 과 FaceSet 과 `port16.png`. **`resources/rtp/` 는 복사하지 않는다.** MANIFEST 에 엔진 커밋과 sha256
-- [ ] 테스트: 엔진의 모든 맵(`INITIAL2D_DIR` 이 있으면) 읽고 쓰기가 바이트 같음과 이벤트가 모두 스키마로 읽힘, 경로 픽스처 대조, 줄바꿈과 따옴표와 한글 대사 왕복, 되돌리기와 합치기, 막는 규칙, 앞 칸과 가장 가까운 칸 고르기, `mapEntryFor`(등록, `alt`, 등록 안 됨)
-- [ ] **`yarn test:engine-events`** (5.3, 모델만의 길. 판 넷). 건너뛰기와 M2 기능 확인. 이 뒤의 마일스톤은 이 검사를 자율 검증 루프에 넣는다
+- [x] 패키지 뼈대: `package.json`, `tsconfig.json`, 루트 `typecheck` 목록, `eslint.config.mjs` 의 모델 금지 규칙 (2.3). Vitest 는 기존 `include` 가 잡는다
+- [x] `schema.ts`, `game.ts`(`mapEntryFor` 포함): 해석과 버전 잠금, 오류는 위치와 함께
+- [x] `events.ts`: 섹션 읽기와 쓰기, 모르는 키 보존, 1.4절 키 순서 (중첩 값과 `file` 꼴까지)
+- [x] `tree.ts`: 경로, 엔진 표기, 걷기, 넣기, 빼기, 옮기기, 복사, 같은 하위 목록 찾기
+- [x] `commands.ts`: 이벤트 추가, 삭제, 이동(합치기, 배회 구역 함께), 칸 바꾸기(합치기), 이름 바꾸기(참조 함께), 커맨드 넣기, 빼기, 옮기기, 인자 바꾸기(합치기), 항목 바꾸기(가지와 cancel 함께), 배회 구역
+- [x] `validate.ts`: 1.5 표의 검사(오류)와 에디터만의 검사(3절, 4절)
+- [x] `assets.ts`, `refs.ts`, `play.ts`(앞 칸, 가장 가까운 설 수 있는 칸, 시작 상태 글, `planEnv`, `probeEnv`)
+- [x] 픽스처 동기화 `scripts/sync-engine-rpg.mjs`(`yarn sync:rpg`): 두 스키마, 아이템 표, `port_town.json`, `inn.json`, 경로 픽스처, 플레이스홀더 CharSet 과 FaceSet 과 `port16.png`. **`resources/rtp/` 는 복사하지 않는다.** MANIFEST 에 엔진 커밋과 sha256
+- [x] 테스트: 엔진의 모든 맵(`INITIAL2D_DIR` 이 있으면) 읽고 쓰기가 바이트 같음과 이벤트가 모두 스키마로 읽힘, 경로 픽스처 대조, 줄바꿈과 따옴표와 한글 대사 왕복, 되돌리기와 합치기, 막는 규칙, 앞 칸과 가장 가까운 칸 고르기, `mapEntryFor`(등록, `alt`, 등록 안 됨)
+- [x] **`yarn test:engine-events`** (5.3, 모델만의 길. 판 넷). 건너뛰기와 M2 기능 확인. 이 뒤의 마일스톤은 이 검사를 자율 검증 루프에 넣는다. 건너뛰지 않은 실행 기록은 구현 노트에 있다
 
 ### 마일스톤 3: 이전 (엔진 M2 후반, PR 2)
 
 - [x] 엔진 PR #50 으로 병합 (2026-09-27): `tools/export_events.py`, 항구 마을과 여관의 이벤트를 맵 파일로, 인수 시나리오와 골든 무변경
-- [ ] 에디터 픽스처를 다시 동기화한다 (`yarn sync:rpg`). `yarn test:engine-events` 가 이전한 항구 마을로 통과한다 (마일스톤 2 에서)
-- [ ] 에디터로 옮긴 맵을 열어 저장하면 바이트가 같다 (마일스톤 2 의 왕복 테스트), 사람이 브리지 왕복 한 번
+- [x] 에디터 픽스처를 다시 동기화한다 (`yarn sync:rpg`). `yarn test:engine-events` 가 이전한 항구 마을로 통과한다 (마일스톤 2 에서. 픽스처는 이전 뒤의 엔진 master `fab4710` 에서 복사했다)
+- [ ] 에디터로 옮긴 맵을 열어 저장하면 바이트가 같다 (마일스톤 2 의 왕복 테스트), 사람이 브리지 왕복 한 번. 모델의 왕복은 테스트가 확인한다 (엔진의 모든 맵). 남은 것은 사람의 브리지 왕복이다
 
 ### 마일스톤 4: 확장 API 와 이벤트 레이어 (PR 3)
 
@@ -562,3 +562,90 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 | 틀린 맵 파일 이벤트 | 그 이벤트만 건너뛰고 `rpg:error` 를 찍는다 |
 | 게임 설정 파일의 자리 | `resources/data/rpg-game.json`. 게임이 읽는 데이터이므로 스키마(`resources/schema/`, 형식의 설명)와 가른다 |
 | `INITIAL2D_RPG_STATE` 의 꼴 | 쉼표 목록 그대로 |
+
+## 구현 노트
+
+### 마일스톤 2: 이벤트 모델과 교차 검사 (2026-09-27, `feat/e5-rpg`)
+
+만든 것: `packages/ext-rpg`(의존은 core, ext-tilemap, mobx. `src/index.ts` 는 모델만 내보내고 확장 등록은 마일스톤 4),
+`src/model/` 의 `json.ts`, `schema.ts`, `game.ts`, `events.ts`, `tree.ts`, `validate.ts`, `commands.ts`, `assets.ts`, `refs.ts`, `play.ts`,
+`scripts/sync-engine-rpg.mjs`(`yarn sync:rpg`)와 `test/fixtures/`, `test/engine/events.engine.test.ts`(`yarn test:engine-events`, 별도 설정
+`vitest.engine.config.ts`, 루트 `vitest.config.ts` 의 `exclude`, 타입 검사는 `test/tsconfig.json` 을 루트 `typecheck` 에 더했다).
+
+구현하면서 정한 것:
+
+| 물음 | 결정 |
+|---|---|
+| JSON 의 null | `Json.Load` 가 null 을 칸에서 지우므로 키의 null 은 없는 키, 값이 전부 null 인 객체는 배열 자리의 빈 배열, 끝까지 null 뿐인 배열은 객체 자리의 빈 객체로 본다 (`json.ts`). M2 3.1 의 빈 `{}` 와 `[]` 규칙을 일반화한 것이다 |
+| 경로 픽스처의 크기 | 엔진 `invalid_events.paths.json` 은 경로 104개다 (M2 3.4 는 100개라고 적었다). 테스트는 개수를 박지 않고 집합을 대조한다 |
+| 막는 규칙의 구현 | 이벤트 칸의 편집은 편집 앞뒤의 오류(자리와 이유)를 견주어 새 오류가 생기면 `EditRefused` 를 던진다. 밖에서 고친 파일의 원래 오류는 막지 않고, 고치는 편집은 된다. 커맨드 넣기와 인자 바꾸기는 새 커맨드와 그 인자 자리만 따로 검사한다 (하위 목록의 옛 오류는 막지 않는다) |
+| 키 순서 | 고친 객체만 정해진 순서로 다시 쓴다. 그 객체를 품은 조상은 키 자리를 지키고 값만 갈아 끼운다. 조상에 없던 하위 목록 키가 생기면 그 조상도 정해진 순서로 쓴다. 엔진의 모든 맵에서 `canonicalEvent` 가 원래 글과 같아, 이전 도구와 순서가 같음을 확인했다 |
+| 키 순서의 한계 | JS 객체는 정수처럼 생긴 키(`"1"`)를 늘 앞에 두므로 그런 모르는 키는 원래 자리를 잃는다. 지금 데이터에는 없다 |
+| 같은 커맨드 묶음 | 하위 목록 전체(커맨드 둘 이상)와 하위 목록을 품은 커맨드 하나(내용 있음)를 키 순서와 상관없이 견주고, 묶음 안의 묶음은 바깥 것만 알린다. 항구 마을의 배(`departure()`, 가지 두 목록, 커맨드 9개)와 여관 주인(`handKey()`, if 커맨드 둘, 8개)을 찾는다 |
+| 새 커맨드 | `newCommand` 가 스키마 기본값으로 필수 인자를 채운다. `file` 은 기본값이 없어 파일 없이 넣으면 거절된다 (파일 위젯이 먼저 묻는다) |
+| 앞 칸의 방향 | 엔진 `turnToward` 와 같다. 대각선이면 세로가 먼저다 |
+| 엔진 빌드 | `build/Initial2D` 는 master 보다 앞선 커밋의 빌드지만, 게임 스크립트는 작업 폴더의 사본에서 읽으므로 다시 빌드하지 않았다 |
+| 교차 검사의 작업 폴더 | `os.tmpdir()` 아래에 만들고 끝나면 지운다 (`KEEP_WORKDIR=1` 이면 남기고 경로를 찍는다). 엔진이 받는 환경 변수는 `INITIAL2D_` 로 시작하는 바깥 값을 빼고 채운다 |
+
+검수: `yarn typecheck`, `yarn lint`, `node scripts/check-color-literals.mjs` 통과. Vitest 전체 817건 통과(85 파일, ext-rpg 107건).
+테스트가 깨지는 것을 보았다: 배열 끝의 null 을 칸 수에 넣으면(3건), 소지품 자리 검사를 끄면(3건), 편집 거절을 끄면(6건),
+외형과 얼굴의 set 이름 검사를 끄면(5건), 정해진 키 순서를 끄면(22건), 커맨드를 제 안으로 옮기는 검사를 끄면(2건),
+바라보는 칸을 앞 칸 후보에서 빼면(2건), 항목을 더할 때 취소 번호를 안 옮기면(1건), 저장할 때 빈 `{}` 를 고치지 않으면(1건).
+`yarn test:engine-events` 의 건너뛰기는 엔진 실행 파일이 없는 경우와 M2 전 엔진(스키마 없는 폴더에 실행 파일만 둔 경우) 둘 다 `SKIP:` 한 줄과 종료 코드 0 이다.
+
+`yarn test:engine-events` 의 건너뛰지 않은 실행 (엔진 master `fab471059ac20b6aedcbee0f3a743eaddec796b4`, 판 넷, 검사 50개):
+
+```
+[1] rc=0
+  rpg:map:port_town events:18 skipped:0
+  rpg:player:port_town,15,44,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+  rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
+  rpg:event:e2e_sign
+  rpg:message:표지판|표지판에 글씨가 적혀 있다.\n"항구에 온 것을 환영한다" 라고 쓰여 있다.
+  rpg:message:|A
+  rpg:choice:예|아니요
+  rpg:message:|C
+  rpg:route:done
+[2] rc=0
+  rpg:map:port_town events:19 skipped:0
+  rpg:player:port_town,17,44,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+  rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
+  rpg:event:e2e_door
+  rpg:transfer:inn,10,12,up
+  rpg:map:inn events:6 skipped:0
+  rpg:player:inn,10,12,up
+  rpg:event:arrival
+  rpg:route:done
+[3] rc=0
+  rpg:map:port_town events:20 skipped:0
+  rpg:player:port_town,16,43,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+  rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
+  rpg:event:e2e_auto
+  rpg:message:|D
+  rpg:route:done
+[4] rc=0
+  rpg:map:port_town events:18 skipped:0
+  rpg:player:port_town,15,44,up
+  rpg:event:arrival
+  rpg:event:e2e_sign
+  rpg:message:표지판|표지판에 글씨가 적혀 있다.\n"항구에 온 것을 환영한다" 라고 쓰여 있다.
+  rpg:message:|A
+  rpg:choice:예|아니요
+  rpg:message:|C
+  rpg:route:done
+engine-events: 판 4, 검사 50개 통과, 엔진 fab471059ac20b6aedcbee0f3a743eaddec796b4 (/Users/u/Initial2D/build/Initial2D)
+ ✓ test/engine/events.engine.test.ts (4 tests) 16591ms
+      Tests  4 passed (4)
+```
+
+판마다 본 것: [1] 표지판(`e2e_sign`, action, 외형 `npc` 2번)을 시작 칸 옆 15,43 에 놓고 `play.ts` 가 고른 앞 칸 15,44 에 위를 보고 선다.
+타이핑 두 번이 되돌리기 한 단계로 합쳐지고, 저장한 이벤트의 키 순서가 정해진 순서다. 대사는 첫 대사(이름, 얼굴, 줄바꿈과 따옴표가 든 한글),
+아이템을 얻은 참 가지의 A, 선택지, 첫 항목의 가지가 세운 깃발의 C 순서이고 B 는 없다. [2] touch 문(`e2e_door`)을 17,43 에 놓고 한 걸음 밟으면
+`playSe` 뒤에 여관 10,12 에 위를 보고 선다 (`rpg:player:inn,10,12,up`). [3] auto 둘째(`e2e_auto`)가 `arrival` 뒤에 돌고 스스로 끝난다.
+[4] 되돌리기로 첫 판의 맵으로 돌아가면 저장한 글이 첫 판과 바이트까지 같고, 시작 상태 `arrived` 로 띄우면 선장의 인사가 없다.
