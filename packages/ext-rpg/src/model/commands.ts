@@ -419,12 +419,12 @@ export class EventEditor {
     if (names.length === 0) throw new EditRefused("바꿀 인자 없음");
     const cmd = this.commandAt(index, path, ctx.schema);
     const spec = commandSpec(ctx.schema, cmd.code);
-    if (!spec) throw new EditRefused(`모르는 커맨드 ${jsonValueText(cmd.code)} 는 고칠 수 없다`);
+    if (!spec) throw new EditRefused(`스키마에 없는 커맨드: ${jsonValueText(cmd.code)}`);
     const next: JsonObject = { ...cmd };
     for (const name of names) {
       const arg = spec.args.find((a) => a.name === name);
-      if (!arg) throw new EditRefused(`${spec.label} 에는 ${name} 인자가 없다`);
-      if (arg.type === "options") throw new EditRefused("항목은 항목 명령으로 고친다 (가지와 취소 번호를 함께 맞춘다)");
+      if (!arg) throw new EditRefused(`인자 없음: ${spec.label}.${name}`);
+      if (arg.type === "options") throw new EditRefused(`항목 인자는 항목 명령으로 수정해야 함: ${spec.label}.${name}`);
       const value = values[name];
       if (value === undefined) delete next[name];
       else next[name] = (canonicalCommand({ code: cmd.code, [name]: cloneJson(value) }, ctx.schema) as JsonObject)[name];

@@ -270,7 +270,7 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
   it("모르는 커맨드의 인자는 고칠 수 없다. code 가 2^53을 넘는 정수(표식 글)면 숫자 그대로 알린다", () => {
     const { ed } = setup([ev("a", 0, 0, { commands: [{ code: bigIntValue("12345678901234567890"), text: "x" }] })]);
     expect(() => ed.setArg(0, P(0), "text", "y")).toThrow("모르는 커맨드 12345678901234567890 는 고칠 수 없다");
-    expect(() => ed.setArgs(0, P(0), { text: "y" })).toThrow("모르는 커맨드 12345678901234567890 는 고칠 수 없다");
+    expect(() => ed.setArgs(0, P(0), { text: "y" })).toThrow("스키마에 없는 커맨드: 12345678901234567890");
   });
 
   it("빼기와 옮기기", () => {
@@ -358,9 +358,9 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     const { section, ed } = setup([ev("door", 0, 0, { commands: [transfer, { code: "choice", options: ["a"] }] })]);
     expect(() => ed.setArgs(0, P(0), { x: 5, y: -1 })).toThrow(/^y: /);
     expect(() => ed.setArgs(0, P(0), { x: 1.5, y: 2 })).toThrow(/^x: /);
-    expect(() => ed.setArgs(0, P(0), { x: 1, zzz: 2 })).toThrow(/zzz 인자가 없다/);
+    expect(() => ed.setArgs(0, P(0), { x: 1, zzz: 2 })).toThrow("인자 없음: 맵 이동.zzz");
     expect(() => ed.setArgs(0, P(0), { map: undefined, x: 1 })).toThrow(/필요하다/);
-    expect(() => ed.setArgs(0, P(1), { options: ["b"] })).toThrow(/항목 명령/);
+    expect(() => ed.setArgs(0, P(1), { options: ["b"] })).toThrow("항목 인자는 항목 명령으로 수정해야 함: 선택지.options");
     expect(() => ed.setArgs(0, P(0), {})).toThrow("바꿀 인자 없음");
     expect(() => ed.setArgs(0, P(5), { x: 1 })).toThrow(EditRefused);
     expect((at(section, 0).commands as unknown[])[0]).toEqual(transfer);
