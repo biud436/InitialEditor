@@ -1,12 +1,13 @@
 // 씬 커맨드와 메뉴 (docs/plans/02-scope-and-screens.md 5절의 씬 갈래와 편집 갈래).
 //   scene.new (Ctrl+Shift+N), scene.addObject (Ctrl+Shift+A, 목록 대화상자), scene.add.<타입> (씬/오브젝트 추가/<라벨>,
 //   레지스트리가 바뀌면 다시 등록), scene.setStart (활성 씬을 game.json 의 startScene 으로, 이미 그것이면 체크),
-//   edit.cut, edit.copy, edit.paste, edit.duplicate (Ctrl+D), edit.delete (Delete): 씬 탭이 활성일 때만.
+//   edit.cut, edit.copy, edit.paste, edit.duplicate (Ctrl+D), edit.delete (Delete): 씬 탭이면 씬 오브젝트, 맵 탭이면 맵 오브젝트.
 // 입력 칸과 Monaco 안에서 누른 Ctrl+C 같은 것은 shortcuts.ts 가 여기로 보내지 않아 브라우저 기본대로 돈다.
 
 import { Disposables, type EditorCommand } from "@initial-editor/core";
 import { reaction } from "mobx";
 import type { Editor } from "../Editor";
+import { mapEditRouter, type EditAction } from "../maps/mapClipboard";
 import { openAddObjectDialog } from "./AddObjectDialog";
 import type { SceneTools } from "./SceneTools";
 
@@ -34,62 +35,44 @@ export function registerSceneCommands(editor: Editor, tools: SceneTools): () => 
   editor.setHint("scene.setStart", sceneHint);
   editor.setChecked("scene.setStart", () => tools.isStartScene());
 
-  reg({
+  // 편집 커맨드는 활성 문서의 종류로 가른다: 맵이면 맵 오브젝트(maps/mapClipboard.ts), 아니면 씬 오브젝트
+  const maps = mapEditRouter(editor, () => editor.mapSupport?.clipboard ?? null);
+  const edit = (spec: { id: string; label: string; shortcut: string; action: EditAction; enabled: () => boolean; hint: () => string | undefined; run: () => void }) => {
+    reg({
+      id: spec.id,
+      label: spec.label,
+      category: "edit",
+      shortcut: spec.shortcut,
+      enabled: () => (maps.active() ? maps.enabled(spec.action) : spec.enabled()),
+      run: () => (maps.active() ? maps.run(spec.action) : spec.run()),
+    });
+    editor.setHint(spec.id, () => (maps.active() ? maps.hint(spec.action) : spec.hint()));
+  };
+
+  edit({
     id: "edit.copy",
     label: "복사",
-    category: "edit",
     shortcut: "Ctrl+C",
+    action: "copy",
     enabled: hasSelection,
+    hint: selectionHint,
     run: () => {
       const n = tools.copy();
       if (n > 0) editor.toasts.info(`오브젝트 ${n}개를 복사했다`);
     },
   });
-  editor.setHint("edit.copy", selectionHint);
-  reg({
-    id: "edit.cut",
-    label: "잘라내기",
-    category: "edit",
-    shortcut: "Ctrl+X",
-    enabled: hasSelection,
-    run: () => {
-      tools.cut();
-    },
-  });
-  editor.setHint("edit.cut", selectionHint);
-  reg({
+  edit({ id: "edit.cut", label: "잘라내기", shortcut: "Ctrl+X", action: "cut", enabled: hasSelection, hint: selectionHint, run: () => void tools.cut() });
+  edit({
     id: "edit.paste",
     label: "붙여넣기",
-    category: "edit",
     shortcut: "Ctrl+V",
+    action: "paste",
     enabled: () => hasScene() && tools.clipboard.length > 0,
-    run: () => {
-      tools.paste();
-    },
+    hint: () => sceneHint() ?? (tools.clipboard.length > 0 ? undefined : "복사한 오브젝트가 없다"),
+    run: () => void tools.paste(),
   });
-  editor.setHint("edit.paste", () => sceneHint() ?? (tools.clipboard.length > 0 ? undefined : "복사한 오브젝트가 없다"));
-  reg({
-    id: "edit.duplicate",
-    label: "복제",
-    category: "edit",
-    shortcut: "Ctrl+D",
-    enabled: hasSelection,
-    run: () => {
-      tools.duplicateSelected();
-    },
-  });
-  editor.setHint("edit.duplicate", selectionHint);
-  reg({
-    id: "edit.delete",
-    label: "삭제",
-    category: "edit",
-    shortcut: "Delete",
-    enabled: hasSelection,
-    run: () => {
-      tools.deleteSelected();
-    },
-  });
-  editor.setHint("edit.delete", selectionHint);
+  edit({ id: "edit.duplicate", label: "복제", shortcut: "Ctrl+D", action: "duplicate", enabled: hasSelection, hint: selectionHint, run: () => void tools.duplicateSelected() });
+  edit({ id: "edit.delete", label: "삭제", shortcut: "Delete", action: "delete", enabled: hasSelection, hint: selectionHint, run: () => void tools.deleteSelected() });
 
   // 씬/오브젝트 추가/<타입>: 레지스트리가 바뀔 때마다 다시 등록한다 (recentProjects.ts 와 같은 방식)
   let typeItems = new Disposables();

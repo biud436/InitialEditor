@@ -4,8 +4,11 @@
 // 흐름: 맵 열기 → 묶음과 수 → 몬스터 고르기와 종 바꾸기 → 순찰 범위 → 흔적 추가 → 여러 줄 한글 글 저장 →
 //       겹치는 id 거부 → 삭제와 되돌리기 → 뒤집힌 범위의 검사 결과 → 여기서 실행은 브라우저 모드에서도 켜져 있다
 //       (에디터 안 게임 탭에서 돈다. 실제 실행은 game-view.spec.ts).
+// 둘째 테스트: 스키마의 play.maps에 맞지 않는 맵에서도 여기서 실행은 켜져 있고, 툴팁에 이유가 있으며, 누르면(Ctrl+F5)
+// 띄우지 않고 이유를 토스트와 콘솔로 알린다 (러너는 감싸서 띄운 척한다).
 
 import { expect, test, type Page } from "@playwright/test";
+import { captureRunStarts, restoreRunner, runStarts } from "./support/editorPage";
 
 const LAYOUT_KEY = "initial-editor.layout";
 const MAP_PATH = "resources/maps/sample.json";
@@ -22,10 +25,12 @@ type EditorLike = {
       undo: { depth: number };
     } | null;
   };
-  backend: { readText(p: string): Promise<string> };
+  backend: { readText(p: string): Promise<string>; writeText(p: string, text: string): Promise<void> };
   commands: { isEnabled(id: string): boolean };
   commandHint(id: string): string | undefined;
+  commandNote(id: string): string | undefined;
   commandLabel(id: string): string;
+  log: { entries: Array<{ level: string; source: string; text: string }> };
 };
 
 /** 페이지 안에서 fn(window.initialEditor)를 돌린다 (fn은 직렬화되어 페이지에서 다시 만들어진다) */
@@ -202,5 +207,57 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     const rule = "위치는 하나만 고른 오브젝트 (순찰 범위가 있으면 왼끝에서 48px 왼쪽, 16 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서로 정하고 맵 안으로 자른다";
     expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere") ?? "(없음)"])).toEqual([true, rule]);
     expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, rule, "여기서 실행 (맵)"]);
+  });
+
+  test("여기서 실행: 스키마의 play.maps에 맞지 않는 맵은 누르면 띄우지 않고 이유를 알리며, 맞는 맵은 그 맵으로 띄운다", async ({ page }) => {
+    await openSampleMap(page);
+    await captureRunStarts(page);
+    // 샘플 스키마에 play.maps를 더한다 (파일이 바뀌면 스키마 저장소가 다시 읽는다)
+    await withEditor(page, async (e) => {
+      const path = "resources/schema/map-objects.json";
+      const schema = JSON.parse(await e.backend.readText(path));
+      schema.play.maps = ["meadow*"];
+      await e.backend.writeText(path, JSON.stringify(schema, null, 2));
+    });
+    const reason = "맵 sample은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: meadow*";
+    await expect.poll(() => withEditor(page, (e) => e.commandHint("map.playHere"))).toBe(reason);
+    expect(
+      await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene"), e.commandNote("map.playHere"), e.commandNote("run.fromScene")]),
+    ).toEqual([true, true, reason, reason, reason]);
+
+    // 메뉴 항목은 켜져 있고 이유가 툴팁에 있다 (실행 > 여기서 실행 (맵)도 같다)
+    const branch = (await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).count()) > 0 ? "맵" : "실행";
+    await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
+    const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
+    await expect(playHere).toBeEnabled();
+    await expect(playHere).toHaveAttribute("title", reason);
+    await page.keyboard.press("Escape");
+    await page.getByRole("menubar").getByRole("menuitem", { name: "실행", exact: true }).click();
+    const fromScene = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행 \(맵\)$/ }) });
+    await expect(fromScene).toBeEnabled();
+    await expect(fromScene).toHaveAttribute("title", reason);
+    await page.keyboard.press("Escape");
+
+    // Ctrl+F5: 띄우지 않고 이유를 토스트와 콘솔 줄로 알린다
+    await page.getByTestId("map-view").filter({ visible: true }).locator(".map-view-host").focus();
+    await page.keyboard.press("ControlOrMeta+F5");
+    await expect(page.getByTestId("toasts")).toContainText(reason);
+    await expect
+      .poll(() => withEditor(page, (e) => e.log.entries.filter((l) => l.source === "maps" && l.text.includes("여기서 실행하지 않았다")).map((l) => `${l.level}: ${l.text}`)))
+      .toEqual([`warn: 여기서 실행하지 않았다: ${reason}`]);
+    expect(await runStarts(page)).toEqual([]);
+
+    // 맞는 맵(meadow)에서는 켜지고 그 맵의 이름으로 띄운다
+    await page.getByTestId("project-tree").locator('[data-path="resources/maps/meadow.json"]').dblclick();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await expect.poll(() => withEditor(page, (e) => e.commands.isEnabled("map.playHere"))).toBe(true);
+    expect(await withEditor(page, (e) => e.commandHint("map.playHere"))).not.toContain("play.maps");
+    expect(await withEditor(page, (e) => [e.commandNote("map.playHere") ?? null, e.commandNote("run.fromScene") ?? null])).toEqual([null, null]);
+    await page.getByTestId("map-view").filter({ visible: true }).locator(".map-view-host").focus();
+    await page.keyboard.press("ControlOrMeta+F5");
+    await expect.poll(async () => (await runStarts(page)).length).toBe(1);
+    const [started] = await runStarts(page);
+    expect(started.env).toMatchObject({ INITIAL2D_SCENE: "main", INITIAL2D_SAMPLE_MAP: "meadow" });
+    await restoreRunner(page);
   });
 });

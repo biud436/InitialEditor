@@ -139,6 +139,9 @@ describe("맵 오브젝트 조작", () => {
     expect(toasts).toEqual(["warn: 하나만 둘 수 있는 타입이라 복제하지 않았다: start"]);
     expect(doc.model.objectIds()).toEqual(["start", "slime_1", "slime_2", "bat_1", "bat_2"]);
     expect(doc.selectedIds).toEqual(["slime_2", "bat_2"]);
+    // 한 칸(16px) 오른쪽, y는 그대로
+    expect(doc.model.findObject("slime_2")).toMatchObject({ x: 136, y: 160, props: { minX: 96, maxX: 216 } });
+    expect(doc.model.findObject("bat_2")).toMatchObject({ x: 256, y: 96 });
     expect(doc.undo.depth).toBe(1);
     expect(deleteMapObjects(doc, ["slime_2", "bat_2", "nope"])).toBe(2);
     expect(doc.selectedIds).toEqual([]);

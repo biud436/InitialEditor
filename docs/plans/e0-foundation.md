@@ -17,7 +17,7 @@
 ### 마일스톤 1: 저장소 재편
 
 - [x] 워크스페이스를 `packages/core`, `packages/app`, `packages/backend-bridge`, `packages/backend-tauri`, `packages/ext-tilemap`(빈 껍데기), `src-tauri/`로 재편한다 ([01-tech-stack.md](01-tech-stack.md) 5절)
-- [x] 옛 `packages/initial-editor`와 `packages/renderer`는 워크스페이스에서 빼고 `legacy/`로 옮긴다. 빌드되지 않고 참고용이다. E3 끝에 지운다
+- [x] 옛 `packages/initial-editor`와 `packages/renderer`는 워크스페이스에서 빼고 `legacy/`로 옮긴다. 빌드되지 않고 참고용이다. E3 끝에 지운다 (2026-09-27 지웠다. 옛 기능의 이전표는 [e3-tilemap.md](e3-tilemap.md))
 - [x] 의존성 정리표대로 버리고 든다. Vite 하나, MobX 하나, Tailwind + CSS 변수, PIXI 8, Monaco, dockview
 - [x] `yarn build`, `yarn dev`(브라우저 모드), `yarn tauri dev`, `yarn test`가 한 줄씩 된다 (`yarn tauri build --debug`로 .app 과 .dmg 번들까지 확인)
 - [x] ESLint에 `core`가 `document`와 `window`와 `pixi.js`를 import 하지 못하게 하는 규칙을 둔다
@@ -80,7 +80,7 @@
 
 ## 위험
 
-- **재편이 커서 중간 상태가 길다.** 대응: `legacy/`를 남겨 옛 에디터를 언제든 띄울 수 있게 한다 (`yarn legacy:dev`). 새 에디터가 옛 기능을 다 갖출 때(E3)까지 그렇게 둔다.
+- **재편이 커서 중간 상태가 길다.** 대응: `legacy/`를 남겨 옛 에디터를 언제든 띄울 수 있게 한다 (`yarn legacy:dev`). 새 에디터가 옛 기능을 다 갖출 때(E3)까지 그렇게 둔다. (2026-09-27 E3 마무리에서 `legacy/`와 `legacy:*` 스크립트를 지웠다)
 - **dockview와 Monaco와 PIXI 8을 한 화면에 처음 올린다.** 대응: 마일스톤 5의 첫 커밋은 세 라이브러리가 빈 패널에 뜨는 것만 확인하는 스파이크로 한다.
 - **Rust 툴체인이 낯설다.** 대응: 명령 표를 넘지 않고, 모든 명령에 단위 테스트를 둔다.
 

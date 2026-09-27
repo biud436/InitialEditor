@@ -1,6 +1,7 @@
 // 밖에서 바뀐 파일 위의 배너 (03-project-and-runtime.md 파일 규칙 4). 미수정 문서는 조용히 다시 읽히므로
 // 이 배너는 수정 중인 문서와 다시 읽기에 실패한 문서에 뜬다: "다시 읽기" 는 디스크 내용으로, "내 것 유지" 는 내 수정을 남긴다.
 // 다시 읽기에 실패한 문서는 저장이 막히고, "내 것으로 덮어쓰기"를 고르면 지금 내용을 디스크에 쓴다.
+// "내 것 유지"는 배너만 거둔다. 저장할 때 디스크가 다르면 저장 충돌 모달(SaveConflictDialog)이 한 번 더 묻는다.
 
 import type { Document } from "@initial-editor/core";
 import { runInAction } from "mobx";

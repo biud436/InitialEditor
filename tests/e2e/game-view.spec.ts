@@ -444,7 +444,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
   test("파일을 올리는 중에 저장한 스크립트는 게임 밖으로 보내지 않고 엔진이 뜬 뒤 다시 올린다", async ({ page }) => {
     await openMainLua(page);
-    // main.lua 를 읽은 뒤의 파일은 풀어 줄 때까지 멈춘다 (큰 프로젝트의 긴 스테이징)
+    // main.lua 를 읽은 뒤의 다른 파일은 풀어 줄 때까지 멈춘다 (큰 프로젝트의 긴 스테이징). main.lua 는 막지 않는다:
+    // 저장이 쓰기 전에 디스크의 글을 다시 읽어 밖에서 바뀌었는지 보기 때문이다 (저장 충돌 검사)
     await page.evaluate(() => {
       const w = window as unknown as { initialEditor: { backend: { readBinary(p: string): Promise<Uint8Array> } }; __reads: string[]; __release: () => void };
       const backend = w.initialEditor.backend;
@@ -453,7 +454,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
       w.__reads = [];
       backend.readBinary = async (p: string) => {
         const data = await read(p);
-        const late = w.__reads.includes("scripts/lua/main.lua");
+        const late = w.__reads.includes("scripts/lua/main.lua") && p !== "scripts/lua/main.lua";
         w.__reads.push(p);
         if (late) await held;
         return data;
@@ -957,7 +958,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
 const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? "../Initial2D");
 const serverScript = path.join(engineDir, "tools", "bridge", "server.js");
-// 다른 작업 트리의 e2e(bridge.spec 의 5961 등)와 겹치지 않는 포트. 두 describe 가 차례로 쓴다. E2E_BRIDGE_PORT 로 바꾼다
+// 게임 뷰의 브리지 테스트가 쓰는 고정 포트. 두 describe 가 차례로 쓴다. E2E_BRIDGE_PORT 로 바꾼다
 const BRIDGE_PORT = Number(process.env.E2E_BRIDGE_PORT ?? 6073);
 const BRIDGE_URL = `http://127.0.0.1:${BRIDGE_PORT}`;
 const hasEngineRepo = existsSync(serverScript) && existsSync(path.join(engineDir, "scripts", "lua", "main.lua"));

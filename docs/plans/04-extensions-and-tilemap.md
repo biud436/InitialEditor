@@ -65,6 +65,8 @@ scripts/ruby/scene_types/tilemap.rb
 
 ### 옛 기능 이전표
 
+설계 때의 표다. 실제로 옮긴 자리와 상태는 [e3-tilemap.md](e3-tilemap.md)의 "옛 에디터 기능 이전표"에 있다 (`legacy/`는 2026-09-27에 지웠다).
+
 | 옛 기능 | 옛 자리 | 새 자리 |
 |---|---|---|
 | 타일맵 데이터(`number[]`, `data[z*W*H + y*W + x]`), 그리기, 채우기 | `tilemap.ts` (1,052줄) | `ext-tilemap/src/model/`(순수 데이터와 알고리즘, DOM 없음)과 `ext-tilemap/src/view/`(PIXI 8 노드) |
@@ -72,7 +74,7 @@ scripts/ruby/scene_types/tilemap.rb
 | 되돌리기 | `TilemapHistory.ts` | `PaintTilesCommand` (코어 명령 객체) |
 | 오토타일 | `AutoTile.ts` (미사용) | `ext-tilemap/src/model/autotile.ts` (후순위) |
 | 맵 포맷 변환, gid 변환 | `map/MapFormat.ts`, `map/MapDocumentService.ts` | `ext-tilemap/src/format/` (v1과 v2, 보존 키), 기존 테스트가 그대로 따라온다 |
-| 새 맵, 열기, 내보내기 대화상자 | `NewMapWindow.tsx`, `OpenMapWindow.tsx`, `ExportMapWindow.tsx` | "오브젝트 추가 > 타일맵"이 새 맵을 만들고, 열기는 프로젝트 패널, 내보내기는 저장이 대신한다. 옛 v1로 내보내는 것만 도구 메뉴 |
+| 새 맵, 열기, 내보내기 대화상자 | `NewMapWindow.tsx`, `OpenMapWindow.tsx`, `ExportMapWindow.tsx` | 새 맵은 맵 > 새 맵, 씬의 타일맵 오브젝트는 인스펙터에서 맵 파일을 고른다. 열기는 프로젝트 패널, 내보내기는 저장이 대신한다. 옛 v1로 내보내는 것만 도구 메뉴 |
 | 레이어 창 | `app.ts`의 DOM 조작 | `ext-tilemap/src/panels/Layers.tsx` |
 | 메뉴와 툴바 | `menu/`, `toolbar/` (데코레이터) | `registerCommand`, `registerTool` |
 

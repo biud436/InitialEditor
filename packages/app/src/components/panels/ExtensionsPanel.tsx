@@ -1,4 +1,4 @@
-// 확장 패널 자리. registries.panels 에 등록된 패널을 차례로 그린다. 타일맵 확장의 팔레트와 레이어가 첫 예다 (E3).
+// 확장 패널 자리. 확장이 registerPanel로 등록한 패널을 차례로 그린다. 없으면 무엇이 오는 자리인지 알린다.
 
 import { observer } from "mobx-react-lite";
 import type { ComponentType } from "react";
@@ -10,7 +10,9 @@ export const ExtensionsPanel = observer(function ExtensionsPanel() {
   if (panels.length === 0) {
     return (
       <div className="panel-body">
-        <div className="panel-hint">확장 패널이 여기 열린다 (E3: 타일 팔레트, 레이어)</div>
+        <div className="panel-hint" data-testid="extensions-empty">
+          확장이 registerPanel로 더한 패널이 여기 보인다. 지금 켠 확장에는 없다. 맵의 팔레트, 레이어, 맵 오브젝트는 맵 탭을 열면 따로 열린다 (창 메뉴)
+        </div>
       </div>
     );
   }

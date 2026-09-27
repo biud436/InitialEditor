@@ -3,11 +3,14 @@
 // 같은 모양(Inspector 컴포넌트)을 준다. runtime 은 코어 타입에 없다 (로더가 안다).
 
 import { CORE_DEFAULT_PROPS, CORE_OBJECT_TYPES, CORE_TYPE_LABELS, extname, type ExtensionRegistries, type ObjectTypeSpec, type SceneDocument, type SceneObject } from "@initial-editor/core";
+import { TILEMAP_TYPE } from "@initial-editor/ext-tilemap";
 import { observer } from "mobx-react-lite";
 import { runInAction } from "mobx";
 import { useEffect, useState, type ComponentType } from "react";
 import { useEditor } from "../EditorContext";
+import { attachObjectTypeParts } from "../sceneView/objectTypeParts";
 import { FieldRow, NumberField, RangeField, TextField } from "./fields";
+import { TilemapInspector } from "./tilemapInspector";
 
 export type ObjectInspectorProps = { document: SceneDocument; object: SceneObject };
 export type ObjectInspector = ComponentType<ObjectInspectorProps>;
@@ -147,6 +150,7 @@ export function coreObjectTypeSpecs(): ObjectTypeSpec[] {
 /**
  * 코어 타입을 레지스트리에 넣는다 (확장 호스트를 거치지 않는 내부 등록). 씬 뷰가 먼저 같은 타입을 넣어 두었으면
  * (createSceneNode 등) 그 필드를 남기고 라벨과 기본값과 인스펙터만 채운다.
+ * 타일맵 확장의 타입에는 등록될 때 앱의 인스펙터를 붙인다.
  */
 export function registerCoreObjectTypes(registries: ExtensionRegistries): void {
   runInAction(() => {
@@ -155,6 +159,7 @@ export function registerCoreObjectTypes(registries: ExtensionRegistries): void {
       registries.objectTypes.set(spec.type, existing ? { ...spec, ...existing, defaults: spec.defaults, label: spec.label, Inspector: existing.Inspector ?? spec.Inspector } : spec);
     }
   });
+  attachObjectTypeParts(registries.objectTypes, TILEMAP_TYPE, { Inspector: TilemapInspector });
 }
 
 /** 타입의 인스펙터 (등록된 것, 코어 타입은 내장 것으로 대체) */

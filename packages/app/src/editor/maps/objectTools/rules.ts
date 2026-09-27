@@ -3,13 +3,17 @@
 //   - 한 줄 요약: 첫 enum 칸의 값, 띠는 x..x+width, 사각형은 크기
 //   - 새 오브젝트: unique 타입 거부, defaultProps, 띠와 사각형의 기본 크기, 겹치지 않는 id,
 //     범위 칸(rangeMin/rangeMax)은 스키마 기본값이 없으면 x 기준 ±PATROL_RADIUS
-//   - 복제: 새 id, 16px 옆, unique 타입은 건너뛴다
-//   - 여기서 실행의 위치(맵 안으로 자른다)와 환경 변수
+//   - 복제와 붙여넣기의 자리: x로만 한 칸(맵 끝이면 반대쪽), y는 그대로(바닥에 선 것이 바닥에 남는다), 순찰 범위도 같이.
+//     복제는 새 id이고 unique 타입은 건너뛴다
+//   - 여기서 실행의 위치(맵 안으로 자른다)와 환경 변수, play.maps가 받지 않는 맵의 이유
 
 import {
   cloneObject,
   defaultProps,
+  isBandObject,
+  playAllowsMap,
   playEnv,
+  shiftObject,
   typeOf,
   uniqueMapObjectId,
   type FieldSpec,
@@ -21,7 +25,6 @@ import {
 export const UNKNOWN_GROUP_LABEL = "스키마에 없음";
 /** 띠와 사각형 타입에 defaultWidth/defaultHeight가 없을 때 쓰는 칸 수 */
 export const FALLBACK_SIZE_TILES = 2;
-export const DUPLICATE_OFFSET = 16;
 export const PATROL_RADIUS = 64;
 /** 여기서 실행: 순찰 범위가 있는 오브젝트를 고르면 범위 왼끝에서 이만큼 왼쪽에서 시작한다 */
 export const PLAY_RANGE_GAP = 48;
@@ -118,26 +121,57 @@ export function rangeAround(x: number, pixelWidth: number, radius = PATROL_RADIU
   return { min: Math.max(0, Math.round(cx - radius)), max: Math.min(pixelWidth, Math.round(cx + radius)) };
 }
 
+/** 붙이기와 복제가 맵 안으로 당길 때 쓰는 맵 크기 (픽셀) */
+export interface CopyBounds {
+  pixelWidth: number;
+  pixelHeight: number;
+}
+
+/** v를 [lo, hi]로 당긴다. 맵이 오브젝트보다 좁으면(hi < lo) lo */
+function clampInside(v: number, lo: number, hi: number): number {
+  return Math.min(Math.max(v, lo), Math.max(lo, hi));
+}
+
+/**
+ * 한 축의 붙일 자리: v + d를 [lo, hi]로 당긴다. 당겨서 원래 자리 v로 돌아오면 반대쪽(v - d)을 당겨 쓴다.
+ */
+export function pasteAxis(v: number, d: number, lo: number, hi: number): number {
+  const forward = clampInside(v + d, lo, hi);
+  if (forward !== v || d === 0) return forward;
+  return clampInside(v - d, lo, hi);
+}
+
+/**
+ * 붙이기와 복제의 자리: x로 dx 옮기고(맵 끝에 붙어 못 가면 반대쪽), y는 두되 맵 밖이면 안으로 당긴다.
+ * 옆으로만 옮기므로 바닥에 선 몬스터와 시작 지점이 바닥 속으로 들어가지 않는다. 순찰 범위 칸은 x와 함께 옮긴다.
+ */
+export function placeCopy(source: MapObject, spec: ObjectTypeSchema | undefined, dx: number, bounds: CopyBounds): MapObject {
+  const x = pasteAxis(source.x, dx, 0, bounds.pixelWidth - (source.width ?? 1));
+  const y = isBandObject(source, spec) ? source.y : clampInside(source.y, 0, bounds.pixelHeight - (source.height ?? 1));
+  return shiftObject(cloneObject(source), x - source.x, y - source.y, spec);
+}
+
 export interface DuplicatePlan {
   copies: Array<{ object: MapObject; after: string }>;
   /** unique 타입이라 건너뛴 id */
   skipped: string[];
 }
 
-/** 고른 오브젝트의 복제본. 원본 바로 뒤에 놓을 수 있게 after에 원본 id를 둔다 */
-export function planDuplicate(schema: MapObjectSchema | null, objects: readonly MapObject[], ids: readonly string[]): DuplicatePlan {
+/** 고른 오브젝트의 복제본 (placeCopy로 dx 옆, 보통 한 칸). 원본 바로 뒤에 놓을 수 있게 after에 원본 id를 둔다 */
+export function planDuplicate(schema: MapObjectSchema | null, objects: readonly MapObject[], ids: readonly string[], dx: number, bounds: CopyBounds): DuplicatePlan {
   const taken = new Set(objects.map((o) => o.id));
   const copies: DuplicatePlan["copies"] = [];
   const skipped: string[] = [];
   for (const o of objects) {
     if (!ids.includes(o.id)) continue;
-    if (typeOf(schema, o.type)?.unique) {
+    const spec = typeOf(schema, o.type);
+    if (spec?.unique) {
       skipped.push(o.id);
       continue;
     }
     const id = uniqueMapObjectId(o.id.replace(/_\d+$/, "") || o.type, taken);
     taken.add(id);
-    copies.push({ object: { ...cloneObject(o), id, x: o.x + DUPLICATE_OFFSET }, after: o.id });
+    copies.push({ object: { ...placeCopy(o, spec, dx, bounds), id }, after: o.id });
   }
   return { copies, skipped };
 }
@@ -247,6 +281,16 @@ export function mapNameFor(name: string, path: string | null): string {
 export function buildPlayEnv(schema: MapObjectSchema | null, map: { name: string; path: string | null }, at: Point): Record<string, string> | null {
   if (!schema?.play) return null;
   return playEnv(schema, { mapName: mapNameFor(map.name, map.path), mapFile: map.path ?? "", x: at.x, y: at.y });
+}
+
+/** 스키마의 play.maps가 이 맵을 받지 않으면 그 이유. 받거나 play.maps가 없으면 null */
+export function playMapRefusal(schema: MapObjectSchema | null, map: { name: string; path: string | null }): string | null {
+  const play = schema?.play;
+  if (!play?.maps) return null;
+  const name = mapNameFor(map.name, map.path);
+  if (playAllowsMap(play, name)) return null;
+  const list = play.maps.length > 0 ? play.maps.join(", ") : "비었다";
+  return `맵 ${name || "(이름 없음)"}은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: ${list}`;
 }
 
 export const NO_PLAY_HINT = '스키마에 play 가 없다. resources/schema/map-objects.json 에 "play": { "env": { "INITIAL2D_SCENE": "...", "변수": "{map.name}", "위치": "{x}" } } 를 더하면 켜진다';

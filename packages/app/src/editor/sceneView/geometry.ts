@@ -1,7 +1,7 @@
 // 씬 뷰의 좌표 계산 (순수 함수, DOM 도 PIXI 도 모른다. geometry.test.ts 가 검사한다).
 //   - 화면(캔버스 CSS 픽셀) 과 월드(게임 논리 픽셀, 원점 왼쪽 위) 사이의 변환: world = (screen - pan) / zoom
 //   - 줌 단계와 커서 기준 줌 (커서 아래의 월드 점이 그 자리에 머문다)
-//   - 격자 스냅, 사각형 교차, 맞히기 (그리기 순서의 마지막이 위)
+//   - 격자 스냅, 사각형 교차, 맞히기 (그리기 순서의 마지막이 위. 배경 대상(타일맵)은 다른 것보다 뒤에, 고른 것만)
 //   - 상자 선택, 끌기 이동 (스냅은 기준 오브젝트의 위치에 걸고 나머지는 같은 변위를 따른다)
 
 export interface Point {
@@ -98,19 +98,42 @@ export interface HitTarget {
   id: string;
   /** 월드 좌표의 경계 상자 */
   bounds: Rect;
+  /**
+   * 배경 대상 (씬을 덮는 타일맵). 누르면 끌기가 아니라 상자 선택이 시작되고, 놓을 때 움직이지 않았으면 고른다.
+   * 이미 고른 배경은 누르면 끈다. 상자 선택에는 상자 안에 다 들어올 때만 든다
+   */
+  background?: boolean;
 }
 
-/** 점을 품는 것 중 그리기 순서의 마지막(가장 위). 없으면 null */
-export function hitTest(targets: readonly HitTarget[], p: Point): string | null {
+function topmost(targets: readonly HitTarget[], p: Point, accept: (t: HitTarget) => boolean): string | null {
   for (let i = targets.length - 1; i >= 0; i--) {
-    if (rectContains(targets[i].bounds, p)) return targets[i].id;
+    const t = targets[i];
+    if (accept(t) && rectContains(t.bounds, p)) return t.id;
   }
   return null;
 }
 
-/** 상자와 겹치는 것 전부 (그리기 순서대로) */
+/**
+ * 누른 점의 대상: 배경이 아닌 것 중 가장 위, 없으면 selected에 든 배경 중 가장 위. 없으면 null
+ * (고르지 않은 배경은 backgroundAt으로 따로 찾는다)
+ */
+export function hitTest(targets: readonly HitTarget[], p: Point, selected: ReadonlySet<string> = new Set()): string | null {
+  return topmost(targets, p, (t) => !t.background) ?? topmost(targets, p, (t) => !!t.background && selected.has(t.id));
+}
+
+/** 점을 품는 배경 대상 중 가장 위. 없으면 null */
+export function backgroundAt(targets: readonly HitTarget[], p: Point): string | null {
+  return topmost(targets, p, (t) => !!t.background);
+}
+
+/** outer가 inner를 다 품는가 */
+export function rectEncloses(outer: Rect, inner: Rect): boolean {
+  return inner.x >= outer.x && inner.y >= outer.y && inner.x + inner.w <= outer.x + outer.w && inner.y + inner.h <= outer.y + outer.h;
+}
+
+/** 상자와 겹치는 것 전부 (그리기 순서대로). 배경 대상은 상자 안에 다 들어올 때만 */
 export function rubberBandSelect(targets: readonly HitTarget[], band: Rect): string[] {
-  return targets.filter((t) => rectsIntersect(t.bounds, band)).map((t) => t.id);
+  return targets.filter((t) => (t.background ? rectEncloses(band, t.bounds) : rectsIntersect(t.bounds, band))).map((t) => t.id);
 }
 
 /** 상자 선택의 결과를 지금 선택에 합친다. additive 면 기존에 더하고, 아니면 바꾼다 */

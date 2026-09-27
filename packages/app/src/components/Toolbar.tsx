@@ -13,7 +13,8 @@ const CommandButton = observer(function CommandButton({ id, children }: { id: st
   const enabled = editor.commands.isEnabled(id);
   const label = editor.commandLabel(id);
   const shortcut = editor.commands.formatShortcut(id);
-  const hint = editor.commandHint(id);
+  // 켜진 단추는 메모(여기서 실행이 거절될 이유 등)가 있으면 그것, 없으면 설명을 보인다. 꺼진 단추는 꺼진 이유
+  const hint = enabled ? (editor.commandNote(id) ?? editor.commandHint(id)) : editor.commandHint(id);
   const title = [label, shortcut ? `(${shortcut})` : "", hint ? `: ${hint}` : ""].filter(Boolean).join(" ");
   return (
     <span className="toolbar-tip" title={title}>

@@ -10,6 +10,7 @@ import type { Editor } from "./Editor";
 import { WELCOME_KIND } from "./documents/WelcomeDocument";
 import { PANEL_IDS, PANEL_TITLES, PRESET_LABELS, type PresetName } from "./layoutPresets";
 import { createNewProject } from "./newProject";
+import { saveActiveDocument, saveAllDocuments } from "./saveCommands";
 
 export const ENGINE_README_API = "https://github.com/biud436/Initial2D#lua-대응표";
 export const PLANS_INDEX = "https://github.com/biud436/InitialEditor/blob/master/docs/plans/index.md";
@@ -75,14 +76,7 @@ export function registerAppCommands(editor: Editor): void {
       return !!doc && doc.kind !== WELCOME_KIND && doc.dirty;
     },
     run: async () => {
-      const doc = active();
-      if (!doc) return;
-      try {
-        await editor.saveDocument(doc);
-        editor.toasts.success(`저장했다: ${doc.title}`);
-      } catch (e) {
-        editor.toasts.error(`${doc.title} 을(를) 저장하지 못했다: ${(e as Error).message}`);
-      }
+      await saveActiveDocument(editor);
     },
   });
   reg({
@@ -92,19 +86,7 @@ export function registerAppCommands(editor: Editor): void {
     shortcut: "Ctrl+Shift+S",
     enabled: () => editor.documents.dirtyDocuments.length > 0,
     run: async () => {
-      const docs = editor.documents.dirtyDocuments;
-      let saved = 0;
-      const failed: string[] = [];
-      for (const doc of docs) {
-        try {
-          await editor.saveDocument(doc);
-          saved++;
-        } catch (e) {
-          failed.push(`${doc.title} (${(e as Error).message})`);
-        }
-      }
-      if (failed.length === 0) editor.toasts.success(`${saved}개 문서를 저장했다`);
-      else editor.toasts.error(`${saved}개를 저장했고 ${failed.length}개는 저장하지 못했다: ${failed.join(", ")}`);
+      await saveAllDocuments(editor);
     },
   });
   reg({ id: "file.closeProject", label: "프로젝트 닫기", category: "file", enabled: () => editor.project.isOpen, run: () => void editor.closeProject() });

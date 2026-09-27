@@ -6,7 +6,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 // 씬 포맷 변환을 엔진 픽스처와 대조할 수 있다. 여기서 import 와 전역을 막는다.
 export default tseslint.config(
   // packages/app/public/engine 은 엔진 웹 빌드의 사본이다 (scripts/sync-engine-web.mjs)
-  { ignores: ["**/dist/**", "**/node_modules/**", "legacy/**", "src-tauri/**", "tests/**", "packages/app/public/engine/**"] },
+  { ignores: ["**/dist/**", "**/node_modules/**", "src-tauri/**", "packages/app/public/engine/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

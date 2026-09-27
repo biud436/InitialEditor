@@ -1,14 +1,16 @@
 // 여기서 실행: 활성 맵의 한 자리에서 엔진을 띄운다. 환경 변수는 스키마의 play.env가 정하고
 // ({map.name}, {map.file}, {x}, {y}), 러너의 기본 변수(INITIAL2D_HMR, INITIAL2D_SCRIPT) 뒤에 덧씌운다.
+// 스키마에 play.maps가 있으면 그 글롭에 맞는 맵에서만 띄운다. 다른 맵에서도 커맨드는 켜 두고, 누르면 띄우지 않고
+// 이유를 토스트와 콘솔로 알린다 (메뉴 툴팁에도 그 이유가 있다).
 // 위치 규칙은 rules.ts의 playPosition이다. 커서는 이 맵의 뷰에 남은 것만 쓴다.
 // 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
 
-import type { Document, DocumentRegistry } from "@initial-editor/core";
+import { ReloadFailedError, type Document, type DocumentRegistry, type SaveOutcome } from "@initial-editor/core";
 import type { MapDocument, MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import type { ConfirmOptions } from "../../modals";
 import { asMapDocument } from "../schemaStore";
 import { cursorOf, geometryOf, mapSupportOf, viewCenterOf, type MapObjectHost } from "./actions";
-import { buildPlayEnv, mapNameFor, NO_PLAY_HINT, PLAY_POSITION_RULE, PLAY_SOURCE_LABELS, playPosition, type PlayPosition, type Point } from "./rules";
+import { buildPlayEnv, mapNameFor, NO_PLAY_HINT, PLAY_POSITION_RULE, PLAY_SOURCE_LABELS, playMapRefusal, playPosition, type PlayPosition, type Point } from "./rules";
 
 const LOG = "maps";
 export const NEED_MAP_TAB = `맵 탭이 활성일 때 그 맵에서 실행한다. ${PLAY_POSITION_RULE}`;
@@ -22,7 +24,7 @@ export interface PlayHost extends MapObjectHost {
   };
   readonly modals: { confirm(options: ConfirmOptions): Promise<boolean> };
   readonly mapSchema?: { readonly current: MapObjectSchema | null };
-  saveDocument(doc: Document): Promise<void>;
+  saveDocument(doc: Document): Promise<SaveOutcome | void>;
 }
 
 export function activeMapOf(host: { documents: DocumentRegistry }): MapDocument | null {
@@ -33,14 +35,26 @@ function schemaOf(host: PlayHost, doc: MapDocument): MapObjectSchema | null {
   return doc.schema ?? host.mapSchema?.current ?? null;
 }
 
-/** 실행할 수 없는 이유. 실행할 수 있으면 undefined */
-export function playHereHint(host: PlayHost): string | undefined {
+/** 커맨드를 꺼 두는 이유 (러너가 못 띄운다, 맵 탭이 아니다, 스키마에 play가 없다). 켜 두면 undefined */
+export function playHereDisabledReason(host: PlayHost): string | undefined {
   const reason = host.runner.unavailableReason;
   if (reason) return reason;
   const doc = activeMapOf(host);
   if (!doc) return NEED_MAP_TAB;
   if (!schemaOf(host, doc)?.play) return NO_PLAY_HINT;
   return host.runner.startHint;
+}
+
+/** 스키마의 play.maps가 활성 맵을 받지 않는 이유. 커맨드는 켜 두고 누르면 이 이유를 알린다. 받으면 null */
+export function playHereRefusal(host: PlayHost): string | null {
+  const doc = activeMapOf(host);
+  if (!doc) return null;
+  return playMapRefusal(schemaOf(host, doc), { name: doc.model.name, path: doc.path });
+}
+
+/** 지금 띄울 수 없는 이유: 꺼 두는 이유, 아니면 play.maps가 받지 않는 이유. 띄울 수 있으면 undefined */
+export function playHereHint(host: PlayHost): string | undefined {
+  return playHereDisabledReason(host) ?? playHereRefusal(host) ?? undefined;
 }
 
 /**
@@ -73,9 +87,15 @@ export function playEnvFor(host: PlayHost, doc: MapDocument, at: PlayPosition): 
 
 /** 여기서 실행. 띄웠으면 true */
 export async function playHere(host: PlayHost): Promise<boolean> {
-  const hint = playHereHint(host);
+  const hint = playHereDisabledReason(host);
   if (hint) {
     host.toasts.warn(hint);
+    return false;
+  }
+  const refusal = playHereRefusal(host);
+  if (refusal) {
+    host.log.warn(LOG, `여기서 실행하지 않았다: ${refusal}`);
+    host.toasts.warn(refusal);
     return false;
   }
   const doc = activeMapOf(host)!;
@@ -88,9 +108,11 @@ export async function playHere(host: PlayHost): Promise<boolean> {
     });
     if (!ok) return false;
     try {
-      await host.saveDocument(doc);
+      // 저장 충돌 모달에서 취소하면 실행하지 않는다. 다시 읽기를 골랐으면 디스크 내용 그대로 실행한다
+      if ((await host.saveDocument(doc)) === "cancelled") return false;
     } catch (e) {
-      const message = `${doc.title} 을(를) 저장하지 못해 실행하지 않았다: ${(e as Error).message}`;
+      const message =
+        e instanceof ReloadFailedError ? `${doc.title} 을(를) 다시 읽지 못해 실행하지 않았다: ${e.reason}` : `${doc.title} 을(를) 저장하지 못해 실행하지 않았다: ${(e as Error).message}`;
       host.log.error(LOG, message);
       host.toasts.error(message);
       return false;

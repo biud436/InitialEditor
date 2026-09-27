@@ -87,6 +87,25 @@ describe("MapSchemaStore", () => {
     store.dispose();
   });
 
+  it("콘솔 한 줄에 여기서 실행과 play.maps 목록을 적는다", async () => {
+    const withMaps = JSON.stringify({ ...JSON.parse(SCHEMA), play: { env: { STAGE: "{map.name}" }, maps: ["aldebaran_*", "boss"] } });
+    const h = harness({ [SCHEMA_PATH]: withMaps });
+    const store = new MapSchemaStore(h.host);
+    store.install();
+    await h.open();
+    await waitFor(() => store.current !== null);
+    expect(store.current!.play?.maps).toEqual(["aldebaran_*", "boss"]);
+    expect(texts(h.log)).toContain("info/maps: 맵 오브젝트 스키마: 타입 2개 (spawn, start), 여기서 실행 있음 (맵 aldebaran_*, boss)");
+    h.mem.simulateExternalChange(SCHEMA_PATH, "modify", SCHEMA);
+    await waitFor(() => store.current?.play?.maps === undefined);
+    expect(texts(h.log).at(-1)).toBe("info/maps: 맵 오브젝트 스키마: 타입 2개 (spawn, start), 여기서 실행 있음");
+    // 목록이 글의 배열이 아니면 스키마 오류다
+    h.mem.simulateExternalChange(SCHEMA_PATH, "modify", JSON.stringify({ ...JSON.parse(SCHEMA), play: { env: {}, maps: "aldebaran_*" } }));
+    await waitFor(() => store.error !== null);
+    expect(store.error).toContain("play.maps");
+    store.dispose();
+  });
+
   it("해석 오류는 error 에 두고 콘솔에 문구를 남기며 던지지 않는다", async () => {
     const h = harness({ [SCHEMA_PATH]: '{ "version": 1, "types": [{ "type": "spawn", "shape": "circle" }] }' });
     const store = new MapSchemaStore(h.host);
