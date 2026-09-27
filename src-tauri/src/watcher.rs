@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
+use notify::event::{AccessKind, AccessMode};
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::Serialize;
 
@@ -55,6 +56,8 @@ pub enum RawKind {
     Create,
     Remove,
     Modify,
+    /// 내용을 바꾸지 않는 접근 (열기, 읽기, 쓰지 않은 닫기). 변경으로 치지 않는다
+    Access,
     Other,
 }
 
@@ -64,6 +67,11 @@ impl From<&EventKind> for RawKind {
             EventKind::Create(_) => RawKind::Create,
             EventKind::Remove(_) => RawKind::Remove,
             EventKind::Modify(_) => RawKind::Modify,
+            // 쓰려고 연 파일을 닫은 것은 바뀌었을 수 있다
+            EventKind::Access(AccessKind::Close(AccessMode::Write)) => RawKind::Modify,
+            // Linux(inotify)는 파일을 열 때마다 알린다. 이것을 변경으로 치면 에디터가 다시 읽는 것이
+            // 또 열기가 되어 "밖에서 바뀌어 다시 읽었다" 가 끝없이 돈다
+            EventKind::Access(_) => RawKind::Access,
             _ => RawKind::Other,
         }
     }
@@ -186,6 +194,7 @@ impl WatcherCore {
                 .map(|due| due.saturating_duration_since(Instant::now()))
                 .unwrap_or(idle);
             match rx.recv_timeout(wait) {
+                Ok(Msg::Paths(_, RawKind::Access)) => {}
                 Ok(Msg::Paths(paths, raw)) => {
                     let due = Instant::now() + self.debounce;
                     for path in paths {
@@ -390,6 +399,84 @@ mod tests {
         );
         tx.send(Msg::Stop).unwrap();
         thread.join().unwrap();
+    }
+
+    #[test]
+    fn access_without_write_is_not_a_change() {
+        let kind = |k: EventKind| RawKind::from(&k);
+        assert_eq!(
+            kind(EventKind::Access(AccessKind::Open(AccessMode::Any))),
+            RawKind::Access
+        );
+        assert_eq!(kind(EventKind::Access(AccessKind::Read)), RawKind::Access);
+        assert_eq!(
+            kind(EventKind::Access(AccessKind::Close(AccessMode::Read))),
+            RawKind::Access
+        );
+        assert_eq!(
+            kind(EventKind::Access(AccessKind::Close(AccessMode::Write))),
+            RawKind::Modify
+        );
+
+        let dir = tempfile::tempdir().unwrap();
+        let fs = ProjectFs::open(dir.path().to_str().unwrap()).unwrap();
+        let (core, rx) = core_for(&fs);
+        let core = core.with_debounce(Duration::from_millis(20));
+        let (tx, msg_rx) = mpsc::channel::<Msg>();
+        let root = fs.root().to_path_buf();
+        let thread = thread::spawn(move || core.run(msg_rx));
+        std::fs::create_dir_all(root.join("scripts")).unwrap();
+        std::fs::write(root.join("scripts/a.lua"), "1").unwrap();
+        tx.send(Msg::Paths(
+            vec![root.join("scripts/a.lua")],
+            RawKind::Access,
+        ))
+        .unwrap();
+        assert!(
+            rx.recv_timeout(Duration::from_millis(150)).is_err(),
+            "an open or a read must not become a change"
+        );
+        tx.send(Msg::Paths(
+            vec![root.join("scripts/a.lua")],
+            RawKind::Modify,
+        ))
+        .unwrap();
+        let e = rx.recv_timeout(Duration::from_secs(2)).unwrap();
+        assert_eq!(
+            (e.path.as_str(), e.kind),
+            ("scripts/a.lua", ChangeKind::Modify)
+        );
+        tx.send(Msg::Stop).unwrap();
+        thread.join().unwrap();
+    }
+
+    /// Linux(inotify)는 여는 것도 알린다. 에디터가 다시 읽은 것이 또 변경이 되면 다시 읽기가 끝없이 돈다
+    #[test]
+    fn notify_backed_watcher_ignores_reads() {
+        let dir = tempfile::tempdir().unwrap();
+        let fs = ProjectFs::open(dir.path().to_str().unwrap()).unwrap();
+        std::fs::create_dir_all(fs.root().join("scripts")).unwrap();
+        std::fs::write(fs.root().join("scripts/main.lua"), "print(1)").unwrap();
+        let (core, rx) = core_for(&fs);
+        let handle = start(core).expect("notify 감시를 켤 수 없다");
+        thread::sleep(Duration::from_millis(300));
+        // 감시 전의 쓰기가 늦게 올 수 있다 (FSEvents). 잠잠해질 때까지 버린다
+        while rx.recv_timeout(Duration::from_millis(300)).is_ok() {}
+
+        for _ in 0..5 {
+            assert_eq!(fs.read_text("scripts/main.lua").unwrap(), "print(1)");
+            assert!(fs.exists("scripts/main.lua").unwrap());
+            thread::sleep(Duration::from_millis(20));
+        }
+        let got = rx.recv_timeout(Duration::from_millis(500));
+        assert!(got.is_err(), "reading is not a change: {got:?}");
+
+        // 밖에서 바꾸면 그대로 보인다
+        std::fs::write(fs.root().join("scripts/main.lua"), "print(2)").unwrap();
+        let e = wait_for(&rx, |e| e.path == "scripts/main.lua");
+        assert_eq!(e.origin, Origin::External, "{e:?}");
+        assert_ne!(e.kind, ChangeKind::Delete, "{e:?}");
+        handle.stop();
     }
 
     #[test]
