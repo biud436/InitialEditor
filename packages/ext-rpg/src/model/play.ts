@@ -223,6 +223,14 @@ export function planEnv(play: PlaySection | null | undefined, target: PlayTarget
   return fillPlayEnv(play.env, targetValues(target));
 }
 
+/** 엔진이 이 id 의 이벤트를 배회시키지 않고 맵 파일의 위치에 세우는 변수 (play.probe 의 "{event}") */
+export const HOLD_ENV = "INITIAL2D_RPG_HOLD";
+
+/** 실행 변수가 이 이벤트를 세우는가 (HOLD_ENV 가 그 id 다) */
+export function holdsEvent(env: Readonly<Record<string, string>>, eventId: string | null): boolean {
+  return eventId !== null && env[HOLD_ENV] === eventId;
+}
+
 /** 자동 재생이 늘 넣는 변수: 에디터가 지켜보는 줄(rpgPlay.ts의 probeWatch)을 엔진이 찍게 한다 */
 export const PROBE_TRACE_ENV: Readonly<Record<string, string>> = { INITIAL2D_RPG_TRACE: "1" };
 

@@ -16,7 +16,7 @@ import { EVENTS_SECTION } from "./events";
 import { GAME_CONFIG_MISSING, itemIds, mapEntryFor, type MapEntry, type PlaySection } from "./game";
 import { asList, field, isJsonText } from "./json";
 import { eventsStateOf, type RpgSources } from "./layer";
-import { eventPlayPlan, herePlayPlan, parseStartState, planEnv, probeEnv, type Cell, type PlayPlanChoice } from "./play";
+import { eventPlayPlan, herePlayPlan, holdsEvent, parseStartState, planEnv, probeEnv, type Cell, type PlayPlanChoice } from "./play";
 import type { MapGeometry } from "./validate";
 
 export const RPG_PLAY_PROVIDER_ID = "rpg.play";
@@ -191,9 +191,10 @@ export function eventPlay(sources: RpgPlaySources, doc: MapDocument, index: numb
   const ev = events[index];
   const id = field(ev, "id");
   const eventId = isJsonText(id) && id !== "" ? id : null;
-  const wanders = field(ev, "wander") !== undefined && field(ev, "charset") !== undefined;
-  const extra = [wanders ? "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다" : null, state.note].filter((x): x is string => !!x).join(", ");
   const env = probeEnv(t.play, { ...target, route: r.plan.route ?? "", event: eventId });
+  // 배회하는 이벤트는 자리를 떠날 수 있다. 실행 변수가 그 이벤트를 세우면(INITIAL2D_RPG_HOLD) 알리지 않는다
+  const wanders = field(ev, "wander") !== undefined && field(ev, "charset") !== undefined && !holdsEvent(env, eventId);
+  const extra = [wanders ? "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다" : null, state.note].filter((x): x is string => !!x).join(", ");
   return { ...toPlan(env, r.plan, extra || null), watch: () => probeWatch(eventId, { wanders }) };
 }
 

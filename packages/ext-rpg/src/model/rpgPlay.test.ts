@@ -167,6 +167,32 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect((eventPlay(sources, doc, i, "play") as PlayPlan).env).not.toHaveProperty("INITIAL2D_RPG_TRACE");
   });
 
+  it("배회하는 이벤트의 알림: 실행 변수가 그 이벤트를 세우지 않으면(INITIAL2D_RPG_HOLD 없음) 설명과 실패 알림에 까닭을 적고, 세우면 적지 않는다", () => {
+    const { h, sources } = setup();
+    const doc = h.open(PORT_TOWN);
+    const i = indexOf(doc, "kid");
+    const WANDER = "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다";
+    const failure = (plan: PlayPlan) => {
+      const w = plan.watch!();
+      w.line("rpg:map:port_town events:17 skipped:0");
+      return w.exit?.(0) ?? "";
+    };
+    const loose = eventPlay(sources, doc, i, "probe") as PlayPlan;
+    expect(loose.env).not.toHaveProperty("INITIAL2D_RPG_HOLD");
+    expect(loose.note).toBe(`이벤트 kid 앞에서 말 걸기, ${WANDER}`);
+    expect(failure(loose)).toContain("배회하는 이벤트라");
+    // play.probe 가 {event} 로 이 이벤트를 세운다 (엔진의 INITIAL2D_RPG_HOLD)
+    const game = sources.game!;
+    sources.set({ game: { ...game, play: { ...game.play!, probe: { ...game.play!.probe, INITIAL2D_RPG_HOLD: "{event}" } } } });
+    const held = eventPlay(sources, doc, i, "probe") as PlayPlan;
+    expect(held.env.INITIAL2D_RPG_HOLD).toBe("kid");
+    expect(held.note).toBe("이벤트 kid 앞에서 말 걸기");
+    expect(failure(held)).toBe("자동 재생이 끝났지만 이벤트 kid 이(가) 돌지 않았다 (rpg:event:kid 줄이 없다).");
+    // 다른 값으로 세우면(다른 이벤트) 이 이벤트는 여전히 배회한다
+    sources.set({ game: { ...game, play: { ...game.play!, probe: { ...game.play!.probe, INITIAL2D_RPG_HOLD: "captain" } } } });
+    expect((eventPlay(sources, doc, i, "probe") as PlayPlan).note).toContain(WANDER);
+  });
+
   it("2^53을 넘는 id 는 글이 아니라 이름으로 쓰지 않는다: 설명과 요청은 events[n] 이고 표식 글이 새지 않는다", () => {
     const { h, sources } = setup();
     const data = JSON.parse(mapText(PORT_TOWN)) as { events: Array<Record<string, unknown>> };
