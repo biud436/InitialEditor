@@ -1,4 +1,5 @@
-// 메모리 모드(?backend=memory)의 샘플 프로젝트. 의존성 없이 화면을 띄우는 데모이며 Playwright 스모크의 상대다.
+// 메모리 모드(?backend=memory)와 웹판 "샘플로 해 보기"의 샘플 프로젝트. 의존성 없이 화면을 띄우는 데모이며 Playwright 스모크의 상대다.
+// 게임(main.lua, main.rb)은 초원 맵(meadow.json)을 그려서, 맵 뷰에서 칠하고 저장한 칸이 F5 로 돌린 게임에 나온다.
 
 import { meadowMapJson, meadowTilesetPng } from "./maps/sampleMap";
 
@@ -19,25 +20,34 @@ function base64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
+/** 샘플 게임이 그리는 맵 (맵 뷰에서 칠하는 예와 같은 파일) */
+export const SAMPLE_MAP_PATH = "resources/maps/meadow.json";
+
 export const SAMPLE_MAIN_LUA = `-- 샘플 프로젝트의 Lua 진입점. 씬 계약 네 함수 (init, update, render, destroy).
 -- 엔진은 전역 Initialize, Update, Render, Destroy 를 부르고, 맨 아래에서 그것을 네 함수로 잇는다.
--- 프레임마다 update(elapsed) 와 render() 가 불린다. render 는 draw_point 로 사각형을 채운다.
+-- init 에서 초원 맵(resources/maps/meadow.json)을 읽고, render 가 모든 레이어를 화면 가운데에 그린다.
+-- 맵 뷰에서 칠하고 저장하면 칠한 칸이 게임에 그대로 나온다.
 
+local MAP_PATH = "./${SAMPLE_MAP_PATH}"
+local map = nil
+local layerCount = 0
+local camX, camY = 0, 0
 local elapsedTotal = 0
 local printed = false
 
--- (x, y) 에서 w x h 를 한 색으로 채운다
-local function fillRect(x, y, w, h, r, g, b)
-  draw_set_color(r, g, b, 255)
-  for py = y, y + h - 1 do
-    for px = x, x + w - 1 do
-      draw_point(px, py)
-    end
-  end
-end
-
 function init()
   print("샘플 프로젝트 시작")
+  local err
+  map, err = Tilemap.Load(MAP_PATH)
+  if not map then
+    print("sample:map error " .. tostring(err))
+    return
+  end
+  local w, h, tileW, tileH, layers = Tilemap.GetSize(map)
+  layerCount = layers
+  -- 카메라가 음수면 맵이 오른쪽 아래로 간다. 맵을 화면 가운데에 둔다
+  camX = -math.floor((WindowWidth() - w * tileW) / 2)
+  camY = -math.floor((WindowHeight() - h * tileH) / 2)
 end
 
 function update(elapsed)
@@ -45,14 +55,21 @@ function update(elapsed)
 end
 
 function render()
+  if map then
+    Tilemap.Draw(map, 1, layerCount, camX, camY)
+  end
   if not printed then
     printed = true
     print("sample:frame")
+    print("sample:map layers=" .. layerCount)
   end
-  fillRect(32, 32, 64, 48, 240, 176, 64)
 end
 
 function destroy()
+  if map then
+    Tilemap.Dispose(map)
+    map = nil
+  end
 end
 
 function Initialize() init() end
@@ -62,23 +79,26 @@ function Destroy() destroy() end
 `;
 
 export const SAMPLE_MAIN_RB = `# 샘플 프로젝트의 Ruby 진입점. Lua 판과 같은 씬 계약이고 같은 화면을 그린다.
-# 엔진이 init 을 한 번, 프레임마다 update(elapsed) 와 render 를 부른다. render 는 draw_point 로 사각형을 채운다.
+# 엔진이 init 을 한 번, 프레임마다 update(elapsed) 와 render 를 부른다. init 에서 초원 맵을 읽고 render 가 가운데에 그린다.
+# Ruby 의 레이어 번호는 0 부터다.
 
+$map_path = "./${SAMPLE_MAP_PATH}"
+$map = nil
+$cam_x = 0
+$cam_y = 0
 $elapsed_total = 0
 $printed = false
 
-# (x, y) 에서 w x h 를 한 색으로 채운다
-def fill_rect(x, y, w, h, r, g, b)
-  Graphics.set_color(r, g, b, 255)
-  y.upto(y + h - 1) do |py|
-    x.upto(x + w - 1) do |px|
-      Graphics.draw_point(px, py)
-    end
-  end
-end
-
 def init
   puts "샘플 프로젝트 시작"
+  $map = Tilemap.load($map_path)
+  unless $map
+    puts "sample:map error " + $map_path
+    return
+  end
+  # 카메라가 음수면 맵이 오른쪽 아래로 간다. 맵을 화면 가운데에 둔다
+  $cam_x = -((Graphics.width - $map.width * $map.tile_width) / 2)
+  $cam_y = -((Graphics.height - $map.height * $map.tile_height) / 2)
 end
 
 def update(elapsed)
@@ -86,14 +106,17 @@ def update(elapsed)
 end
 
 def render
+  $map.draw(0, $map.layer_count - 1, $cam_x, $cam_y) if $map
   unless $printed
     $printed = true
     puts "sample:frame"
+    puts "sample:map layers=" + ($map ? $map.layer_count : 0).to_s
   end
-  fill_rect(32, 32, 64, 48, 240, 176, 64)
 end
 
 def destroy
+  $map.dispose if $map && !$map.disposed?
+  $map = nil
 end
 `;
 
@@ -210,12 +233,12 @@ export const SAMPLE_README = `# 샘플 프로젝트
 
 메모리 모드의 예제다. 파일은 브라우저 메모리에만 있고 새로 고치면 처음으로 돌아간다.
 
-- scripts/lua/main.lua: Lua 진입점
-- scripts/ruby/main.rb: Ruby 진입점
+- scripts/lua/main.lua: Lua 진입점. 초원 맵을 화면 가운데에 그린다
+- scripts/ruby/main.rb: Ruby 진입점. Lua 판과 같은 화면
 - resources/images/checker.png: 이미지 미리보기용 체커
 - resources/images/coin.png: 두 프레임 동전 시트 (씬 뷰의 프레임 자르기 예)
 - resources/maps/sample.json: 맵 포맷 v2 예제
-- resources/maps/meadow.json: 20x12 초원 맵 (맵 뷰에서 칠하는 예, 타일셋은 resources/tiles/meadow16.png)
+- resources/maps/meadow.json: 20x12 초원 맵. 게임이 그리는 맵이라 맵 뷰에서 칠하고 저장한 뒤 F5 로 돌리면 칠한 칸이 나온다 (타일셋은 resources/tiles/meadow16.png)
 - resources/schema/map-objects.json: 맵 오브젝트 스키마 예제 (오브젝트 목록과 인스펙터 폼)
 - resources/scenes/main.json: 씬 포맷 v1 예제 (씬 뷰에서 연다)
 `;
@@ -229,7 +252,7 @@ export function sampleProjectFiles(): Record<string, string | Uint8Array> {
     "resources/images/checker.png": base64ToBytes(CHECKER_PNG_BASE64),
     "resources/images/coin.png": base64ToBytes(COIN_PNG_BASE64),
     "resources/maps/sample.json": SAMPLE_MAP_JSON,
-    "resources/maps/meadow.json": meadowMapJson(),
+    [SAMPLE_MAP_PATH]: meadowMapJson(),
     "resources/tiles/meadow16.png": meadowTilesetPng(),
     "resources/schema/map-objects.json": SAMPLE_MAP_SCHEMA_JSON,
     "resources/scenes/main.json": SAMPLE_SCENE_JSON,

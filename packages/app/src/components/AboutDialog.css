@@ -1,0 +1,53 @@
+/* 정보 창과 제3자 고지 (AboutDialog.tsx). 색은 토큰만 */
+
+.about {
+  white-space: normal;
+  word-break: normal;
+}
+
+.about-facts {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.about-facts dt {
+  color: var(--fg-muted);
+}
+
+.about-facts dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.about-notices {
+  white-space: normal;
+  word-break: normal;
+}
+
+.about-notices-text {
+  max-height: 60vh;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.about-error {
+  color: var(--danger);
+}
