@@ -111,7 +111,8 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
   `resources/rtp/`는 복사하지 않습니다. 엔진 작업 트리가 커밋과 다르면 멈추고, 그래도 복사하려면 `--allow-dirty`를 줍니다.
 - 교차 검사: `yarn test:engine-events`는 엔진 저장소의 사본 프로젝트에서 항구 마을을 열어 모델의 명령만으로 이벤트를 만들고
   저장한 뒤, 진짜 엔진을 헤드리스로 띄워 trace 줄(`rpg:player:`, `rpg:message:`, `rpg:route:done`)을 봅니다. 판은 넷입니다:
-  말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기, 되돌린 맵을 시작 상태 `arrived`로 다시 띄우기. 엔진 실행 파일이 없거나
+  말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기, 되돌린 맵을 시작 상태 `arrived`로 다시 띄우기. 여관으로 옮기는 판은
+  대조 판 셋이 뒤따릅니다. `transfer`의 x, y, dir을 하나씩 빼고 띄워 도착 검사가 실제로 실패하는지 봅니다. 엔진 실행 파일이 없거나
   M2 계약 전의 엔진(Initial2D `74febb4` 이전)이면 `SKIP:` 한 줄을 찍고 통과합니다. 엔진 저장소는 고치지 않습니다.
 
 ```sh
@@ -151,7 +152,7 @@ docs/plans/               계획과 진행 상황
 | `yarn test:rust` | `cargo test` (src-tauri) |
 | `yarn test:engine-scene` | 에디터 템플릿으로 만든 프로젝트(빈, 플래피 x Lua, Ruby)를 진짜 엔진이 돌리는 교차 검사 (`INITIAL2D_DIR`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(sha256)를 갱신 (`INITIAL2D_DIR`) |
-| `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판, `INITIAL2D_DIR`) |
+| `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
 | `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뛴다 |

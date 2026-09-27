@@ -354,7 +354,8 @@ RTP 쌍둥이 맵(마을, 오두막): `rpg-game.json` 의 항목에 `alt` 가 �
   - **비어 있는 조건**: `cond` 에 `item`, `flag`, `var` 가 하나도 없다. `Commands.test` 가 늘 참을 돌려 `elseDo` 가 영영 돌지 않는다
   - 키가 둘 이상인 조건 (앞의 것만 본다, 1.1)
   - `transfer` 에 `x` 와 `y` 중 하나만 있다 (다른 하나는 정의 파일의 시작 값을 쓴다)
-- **정보**: `script` 커맨드 ("엔진만 이름을 확인할 수 있다". 정의 파일의 `scripts` 표를 볼 수 없어서다)
+- **`script` 의 이름**: 비었거나 없으면 `.name` 자리의 **엔진과 같은 오류**다 (빈 이름은 등록된 스크립트일 수 없어 엔진이 늘 그 이벤트를 건너뛴다). 그래서 이름 없는 `script` 는 넣을 수도, 이름을 비울 수도 없다.
+  비지 않은 이름은 **정보**다 ("엔진만 이름을 확인할 수 있다". 정의 파일의 `scripts` 표를 볼 수 없어서다)
 
 ## 5. 여기서 실행과 자동 재생, 그리고 교차 검사
 
@@ -403,7 +404,10 @@ RTP 쌍둥이 맵(마을, 오두막): `rpg-game.json` 의 항목에 `alt` 가 �
    `choice ["예", "아니요"]` 의 1번 가지에 `setFlag e2e` → `if flag e2e` 참이면 `message "C"`. 검사에 문제가 없고, 저장한다
 4. 자동 재생과 **같은 함수**(`probeEnv`)로 변수를 만들고 `INITIAL2D_NO_RTP=1`, `SDL_VIDEODRIVER=dummy`, 넉넉한 `INITIAL2D_EXIT_AFTER`(안전장치)를 더해 엔진을 **프로세스로** 띄운다. 이것이 에디터의 프로세스 모드가 넘기는 것과 같은 변수다 (Playwright 는 프로세스 모드를 볼 수 없다, "지금 어디까지")
 5. 본다: 종료 코드 0, `rpg:error` 없음, `rpg:player:port_town,<x>,<y>,<dir>` 가 `play.ts` 가 고른 앞 칸과 이벤트 쪽 방향과 같다, `rpg:event:e2e_sign`, 대사 줄이 순서대로(첫 대사, A, C), `rpg:route:done`
-6. 두 번째 판: touch 이벤트에 `playSe` 와 `transfer inn 10,12,up` 을 적는다. `rpg:transfer:inn,10,12,up`, `rpg:map:inn`, 그리고 **`rpg:player:inn,10,12,up`** 을 본다. 방향이 정말 적용되었는지(문제 2)는 마지막 줄만 증명한다. `rpg:transfer:` 줄은 커맨드 인자의 되풀이다
+6. 두 번째 판: touch 이벤트에 `playSe` 와 `transfer` 를 적는다. 대상은 여관의 설 수 있는 빈 칸 가운데 **정의 파일의 시작(`inn.lua` 의 10,12,up)과 x, y, dir 이 모두 다른** 칸이다 (지금은 9,11,down).
+   엔진은 빠진 x, y, dir 을 시작 값으로 채우므로, 대상이 시작과 하나라도 같으면 도착 줄이 그 값을 증명하지 못한다. 저장한 커맨드가 대상을 그대로 싣는지 보고,
+   `rpg:transfer:`, `rpg:map:inn`, 그리고 여관을 연 뒤 처음 선 자리 **`rpg:player:inn,<x>,<y>,<dir>`** 가 대상과 같은지 본다. 증명은 이 도착 줄이 한다. `rpg:transfer:` 줄은 커맨드 인자의 되풀이다.
+   대조 셋: 저장한 `transfer` 에서 x, y, dir 을 하나씩 빼고(편집 명령으로, 되돌려 원래 맵으로) 같은 변수로 띄우면 도착 검사가 실패하고 빠진 값만 시작 값으로 바뀌는지 본다
 7. 세 번째 판: auto 이벤트 `e2e_auto`(`message "D"`)를 더하고 빈 경로로 띄운다. `rpg:event:arrival` 뒤에 `rpg:event:e2e_auto` 와 `rpg:message:|D` 가 나오고 `rpg:route:done` 으로 끝나는지 본다 (문제 6)
 8. 네 번째 판: 시작 상태 `arrived` 로 첫 판을 되풀이해 선장 인사(`rpg:message:선장|`)가 **없는지** 본다 (`INITIAL2D_RPG_STATE`)
 
@@ -458,7 +462,7 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 - [x] `assets.ts`, `refs.ts`, `play.ts`(앞 칸, 가장 가까운 설 수 있는 칸, 시작 상태 글, `planEnv`, `probeEnv`)
 - [x] 픽스처 동기화 `scripts/sync-engine-rpg.mjs`(`yarn sync:rpg`): 두 스키마, 아이템 표, `port_town.json`, `inn.json`, 경로 픽스처, 플레이스홀더 CharSet 과 FaceSet 과 `port16.png`. **`resources/rtp/` 는 복사하지 않는다.** MANIFEST 에 엔진 커밋과 sha256
 - [x] 테스트: 엔진의 모든 맵(`INITIAL2D_DIR` 이 있으면) 읽고 쓰기가 바이트 같음과 이벤트가 모두 스키마로 읽힘, 경로 픽스처 대조, 줄바꿈과 따옴표와 한글 대사 왕복, 되돌리기와 합치기, 막는 규칙, 앞 칸과 가장 가까운 칸 고르기, `mapEntryFor`(등록, `alt`, 등록 안 됨)
-- [x] **`yarn test:engine-events`** (5.3, 모델만의 길. 판 넷). 건너뛰기와 M2 기능 확인. 이 뒤의 마일스톤은 이 검사를 자율 검증 루프에 넣는다. 건너뛰지 않은 실행 기록은 구현 노트에 있다
+- [x] **`yarn test:engine-events`** (5.3, 모델만의 길. 판 넷과 대조 셋). 건너뛰기와 M2 기능 확인. 이 뒤의 마일스톤은 이 검사를 자율 검증 루프에 넣는다. 건너뛰지 않은 실행 기록은 구현 노트에 있다
 
 ### 마일스톤 3: 이전 (엔진 M2 후반, PR 2)
 
@@ -580,9 +584,12 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 | 경로 픽스처의 크기 | 엔진 `invalid_events.paths.json` 은 경로 104개다 (M2 3.4 는 100개라고 적었다). 테스트는 개수를 박지 않고 집합을 대조한다 |
 | 막는 규칙의 구현 | 이벤트 칸의 편집은 편집 앞뒤의 오류(자리와 이유)를 견주어 새 오류가 생기면 `EditRefused` 를 던진다. 밖에서 고친 파일의 원래 오류는 막지 않고, 고치는 편집은 된다. 커맨드 넣기와 인자 바꾸기는 새 커맨드와 그 인자 자리만 따로 검사한다 (하위 목록의 옛 오류는 막지 않는다) |
 | 키 순서 | 고친 객체만 정해진 순서로 다시 쓴다. 그 객체를 품은 조상은 키 자리를 지키고 값만 갈아 끼운다. 조상에 없던 하위 목록 키가 생기면 그 조상도 정해진 순서로 쓴다. 엔진의 모든 맵에서 `canonicalEvent` 가 원래 글과 같아, 이전 도구와 순서가 같음을 확인했다 |
-| 키 순서의 한계 | JS 객체는 정수처럼 생긴 키(`"1"`)를 늘 앞에 두므로 그런 모르는 키는 원래 자리를 잃는다. 지금 데이터에는 없다 |
+| 정수처럼 생긴 모르는 키 | JS 객체는 정수처럼 생긴 키(`"2"`)를 늘 맨 앞에 오름차순으로 두고, 맵의 고정 형식(엔진 `tools/mapfile.py` 의 `_js_keys`)도 같은 규칙이다. 그래서 고정 형식의 파일에서는 손대지 않은 이벤트의 바이트가 그대로다. 형식에 맞지 않는 파일(그런 키가 뒤에 있다)은 손대지 않은 이벤트도 그 키를 맨 앞으로 옮겨 쓰고, 그 글은 `mapfile.py format` 이 쓰는 글과 같다. 고친 객체에서도 그런 키는 정해진 키 뒤가 아니라 맨 앞이다. 손대지 않은 이벤트를 원래 글 조각으로 쓰는 길은 버렸다: 그 글은 `mapfile.py check` 에 걸린다. 테스트가 `mapfile.py` 로 대조한다(엔진 저장소와 python3 이 있을 때). 지금 데이터에는 이런 키가 없다 |
+| 모르는 키 `__proto__` | 객체를 다시 짤 때(`ordered`, `newCommand`) 칸을 `Object.defineProperty` 로 만든다 (`json.ts` 의 `setOwn`). `o[k] = v` 는 이 키에서 칸 대신 프로토타입을 바꿔, 고친 이벤트에서 키가 사라졌다 |
+| 최상위 `events` 의 `null` 과 빈 `{}` | `null` 은 없는 키다. 열리고, 저장하면 키를 쓰지 않는다 (`mapfile.py` 도 `null` 인 `events` 는 쓰지 않는다). `EventsSection(null)` 은 쓸 수 있는 빈 섹션이다. 빈 `{}` 와 값이 전부 `null` 인 객체는 빈 배열로 읽고(ext-tilemap `parseMap`) 저장할 때 `[]` 로 쓴다 (M2 3.1 의 제 모양 규칙. `mapfile.py` 는 `{}` 를 그대로 두지만 두 글 다 고정 형식이다). 그 밖의 배열 아닌 값은 여전히 열지 못하는 틀린 파일이다 |
+| 큰 정수 | 엔진의 `Json.Load` 가 2^31 이상(과 -2^31-1 이하)의 정수에서 던져 게임이 시작하지 못하던 것은 엔진 쪽에서 고친다 (`lua_json.cpp`, `mrb_json.cpp`). 에디터는 정수 인자에 최대값을 더하지 않는다 (M2 는 그런 값을 맞는 정수로 센다) |
 | 같은 커맨드 묶음 | 하위 목록 전체(커맨드 둘 이상)와 하위 목록을 품은 커맨드 하나(내용 있음)를 키 순서와 상관없이 견주고, 묶음 안의 묶음은 바깥 것만 알린다. 항구 마을의 배(`departure()`, 가지 두 목록, 커맨드 9개)와 여관 주인(`handKey()`, if 커맨드 둘, 8개)을 찾는다 |
-| 새 커맨드 | `newCommand` 가 스키마 기본값으로 필수 인자를 채운다. `file` 은 기본값이 없어 파일 없이 넣으면 거절된다 (파일 위젯이 먼저 묻는다) |
+| 새 커맨드 | `newCommand` 가 스키마 기본값으로 필수 인자를 채운다. `file` 은 기본값이 없어 파일 없이 넣으면 거절된다 (파일 위젯이 먼저 묻는다). `script` 의 `name` 은 빈 글로 채워지고 빈 이름은 엔진과 같은 오류라, 이름 없이 넣으면 거절된다 (이름을 먼저 묻는다) |
 | 앞 칸의 방향 | 엔진 `turnToward` 와 같다. 대각선이면 세로가 먼저다 |
 | 엔진 빌드 | `build/Initial2D` 는 master 보다 앞선 커밋의 빌드지만, 게임 스크립트는 작업 폴더의 사본에서 읽으므로 다시 빌드하지 않았다 |
 | 교차 검사의 작업 폴더 | `os.tmpdir()` 아래에 만들고 끝나면 지운다 (`KEEP_WORKDIR=1` 이면 남기고 경로를 찍는다). 엔진이 받는 환경 변수는 `INITIAL2D_` 로 시작하는 바깥 값을 빼고 채운다 |
@@ -593,7 +600,7 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 바라보는 칸을 앞 칸 후보에서 빼면(2건), 항목을 더할 때 취소 번호를 안 옮기면(1건), 저장할 때 빈 `{}` 를 고치지 않으면(1건).
 `yarn test:engine-events` 의 건너뛰기는 엔진 실행 파일이 없는 경우와 M2 전 엔진(스키마 없는 폴더에 실행 파일만 둔 경우) 둘 다 `SKIP:` 한 줄과 종료 코드 0 이다.
 
-`yarn test:engine-events` 의 건너뛰지 않은 실행 (엔진 master `fab471059ac20b6aedcbee0f3a743eaddec796b4`, 판 넷, 검사 50개):
+`yarn test:engine-events` 의 건너뛰지 않은 실행 (검수 뒤, 엔진 master `cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f`, 판 넷과 대조 셋, 검사 78개):
 
 ```
 [1] rc=0
@@ -615,9 +622,45 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
   rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
   rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
   rpg:event:e2e_door
-  rpg:transfer:inn,10,12,up
+  rpg:transfer:inn,9,11,down
   rpg:map:inn events:6 skipped:0
-  rpg:player:inn,10,12,up
+  rpg:player:inn,9,11,down
+  rpg:event:arrival
+  rpg:route:done
+[2 대조 x] rc=0
+  rpg:map:port_town events:19 skipped:0
+  rpg:player:port_town,17,44,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+  rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
+  rpg:event:e2e_door
+  rpg:transfer:inn,,11,down
+  rpg:map:inn events:6 skipped:0
+  rpg:player:inn,10,11,down
+  rpg:event:arrival
+  rpg:route:done
+[2 대조 y] rc=0
+  rpg:map:port_town events:19 skipped:0
+  rpg:player:port_town,17,44,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+  rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
+  rpg:event:e2e_door
+  rpg:transfer:inn,9,,down
+  rpg:map:inn events:6 skipped:0
+  rpg:player:inn,9,12,down
+  rpg:event:arrival
+  rpg:route:done
+[2 대조 dir] rc=0
+  rpg:map:port_town events:19 skipped:0
+  rpg:player:port_town,17,44,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+  rpg:message:선장|급할 것 없으면 마을을 좀 둘러보게. 여긴 떠나는 사람을 붙잡지 않는 대신, 남는 사람도 서운하게 하지 않거든.
+  rpg:event:e2e_door
+  rpg:transfer:inn,9,11,
+  rpg:map:inn events:6 skipped:0
+  rpg:player:inn,9,11,up
   rpg:event:arrival
   rpg:route:done
 [3] rc=0
@@ -639,13 +682,31 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
   rpg:choice:예|아니요
   rpg:message:|C
   rpg:route:done
-engine-events: 판 4, 검사 50개 통과, 엔진 fab471059ac20b6aedcbee0f3a743eaddec796b4 (/Users/u/Initial2D/build/Initial2D)
- ✓ test/engine/events.engine.test.ts (4 tests) 16591ms
-      Tests  4 passed (4)
+engine-events: 판 7, 검사 78개 통과, 엔진 cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f (/Users/u/Initial2D/build/Initial2D)
+ ✓ test/engine/events.engine.test.ts (5 tests) 27659ms
+      Tests  5 passed (5)
 ```
 
 판마다 본 것: [1] 표지판(`e2e_sign`, action, 외형 `npc` 2번)을 시작 칸 옆 15,43 에 놓고 `play.ts` 가 고른 앞 칸 15,44 에 위를 보고 선다.
 타이핑 두 번이 되돌리기 한 단계로 합쳐지고, 저장한 이벤트의 키 순서가 정해진 순서다. 대사는 첫 대사(이름, 얼굴, 줄바꿈과 따옴표가 든 한글),
 아이템을 얻은 참 가지의 A, 선택지, 첫 항목의 가지가 세운 깃발의 C 순서이고 B 는 없다. [2] touch 문(`e2e_door`)을 17,43 에 놓고 한 걸음 밟으면
-`playSe` 뒤에 여관 10,12 에 위를 보고 선다 (`rpg:player:inn,10,12,up`). [3] auto 둘째(`e2e_auto`)가 `arrival` 뒤에 돌고 스스로 끝난다.
+`playSe` 뒤에 여관 9,11 에 서서 아래를 본다 (`rpg:player:inn,9,11,down`). 대상은 여관 정의 파일의 시작 10,12,up 과 x, y, dir 이 모두 다르고,
+시작에 서는 줄은 없다. [2 대조] 저장한 `transfer` 에서 x 를 빼면 10,11,down, y 를 빼면 9,12,down, dir 을 빼면 9,11,up 에 서서 [2] 의 도착 검사가 실패한다
+(빠진 값만 시작 값). 대조는 편집 명령으로 빼고 되돌리며, 끝나면 맵이 [2] 의 맵과 바이트가 같다. [3] auto 둘째(`e2e_auto`)가 `arrival` 뒤에 돌고 스스로 끝난다.
 [4] 되돌리기로 첫 판의 맵으로 돌아가면 저장한 글이 첫 판과 바이트까지 같고, 시작 상태 `arrived` 로 띄우면 선장의 인사가 없다.
+
+### 마일스톤 2 검수 뒤 고친 것 (2026-09-27)
+
+| 검수의 지적 | 고친 것 |
+|---|---|
+| [2] 의 대상 10,12,up 이 여관의 시작과 같아, 엔진이 transfer 의 x, y, dir 을 버려도 통과했다 | 대상을 여관 정의 파일의 시작과 x, y, dir 이 모두 다른 설 수 있는 빈 칸으로 고른다 (위의 [2]). 저장한 커맨드와 도착 줄을 정확히 본다. 대조 셋을 테스트에 넣었다. 엔진 사본의 `requestTransfer` 를 `fade.pending = { name = target }` 으로 바꿔 돌리면 [2] 가 `rpg:player:inn,10,12,up` 으로 깨진다 |
+| 최상위 `events` 의 `{}` 와 `null` 을 열지 못했고 `EventsSection(null)` 이 잠겼다 | 위 표의 "최상위 `events` 의 `null` 과 빈 `{}`" |
+| 이름 없는 `script` 를 넣을 수 있었다 (엔진은 늘 그 이벤트를 건너뛴다) | 빈 이름과 없는 이름은 `.name` 자리의 엔진과 같은 오류다. 넣기와 이름 비우기가 거절된다. 정보는 비지 않은 이름에만 붙는다 |
+| 모르는 키 `__proto__` 가 고친 이벤트에서 사라졌다 | 위 표의 "모르는 키 `__proto__`" |
+| 정수처럼 생긴 모르는 키가 손대지 않은 이벤트에서도 자리를 옮겼다 | 원래 글 조각을 쓰는 길 대신 규칙을 문서로 정했다 (위 표의 "정수처럼 생긴 모르는 키"). 그 조각은 고정 형식이 아니다 |
+| 2^31 이상의 정수를 엔진이 읽지 못했다 | 엔진이 고친다 (위 표의 "큰 정수"). 에디터는 바꾸지 않았다 |
+
+검수: `yarn typecheck`, `yarn lint`, `node scripts/check-color-literals.mjs` 통과. Vitest 전체 830건 통과(85 파일, ext-rpg 119건).
+새 테스트가 깨지는 것을 보았다: `ordered` 를 `out[k] = v` 로 되돌리면 3건, `newCommand` 의 모르는 값을 `cmd[k] = v` 로 되돌리면 1건,
+섹션이 `null` 을 없는 키로 보지 않으면 1건, `parseMap` 이 `null` 을 받지 않으면 4건, 빈 `{}` 를 받지 않으면 3건, 빈 `script` 이름 검사를 끄면 2건,
+정보를 모든 `script` 에 붙이면 1건.
