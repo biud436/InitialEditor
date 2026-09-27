@@ -67,16 +67,16 @@
 | 앱이 엔진을 찾는 순서 | 설정 > `.initial-editor/engine` > 프로젝트의 `build/` > **앱에 든 엔진** > 형제 폴더. 다 없으면 웹 엔진(에디터 안)으로 넘어간다 | 2.3 |
 | 받은 프로젝트의 실행 파일 | **신뢰 규칙.** 신뢰하지 않은 프로젝트는 설정과 앱에 든 엔진만 찌른다. 프로젝트가 가리키는 실행 파일(`.initial-editor/engine`, `build/`, 형제 폴더)은 실행 파일 경로를 보인 한 번의 확인 뒤에만 부른다. 답은 프로젝트가 아니라 앱 설정에 남는다 | 2.3 |
 | 엔진과 함께 실리는 것 | 실행 파일과 판 정보와 라이선스 고지뿐. 스크립트 런타임(씬 로더 등), 폰트, 템플릿은 프런트 번들의 템플릿이 새 프로젝트에 복사하고, 게임은 프로젝트 폴더만 읽는다 | 1 |
-| 엔진 바이너리와 사본의 출처 | 엔진 저장소가 태그마다 **공개** 릴리스로 낸다 (새 단계 **R4**). 네이티브 실행 파일, 웹 엔진, **템플릿 묶음**(`Initial2D-templates.zip`, 생성한 그림 포함), 제3자 고지가 한 릴리스에서 온다. 에디터는 `engine-pin.json` 이 가리키는 판을 받아 sha256 을 확인한다 | 3, 4 |
+| 엔진 바이너리와 사본의 출처 | 엔진 저장소가 태그마다 **공개** 릴리스로 낸다 (새 단계 **R4**). 네이티브 실행 파일, 웹 엔진, **템플릿 묶음**(`Initial2D-templates.zip`, 생성한 그림 포함), 제3자 고지가 한 릴리스에서 온다. 에디터는 `engine-pin.json` 이 가리키는 판을 받아 sha256 을 확인한다. 결정 기록: 공개 릴리스가 생기기 전에는 에디터의 CI(`release.yml` 의 `engine` 잡)가 핀의 커밋을 체크아웃해 `tools/build_dist.sh` 로 만들고 `yarn engine:fetch --from` 으로 싣는다 | 3, 4 |
 | 새 프로젝트 템플릿 | 빈 프로젝트, 플래피에 **타일맵**(작은 타일셋, 맵 한 장, 타일맵 오브젝트 씬, 오브젝트 스키마)을 더한다. 원본은 엔진 `resources/templates/tilemap/` | 3.1 |
-| CI | 세 OS 행렬. macOS arm64(dmg), Linux x86_64(AppImage, deb), Windows x86_64(NSIS). 태그에서 초안 릴리스. 설치본의 자가 검사가 게이트다 | 4, 5 |
+| CI | 세 OS 행렬. macOS arm64(dmg), Linux x86_64(AppImage, deb), Windows x86_64(NSIS). 엔진은 핀의 커밋에서 워크플로가 빌드한다. `workflow_dispatch`(dry run)와 PR 은 산출물만, 태그는 초안 릴리스까지 (결정 기록). 설치본의 자가 검사가 게이트다 | 4, 5 |
 | 자가 검사 | 설치본이 격리된 상태(메모리 설정)로 새 프로젝트 셋을 만들고 돈다. 판정은 앱이 아니라 `selftest-check.mjs` 가 실행마다 남긴 **전체 로그**와 스크린샷으로 한다 | 5 |
 | Windows 의 엔진 | Windows SDL2 엔진(**R5**, 저자 결정)이 생길 때까지 사이드카 없이 내고, F5 는 엔진을 못 찾아 웹 엔진으로 넘어간다 (Lua 만). 자가 검사가 그 넘어감과 플래피 실행을 필수로 본다 | 3.2, 5 |
-| 웹뷰 보안 정책 | 릴리스에서 CSP 를 켠다 (`wasm-unsafe-eval`, 업데이트 확인의 `api.github.com`). 자가 검사가 위반 보고를 모아 실패로 친다 | 2.5 |
+| 웹뷰 보안 정책 | 릴리스에서 CSP 를 켠다 (`wasm-unsafe-eval`, 템플릿 자산의 `data:` 읽기. 업데이트 확인이 없으므로 `api.github.com` 은 뺐다). 자가 검사가 위반 보고를 모아 실패로 친다 | 2.5 |
 | 안드로이드 | 에디터의 "안드로이드로 스테이징" 명령이 엔진 저장소의 `android/prepare_assets.sh --project <열린 프로젝트>` 를 돌린다. RTP 변환물은 `--with-rtp` 로만 들어간다. APK 빌드와 설치는 범위 밖 | 6 |
 | 웹판 | 같은 `dist/` 를 Cloudflare Pages 가 낸다. `_headers` 를 저장소에 두고 CI 가 `wrangler pages dev` 로 그 헤더까지 검사한다. 교차 출처 격리 헤더는 두지 않는다 (엔진이 스레드를 안 쓴다). 폴더를 열 수 있는 브라우저는 새 프로젝트도 만든다 | 7 |
 | 서명 | 첫 판은 서명 없음 (macOS 는 ad-hoc). 공증과 Windows 서명은 저자 결정 | 8 |
-| 판과 업데이트 | 판은 루트 `package.json` 하나에서 오고 `tauri.conf.json` 은 그 파일을 가리킨다. 태그 `v<semver>`, 첫 공개는 `v2.0.0-alpha.1`. 자동 업데이트 없이 "업데이트 확인"(GitHub Releases)부터 | 9 |
+| 판과 업데이트 | 판은 루트 `package.json` 하나에서 오고 `tauri.conf.json` 은 그 파일을 가리킨다. 태그 `v<semver>`, 첫 판 후보는 `v2.0.0-alpha.1`(문서에만). 자동 업데이트와 업데이트 확인은 이 단계에서 하지 않는다 (결정 기록) | 9 |
 
 ## 1. 무엇이 어디에 실리는가
 
@@ -90,7 +90,7 @@ BMFont 는 새 프로젝트를 만들 때 템플릿에서 프로젝트로 복사
 | 엔진 판 정보 `engine.json` | 번들 리소스 `engine/engine.json` | `scripts/fetch-engine.mjs` | 엔진 태그, 커밋, 타깃, sha256, 기능. 앱이 보이는 엔진 판은 이것에서 온다 |
 | 웹 엔진 (js, wasm, 로더, MANIFEST, `THIRD-PARTY.md`) | `dist/engine/` (프런트) | `yarn engine:pin` (개발 중에는 `yarn sync:engine-web`) | E4 그대로. Pages 와 Tauri 둘 다 |
 | 새 프로젝트 템플릿 (씬 로더 두 언어, `scene_types`, 플래피, **타일맵**, `hangul.fnt`, API 명세, 진입 파일) | 프런트 번들 | `yarn engine:pin` 이 릴리스의 `Initial2D-templates.zip` 에서 (개발 중에는 `yarn sync:templates` 가 엔진 체크아웃에서) | E2 의 방식. MANIFEST 가 생성물(`generated: true`)을 표시한다 |
-| 제3자 라이선스 고지 | 번들 리소스 `licenses/` | 에디터 쪽 `src-tauri/licenses/THIRD-PARTY-editor.md` 와 `LICENSE`(커밋, `scripts/gen-licenses.mjs` 가 만들고 `--check` 로 최신인지 본다). 엔진 쪽 `licenses/engine/THIRD-PARTY.md`(gitignore, `yarn engine:fetch` 가 엔진 릴리스에서 받는다) | 엔진 고지: SDL2, SDL2_image, SDL2_mixer(zlib), stb, Lua(MIT), mruby(MIT), jsoncpp, SQLite, TinyXML, 나눔고딕(OFL, `hangul.fnt` 가 구운 글꼴). 웹판은 `dist/engine/THIRD-PARTY.md` 로 같은 고지를 낸다 |
+| 제3자 라이선스 고지 | 번들 리소스 `licenses/` | 에디터 쪽 `src-tauri/licenses/THIRD-PARTY-editor.md`(커밋, `scripts/gen-licenses.mjs` 가 만들고 `--check` 로 최신인지 본다. `LICENSE` 는 두지 않는다, 결정 기록). 엔진 쪽 `licenses/engine/THIRD-PARTY.md`(gitignore, `yarn engine:fetch` 가 엔진 릴리스에서 받는다) | 엔진 고지: SDL2, SDL2_image, SDL2_mixer(zlib), stb, Lua(MIT), mruby(MIT), jsoncpp, SQLite, TinyXML, 나눔고딕(OFL, `hangul.fnt` 가 구운 글꼴). 웹판은 `dist/engine/THIRD-PARTY.md` 로 같은 고지를 낸다 |
 | 게임 (`game.json`, `scripts/`, `resources/`) | 사용자 프로젝트 | 사용자 | 엔진은 작업 폴더에서 읽는다 |
 | 맵 오브젝트 스키마 (`resources/schema/map-objects.json`) | 사용자 프로젝트 | 게임마다 (타일맵 템플릿이 장르 중립 한 장을 준다) | 에디터는 프로젝트의 것을 읽는다 |
 | **싣지 않는 것** | | | `resources/RTP.zip` 과 `resources/rtp/`, 알데바란 소재, 엔진 저장소의 게임과 테스트, 데스크톱 번들의 소스맵 |
@@ -118,13 +118,13 @@ shell 플러그인의 `Command::sidecar()` 는 쓰지 않는다. 이미 `engine.
 | 파일 | 내용 |
 |---|---|
 | `src-tauri/binaries/` (gitignore) | `Initial2D-aarch64-apple-darwin`, `Initial2D-x86_64-unknown-linux-gnu`, (R5 뒤) `Initial2D-x86_64-pc-windows-msvc.exe`, 그리고 `engine.json`. `yarn engine:fetch` 가 채운다 |
-| `src-tauri/licenses/` | 커밋: `LICENSE`, `THIRD-PARTY-editor.md`(npm 과 cargo 의존성, `node scripts/gen-licenses.mjs` 가 쓴다). gitignore: `engine/THIRD-PARTY.md`(`yarn engine:fetch` 가 모든 타깃에서 받는다. 사이드카가 없는 Windows 도 웹 엔진을 싣기 때문이다). 폴더가 늘 있으므로 번들 리소스 경로가 비어 빌드가 깨지는 일이 없다 |
+| `src-tauri/licenses/` | 커밋: `THIRD-PARTY-editor.md`(npm 과 cargo 의존성, `node scripts/gen-licenses.mjs` 가 쓴다. `LICENSE` 는 결정 기록대로 두지 않는다). gitignore: `engine/THIRD-PARTY.md`(`yarn engine:fetch` 가 모든 타깃에서 받는다. 사이드카가 없는 Windows 도 웹 엔진을 싣기 때문이다). 폴더가 늘 있으므로 번들 리소스 경로가 비어 빌드가 깨지는 일이 없다 |
 | `src-tauri/tauri.dist.conf.json` (새) | 모든 릴리스 빌드의 덮어쓰기. `build.beforeBuildCommand` 를 `yarn build:desktop`(소스맵 없는 빌드)으로, `bundle.resources` 에 `{"licenses/": "licenses/"}` |
 | `src-tauri/tauri.sidecar.conf.json` (새) | 사이드카가 있는 타깃의 덮어쓰기. `bundle.externalBin: ["binaries/Initial2D"]`, `bundle.resources` 에 `{"binaries/engine.json": "engine/engine.json"}` |
-| `src-tauri/tauri.conf.json` (고침) | `"version": "../package.json"` (9절). 창 `main` 에 `"create": false` (셸이 만든다, 아래 `lib.rs`). `app.security.csp` 와 `devCsp` (2.5 절). 모든 빌드에 두는 칸: `publisher`, `copyright`, `shortDescription`, `longDescription`, `homepage`, `license: "MIT"`, `licenseFile`, `macOS.minimumSystemVersion: "11.0"`, `macOS.signingIdentity: "-"`, `windows.nsis.installMode: "currentUser"`, `windows.nsis.languages: ["Korean", "English"]`, `windows.webviewInstallMode: { "type": "downloadBootstrapper" }`. `targets` 는 "all" 로 두고 CI 가 `--bundles` 로 고른다 |
-| `src-tauri/src/lib.rs` (고침) | `setup` 에서 창 `main` 을 설정 그대로 만든다 (`WebviewWindowBuilder::from_config`). 자가 검사 모드(5절)면 계획의 `showWindow` 로 보임을 정하고 `window-state` 플러그인을 붙이지 않는다. 평소에는 전과 같다 |
-| `src-tauri/src/bundled.rs` (새) | `bundled_engine() -> Option<BundledEngine>`: `std::env::current_exe()` 의 부모 폴더에서 `Initial2D`(Windows 는 `Initial2D.exe`)를 찾고, `resource_dir()/engine/engine.json` 을 읽어 붙인다. 명령 `engine_bundled`. 실행하지 않고 파일만 본다 |
-| `src-tauri/src/engine.rs` (고침) | `features(exe, timeout)`: 시간 제한을 인자로 받고, 작업 폴더를 임시 폴더로 둔다 (`--features` 를 모르는 옛 엔진이 게임을 띄워도 프로젝트에 `config.setting` 을 쓰지 않게). 명령 `engine_features(exe, timeout_ms: Option<u64>)`, 없으면 5초. 새 명령 `engine_exists(paths) -> Vec<bool>` 은 실행하지 않고 파일인지만 본다 (신뢰 확인용, 2.3) |
+| `src-tauri/tauri.conf.json` (고침) | `"version": "../package.json"` (9절). 창 `main` 에 `"create": false` (셸이 만든다, 아래 `lib.rs`). `app.security.csp` 와 `devCsp`, `dangerousDisableAssetCspModification: ["style-src"]` (2.5 절). 모든 빌드에 두는 칸: `publisher`(biud436), `copyright`, `shortDescription`, `longDescription`, `homepage`(에디터 저장소), `macOS.minimumSystemVersion: "11.0"`, `macOS.signingIdentity: "-"`, `windows.nsis.installMode: "currentUser"`, `windows.nsis.languages: ["Korean", "English"]`, `windows.webviewInstallMode: { "type": "downloadBootstrapper" }`. 결정 기록대로 `license` 와 `licenseFile` 은 두지 않는다. `targets` 는 "all" 로 두고 CI 가 `--bundles` 로 고른다 |
+| `src-tauri/src/lib.rs` (고침) | `setup` 에서 창 `main` 을 설정 그대로 만든다 (`WebviewWindowBuilder::from_config`). 자가 검사 모드(5절, `selftest.rs`)면 계획의 `showWindow` 로 보임과 초점을 정하고, `window-state` 플러그인을 붙이지 않고, 웹뷰를 `incognito`(저장소를 남기지 않는다)와 `background_throttling(Disabled)`(숨은 WKWebView 는 몇 초 뒤 타이머를 멈춘다. macOS 14 이상)로 만든다. 숨은 창이면 macOS 에서 `ActivationPolicy::Accessory` 로 Dock 아이콘과 초점을 가져가지 않는다. 평소에는 전과 같다 |
+| `src-tauri/src/bundled.rs` (새) | `find(exe_dir, resource_dir) -> Option<BundledEngine>`: `std::env::current_exe()` 의 부모 폴더에서 `Initial2D`(Windows 는 `Initial2D.exe`)를 찾고, `resource_dir()/engine/engine.json` 을 읽어 붙인다. 명령 `engine_bundled` 는 `{ path, meta, metaError? }` 또는 null. `engine.json` 이 없거나 깨져도 엔진은 쓰고 `meta` 가 null 이다. 실행하지 않고 파일만 본다. 찾은 결과를 stderr 에 한 줄 남긴다 (CI 로그와 숨은 창 검수가 이 줄을 본다) |
+| `src-tauri/src/engine.rs` (고침) | `features(exe, timeout)`: 시간 제한을 인자로 받고, 작업 폴더를 끝나면 지우는 임시 폴더로 두고, 창과 소리는 dummy 드라이버다 (`--features` 를 모르는 옛 엔진이 게임을 띄워도 프로젝트에 `config.setting` 을 쓰지 않고 창도 뜨지 않게). 명령 `engine_features(exe, timeout_ms: Option<u64>)`, 없으면 5초, 가장 길게 60초. 결과를 stderr 에 한 줄 남긴다. 새 명령 `engine_exists(paths) -> Vec<bool>` 은 실행하지 않고 파일인지만 본다 (신뢰 확인용, 2.3) |
 
 릴리스 빌드 한 줄은 이렇다 (Tauri 2 의 `--config` 는 여러 개를 준 순서대로 병합한다).
 
@@ -137,17 +137,25 @@ yarn tauri build --target aarch64-apple-darwin --bundles app,dmg \
 없이도 되어야 한다. 플랫폼별 자동 병합 파일(`tauri.macos.conf.json` 등)도 개발 빌드에 섞이므로 쓰지 않는다. 병합은 JSON merge patch 라
 객체는 키끼리 합쳐지고 배열은 뒤 것이 통째로 덮는다. 그래서 두 덮어쓰기 파일의 `bundle.resources` 는 둘 다 맵 꼴(`{"원본": "대상"}`)로 쓴다.
 
-`engine.json` 의 모양:
+`engine.json` 의 모양 (`scripts/fetch-engine.mjs` 가 쓴다. 앱은 `engineTag`, `engineCommit`, `describe`, `target`, `sha256`, `features` 만 읽는다):
 
 ```json
 {
-  "engineTag": "v2.0.0-alpha.1",
+  "comment": "scripts/fetch-engine.mjs 가 쓴다. ...",
+  "engineTag": null,
   "engineCommit": "<40자 커밋>",
+  "describe": "cac4b94",
   "target": "aarch64-apple-darwin",
   "sha256": "<실행 파일의 sha256>",
-  "features": ["lua", "mruby"]
+  "size": 3432688,
+  "features": ["lua", "mruby"],
+  "source": "dist-folder",
+  "pinned": true
 }
 ```
+
+`engineTag` 는 v2 이상의 태그가 커밋을 가리킬 때만 있고(지금은 태그가 없어 null), `describe` 는 엔진 `--version` 의 describe(태그가
+없으면 짧은 커밋)다. `source` 는 받은 곳(`dist-folder` 또는 `release`), `pinned` 는 커밋이 핀과 같은가(`--any-commit` 으로 받으면 거짓).
 
 ### 2.3 찾는 순서와 신뢰
 
@@ -167,11 +175,18 @@ E6 의 목적은 남이 설치하고 남이 받은 프로젝트를 여는 것이
 
 - 신뢰하지 않은 프로젝트는 `settings` 와 `bundled` 만 찌른다.
 - `project-file`, `project-build`, `sibling` 후보는 먼저 `engine_exists` 로 **실행하지 않고** 파일이 있는지만 본다. 하나라도 있으면
-  한 번 묻는다: "이 프로젝트가 가리키는 엔진을 실행할까? `<실행 파일의 절대 경로>` (출처: 프로젝트의 build/)". 단추는
-  "이 엔진 실행 허용" 과 "앱에 든 엔진만 쓰기". 어느 쪽이든 기억한다.
-- 답은 **앱 설정**의 `engineTrust: { [프로젝트 정규 경로]: { allow: boolean, exe: <허용한 실행 파일 정규 경로> } }` 에 남는다. 프로젝트
-  폴더에는 쓰지 않는다 (프로젝트가 스스로 신뢰를 적을 수 없게). 허용한 뒤 후보 경로가 바뀌면(`.initial-editor/engine` 이 다른 파일을
-  가리키면) 다시 묻는다. 설정 대화상자의 "찾은 엔진" 줄 옆에 "신뢰 취소".
+  한 번 묻는다: "이 프로젝트가 가리키는 엔진을 실행할까? `<실행 파일의 절대 경로>` (출처: 프로젝트의 build/)". 파일이 있는 후보를
+  모두 한 대화상자에 보인다. 단추는 "이 엔진 실행 허용" 과 "앱에 든 엔진만 쓰기"(앱에 든 엔진이 없는 개발 빌드는 "실행하지 않기")이고
+  처음 초점은 실행하지 않는 쪽이다. 어느 쪽이든 기억한다. Escape 나 가림막으로 닫으면 이번만 건너뛰고 기억하지 않는다.
+- 묻는 때는 순서대로 찌르다가 **처음 신뢰가 필요한 후보에 닿을 때**다. 설정의 엔진이 먼저 답하면 묻지도 파일을 보지도 않는다.
+  탐색이 겹쳐도(프로젝트 열기와 설정 바꾸기) 같은 질문은 한 번만 뜬다.
+- 답은 **앱 설정**의 `engineTrust: { [프로젝트 정규 경로]: { allow: boolean, exes: [<물을 때 보인 실행 파일의 절대 경로>] } }` 에 남는다
+  (구현하며 `exe` 하나를 `exes` 목록으로 바꿨다. 한 번에 여러 후보를 보이기 때문이다). 프로젝트 폴더에는 쓰지 않는다 (프로젝트가 스스로
+  신뢰를 적을 수 없게). 지금 파일이 있는 후보가 기록의 `exes` 밖에 하나라도 있으면(`.initial-editor/engine` 이 다른 파일을 가리키면)
+  다시 묻는다. 허용한 경로가 사라지기만 한 것은 다시 묻지 않는다. 손으로 고친 설정 파일의 틀린 항목은 버린다.
+- 설정 대화상자에 "찾은 엔진" 줄(찾은 엔진의 설명, 없으면 "없음 (F5 는 에디터 안에서 돈다)")과, 열린 프로젝트에 답이 있으면 그 옆에
+  "신뢰 취소"(허용을 지우고 이번에는 묻지 않고 다시 찾는다. 다음에 열 때 다시 묻는다) 또는 "다시 묻기"(거절을 지우고 곧바로 묻는다).
+- 프로젝트가 앱에 든 엔진과 같은 파일을 가리키면(`.initial-editor/engine` 에 번들 안 경로) 그 후보는 신뢰를 묻지 않는다.
 - 자가 검사 모드에서는 이 확인이 뜨는 것 자체가 실패다 (5절). 자가 검사의 임시 프로젝트에는 그런 후보가 없다.
 - 단위 시험: 가짜 `probe` 가 부른 경로를 기록하고, 신뢰하지 않은 프로젝트를 열면 프로젝트 안과 형제 경로가 한 번도 불리지 않는다.
   허용한 뒤에는 순서대로 불린다. 거절을 기억한다. 경로가 바뀌면 다시 묻는다.
@@ -179,28 +194,39 @@ E6 의 목적은 남이 설치하고 남이 받은 프로젝트를 여는 것이
 **그 밖의 규칙**
 
 - **다 못 찾으면** 에디터 안(웹 엔진)으로 돌리고 콘솔에 한 줄 남긴다: "엔진 실행 파일을 찾지 못해 에디터 안에서 돈다 (찾아본 곳: ...)".
-  설정의 `runMode` 는 바꾸지 않는다. `game.json` 이 mruby 면 지금처럼 이유(`WASM_NO_MRUBY`)를 띄우고 멈춘다. Windows 번들은 R5 전까지
-  늘 이 길이다.
+  신뢰하지 않아 건너뛴 후보가 있으면 그 경로도 적는다. 설정의 `runMode` 는 바꾸지 않는다. `game.json` 이 mruby 면 지금처럼
+  이유(`WASM_NO_MRUBY`)를 띄우고 멈춘다. Windows 번들은 R5 전까지 늘 이 길이다. 그래서 에디터 안 실행이 있는 앱에서는 엔진이 없어도
+  실행 버튼이 켜져 있고 툴팁이 넘어감을 알린다 (찾아보기 전에는 알리지 않는다). 넘어간 사실은 `RunnerStore.fallback`(`"embedded"`)에
+  남고 다음 실행에서 지운다. 한 번의 실행만 방식을 고르는 `StartOptions.mode` 가 있다 (자가 검사가 쓴다. 설정은 그대로다).
 - **첫 실행의 느림.** 다운로드한 앱의 사이드카는 macOS 가 처음 실행할 때 격리 속성 검사로 몇 초 걸릴 수 있다. `bundled` 후보만
-  `--features` 시간 제한을 15초로 두고, 시간 초과면 한 번 더 찌른다. 시간 제한은 셸의 상수라 프런트가 늘릴 수 없었으므로 셸부터 고친다:
+  `--features` 시간 제한을 15초로 두고, 시간 초과면 한 번 더 찌른다 (구현: 파일이 없다는 `engine_not_found` 말고의 실패면 한 번 더.
+  실행 직전의 다시 묻기도 같은 규칙이다). 시간 제한은 셸의 상수라 프런트가 늘릴 수 없었으므로 셸부터 고친다:
   `engine_features(exe, timeout_ms)`(2.2), 백엔드 `engineFeatures(exe, { timeoutMs })`, `RunnerOptions.probe(exe, { timeoutMs })`.
   `cargo test`: 7초 뒤에 답하는 가짜 스크립트가 기본 시간에는 실패하고 15초에는 통과한다.
 - **`--version` 은 부르지 않는다.** 에디터는 어떤 후보에도 `--features` 말고는 부르지 않는다. R4 이전 엔진은 모르는 인자를 무시하고
   게임을 띄우기 때문이다. 앱에 든 엔진의 판은 `engine.json` 에서 읽는다. `--version` 은 CI 의 검사 도구(`check_dist.sh`,
   `check-sidecar.mjs`)만 부르고, 그때도 시간 제한과 버리는 작업 폴더를 쓴다.
 - **보이는 곳.** 상태 바 툴팁과 설정 대화상자의 "찾은 엔진" 줄, 정보 창: "앱에 든 엔진 v2.0.0-alpha.1 (abc1234, lua mruby)".
-  라벨은 `ENGINE_SOURCE_LABELS` 에 "앱에 든 엔진" 으로 더한다.
+  태그가 없으면 "앱에 든 엔진 (cac4b94, lua mruby)" (`bundledEngineLabel`, `RunnerStore.engineDescription`). 판은 `RunnerStore.bundled`
+  (`engine_bundled` 의 결과)에 있다. 라벨은 `ENGINE_SOURCE_LABELS` 에 "앱에 든 엔진" 으로 더한다.
 
 ### 2.4 개발 중에
 
 - 평소: 지금처럼 형제 폴더의 개발 빌드 (처음 한 번 신뢰를 묻는다).
-- 동봉 경로를 시험할 때: `yarn engine:fetch`(핀의 릴리스를 받는다) 또는 `yarn engine:fetch --from ../Initial2D/dist`(엔진에서
-  `tools/build_dist.sh` 로 만든 것) 뒤 `yarn tauri dev --config src-tauri/tauri.sidecar.conf.json`. Tauri 가 개발 빌드에도
-  `target/debug/` 옆에 사이드카를 놓는다.
+- 동봉 경로를 시험할 때: `yarn engine:fetch --from ../Initial2D/dist`(엔진에서 `tools/build_dist.sh` 로 만든 것. 공개 릴리스가 생기면
+  `yarn engine:fetch` 만으로 핀의 릴리스를 받는다) 뒤 `yarn tauri dev --config src-tauri/tauri.sidecar.conf.json`. Tauri 가 개발 빌드에도
+  `target/debug/` 옆에 사이드카(`Initial2D`)와 `engine/engine.json` 을 놓고, 개발 빌드의 `resource_dir()` 은 그 폴더다 (확인함).
+- 받은 사이드카 검사: `node scripts/check-sidecar.mjs src-tauri/binaries/Initial2D-<트리플>` 또는 빌드한 `.app`.
+- 2026-09-27 이 맥의 검수: 엔진 `cac4b94` 를 버리는 작업 트리에서 `tools/build_dist.sh`(3.4 MB), `yarn engine:fetch --from <그 dist>`,
+  `check-sidecar.mjs` 가 받은 파일과 빌드한 `.app` 둘 다 전부 통과. 사이드카 덮어쓰기와, 창을 숨기고 식별자를 바꾼 덮어쓰기로
+  `yarn tauri build --debug --bundles app` 을 만들어 `Contents/MacOS/Initial2D` 와 `Contents/Resources/engine/engine.json` 이 놓이는 것을 보고,
+  그 앱을 `INITIAL_EDITOR_OPEN=<임시 프로젝트>` 로 30초 띄웠다 (창 없음). 셸의 stderr 에 `앱에 든 엔진: .../Contents/MacOS/Initial2D (cac4b94 ...)`
+  와 `--features: lua mruby (31 ms)` 가 찍혔다. 프로젝트 안 후보는 파일이 없어 묻지 않았고 프로젝트에 `config.setting` 이 생기지 않았다.
 
 ### 2.5 웹뷰 보안 정책 (CSP)
 
-지금은 `csp: null` 이고 결정의 기록이 없다. 릴리스는 남의 프로젝트를 여는 앱이므로 정책을 켠다.
+지금은 `csp: null` 이고 결정의 기록이 없다. 릴리스는 남의 프로젝트를 여는 앱이므로 정책을 켠다. 구현한 정책 (`tauri.conf.json` 의
+`app.security.csp`, 지시어별 맵 꼴):
 
 ```
 default-src 'self';
@@ -209,16 +235,25 @@ style-src 'self' 'unsafe-inline';
 img-src 'self' data: blob:;
 font-src 'self' data:;
 worker-src 'self' blob:;
-connect-src 'self' ipc: http://ipc.localhost https://api.github.com
+connect-src 'self' ipc: http://ipc.localhost data:
 ```
 
 - `wasm-unsafe-eval`: 웹 엔진(에디터 안 실행)의 WebAssembly 컴파일. `unsafe-eval` 은 넣지 않는다. PIXI 8 은 기본으로 `new Function` 을
-  쓰므로 `pixi.js/unsafe-eval` 을 들여와 그 경로를 끈다.
-- `style-src 'unsafe-inline'`: Monaco 와 dockview 가 인라인 스타일을 쓴다.
-- `connect-src https://api.github.com`: 업데이트 확인(9절).
-- `devCsp` 는 같은 정책에 Vite 개발 서버(`http://127.0.0.1:5173`, `ws://127.0.0.1:5173`)를 더한다. 개발 중에도 위반이 콘솔에 보인다.
-- 검사: 자가 검사가 `securitypolicyviolation` 사건을 모아 보고서에 적고, 하나라도 있으면 실패다 (5절). 자가 검사는 맵 문서(PIXI)와
-  스크립트 편집기(Monaco)와 에디터 안 실행(wasm)을 모두 연다. 정책 문자열은 첫 CI 실행의 위반 목록을 보고 고치고 이 절에 적는다.
+  쓰므로 `main.tsx` 가 맨 먼저 `pixi.js/unsafe-eval` 을 들여와 그 경로를 끈다.
+- `style-src 'unsafe-inline'`: Monaco 와 dockview 가 인라인 스타일을 쓴다. Tauri 는 빌드할 때 HTML 의 인라인 스크립트와 스타일에
+  해시나 논스를 붙이는데, `style-src` 에 해시가 하나라도 붙으면 브라우저가 `'unsafe-inline'` 을 무시한다. 그래서
+  `dangerousDisableAssetCspModification: ["style-src"]` 로 그 지시어만 Tauri 가 고치지 않게 한다 (`script-src` 는 Tauri 가 그대로 지킨다).
+- `connect-src data:`: 새 프로젝트 템플릿의 작은 자산(4 KB 아래의 그림과 소리)은 Vite 가 `data:` 주소로 번들에 넣고
+  `scene/templateFiles.ts` 가 그것을 `fetch` 한다. 2026-09-27 이 맥의 첫 자가 검사가 이 위반(`connect-src data`, 플래피 템플릿 쓰기가
+  "Load failed")을 잡아 더했다. `data:` 읽기는 바깥으로 나가는 길이 아니다.
+- `connect-src https://api.github.com` 은 뺐다. 업데이트 확인을 이 단계에서 만들지 않기 때문이다 (결정 기록). 만들 때 더한다.
+- `devCsp` 는 같은 정책에 Vite 개발 서버(`http://127.0.0.1:5173`, `ws://127.0.0.1:5173`)를 더하고, `script-src` 에 `'unsafe-inline'` 을
+  더한다. `@vitejs/plugin-react` 가 개발 중에 인라인 스크립트(react-refresh 머리말)를 넣기 때문이다. 개발 중에도 나머지 위반은 콘솔에 보인다.
+  개발 빌드의 CSP 는 창을 띄워야 볼 수 있어 이 맥에서 확인하지 않았다 (저자 실기).
+- 검사: 자가 검사가 `securitypolicyviolation` 사건을 모아(`selftest/csp.ts`, `main.tsx` 가 에디터를 만들기 전에 붙인다) 보고서의
+  `cspViolations` 에 적고, 하나라도 있으면 실패다 (5절). 자가 검사는 맵 문서(PIXI)와 스크립트 편집기(Monaco)를 열고, 계획에 있으면
+  에디터 안 실행(wasm)도 한다. 숨은 창의 로컬 자가 검사(프로세스 실행만)는 위의 `data:` 하나를 고친 뒤 위반이 없다. 에디터 안
+  실행과 보이는 창의 위반 목록은 첫 CI 실행이 보이고, 그때 이 절을 고친다.
 - 웹판(Pages)의 CSP 헤더는 이 단계에서 두지 않는다 (7.3).
 
 ## 3. 엔진 쪽 선행 작업
@@ -239,7 +274,7 @@ connect-src 'self' ipc: http://ipc.localhost https://api.github.com
 | `tools/build_dist.sh` (새) | 위 둘을 부르고 `cmake -B build-dist -DINITIAL2D_VENDORED_SDL=ON -DMRUBY_ROOT=... -DCMAKE_BUILD_TYPE=Release`, `--target Initial2D`, `strip`, `dist/Initial2D-<트리플>` 과 `dist/engine-dist.json`(태그, 커밋, 타깃, sha256, 기능) |
 | `tools/check_dist.sh` (새) | 동적 의존 허용 목록 검사. macOS 는 `otool -L` 에 `/usr/lib/` 와 `/System/Library/` 만, `otool -l` 의 `minos` 가 11.0. Linux 는 `ldd` 에 glibc 계열(`libc`, `libm`, `libdl`, `libpthread`, `librt`, `ld-linux`)과 `libstdc++`, `libgcc_s` 만 (X11, Wayland, ALSA, PulseAudio 는 SDL 이 실행 중에 dlopen 하므로 목록에 없어야 정상). `--features` 에 `lua`(macOS 와 Linux 는 `mruby` 도), `--version` 의 커밋이 HEAD, `--bogus` 가 종료 코드 2. 실행은 모두 `mktemp -d` 작업 폴더에서 시간 제한으로 (표준 `timeout` 이 없는 macOS 는 `perl -e 'alarm shift; exec @ARGV'`) |
 | `THIRD-PARTY.md` (새, 저장소 루트) | 엔진이 싣는 제3자 고지: SDL2, SDL2_image, SDL2_mixer(zlib), stb(MIT 또는 퍼블릭 도메인), Lua 5.3(MIT), mruby(MIT), jsoncpp(MIT), SQLite(퍼블릭 도메인), TinyXML(zlib), 나눔고딕(OFL, `hangul.fnt`). 각 절에 판 번호와 원문. 네이티브와 웹 판이 같은 파일을 쓴다 |
-| `resources/templates/tilemap/` (새) | 장르 중립 타일맵 템플릿. `tiles16.png`(16px 타일 8열 4행. 풀, 흙, 물, 돌, 길 몇 칸과 **마지막 칸 31 번은 단색 `#c83cc8` 표식 칸**. `tools/gen_template_tiles.py` 가 표준 라이브러리만으로 한 번 그리고 **결과를 커밋**한다. 바이트가 고정되어야 sha 대조가 된다), `map.json`(맵 포맷 v2, 화면 768x896 을 채우는 48x56 칸, 레이어 둘과 통행 레이어와 빈 `objects`, `tools/mapfile.py` 의 고정 형식. 타일셋 경로는 새 프로젝트 기준 `resources/tiles/tiles16.png`), `scene.json`(씬 포맷 v1, 오브젝트 `map` 하나: 타입 `tilemap`, `props.map` 은 `resources/maps/start.json`, `groundLayers` 1), `map-objects.json`(오브젝트 스키마. 타입 `marker` 하나: 점 모양, 칸 `label`(글). `play` 절은 없다). `resources/*.*` 규칙은 하위 폴더에 걸리지 않으므로 추적된다 |
+| `resources/templates/tilemap/` (새) | 장르 중립 타일맵 템플릿. **결정 기록대로 새로 그리지 않았다**: 타일셋은 이미 커밋된 `resources/tiles/tileset16-8x13.png`(8열, `resources/maps/sample.json` 과 같은 그림)이고 새 프로젝트에도 같은 경로로 들어간다. 초안의 `tiles16.png` 와 `tools/gen_template_tiles.py` 는 만들지 않았다. **표식 칸**은 있는 타일 44(0 부터, gid 45, 모래. 256 픽셀 가운데 251 개가 `#d8c880`)이고 템플릿 맵에는 없다. 칠해 보는 칸은 (24, 28)(deco 가 비고 통행할 수 있다). `map.json`(맵 포맷 v2, 이름 `start`, 화면 768x896 을 채우는 48x56 칸, 레이어 `ground` 와 `deco` 와 통행 레이어, 오브젝트 없음, `tools/mapfile.py` 의 고정 형식), `scene.json`(씬 포맷 v1, 오브젝트 `map` 하나: 타입 `tilemap`, `props.map` 은 `resources/maps/start.json`, `groundLayers` 1), `map-objects.json`(오브젝트 스키마. 타입 `marker` 하나: 점 모양, 칸 `label`(글). `play` 절은 없다). 정본은 엔진 `docs/plans/r4-dist-build.md` 6절 |
 | `tools/templates_list.txt` (새) | 템플릿 묶음에 넣는 엔진 경로 목록 (에디터의 `sync-engine-templates.mjs` 가 쓰는 `from` 전부와 타일맵 템플릿) |
 | `tools/pack_templates.py` (새) | 목록의 파일을 `dist/Initial2D-templates.zip` 으로 묶고 안에 `MANIFEST.json`(엔진 커밋 40자, 경로, 크기, sha256, `generated`)을 넣는다. `git ls-files` 에 없는 파일은 `generated: true` (플래피 그림 넷). 목록의 파일이 하나라도 없으면 실패 |
 | `tests/run_engine_tests.py` | 이미 실행 파일 인자를 받는다. macOS 는 배포용 실행 파일로 **전체** 씬 검수를 한 번 더 돈다 (stb 디코더가 Homebrew 의 libpng 와 같은 골든을 내는지가 여기서 드러난다). Linux 는 먼저 `--only=` 로 플래피 씬 넷(Lua, Ruby)만 |
@@ -279,44 +314,61 @@ R5 전까지 Windows 번들은 사이드카 없이 내고 F5 는 웹 엔진으�
 
 ### 4.1 에디터 저장소
 
-**`ci.yml` 고칠 것**
+**`ci.yml` 고칠 것** (구현함, 2026-09-27)
 
 - `web` 잡의 엔진 체크아웃을 **핀의 커밋**으로: 앞 단계가 `engine-pin.json` 을 읽어 `ciEngineRef`(있으면) 또는 `engineCommit` 을 `ref:` 로
   넘긴다. 핀이 없는 동안(R4 첫 릴리스 전)은 지금처럼 기본 브랜치. `ciEngineRef` 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸(브랜치나 커밋)이고,
   릴리스의 `check` 잡은 이 칸이 있으면 실패한다. 엔진 기본 브랜치가 핀보다 앞서 나가도 매일의 CI 가 흔들리지 않는다.
 - `web` 잡의 `templates.test.ts` 는 그 체크아웃과 대조한다. 체크아웃에 없는 파일은 MANIFEST 가 `generated: true` 로 표시한 것만 건너뛰고,
   나머지가 없으면 실패한다 (지금은 없는 원본을 전부 조용히 건너뛴다). 생성물의 대조는 릴리스의 `check` 잡이 템플릿 묶음으로 한다.
-- `web` 잡에 `yarn version:check`, `node scripts/gen-licenses.mjs --check`, `node scripts/check-web-dist.mjs` (7.5 절), 그리고
-  `wrangler pages dev dist` 로 띄운 로컬 Pages 에 대한 `tests/e2e/pages.spec.ts` (7.5 절).
-- `rust` 잡을 세 OS 행렬로 (`macos-latest`, `ubuntu-22.04`, `windows-latest`). Linux 는 `libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf`.
-  `engine.rs` 의 시험은 unix 전용이라 Windows 에는 동봉 경로 이름과 안드로이드 스테이징 인자 시험을 따로 둔다.
+- `web` 잡에 `yarn version:check`, `node scripts/gen-licenses.mjs --check`(macOS 러너에 있는 cargo 의 `cargo metadata` 를 쓴다),
+  `yarn build` 뒤 `node scripts/check-web-dist.mjs` (7.5 절), Playwright 단계에 `PAGES_WRANGLER=1`, `PAGES_PORT=8788`(스펙이
+  `npx wrangler@3 pages dev dist` 를 띄워 헤더까지 본다. wrangler 를 받지 못하면 까닭을 적고 헤더 검사만 건너뛴다), 끝에
+  `yarn build:desktop` 과 `check-web-dist --desktop` (소스맵 없는 데스크톱 프런트).
+- `rust` 잡을 세 OS 행렬로 (`macos-latest`, `ubuntu-22.04`, `windows-latest`, `fail-fast: false`). Linux 는 `libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf`.
+  `engine.rs` 의 시험은 unix 전용이고 `android.rs` 의 Windows bash 후보 시험이 Windows 에서 돈다. Windows 에서 크레이트가 빌드되는지는
+  첫 CI 실행이 처음 본다.
+- `yarn test:android-stage` 는 엔진의 `--project` 가 엔진 master 에 들어간 뒤 더한다 (안드로이드 작업의 기록).
 
-**`release.yml` 새로**
+**`release.yml` 새로** (구현함. 결정 기록대로 산출물이 기본이고, 태그를 민 실행만 초안 릴리스를 만든다)
 
-- 트리거: `push: tags: ["v*"]`, `workflow_dispatch`(입력 `dry_run`, 기본 참: 산출물만 올리고 릴리스는 안 만든다). PR 에서
-  `src-tauri/**`, `scripts/fetch-engine.mjs`, `scripts/selftest-*.mjs`, `engine-pin.json`, 이 워크플로우가 바뀌면 `dry_run` 으로 돈다.
-- 잡 `check` (ubuntu): `yarn version:check --tag $GITHUB_REF_NAME`, `node scripts/gen-licenses.mjs --check`, `node scripts/check-engine-pin.mjs`
-  (저장소 안의 엔진에서 온 MANIFEST 전부, 곧 `engineCommit` 을 가진 `MANIFEST.json` 을 찾아 그 커밋이 핀과 같은지. `ciEngineRef` 가 없는지.
-  웹 엔진 파일이 릴리스의 `Initial2D-web.zip` 과 sha 가 같은지), 템플릿 대조(`yarn engine:fetch --templates` 로 핀의 템플릿 묶음을 풀고
-  `INITIAL2D_TEMPLATES_SRC=<푼 폴더> yarn vitest run packages/app/src/editor/scene/templates.test.ts`. 이 모드에서는 생성물도 빠짐없이 대조한다).
-  별도의 `sync-engine-templates.mjs --check` 는 만들지 않는다.
-- 잡 `bundle` (행렬):
+- 트리거: `push: tags: ["v*"]`, `workflow_dispatch`(입력 `dry_run`, 기본 참), PR 에서 `src-tauri/**`, `scripts/fetch-engine.mjs`,
+  `scripts/check-sidecar.mjs`, `scripts/selftest-*.mjs`, `scripts/lib/**`, `scripts/version.mjs`, `scripts/gen-licenses.mjs`, `engine-pin.json`,
+  `packages/app/src/editor/selftest/**`, 이 워크플로가 바뀔 때. 릴리스를 만드는 것은 태그를 민 실행뿐이고, `workflow_dispatch` 는 `dry_run` 을
+  꺼도 릴리스를 만들지 않는다 (태그가 없으면 만들 릴리스가 없다).
+- 잡 `pin` (ubuntu): `engine-pin.json` 의 `ciEngineRef` 또는 `engineCommit`.
+- 잡 `engine` (행렬 `macos-26` aarch64, `ubuntu-22.04` x86_64): 엔진 저장소를 핀의 커밋으로 체크아웃하고 `dist.yml` 의 `native` 와 같은 길
+  (`tools/build_dist.sh`, `tools/check_dist.sh`). macOS 는 `generate_placeholder_assets.py` 뒤 `pack_templates.py` 로 템플릿 묶음도.
+  산출물 `engine-<트리플>`: 실행 파일, `engine-dist.json`, `THIRD-PARTY.md`, (macOS) `Initial2D-templates.zip`. SDL 과 mruby 소스는 캐시한다.
+- 잡 `check` (ubuntu, `engine` 뒤): `yarn version:check`(태그면 `--tag`), `gen-licenses.mjs --check`, `yarn engine:check`(`ciEngineRef` 가
+  비었는지, 엔진에서 온 MANIFEST 전부의 커밋), 템플릿 대조(`yarn engine:fetch --from <macOS 엔진 산출물> --templates <폴더>` 뒤
+  `INITIAL2D_TEMPLATES_SRC=<폴더> yarn vitest run packages/app/src/editor/scene/templates.test.ts`. 생성물까지 빠짐없이).
+  `bundle` 은 `check` 를 기다리지 않는다: dry run 은 산출물이 목적이고, 문이 닫힌 것은 `check` 잡의 실패로 보인다. 2026-09-27 이 맥에서
+  같은 단계를 차례로 돌려 모두 통과했다 (판, 고지, `engine:check`, 핀의 커밋에서 만든 템플릿 묶음과의 대조 7건).
+- 잡 `bundle` (행렬, `engine` 뒤):
 
 | 러너 | 타깃 | `--bundles` | 덮어쓰기 | 사이드카 | 자가 검사 (5절) |
 |---|---|---|---|---|---|
-| `macos-26` | `aarch64-apple-darwin` | `app,dmg` | dist + sidecar | 있음 | dmg 를 `hdiutil attach` 해 그 안의 `.app` 으로. 필수: 플래피 Lua, 플래피 Ruby, 타일맵 (프로세스 방식, `bundled`). 시도: 플래피 에디터 안 |
-| `ubuntu-22.04` | `x86_64-unknown-linux-gnu` | `appimage,deb` | dist + sidecar | 있음 | `xvfb-run -a` 와 `APPIMAGE_EXTRACT_AND_RUN=1` 로 AppImage. macOS 와 같은 계획. deb 는 `dpkg -i` 뒤 `/usr/bin/Initial2D --version` (시간 제한, 임시 작업 폴더) |
-| `windows-latest` | `x86_64-pc-windows-msvc` | `nsis` | dist | 없음 (R5 뒤 있음) | 설치 파일을 `/S` 로 무인 설치하고 설치본으로. 필수: 플래피 Lua 를 프로세스 방식으로 시작해 엔진을 못 찾고 에디터 안으로 넘어가 돈다 |
+| `macos-26` | `aarch64-apple-darwin` | `app,dmg` | dist + sidecar | 있음 | dmg 를 `hdiutil attach -nobrowse -readonly` 해 그 안의 `.app` 으로. 계획 `--os mac --forest <엔진 체크아웃>`: 플래피 Lua, 플래피 Ruby, 타일맵, 숲 (프로세스 방식, `bundled`, 필수), 플래피 에디터 안 (시도). 창을 보인다 |
+| `ubuntu-22.04` | `x86_64-unknown-linux-gnu` | `appimage,deb` | dist + sidecar | 있음 | `xvfb-run -a` 와 `APPIMAGE_EXTRACT_AND_RUN=1`, `WEBKIT_DISABLE_DMABUF_RENDERER=1`(xvfb 에는 GPU 가 없다) 로 AppImage. macOS 와 같은 계획. deb 는 `dpkg-deb -x` 로 푼 사이드카에 `check-sidecar.mjs`, `apt install ./<deb>` 뒤 `/usr/bin/Initial2D --version` (시간 제한, 임시 작업 폴더에 아무것도 남지 않는다) |
+| `windows-latest` | `x86_64-pc-windows-msvc` | `nsis` | dist | 없음 | 설치 파일을 `/S` 로 무인 설치하고 `%LOCALAPPDATA%\InitialEditor` 의 실행 파일로. 필수: 플래피 Lua 를 프로세스 방식으로 시작해 엔진을 못 찾고 에디터 안으로 넘어가 돈다 |
 
-  단계: 체크아웃, Node 22 와 `yarn install --immutable`, Rust 와 타깃, (Linux) apt, `yarn engine:fetch --target <트리플>`(핀의 릴리스 자산을
-  받아 sha256 확인. 사이드카와 `engine.json` 과 `src-tauri/licenses/engine/THIRD-PARTY.md`. Windows 는 고지만), `yarn tauri build ...`,
-  번들 안 사이드카에 `scripts/check-sidecar.mjs`, 자가 검사 단계(`timeout-minutes: 15`), 판정 단계(`if: always()`,
-  `node scripts/selftest-check.mjs --plan <계획> --report <보고서>`. **보고서가 없으면 실패**), 산출물 올리기(번들과 자가 검사 폴더 전체: 보고서, 실행별 로그, 스크린샷).
-- 잡 `release` (태그이고 `dry_run` 이 아닐 때): 산출물을 모아 `SHA256SUMS.txt`, `gh release create <태그> --draft`(판에 `-` 가 있으면
-  `--prerelease`). 본문은 `docs/releases/<판>.md` 가 있으면 그것, 없으면 지난 태그부터의 커밋 목록. 본문 맨 위에 서명 안 된 앱 여는 법 링크.
-  **에디터의 초안을 공개하는 것은 저자다.** (엔진 릴리스는 다르다. 4.2 절)
+  단계: 체크아웃(사이드카가 있는 타깃은 엔진 저장소도 핀의 커밋으로. 숲이 엔진의 맵을 쓴다), Node 22 와 `yarn install --immutable`, Rust 와 타깃,
+  (Linux) apt, 엔진 산출물 받기와 `yarn engine:fetch --from <산출물> --target <트리플>`(Windows 는 macOS 산출물에서 고지만),
+  `yarn tauri build --target <트리플> --bundles ... --config src-tauri/tauri.dist.conf.json [--config src-tauri/tauri.sidecar.conf.json]`,
+  `yarn version:check --bundles <번들 폴더>`(태그면 `--tag` 도), `check-web-dist.mjs --desktop`, 번들 안 사이드카에 `check-sidecar.mjs`,
+  자가 검사(`timeout-minutes: 20`, `selftest-plan.mjs` 로 계획을 쓰고 `selftest-app.mjs <앱> --plan <계획> --no-check` 로 띄운다),
+  판정(`if: always()`, `node scripts/selftest-check.mjs --plan <계획>`. **보고서가 없으면 실패**), 자가 검사 폴더(계획, 보고서, 실행별 로그,
+  스크린샷, 맵 뷰 뽑기. 숲 사본은 뺀다)와 번들을 산출물로.
+- 잡 `collect` (ubuntu, `bundle` 뒤): 세 OS 의 번들을 한 산출물 `InitialEditor-<커밋>` 으로 모으고 `SHA256SUMS.txt` 를 붙인다.
+- 잡 `release` (태그를 민 실행만, `check` 와 `collect` 뒤, 이 잡만 `contents: write`): `gh release create <태그> --draft`(판에 `-` 가 있으면
+  `--prerelease`), 파일은 `collect` 산출물 전부. 본문은 `docs/releases/first-open.md`(서명 안 된 앱 여는 법) 뒤에 `docs/releases/<판>.md`
+  가 있으면 그것, 없으면 지난 태그부터의 커밋 목록. **에디터의 초안을 공개하는 것은 저자다.**
 - 산출물 이름은 Tauri 기본 그대로: `InitialEditor_<판>_aarch64.dmg`, `InitialEditor_<판>_amd64.AppImage`, `InitialEditor_<판>_amd64.deb`,
-  `InitialEditor_<판>_x64-setup.exe`. `version:check` 는 이 이름들에 든 판이 태그와 같은지도 본다 (9절).
+  `InitialEditor_<판>_x64-setup.exe`. `version:check --bundles` 가 이 이름들에 든 판이 루트 `package.json` 과 같은지 본다 (9절).
+- 두 워크플로는 actionlint 1.7.12 (shellcheck 0.10.0 과 함께)로 검사해 깨끗하다. 1.7.7 은 `macos-26` 라벨을 모른다.
+- 로컬의 dmg 만들기는 Tauri 의 `bundle_dmg.sh` 가 Finder 를 꾸미는 AppleScript 를 돌려 창이 잠깐 뜬다. CI 에서는 `CI` 변수가 있어
+  Tauri 가 `--skip-jenkins` 로 건너뛴다. 로컬 검사는 `--bundles app` 으로 한다.
 
 ### 4.2 엔진 저장소 (`dist.yml`)
 
@@ -361,7 +413,39 @@ R5 전까지 Windows 번들은 사이드카 없이 내고 F5 는 웹 엔진으�
   (MANIFEST 의 `source: "checkout"`, 지금은 E5 의 ext-rpg 픽스처)은 `INITIAL2D_DIR` 이 핀의 커밋에 있는지 확인하고 그 동기화 명령을
   다시 돌린다. 커밋이 다르면 `git -C <엔진> checkout <커밋>` 안내와 함께 실패한다. 엔진에서 온 MANIFEST 는 모두 `source`
   (`release` 또는 `checkout`)와 `syncCommand` 칸을 가진다. 모르는 모양이면 `engine:pin` 과 `check-engine-pin.mjs` 가 실패한다.
+  템플릿 MANIFEST(`packages/app/templates/MANIFEST.json`)는 `yarn sync:templates` 가 엔진 체크아웃에서 쓰면 `source: "checkout"`,
+  `syncCommand: "yarn sync:templates"` 이고, `--from-zip` 으로 템플릿 묶음(공개 릴리스가 없는 동안에는 `dist.yml` 산출물이나 로컬
+  `tools/pack_templates.py` 의 `Initial2D-templates.zip`. dist 폴더를 줘도 된다)에서 쓰면 `source: "release"`,
+  `syncCommand: "yarn sync:templates --from-zip <Initial2D-templates.zip>"`(알림용)다. 파일 목록과 내용은 두 길이 같다. 커밋은 40자이고,
+  `generated` 는 체크아웃이면 `git ls-files` 에 없는 파일, 묶음이면 묶음 MANIFEST 의 표시다. 체크아웃의 추적 파일이 커밋과 다르면 멈추고
+  `--allow-dirty` 면 `dirty: true` 를 적는다 (`templates.test.ts` 는 `dirty` 가 적힌 사본을 실패로 친다).
 - 로컬 빌드에서 복사하는 `yarn sync:engine-web` 과 `yarn sync:templates` 는 개발용으로 남는다.
+
+**공개 릴리스가 없는 동안의 핀** (결정 기록의 "엔진을 받는 길"). 지금 `engine-pin.json` 은 엔진 커밋만 가리킨다. 자산 칸(`native`, `web`,
+`templates`, `thirdParty`)은 공개 릴리스가 생기면 `engine:pin` 이 채운다 (`engine:pin` 은 태그가 생긴 뒤의 일로 남긴다).
+
+```json
+{ "comment": "...", "engineTag": null, "engineCommit": "cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f", "ciEngineRef": null }
+```
+
+- `yarn engine:fetch --from <엔진 dist 폴더>` 가 기본 길이다. 폴더는 로컬의 `<엔진>/dist`(tools/build_dist.sh) 또는 `dist.yml` 의
+  산출물 `initial2d-dist-<커밋>` 이다. 그 폴더의 `engine-dist.json` 모양과, 받는 실행 파일의 sha256 과 크기(`engine-dist.json`, 있으면
+  `SHA256SUMS.txt` 도)를 확인한다. **dist 의 엔진 커밋이 핀과 다르면 멈춘다** (다른 엔진을 시험하려면 `--any-commit`, 그러면 `engine.json`
+  의 `pinned` 가 거짓이다). 기능에 `lua` 가 없으면 멈춘다. 같은 커밋이라도 다른 컴퓨터에서 만든 실행 파일은 바이트가 다를 수 있으므로
+  핀의 sha256 은 릴리스 길에서만 대조한다. `THIRD-PARTY.md` 가 dist 폴더에 없으면(로컬 `<엔진>/dist`) 한 단계 위(엔진 저장소 루트)의
+  것을 쓴다. `--target x86_64-pc-windows-msvc` 는 고지만 받는다. 지원하지 않는 타깃(Intel 맥 등)과 인자 오류는 종료 코드 2.
+- `yarn engine:fetch`(`--from` 없이)는 핀의 `engineTag` 가 있어야 한다. 없으면 "공개 릴리스가 생기기 전에는 --from" 이라고 멈춘다.
+  태그가 있으면 공개 자산 주소에서 받아 핀의 sha256 으로 확인한다 (단위 시험만 있고 아직 쓰이지 않는다).
+- `yarn engine:fetch --templates <빈 폴더> [--from <dist 폴더>]` 는 엔진 대신 `Initial2D-templates.zip` 을 그 폴더에 푼다 (묶음 MANIFEST 의
+  sha256 과 엔진 커밋이 핀과 같은지 확인. zip 읽기는 `sync-engine-templates.mjs` 의 `readZip`). 릴리스 `check` 잡의 템플릿 대조
+  (`INITIAL2D_TEMPLATES_SRC`)가 쓴다.
+- `yarn engine:check`(`scripts/check-engine-pin.mjs`)는 핀의 모양, `ciEngineRef` 가 비었는지, 저장소 안의 엔진에서 온 MANIFEST 전부
+  (`node_modules`, `dist`, `target`, `src-tauri/binaries` 는 빼고 찾는다)의 커밋과 `source` 와 `syncCommand`, 받아 둔
+  `src-tauri/binaries/engine.json` 의 커밋을 본다. 핀에 `web` 자산이 있으면 `public/engine/` 의 파일을 릴리스 zip 과 대조하고, 없으면
+  건너뛴다고 한 줄 남긴다. 2026-09-27: 처음에는 웹 엔진 MANIFEST(엔진 `179cecc`, `source` 와 `syncCommand` 없음)가 실패했다.
+  `sync-engine-web.mjs` 가 `source: "checkout"` 과 `syncCommand: "yarn sync:engine-web"` 을 쓰게 하고, 웹 엔진을 핀의 커밋 `cac4b94` 에서
+  `tools/build_web.sh` 로 다시 빌드해 가져온 뒤 전부 통과한다. 같은 커밋을 다른 폴더에서 빌드해도 세 파일의 바이트가 같았다.
+  `engineManifest.test.ts` 가 두 칸과 `engineDirty` 가 참이 아닌지도 본다.
 
 ### 4.3 CI 가 헤드리스로 확인하는 것과 못 하는 것
 
@@ -372,6 +456,7 @@ R5 전까지 Windows 번들은 사이드카 없이 내고 F5 는 웹 엔진으�
 | 설치본이 뜨고 템플릿으로 새 프로젝트를 만든다 | 필수 | 필수 (xvfb) | 필수 | 자가 검사 |
 | 번들 엔진으로 플래피(Lua 와 Ruby)가 돈다 | 필수 | 필수 | (R5 뒤) | 자가 검사, 프로세스 방식, `SDL_VIDEODRIVER=dummy`, `SDL_AUDIODRIVER=dummy` |
 | 맵 문서로 칠한 칸이 번들 엔진 화면에 나온다 | 필수 | 필수 | (R5 뒤) | 자가 검사, 타일맵 템플릿, `INITIAL2D_SCREENSHOT` |
+| 맵 뷰가 그린 알데바란 숲이 게임 화면과 같다 (E3 완료 기준 1) | 필수 | 필수 | (R5 뒤) | 자가 검사의 숲 프로젝트(엔진 저장소 체크아웃의 사본), 맵 뷰의 타일 뽑기와 같은 카메라의 게임 스크린샷 |
 | 엔진을 못 찾아 에디터 안(웹 엔진)으로 넘어가 플래피가 돈다 | (해당 없음) | (해당 없음) | 필수 | 자가 검사, 프로세스 방식으로 시작, `expectFallback`. WebView2 는 WARP 나 SwiftShader 로 WebGL 을 준다 |
 | 웹 엔진(에디터 안)으로 플래피가 돈다 | 시도 | 시도 | (위 줄) | 자가 검사, 에디터 안 방식. 러너의 WebGL(소프트웨어 렌더링)에 달렸다 |
 | 웹뷰 보안 정책 위반이 없다 | 필수 | 필수 | 필수 | 자가 검사의 `cspViolations` |
@@ -449,7 +534,7 @@ CI 가 빌드 폴더가 아니라 **실제 배포물**(dmg 안의 앱, AppImage,
       "id": "tilemap",
       "template": "tilemap",
       "language": "lua",
-      "edit": { "kind": "paintTile", "map": "resources/maps/start.json", "layer": 0, "x": 5, "y": 4, "tile": 31 },
+      "edit": { "kind": "paintTile", "map": "resources/maps/start.json", "layer": 0, "x": 24, "y": 28, "gid": 45 },
       "runs": [
         {
           "mode": "process",
@@ -546,8 +631,10 @@ CI 가 빌드 폴더가 아니라 **실제 배포물**(dmg 안의 앱, AppImage,
 - `check: "flappy"`: 그 실행의 `log` 파일 전체에서 종료 코드 0, 오류 줄 없음, `flappy:state:ready`, `flappy:state:play`, `flappy:state:dead`,
   `flappyFinal state=... ticks=900` 과 `best >= 1`. 지금 `scripts/e2e-engine-scene.mjs` 에 있는 플래피 검사를 `scripts/lib/flappyChecks.mjs` 로
   떼어 둘이 같이 쓴다. 에디터 안 방식도 같은 줄을 본다 (웹 엔진의 `print` 가 러너의 출력으로 온다).
-- `check: "tilemapPixel"`: 종료 코드 0, 오류 줄 없음, `screenshot`(BMP)의 칠한 칸 (5, 4) 가운데 픽셀이 표식 색 `#c83cc8`(채널마다 ±2)이고
-  이웃 칸 (6, 4) 은 그 색이 아니다. BMP 읽기는 `scripts/lib/bmp.mjs`(의존성 없음)이고 `e2e-engine-scene.mjs` 도 같이 쓴다.
+- `check: "tilemapPixel"`: 종료 코드 0, 오류 줄 없음, `screenshot`(BMP)의 칠한 칸 (24, 28) 의 픽셀 256 개 가운데 240 개 이상이 표식 색
+  `#d8c880`(채널마다 ±8. 타일 44 는 251 개가 그 색이다)이고 이웃 칸 (25, 28) 은 그 색이 아니고 잔디(`#40b080`)다. 엔진의
+  `templates_test.py` 와 `e2e-engine-scene.mjs` 가 같은 셈을 한다. BMP 읽기는 이미 있는 `tests/e2e/support/bmp.ts`(단위 시험 있음)이고
+  `e2e-engine-scene.mjs` 는 그것을 Vite 의 SSR 로 읽는다 (초안의 `scripts/lib/bmp.mjs` 는 만들지 않았다).
 - 필수 실패가 하나라도 있으면 종료 코드 1. 선택 실행의 실패는 경고 줄만.
 
 **Windows 규칙**: 위의 Windows 계획이 필수다. WebView2 는 `windows-latest` 에서 보통 WARP 나 SwiftShader 로 WebGL 을 준다. **첫 CI 실행이
@@ -557,6 +644,53 @@ WebGL 이 없음을 로그로 보일 때만** "새 프로젝트를 만들고, �
 **CI 의 GUI 환경**: macOS 러너에는 창 서버가 있다. Linux 는 `xvfb-run -a` 이고 WebKitGTK 가 합성 모드에서 멈추면
 `WEBKIT_DISABLE_DMABUF_RENDERER=1`, `WEBKIT_DISABLE_COMPOSITING_MODE=1` 을 준다. 엔진 프로세스는 `SDL_VIDEODRIVER=dummy` 라 창을 띄우지
 않는다 (헤드리스 원칙).
+
+**구현 (2026-09-27)**. 본문과 달라진 것과 더한 것:
+
+- 셸 `src-tauri/src/selftest.rs`: 계획 읽기와 검사(`version` 1, 절대 경로 `workDir` 과 `report`, `totalTimeoutMs` 1초에서 1시간,
+  `showWindow`, 프로젝트 `id` 는 영문자와 숫자와 `._-` 이고 `logs` 가 아니고 겹치지 않는다), `workDir` 이 있으면 2 로 끝내고 지우지 않는다,
+  `root` 를 주지 않은 프로젝트만 폴더를 만든다. 명령 `selftest_write_log(name, text, encoding?)` 는 `encoding: "base64"` 면 풀어서 쓴다
+  (맵 뷰에서 뽑은 BMP). 자가 검사가 아니면 셋 다 `unsupported` 다. 감시가 시간을 넘기면 마지막 `selftest_progress` 를 담은
+  `total_timeout` 보고서를 쓰고, 끝낼 때는 엔진 프로세스를 멈춘 뒤 `std::process::exit(code)` 로 끝낸다 (`AppHandle::exit` 는 macOS 에서 종료
+  코드를 0 으로 바꿨다). `cargo test` 8건.
+- 셸이 만드는 웹뷰: `incognito`(웹뷰 저장소를 남기지 않는다)와 `background_throttling(Disabled)`. 숨은 WKWebView 는 몇 초 뒤 타이머를 멈춰
+  첫 로컬 실행이 맵 뷰를 기다리다 전체 시간을 넘겼다. 숨은 창이면 macOS 에서 `ActivationPolicy::Accessory`.
+- 계획에 더한 칸: 프로젝트의 `root`(템플릿 대신 이미 있는 폴더), `entry`(진입 스크립트, 없으면 언어의 main), `openMap`(맵 뷰로 열어 둘 맵),
+  실행의 `scene`, `check: "mapFrame"` 과 `mapCapture: { map, width, height, placement }`. `placement` 는 로그에서 게임이 선 자리를 잡는
+  정규식이고, 카메라는 그 x 를 가운데에 두고 맵 안으로 자른 자리(내림), y 는 0 이다 (알데바란의 `camX`).
+- **숲 (E3 완료 기준 1)**: `selftest-plan.mjs --forest <엔진 저장소>` 가 엔진 체크아웃에서 게임에 필요한 폴더(`scripts`, `resources/maps`,
+  `aldebaran`, `fonts`, `schema`, `data`, `tiles`, `audio`, `ui`, `icons`. RTP 와 점 파일은 뺀다)를 `<workDir>-forest` 로 복사하고
+  `game.json`(768x896, lua)을 쓴다. 엔진 저장소를 그대로 열지 않는 것은 저장소 루트의 `game.json` 이 추적되지 않아 여는 순간 "프로젝트 등록"
+  확인이 뜨고(자가 검사 실패), 실행이 저장소에 `config.setting` 을 쓰기 때문이다. 앱은 `aldebaran_forest.json` 을 맵 뷰로 열고,
+  `INITIAL2D_SCENE=aldebaran`, `INITIAL2D_SKIP_INTRO=1`, `INITIAL2D_ALDEBARAN_STAGE=aldebaran_forest`, `INITIAL2D_ALDEBARAN_AT=1200`,
+  `INITIAL2D_ALDEBARAN_TRACE=1`, `INITIAL2D_NO_RTP=1` 로 앱에 든 엔진을 돌려 프레임 30 을 찍고, 배치 줄의 x 로 셈한 카메라의 384x448
+  (논리 화면) 사각형을 맵 뷰에서 뽑는다 (`MapRenderer.captureTiles`: 타일 레이어만, 격자와 통행과 오브젝트 표식 없이, 줌과 상관없이 1배).
+  판정은 뽑은 타일의 불투명한 픽셀만 게임 화면(2배)의 같은 자리와 채널마다 ±8 로 견주어 97% 이상 같고, 불투명한 타일이 사각형의
+  20% 이상이고, 맵 뷰가 맵 파일의 크기와 오브젝트 수(몬스터, 흔적, 구간)를 가졌는지 본다. 주인공과 거미가 타일 위에 서 있어 100% 는
+  아니다. 2026-09-27 이 맥 (숨은 창): 불투명 48071 픽셀 가운데 48001 (99.85%). 같은 셈을 Python 으로 타일셋에서 직접 그려 해도 같은
+  수가 나왔다. 브라우저 e2e `tests/e2e/map-capture.spec.ts` 가 뽑기를 캔버스 2D 로 그린 기준과 견준다 (격자와 표식과 줌은 들지 않고,
+  한 칸을 칠하면 그 칸만 바뀐다. 뽑는 대상을 월드 전체로 바꾸면 실패한다).
+- 숨은 창에서는 PIXI 의 프레임이 돌지 않아 맵 뷰의 `ready` 가 서지 않는다. 그래서 창이 보이는 계획(`showWindow`)에서만 맵 뷰 준비를
+  필수로 보고, 숨은 창은 5초 기다린 뒤 상태만 적는다. 뽑기는 프레임 없이 덩어리를 직접 그려 뽑으므로 숨은 창에서도 된다.
+- 앱 쪽 `packages/app/src/editor/selftest/`: `plan.ts`(계획 검사), `runSelftest.ts`(흐름. 에디터를 `SelftestHost` 로 감싸 가짜로 시험한다),
+  `csp.ts`, `bmp.ts`(32비트 BMP, 엔진 스크린샷과 같은 꼴), `index.ts`(`chooseStorage`: 계획이 있으면 평소 설정 저장소를 만들지도 않는다).
+  실행마다 `logs/<id>-<n>.log`(엔진 출력 전체), `<id>-<n>.editor.log`(그동안의 콘솔 전체, 출처와 수준), 뽑기가 있으면 `<id>-<n>.map.bmp`.
+  보고서에 더한 칸: `showWindow`, `startedAt`, `durationMs`, `dialogs`(뜬 모달의 제목), 프로젝트의 `problems`, `entryScript`, `edit`
+  (칠한 뒤와 저장 뒤의 바뀜 표시, 디스크에서 다시 읽은 칸), `mapView`, 실행의 `check`, `problems`, `activeMode`, `editorLog`, `mapCapture`.
+- 판정 `scripts/selftest-check.mjs`: 계획을 기준으로 `workDir/logs/` 의 파일을 다시 읽는다 (보고서의 경로와 `ok` 는 믿지 않는다).
+  공용 검사는 `scripts/lib/flappyChecks.mjs`(오류 줄, 종료 코드, 플래피)와 `scripts/lib/frameChecks.mjs`(표식 칸, 자리 줄, 카메라, 맵과 화면
+  견주기)이고 `e2e-engine-scene.mjs` 도 같은 것을 쓴다. BMP 는 `tests/e2e/support/bmp.ts` 를 Vite SSR 로 읽는다. 단위 시험
+  `tests/scripts/selftest.unit.ts` (초반 줄이 전체 로그에만 있는 통과, 로그 없음, 보고서 없음, 시간 초과, 넘어감 어긋남, CSP, 모달, 선택 실행,
+  표식 칸, 숲의 사각형과 픽셀).
+- `yarn selftest:app <앱>` (`scripts/selftest-app.mjs`): 계획을 새 임시 폴더에 쓰고(기본 `local`, `--embedded`, `--forest`, `--os`,
+  `--work`, `--total-timeout`), 앱을 `INITIAL_EDITOR_SELFTEST` 로 띄워 전체 시간과 60초가 지나면 끊고, 판정한다. `--plan <계획> --no-check`
+  는 CI 가 쓴다 (판정은 다음 단계).
+- Windows 계획의 전제 "웹 엔진은 mruby 가 없다" 는 지금 웹 엔진 사본(`lua mruby wasm`)과 맞지 않는다. 그래도 Windows 필수는 본문대로
+  플래피 Lua 하나다 (Ruby 와 타일맵은 R5 뒤에 더한다).
+- 2026-09-27 이 맥, 사이드카 덮어쓰기로 만든 릴리스 `.app` (엔진 `cac4b94`, 숨은 창): `yarn selftest:app` 33 PASS / 0 FAIL,
+  `--forest /Users/u/Initial2D` 46 PASS / 0 FAIL. 첫 두 실행이 CSP 위반(`connect-src data`)과 숨은 웹뷰의 타이머 멈춤을 잡아 고쳤다.
+  한 번은 앱이 보고서 없이 시그널로 끝났고 다시 나오지 않았다 (판정은 "보고서가 없다" 로 실패했다). 사용자 설정 폴더(`com.biud436.initialeditor`
+  의 설정과 웹뷰 저장소)에는 자가 검사의 임시 경로가 하나도 남지 않았다 (같은 시각에 본 체크아웃의 개발 앱이 떠 있어 그 앱이 쓴 것만 바뀌었다).
 
 ## 6. 안드로이드 에셋 스테이징
 
@@ -574,15 +708,23 @@ WebGL 이 없음을 로그로 보일 때만** "새 프로젝트를 만들고, �
 ### 6.2 엔진 스크립트 계약 (엔진 저장소)
 
 ```
-android/prepare_assets.sh [--project <폴더>] [--with-rtp] [--dry-run] [--dest <폴더>]
+android/prepare_assets.sh                                                   # 인자 없음: 지금과 같다
+android/prepare_assets.sh --project <폴더> [--with-rtp] [--dry-run] [--dest <폴더>]
 ```
 
-- `--project` 기본값은 저장소 루트다. 폴더에 `game.json` 이 없으면 종료 코드 2.
-- `--dest` 기본값은 `android/app/src/main/assets`. 시험용이며 에디터는 넘기지 않는다.
+- **인자 없는 실행은 지금과 같다** (결정 기록). 옛 스크립트 본문을 그대로 두어 저장소 자신의 `scripts/`, `resources/`(`RTP.zip` 과 점 파일만
+  빼고), `game.json`, `config.setting`, `db.sqlite` 를 올리고 출력 세 줄도 같다. 스탬프와 `STAGED` 줄은 붙지 않는다.
+- 새 규칙은 `--project` 가 있을 때만이다 (초안의 "기본값은 저장소 루트" 는 결정 기록과 어긋나 버렸다). `--project` 없이 다른 인자만 주면
+  종료 코드 2. 저장소 자신을 새 규칙으로 올리려면 `--project .` 이다. 폴더가 없거나 `game.json` 이 없으면 종료 코드 2.
+- `--dest` 기본값은 `android/app/src/main/assets`. 시험용이며 에디터는 넘기지 않는다. 대상은 통째로 지우므로 프로젝트 자신이나 그 위 폴더,
+  프로젝트의 `scripts/` 나 `resources/` 안이면 종료 코드 2 (지우기 전에 멈춘다).
 - 파일 목록은 `tools/stage_list.py --project <폴더>` 가 낸다. 규칙은 `tools/stage_rules.json` 한 장이고 **안드로이드 전용**이다.
   `tools/web_stage.py` 는 고치지 않는다 (웹 데모의 파일 목록과 골든이 그대로다. 둘을 합치면 웹 데모에 `scripts/ruby/` 와 다른 zip 이 들고
-  나는 결정이 따라오는데, 안드로이드 스테이징에는 필요 없는 일이다). 셸은 그 목록대로 복사한다.
-- `python3` 이 필요하다. 없으면 이유를 찍고 종료 코드 2.
+  나는 결정이 따라오는데, 안드로이드 스테이징에는 필요 없는 일이다). 복사와 스탬프도 `stage_list.py --stage <대상>` 이 한다 (Git Bash
+  에서 파일마다 `cp` 를 띄우면 느리다). 셸은 인자, 대상 비우기, `assets_manifest.txt`(인자 없는 실행과 같은 `find | sort`), 경고와 마지막
+  줄을 맡는다. `--dry-run` 은 `stage_list.py --count` 다.
+- `python3` 이 필요하다. 없거나 Python 3 이 아니면 이유를 찍고 종료 코드 2. `INITIAL2D_PYTHON` 이 있으면 그 실행 파일을 쓴다 (에디터가
+  찾은 python 을 넘긴다). 인자 없는 실행은 python 을 부르지 않는다.
 - **스탬프**: 모든 파일의 (경로, sha256)을 정렬해 해시한 앞 12자로 `assets_stamp/<해시>.txt` 를 하나 만들고 목록에 넣는다. 내용만 바뀌어도
   `assets_manifest.txt` 의 바이트가 바뀌므로 `AndroidBootstrap` 이 다시 푼다. **C++ 무수정.**
 - `resources/rtp/` 는 `--with-rtp` 일 때만 들어가고 그때 경고 줄: `WARN rtp: RTP 변환물이 들어간다. 이 APK 는 배포하지 않는다`.
@@ -590,7 +732,8 @@ android/prepare_assets.sh [--project <폴더>] [--with-rtp] [--dry-run] [--dest 
   `DRYRUN files=... bytes=... rtp=...`.
 - 종료 코드: 0 성공, 1 입출력 오류, 2 인자나 프로젝트 오류.
 
-**규칙 표** (`tools/stage_rules.json` 의 내용. `shared` 표시가 있는 줄은 에디터의 게임 탭 규칙(`gameView/staging.ts`)에도 있어야 한다)
+**규칙 표** (`tools/stage_rules.json` 의 내용. `shared` 표시가 있는 줄은 에디터의 게임 탭 규칙(`gameView/staging.ts`)에도 있어야 한다.
+규칙마다 `examples` 가 있고 `keepExamples` 는 올라가야 하는 경로다. 엔진 시험과 에디터 시험이 둘 다 이 예시로 규칙을 본다)
 
 | 규칙 | 안드로이드 | `shared` |
 |---|---|---|
@@ -602,10 +745,11 @@ android/prepare_assets.sh [--project <폴더>] [--with-rtp] [--dry-run] [--dest 
 | `config.setting` | **올리지 않는다** (새로. 엔진은 이 파일을 쓰기만 하고 읽지 않는다. 옮기면 만든 사람의 절대 경로만 APK 에 들어간다) | |
 | `db.sqlite` | 있으면 올린다 (옛 규칙 유지) | |
 | 32 MB 넘는 파일 | 넣는다 | 아니다 (게임 탭은 경고하고 뺀다) |
+| AAPT 가 버리는 이름 (`ignoreAssetsPattern` 기본값: `_` 로 시작하는 폴더, `~` 로 끝나는 파일, `thumbs.db`, `CVS` 등) | 빼고 `WARN aapt-ignored: <경로> ...` 줄 (stderr). 새로. 목록에 남으면 점 파일처럼 기기에서 풀기가 실패한다 | 아니다 |
 
-인자 없는 실행(엔진 저장소 자신)도 같은 규칙이다. 그래서 두 가지가 전과 달라진다: `config.setting` 이 빠지고, RTP 변환물은 `--with-rtp` 를
-줘야 들어간다. RPG 레이어는 RTP 가 없으면 플레이스홀더로 돈다. 저자가 자기 기기에서 알데바란을 RTP 그림으로 보려면 `--with-rtp` 를 준다
-(엔진 `android/README.md` 에 적는다).
+인자 없는 실행(엔진 저장소 자신)은 이 표를 쓰지 않는다 (결정 기록). 초안은 이 표로 바꾸려 했지만 저자의 알데바란 기기 시험이 그대로
+돌아야 해서 `config.setting` 과 RTP 변환물까지 예전처럼 올린다. RPG 레이어는 RTP 가 없으면 플레이스홀더로 돈다. 새 규칙으로 알데바란을
+RTP 그림과 함께 보려면 `--project . --with-rtp` 다 (엔진 `android/README.md` 에 적었다).
 
 `resources/aldebaran/src/` 는 알데바란 한 게임의 규칙이다. 프로젝트별 제외 목록(`game.json` 의 `stage.exclude` 같은)으로 옮기는 것은
 후보로 남긴다.
@@ -616,35 +760,57 @@ android/prepare_assets.sh [--project <폴더>] [--with-rtp] [--dry-run] [--dest 
   이유를 툴팁에 ("데스크톱 앱에서만 된다").
 - **엔진 저장소 찾기** (`packages/app/src/editor/android/engineRepo.ts`, 순수 함수): `android/prepare_assets.sh` 가 있는 폴더를
   설정 `engineRepoPath`(새) > 열린 프로젝트 자신 > 찾은 엔진이 `<저장소>/build/Initial2D` 꼴이면 그 저장소 > 형제 `../Initial2D` 순서로.
-  못 찾으면 명령은 켜 두되 누르면 이유와 "설정 열기". 스크립트를 실행하는 일이므로 설정 말고의 후보는 2.3 의 신뢰를 따른다 (신뢰하지 않은
-  프로젝트면 확인 대화상자에 스크립트 경로를 보인다).
+  못 찾으면 명령은 켜 두되 누르면 찾아본 곳과 "설정 열기". 있는지는 셸의 `android_repo_probe(paths)` 가 실행하지 않고 본다
+  (스크립트, `android/app/jni/SDL2`, `android/gradlew`). 스크립트를 실행하는 일이므로 설정 말고의 후보는 2.3 의 신뢰를 따른다:
+  신뢰가 필요 없는 것은 설정의 저장소와, 설정의 엔진 경로에서 끌어낸 저장소뿐이다. 나머지는 확인 대화상자가 스크립트의 절대 경로와 출처를
+  보이고 "스크립트 실행 허용" 을 받기 전에는 미리 세기(`--dry-run`)도 돌리지 않는다. 허용은 앱 설정 `androidTrust`(프로젝트 경로별,
+  엔진 신뢰와 같은 `{ allow, exes }` 모양이고 `exes` 가 스크립트 경로)에 남고, 같은 프로젝트가 다른 스크립트를 가리키면 다시 묻는다.
+  설정 대화상자의 "엔진 저장소" 줄에 경로 칸과, 열린 프로젝트에서 허용한 스크립트의 "신뢰 취소" 가 있다 (Tauri 에서만).
 - **확인 대화상자**: 원본(프로젝트 경로), 대상(`<저장소>/android/app/src/main/assets/`, **통째로 바뀐다**), `--dry-run` 으로 미리 센
   파일 수와 크기, "RTP 변환물 넣기 (개인 기기 시험용)" 체크(기본 꺼짐, 켜면 `--with-rtp` 와 경고 한 줄). 저장 안 된 문서가 있으면 먼저 묻는다
   (저장하고 스테이징, 그대로 스테이징, 취소).
-- **셸**: `engine.rs` 의 줄 펌프와 정지를 `src-tauri/src/process.rs` 로 떼어 엔진과 도구가 같이 쓴다. 새 명령
-  `android_stage(repo, project, with_rtp, dry_run) -> RunInfo` 는 `bash <repo>/android/prepare_assets.sh --project <project> [...]` 를 작업
-  폴더 `<repo>` 로 띄운다. 스크립트 경로는 `<repo>/android/prepare_assets.sh` 로 고정하고 인자는 정해진 목록만 만든다 (임의 명령 실행
-  창구가 되지 않게). 출력은 `tool:output`, `tool:exit` 이벤트로.
-- **콘솔과 토스트**: 출력은 콘솔 source `android`. 끝나면 `STAGED` 줄로 토스트("안드로이드 에셋 N개, M MB"), 콘솔에 다음 명령 셋
-  (`android/app/jni/SDL2` 가 없으면 `./android/download_sdl.sh` 부터, `cd android && ./gradlew :app:assembleDebug`,
-  `adb install -r app/build/outputs/apk/debug/app-debug.apk`). RTP 경고는 경고 토스트로.
-- **Windows**: `bash` 를 PATH 와 `C:\Program Files\Git\bin\bash.exe` 에서 찾는다. `python3` 도 찾는다. Git for Windows 의 bash 는 Python 을
-  싣지 않고, `python3` 이 Microsoft Store 로 넘기는 가짜 실행 파일일 수 있으므로 `python3 -c "import sys; print(sys.version_info[0])"` 가 `3` 을
-  내는지로 판단한다. 둘 중 하나라도 없으면 이유("Git for Windows 의 bash 가 필요하다", "Python 3 이 필요하다"). 경로는 `/` 로 바꿔 넘긴다.
-  실기는 저자.
+- **셸** (`src-tauri/src/android.rs`): 초안의 `process.rs` 떼기는 하지 않았다. 같은 단계에서 `engine.rs` 를 다른 작업(시간 제한,
+  `engine_exists`)이 고치고 있어서, 새 명령은 엔진과 같은 프로세스 표 `EngineState`(줄 펌프, 정지)를 그대로 쓴다. 그래서 정지는
+  `engine_stop(id)` 이고 엔진 시험은 무변경이다. 명령 `android_stage(repo, project, withRtp, dryRun) -> RunInfo` 는
+  `bash <repo>/android/prepare_assets.sh --project <project> [--with-rtp] [--dry-run]` 을 작업 폴더 `<repo>` 로 띄운다. 스크립트 경로는
+  `<repo>/android/prepare_assets.sh` 로 고정하고 인자는 정해진 목록만 만든다 (임의 명령 실행 창구가 되지 않게). 저장소는 절대 경로여야
+  하고, 정규화한 스크립트가 저장소 밖(심볼릭 링크)이면 거부한다. `tools/stage_list.py` 가 없는 저장소(엔진 master `cac4b94` 까지의 옛
+  스크립트)도 거부한다: 옛 스크립트는 인자를 읽지 않아 `--project` 와 `--dry-run` 을 무시하고 저장소 자신을 스테이징하기 때문이다 (통합에서
+  찾았다. 미리 세기가 "이 엔진 저장소의 스테이징 스크립트는 --project 를 모른다" 로 멈추고 스크립트는 돌지 않는다. `cargo test` 가 본다).
+  찾은 python 은 `INITIAL2D_PYTHON` 으로 넘긴다. 출력은 `tool:output`,
+  `tool:exit` 이벤트로 (모양은 `engine:*` 와 같고, 프런트는 `TauriRunHandle.launch` 에 이벤트 이름만 바꿔 준다).
+- **콘솔과 토스트**: 출력은 콘솔 source `android` (`WARN` 과 stderr 는 경고, 스크립트의 오류 줄은 오류). 끝나면 `STAGED` 줄로 토스트
+  ("안드로이드 에셋 N개, M MB"), 콘솔에 다음 명령을 한 줄씩 (`android/app/jni/SDL2` 가 없으면 `./android/download_sdl.sh` 부터, `cd android`,
+  래퍼가 커밋되지 않아 `android/gradlew` 가 없으면 `gradle wrapper --gradle-version 8.6`, `./gradlew :app:assembleDebug`,
+  `adb install -r app/build/outputs/apk/debug/app-debug.apk`). RTP 경고는 경고 토스트로. 종료 코드가 0 이 아니거나 `STAGED` 줄이
+  없으면 실패이고 마지막 오류 줄을 이유로 보인다.
+- **Windows**: `bash` 를 `ProgramW6432`, `ProgramFiles`, `ProgramFiles(x86)` 의 `Git\bin\bash.exe`, `%LOCALAPPDATA%\Programs\Git`,
+  `C:\Program Files\Git\bin\bash.exe`, 그리고 PATH 순서로 찾는다 (PATH 의 `System32` 와 `WindowsApps` 는 WSL 의 bash 라 뺀다).
+  `python3` 도 찾는다 (PATH 의 `python3.exe`, `python.exe`). Git for Windows 의 bash 는 Python 을 싣지 않고, `python3` 이 Microsoft Store 로
+  넘기는 가짜 실행 파일일 수 있으므로 `-c "import sys; print(sys.version_info[0])"` 가 5초 안에 `3` 을 내는지로 판단한다. 둘 중 하나라도
+  없으면 이유("Git for Windows 의 bash 가 필요하다", "Python 3 이 필요하다"). 경로는 `/` 로 바꿔 넘기고 `canonicalize` 의 `\\?\` 머리를
+  뗀다. macOS 에서 Finder 로 띄운 앱은 셸의 PATH 를 물려받지 않으므로 `/opt/homebrew/bin`, `/usr/local/bin` 의 python3 도 본다. 실기는 저자.
 
 ### 6.4 검증
 
 - 엔진: `tests/tools/prepare_assets_test.sh` (임시 프로젝트 둘. 목록이 규칙 표와 같다, 점 파일과 zip 과 psd 와 `config.setting` 이 빠진다,
-  `--with-rtp` 일 때만 RTP 가 들고 경고 줄이 나온다, 스탬프가 내용 변경에 바뀌고 무변경이면 같다, 인자 없는 실행이 규칙 표와 같다,
-  `web_stage.py` 의 출력 목록이 이 작업 전과 같다). `tests/run_all.sh` 에 넣는다.
-- 에디터 단위: 저장소 찾기, `STAGED` 줄 해석, 대화상자 문구, `python3` 판단. 엔진 저장소가 있으면 `stage_rules.json` 의 `shared` 줄이
-  `staging.ts` 에 모두 있는지 (없으면 건너뛴다). Rust: 가짜 스크립트로 인자와 작업 폴더, 스크립트 경로를 바꾸려는 시도 거부.
-  e2e: 메모리 모드에서 명령이 꺼져 있고 이유가 보인다.
+  AAPT 가 버리는 이름은 빠지고 경고한다, `--with-rtp` 일 때만 RTP 가 들고 경고 줄이 나온다, `--dry-run` 이 복사하지 않고 같은 수를 낸다,
+  스탬프가 내용 변경에 바뀌고 무변경이면 같다, 인자와 프로젝트 오류와 python 없음은 2 이고 대상이 프로젝트면 지우지 않는다, 규칙 파일의
+  예시대로 빠지고 남는다, 인자 없는 실행이 가짜 저장소에서 예전 목록과 출력 그대로이고 python 을 부르지 않는다, `web_stage.py` 의 출력
+  목록이 이 작업 전과 같다). `tests/run_all.sh` 의 3단계에서 돈다. 인자 없는 실행은 옛 스크립트(master `cac4b94`)와 같은 가짜 저장소에서
+  출력, 목록, 폴더 트리가 같은 것을 손으로도 대조했다.
+- 에디터 단위: 저장소 찾기와 신뢰(`engineRepo.test.ts`), `STAGED` 와 `DRYRUN` 줄 해석과 다음 명령(`stageOutput.test.ts`), 스토어
+  (`AndroidStageStore.test.ts`: 허용 전에는 스크립트를 돌리지 않는다, 줄과 토스트, 실패), 대화상자 문구와 흐름(`AndroidStageDialog.test.tsx`),
+  설정(`settings.android.test.ts`, `SettingsDialog.android.test.tsx`). 엔진 저장소가 있으면 `stage_rules.json` 의 `shared` 줄의 예시를
+  `staging.ts` 도 빼는지 (`sharedRules.test.ts`, 규칙 파일이 없으면 건너뛴다). Rust (`android.rs`): 가짜 스크립트로 인자와 작업 폴더와
+  python 변수, 저장소 밖을 가리키는 스크립트 거부, 상대 경로와 없는 프로젝트 거부, `python3` 판단(가짜 실행 파일 넷), Windows 의 bash 후보.
+  e2e (`tests/e2e/android-stage.spec.ts`): 메모리 모드에서 명령이 구분선 아래에 꺼져 있고 이유가 보인다.
 - **교차 검사** `yarn test:android-stage` (`scripts/e2e-android-stage.mjs`): 템플릿으로 플래피 프로젝트를 만들고, 엔진 저장소의
   스크립트를 에디터 명령과 같은 인자에 `--dest <임시 폴더>` 를 더해 돌리고, `assets_manifest.txt` 대로 다른 임시 폴더에 푼 뒤
   (AndroidBootstrap 과 같은 규칙) 그 폴더를 작업 폴더로 데스크톱 엔진을 헤드리스로 돌려 플래피 검사를 통과한다. "스테이징한 것만으로
-  게임이 돈다" 를 테스트가 본다. 한 파일의 내용만 바꿔 다시 돌리면 스탬프가 다르다.
+  게임이 돈다" 를 테스트가 본다. 미리 센 수가 스테이징의 수와 같고, `config.setting` 과 RTP 변환물과 `.initial-editor/` 가 들어가지 않고,
+  한 파일의 내용만 바꿔 다시 돌리면 스탬프가 다르고 되돌리면 처음 스탬프다. `--with-rtp` 를 더하면 RTP 가 들고 경고 줄이 나온다.
+  `--project` 를 모르는 엔진 체크아웃이나 빌드한 엔진이 없으면 건너뛴다 (종료 코드 0).
 - 실기 (선택): 저자가 APK 를 빌드해 기기에서 플래피가 돈다.
 
 ## 7. 웹판 (Cloudflare Pages)
@@ -658,7 +824,7 @@ android/prepare_assets.sh [--project <폴더>] [--with-rtp] [--dry-run] [--dest 
 |---|---|---|
 | 폴더 열기와 저장 | 크로미움 계열만 (File System Access). 나머지는 메모리 샘플 | 전부 |
 | 새 프로젝트 | 폴더를 열 수 있는 브라우저에서 된다 (고른 로컬 폴더에 템플릿을 쓴다). 메모리와 브리지 모드는 안 된다 | 된다 |
-| 실행 | 에디터 안 (웹 엔진, Lua 만) | 프로세스(동봉 엔진, Lua 와 Ruby) 또는 에디터 안 |
+| 실행 | 에디터 안 (웹 엔진. Lua, 웹 빌드에 mruby 가 있으면 Ruby 도. 지금 사본은 `lua mruby wasm`) | 프로세스(동봉 엔진, Lua 와 Ruby) 또는 에디터 안 |
 | 안드로이드 스테이징 | 안 된다 | 된다 (엔진 저장소가 있을 때) |
 | 판 | 프로덕션 브랜치의 마지막 배포 | 마지막 릴리스 |
 
@@ -666,6 +832,17 @@ android/prepare_assets.sh [--project <폴더>] [--with-rtp] [--dry-run] [--dest 
 `enabled: () => editor.backend.capabilities.pickFolder` 로 바꾼다 (Tauri 와 브라우저 폴더 백엔드는 참, 메모리와 브리지는 거짓). 웹판의 새 프로젝트
 대화상자는 언어에서 Ruby 를 고르면 "웹판에서는 실행하지 못한다 (데스크톱 앱에서 돈다)" 를 보인다. 설치 없이 써 보는 사람의 첫걸음이
 "로컬 폴더에 플래피나 타일맵 프로젝트 만들기" 이기 때문이다.
+
+구현 (2026-09-27, `newProject.ts`):
+
+- 켜는 조건은 `newProjectBlocker(editor)` 다. 브라우저 폴더 모드는 백엔드가 아니라 **폴더 열기가 있는 브라우저인지**(`browserFolders(editor).supported`)로
+  본다. "샘플로 해 보기" 뒤에는 백엔드가 메모리라 `pickFolder` 가 거짓이지만 새 프로젝트는 되어야 하기 때문이다 (Ctrl+O 가 샘플 뒤에도
+  폴더 고르기인 것과 같다). 데스크톱은 백엔드의 `pickFolder`, 메모리와 브리지는 꺼지고 툴팁에 이유를 적는다.
+- 웹판의 흐름: 클릭 안에서 폴더를 먼저 고르고(`showDirectoryPicker` 는 사용자 제스처가 필요하다), 열린 프로젝트를 닫고, 고른 폴더의 항목을
+  세어 비어 있지 않으면 묻고, 대화상자를 띄운다. **만들기를 누른 뒤에야** 폴더를 기억하고(IndexedDB, 최근 폴더) 브라우저 폴더 백엔드로
+  바꿔 템플릿을 쓴다. 그래서 중간에 취소하면 기억한 기록(같은 이름의 기록이 가리키는 핸들 포함)과 백엔드가 그대로다.
+- Ruby 안내는 웹 엔진 MANIFEST 의 기능에 mruby 가 **없을 때만** 뜬다. 초안을 쓸 때는 웹 엔진이 Lua 만이었지만 지금 사본(엔진 cac4b94)은
+  `lua mruby wasm` 이라 웹판에서도 Ruby 게임이 돈다. 데스크톱 앱에는 뜨지 않는다.
 
 E4 가 남긴 물음("배포에서 웹 데모를 함께 낼지")의 답: 에디터 웹판이 곧 웹 데모다. 엔진 저장소의 단독 데모 페이지(`build-web/site/`,
 알데바란)를 따로 배포할지는 소재 공개와 함께 저자 결정으로 남긴다.
@@ -682,6 +859,13 @@ E4 가 남긴 물음("배포에서 웹 데모를 함께 낼지")의 답: 에디�
 | 환경 변수 | 없음. 커밋은 Pages 가 주는 `CF_PAGES_COMMIT_SHA` 를 `vite.config.ts` 가 읽는다 |
 | 프로덕션 브랜치 | **`main`** (제안). 릴리스 때 `main` 을 태그 커밋으로 빨리 감기 한다 (이력 재작성 아님). 웹판 = 마지막 릴리스 |
 | 미리보기 | `next` 와 PR 브랜치. `next` 미리보기 주소가 매일판이다 |
+
+**찾은 값 (2026-09-27, 대시보드는 바꾸지 않았다. 결정 기록)**: 저장소의 GitHub 체크(`cloudflare-workers-and-pages`)와 응답으로 알아냈다.
+Pages 프로젝트는 `initial-editor`, 프로덕션 주소는 저장소 홈페이지인 https://initial-editor.biud436.com (같은 것이 https://initial-editor.pages.dev),
+`next` 의 브랜치 미리보기는 https://next.initial-editor.pages.dev 다. 프로덕션 주소는 `main`(291daa5, 2025-12-01)의 옛 에디터를 내고 있어
+프로덕션 브랜치는 `main` 으로 본다. 그래서 `main` 을 빨리 감기 하기 전까지 데스크톱 앱의 "웹판 열기"(프로덕션 주소)는 옛 에디터를 연다.
+README 의 "웹판 배포" 절에 이 값으로 표를 적었다. 프로덕션 응답에는 이미 Pages 기본값으로 `x-content-type-options: nosniff` 와
+`.wasm` 의 `application/wasm` 이 붙어 있다 (`_headers` 는 그것을 못 박고 엔진 캐시를 더한다).
 
 Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `public/engine/` 사본을 싣는다. `wrangler.toml` 은 두지 않는다. 대시보드
 설정과 둘이 되면 어느 쪽이 진실인지 헷갈린다. 저장소에 두는 것은 `_headers` 와 위 표다. CI 가 `wrangler pages dev` 를 쓰는 것은 로컬
@@ -708,6 +892,8 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
   켜면 교차 출처 자원을 막아 뒤탈만 생긴다. 엔진이 `-pthread` 로 가면 그때 둘을 켜고 `crossOriginIsolated` 를 검사에 넣는다.
 - CSP 헤더는 이 단계에서 두지 않는다. 데스크톱의 정책(2.5)이 자가 검사로 굳은 뒤 같은 정책을 옮기는 것을 후보로 남긴다.
 - `_headers` 는 Tauri 번들에도 들어가지만 쓰이지 않는다.
+- 구현한 파일은 위 규칙 넷에 `#` 주석을 붙인 것이다. `npx wrangler@3 pages dev dist`(3.114.17)가 "Parsed 4 valid header rules" 로 읽고
+  응답에 그대로 붙는 것을 봤다 (엔진의 `Cache-Control` 은 Pages 기본값을 바꾸고, 해시 이름의 스크립트는 `public, max-age=31536000, immutable`).
 - 소스맵은 웹판에는 둔다 (오픈 소스이고 오류 추적에 쓴다). 데스크톱 번들에서는 뺀다 (`yarn build:desktop`). Tauri 는 프런트를 실행
   파일에 넣으므로 19 MB 가 그대로 커진다.
 
@@ -720,10 +906,33 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
   눌러도 칠한 맵이 보이지 않는다. 진입 파일을 고친다: `init` 에서 `Tilemap.Load("./resources/maps/meadow.json")`, `render` 에서
   `Tilemap.Draw(맵, 1, 레이어 수, 0, 0)`, 첫 프레임에 `sample:frame` 과 `sample:map layers=<n>` 을 찍는다. Ruby 진입 파일도 같은 일을 한다.
   `game-view.spec.ts` 의 메모리 모드 픽셀 검사(사각형 기준)는 맵 기준으로 고친다.
-- 정보 창(`components/AboutDialog.tsx`): 판, 커밋, 웹 엔진 커밋, 제3자 고지. 웹판이면 "데스크톱 앱 받기", 데스크톱이면 "웹판 열기".
+  구현: 카메라를 `(0, 0)` 이 아니라 맵이 **창 가운데**에 오는 음수 오프셋으로 준다 (768x896 창의 왼쪽 위 구석에 320x192 맵이 붙지 않게.
+  엔진의 컬링이 음수 카메라를 받는다). 창 크기는 Lua `WindowWidth()`, Ruby `Graphics.width` 에서, 맵 크기는 `Tilemap.GetSize` 와 `map.width` 등에서.
+  Ruby 는 레이어가 0 부터라 `map.draw(0, layer_count - 1, ...)`. 불러오지 못하면 `sample:map error ...` 를 찍는다. 게임 뷰 e2e 의 기준은
+  맵의 픽셀 수(20x12x16x16, 타일에 배경색 픽셀이 없다)와 `sample:map layers=2` 줄이다. 네이티브 엔진 교차 검사
+  `tests/e2e/support/sampleProject.unit.ts` 가 두 진입 파일을 헤드리스로 돌려 맵의 모든 칸이 타일셋 픽셀 그대로인지, 맵 파일의 한 칸을 모래로
+  바꾸면 그 칸만 바뀌는지 본다 (엔진이 없으면 건너뛴다).
+- 구현한 시작 화면: 웹판(브라우저 폴더 모드)에 "새 프로젝트" 단추(폴더 열기가 없으면 꺼지고 이유). 아래 줄은 웹판(브라우저 폴더와 메모리 모드)에만 있고
+  "데스크톱 앱 받기"(https://github.com/biud436/InitialEditor/releases, 공개 릴리스가 생기기 전에는 비어 있다)와 "웹판에서 안 되는 것:
+  엔진 프로세스 실행, 안드로이드 스테이징" 이다. Ruby 게임 실행은 웹 엔진 MANIFEST 에 mruby 가 없을 때만 붙는다. "샘플로 해 보기" 는
+  샘플을 연 뒤 `meadow.json` 을 맵 뷰로 열고(맵 탭이 팔레트와 레이어 패널을 불러온다) 토스트 "샘플 게임이 그리는 맵이다. 팔레트에서
+  타일을 골라 칠하고 저장한 뒤 F5 로 돌려 본다" 를 **페이지마다 한 번** 띄운다. 폴더 열기가 없어 메모리로 시작한 배포 웹판의 "샘플 프로젝트
+  열기" 도 같다 (로컬의 `?backend=memory` 는 전과 같이 맵을 열지 않는다. 테스트들이 그 상태에 기댄다).
+- 정보 창(`components/AboutDialog.tsx`): 판, 커밋, 웹 엔진 커밋, 데스크톱 앱이면 찾은 엔진(앱에 든 엔진이면 그 판), 제3자 고지. 웹판이면 "데스크톱 앱 받기", 데스크톱이면 "웹판 열기".
+  구현: 판, 커밋(`__APP_COMMIT__`), 웹 엔진(MANIFEST 의 커밋 일곱 자리와 기능, 커밋 안 된 변경이면 그렇다고), 모드와 플랫폼,
+  "웹판 열기"(https://initial-editor.biud436.com/) 또는 "데스크톱 앱 받기", "제3자 고지", 계획 문서, 엔진 API 대응표. 제3자 고지는 앱이
+  놓인 곳의 `engine/THIRD-PARTY.md` 를 읽어 대화상자에 보인다 (웹판과 데스크톱이 같은 파일. `yarn sync:engine-web` 이 엔진 저장소 루트의
+  고지를 웹 엔진 옆에 복사하고 MANIFEST 의 `files` 에는 넣지 않는다). 에디터 쪽 고지는 저장소의 `src-tauri/licenses` 링크다.
+  계획 문서 링크는 옛 `blob/master`(2021년 브랜치라 파일이 없다)에서 `blob/next` 로 고쳤다. 엔진 판(`engine.json`) 줄은 2.3 의 몫이다.
 - **링크 열기**: 데스크톱의 모든 바깥 링크(정보 창, 시작 화면, 업데이트 토스트)는 `tauri-plugin-opener` 의 `openUrl` 을 거친다. 권한은
-  `opener:allow-open-url` 을 `https://github.com/biud436/*` 와 웹판 주소로 좁힌다. 브라우저에서는 `window.open`. 지금의
+  `opener:allow-open-url` 을 `https://github.com/biud436/*` 와 웹판 주소로 좁힌다 (구현: `capabilities/default.json` 에
+  `https://github.com/biud436/*` 와 `https://initial-editor.biud436.com/*`. `opener:default` 는 넣지 않는다. `src-tauri/tests/capabilities.rs`
+  가 fs, shell 권한이 없고 opener 는 이 둘뿐인지 본다). 브라우저에서는 `window.open`. 지금의
   `<a target="_blank">` 는 Tauri 웹뷰에서 아무 일도 하지 않는다. 링크 하나를 여는 함수(`openExternal`)를 두고 단위 시험으로 두 모드를 본다.
+  구현(`editor/openExternal.ts`, `components/ExternalLink.tsx`): npm 패키지 `@tauri-apps/plugin-opener` 를 더하지 않고 그 `openUrl` 이 부르는
+  명령 `plugin:opener|open_url` 을 `@tauri-apps/api` 의 `invoke` 로 직접 부른다 (같은 호출이고 의존성과 잠금 파일이 늘지 않는다).
+  http 와 https 만 연다. 열지 못하면(권한 밖 주소 등) 콘솔 한 줄과 토스트. 도움말의 링크 명령, 정보 창, 시작 화면의 링크가 모두 여기를 거친다.
+  업데이트 토스트는 이 단계에서 없다 (결정 기록).
 
 ### 7.5 검사
 
@@ -736,6 +945,20 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
   `PAGES_URL=http://127.0.0.1:8788` 로 `pages.spec.ts` 를 돌린다. 헤더 실수가 배포 전에 드러난다.
 - 배포 주소와 `next` 미리보기 주소에 대한 같은 검사는 저자가 누르는 `workflow_dispatch` 워크플로우 `.github/workflows/pages-smoke.yml`
   (입력: 주소)로 덧붙인다. 완료 기준은 CI 의 로컬 Pages 검사다.
+
+구현 (2026-09-27):
+
+- `scripts/check-web-dist.mjs [--dist <폴더>] [--desktop]`: 위 목록에 더해 `index.html` 이 부르는 `/assets/` 파일이 있는지, `_headers` 의 문법
+  (규칙 줄, 들여 쓴 `이름: 값`, 헤더 없는 규칙), 모든 `.wasm` 의 타입 규칙, 엔진 파일 넷(`MANIFEST.json` 과 로더 셋)이 `no-cache` 이고
+  `immutable` 이 아닌지, 해시 이름의 `assets/` 가 `immutable` 인지, `nosniff` 와 교차 출처 격리 헤더가 없는지를 Pages 와 같은 규칙 맞추기
+  (`*` 와 `:이름`, 맞는 규칙을 모두 모은다)로 본다. `--desktop` 은 소스맵이 있으면 실패한다 (`yarn build:desktop` 의 산출물용). 문제는
+  `FAIL ...` 줄과 종료 코드 1. 검사 시험은 `tests/e2e/support/checkWebDist.unit.ts`(임시 dist 를 한 가지씩 망가뜨린다).
+- `tests/e2e/pages.spec.ts`: 헤더 검사는 `PAGES_URL`(띄워 둔 Pages) 또는 `PAGES_WRANGLER=1`(스펙이 `npx wrangler@3 pages dev dist` 를
+  `PAGES_PORT`, 기본 8788 로 띄우고 끝나면 프로세스 묶음째 끈다)이 있을 때 돈다. 없거나 wrangler 를 받지 못하면 까닭을 적고 건너뛴다.
+  흐름 검사(샘플, F5, 한 칸 칠해 저장, F5, 캡처 격자의 그 칸만 다르다, 스트리밍 실패 줄 없음)와 정보 창 검사는 헤더와 무관해서
+  Pages 서버가 없으면 Playwright 가 띄운 `vite preview` 로 돈다. 칠한 칸(4, 5)을 모래(gid 5)로 바꾸면 그 격자 칸의 밝기가 7 달라지고
+  나머지 칸은 0 이다 (문턱 3 과 1).
+- CI 의 `web` 잡에 `check-web-dist` 와 wrangler 단계를 넣는 것은 CI 작업의 몫이다.
 
 ## 8. 서명
 
@@ -758,13 +981,17 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
   받는다). 그래서 `tauri.conf.json` 은 판이 바뀔 때 고칠 곳이 아니다. `scripts/version.mjs` 가 `set <판>` 으로 루트와 `packages/*/package.json`,
   `src-tauri/Cargo.toml`(과 `Cargo.lock` 의 자기 항목)을 한꺼번에 고치고, `check [--tag v<판>]` 이 하나라도 어긋나거나 `tauri.conf.json` 의
   `version` 이 그 경로가 아니면 실패한다. 릴리스의 `bundle` 잡은 만든 번들 이름에 든 판도 태그와 대조한다. 명령은 `yarn version:set`, `yarn version:check`.
+  구현 (2026-09-27): `set` 은 워크스페이스끼리의 의존(`@initial-editor/*` 에 판을 그대로 적은 것. `workspace:` 는 그대로 둔다)도 고치고
+  끝에 `yarn install` 로 잠금 파일을 맞춘다 (`--no-install` 로 건너뛴다). `check --bundles <폴더>` 는 폴더 아래의 dmg, AppImage, deb, exe, msi
+  이름에 `_<판>_` 이 있는지 본다 (`.app` 폴더 안은 보지 않는다). 지금 판은 `2.0.0-dev` 이고 `Cargo.toml` 이 `2.0.0` 이던 것을 이 명령으로 맞췄다.
+  NSIS 가 프리릴리스 판 문자열을 받는지는 첫 CI 실행이 본다.
 - **빌드 도장**: `__APP_COMMIT__`(Vite define). `GITHUB_SHA` > `CF_PAGES_COMMIT_SHA` > `git rev-parse --short HEAD` > "dev".
 - **엔진 판과의 짝**: 한 에디터 판은 한 엔진 릴리스에 묶인다 (`engine-pin.json`). 릴리스의 `check` 잡이 동봉 엔진, 웹 엔진, 템플릿, 그리고
   저장소 안의 엔진에서 온 다른 사본(E5 의 ext-rpg 픽스처)이 같은 엔진 커밋에서 왔는지 대조한다 (4.1 절). 동봉 엔진의 `--version` 커밋은
   `check-sidecar.mjs` 가 번들 안 파일에서 본다.
 - **프로젝트 쪽 짝**: 프로젝트는 만들 때의 씬 로더 사본을 가진다. 엔진 C++ API 가 그대로면 새 엔진에서도 돈다. 앱의 템플릿과 프로젝트의
   `common` 그룹 파일이 다르면 알리고 갱신하는 명령은 후보로 남긴다 (이 문서 끝).
-- **업데이트 확인**: 첫 판은 자동 업데이트가 없다. 도움말 > "업데이트 확인" 이 GitHub API(`repos/biud436/InitialEditor/releases`)에서 최신 태그를
+- **업데이트 확인** (결정 기록: 이 단계에서 만들지 않는다. 아래는 나중을 위한 설계로 남긴다): 첫 판은 자동 업데이트가 없다. 도움말 > "업데이트 확인" 이 GitHub API(`repos/biud436/InitialEditor/releases`)에서 최신 태그를
   읽어, 지금 판보다 새로우면 릴리스 페이지 링크를 토스트로 준다 (링크는 7.4 의 `openExternal`). 시작할 때의 자동 확인은 설정 `checkUpdates`
   (기본 꺼짐), 프리릴리스를 볼지는 설정 `updateChannel`(`stable`, `prerelease`). 코드는 `packages/app/src/editor/update/`: 판 비교는 순수 함수
   (`2.0.0-alpha.2 > 2.0.0-alpha.1`, `2.0.0 > 2.0.0-rc.1`, 채널 거르기, 초안 무시)이고 API 응답은 주입한 `fetch` 로 받는다. 단위 시험이
@@ -777,91 +1004,102 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 
 ### 마일스톤 1: 번들 설정과 세 OS 빌드 (에디터)
 
-- [ ] `src-tauri/tauri.conf.json` 번들 칸 (게시자, 저작권, 설명, 홈페이지, 라이선스, macOS 최소 11.0 과 ad-hoc 서명, NSIS 사용자 설치와 언어, WebView2 설치 방식), `version` 을 `"../package.json"` 으로
-- [ ] 루트 `LICENSE` (저자 확인 뒤), `src-tauri/licenses/` (`LICENSE`, `THIRD-PARTY-editor.md` 커밋, `engine/` 은 gitignore), `scripts/gen-licenses.mjs` 와 `--check`
-- [ ] `yarn build:desktop` (`VITE_SOURCEMAP=0`, `vite.config.ts` 가 읽는다. 겹쳐 적힌 `emptyOutDir` 도 정리), `src-tauri/tauri.dist.conf.json`
-- [ ] `scripts/version.mjs` (`yarn version:set`, `yarn version:check`: package.json 일곱, `Cargo.toml`, `Cargo.lock`, `tauri.conf.json` 의 경로 칸) 와 `ci.yml` 의 대조
-- [ ] `ci.yml` 의 `rust` 잡을 세 OS 로. Windows 전용 시험 (엔진 후보의 역슬래시 경로, 동봉 실행 파일 이름)
-- [ ] `release.yml` 의 `bundle` 잡을 `dry_run` 으로 세 OS 에서 돌려 dmg, AppImage, deb, NSIS 가 나온다 (사이드카 없이, `licenses/` 는 커밋한 것만으로). NSIS 가 프리릴리스 판 문자열을 받는지 여기서 확인한다
-- [ ] Linux 와 Windows 에서 앱이 뜨는 것까지 확인 (자가 검사의 새 프로젝트 단계만 먼저 구현해 쓴다)
+- [x] `src-tauri/tauri.conf.json` 번들 칸 (게시자, 저작권, 설명, 홈페이지, macOS 최소 11.0 과 ad-hoc 서명, NSIS 사용자 설치와 언어, WebView2 설치 방식), `version` 을 `"../package.json"` 으로. 라이선스 칸은 결정 기록대로 두지 않는다
+- [x] `src-tauri/licenses/` (`THIRD-PARTY-editor.md` 커밋, `engine/` 은 gitignore), `scripts/gen-licenses.mjs` 와 `--check` (`yarn licenses`. npm 은 앱의 런타임 의존, Cargo 는 `cargo metadata` 의 일반 의존으로 모든 OS 의 합, 고를 수 있으면 MIT 원문, 같은 원문은 한 번. 시험 `tests/scripts/licenses.unit.ts`). `LICENSE` 는 결정 기록대로 두지 않는다
+- [x] `yarn build:desktop` (`VITE_SOURCEMAP=0`, `vite.config.ts` 가 읽는다. `emptyOutDir` 는 이미 한 번뿐이다), `src-tauri/tauri.dist.conf.json` (`beforeBuildCommand` 와 `licenses/` 리소스)
+- [x] `scripts/version.mjs` (`yarn version:set`, `yarn version:check`: package.json 일곱과 워크스페이스끼리의 의존, `Cargo.toml`, `Cargo.lock`, `tauri.conf.json` 의 경로 칸, `--tag`, `--bundles`) 와 `ci.yml` 의 대조. 시험 `tests/scripts/version.unit.ts` (이 저장소 자신이 맞는지도)
+- [ ] `ci.yml` 의 `rust` 잡을 세 OS 로 (워크플로는 됐다. Windows 에서 크레이트가 빌드되고 안드로이드의 Windows 시험이 도는지는 첫 CI 실행이 본다). Windows 전용 시험 (엔진 후보의 역슬래시 경로는 Vitest, 동봉 실행 파일 이름)
+- [ ] `release.yml` 의 `bundle` 잡을 `dry_run` 으로 세 OS 에서 돌려 dmg, AppImage, deb, NSIS 가 나온다. NSIS 가 프리릴리스 판 문자열을 받는지 여기서 확인한다 (워크플로는 됐다. 사이드카는 핀의 커밋에서 빌드해 싣는다. 이 맥에서는 사이드카를 실은 `.app` 과 dmg 가 나왔다. 세 OS 는 첫 CI 실행)
+- [ ] Linux 와 Windows 에서 앱이 뜨는 것까지 확인 (자가 검사 전체를 구현했고 CI 에서 돈다. 첫 CI 실행)
 
 ### 마일스톤 2: 엔진 R4, 배포용 엔진 빌드와 템플릿 묶음 (엔진 저장소)
 
-- [ ] `tools/sdl_versions.sh`, `tools/fetch_sdl_src.sh`, `android/download_sdl.sh` 가 같은 판 번호를 읽는다
-- [ ] `CMakeLists.txt` 의 `INITIAL2D_VENDORED_SDL` 과 3.1 표의 캐시 값 전부 (정적, ImageIO 끔, 의존 공유 끔, 포맷 스위치, Linux 의 dlopen 기본값 유지), `MRUBY_ROOT` 힌트, 배포 대상 11.0, 판 생성 헤더
-- [ ] `tools/build_mruby.sh` (`MACOSX_DEPLOYMENT_TARGET=11.0`, `mruby-config --cflags` 의 정의를 엔진이 그대로)
-- [ ] `sdl2Main.cpp` 의 `--version` 과 모르는 `--` 인자의 종료 코드 2
-- [ ] `tools/build_dist.sh`, `tools/check_dist.sh` (시간 제한과 임시 작업 폴더, `minos` 11.0, `--bogus` 가 2)
-- [ ] `THIRD-PARTY.md`
-- [ ] 타일맵 템플릿 `resources/templates/tilemap/` (`tools/gen_template_tiles.py` 로 한 번 그려 커밋한 타일셋, `mapfile.py` 형식의 맵, 씬, 스키마)와 `tests/tools/templates_test.py`
-- [ ] `tools/templates_list.txt`, `tools/pack_templates.py` (`generated` 표시, 빠진 파일이면 실패)
-- [ ] macOS: 배포용 실행 파일로 전체 씬 검수 통과 (`python3 tests/run_engine_tests.py dist/Initial2D-aarch64-apple-darwin`). Linux: 플래피 씬 넷
-- [ ] `.github/workflows/dist.yml` (native 둘, web, release 는 곧바로 공개하고 `-` 판은 프리릴리스)와 첫 태그 `v2.0.0-alpha.1`
-- [ ] 기존 `tests.yml` 과 전체 검수가 무변경으로 통과한다 (Homebrew 빌드 경로는 그대로)
-- [ ] 엔진 문서 `docs/plans/r4-dist-build.md`, index 8절의 R4 행, README 의 "배포용 빌드"
+정본은 엔진의 `docs/plans/r4-dist-build.md` 이고 엔진 master 에 들어갔다 (엔진 PR #52, 핀 `cac4b94`). 아래는 그 문서의 체크리스트를 옮긴 것이다.
+
+- [x] `tools/sdl_versions.sh`, `tools/fetch_sdl_src.sh`, `android/download_sdl.sh` 가 같은 판 번호를 읽는다
+- [x] `CMakeLists.txt` 의 `INITIAL2D_VENDORED_SDL` 과 3.1 표의 캐시 값 전부 (정적, ImageIO 끔, 의존 공유 끔, 포맷 스위치, Linux 의 dlopen 기본값 유지), `MRUBY_ROOT` 힌트, 배포 대상 11.0, 판 생성 헤더
+- [x] `tools/build_mruby.sh` (`MACOSX_DEPLOYMENT_TARGET=11.0`, `mruby-config --cflags` 의 정의를 엔진이 그대로)
+- [x] `sdl2Main.cpp` 의 `--version` 과 모르는 `--` 인자의 종료 코드 2
+- [x] `tools/build_dist.sh`, `tools/check_dist.sh` (시간 제한과 임시 작업 폴더, `minos` 11.0, `--bogus` 가 2)
+- [x] `THIRD-PARTY.md`
+- [x] 타일맵 템플릿 `resources/templates/tilemap/` (결정 기록대로 새로 그리지 않고 커밋된 `resources/tiles/tileset16-8x13.png` 를 쓴다. 표식 칸은 타일 44, gid 45, `#d8c880`. `mapfile.py` 형식의 맵, 씬, 스키마)와 `tests/tools/templates_test.py`
+- [x] `tools/templates_list.txt`, `tools/pack_templates.py` (`generated` 표시, 빠진 파일이면 실패)
+- [x] macOS: 배포용 실행 파일로 전체 씬 검수 통과 (`python3 tests/run_engine_tests.py dist/Initial2D-aarch64-apple-darwin`, 575 PASS)
+- [ ] Linux: 배포용 실행 파일로 플래피 씬 셋 (`dist.yml` 의 첫 CI 실행)
+- [x] `.github/workflows/dist.yml` (native 둘, templates, collect. 결정 기록대로 산출물만 올리고 릴리스는 없다)
+- [ ] `dist.yml` 의 첫 CI 실행 (macOS 와 Linux. 엔진 저장소에서 `workflow_dispatch`)
+- [ ] 첫 태그 `v2.0.0-alpha.1` (결정 기록: 저자)
+- [x] 기존 `tests.yml` 과 전체 검수가 무변경으로 통과한다 (Homebrew 빌드 경로는 그대로)
+- [x] 엔진 문서 `docs/plans/r4-dist-build.md`, index 의 R4 행, README 의 "배포용 빌드"
 
 ### 마일스톤 3: 사이드카 동봉, 찾기와 신뢰, 템플릿 (에디터)
 
-- [ ] `engine-pin.json` (`ciEngineRef` 칸 포함), `scripts/fetch-engine.mjs` (`yarn engine:fetch [--target <트리플>] [--from <엔진 dist 폴더>] [--templates]`, 공개 자산 주소, sha256 확인, `src-tauri/licenses/engine/THIRD-PARTY.md`), `yarn engine:pin <태그>` (네이티브 핀, 웹 엔진과 고지, 템플릿을 같은 릴리스로. 체크아웃에서 오는 MANIFEST 는 커밋 확인 뒤 다시 동기화)
-- [ ] 엔진에서 온 MANIFEST 모두에 `source` 와 `syncCommand`, 커밋은 40자. `scripts/check-engine-pin.mjs` (`yarn engine:check`)
-- [ ] `sync-engine-templates.mjs --from-zip`, 템플릿 MANIFEST 의 `generated` 표시 (로컬 체크아웃에서 복사할 때는 `git ls-files` 로 정한다)
-- [ ] `templates.test.ts`: 체크아웃 대조에서 `generated` 만 건너뛰고, `INITIAL2D_TEMPLATES_SRC` 가 있으면 빠짐없이 대조
-- [ ] 타일맵 템플릿: `sync-engine-templates.mjs` 의 목록(그룹 `tilemap`, 진입 파일 둘은 `empty`, `flappy`, `tilemap`), `ProjectTemplateId` 와 `TEMPLATE_LABELS`("타일맵"), `TEMPLATE_START_SCENE`, 새 프로젝트 대화상자
-- [ ] `scripts/e2e-engine-scene.mjs`: `INITIAL2D_EXE` 를 받고, 타일맵 템플릿(Lua, Ruby)을 쓰고 ext-tilemap 모델로 한 칸을 칠해 저장한 뒤 스크린샷의 그 칸이 표식 색인지 본다 (`scripts/lib/bmp.mjs`). `INITIAL2D_EXE=src-tauri/binaries/Initial2D-<트리플> yarn test:engine-scene` 통과
-- [ ] `src-tauri/tauri.sidecar.conf.json`, `.gitignore` 에 `src-tauri/binaries/` 와 `src-tauri/licenses/engine/`
-- [ ] `src-tauri/src/bundled.rs` 와 명령 `engine_bundled`, `cargo test` (파일이 있을 때와 없을 때, `engine.json` 이 깨졌을 때)
-- [ ] `engine.rs`: `features(exe, timeout)` 와 임시 작업 폴더, `engine_features(exe, timeout_ms)`, `engine_exists(paths)`. `cargo test` (늦게 답하는 스크립트가 기본 시간에는 실패하고 15초에는 통과, 작업 폴더에 파일을 쓰는 스크립트가 프로젝트에 쓰지 못한다)
-- [ ] 백엔드 `engineFeatures(exe, { timeoutMs })`, `engineExists(paths)`, `RunnerOptions.probe(exe, opts)`
-- [ ] `engineCandidates.ts` 에 `bundled` (2.3 의 순서)와 후보마다 `needsTrust`, `ENGINE_SOURCE_LABELS`, 단위 시험 (세 OS 경로)
-- [ ] 신뢰 규칙: 설정 `engineTrust`, 확인 대화상자(실행 파일 경로를 보인다), 설정 대화상자의 "신뢰 취소". 단위 시험: 신뢰하지 않은 프로젝트를 열면 프로젝트 안과 형제 경로를 `probe` 하지 않는다, 허용 뒤 순서대로, 거절 기억, 경로가 바뀌면 다시 묻기
-- [ ] `RunnerStore`: `StartOptions.mode`, 동봉 후보의 시간 제한 15초와 재시도, 다 못 찾으면 에디터 안으로 넘어가기와 한 줄 알림 (mruby 프로젝트는 이유), 넘어간 사실을 실행 정보에. 단위 시험
-- [ ] 상태 바 툴팁, 설정 대화상자의 "찾은 엔진" 줄, 정보 창의 엔진 판 (`engine.json` 에서)
-- [ ] 새 프로젝트의 `.gitignore` 에 `config.setting` (`scene/projectTemplates.ts` 의 `GITIGNORE_TEXT`)
-- [ ] `scripts/check-sidecar.mjs` (번들 안 사이드카의 동적 의존 허용 목록, `--features`, `--version` 커밋이 핀과 같다. 실행은 시간 제한과 버리는 작업 폴더에서)
-- [ ] `ci.yml` 의 엔진 체크아웃을 핀의 커밋으로 (`ciEngineRef` 우선, 핀이 없으면 기본 브랜치)
+- [x] `engine-pin.json` (엔진 `cac4b94`, `ciEngineRef` 칸 포함, 릴리스 전이라 자산 칸 없음), `scripts/fetch-engine.mjs` (`yarn engine:fetch [--target <트리플>] [--from <엔진 dist 폴더>] [--templates <폴더>] [--any-commit]`, 공개 자산 주소, sha256 확인, `src-tauri/licenses/engine/THIRD-PARTY.md`). 시험 `runner/engineScripts.test.ts`
+- [ ] `yarn engine:pin <태그>` (네이티브 핀, 웹 엔진과 고지, 템플릿을 같은 릴리스로. 체크아웃에서 오는 MANIFEST 는 커밋 확인 뒤 다시 동기화). 태그가 생긴 뒤
+- [x] `scripts/check-engine-pin.mjs` (`yarn engine:check`): 핀, `ciEngineRef`, 엔진에서 온 MANIFEST 전부의 커밋 40자와 `source` 와 `syncCommand`, 받아 둔 `engine.json`, 핀에 `web` 이 있으면 릴리스 zip 대조
+- [x] 엔진에서 온 MANIFEST 모두에 `source` 와 `syncCommand`, 커밋은 40자. 웹 엔진은 `sync-engine-web.mjs` 가 두 칸을 쓰고, 핀의 커밋 `cac4b94` 에서 다시 빌드해 가져왔다 (4.2 절 끝). `yarn engine:check` 가 전부 통과한다
+- [x] `sync-engine-templates.mjs --from-zip`(zip 이나 dist 폴더), 템플릿 MANIFEST 의 `source`, `syncCommand`, 커밋 40자, `generated` 표시 (로컬 체크아웃에서 복사할 때는 `git ls-files` 로 정한다), `--allow-dirty`. 시험 `scene/syncTemplates.test.ts` (가짜 체크아웃과 가짜 묶음, 엔진이 있으면 `pack_templates.py` 의 진짜 묶음이 체크아웃과 같다)
+- [x] `templates.test.ts`: 체크아웃 대조에서 `generated` 만 건너뛰고, `INITIAL2D_TEMPLATES_SRC` 가 있으면 빠짐없이 대조 (생성물 표시도). 엔진의 `tools/templates_list.txt` 와 복사 목록이 같은지도 본다
+- [x] 타일맵 템플릿: `sync-engine-templates.mjs` 의 목록(그룹 `tilemap`, 진입 파일 둘은 `empty`, `flappy`, `tilemap`), `ProjectTemplateId` 와 `TEMPLATE_LABELS`("타일맵"), `TEMPLATE_START_SCENE`(`main`), 새 프로젝트 대화상자 (템플릿 설명 `TEMPLATE_HELP`, `NewProjectDialog.test.tsx`)
+- [x] `scripts/e2e-engine-scene.mjs`: `INITIAL2D_EXE` 를 받고(주었는데 없으면 실패), 새 프로젝트를 앱의 `writeProjectTemplate` 으로 쓰고(Vite SSR), 타일맵 템플릿(Lua, Ruby)은 맵 문서(`MapDocument`)에서 칸 (24, 28) 을 gid 45 로 칠해 저장한 뒤 시작 씬으로 돌려 스크린샷의 그 칸이 표식 색이고 옆 칸이 잔디인지 본다 (`tests/e2e/support/bmp.ts`). 2026-09-27 이 맥: Homebrew 빌드와 배포용 빌드(`tools/build_dist.sh`, 엔진 `cac4b94`) 모두 42 PASS / 0 FAIL
+- [x] `src-tauri/tauri.sidecar.conf.json`, `.gitignore` 에 `src-tauri/binaries/` 와 `src-tauri/licenses/engine/`
+- [x] `src-tauri/src/bundled.rs` 와 명령 `engine_bundled`, `cargo test` (파일이 있을 때와 없을 때, `engine.json` 이 깨졌을 때와 모양이 틀렸을 때)
+- [x] `engine.rs`: `features(exe, timeout)` 와 임시 작업 폴더와 dummy 드라이버, `engine_features(exe, timeout_ms)`, `engine_exists(paths)`. `cargo test` (늦게 답하는 스크립트가 기본 시간에는 실패하고 15초에는 통과, 작업 폴더에 파일을 쓰는 스크립트가 프로젝트에 쓰지 못한다, `exists` 는 실행하지 않는다)
+- [x] 백엔드 `engineFeatures(exe, { timeoutMs })`, `engineExists(paths)`, `engineBundled()`, `RunnerOptions.probe(exe, opts)`. 시험 `backend-tauri/src/engine.test.ts`
+- [x] `engineCandidates.ts` 에 `bundled` (2.3 의 순서)와 후보마다 `needsTrust`, `ENGINE_SOURCE_LABELS`, 단위 시험 (세 OS 경로, AppImage)
+- [x] 신뢰 규칙: 설정 `engineTrust`(`{ allow, exes }`), 확인 대화상자 `runner/EngineTrustDialog.tsx`(실행 파일 경로와 출처를 보인다), 설정 대화상자의 "찾은 엔진" 줄과 "신뢰 취소", "다시 묻기". 단위 시험 `RunnerStore.trust.test.ts`, `engineTrust.test.ts`, `EngineTrustDialog.test.tsx`, `SettingsDialog.test.tsx`: 신뢰하지 않은 프로젝트를 열면 프로젝트 안과 형제 경로를 `probe` 하지 않는다, 허용 뒤 순서대로, 거절 기억, 경로가 바뀌면 다시 묻기, 답 없이 닫으면 기억하지 않기, 겹친 탐색에 질문 한 번
+- [x] `RunnerStore`: `StartOptions.mode`, 동봉 후보의 시간 제한 15초와 재시도, 다 못 찾으면 에디터 안으로 넘어가기와 한 줄 알림 (mruby 프로젝트는 이유), 넘어간 사실을 실행 정보에(`fallback`). 단위 시험
+- [x] 상태 바 툴팁, 설정 대화상자의 "찾은 엔진" 줄 (`engine.json` 에서, `RunnerStore.engineDescription`)
+- [x] 정보 창의 엔진 판: 데스크톱 앱이면 "엔진" 줄에 찾은 엔진 (`RunnerStore.engineDescription`, 앱에 든 엔진이면 `bundledEngineLabel` 의 판). 설정의 "찾은 엔진" 과 같은 글 (`about.ts` 의 `foundEngineText`). 시험 `AboutDialog.test.tsx`, `about.test.ts`
+- [x] 새 프로젝트의 `.gitignore` 에 `config.setting` (`scene/projectTemplates.ts` 의 `GITIGNORE_TEXT`)
+- [x] `scripts/check-sidecar.mjs` (번들 안 사이드카의 동적 의존 허용 목록, `--features`, `--version` 커밋이 핀과 같다, `--bogus` 가 2, 작업 폴더에 쓰지 않는다. 실행은 시간 제한과 버리는 작업 폴더에서. `.app` 이나 폴더도 받는다). 2026-09-27 이 맥: 받은 사이드카와 빌드한 `.app` 모두 통과
+- [x] 숨은 창 검수: 사이드카 덮어쓰기로 빌드한 앱이 동봉 엔진을 찾고 `--features` 로 찌른다 (2.4 절의 기록)
+- [x] `ci.yml` 의 엔진 체크아웃을 핀의 커밋으로 (`ciEngineRef` 우선, 핀이 없으면 기본 브랜치). `release.yml` 도 같다
 
 ### 마일스톤 4: 자가 검사, 보안 정책, 릴리스 (에디터)
 
-- [ ] 셸: `setup` 의 계획 읽기(환경 변수 경로만), `workDir` 과 프로젝트 폴더 만들기(있으면 계획 오류), 전체 시간 감시 스레드, 명령 `selftest_plan`, `selftest_progress`, `selftest_write_log`(`logs/` 안 단순 이름만), `selftest_finish(reportJson, code)`(계획의 `report` 에 쓴다). `cargo test` (폴더가 있으면 2, 감시가 보고서를 쓰고 1, 로그 이름의 경로 탈출 거부)
-- [ ] `lib.rs`: 창 `main` 을 `create: false` 뒤 셸이 만들기, 자가 검사면 `showWindow` 대로 보임과 `window-state` 빼기
-- [ ] 앱 격리: 자가 검사면 `MemorySettingsStorage`, 메모리 레이아웃, 모달이 뜨면 실패. 단위 시험 (설정 저장소에 쓰기가 한 번도 없다, 최근 프로젝트가 바뀌지 않는다)
-- [ ] 앱: `packages/app/src/editor/selftest/` (대화상자 없는 새 프로젝트, 열기, 진입 스크립트 열기, `edit` 을 맵 문서의 명령과 저장으로, 실행 목록과 `mode` 넘기기, 시간 제한, 실행별 전체 로그, 보고서, `securitypolicyviolation` 수집). 단위 시험은 가짜 백엔드와 가짜 러너로
-- [ ] CSP (2.5): `tauri.conf.json` 의 `csp` 와 `devCsp`, `pixi.js/unsafe-eval` 들여오기. 첫 CI 실행의 위반 목록으로 정책을 고치고 2.5 절에 적는다
-- [ ] `scripts/selftest-plan.mjs` (macOS, Linux, Windows, 로컬, `--embedded`), `scripts/selftest-check.mjs` (`--plan`, `--report`, 전체 로그와 BMP 를 읽는다, 보고서가 없으면 1), `scripts/lib/flappyChecks.mjs` 와 `scripts/lib/bmp.mjs` (`e2e-engine-scene.mjs` 와 공용). 판정 스크립트의 단위 시험 (가짜 보고서와 로그: 초반 줄이 로그에만 있는 경우 통과, 로그가 없으면 실패, 넘어감 기대가 어긋나면 실패)
-- [ ] `release.yml` 의 자가 검사 단계 (macOS 는 dmg 안의 앱, Linux 는 xvfb 와 AppImage, Windows 는 무인 설치본), `timeout-minutes`, `if: always()` 판정, 자가 검사 폴더 전체를 산출물로
-- [ ] `release.yml` 의 `check` 잡 (판, 고지, `check-engine-pin.mjs`, 템플릿 묶음에 대한 `templates.test.ts`)과 `release` 잡 (`SHA256SUMS.txt`, 초안, 프리릴리스 판정), `docs/releases/` 틀
-- [ ] 로컬에서 같은 검사: `yarn selftest:app <빌드한 앱 경로> [--embedded]` (저자가 CI 없이 돌린다. 기본은 창이 뜨지 않는다)
-- [ ] 첫 초안 릴리스 `v2.0.0-alpha.1` (공개는 저자)
+- [x] 셸: `setup` 의 계획 읽기(환경 변수 경로만), `workDir` 과 프로젝트 폴더 만들기(있으면 계획 오류), 전체 시간 감시 스레드, 명령 `selftest_plan`, `selftest_progress`, `selftest_write_log`(`logs/` 안 단순 이름만, base64), `selftest_finish(reportJson, code)`(계획의 `report` 에 쓴다). `cargo test` 8건 (폴더가 있으면 오류이고 지우지 않는다, 감시가 마지막 단계를 담은 보고서를 쓴다, 끝낸 뒤에는 감시가 덮어쓰지 않는다, 로그 이름의 경로 탈출 거부)
+- [x] `lib.rs`: 창 `main` 을 `create: false` 뒤 셸이 만들기, 자가 검사면 `showWindow` 대로 보임과 `window-state` 빼기, 저장소를 남기지 않는 웹뷰, 숨은 웹뷰의 타이머 멈춤 끄기
+- [x] 앱 격리: 자가 검사면 `MemorySettingsStorage`, 메모리 레이아웃, 모달이 뜨면 실패. 단위 시험 (`selftest/csp.test.ts`: 평소 설정 저장소를 만들지도 읽지도 쓰지도 않는다, 최근 프로젝트는 메모리에만. `runSelftest.test.ts`: 모달은 적고 닫고 실패)
+- [x] 앱: `packages/app/src/editor/selftest/` (대화상자 없는 새 프로젝트, 열기, 진입 스크립트 열기, `edit` 을 맵 문서의 명령과 저장으로, 실행 목록과 `mode` 넘기기, 시간 제한, 실행별 전체 로그, 보고서, `securitypolicyviolation` 수집, 맵 뷰의 타일 뽑기). 단위 시험은 가짜 백엔드와 가짜 러너로 (`runSelftest.test.ts` 15건, `plan.test.ts`), 뽑기는 브라우저 e2e `map-capture.spec.ts`
+- [x] CSP (2.5): `tauri.conf.json` 의 `csp` 와 `devCsp`, `dangerousDisableAssetCspModification: ["style-src"]`, `pixi.js/unsafe-eval` 들여오기. 로컬 숨은 창 자가 검사의 위반(`connect-src data`)을 고쳤다
+- [ ] 첫 CI 실행(보이는 창, 에디터 안 실행, WebKitGTK, WebView2)의 위반 목록으로 정책을 고치고 2.5 절에 적는다
+- [x] `scripts/selftest-plan.mjs` (macOS, Linux, Windows, 로컬, `--embedded`, `--forest`), `scripts/selftest-check.mjs` (`--plan`, `--report`, 전체 로그와 BMP 를 읽는다, 보고서가 없으면 1), `scripts/lib/flappyChecks.mjs` 와 `scripts/lib/frameChecks.mjs` (`e2e-engine-scene.mjs` 와 공용. BMP 는 `scripts/lib/bmp.mjs` 대신 `tests/e2e/support/bmp.ts` 를 Vite SSR 로). 판정 스크립트의 단위 시험 `tests/scripts/selftest.unit.ts` (초반 줄이 로그에만 있는 경우 통과, 로그가 없으면 실패, 넘어감 기대가 어긋나면 실패, 숲의 픽셀 견주기)
+- [x] `release.yml` 의 자가 검사 단계 (macOS 는 dmg 안의 앱, Linux 는 xvfb 와 AppImage, Windows 는 무인 설치본), `timeout-minutes`, `if: always()` 판정, 자가 검사 폴더를 산출물로 (actionlint 통과, 첫 CI 실행 전)
+- [x] `release.yml` 의 `check` 잡 (판, 고지, `check-engine-pin.mjs`, 템플릿 묶음에 대한 `templates.test.ts`)과 `collect` 잡(`SHA256SUMS.txt`)과 `release` 잡 (태그를 민 실행만, 초안, 프리릴리스 판정), `docs/releases/first-open.md` (본문 머리의 처음 열기)
+- [x] 로컬에서 같은 검사: `yarn selftest:app <빌드한 앱 경로> [--embedded] [--forest <엔진 저장소>]` (저자가 CI 없이 돌린다. 기본은 창이 뜨지 않는다). 2026-09-27 이 맥: 33 PASS, `--forest` 46 PASS
+- [ ] E3 완료 기준 1 (Tauri 창의 숲이 게임과 같다): 자가 검사의 숲 단계가 CI 의 보이는 창에서 통과하면 E3 문서에 체크한다 (이 맥의 숨은 창에서는 통과)
+- [ ] 첫 초안 릴리스 `v2.0.0-alpha.1` (결정 기록: 태그는 저자가 민다. 워크플로는 태그를 받으면 초안을 만들게 되어 있다)
 
 ### 마일스톤 5: 안드로이드 스테이징 (엔진 짝과 에디터)
 
-- [ ] 엔진: `tools/stage_rules.json`(안드로이드 전용, `shared` 표시), `tools/stage_list.py`. `tools/web_stage.py` 는 무수정
-- [ ] 엔진: `prepare_assets.sh` 의 `--project`, `--with-rtp`, `--dry-run`, `--dest`, `python3` 확인, 스탬프, 경고 줄, `STAGED` 줄, `config.setting` 빼기
-- [ ] 엔진: `tests/tools/prepare_assets_test.sh` 를 `tests/run_all.sh` 에, `android/README.md` 사용법 (`--with-rtp` 포함)
-- [ ] 에디터: `stage_rules.json` 의 `shared` 줄이 `gameView/staging.ts` 에 있는지 보는 시험 (엔진 저장소가 있을 때, 없으면 건너뛴다)
-- [ ] 에디터: `src-tauri/src/process.rs` 로 줄 펌프와 정지 떼기 (엔진 시험 무변경), `android_stage` 명령과 시험
-- [ ] 에디터: `packages/app/src/editor/android/` (저장소 찾기와 신뢰, `AndroidStageStore`, 명령 `android.stage`, 확인 대화상자, Windows 의 bash 와 `python3` 찾기, 콘솔 source `android`, 토스트), 설정 `engineRepoPath`
-- [ ] 교차 검사 `yarn test:android-stage` (`scripts/e2e-android-stage.mjs`)
+- [x] 엔진: `tools/stage_rules.json`(안드로이드 전용, `shared` 표시, 규칙마다 예시), `tools/stage_list.py`. `tools/web_stage.py` 는 무수정
+- [x] 엔진: `prepare_assets.sh` 의 `--project`, `--with-rtp`, `--dry-run`, `--dest`, `python3` 확인, 스탬프, 경고 줄, `STAGED` 줄, `config.setting` 빼기. 인자 없는 실행은 지금과 같다 (결정 기록)
+- [x] 엔진: `tests/tools/prepare_assets_test.sh` 를 `tests/run_all.sh` 에, `android/README.md` 와 루트 README 사용법 (`--with-rtp` 포함). 엔진 브랜치 `feat/android-stage-project`
+- [x] 에디터: `stage_rules.json` 의 `shared` 줄이 `gameView/staging.ts` 에 있는지 보는 시험 (엔진 저장소가 있을 때, 없으면 건너뛴다)
+- [x] 에디터: `android_stage` 와 `android_repo_probe` 명령과 시험. `process.rs` 떼기 대신 엔진의 `EngineState` 를 그대로 쓴다 (6.3, 엔진 시험 무변경)
+- [x] 에디터: `packages/app/src/editor/android/` (저장소 찾기와 신뢰, `AndroidStageStore`, 명령 `android.stage`, 확인 대화상자, 콘솔 source `android`, 토스트), Windows 의 bash 와 `python3` 찾기(셸), 설정 `engineRepoPath` 와 `androidTrust`
+- [x] 교차 검사 `yarn test:android-stage` (`scripts/e2e-android-stage.mjs`)
 - [ ] 실기 (선택): 저자가 APK 로 플래피
 
 ### 마일스톤 6: 웹판과 링크 (에디터)
 
-- [ ] `packages/app/public/_headers`, `scripts/check-web-dist.mjs` 를 CI 에
-- [ ] CI `web` 잡의 `wrangler pages dev dist` 와 그 주소에 대한 `tests/e2e/pages.spec.ts`
-- [ ] 샘플 진입 파일(Lua, Ruby)이 `meadow.json` 을 그린다. `game-view.spec.ts` 메모리 모드 검사를 맵 기준으로. `pages.spec.ts` 의 칠하기, 저장, F5, 그 칸의 캡처 차이
-- [ ] 새 프로젝트를 `backend.capabilities.pickFolder` 로 켜기 (브라우저 폴더 백엔드에서 된다), 웹판 대화상자의 Ruby 안내. `web-folder.spec.ts` 에 새 플래피 프로젝트를 만들어 F5 로 도는 경우
-- [ ] `tauri-plugin-opener` 와 좁은 권한, `openExternal` 과 그 단위 시험, 정보 창과 시작 화면의 모든 바깥 링크를 그리로
-- [ ] `__APP_COMMIT__` 과 정보 창 (판, 커밋, 웹 엔진 커밋, 제3자 고지, 데스크톱 앱 받기 또는 웹판 열기)
-- [ ] 시작 화면: 데스크톱 앱 받기, 웹판에서 안 되는 것, 샘플이 맵을 연 채로 뜨고 "타일을 칠하고 F5" 안내
-- [ ] `.github/workflows/pages-smoke.yml` (저자가 배포 주소로 누른다)
-- [ ] Pages 설정 표를 README 에. 프로덕션 브랜치 정리 (저자 결정 뒤)
+- [x] `packages/app/public/_headers`, `scripts/check-web-dist.mjs` (CI 단계로 넣는 것은 아래 CI 항목)
+- [x] CI `web` 잡의 `check-web-dist` 와 `wrangler pages dev dist`, 그 주소에 대한 `tests/e2e/pages.spec.ts` (`PAGES_WRANGLER=1`. 러너에서 wrangler 를 받는지는 첫 CI 실행이 본다)
+- [x] 샘플 진입 파일(Lua, Ruby)이 `meadow.json` 을 그린다. `game-view.spec.ts` 메모리 모드 검사를 맵 기준으로. `pages.spec.ts` 의 칠하기, 저장, F5, 그 칸의 캡처 차이. 네이티브 교차 검사 `sampleProject.unit.ts`
+- [x] 새 프로젝트를 켜는 조건(`newProjectBlocker`: 웹판은 폴더 열기가 있는 브라우저면 샘플 뒤에도), 웹판 대화상자의 Ruby 안내(웹 엔진에 mruby 가 없을 때). `web-folder.spec.ts` 에 새 플래피 프로젝트를 만들어 F5 로 도는 경우와 취소, 비어 있지 않은 폴더
+- [x] `tauri-plugin-opener` 와 좁은 권한 (셸 쪽은 됨: 플러그인, `opener:allow-open-url` 에 GitHub 와 웹판 주소, `tests/capabilities.rs`), `openExternal` 과 그 단위 시험, 정보 창과 시작 화면과 도움말의 모든 바깥 링크를 그리로
+- [x] `__APP_COMMIT__` 과 정보 창 (판, 커밋, 웹 엔진 커밋, 제3자 고지, 데스크톱 앱 받기 또는 웹판 열기)
+- [x] 시작 화면: 새 프로젝트, 데스크톱 앱 받기, 웹판에서 안 되는 것, 샘플이 맵을 연 채로 뜨고 "칠하고 F5" 안내
+- [x] `.github/workflows/pages-smoke.yml` (저자가 배포 주소로 누른다. 입력 `url`, `PAGES_URL` 로 `pages.spec.ts`)
+- [x] Pages 설정 표를 README 에 (대시보드에서 찾은 값). 프로덕션 브랜치 정리는 저자 결정
 
 ### 마일스톤 7: 업데이트 확인과 문서
 
-- [ ] 도움말 > 업데이트 확인, 설정 `checkUpdates`, `updateChannel`, `packages/app/src/editor/update/` 와 단위 시험 (판 비교, 가짜 API 응답 넷)
-- [ ] 에디터 README (사용법만, 저자 문체): 설치(세 OS, 서명 안 된 앱 열기), 개발 중 동봉 엔진 시험(`yarn engine:fetch [--from]` 과 `yarn tauri dev --config src-tauri/tauri.sidecar.conf.json`), 릴리스 방법(`yarn version:set`, `yarn version:check`, `yarn engine:pin`, `yarn engine:check`, `ciEngineRef`, 태그, 초안 공개, `main` 빨리 감기), 로컬 자가 검사(`yarn selftest:app`), 신뢰 확인, 웹판(Pages 표, `check-web-dist`, 로컬 `wrangler pages dev`, `pages-smoke.yml`), 새 프로젝트 템플릿 셋, 안드로이드 스테이징(`yarn test:android-stage` 포함), 제3자 고지(`gen-licenses.mjs`)
-- [ ] 엔진 README: 배포용 빌드(`build_dist.sh`, `check_dist.sh`, `pack_templates.py`), 모르는 인자의 종료 코드, `prepare_assets.sh --project` 와 `--with-rtp`, 에디터가 받는 엔진 릴리스(곧바로 공개)
-- [ ] `docs/plans/index.md`: 4절 표의 E6 행을 이 문서로, 5절 후보에서 E6 빼기, 진행 상황에 E6 과 R4 (와 R5) 행, mermaid 그래프에 `R4[R4. 엔진: 배포용 빌드] --> E6` 와 `E3 --> E6`(타일맵 템플릿이 맵 편집에 기댄다)를 더하고 `E5 -.-> E6` 는 지운다 (E5 는 병행). 03 문서 4절의 탐색 순서와 신뢰 규칙, 01 문서 6절의 "shell 플러그인" 줄을 이 문서에 맞춘다
+- [ ] 도움말 > 업데이트 확인, 설정 `checkUpdates`, `updateChannel`, `packages/app/src/editor/update/` 와 단위 시험 (판 비교, 가짜 API 응답 넷). 결정 기록으로 이 단계에서 뺐다 (나중 후보)
+- [x] 에디터 README (사용법만, 저자 문체): 설치(세 OS, 서명 안 된 앱 열기), 개발 중 동봉 엔진 시험(`yarn engine:fetch [--from]` 과 `yarn tauri dev --config src-tauri/tauri.sidecar.conf.json`), 릴리스 방법(`yarn version:set`, `yarn version:check`, `yarn engine:pin`, `yarn engine:check`, `ciEngineRef`, 태그, 초안 공개, `main` 빨리 감기), 로컬 자가 검사(`yarn selftest:app`), 신뢰 확인, 웹판(Pages 표, `check-web-dist`, 로컬 `wrangler pages dev`, `pages-smoke.yml`), 새 프로젝트 템플릿 셋, 안드로이드 스테이징(`yarn test:android-stage` 포함), 제3자 고지(`gen-licenses.mjs`). `yarn engine:pin` 은 태그가 생긴 뒤에 만들므로 README 에 없다
+- [ ] 엔진 README: 배포용 빌드(`build_dist.sh`, `check_dist.sh`, `pack_templates.py`), 모르는 인자의 종료 코드, `prepare_assets.sh --project` 와 `--with-rtp`, 에디터가 받는 엔진 릴리스(곧바로 공개). 배포용 빌드와 종료 코드는 엔진 master 에 있다. `prepare_assets.sh` 의 새 인자는 엔진 브랜치 `feat/android-stage-project` 의 README 에 있고 master 에 들어가면 닫는다. 엔진 릴리스는 결정 기록으로 없다
+- [x] `docs/plans/index.md`: 4절 표의 E6 행을 이 문서로, 5절 후보에서 E6 빼기, 진행 상황에 E6 과 R4 (와 R5) 행, mermaid 그래프에 `R4[R4. 엔진: 배포용 빌드] --> E6` 와 `E3 --> E6`(타일맵 템플릿이 맵 편집에 기댄다)를 더하고 `E5 -.-> E6` 는 지운다 (E5 는 병행). 03 문서 4절의 탐색 순서와 신뢰 규칙, 01 문서 6절의 "shell 플러그인" 줄을 이 문서에 맞춘다
 
 ### 마일스톤 8 (저자 결정 뒤, 완료 기준 밖): 서명, 자동 업데이트, Windows 엔진
 
@@ -872,17 +1110,36 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 
 ## 완료 기준
 
-- [ ] `v*` 태그 하나로 `release.yml` 이 macOS(dmg), Linux(AppImage, deb), Windows(NSIS) 번들과 `SHA256SUMS.txt` 를 초안 릴리스에 올린다
-- [ ] **CI 의 macOS 와 Linux 설치본이 자가 검사를 통과한다.** 메모리 설정으로 격리된 채, 번들에 든 템플릿으로 새 프로젝트 셋을 만든다. 플래피 Lua 와 플래피 Ruby 는 엔진 후보 탐색이 `bundled` 를 고르고, 그 엔진이 자동 시연 900틱을 돌아 종료 코드 0, 전체 로그에 상태 전이 셋과 `flappyFinal ... ticks=900` 과 `best >= 1`, 오류 줄 없음. 타일맵은 맵 문서에서 칠하고 저장한 칸이 번들 엔진의 스크린샷에서 표식 색이다. 보안 정책 위반이 없다. **에디터가 만들고 칠한 프로젝트를 번들 엔진이 실제로 돈다**
+- [ ] `v*` 태그 하나로 `release.yml` 이 macOS(dmg), Linux(AppImage, deb), Windows(NSIS) 번들과 `SHA256SUMS.txt` 를 초안 릴리스에 올린다 (결정 기록대로 dry run 의 산출물로 읽는다. 워크플로는 됐고 첫 실행 전)
+- [ ] **CI 의 macOS 와 Linux 설치본이 자가 검사를 통과한다.** 메모리 설정으로 격리된 채, 번들에 든 템플릿으로 새 프로젝트 셋을 만든다. 플래피 Lua 와 플래피 Ruby 는 엔진 후보 탐색이 `bundled` 를 고르고, 그 엔진이 자동 시연 900틱을 돌아 종료 코드 0, 전체 로그에 상태 전이 셋과 `flappyFinal ... ticks=900` 과 `best >= 1`, 오류 줄 없음. 타일맵은 맵 문서에서 칠하고 저장한 칸이 번들 엔진의 스크린샷에서 표식 색이다. 보안 정책 위반이 없다. **에디터가 만들고 칠한 프로젝트를 번들 엔진이 실제로 돈다** (2026-09-27 이 맥, 사이드카를 실은 릴리스 `.app` 의 숨은 창: 33 PASS / 0 FAIL, 숲까지 46 PASS. 통합한 트리로 다시 빌드해도 같다. CI 는 첫 실행 전)
 - [ ] CI 의 Windows 설치본이 무인 설치 뒤 새 플래피 프로젝트를 만들고, 프로세스 방식으로 시작해 엔진을 못 찾고 에디터 안(웹 엔진)으로 넘어가 같은 플래피 검사를 통과한다. 첫 CI 실행이 WebGL 이 없음을 로그로 보일 때만 넘어감까지로 줄이고 그 로그를 이 문서에 적는다
-- [ ] 판 대조: 동봉 엔진의 `--version` 커밋, `engine-pin.json`, 웹 엔진 MANIFEST, 템플릿 MANIFEST, 저장소 안의 다른 엔진 사본 MANIFEST 의 커밋이 같고, 앱의 템플릿이 핀의 템플릿 묶음과 생성물까지 sha 가 같고, `ciEngineRef` 가 비어 있다 (릴리스 `check` 잡)
-- [ ] 동봉 엔진이 자립 실행 파일이다 (번들 안 파일에 대한 `check-sidecar.mjs`: Homebrew 경로 없음, 허용 목록 밖 의존 없음)
-- [ ] 신뢰: 신뢰하지 않은 프로젝트를 열면 프로젝트 안과 형제 경로의 실행 파일을 한 번도 부르지 않고(단위 시험), 확인 대화상자는 실행 파일의 절대 경로를 보이고, 답은 앱 설정에만 남는다
-- [ ] 안드로이드: `yarn test:android-stage` 가 통과한다. 에디터 명령과 같은 인자로 스테이징한 폴더만으로 데스크톱 엔진이 플래피 검사를 통과하고, 내용만 바꾼 두 번째 스테이징의 스탬프가 다르고, `config.setting` 과 (기본) RTP 변환물이 들어가지 않는다
-- [ ] 웹판: `check-web-dist` 와 `wrangler pages dev dist` 에 대한 `pages.spec.ts` 가 CI 에서 통과한다 (wasm 의 content-type, 샘플 실행, 칠한 칸이 게임 탭에 보인다, 스트리밍 실패 줄 없음). 폴더를 열 수 있는 브라우저에서 새 플래피 프로젝트가 만들어지고 F5 로 돈다 (`web-folder.spec.ts`)
-- [ ] 업데이트 확인의 판 비교와 가짜 API 응답 단위 시험이 통과하고, 바깥 링크가 opener 를 거친다
+- [x] 판 대조: 동봉 엔진의 `--version` 커밋, `engine-pin.json`, 웹 엔진 MANIFEST, 템플릿 MANIFEST, 저장소 안의 다른 엔진 사본 MANIFEST 의 커밋이 같고, 앱의 템플릿이 핀의 템플릿 묶음과 생성물까지 sha 가 같고, `ciEngineRef` 가 비어 있다 (릴리스 `check` 잡). 2026-09-27 이 맥에서 `check` 잡의 단계를 그대로 돌려 통과: `yarn engine:check` 전부 통과(웹 엔진을 핀의 커밋에서 다시 빌드한 뒤), 핀의 커밋에서 `pack_templates.py` 로 만든 묶음에 대한 `templates.test.ts` 7건, 번들 안 엔진의 `--version` 커밋이 핀과 같다(`check-sidecar.mjs`). CI 의 `check` 잡은 첫 실행 전
+- [ ] 동봉 엔진이 자립 실행 파일이다 (번들 안 파일에 대한 `check-sidecar.mjs`: Homebrew 경로 없음, 허용 목록 밖 의존 없음). macOS 는 이 맥에서 통과 (릴리스 `.app` 안의 파일, 의존은 `/usr/lib` 와 `/System/Library` 뿐, minos 11.0). Linux(`ldd` 허용 목록)는 첫 CI 실행
+- [x] 신뢰: 신뢰하지 않은 프로젝트를 열면 프로젝트 안과 형제 경로의 실행 파일을 한 번도 부르지 않고(단위 시험), 확인 대화상자는 실행 파일의 절대 경로를 보이고, 답은 앱 설정에만 남는다 (`RunnerStore.trust.test.ts`, `engineTrust.test.ts`, `EngineTrustDialog.test.tsx`, `SettingsDialog.test.tsx`. 안드로이드 스테이징의 스크립트도 같은 규칙: `AndroidStageStore.test.ts`)
+- [x] 안드로이드: `yarn test:android-stage` 가 통과한다 (엔진 브랜치 `feat/android-stage-project` 로. 그 브랜치가 엔진 master 에 들어가기 전의 CI 는 건너뛴다. 2026-09-27 통합에서 다시 돌려 33 PASS. master 에 들어가기 전의 엔진 저장소에서는 앱의 명령이 스크립트를 돌리지 않고 멈춘다, 6.3). 에디터 명령과 같은 인자로 스테이징한 폴더만으로 데스크톱 엔진이 플래피 검사를 통과하고, 내용만 바꾼 두 번째 스테이징의 스탬프가 다르고, `config.setting` 과 (기본) RTP 변환물이 들어가지 않는다
+- [ ] 웹판: `check-web-dist` 와 `wrangler pages dev dist` 에 대한 `pages.spec.ts` 가 CI 에서 통과한다 (wasm 의 content-type, 샘플 실행, 칠한 칸이 게임 탭에 보인다, 스트리밍 실패 줄 없음). 폴더를 열 수 있는 브라우저에서 새 플래피 프로젝트가 만들어지고 F5 로 돈다 (`web-folder.spec.ts`). 2026-09-27 이 맥: `check-web-dist` OK, 전체 Playwright 93 통과 (`PAGES_WRANGLER=1` 로 헤더 검사까지). CI 의 `ci.yml` 은 PR 의 첫 실행 전
+- [x] 바깥 링크가 opener 를 거친다 (`openExternal.test.ts`, `AboutDialog.test.tsx`, `tests/capabilities.rs`). 업데이트 확인의 판 비교와 가짜 API 응답은 결정 기록으로 이 기준에서 뺐다
 - [ ] 저자 실기: macOS 에서 초안 릴리스의 dmg 를 받아 README 대로 열고, "타일맵" 템플릿으로 새 프로젝트를 만들어 한 칸을 칠하고 F5 로 칠한 맵이 뜬다 (상태 바에 "앱에 든 엔진"). 엔진 저장소를 열면 신뢰 확인 한 번 뒤 그 저장소의 `build/` 가 쓰이고 알데바란이 돈다
-- [ ] 두 저장소의 README 에 마일스톤 7 의 목록이 모두 있다 (새 yarn 명령과 워크플로우 전부: `engine:fetch`, `engine:pin`, `engine:check`, `version:set`, `version:check`, `selftest:app`, `test:android-stage`, `check-web-dist`, 로컬 `wrangler pages dev`, `gen-licenses`, 엔진의 `build_dist.sh`, `check_dist.sh`, `pack_templates.py`, `prepare_assets.sh` 의 새 인자)
+- [ ] 두 저장소의 README 에 마일스톤 7 의 목록이 모두 있다 (새 yarn 명령과 워크플로우 전부: `engine:fetch`, `engine:pin`, `engine:check`, `version:set`, `version:check`, `selftest:app`, `test:android-stage`, `check-web-dist`, 로컬 `wrangler pages dev`, `gen-licenses`, 엔진의 `build_dist.sh`, `check_dist.sh`, `pack_templates.py`, `prepare_assets.sh` 의 새 인자). 에디터 README 는 됐다 (`engine:pin` 은 태그 뒤에 만든다). 엔진 README 의 `prepare_assets.sh` 새 인자는 엔진 브랜치가 master 에 들어가야 닫힌다
+
+### 남은 기준을 닫는 CI 실행 (2026-09-27 통합 뒤)
+
+로컬에서 돌릴 수 있는 검사는 모두 통과했다. 남은 기준은 러너에서만 볼 수 있다. `release.yml` 은 기본 브랜치(`next`)에 있어야
+`workflow_dispatch` 로 돌릴 수 있으므로, 합치기 전에는 이 브랜치의 PR 이 부르는 `release.yml`(경로 조건에 `src-tauri/**` 가 있다)과
+`ci.yml` 이 같은 일을 하고, 합친 뒤에는 `gh workflow run release.yml --ref next -f dry_run=true` 로 돌린다.
+
+| 기준 | 잡과 단계 | 통과의 모습 |
+|---|---|---|
+| 첫째 (세 OS 번들과 `SHA256SUMS.txt`) | `release.yml` 의 `engine` (macOS, Linux), `bundle` 셋의 "번들", `collect` | 산출물 `InitialEditor-<커밋>` 에 dmg, AppImage, deb, NSIS, `SHA256SUMS.txt`. NSIS 가 `2.0.0-dev` 를 받는지 |
+| 둘째 (macOS 와 Linux 자가 검사) | `bundle` 의 "자가 검사 (macOS, dmg 안의 앱)", "자가 검사 (Linux, AppImage)", "자가 검사 판정" | 판정이 0 이고 보고서에 `cspViolations` 가 없다. macOS 의 숲 단계가 통과하면 E3 완료 기준 1 도 닫는다 |
+| 셋째 (Windows 넘어감) | `bundle` 의 "자가 검사 (Windows, 무인 설치본)", "자가 검사 판정" | 엔진 출처 `none`, 에디터 안(`embedded`)으로 넘어갔다, 플래피 검사 통과. WebGL 이 없다는 로그가 나올 때만 기준을 줄인다 |
+| 다섯째 (Linux 사이드카 자립) | `bundle` 의 "번들 안 사이드카 (Linux deb)", "deb 설치와 엔진 --version" | `check-sidecar.mjs` 의 `ldd` 허용 목록 통과 |
+| 넷째를 CI 에서 다시 | `release.yml` 의 `check` | 로컬과 같은 통과 (`version:check`, `gen-licenses --check`, `engine:check`, 템플릿 묶음 대조) |
+| 여덟째 (웹판) | `ci.yml` 의 `web` 잡 ("웹판 dist 검사", `PAGES_WRANGLER=1` 의 Playwright) | 러너가 wrangler 를 받아 헤더 검사가 건너뛰지 않고 통과 |
+| 마일스톤 1 의 Rust 세 OS | `ci.yml` 의 `rust` 행렬 | Windows 에서 크레이트가 빌드되고 `cargo test` 통과 |
+
+엔진 쪽 `dist.yml` 의 첫 실행(엔진 저장소에서 `workflow_dispatch`)은 R4 의 남은 항목이고 이 표와 따로 돌린다. 안드로이드는 엔진 브랜치
+`feat/android-stage-project` 가 엔진 master 에 들어간 뒤 `ci.yml` 에 `yarn test:android-stage` 를 더한다.
 
 ## 의존 관계
 
@@ -909,8 +1166,8 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 - **자가 검사의 멈춤.** 프런트가 멈추거나 죽으면 앱이 끝나지 않는다. 대응: 셸의 전체 시간 감시가 보고서를 쓰고 끝내고, CI 단계의 `timeout-minutes` 와 "보고서가 없으면 실패" 가 겹으로 막는다.
 - **판 어긋남.** 동봉 엔진, 웹 엔진, 템플릿, ext-rpg 픽스처, 프로젝트의 런타임 스크립트가 서로 다른 엔진 커밋에서 올 수 있다. 대응: `engine-pin.json` 한 장, `engine:pin` 한 명령, `check` 잡. 핀이 개발을 막는 것은 `ciEngineRef` 로 풀고 릴리스에서는 막는다. 프로젝트 쪽은 후보(런타임 갱신 명령).
 - **Pages 빌드 환경.** Yarn Berry, Node 판, `_headers` 문법 실수. 대응: `.node-version`, `yarnPath`, `check-web-dist`, CI 의 `wrangler pages dev` 로 헤더까지 배포 전에 본다.
-- **라이선스.** 엔진 저장소에 LICENSE 가 없어 엔진 바이너리를 배포할 근거가 없다. 나눔고딕(OFL)은 고지가 필요하다. 대응: 저자 결정, `THIRD-PARTY.md`, `licenses/`. RTP 변환물은 `--with-rtp` 로만 APK 에 들어가고 경고 줄이 붙는다.
-- **엔진의 실행 부작용.** 엔진이 프로젝트 루트에 `config.setting` 을 쓴다 (실행 파일 경로가 들어가 사람마다 다르다). 대응: 새 프로젝트의 `.gitignore`, 안드로이드 스테이징에서 빼기, 탐색의 임시 작업 폴더. 엔진 쪽에서 없애는 것은 C++ 변경이라 이 단계에서는 하지 않는다.
+- **라이선스.** 엔진 저장소에 LICENSE 가 없어 엔진 바이너리를 배포할 근거가 없다. 나눔고딕(OFL)은 고지가 필요하다. 대응: 저자 결정, `THIRD-PARTY.md`, `licenses/`. RTP 변환물은 `--project` 스테이징에서 `--with-rtp` 로만 APK 에 들어가고 경고 줄이 붙는다 (인자 없는 실행은 저자의 기기 시험이라 예전처럼 넣는다).
+- **엔진의 실행 부작용.** 엔진이 프로젝트 루트에 `config.setting` 을 쓴다 (실행 파일 경로가 들어가 사람마다 다르다). 대응: 새 프로젝트의 `.gitignore`, 안드로이드 스테이징(`--project`)에서 빼기, 탐색의 임시 작업 폴더. 엔진 쪽에서 없애는 것은 C++ 변경이라 이 단계에서는 하지 않는다.
 - **`identifier` 변경.** 설정과 기억한 폴더를 잃는다. 대응: 고정 (9절).
 
 ## 결정 기록 (2026-09-27)

@@ -54,7 +54,7 @@ INITIAL_EDITOR_OPEN=~/mygame yarn tauri dev   # 시작하자마자 그 폴더를
 - 프로젝트 패널에서 `.lua`, `.rb`, `.json` 을 열면 Monaco 편집기가 뜹니다. Ctrl+S 로 저장하면 (설정이 켜져 있으면) 실행 중인 게임에 핫 리로드가 갑니다. 밖에서 파일이 바뀌면 수정 중이 아닐 때는 조용히 다시 읽고, 수정 중이면 배너로 묻습니다. 저장할 때 디스크의 파일이 연 때와 다르면(배너에서 내 것 유지를 골랐어도, 파일이 지워졌어도) 덮어쓰기, 다시 읽기, 취소를 모달로 한 번 더 묻습니다. 씬, 맵, 모두 저장도 같습니다. 다시 읽기는 저장하지 않은 수정을 버리므로 한 번 더 확인하고, 디스크의 파일이 깨져 다시 읽지 못하면 "다시 읽지 못했다"고 알린 뒤 내 수정과 배너를 그대로 둡니다. 큰 맵을 쓰는 중에 고치고 다시 저장하면 앞의 쓰기가 끝난 뒤 최신 내용으로 한 번 더 저장합니다.
 - 자동완성은 프로젝트의 `resources/api/initial2d-api.json`(엔진 저장소가 만들어 둔 API 명세)을 읽습니다. 없으면 내장 기본값으로 동작하며 콘솔에 그렇게 적힙니다. `Input.` 뒤에 멤버, `(` 뒤에 시그니처, 빈 파일에서 씬 계약 네 함수 스니펫.
 - 찾기: 편집기 안 Ctrl+F, 프로젝트 전체 Ctrl+Shift+F (대소문자, 정규식). 새 스크립트 Ctrl+Alt+N (씬 템플릿 또는 컴포넌트 템플릿, Lua 나 Ruby).
-- 엔진 프로세스 실행(F5, 설정의 실행 방식이 프로세스일 때)은 Tauri 앱에서만 됩니다. 브라우저에서는 F5 가 에디터 안 게임 탭에서 돕니다 (아래 "에디터 안에서 실행"). 엔진은 설정의 경로, 프로젝트의 `.initial-editor/engine`(한 줄 경로), 프로젝트 안 `build/Initial2D`, 형제 폴더 `../Initial2D/build/Initial2D` 순서로 찾고 `--features` 로 확인합니다. 정지 Shift+F5, 리로드 Ctrl+Shift+R. 엔진 출력은 콘솔에 오고 `파일:줄:` 은 링크라 누르면 그 줄로 갑니다.
+- 엔진 프로세스 실행(F5, 설정의 실행 방식이 프로세스일 때)은 Tauri 앱에서만 됩니다. 브라우저에서는 F5 가 에디터 안 게임 탭에서 돕니다 (아래 "에디터 안에서 실행"). 엔진은 설정의 경로, 프로젝트의 `.initial-editor/engine`(한 줄 경로), 프로젝트 안 `build/Initial2D`, 앱에 든 엔진(설치본), 형제 폴더 `../Initial2D/build/Initial2D` 순서로 찾고 `--features` 로 확인합니다. 프로젝트가 가리키는 실행 파일(`.initial-editor/engine`, `build/`, 형제 폴더)은 처음 한 번 경로를 보여 주고 실행해도 되는지 묻습니다. 답은 프로젝트가 아니라 앱 설정에 남고, 도구 > 설정의 "찾은 엔진" 줄에서 신뢰 취소나 다시 묻기를 합니다. 엔진을 못 찾으면 F5 는 에디터 안 게임 탭으로 넘어갑니다 (Ruby 프로젝트는 이유를 띄웁니다). 정지 Shift+F5, 리로드 Ctrl+Shift+R. 엔진 출력은 콘솔에 오고 `파일:줄:` 은 링크라 누르면 그 줄로 갑니다.
 - 배포된 페이지(Cloudflare Pages 등, 로컬이 아닌 호스트)에서는 브리지에 닿을 수 없어 웹판(브라우저 폴더)으로 시작합니다. 폴더 열기가 없는 브라우저는 메모리 모드입니다. 아래 "웹판" 절.
 
 ## 웹판 (브라우저에서 폴더 열기)
@@ -65,12 +65,46 @@ INITIAL_EDITOR_OPEN=~/mygame yarn tauri dev   # 시작하자마자 그 폴더를
 - **브라우저**: 크롬, 엣지 같은 크로미움 계열 데스크톱 브라우저. 파이어폭스와 사파리에는 폴더 열기가 없어서 샘플 프로젝트(메모리 모드)로 시작하고 시작 화면에 그렇게 적힙니다.
 - **폴더 열기**: 시작 화면의 "폴더 열기"(또는 Ctrl+O, 파일 > 프로젝트 열기. "샘플로 해 보기" 뒤에도 같습니다)로 `game.json` 이 있는 폴더를 고르고, 브라우저가 묻는 수정 권한에 동의합니다. 연 폴더는 브라우저(IndexedDB)가 폴더 이름으로 기억해 "최근 폴더"와 파일 > 최근 프로젝트에 나옵니다. 같은 이름의 폴더를 다시 고르면 목록이 늘지 않고 그 자리를 새로 고른 폴더로 바꿉니다. 브라우저가 권한을 기억하지 않았으면 "다시 열기"를 누를 때 한 번 더 묻습니다.
 - 열린 프로젝트에 저장하지 않은 문서가 있으면 폴더를 고른 뒤 닫을지 먼저 묻습니다. 여기서 취소하면 기억한 폴더 목록도 지금 열린 프로젝트도 그대로입니다.
-- **되는 것**: 파일 트리, 스크립트와 씬과 맵 편집, 저장(임시 파일에 쓰고 한 번에 바꾼다), 이름 바꾸기와 지우기, 밖에서 바뀐 파일 감지(1.5초 간격으로 확인). **안 되는 것**: 새 프로젝트 만들기, 엔진 실행 파일 띄우기(Tauri 앱의 일).
+- **되는 것**: 파일 트리, 스크립트와 씬과 맵 편집, 저장(임시 파일에 쓰고 한 번에 바꾼다), 이름 바꾸기와 지우기, 밖에서 바뀐 파일 감지(1.5초 간격으로 확인), 새 프로젝트. **안 되는 것**: 엔진 실행 파일 띄우기와 안드로이드 스테이징(데스크톱 앱의 일). 웹 엔진 빌드에 mruby 가 없으면 Ruby 게임도 돌지 않습니다. 시작 화면 아래에 이 줄과 "데스크톱 앱 받기"(릴리스 페이지)가 있습니다.
+- **새 프로젝트**: 시작 화면의 "새 프로젝트"(또는 Ctrl+N, 파일 > 새 프로젝트. "샘플로 해 보기" 뒤에도 같습니다)로 빈 폴더를 고르고 템플릿과 언어를 정하면 그 폴더에 템플릿을 쓰고 엽니다. 폴더를 기억하는 것은 대화상자에서 "만들기"를 누른 뒤라, 중간에 취소하면 최근 폴더도 폴더 안도 그대로입니다. 비어 있지 않은 폴더는 한 번 묻고, 있는 파일은 그대로 두고 없는 것만 만듭니다.
+- **샘플로 해 보기**: 메모리의 샘플 프로젝트를 열고 초원 맵(`resources/maps/meadow.json`)을 맵 뷰로 띄웁니다. 샘플 게임이 이 맵을 화면 가운데에 그리므로, 팔레트에서 타일을 골라 칠하고 저장한 뒤 F5 를 누르면 칠한 칸이 게임 탭에 보입니다.
+- **정보 창**(도움말 > InitialEditor 정보): 판, 빌드한 커밋, 웹 엔진의 커밋과 기능, 데스크톱 앱이면 찾은 엔진(앱에 든 엔진이면 그 판), 제3자 고지(웹 엔진과 함께 실린 `engine/THIRD-PARTY.md`), 웹판이면 "데스크톱 앱 받기", 데스크톱 앱이면 "웹판 열기". 바깥 링크는 데스크톱 앱에서는 기본 브라우저로, 웹판에서는 새 탭으로 열립니다.
 - 밖에서 바뀐 파일은 크기와 수정 시각만 비교해서 찾습니다(내용은 읽지 않는 폴링). 크기와 수정 시각이 둘 다 그대로인 변경(수정 시각을 보존하는 복사 등)은 놓칩니다.
 - 이름 바꾸기는 브라우저의 `move()` 가 되면 그것을, 안 되거나 실패하면 복사 뒤 지우기를 씁니다. 크롬 153 은 파일에만 `move()` 가 있어서 폴더 이름 바꾸기는 늘 복사입니다. `move()` 쪽의 자동 테스트는 가짜 파일 시스템으로만 돕니다.
 - **시크릿 창**: 크로미움의 시크릿 창(off-the-record 프로필)에서는 IndexedDB 에 기억한 폴더 핸들을 꺼내는 순간 탭이 아니라 브라우저 프로세스가 통째로 꺼집니다(크롬 153 에서 확인, 시크릿 창의 저장소도 함께 사라집니다). 그래서 "다시 열기"는 일반 창이라고 확신할 때만 핸들을 바로 꺼냅니다. 기준은 JS 힙 한도(`performance.memory.jsHeapSizeLimit`)를 알 수 있고, 저장 할당량이 그 두 배보다 크고 4 GiB 보다도 큰 것입니다. 나머지는 모두 핸들을 꺼내지 않고, 이유를 한 줄 알린 뒤 폴더 고르기 대화상자를 엽니다(크롬은 지난번에 고른 폴더에서 엽니다). 같은 폴더를 고르면 됩니다. 크롬 153 의 시크릿 창과 게스트 창은 할당량이 딱 2 GiB(쓴 뒤에는 2 GiB 에 사용량을 더한 값)이고, 일반 창은 10 GiB 였습니다. 힙 한도를 알려 주지 않는 브라우저는 일반 창이어도 폴더 고르기로 돕니다.
 - 일반 창에서 핸들을 꺼내다 브라우저가 꺼진 흔적이 몇 분 안에 남아 있으면 그 페이지에서도 "다시 열기"가 폴더 고르기로 돕니다. 폴더를 하나 열면 흔적을 지웁니다.
 - 로컬에서 웹판을 띄우려면 `yarn dev` 뒤 `http://127.0.0.1:5173/?backend=browser`. `?backend=opfs` 는 브라우저 전용 저장소(OPFS)를 폴더 대신 바로 여는 테스트용입니다 (`tests/e2e/web-folder.spec.ts`).
+
+## 웹판 배포 (Cloudflare Pages)
+
+Pages 는 저장소를 받아 `yarn build` 의 `dist/` 를 냅니다. 설정은 Pages 대시보드에 있고 저장소에는 `wrangler.toml` 을 두지 않습니다.
+대시보드 값은 이렇습니다 (바꿀 때는 이 표도 고칩니다).
+
+| 칸 | 값 |
+|---|---|
+| 프로젝트 | `initial-editor` |
+| 빌드 명령 | `yarn build` |
+| 출력 폴더 | `dist` |
+| 루트 | `/` (저장소 루트) |
+| Node | `.node-version` (22) |
+| Yarn | `.yarnrc.yml` 의 `yarnPath` (Berry 4.3.1) |
+| 환경 변수 | 없음. 정보 창의 커밋은 Pages 가 주는 `CF_PAGES_COMMIT_SHA` 를 `vite.config.ts` 가 읽습니다 |
+| 프로덕션 | `main` 브랜치, https://initial-editor.biud436.com (https://initial-editor.pages.dev) |
+| 미리보기 | `next` 와 PR 브랜치. `next` 는 https://next.initial-editor.pages.dev |
+
+- Pages 빌드는 엔진을 만들지 않습니다. `packages/app/public/engine/` 에 커밋한 웹 엔진과 제3자 고지를 그대로 싣습니다.
+- 응답 헤더는 `packages/app/public/_headers` 입니다: `engine/` 은 이름에 해시가 없어 `no-cache`, `Initial2D.wasm` 은 `application/wasm`(아니면 스트리밍 컴파일이 실패하고 콘솔에 오류 줄이 뜹니다), 해시 이름의 `assets/` 는 1년, 모든 응답에 `nosniff` 와 referrer 정책. 교차 출처 격리 헤더(COOP, COEP)와 CSP 는 두지 않습니다.
+- 빌드한 `dist/` 검사: `node scripts/check-web-dist.mjs` 가 `index.html` 과 그것이 부르는 `assets/`, `_headers` 규칙(wasm 타입, 엔진 캐시, nosniff, 격리 헤더 없음), 웹 엔진 파일과 MANIFEST 의 sha256, `engine/THIRD-PARTY.md`, Pages 한도(파일 하나 25 MiB, 2만 개)를 봅니다. 데스크톱 번들용 빌드는 `--desktop` 을 붙여 소스맵이 없는지도 봅니다. 다른 폴더는 `--dist <폴더>`.
+- 헤더까지 로컬에서 보려면 `wrangler pages dev` 로 Pages 를 흉내 냅니다 (`_headers` 를 적용합니다).
+
+```sh
+yarn build && node scripts/check-web-dist.mjs
+npx wrangler@3 pages dev dist --port 8788                                  # http://127.0.0.1:8788/?backend=browser
+PAGES_URL=http://127.0.0.1:8788 yarn test:e2e tests/e2e/pages.spec.ts       # 띄워 둔 Pages 로
+PAGES_WRANGLER=1 yarn test:e2e tests/e2e/pages.spec.ts                      # 스펙이 wrangler 를 띄우고 끈다 (포트 PAGES_PORT, 기본 8788)
+```
+
+- `tests/e2e/pages.spec.ts` 는 헤더(wasm 타입, 캐시, nosniff, 격리 헤더 없음, 고지 파일)와 흐름(샘플로 해 보기, F5, 맵에서 한 칸 칠해 저장, F5 로 그 칸만 바뀌는지, 스트리밍 컴파일 실패 줄이 없는지, 정보 창)을 봅니다. `PAGES_URL` 도 `PAGES_WRANGLER` 도 없으면 헤더 검사는 까닭을 적고 건너뛰고, 흐름은 Playwright 가 띄운 `vite preview` 로 돕니다. wrangler 를 받지 못하면 그 까닭도 적고 건너뜁니다.
 
 ## 에디터 안에서 실행 (E4)
 
@@ -94,8 +128,9 @@ F5 는 늘 이쪽이고, Tauri 앱은 설정의 **실행 방식**(프로세스, 
 - 씬 메뉴: 새 씬(Ctrl+Shift+N), 오브젝트 추가(Ctrl+Shift+A 또는 타입별 하위 메뉴), 시작 씬으로 지정(`game.json` 의 `startScene`). 편집 메뉴의 복사와 붙여넣기와 복제(Ctrl+D)와 삭제는 씬 탭에서 오브젝트를 다룹니다.
 - 타일맵 오브젝트: 씬 > 오브젝트 추가 > 타일맵. 인스펙터에서 `resources/maps/`의 맵 파일을 고르면 씬 뷰가 그 맵의 레이어를 타일셋으로 오브젝트 자리에 그리고, 맵 파일이나 타일셋 그림이 바뀌면 다시 그립니다. 바닥 레이어 수(`groundLayers`)만큼의 앞 레이어는 씬의 모든 오브젝트 아래에, 나머지 레이어는 모든 오브젝트 위에 그립니다. 목록에서 타일맵보다 앞에 있는 오브젝트도 바닥 위에 보이고, 게임(엔진의 `scene_types/tilemap` 모듈이 같은 파일을 연다)과 같은 순서입니다. "맵 열기"는 그 맵을 맵 뷰로 엽니다.
   씬 뷰에서 타일맵은 배경처럼 다룹니다. 누르고 놓으면 고르고, 고른 뒤에 끌어야 옮겨지며, 고르지 않은 맵 위에서 끌면 상자 선택이 됩니다. 맵 파일을 고르지 않았거나, 고른 맵 파일이 없거나(지웠거나 이름을 바꿈), 있어도 엔진이 열지 못하는 맵(JSON이 아니거나, 버전과 크기가 틀렸거나, 레이어나 타일셋이 비었거나, 타일셋 그림이 없는 맵)을 가리키는 타일맵은 엔진이 씬을 거부하므로 검사 결과에 오류로 뜹니다. 검사는 엔진의 맵 읽기 규칙을 그대로 따라서, 엔진이 여는 맵은 오류로 보지 않습니다. 맵 파일이나 그 타일셋 그림이 바뀌면 다시 검사합니다.
-- 새 프로젝트(Tauri): 빈 프로젝트 또는 플래피버드, Lua 또는 Ruby. 엔진의 씬 로더와 진입 파일과 예제가 함께 들어갑니다. 그 파일들은 엔진 저장소의 사본이며 `INITIAL2D_DIR=../Initial2D yarn sync:templates` 로 다시 맞춥니다.
-- 교차 검사 `yarn test:engine-scene` 이 템플릿 둘 x 언어 둘을 임시 프로젝트로 써서 진짜 엔진을 헤드리스로 돌립니다 (`INITIAL2D_DIR`).
+- 새 프로젝트(Tauri): 빈 프로젝트, 플래피버드, 타일맵 가운데 하나와 Lua 또는 Ruby. 엔진의 씬 로더와 진입 파일과 예제가 함께 들어갑니다. 타일맵은 타일셋과 맵 한 장(`resources/maps/start.json`), 그 맵을 여는 씬, 맵 오브젝트 스키마라서 맵을 칠하고 바로 F5 로 돌려 볼 수 있습니다. `.gitignore` 에는 `.initial-editor/` 와 엔진이 실행할 때 쓰는 `config.setting` 이 들어갑니다.
+- 템플릿 파일은 엔진 저장소의 사본입니다. `INITIAL2D_DIR=../Initial2D yarn sync:templates` 로 엔진 체크아웃에서 다시 맞추고, 엔진의 템플릿 묶음(`tools/pack_templates.py` 가 만든 `Initial2D-templates.zip`)에서 맞출 때는 `yarn sync:templates --from-zip <zip 이나 dist 폴더>` 입니다. 엔진의 추적 파일이 커밋과 다르면 멈추므로 엔진을 먼저 커밋합니다 (`--allow-dirty` 로 넘길 수는 있지만 그 사본은 단위 테스트가 막습니다).
+- 교차 검사 `yarn test:engine-scene` 이 템플릿 셋 x 언어 둘을 임시 프로젝트로 써서 진짜 엔진을 헤드리스로 돌립니다. 타일맵은 맵 문서로 칸 (24, 28) 을 표식 타일로 칠해 저장한 뒤 엔진 화면의 그 칸 색을 봅니다. 엔진은 `INITIAL2D_DIR` 의 `build/Initial2D` 이고, 배포용 빌드처럼 다른 실행 파일은 `INITIAL2D_EXE=<경로> yarn test:engine-scene` 으로 줍니다.
 
 ## 맵 편집 (E3)
 
@@ -128,6 +163,79 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 `알데바란: 시작 x <x> (y <y>)`를 찍고(엔진 PR #47 이후), `INITIAL2D_ALDEBARAN_TRACE=1`이면 맵과 몬스터 검수 줄을 찍는
 판(엔진 PR #48 이후)이어야 합니다. 검수 줄이 없는 엔진이면 테스트가 실패합니다.
 
+## 앱에 싣는 엔진
+
+설치본은 엔진 실행 파일 하나를 앱 안에 싣습니다. 엔진 저장소의 `tools/build_dist.sh` 로 만든 배포용 빌드이고, 에디터가 묶이는 엔진 커밋은
+`engine-pin.json` 에 있습니다.
+
+```sh
+# 엔진 저장소에서 (핀의 커밋으로 체크아웃한 뒤)
+tools/build_dist.sh                                   # dist/Initial2D-<트리플>, dist/engine-dist.json
+
+# 에디터에서
+yarn engine:fetch --from ../Initial2D/dist            # src-tauri/binaries/ 와 src-tauri/licenses/engine/ 으로 받는다
+node scripts/check-sidecar.mjs src-tauri/binaries/Initial2D-aarch64-apple-darwin
+yarn tauri dev --config src-tauri/tauri.sidecar.conf.json     # 앱에 든 엔진으로 개발 빌드
+yarn tauri build --config src-tauri/tauri.sidecar.conf.json   # 번들에 싣는다
+yarn engine:check                                     # 템플릿, 웹 엔진, 받은 엔진이 핀의 커밋인지
+```
+
+- `--from` 폴더는 엔진의 `dist/` 나 `dist.yml` 산출물 폴더입니다. 엔진 커밋이 핀과 다르면 받지 않고, 다른 엔진을 잠깐 시험할 때는 `--any-commit` 을 붙입니다. `--target <트리플>` 로 다른 타깃을 받고, Windows 타깃은 엔진이 없어 고지만 받습니다. `--templates <빈 폴더>` 는 엔진 대신 템플릿 묶음(`Initial2D-templates.zip`)을 풉니다.
+- 받은 파일은 gitignore 입니다: `src-tauri/binaries/Initial2D-<트리플>`, `src-tauri/binaries/engine.json`(판 정보. 상태 바 툴팁과 설정에 "앱에 든 엔진 (cac4b94, lua mruby)" 처럼 보입니다), `src-tauri/licenses/engine/THIRD-PARTY.md`.
+- `check-sidecar.mjs` 는 받은 파일이나 빌드한 `.app` 을 받아 동적 의존(Homebrew 경로가 없는지), `--features`, `--version` 의 커밋이 핀과 같은지, 모르는 인자에 종료 코드 2 인지 봅니다. 엔진은 버리는 임시 폴더에서 창 없이 돕니다.
+- 엔진을 올릴 때는 `engine-pin.json` 의 `engineCommit` 을 바꾸고, 그 커밋에서 `yarn sync:templates` 와 `yarn sync:engine-web` 을 다시 돌린 뒤 `yarn engine:check` 로 맞춰졌는지 봅니다. `ciEngineRef` 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸이라 릴리스 전에는 비웁니다.
+
+## 설치 파일과 자가 검사
+
+설치 파일은 GitHub Actions 의 `release` 워크플로가 만듭니다. macOS arm64 dmg, Linux AppImage 와 deb, Windows NSIS 입니다.
+엔진은 `engine-pin.json` 의 커밋으로 워크플로 안에서 빌드해 싣고, 만든 설치본이 스스로 새 프로젝트를 만들어 돌려 본 뒤
+번들과 `SHA256SUMS.txt` 를 산출물로 올립니다. Actions 탭에서 `release` 를 수동으로 돌리면(dry run) 산출물만 나오고,
+`v*` 태그를 밀면 초안 릴리스까지 만듭니다. 공개는 직접 합니다. Windows 판에는 엔진이 없어 F5 가 에디터 안에서 돕니다.
+
+설치 파일은 그 실행의 Summary 아래 Artifacts 에서 받습니다 (`InitialEditor-<커밋>` 하나에 전부와 `SHA256SUMS.txt`). 서명하지 않은 앱이라 처음 한 번 막힙니다.
+
+- **macOS** (Apple Silicon만): dmg 를 열어 InitialEditor 를 응용 프로그램 폴더로 옮깁니다. 처음 열 때 막히면 시스템 설정 > 개인정보 보호 및 보안에서 "그래도 열기", 또는 `xattr -dr com.apple.quarantine /Applications/InitialEditor.app`
+- **Windows**: 설치 파일을 열면 SmartScreen 이 막습니다. "추가 정보" 를 눌러 "실행". 사용자 폴더에 설치되어 관리자 권한은 필요 없습니다
+- **Linux**: AppImage 는 `chmod +x InitialEditor_*.AppImage` 뒤 실행 (FUSE 2 가 필요합니다). deb 는 `sudo apt install ./InitialEditor_*.deb`
+
+같은 안내가 [docs/releases/first-open.md](./docs/releases/first-open.md) 에 있고, 초안 릴리스 본문 맨 위에 들어갑니다.
+
+```sh
+yarn version:set 2.0.0-alpha.1    # 루트와 packages/*, Cargo.toml, Cargo.lock 의 판을 한꺼번에 바꾸고 yarn install
+yarn version:check                # 판이 한 가지인지 (--tag v<판>, --bundles <번들 폴더> 는 릴리스 워크플로가 쓴다)
+yarn licenses                     # src-tauri/licenses/THIRD-PARTY-editor.md 를 다시 쓴다 (의존성이 바뀌면. CI 는 --check)
+yarn build:desktop                # 소스맵 없는 프런트 (릴리스 번들이 쓴다)
+
+# 이 컴퓨터에서 설치본을 만들어 자가 검사
+yarn engine:fetch --from ../Initial2D/dist
+yarn tauri build --bundles app --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json
+yarn selftest:app src-tauri/target/release/bundle/macos/InitialEditor.app
+yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲을 맵 뷰로 열어 게임 화면과 견주는 것까지
+```
+
+- `yarn selftest:app` 은 창을 띄우지 않습니다. 앱을 자가 검사 모드(`INITIAL_EDITOR_SELFTEST=<계획 파일>`)로 띄우면, 앱에 든 템플릿으로
+  플래피 Lua, 플래피 Ruby, 타일맵 프로젝트를 임시 폴더에 만들고, 타일맵은 맵 문서로 한 칸을 칠해 저장한 뒤, 셋 다 앱에 든 엔진으로 돌립니다.
+  끝나면 `scripts/selftest-check.mjs` 가 실행마다 남은 전체 로그와 스크린샷으로 판정합니다. 작업 폴더(보고서, 로그, 스크린샷)는 지우지 않고 경로를 찍습니다.
+- 자가 검사는 설정, 최근 프로젝트, 레이아웃, 창 위치, 웹뷰 저장소를 읽지도 쓰지도 않습니다. 확인 창이 뜨거나 웹뷰 보안 정책(CSP) 위반이 있으면 실패입니다.
+- `--embedded` 는 에디터 안 실행을 더하는데 창이 뜹니다. `--total-timeout <ms>` 로 전체 시간을 줄일 수 있습니다.
+- 로컬에서 dmg 까지 만들면(`--bundles app,dmg`) Finder 창이 잠깐 뜹니다. CI 에서는 뜨지 않습니다.
+- CSP 는 `src-tauri/tauri.conf.json` 의 `app.security.csp` 입니다. 새 기능이 막히면 자가 검사 보고서의 `cspViolations` 에 무엇이 막혔는지 나옵니다.
+
+## 안드로이드로 스테이징
+
+데스크톱 앱의 "실행 > 안드로이드로 스테이징" 은 열린 프로젝트를 엔진 저장소의 `android/app/src/main/assets/` 로 옮깁니다. 엔진의
+`android/prepare_assets.sh --project <프로젝트>` 를 부르는 것이라 엔진 저장소(Initial2D 체크아웃)와 bash, python3 이 있어야 합니다.
+APK 빌드와 설치는 하지 않고, 끝나면 콘솔에 칠 명령을 적어 줍니다.
+
+- 엔진 저장소는 설정의 "엔진 저장소" 칸, 열린 프로젝트 자신, 찾은 엔진의 저장소(`<저장소>/build/Initial2D`), 형제 폴더 `../Initial2D` 순서로 찾습니다.
+  설정 칸이 아닌 곳에서 찾은 스크립트는 경로를 보이고 "스크립트 실행 허용" 을 누른 뒤에만 돌립니다. 허용은 프로젝트마다 앱 설정에 남고 설정에서 취소할 수 있습니다.
+- 확인 대화상자가 파일 수와 크기를 미리 셉니다. 대상 폴더는 통째로 바뀝니다. `config.setting`, 점 파일, zip, psd 는 넣지 않습니다.
+- "RTP 변환물 넣기" 는 기본 꺼짐입니다. 켜면 `resources/rtp/` 가 들어가는데 재배포할 수 없는 소재라 그 APK 는 개인 기기 시험에만 씁니다.
+- Windows 는 Git for Windows 의 bash 와 Python 3 이 필요합니다.
+- 엔진 저장소가 `--project` 를 모르는 판(`tools/stage_list.py` 가 없다)이면 미리 세기에서 멈추고 스크립트를 돌리지 않습니다. 엔진 저장소를 올립니다.
+- 교차 검사: `INITIAL2D_DIR=../Initial2D yarn test:android-stage` 가 템플릿으로 만든 플래피 프로젝트를 에디터와 같은 인자로 임시 폴더에
+  스테이징하고, 기기처럼 풀어 데스크톱 엔진으로 돌립니다. `--project` 를 모르는 엔진이나 빌드한 엔진이 없으면 건너뜁니다.
+
 ## 프로젝트
 
 프로젝트는 `game.json`이 있는 폴더입니다. 엔진이 작업 폴더의 `./game.json`을 읽으므로 새 개념이 아닙니다.
@@ -143,8 +251,10 @@ packages/backend-fsaccess/ ProjectBackend 의 브라우저 폴더(File System Ac
 packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
 packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
 packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입
-src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push
+src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push, 앱에 든 엔진 찾기
 tests/e2e/                Playwright (브라우저 모드)와 알데바란 인수 테스트, 도우미는 tests/e2e/support/
+tests/scripts/            scripts/*.mjs 의 단위 테스트 (판 번호, 고지, 자가 검사 계획과 판정)
+.github/workflows/        ci.yml (매 푸시), release.yml (설치 파일과 자가 검사)
 docs/plans/               계획과 진행 상황
 ```
 
@@ -154,15 +264,23 @@ docs/plans/               계획과 진행 상황
 |---|---|
 | `yarn dev`, `yarn build`, `yarn preview` | 앱 (Vite) |
 | `yarn typecheck`, `yarn lint` | TypeScript 와 ESLint (`core`는 DOM 과 PIXI 를 import 하지 못한다) |
-| `yarn test` | Vitest 단위 테스트 (모든 패키지와 e2e 도우미 `tests/e2e/support/*.unit.ts`) |
+| `yarn test` | Vitest 단위 테스트 (모든 패키지, e2e 도우미 `tests/e2e/support/*.unit.ts`, 스크립트 `tests/scripts/*.unit.ts`) |
 | `yarn test:conformance` | 브리지 백엔드 적합성 (엔진 저장소의 브리지 서버를 임시 프로젝트로 띄운다. 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D`) |
 | `yarn test:rust` | `cargo test` (src-tauri) |
-| `yarn test:engine-scene` | 에디터 템플릿으로 만든 프로젝트(빈, 플래피 x Lua, Ruby)를 진짜 엔진이 돌리는 교차 검사 (`INITIAL2D_DIR`) |
-| `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(sha256)를 갱신 (`INITIAL2D_DIR`) |
-| `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`) |
+| `yarn test:engine-scene` | 에디터 템플릿으로 만든 프로젝트(빈, 플래피, 타일맵 x Lua, Ruby)를 진짜 엔진이 돌리는 교차 검사 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
+| `yarn test:android-stage` | 안드로이드 스테이징 교차 검사 (에디터와 같은 인자로 스테이징한 폴더만으로 데스크톱 엔진이 플래피를 돌린다, 스탬프, `config.setting` 과 RTP 가 빠지는지). 엔진 저장소는 `INITIAL2D_DIR` |
+| `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 생성물 표시)를 갱신 (`INITIAL2D_DIR`). `--from-zip <zip 이나 dist 폴더>` 는 엔진의 템플릿 묶음에서 |
+| `yarn engine:fetch` | 앱에 싣는 엔진을 받는다. `--from <엔진 dist 폴더>`, `--target <트리플>`, `--templates <폴더>`, `--any-commit` (위 "앱에 싣는 엔진") |
+| `yarn engine:check` | 핀(`engine-pin.json`)과 엔진에서 온 MANIFEST 전부, 받아 둔 `engine.json` 의 엔진 커밋 대조 |
+| `yarn version:set <판>`, `yarn version:check` | 판 번호를 한꺼번에 바꾸거나 한 가지인지 본다 (위 "설치 파일과 자가 검사") |
+| `yarn licenses` | 에디터의 제3자 고지 `src-tauri/licenses/THIRD-PARTY-editor.md` 를 다시 쓴다 (`scripts/gen-licenses.mjs`). `--check` 는 다르면 실패 |
+| `yarn build:desktop` | 소스맵 없는 빌드 (데스크톱 번들용, `src-tauri/tauri.dist.conf.json` 이 부른다) |
+| `yarn selftest:app <앱>` | 빌드한 앱의 자가 검사 (창 없음). `--forest <엔진 저장소>`, `--embedded`, `--plan <계획> --no-check` |
+| `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)와 제3자 고지(`THIRD-PARTY.md`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`). 먼저 엔진 저장소에서 `tools/build_web.sh` |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
 | `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
+| `node scripts/check-web-dist.mjs` | 빌드한 `dist/` 검사 (`_headers`, 웹 엔진과 MANIFEST, 고지, Pages 한도). `--desktop` 은 소스맵이 없는지도 (위 "웹판 배포") |
 | `yarn tauri <cmd>` | Tauri CLI |
 
 ## 테마

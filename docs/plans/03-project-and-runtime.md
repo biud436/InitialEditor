@@ -79,7 +79,7 @@ interface ProjectBackend {
 
 | 항목 | 내용 |
 |---|---|
-| 엔진 경로 | 설정값. 자동 탐색 순서: 프로젝트의 `.initial-editor/engine`(사람이 적은 것) > 형제 폴더 `../Initial2D/build/Initial2D` > E6의 동봉 사이드카. 찾지 못하면 실행 버튼이 이유를 띄운다 |
+| 엔진 경로 | 설정값. 자동 탐색 순서(E6 에서 고침, e6-packaging.md 2.3 절): 설정 > 프로젝트의 `.initial-editor/engine`(사람이 적은 것) > 프로젝트의 `build/Initial2D` > 앱에 든 엔진(사이드카) > 형제 폴더 `../Initial2D/build/Initial2D`. 프로젝트가 가리키는 후보(`.initial-editor/engine`, `build/`, 형제 폴더)는 경로를 보인 확인 뒤에만 실행하고 답은 앱 설정 `engineTrust` 에 남는다. 찾지 못하면 F5 는 에디터 안(웹 엔진)으로 넘어간다 |
 | 실행 인자와 환경 | `cwd = 프로젝트 루트`, `INITIAL2D_HMR=1`(핫 리로드 서버 켜기), `INITIAL2D_SCRIPT=lua|mruby`(툴바의 언어), 현재 씬부터 실행이면 `INITIAL2D_SCENE=<씬 이름>`(씬 로더가 읽는다). `Initial2D --features`로 그 빌드가 Ruby를 지원하는지 먼저 확인해 언어 토글을 잠근다 |
 | 출력 | stdout과 stderr를 줄 단위로 콘솔에. `파일:줄:` 꼴(Lua의 `scripts/lua/x.lua:12:`, Ruby의 백트레이스)은 링크로 만들어 누르면 그 자리를 연다 |
 | 정지 | 프로세스 종료. 게임이 스스로 끝나면 종료 코드를 콘솔에 |
