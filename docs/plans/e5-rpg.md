@@ -1132,3 +1132,24 @@ E5 는 🟡 로 둔다. 남은 것: 완료 기준 첫째의 Tauri 창(웹 번들
 않으면 `locationPick.test.ts` 2건과 인스펙터 1건.
 
 남은 것: Tauri 창에서 눌러 보는 일은 완료 기준 첫째와 함께 저자 확인으로 넘긴다.
+
+### 두 갈래 합치기 (2026-09-27, `feat/e5-layer`)
+
+`feat/e5-transfer-pick`의 커밋 넷(마일스톤 5)을 세 번째 레이어 검수 뒤 고친 것 위에 cherry-pick 했다. 코드는 저절로 합쳐졌고 이 문서만
+부딪혀 두 절을 모두 남겼다. 합친 뒤 두 작업이 만나는 곳에서 둘을 고쳤다.
+
+| 문제 | 고친 것 |
+|---|---|
+| `setArgs`의 "모르는 커맨드" 오류가 code의 표식 글을 그대로 보인다 (세 번째 검수가 `setArg`에서 고친 것을 새 함수가 따르지 않았다) | `jsonValueText`로 숫자 그대로 보인다. `commands.test.ts`의 같은 판에 `setArgs`를 더했다 |
+| 맵 위치 단추 아래 막는 이유 줄의 긴 맵 이름이나 경로가 280px 인스펙터에서 커맨드 트리를 가로로 넘친다 (세 번째 검수의 폼 폭 고침은 인자 줄만 줄을 바꾼다) | `.rpg-location`은 아무 데서나 줄을 바꾸고, 두 단추는 좁으면 다음 줄로 간다. `inspector-scroll.spec.ts`의 폼 폭 판에 등록되지 않은 긴 이름의 맵 이동을 더했다 (고치기 전에는 두 창 크기 모두 "트리의 가로 넘침 280 > 262"로 깨진다) |
+
+검수:
+
+| 검사 | 결과 |
+|---|---|
+| `yarn typecheck`, `yarn lint`, `yarn check:colors` | 통과 |
+| Vitest 전체 (`INITIAL2D_DIR=/Users/u/Initial2D`) | 123 파일, 1418건 통과, 1건 건너뜀, 1건 실패. 실패는 앞과 같은 `templates.test.ts`(엔진 `e897f95`의 `hangul.fnt`)다 |
+| `yarn build` | 통과 |
+| Playwright `rpg-transfer-pick.spec.ts`, `inspector-scroll.spec.ts`, `rpg-editor.spec.ts`, `rpg-events.spec.ts` (포트 4850, 브리지 6650, 워커 둘) | 31건 통과. 첫 판에서 24건이 통과하고, load average 20 넘는 동안 7건이 `openMap`의 맵 뷰 준비나 이벤트 탭의 5초 기다림을 넘었다. 그 7건은 따로 다시 돌려 모두 통과했다 |
+
+남은 것: 전체 Playwright는 다음 단계에서 돌린다 (맵 뷰의 `.map-view-stage` 틀이 다른 맵 spec에 주는 영향도 그때 본다). 나머지는 앞 두 절의 남은 것 그대로다.
