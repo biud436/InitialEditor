@@ -154,6 +154,10 @@ export interface TilemapApi {
   refreshLayer(id: string): void;
   readonly layers: ReadonlyMap<string, MapLayerSpec>;      // 관찰 가능
   readonly playProviders: readonly PlayProviderSpec[];
+  /** 확장의 명령이 맵을 띄운다 (마일스톤 6 에서 더했다). 앱이 setPlayer 로 여기서 실행과 같은 길을 넣는다 */
+  play(doc: MapDocument, request: { label: string; plan(doc: MapDocument): PlayPlan | string }): Promise<boolean>;
+  playBlocked(): string | undefined;
+  setPlayer(player: { blocked(): string | undefined; play(doc, request): Promise<boolean> }): () => void;
 }
 
 export interface MapLayerSpec {
@@ -472,39 +476,39 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 
 ### 마일스톤 4: 확장 API 와 이벤트 레이어 (PR 3)
 
-- [ ] 코어: `exportsOf`, `workspace` (2.1), `extensions.test.ts`
-- [ ] 타일맵: `contrib.ts`(2.2: `registerMapLayer`, `refreshLayer`, `hint`, `MapLayerState.refresh`), `MapModel.rawSection`, `MapDocument` 의 레이어 상태와 `text()` 와 `problems`, `MapTarget` 의 `ext`, `play.maps`, 기본 실행 제공자. 모델 테스트와 "문서가 먼저, 스키마가 나중" 테스트
-- [ ] `packages/ui`: 입력 부품 이전, 앱이 그것을 쓴다 (기존 테스트 그대로 통과). 저장소 배관 등록: 루트 `typecheck`, `eslint.config.mjs` 의 `react-hooks` 대상, 앱의 의존 (2.3)
-- [ ] 앱: 렌더러의 레이어 컨테이너, 도구 넘기기(Ctrl 조합 포함, 전파 막기), 레이어 패널 줄과 힌트, 인스펙터 자리, 도구 단축키, 확장 패널 탭, 저장 전 질문 (2.3)
-- [ ] ext-rpg: `EventsLayerView`, `eventsTool`(복사, 붙여넣기, 복제, 지우기를 도구의 키로), `EventInspector`(이벤트 칸), `EventsPanel`(시작 상태 칸 포함), 잠금 표시와 RTP 쌍둥이 맵의 읽기 전용 (3절), 스키마를 읽을 때마다 `refreshLayer`
-- [ ] `yarn test:engine-events` 의 2단계를 앱과 같은 길(`MapDocument` + `attach`)로 바꾼다
+- [x] 코어: `exportsOf`, `workspace` (2.1), `extensions.test.ts`
+- [x] 타일맵: `contrib.ts`(2.2: `registerMapLayer`, `refreshLayer`, `hint`, `MapLayerState.refresh`), `MapModel.rawSection`, `MapDocument` 의 레이어 상태와 `text()` 와 `problems`, `MapTarget` 의 `ext`, `play.maps`, 기본 실행 제공자. 모델 테스트와 "문서가 먼저, 스키마가 나중" 테스트
+- [x] `packages/ui`: 입력 부품 이전, 앱이 그것을 쓴다 (기존 테스트 그대로 통과). 저장소 배관 등록: 루트 `typecheck`, `eslint.config.mjs` 의 `react-hooks` 대상, 앱의 의존 (2.3)
+- [x] 앱: 렌더러의 레이어 컨테이너, 도구 넘기기(Ctrl 조합 포함, 전파 막기), 레이어 패널 줄과 힌트, 인스펙터 자리, 도구 단축키, 확장 패널 탭, 저장 전 질문 (2.3)
+- [x] ext-rpg: `EventsLayerView`, `eventsTool`(복사, 붙여넣기, 복제, 지우기를 도구의 키로), `EventInspector`(이벤트 칸과 `CommandListEditor`), `EventsPanel`(시작 상태 칸 포함), 잠금 표시와 RTP 쌍둥이 맵의 읽기 전용 (3절), 스키마를 읽을 때마다 `refreshLayer`. 앱이 `rpgExtension` 을 켠다
+- [x] `yarn test:engine-events` 의 2단계를 앱과 같은 길(`MapDocument` + `attach`)로 바꾼다
 
 ### 마일스톤 5: 커맨드 편집기 (PR 4)
 
-- [ ] `CommandListEditor`: 트리, 요약, 하위 목록 머리줄, 접기
-- [ ] 팔레트, 넣기, 빼기, 옮기기, 복사와 붙여넣기, 키보드 (트리 요소가 받고 전파를 막는다)
-- [ ] 인자 위젯 (1.2절 표 전부. `file` 은 `./` 꼴)
-- [ ] 항목, 가지, cancel 맞추기
-- [ ] 문제 표시와 줄로 가기
-- [ ] 맵 이동의 대상 고르기 (4절. 넘치면 나중 후보로 미룬다)
+- [x] `CommandListEditor`: 트리, 요약, 하위 목록 머리줄, 접기 (맵 뷰 없는 부품. `EventInspector` 에 붙이는 일은 남았다, 구현 노트)
+- [x] 팔레트, 넣기, 빼기, 옮기기, 복사와 붙여넣기, 키보드 (트리 요소가 받고 전파를 막는다)
+- [x] 인자 위젯 (1.2절 표 전부. `file` 은 `./` 꼴)
+- [x] 항목, 가지, cancel 맞추기
+- [x] 문제 표시와 줄로 가기
+- [ ] 맵 이동의 대상 고르기 (4절. 넘치면 나중 후보로 미룬다). x 와 y 를 한 명령으로 넣는 모델 명령(`setArgs`)이 먼저 필요하다
 
 ### 마일스톤 6: 실행과 e2e (PR 4)
 
-- [ ] 실행 제공자 `rpgPlay`(`rpg-game.json` 의 `play`, `applies` 는 `mapEntryFor`), 기본 제공자의 `maps` 거르기, 실행기의 언어 검사가 덧씌운 값을 본다
-- [ ] 명령: 이 이벤트 앞에서 실행, 이 이벤트 자동 재생 (5.2), 시작 상태
-- [ ] `RunnerStore` 단위 테스트: 프로세스 모드에서 제공자의 `plan.env` 가 `RunSpec.env` 에 그대로 실린다 (가짜 백엔드). Playwright 가 프로세스 모드를 볼 수 없어 이 테스트와 `yarn test:engine-events` 가 그 자리를 맡는다
-- [ ] Playwright `tests/e2e/rpg-events.spec.ts`. 메모리 모드는 샘플 프로젝트에 RPG 파일이 없으므로, 프로젝트를 연 뒤 `withEditor` 로 메모리 백엔드에 `packages/ext-rpg/test/fixtures/` 의 파일(두 스키마, 아이템 표, `port_town.json`, `port16.png`, 플레이스홀더 CharSet 과 FaceSet)을 쓰고 ext-rpg 가 다시 읽기를 기다린다 (샘플 프로젝트 자체는 늘리지 않는다: 앱 번들에 실리기 때문이다). 본다: 표식 17개, `meadow.json` 에는 이벤트 줄이 없고 힌트만, 놓기, 끌기, 인스펙터, 커맨드 넣기와 되돌리기, 맵 뷰의 Ctrl+C 가 씬 복사를 부르지 않는다(씬 클립보드가 비어 있고 이벤트가 붙여진다), 저장한 파일 내용과 키 순서. 브리지 모드는 엔진 사본을 열고 내장 게임 뷰로 자동 재생해 콘솔의 `rpg:player:` 줄(자리와 방향)과 `rpg:message:` 줄과 `rpg:route:done` 을 본다
-- [ ] README 두 저장소 (이벤트 레이어 사용법, 이 이벤트 앞에서 실행과 자동 재생과 시작 상태, `yarn test:engine-events`, `yarn sync:rpg`, 새 환경 변수), 두 `index.md` 진행 표, 이 문서의 구현 노트 (`test:engine-events` 의 건너뛰지 않은 실행 기록 포함)
+- [x] 실행 제공자 `rpgPlay`(`rpg-game.json` 의 `play`, `applies` 는 `mapEntryFor`), 기본 제공자의 `maps` 거르기, 실행기의 언어 검사가 덧씌운 값을 본다
+- [x] 명령: 이 이벤트 앞에서 실행, 이 이벤트 자동 재생 (5.2), 시작 상태
+- [x] `RunnerStore` 단위 테스트: 프로세스 모드에서 제공자의 `plan.env` 가 `RunSpec.env` 에 그대로 실린다 (가짜 백엔드). Playwright 가 프로세스 모드를 볼 수 없어 이 테스트와 `yarn test:engine-events` 가 그 자리를 맡는다
+- [x] Playwright `tests/e2e/rpg-events.spec.ts`. 메모리 모드는 샘플 프로젝트에 RPG 파일이 없으므로, 프로젝트를 연 뒤 `withEditor` 로 메모리 백엔드에 `packages/ext-rpg/test/fixtures/` 의 파일(두 스키마, 아이템 표, `port_town.json`, `port16.png`, 플레이스홀더 CharSet 과 FaceSet)을 쓰고 ext-rpg 가 다시 읽기를 기다린다 (샘플 프로젝트 자체는 늘리지 않는다: 앱 번들에 실리기 때문이다). 본다: 표식 17개, `meadow.json` 에는 이벤트 줄이 없고 힌트만, 놓기, 끌기, 인스펙터, 커맨드 넣기와 되돌리기, 맵 뷰의 Ctrl+C 가 씬 복사를 부르지 않는다(씬 클립보드가 비어 있고 이벤트가 붙여진다), 저장한 파일 내용과 키 순서. 브리지 모드는 엔진 사본을 열고 내장 게임 뷰로 자동 재생해 콘솔의 `rpg:player:` 줄(자리와 방향)과 `rpg:message:` 줄과 `rpg:route:done` 을 본다
+- [ ] README 두 저장소 (이벤트 레이어 사용법, 이 이벤트 앞에서 실행과 자동 재생과 시작 상태, `yarn test:engine-events`, `yarn sync:rpg`, 새 환경 변수), 두 `index.md` 진행 표, 이 문서의 구현 노트 (`test:engine-events` 의 건너뛰지 않은 실행 기록 포함). 에디터 쪽(README, `index.md`, 구현 노트)은 했다. 엔진 README 는 환경 변수와 `play` 를 이미 적었고, 에디터의 두 명령과 `play.probe` 한 줄과 엔진 `index.md` 의 표가 남았다
 
 ## 완료 기준
 
-- [ ] Tauri 앱과 웹판에서 엔진 저장소를 열고 `port_town.json` 을 열면 이벤트 17개가 게임과 같은 자리에 보인다 (외형은 CharSet 정면, 나머지는 트리거 표식). 같은 프로젝트의 `aldebaran_forest.json` 에는 이벤트 레이어가 없다
-- [ ] **에디터로만 만든 이벤트가 게임에서 돈다.** 맵에 놓고, 트리거와 외형을 고르고, 분기가 있는 커맨드를 적어 저장한 이벤트를 `yarn test:engine-events` 가 진짜 엔진으로 띄워 대사와 분기 결과와 플레이어가 선 자리를 stdout 으로 확인한다. Lua 는 한 줄도 고치지 않는다. **건너뛴(SKIP) 실행은 치지 않는다**: 건너뛰지 않은 실행 기록이 구현 노트에 있어야 한다
-- [ ] 같은 이벤트를 "이 이벤트 앞에서 실행"으로 띄우면 플레이어가 그 앞에서 그 쪽을 보고 선다 (`rpg:player:` 줄). 내장 모드는 e2e(브리지 모드의 게임 뷰)가, 프로세스 모드는 같은 `planEnv` 와 `probeEnv` 로 엔진 프로세스를 띄우는 `yarn test:engine-events` 와 `RunnerStore` 단위 테스트가 확인한다. 자동 재생은 대사를 콘솔에 남기고 스스로 끝난다. Tauri 앱에서의 프로세스 모드는 저자가 한 번 눌러 본다
-- [ ] 스키마와 `commands.lua` 가 어긋나면 엔진 테스트가 깨진다 (커맨드를 하나 더해 깨지는 것을 보고 되돌린다). 경로 픽스처가 두 저장소에서 같은 경로 집합을 낸다
-- [ ] 항구 마을과 여관의 이벤트가 전부 맵 파일에 있고, 인수 시나리오가 한 줄도 안 고치고 통과하며 골든 세 장(title, town, bag)과 벽 앞 픽셀 검사(wall)가 그대로다
-- [ ] 이전한 맵을 에디터로 열어 저장하면 바이트가 같고, 이벤트 하나를 옮기면 diff 는 그 이벤트의 `x`, `y` 줄뿐이다
-- [ ] 두 저장소의 README 에 사용법이 있다
+- [ ] Tauri 앱과 웹판에서 엔진 저장소를 열고 `port_town.json` 을 열면 이벤트 17개가 게임과 같은 자리에 보인다 (외형은 CharSet 정면, 나머지는 트리거 표식). 같은 프로젝트의 `aldebaran_forest.json` 에는 이벤트 레이어가 없다. 브라우저에서는 엔진 파일의 사본(픽스처)을 메모리 모드에 써 넣고 `rpg-layer.spec.ts` 와 `rpg-events.spec.ts` 가 17개의 자리와 등록되지 않은 맵의 힌트를 본다. 엔진 저장소를 연 웹판과 Tauri 앱에서 보는 일은 남았다
+- [x] **에디터로만 만든 이벤트가 게임에서 돈다.** 맵에 놓고, 트리거와 외형을 고르고, 분기가 있는 커맨드를 적어 저장한 이벤트를 `yarn test:engine-events` 가 진짜 엔진으로 띄워 대사와 분기 결과와 플레이어가 선 자리를 stdout 으로 확인한다. Lua 는 한 줄도 고치지 않는다. **건너뛴(SKIP) 실행은 치지 않는다**: 건너뛰지 않은 실행 기록이 구현 노트에 있어야 한다
+- [ ] 같은 이벤트를 "이 이벤트 앞에서 실행"으로 띄우면 플레이어가 그 앞에서 그 쪽을 보고 선다 (`rpg:player:` 줄). 내장 모드는 e2e(브리지 모드의 게임 뷰)가, 프로세스 모드는 같은 `planEnv` 와 `probeEnv` 로 엔진 프로세스를 띄우는 `yarn test:engine-events` 와 `RunnerStore` 단위 테스트가 확인한다. 자동 재생은 대사를 콘솔에 남기고 스스로 끝난다. Tauri 앱에서의 프로세스 모드는 저자가 한 번 눌러 본다. 저자가 눌러 보는 것만 남았다
+- [x] 스키마와 `commands.lua` 가 어긋나면 엔진 테스트가 깨진다 (커맨드를 하나 더해 깨지는 것을 보고 되돌린다). 경로 픽스처가 두 저장소에서 같은 경로 집합을 낸다. 엔진 쪽은 M2 문서 9절의 "깨지는 것을 보았다", 에디터 쪽은 `validate.test.ts` 의 경로 집합 대조
+- [x] 항구 마을과 여관의 이벤트가 전부 맵 파일에 있고, 인수 시나리오가 한 줄도 안 고치고 통과하며 골든 세 장(title, town, bag)과 벽 앞 픽셀 검사(wall)가 그대로다 (엔진 PR #50, M2 문서 9절)
+- [x] 이전한 맵을 에디터로 열어 저장하면 바이트가 같고, 이벤트 하나를 옮기면 diff 는 그 이벤트의 `x`, `y` 줄뿐이다 (`events.test.ts` 의 엔진 모든 맵 왕복, `layer.test.ts` 의 옮기기 diff)
+- [ ] 두 저장소의 README 에 사용법이 있다. 에디터 README 는 했고, 엔진 README 의 두 명령과 `play.probe` 한 줄이 남았다
 
 ## 의존 관계
 
@@ -710,3 +714,218 @@ engine-events: 판 7, 검사 78개 통과, 엔진 cac4b94e2dab79e13e5fd2ebdb6686
 새 테스트가 깨지는 것을 보았다: `ordered` 를 `out[k] = v` 로 되돌리면 3건, `newCommand` 의 모르는 값을 `cmd[k] = v` 로 되돌리면 1건,
 섹션이 `null` 을 없는 키로 보지 않으면 1건, `parseMap` 이 `null` 을 받지 않으면 4건, 빈 `{}` 를 받지 않으면 3건, 빈 `script` 이름 검사를 끄면 2건,
 정보를 모든 `script` 에 붙이면 1건.
+
+### 마일스톤 4: 확장 자리 (코어, 타일맵, `packages/ui`, 앱) (2026-09-27, `feat/e5-layer`)
+
+만든 것: 코어 `extensions.ts`(`activate` 가 돌려준 값이 내보내기, `ExtensionHost.exportsOf`, `api.exportsOf`, `api.workspace`, `api.onDeactivate`,
+`PanelSpec.presets`, `detachedWorkspace()`). 타일맵 `contrib.ts`(`TilemapApi`, `TilemapContrib`, 뷰와 도구의 컨텍스트 타입)와 `model/layers.ts`(`MapLayerState`, 섹션 검사),
+`MapModel.rawSection`, `MapDocument` 의 레이어 상태(`refreshLayer`, `detachLayer`, `layerState`, `sectionValue`, `resizeCommand`), `problems` 와 `objectProblems` 와 `layerErrors`,
+`MapTarget` 과 `MapTool` 의 `ext`. `packages/ui`(`fields.tsx`, `schemaField.tsx`). 앱의 `maps/extLayers.ts`(레이어 커맨드, 저장 전 질문), `maps/objectTools/playProvider.ts`(기본 실행 제공자),
+`extensionPanels.ts`(창 메뉴), `components/panels/ExtensionPanelHost.tsx`, 렌더러와 도구와 레이어 패널과 인스펙터와 맵 뷰 도구 줄의 자리, `Editor.ts` 의 `workspace` 와 `tilemap`.
+e2e `tests/e2e/map-layer-ext.spec.ts` 는 테스트 안에서만 켜는 확장으로 RPG 없이 자리를 본다.
+
+구현하면서 정한 것:
+
+| 물음 | 결정 |
+|---|---|
+| 뷰와 도구 컨텍스트의 타입 | 계획의 `unknown` 대신 `contrib.ts` 에 DOM 과 PIXI 를 모르는 인터페이스로 적었다 (`MapLayerViewContext`, `MapLayerToolContext`, `MapLayerTool`, `MapLayerView`, `MapLayerInspectorProps`). PIXI 물체(`container`, `texture`)와 인스펙터 컴포넌트만 `unknown` 이다 |
+| 작업 공간 | `backend()`, `project`(`isOpen`, `root`, `onOpened`, `onClosed`, `onFileChange`), `documents`, `log`, `toasts` 에 `openPath` 를 더했다. 커맨드 편집기의 맵 이동 대상 고르기(4절)가 대상 맵을 탭으로 여는 길이다. 백엔드와 프로젝트는 부를 때 읽어 백엔드를 바꿔도 따라간다 |
+| 확장을 해제할 때의 정리 | `api.onDeactivate(fn)` 을 더했다. 타일맵 확장은 문서 구독을 끊고 레이어를 전부 뗀다 |
+| 레이어 상태를 떼는 때 | 등록을 거둘 때와 문서를 닫을 때뿐이다 (스키마가 사라지면 `locked`). 등록을 거두면 `serialize()` 값을 섹션 원본에 남겨 저장 글이 바뀌지 않고, 대상이 그 레이어였으면 오브젝트로 돌아간다 |
+| 섹션 | 타일맵이 해석하는 키(`layers`, `objects` 등)는 맡을 수 없고 한 섹션은 한 레이어만 맡는다. `events` 와 모르는 키는 맡을 수 있다. `attach` 나 `refresh` 가 던지면 콘솔에 남기고 다른 레이어와 문서는 그대로 연다 |
+| 크기 바꾸기 | `MapDocument.resizeCommand` 가 모델의 크기 바꾸기와 붙은 상태의 `shift(offset)` 을 한 단계로 묶는다 (앱의 크기 바꾸기가 쓴다). 모델이 원본을 옮기는 섹션은 `events` 뿐이라, 크기를 바꾼 뒤에 붙은 `events` 상태는 되돌릴 때 반대로 옮긴다. 다른 섹션은 붙어 있을 때만 옮긴다 |
+| 문제 목록 | `doc.problems` 는 오브젝트와 레이어의 문제를 합치고 레이어 것에 `layer` 를 붙인다. 맵 오브젝트 패널과 맵 요약은 `objectProblems` 만 본다 (레이어의 문제는 그 레이어가 보인다). 레이어 패널 줄에 오류 수가 있다 |
+| 저장 전 질문 | `createDocumentSaver` 의 `beforeSave` 가 디스크를 보기 전에 묻는다: 레이어 오류(여덟 줄까지와 나머지 수), "그래도 저장", "취소". 묻는 동안의 같은 문서 저장은 그 질문에 합치고, 여기서 실행의 저장도 같은 길이다 |
+| 기본 실행 제공자의 자리 | 위치 규칙(`rules.ts`)과 스키마 저장소가 앱에 있어 앱이 등록한다 (`objectTools/playProvider.ts`, priority 0, 스키마는 `doc.schema`, 없으면 저장소의 것) |
+| 받는 제공자가 없을 때 | 이유(`hint`)를 말한 제공자가 있으면 커맨드를 켜 두고 누를 때 이유를 priority 순으로 이어 알린다 (E3 의 play.maps 거절과 같다). 아무도 말하지 않으면 끄고 `play` 를 더하는 법을 보인다. 기본 제공자는 `play` 가 없으면 말하지 않는다 |
+| 도구에 넘기는 입력 | 키는 Ctrl 거르기와 Escape 보다 먼저 넘기되 조합 키만 누른 것(Control, Meta, Shift, Alt)은 넘기지 않는다. 더블클릭은 `doubleClick` 으로 따로 넘긴다. 포인터는 월드 픽셀과 칸 둘 다 |
+| 확장 레이어의 그리기 | `extRoot` 는 오브젝트 글자 위, 붓 미리보기 아래다. 대상이 아닌 레이어는 투명도 0.5, 눈을 끄면 숨는다. 줌과 테마가 바뀌면 `redraw`, 레이어가 떨어지면 뷰와 도구를 버린다 |
+| 레이어 커맨드 | `map.layer.<id>`("<이름> 도구", 단축키 `toolKey`, 맵 메뉴). 맵 탭이고 그 맵에 상태가 있고 입력 칸에 초점이 없을 때 켜진다. 맵 뷰 도구 줄에 단추도 있다 |
+| 확장 패널 탭 | 도킹 id 는 `ext:<id>`, 컴포넌트는 하나(`extPanel`, params 의 `panelId`)다. `defaultDock` 이 자리(왼쪽은 맵 오브젝트나 계층 옆, 아래는 콘솔 옆, 가운데는 문서 옆, 오른쪽은 확장 패널이나 인스펙터 옆), `presets` 가 넣을 프리셋이다. 되살린 레이아웃의 모르는 확장 패널은 뺀다. "확장 패널" 탭은 본문 대신 목록과 여는 단추다 |
+| `packages/ui` 의 칸 꼴 | `SchemaFieldInput` 은 타일맵의 `FieldSpec` 대신 같은 모양의 `SchemaFieldSpec` 을 받는다 (ui 가 타일맵에 기대지 않는다). 모양(클래스)은 앱의 테마가 준다 |
+
+검수: `yarn typecheck`, `yarn lint`, `node scripts/check-color-literals.mjs` 통과. Vitest 전체 1172건 통과(110 파일, 다른 단계의 ext-rpg UI 포함).
+Playwright 전체 79건 중 78건 통과, 1건(`game-view` 브리지 모드의 저장 뒤 한 줄)은 Monaco 스크롤 막대가 클릭을 가려 시간이 넘었고 다시 돌리면 통과한다. 맵 e2e 일곱 파일(새 `map-layer-ext` 포함) 21건 통과.
+새 테스트가 깨지는 것을 보았다: `exportsOf` 의 dependsOn 검사를 끄면 1건, `text()` 가 레이어 값을 쓰지 않으면 5건, 붙은 상태에도 attach 를 다시 부르면 2건,
+늦게 붙은 `events` 를 되돌릴 때 옮기지 않으면 1건, `events` 밖의 섹션도 옮기면 1건, 다시 읽기에 `reset` 을 부르지 않으면 1건, 도구 키를 Ctrl 거르기 뒤로 보내면 2건,
+저장 전 질문을 끄면 2건, 모르는 확장 패널을 남기면 1건, 높은 제공자를 먼저 묻지 않으면 1건, 레이어 줄의 잠금을 빼면 1건, 맵 오브젝트 패널이 레이어 문제까지 보이면 1건,
+대상 아닌 레이어를 흐리지 않으면 1건.
+
+### 마일스톤 5: 커맨드 목록 편집기 (2026-09-27, `feat/e5-layer`)
+
+만든 것: `packages/ext-rpg/src/ui/` 의 `CommandListEditor.tsx`(트리, 툴바, 문제 목록), `commandRows.ts`(DOM 없는 줄 펴기, 요약, 문제 붙이기, 넣을 자리),
+`CommandForm.tsx`(고른 커맨드의 인자 폼), `CommandPalette.tsx`(group 묶음과 찾기), `clipboard.ts`(확장의 커맨드 클립보드),
+`argWidgets/`(1.2절 타입마다 위젯, 이벤트 인스펙터도 쓴다), `fields.tsx`(`packages/ui` 위의 얇은 층). 맵 뷰를 모르는 부품이라 `EventInspector` 가 이벤트 번호와 `doc.apply` 를 넘겨 붙인다.
+
+| 물음 | 결정 |
+|---|---|
+| 줄의 모양 | 커맨드, 하위 목록 머리줄, 목록 끝의 빈 줄 셋. 줄 키는 엔진 표기의 뒷부분(`c.commands[2].thenDo[1]`)이라 문제의 경로를 그대로 줄에 붙인다. 없는 하위 목록(`elseDo` 가 없는 `if`, 항목만 있는 가지)도 머리줄과 끝 줄이 있어 그 안에 넣을 수 있다. 끝의 `null` 과 모르는 커맨드도 줄이다 (뺄 수 있게) |
+| 요약 | 스키마 `summary` 틀을 채우되 없는 인자의 자리는 옆의 구분 글과 함께 뺀다 (이름 없는 대사는 대사만). `summary` 가 없으면 첫 필수 인자. 여러 줄 대사는 첫 줄과 `…`, 80자에서 자른다. 조건은 "아이템 shell >= 2", "깃발 arrived = false" 꼴 |
+| 넣을 자리 | 커맨드 줄은 고른 범위의 위나 아래, 머리줄은 그 목록의 처음, 끝 줄은 그 목록의 끝. 붙여넣기는 아래 |
+| 넣기 전에 묻기 | 팔레트가 새 커맨드를 엔진 검사(`checkCommand`)로 보고 걸린 인자만 먼저 묻는다. 지금 스키마에서는 `playSe`, `playBgm` 의 파일과 `script` 의 이름이다. 커맨드 이름을 코드에 박지 않는다 |
+| 취소 번호 | `cancel` 은 항목 위젯 안의 "취소" 고르기로 그린다. 모델의 항목 명령이 이미 `cancel` 이름을 알고 가지와 함께 맞추므로 폼도 같은 이름을 본다 |
+| 복사 | 확장 안의 클립보드에 커맨드 배열의 JSON 글을 두고, 시스템 클립보드에도 같은 글을 적는다 (실패해도 된다). 붙여넣기는 확장의 클립보드만 읽는다 |
+| 키의 범위 | 트리 요소 자신이 받은 키만 처리한다. 폼의 입력 칸에서 누른 키는 트리가 받지 않고, 폼의 Escape 는 트리로 초점을 돌린다. 처리하지 않은 키(Ctrl+Z, Ctrl+S)는 전역 단축키로 흘려보낸다 |
+| 입력 부품 | `packages/ui` 의 `TextField` 와 `newSession` 을 쓴다. `packages/ui` 에 아직 없는 둘(제안 목록이 붙는 한 줄 입력, 비었을 때의 안내 글과 끄기가 있는 숫자 칸)은 `ui/fields.tsx` 에 같은 세션 규칙으로 두었다. `packages/ui` 로 옮길 후보다 |
+
+남은 것: `EventInspector` 에 붙이기(마일스톤 4), `@initial-editor/ext-rpg` 의 `package.json` 에 `@initial-editor/ui` 의존과 `react`, `mobx-react-lite` peer 선언,
+`./ui` 내보내기, 맵 이동의 대상 고르기. 키 사용법은 이벤트 레이어 사용법과 함께 README 에 적는다 (마일스톤 6).
+
+검수: `tsc -b`(ext-rpg 와 의존), `eslint packages/ext-rpg`, `node scripts/check-color-literals.mjs` 통과. Vitest 전체 1132건 통과(105 파일), 새 테스트 77건
+(`commandRows.test.ts` 19, `argWidgets.test.tsx` 30, `CommandListEditor.test.tsx` 28). 테스트가 깨지는 것을 보았다: 트리 키의 전파 막기를 끄면 1건,
+폼 입력 칸의 키를 트리가 받으면 1건, 타이핑의 합치기 키를 빼면 1건, 팔레트가 미리 묻지 않으면 1건, 접힌 머리줄로 문제를 올리지 않으면 2건,
+아래로 옮기기의 자리가 틀리면 1건, 가지가 있는 항목을 묻지 않고 빼면 2건, 선택 글의 빈칸을 지우지 않으면 1건, 붙여넣기가 위로 가면 1건,
+조건 꼴을 바꿀 때 모르는 칸을 버리면 1건, 요약에서 없는 자리의 구분 글을 남기면 1건, 파일 값이 `./` 꼴이 아니면 2건, 격자 칸의 그림 위치가 틀리면 1건,
+다른 이벤트로 바뀌어도 접기를 두면 1건.
+
+### 마일스톤 4: 이벤트 레이어 (ext-rpg) (2026-09-27, `feat/e5-layer`)
+
+만든 것: `model/layer.ts`(DOM 없음: `EventsLayerState`, 붙이기 규칙 `eventsLayerCore`, 힌트), `projectStore.ts`(`RpgProjectStore`: 스키마, 설정,
+아이템 표, 정의 파일, 맵의 events, 파일 목록, 시작 상태), `extension.ts`(`rpgExtension`: 레이어와 목록 패널 등록, 읽을 때마다 `refreshLayer`),
+`ui/` 의 `markers.ts`(표식 자리와 맞히기, 뷰와 도구가 함께 쓴다), `EventsLayerView.ts`, `eventsTool.ts`, `eventClipboard.ts`, `EventInspector.tsx`,
+`EventsPanel.tsx`, `EventsLayer.css`, `eventsLayer.ts`, `services.ts`. 앱은 `activateAll([tilemapExtension, rpgExtension])` 한 줄과 의존만 더했다.
+타일맵의 `shiftEvents` 가 배회 구역도 옮긴다. `yarn test:engine-events` 의 2단계가 앱과 같은 길이다. 마일스톤 5 가 남긴 둘
+(`EventInspector` 에 커맨드 편집기 붙이기, ext-rpg 의 `package.json` 의존과 `./ui` 내보내기)도 여기서 했다.
+
+| 물음 | 결정 |
+|---|---|
+| 레이어 상태의 자리 | 모델(`model/layer.ts`)에 둔다. 붙이기 규칙과 상태가 DOM 을 모르므로 엔진 교차 검사가 앱과 같은 코드로 붙인다. 뷰, 도구, 인스펙터는 `ui/eventsLayer.ts` 가 더한다 |
+| 스키마를 처음부터 쓸 수 없을 때 | 모르는 버전이나 틀린 스키마여도 등록된 맵이면 붙이고 잠근다 (보기만). 그때 저장 글은 원본 그대로이고 제 모양 고치기(빈 `{}` 를 `[]` 로)도 하지 않는다. 스키마 파일이 없으면 붙지 않고(플래피), 읽는 중이면 기다린다 |
+| 잠금 이유의 순서 | 스키마 문제(버전 포함), 스키마 파일 없음, 설정을 읽지 못함, 등록에서 빠짐, `alt` 가 있는 맵, `events` 가 배열이 아님. 잠겨도 편집 중인 값과 되돌리기는 그대로다 |
+| 문제 | 레이어의 문제는 오류와 경고. 정보(auto 의 순서, 스크립트 이름)는 인스펙터에만. 검사 재료는 설정, 아이템 표, 정의 파일의 어림 id, 프로젝트 파일 목록 (목록을 모르면 없는 파일 경고를 내지 않는다) |
+| 크기 바꾸기 | 붙은 상태의 `shift` 는 타일맵의 `shiftEvents` 를 그대로 쓴다. `shiftEvents` 가 배회 구역도 옮기도록 고쳤다. 붙기 전 원본의 옮기기와 같은 함수라 늦게 붙은 상태의 되돌리기도 바이트까지 정확하다 |
+| 고르기 | 레이어 상태의 이벤트 번호. 목록 밖 번호는 보지 않는다 (되돌리기로 돌아오면 다시 골라진다). 지우면 고르기를 푼다 |
+| 끌기 | 끄는 동안은 명령을 만들어만 보고(`canRun`) 미리보기를 그린다. 놓을 때 명령 하나. 놓을 수 없으면 제자리에 두고 이유를 알린다 |
+| 맞히기 | 칸에 선 이벤트가 먼저, 그다음 고른 이벤트의 배회 구역 가장자리(화면 5px), 그다음 외형 프레임(머리가 윗 칸으로 올라간다). 구역 곁의 이벤트를 누르면 이벤트가 골라진다 |
+| 붙여넣기 자리 | 마지막으로 포인터가 있던 칸 (뷰를 떠나도 남는다). 복제는 곁의 빈 칸을 오른쪽, 아래, 왼쪽, 위, 대각선, 두 칸 순서로 찾는다 |
+| 도구의 키 | Ctrl+C, V, D, A 와 Delete, 방향키, Enter, Escape. 다른 Ctrl 조합(되돌리기, 저장)은 넘긴다. 고른 것이 없으면 Delete, 방향키, Escape 도 넘긴다 |
+| 초점 요청 | 새 이벤트는 id 칸, 이벤트 더블클릭과 Enter 는 커맨드 트리의 첫 줄. 요청은 nonce 로 한 번만 따른다 (다른 이벤트를 골랐다 돌아와도 옛 요청을 따르지 않는다) |
+| 저장소 | 프로젝트를 열면 전부 읽고 한 번 알린다 (스키마와 설정이 따로 와서 힌트가 깜빡이지 않게). 바뀐 파일은 그 부분만 다시 읽는다. 파일 목록은 `resources/` 아래(숨은 이름 빼고, 2만 개 한도). 시작 상태 파일은 에디터가 쓴 변경으로는 다시 읽지 않는다 |
+| 그림 | 뷰는 앱의 `loadTexture`(캐시)로 시트를 읽어 프레임 텍스처를 잘라 쓴다. 읽기 전, 읽지 못함, 시트가 프레임보다 작음은 표식으로 그린다. 인스펙터의 격자는 백엔드에서 읽은 blob URL 이고 파일이 바뀌면 버린다 |
+| 교차 검사의 2단계 | `TilemapContrib` 에 `eventsLayerCore` 를 등록하고 `MapDocument` 를 열린 문서에 넣으면 붙는다. 편집은 `doc.apply`, 저장은 `doc.text()`, 문제는 상태의 `eventProblems` (설정, 아이템 표, 정의 파일, 파일 있음까지). 붙었는지와 오류가 없는지 검사 둘이 늘었다 |
+| e2e | `tests/e2e/rpg-layer.spec.ts`: 메모리 모드에 픽스처를 써 넣는다. 17개 표식은 레이어 눈을 끄고 켠 화면을 칸마다 견준다 (이벤트 없는 칸은 같다). 실행과 자동 재생을 보는 마일스톤 6 의 `rpg-events.spec.ts` 와 가른다 |
+
+검수: `yarn typecheck`, `yarn lint`, `node scripts/check-color-literals.mjs` 통과. Vitest 전체 1273건 통과(117 파일, 1 건너뜀), 새 테스트 101건
+(`layer.test.ts` 23, `eventsTool.test.ts` 20, `EventsLayerView.test.ts` 10, `EventInspector.test.tsx` 14, `EventsPanel.test.tsx` 12, `projectStore.test.ts` 14,
+`extension.test.ts` 6, 타일맵 `resize.test.ts` 1, 앱 `Editor.workspace.test.ts` 1). 앱이 RPG 확장을 켜므로 `Editor.workspace.test.ts` 의 레이어 목록에
+`rpg.events` 가 더해졌다. Playwright 전체 80건 통과 (포트 4752, 브리지 6552, 새 `rpg-layer.spec.ts` 와 엔진의 실제 숲을 여는 `aldebaran-map.spec.ts` 포함).
+
+테스트가 깨지는 것을 보았다: 크기 바꾸기가 구역을 옮기지 않으면 2건, 새로 고침이 새 스키마를 받지 않으면 1건, RTP 쌍둥이 잠금을 빼면 4건,
+정보를 레이어 문제에 넣으면 1건, 목록 밖 번호를 고르면 1건, 스키마 없이도 섹션으로 쓰면 1건, 등록에서 빠져도 잠그지 않으면 1건,
+끄는 중에 바로 옮기면 4건, 도구가 Ctrl+C 를 넘기면 3건, 붙여넣기가 커서 칸이 아니면 2건, Alt 를 무시하면 1건, 잠겨도 끌기 미리보기를 그리면 1건,
+구역 가장자리를 칸보다 먼저 맞히면 1건, 더블클릭이 초점을 청하지 않으면 1건, 외형을 발 기준이 아니라 칸 왼쪽 위에 그리면 2건, 방향 행을 무시하면 1건,
+파일 목록 없이 외형을 풀면 1건, 문제 점을 그리지 않으면 1건, 인스펙터가 합치기 키를 빼면 1건, 옛 초점 요청을 따르면 1건, 목록 패널이 대상을 바꾸지 않으면 1건,
+시작 상태의 Escape 가 저장하면 1건, 제안이 마지막 항목을 채우지 않으면 1건, 저장소가 스키마 변경을 알리지 않으면 2건, 새 파일을 목록에 넣지 않으면 1건,
+확장이 `refreshLayer` 를 부르지 않으면 2건, 타일맵의 원본 옮기기가 구역을 옮기지 않으면 3건. 살아남은 둘은 같은 뜻의 바꿈이다: 붙이기에서
+`schemaPresent` 검사를 빼도 다음 줄(스키마도 문제도 없으면 null)이 같은 결과를 내고, 에디터가 쓴 시작 상태 파일을 다시 읽어도 같은 내용이다.
+
+`yarn test:engine-events` 의 건너뛰지 않은 실행 (2단계를 바꾼 뒤, 엔진 master `cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f`): 판 7, 검사 80개 통과.
+trace 줄은 마일스톤 2 의 실행 기록과 한 줄도 다르지 않다 (`rpg:player:port_town,15,44,up`, `rpg:player:inn,9,11,down`, 대조 셋의 도착 줄 포함).
+
+```
+engine-events: 판 7, 검사 80개 통과, 엔진 cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f (/Users/u/Initial2D/build/Initial2D)
+ ✓ test/engine/events.engine.test.ts (5 tests) 27635ms
+```
+
+남은 것: 명령 셋(새 이벤트, 이 이벤트 앞에서 실행, 이 이벤트 자동 재생)과 `rpgPlay` 는 마일스톤 6 이다. 시작 상태 칸은 값을 기억만 하고 아직 실행에
+넘기지 않는다. 맵 이동의 대상 고르기(마일스톤 5), `packages/ui` 로 옮길 입력 부품 둘은 그대로다.
+
+### 마일스톤 6: 실행과 e2e (2026-09-27, `feat/e5-layer`)
+
+만든 것: 타일맵 `contrib.ts` 의 실행 길(`PlayRequest`, `MapPlayer`, `TilemapApi.play`, `playBlocked`, `setPlayer`), 앱 `playHere.ts` 의 `playRequest`
+(여기서 실행과 확장의 실행 길이 함께 지나는 저장 묻기, 콘솔 한 줄, 러너 시작)와 `runnerBlocked`, `Editor.installTilemapPlaces` 의 `setPlayer` 한 줄,
+`RunnerStore` 의 `runLanguage`(언어 검사를 덮은 `INITIAL2D_SCRIPT` 로). ext-rpg 의 `model/rpgPlay.ts`(DOM 없음: `rpgPlayProvider`, `eventPlay`,
+`eventPlayBlocked`, `eventPlayRequest`), 확장의 제공자 등록과 명령 둘(`rpg.playEvent`, `rpg.probeEvent`, 맵 메뉴), 인스펙터의 "앞에서 실행"과
+"자동 재생" 단추, 목록 패널 줄의 우클릭 메뉴(메뉴 키와 Shift+F10 도). e2e 도우미 `tests/e2e/support/rpg.ts`(`rpg-layer.spec.ts` 도 쓴다)와
+`tests/e2e/rpg-events.spec.ts`. `yarn test:engine-events` 는 에디터 명령과 같은 함수로 변수를 만들고 다섯째 판(여기서 실행)을 더했다.
+
+| 물음 | 결정 |
+|---|---|
+| 확장이 맵을 띄우는 길 | 계획에는 제공자만 있었다. 확장의 명령(이 이벤트 앞에서 실행)이 러너에 닿을 길이 없어 타일맵 자리에 `play(doc, request)` 를 더했다. 앱이 `setPlayer` 로 여기서 실행과 같은 함수(`playRequest`)를 넣는다. 요청의 `plan` 은 저장을 마친 뒤에 부른다 (다시 읽기를 골랐으면 디스크의 목록으로 자리를 정한다). 플랫포머에도 말이 되는 자리다 (체크포인트 앞에서 실행) |
+| 이벤트를 다시 찾기 | 요청은 이벤트 id 를 들고 저장 뒤의 목록에서 다시 찾는다. 사라졌으면 이유를 알리고 띄우지 않는다. id 가 없는 이벤트는 번호 그대로다 |
+| 여기서 실행의 자리 (5.2) | 하나만 고른 이벤트의 앞, 그다음 커서 칸, 그다음 뷰 가운데(맵 밖이면 쓰지 않는다), 셋 다 없으면 위치 변수 없이 정의 파일의 시작. 고른 이벤트의 칸이 틀렸으면 그 이유를 설명 앞에 적고 커서로 넘어간다 |
+| 붙지 않은 레이어 | 스키마를 읽는 중이거나 없어서 레이어가 붙지 않은 등록 맵도 실행은 된다. 자리는 맵 파일의 `events` 원본으로 고른다. RTP 쌍둥이 맵(alt)도 받고 맵 이름은 항목의 이름이다 (레이어는 읽기 전용이어도 실행은 된다) |
+| 받지 않는 이유 | rpgPlay 의 `hint`: 등록되지 않은 맵, `play` 가 없음, 설정을 읽지 못함, 설정이 없음(스키마가 있는 프로젝트). 스키마도 설정도 없는 프로젝트(플래피)는 말하지 않는다. 엔진 저장소의 `sample.json` 은 이 이유와 기본 제공자의 `play.maps` 이유가 이어져 보인다 |
+| 언어 검사 | `RunnerStore` 는 두 실행 방식 모두 덮은 `INITIAL2D_SCRIPT` 로 언어를 고른다 (`runLanguage`). 러너의 `startHint`(F5 단추)는 그대로 `game.json` 의 언어를 본다. 여기서 실행과 확장의 실행 길은 그 이유가 언어뿐(`NO_MRUBY`)이면 막지 않는다: 띄울 때 덮은 값으로 다시 보고, 덮지 않은 실행(알데바란)은 그때 같은 이유로 거절된다 |
+| 명령과 단추 | 명령은 활성 맵에서 하나만 고른 이벤트에 켜진다. 실행 길이 막혔거나(러너), 이벤트로 띄울 수 없으면(parallel 의 자동 재생, 칸이 틀림) 꺼진다. 인스펙터는 꺼진 단추 옆에 이유를 한 줄로, 목록 메뉴는 툴팁으로 보인다. 단축키는 없다 (Ctrl+F5 가 고른 이벤트 앞에서 띄우므로) |
+| 우클릭 | 목록 패널의 줄에만 있다. 패널 안에 절대 자리로 그린다 (앱의 `ContextMenu` 는 앱 부품이고, 도킹 영역은 contain 이라 fixed 가 창 기준이 아니다). 맵 뷰의 우클릭은 팬이라 그대로 두었다. 맵 위의 우클릭 메뉴는 레이어 도구가 메뉴를 띄우는 일반 자리가 필요해 나중 후보다 |
+| 시작 상태 | 목록 패널의 칸에 적은 값을 세 실행이 `{state}` 로 넘긴다. 틀린 항목이 있으면 설명에 "틀린 항목 N개는 엔진이 건너뛴다"를 붙이고 그대로 넘긴다 (엔진이 `rpg:error:state:` 로 알린다) |
+| e2e 의 두 파일 | `rpg-layer.spec.ts`(마일스톤 4, 레이어의 그림을 눈을 끄고 켠 화면으로 견준다)는 그대로 두고, `rpg-events.spec.ts` 는 놓기부터 저장까지와 실행을 본다. 픽스처를 써 넣는 도우미는 `support/rpg.ts` 로 옮겨 둘이 함께 쓴다. 표식 17개는 뷰가 그린 목록(`drawn`)의 자리로 본다 (외형은 발 기준 24x32 프레임, 나머지는 칸) |
+| 브리지 모드의 자동 재생 | 엔진 사본의 `game.json` 을 mruby 로 쓰고, 시작 상태 `arrived,heardAltar` 로 아이(kid)를 자동 재생한다. 게임 탭이 뜨고 콘솔의 `rpg:player:port_town,14,21,up`, `rpg:event:kid`, 목걸이를 주는 가지의 대사 셋, 마지막 줄 `rpg:route:done` 을 본다. 선장의 인사와 다른 가지의 대사는 없어야 하고, 러너의 시작 줄은 "언어 lua" 다 |
+| 교차 검사 | 판마다 변수를 `eventPlayRequest(...).plan(doc)`(확장의 명령이 타일맵의 실행 길에 넘기는 요청)로 만들고 `probeEnv` 로 만든 값과 같은지 본다. 시작 상태는 저장소 대신 맵마다의 표에서 온다. 다섯째 판은 `TilemapContrib.providerFor(doc)` 가 rpgPlay 인지, 그 `plan` 이 `planEnv` 와 같고 자동 재생 변수가 없는지 보고, 짧은 유한 실행(240 프레임)으로 선 자리만 본다 |
+
+검수: `yarn typecheck`, `yarn lint`, `node scripts/check-color-literals.mjs` 통과. Vitest 전체 1307건 통과(119 파일, 1 건너뜀). 새 테스트:
+타일맵 `contrib.test.ts` 3, 앱 `playHere.test.ts` 4, `RunnerStore.test.ts` 1, `RunnerStore.embedded.test.ts` 1, 새 `RunnerStore.play.test.ts` 3
+(앱과 같은 길로 확장 호스트에 두 확장을 켜고, `game.json` 은 mruby, 엔진 빌드는 lua 만. 여기서 실행과 자동 재생 명령과 저장을 묻는 실행의
+`RunSpec.env` 가 제공자의 `plan.env` 에 `INITIAL2D_HMR=1` 만 더한 것이다), ext-rpg `rpgPlay.test.ts` 11, `extension.test.ts` 4,
+`EventInspector.test.tsx` 3, `EventsPanel.test.tsx` 4. 앱 `Editor.workspace.test.ts` 의 제공자 목록에 `rpg.play`(10)가 더해지고 실행 길과 맵 메뉴의 두 명령을 본다.
+
+테스트가 깨지는 것을 보았다 (바꾸고 돌린 뒤 되돌렸다, 22개 모두 잡힘): 언어를 덮은 값으로 보지 않으면 5건, `NO_MRUBY` 를 막는 이유로 두면 4건,
+저장 전에 plan 을 부르면 3건, 콘솔 줄에 요청의 이름을 쓰지 않으면 1건, 저장 질문의 제목이 고정이면 2건, 길이 없을 때 콘솔에 남기지 않으면 1건,
+`setPlayer` 의 해제가 남의 길까지 빼면 1건, 길이 관찰 가능하지 않으면 1건, rpgPlay 의 priority 가 0 이면 2건, 고른 이벤트를 보지 않으면 3건,
+맵 밖의 커서를 쓰면 1건, 자동 재생이 `play.probe` 를 더하지 않으면 4건, 요청이 id 대신 번호로 찾으면 1건, 시작 상태를 넘기지 않으면 4건,
+alt 맵을 받지 않으면 1건, RPG 프로젝트가 아닌데 이유를 말하면 1건, 명령이 막힘을 보지 않으면 1건, 실행이 제 검사를 건너뛰면 1건,
+제공자를 등록하지 않으면 2건, 우클릭이 줄을 고르지 않으면 2건, 메뉴가 Escape 를 무시하면 1건, 단추를 끄지 않으면 1건.
+
+Playwright (포트 4761, 브리지 6561, 출력과 TMPDIR 은 scratchpad 아래): 새 `rpg-events.spec.ts` 3건과 `rpg-layer.spec.ts` 통과. 전체 83건 중 82건 통과,
+1건(`aldebaran-map.spec.ts`)은 숲을 여는 도중 5초 기다림에서 시간이 넘었다. 같은 파일만 다시 돌리면 네 번 중 두 번 통과하고, 실패한 판의 trace 는
+메뉴 한 번 누르기에 3.5초가 걸릴 만큼 페이지가 멈춰 있었다 (그때 기계의 load average 20~30, 다른 작업 트리의 엔진이 CPU 를 다 썼다). 바꾼 코드는 맵 열기와 그리기에 닿지 않는다.
+
+`yarn test:engine-events` 의 건너뛰지 않은 실행 (엔진 master `cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f`): 판 8, 검사 90개 통과.
+[1] ~ [4] 의 trace 줄은 마일스톤 2 의 실행 기록과 같다. 다섯째 판(여기서 실행, 경로 없음):
+
+```
+[5] rc=0
+  rpg:map:port_town events:18 skipped:0
+  rpg:player:port_town,15,44,up
+  rpg:event:arrival
+  rpg:message:선장|짐은 다 내렸네. 저녁 물때에 배가 다시 뜨니, 그때까지는 자네 시간이야.
+engine-events: 판 8, 검사 90개 통과, 엔진 cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f (/Users/u/Initial2D/build/Initial2D)
+ ✓ test/engine/events.engine.test.ts (6 tests) 35463ms
+```
+
+브리지 모드 e2e 의 콘솔 (게임 탭의 웹 엔진, 시작 상태 `arrived,heardAltar`, 아이의 자동 재생):
+
+```
+rpg:map:port_town events:17 skipped:0
+rpg:player:port_town,14,21,up
+rpg:event:arrival
+rpg:event:kid
+rpg:message:아이|등대 할아버지도 노래 얘기를 했죠? 할아버지는 저를 안 놀려요.
+rpg:message:|조개 목걸이를 받았다.
+rpg:message:아이|이거 드릴게요. 숲에서 주운 거예요. 배 타고 가다가 이거 보면, 여기 생각나실 거예요.
+rpg:route:done
+```
+
+남은 것: 맵 이동의 대상 고르기(마일스톤 5), 새 이벤트 명령(2.4, 빈 칸 더블클릭이 같은 일을 한다), 맵 뷰의 우클릭 메뉴, 사람의 브리지 왕복(마일스톤 3),
+Tauri 앱의 프로세스 모드를 저자가 한 번 눌러 보기(완료 기준 셋째), 엔진 README 의 두 명령과 엔진 `index.md` 의 표, `packages/ui` 로 옮길 입력 부품 둘.
+
+### 통합 검수 (2026-09-27, `feat/e5-layer`)
+
+세 갈래(확장 자리, 커맨드 편집기, 이벤트 레이어와 실행)를 한 트리에 모아 처음부터 다시 돌렸다. 엔진은 master `cac4b94`, 웹 엔진은 E4 의 빌드(Lua 와 mruby).
+
+| 검사 | 결과 |
+|---|---|
+| `yarn install --immutable` | 통과 |
+| `yarn typecheck`, `yarn lint`, `node scripts/check-color-literals.mjs` | 통과 |
+| Vitest | 119 파일, 1308건 통과, 1건 건너뜀(`engineManifest.test.ts` 의 `build-web/site` 대조, 엔진에 웹 빌드가 없을 때. 전부터 그렇다). stderr 없음 |
+| `yarn build` | 통과 |
+| Playwright 전체 (포트 4790, 브리지 6590, 출력과 TMPDIR 은 scratchpad 아래) | 83건 통과 (아래의 두 번을 고친 뒤) |
+| `INITIAL2D_DIR=/Users/u/Initial2D yarn test:engine-events` | 건너뛰지 않음. 판 8, 검사 90개 통과, 엔진 `cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f`. 판 [1] 의 trace 는 마일스톤 2 기록과 같다 |
+
+고친 것:
+
+- 코어의 등록(`putUnique`, `registerValidator`)이 관찰 가능한 레지스트리를 액션 밖에서 바꿨다. 도킹과 창 메뉴가 패널 목록을 보게 되자 켤 때마다 MobX 경고가 났다. 액션 안으로 옮기고, 누가 보고 있는 레지스트리에 등록하고 거둬도 경고가 없는지 보는 테스트를 더했다 (둘 중 하나를 되돌리면 깨진다).
+- `game-view.spec.ts` 의 브리지 모드 "게임이 끝난 뒤 고쳐 저장하면" 이 첫 전체 실행과 따로 돌린 두 번에서 시간이 넘었다. 좁은 그룹에서 `.view-lines` 는 편집기보다 넓고 길어서, 그 가운데를 누르면 세로 스크롤 막대 자리라 Monaco 의 스크롤과 겨룬다. 편집기 크기는 이 브랜치의 바탕(`5bb578b`)과 같았고, 바쁜 프로세스 열여섯을 띄우면 바탕도 두 번 중 한 번 같은 자리에서 실패했다. 초점을 두는 도우미 `focusCode` 로 바꿨다. 처음 판(보이는 글 영역의 왼쪽 위 4px)은 스크롤된 편집기의 그림자 띠를 눌러 메모리 모드의 "Update 의 Lua 실행 오류" 가 실패했고, 지금 판은 글이 보이는 창(`.editor-scrollable`)의 왼쪽 위에서 40px 안쪽을 마우스로 누르고 초점을 확인한다. 같은 부하에서 두 테스트가 여섯 번 모두 통과했다. 검사 자체는 그대로다.
+- `rpg-events.spec.ts` 의 브리지 기본 포트를 다른 브리지 테스트와 같은 6073 으로 (`E2E_BRIDGE_PORT` 로 바꾸는 것은 그대로).
+- 테스트의 소음: `EventInspector.test.tsx` 의 가짜 실행이 관찰 가능한 값을 액션 밖에서 바꿨고, `extension.test.ts` 는 jsdom 에서 PIXI 가 캔버스를 찾다 오류 글을 남겼다.
+
+코드 커밋 다섯과 이 문서의 커밋 하나로 나눴다. 중간 커밋 셋은 따로 만든 작업 트리에서 `yarn install --immutable`, 타입, 린트, 색 검사, Vitest 가 통과했다.
+
+1. `006e923` feat: 확장 자리 (코어, 타일맵, `packages/ui`, 앱, `map-layer-ext.spec.ts`)
+2. `d9484d3` feat(ext-rpg): 커맨드 목록 편집기와 인자 위젯
+3. `58747ee` feat(ext-rpg): 이벤트 레이어와 실행 명령 (앱이 `rpgExtension` 을 켠다)
+4. `efe5f0e` fix(core): 레지스트리 등록을 액션 안에서
+5. `3f9cd63` test(e2e): 스크립트 편집기의 초점
+
+E5 는 🟡 로 둔다. 완료 기준 일곱 중 넷(둘째, 넷째, 다섯째, 여섯째)은 돌린 검사가 뒷받침한다. 남은 셋은 첫째(엔진 저장소를 연 웹판과 Tauri 앱에서 17개를 보기), 셋째(Tauri 앱의 프로세스 모드를 저자가 한 번 눌러 보기), 일곱째(엔진 README 의 두 명령과 `play.probe` 한 줄, 엔진 `index.md` 의 표)다. 작업 항목으로는 마일스톤 3 의 사람 브리지 왕복과 마일스톤 5 의 맵 이동 대상 고르기가 남았다.

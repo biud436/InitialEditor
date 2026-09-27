@@ -130,18 +130,48 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 
 ## RPG 이벤트 (E5, 진행 중)
 
-맵 파일의 `events`를 에디터에서 고치는 RPG 확장입니다. 지금은 `packages/ext-rpg`에 DOM 없는 모델만 있습니다.
-엔진의 이벤트 스키마(`resources/schema/event-commands.json`)와 게임 설정(`resources/data/rpg-game.json`)을 읽고,
-엔진과 같은 검사를 같은 경로(`events[3].commands[2].text`)로 내고, 되돌릴 수 있는 명령으로 이벤트와 커맨드를 고칩니다.
-맵 뷰의 이벤트 레이어와 커맨드 편집기는 다음 마일스톤입니다. 계약의 정본은 엔진의 `docs/plans/m2-rpg-events.md`입니다.
+맵 파일의 `events`를 맵 위에서 고치는 RPG 확장(`packages/ext-rpg`)입니다. 엔진의 이벤트 스키마(`resources/schema/event-commands.json`)와
+게임 설정(`resources/data/rpg-game.json`)을 읽고, 엔진과 같은 검사를 같은 경로(`events[3].commands[2].text`)로 내고,
+되돌릴 수 있는 명령으로 이벤트와 커맨드를 고칩니다. 고친 이벤트는 그 앞에서 바로 띄워 봅니다.
+계약의 정본은 엔진의 `docs/plans/m2-rpg-events.md`입니다.
+
+- 이벤트 레이어: `rpg-game.json`에 등록된 맵(항구 마을, 여관)을 열면 레이어 패널에 "이벤트" 줄이 오브젝트 위에 생깁니다.
+  외형이 있는 이벤트는 CharSet의 서 있는 프레임이 게임과 같은 자리(발이 칸 아래 변)에, 나머지는 칸에 트리거 글자(말, 밟, 자, 병)로 보입니다.
+  외형은 스키마의 후보 중 프로젝트에 있는 첫 그림이라 RTP가 있으면 RTP 그림입니다. 등록되지 않은 맵(알데바란, 샘플)에는 줄 대신
+  한 줄 안내가 있고, 스키마가 없는 프로젝트에는 아무것도 없습니다. RTP 판과 기본 판이 따로 있는 맵(마을, 오두막)과 스키마 버전을
+  모르는 경우는 읽기 전용이고 이유가 자물쇠 옆에 보입니다.
+- 이벤트 도구(N): 클릭으로 고르기(Shift, Ctrl은 더하고 빼기), 빈 곳을 끌면 상자 선택, 끌어서 칸 단위로 옮기기(놓을 수 없는 칸이면
+  빨간 미리보기로 알려 주고 제자리에 둡니다. 배회 구역도 같이 옮기고 Alt를 누르면 구역은 둡니다), 고른 이벤트의 배회 구역 가장자리 끌기,
+  빈 칸 더블클릭으로 새 이벤트, 방향키로 한 칸, Delete로 지우기, Enter로 커맨드 편집기. Ctrl+C, Ctrl+V(커서 칸에), Ctrl+D는
+  이벤트 전용 클립보드라 맵 오브젝트나 씬과 섞이지 않습니다. 끌기 한 번, 입력 칸의 타이핑 한 번이 되돌리기 한 단계입니다.
+- 인스펙터: 스키마의 이벤트 칸(id, 칸, 방향, 트리거, 외형과 8명 격자, 지나가기, 막기, 속도, 배회)과 그 아래 커맨드 목록 편집기입니다.
+  id를 바꾸면 이 맵의 `moveRoute`와 `turn`의 대상도 함께 바뀝니다. 커맨드 트리는 위아래로 줄, Enter로 인자 폼, Insert로 팔레트,
+  Ctrl+위아래로 옮기기, Ctrl+C와 Ctrl+V로 여러 줄 복사와 붙여넣기, Delete로 빼기입니다 (macOS는 도구 줄의 넣기 단추나 끝 줄의 Enter).
+- 이벤트 패널(창 > 이벤트, 타일맵 레이아웃에 들어 있음): 이 맵의 이벤트 목록과 찾기(id, 트리거, 대사), 오류와 경고 수, 그리고 시작 상태
+  한 줄(`arrived,item:warehouse_key=1` 꼴, `INITIAL2D_RPG_STATE`와 같은 규칙)입니다. 시작 상태는 맵마다 `.initial-editor/rpg-play.json`에 남습니다.
+- 저장: 엔진이 건너뛸 오류가 있는 맵은 저장하기 전에 목록을 보이고 묻습니다. 에디터의 편집은 그런 값을 만들지 않으므로 밖에서 고친 파일에서만 나옵니다.
+- 여기서 실행(Ctrl+F5): 등록된 맵에서는 `rpg-game.json`의 `play`로 띄웁니다. 이벤트 하나를 골랐으면 그 앞 칸에서 이벤트 쪽을 보고,
+  아니면 커서 칸, 그다음 뷰 가운데에서 가장 가까운 설 수 있는 칸에 아래를 보고 섭니다. 셋 다 없으면 정의 파일의 시작입니다.
+  등록되지 않은 맵(알데바란)은 지금처럼 `map-objects.json`의 `play`(`maps`가 받는 맵만)로 띄웁니다.
+- 이 이벤트 앞에서 실행, 이 이벤트 자동 재생: 인스펙터의 "앞에서 실행"과 "자동 재생" 단추, 맵 메뉴, 이벤트 패널 줄의 우클릭(또는 Shift+F10)에
+  있습니다. 앞 칸은 외형과 방향이 있으면 이벤트가 바라보는 칸, 아니면 아래, 왼쪽, 오른쪽, 위 순서입니다. 자동 재생은 말 걸기(action),
+  이벤트 쪽으로 한 걸음(touch), 위치 없이 맵에 들어서기(auto)를 한 번 하고 대화를 알아서 넘기며(선택지는 첫 항목), 끝나면 게임이 스스로
+  닫힙니다. parallel은 끝나지 않아 단추가 꺼지고 이유가 보입니다. 저장하지 않은 맵은 먼저 저장할지 묻습니다.
+- 시작 상태: 이벤트 패널의 시작 상태 칸에 적은 값이 세 실행에 `INITIAL2D_RPG_STATE`로 실립니다. 비우면 새 게임 그대로입니다.
+  데모의 대사는 대부분 깃발과 아이템으로 갈리므로(`arrived,heardAltar`면 아이가 조개 목걸이를 줍니다) 여기에 적어 두고 봅니다.
+- 실행의 변수와 콘솔: `play.env`의 `INITIAL2D_SCRIPT=lua`, `INITIAL2D_SCENE=rpg`, `INITIAL2D_MAP`, `INITIAL2D_RPG_AT`, `INITIAL2D_RPG_STATE`,
+  `INITIAL2D_RPG_TRACE=1`에 자동 재생은 `play.probe`의 `INITIAL2D_AUTOPLAY=1`, `INITIAL2D_RPG_ROUTE`를 더합니다. 프로세스 실행과 게임 탭(웹 엔진)
+  모두 같은 변수이고, 콘솔에 `rpg:player:`(선 칸과 방향), `rpg:event:`, `rpg:message:이름|대사`, `rpg:route:done` 줄이 남습니다.
+  `game.json`이 mruby여도 RPG 실행은 `INITIAL2D_SCRIPT=lua`로 덮으므로 언어 검사는 덮은 값으로 합니다.
 
 - 픽스처: 모델 테스트는 엔진 파일의 사본(`packages/ext-rpg/test/fixtures/`)으로 돕니다. 이벤트 스키마, 게임 설정, 아이템 표,
   항구 마을과 여관 맵, 경로 대조 픽스처, 플레이스홀더 그림입니다. 엔진 쪽 파일이 바뀌면 `yarn sync:rpg`로 다시 맞춥니다.
   `MANIFEST.json`에 엔진 커밋(40자)과 sha256이 남고, 엔진 저장소가 옆에 있으면 사본이 엔진 파일과 같은지 테스트가 봅니다.
   `resources/rtp/`는 복사하지 않습니다. 엔진 작업 트리가 커밋과 다르면 멈추고, 그래도 복사하려면 `--allow-dirty`를 줍니다.
-- 교차 검사: `yarn test:engine-events`는 엔진 저장소의 사본 프로젝트에서 항구 마을을 열어 모델의 명령만으로 이벤트를 만들고
-  저장한 뒤, 진짜 엔진을 헤드리스로 띄워 trace 줄(`rpg:player:`, `rpg:message:`, `rpg:route:done`)을 봅니다. 판은 넷입니다:
-  말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기, 되돌린 맵을 시작 상태 `arrived`로 다시 띄우기. 여관으로 옮기는 판은
+- 교차 검사: `yarn test:engine-events`는 엔진 저장소의 사본 프로젝트에서 항구 마을을 앱과 같은 길(맵 문서에 이벤트 레이어가 붙는다)로 열어
+  모델의 명령만으로 이벤트를 만들고 저장한 뒤, 에디터의 실행 명령과 같은 함수로 만든 변수로 진짜 엔진을 헤드리스 프로세스로 띄워
+  trace 줄(`rpg:player:`, `rpg:message:`, `rpg:route:done`)을 봅니다. 판은 다섯입니다: 말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기,
+  되돌린 맵을 시작 상태 `arrived`로 다시 띄우기, 여기서 실행(고른 이벤트 앞에 서기만). 여관으로 옮기는 판은
   대조 판 셋이 뒤따릅니다. `transfer`의 x, y, dir을 하나씩 빼고 띄워 도착 검사가 실제로 실패하는지 봅니다. 엔진 실행 파일이 없거나
   M2 계약 전의 엔진(Initial2D `74febb4` 이전)이면 `SKIP:` 한 줄을 찍고 통과합니다. 엔진 저장소는 고치지 않습니다.
 
@@ -149,7 +179,15 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 INITIAL2D_DIR=../Initial2D yarn sync:rpg              # 엔진 파일을 픽스처로 복사하고 MANIFEST 갱신
 INITIAL2D_DIR=../Initial2D yarn test:engine-events    # 엔진 빌드(build/Initial2D)가 있어야 한다
 KEEP_WORKDIR=1 yarn test:engine-events                # 사본 프로젝트를 남긴다 (경로를 마지막에 찍는다)
+yarn build && yarn test:e2e tests/e2e/rpg-layer.spec.ts  # 메모리 모드에 픽스처를 써 넣고 이벤트 레이어를 브라우저로 본다
+RPG_LAYER_SCREENSHOT=/tmp/shots yarn test:e2e tests/e2e/rpg-layer.spec.ts  # 맵 뷰를 찍어 남긴다
+INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/rpg-events.spec.ts     # 놓기부터 저장까지, 실행 명령의 변수, 브리지 모드의 자동 재생
+E2E_BRIDGE_PORT=6561 RPG_EVENTS_SCREENSHOT=/tmp/rpg.png yarn test:e2e tests/e2e/rpg-events.spec.ts  # 포트를 바꾸고 끝난 화면을 찍는다
 ```
+
+`rpg-events.spec.ts`의 브리지 모드는 엔진 저장소의 `resources`(RTP 빼고)와 `scripts`를 임시 폴더에 복사해 열고, 아이를 고른 뒤 자동 재생을 눌러
+게임 탭의 웹 엔진이 콘솔에 남긴 줄을 봅니다. 프로세스 실행은 브라우저로 볼 수 없어 `yarn test:engine-events`와 러너의 단위 테스트
+(`RunnerStore.play.test.ts`, 실행 제공자의 변수가 `RunSpec.env`에 그대로 실린다)가 맡습니다.
 
 ## 프로젝트
 
@@ -165,8 +203,11 @@ packages/backend-bridge/  ProjectBackend 의 브리지(HTTP + WebSocket) 구현
 packages/backend-fsaccess/ ProjectBackend 의 브라우저 폴더(File System Access API) 구현. 웹판이 쓴다
 packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
 packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
-packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입
-packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 여기서 실행 변수)과 엔진 교차 검사
+packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입,
+                          다른 확장이 맵에 레이어와 여기서 실행 제공자를 붙이고 맵을 띄우는 자리(contrib.ts)
+packages/ui/              React 입력 부품: 인스펙터의 숫자, 글, 스키마 칸 입력. 앱과 확장이 함께 쓴다
+packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 실행 제공자와 실행 변수), 맵 뷰의 이벤트 레이어
+                          (뷰, 도구, 인스펙터, 목록 패널), 커맨드 목록 편집기, 이벤트 실행 명령, 엔진 교차 검사
 src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push
 tests/e2e/                Playwright (브라우저 모드)와 알데바란 인수 테스트, 도우미는 tests/e2e/support/
 docs/plans/               계획과 진행 상황
