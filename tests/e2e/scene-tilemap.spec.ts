@@ -208,8 +208,11 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
     expect(await ev<number>(page, "(e) => e.documents.active.model.layers[0].data[0]")).toBe(6);
 
-    // 씬 탭으로 돌아와도 맵이 그려져 있다
+    // 씬 탭으로 돌아와도 맵이 그려져 있다. 맵 탭이 처음 열리면 맵 패널(팔레트 등)이 더해지며 탭 줄이 다시 놓이므로,
+    // 그 패널이 보인 뒤에 누르고 씬이 정말 활성이 되었는지 본다 (느린 기계에서 누르기가 다시 놓이는 중에 빠지지 않게)
+    await expect(page.locator(".dv-tab", { hasText: "팔레트" }).first()).toBeVisible();
     await page.getByTestId("doc-tab").filter({ hasText: "tiles.json" }).click();
+    await expect.poll(() => ev<string>(page, "(e) => e.documents.active?.path")).toBe("resources/scenes/tiles.json");
     await expect(view).toHaveAttribute("data-ready", "true");
     // 맵 탭을 열면 맵 패널이 더해져 씬 뷰가 좁아진다 (그래서 이 파일은 창을 크게 쓴다)
     await expect.poll(async () => isGrass(await pixel(page, view, grassAt))).toBe(true);

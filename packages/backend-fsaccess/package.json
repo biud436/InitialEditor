@@ -1,0 +1,15 @@
+{
+  "name": "@initial-editor/backend-fsaccess",
+  "version": "2.0.0-dev",
+  "private": true,
+  "description": "ProjectBackend 의 브라우저 폴더(File System Access API) 구현. 웹판이 쓴다",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@initial-editor/core": "2.0.0-dev"
+  }
+}

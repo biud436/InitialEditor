@@ -1,4 +1,4 @@
-// 시작 탭. 최근 프로젝트와 모드 설명을 보인다 (components/documents/WelcomeView.tsx).
+// 시작 탭. 모드 설명, 프로젝트나 폴더 열기, 최근 목록을 보인다 (components/documents/WelcomeView.tsx).
 
 import { Document } from "@initial-editor/core";
 

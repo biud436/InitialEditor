@@ -1,8 +1,10 @@
 // 문서 탭. 제목과 저장 안 됨 점과 닫기 버튼. 탭 클릭과 끌기는 dockview 가 한다. 저장 안 된 문서는 닫기 전에 묻는다.
+// 게임 탭은 누르면(이미 활성이어도) 게임 canvas 가 키를 받는다. dockview 는 누른 탭 요소에 초점을 두기 때문이다.
 
 import type { IDockviewPanelHeaderProps } from "dockview";
 import { observer } from "mobx-react-lite";
 import { useEditor } from "../editor/EditorContext";
+import { GameDocument } from "../editor/gameView/GameDocument";
 import { CloseIcon } from "./icons";
 
 export const DocumentTab = observer(function DocumentTab(props: IDockviewPanelHeaderProps) {
@@ -23,7 +25,13 @@ export const DocumentTab = observer(function DocumentTab(props: IDockviewPanelHe
     props.api.close();
   };
   return (
-    <div className={"doc-tab" + (dirty ? " is-dirty" : "")} data-testid="doc-tab" data-dirty={dirty || undefined} title={doc?.path ?? undefined}>
+    <div
+      className={"doc-tab" + (dirty ? " is-dirty" : "")}
+      data-testid="doc-tab"
+      data-dirty={dirty || undefined}
+      title={doc?.path ?? undefined}
+      onClick={doc instanceof GameDocument ? () => void editor.gameView.focusCanvas() : undefined}
+    >
       <span className="doc-tab-title">{title}</span>
       {dirty && (
         <span className="doc-tab-dirty" aria-label="저장 안 됨">
