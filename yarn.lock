@@ -875,7 +875,17 @@ __metadata:
   dependencies:
     "@initial-editor/core": "npm:2.0.0-dev"
     "@initial-editor/ext-tilemap": "npm:2.0.0-dev"
+    "@initial-editor/ui": "npm:2.0.0-dev"
+    "@testing-library/dom": "npm:^10.0.0"
+    "@testing-library/react": "npm:^16.0.0"
+    "@types/react": "npm:^18.3.0"
     mobx: "npm:^6.13.0"
+    mobx-react-lite: "npm:^4.0.0"
+    react: "npm:^18.3.0"
+    react-dom: "npm:^18.3.0"
+  peerDependencies:
+    mobx-react-lite: ^4.0.0
+    react: ^18.3.0
   languageName: unknown
   linkType: soft
 
