@@ -10,7 +10,7 @@ import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState, type ComponentType } from "react";
-import { field, isPlainObject } from "../model/json";
+import { field, isJsonText, isPlainObject, stringifyJsonLossless } from "../model/json";
 import { EventsLayerState } from "../model/layer";
 import type { RefSources } from "../model/refs";
 import { EVENT_PLAY_LABELS, type EventPlayMode } from "../model/rpgPlay";
@@ -71,7 +71,7 @@ function LockBanner({ reason }: { reason: string | null }) {
 
 function eventLabel(ev: unknown, index: number): string {
   const id = field(ev, "id");
-  return typeof id === "string" && id !== "" ? id : `events[${index + 1}]`;
+  return isJsonText(id) && id !== "" ? id : `events[${index + 1}]`;
 }
 
 const EventsSummary = observer(function EventsSummary({ doc, state }: { doc: MapDocument; state: EventsLayerState }) {
@@ -208,7 +208,7 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
   if (!isPlainObject(ev)) {
     return (
       <div className="rpg-inspector" data-testid="rpg-inspector" data-mode="broken">
-        <div className="rpg-arg-note is-warning">events[{index + 1}] 는 객체가 아니라 고칠 수 없다 ({JSON.stringify(ev)})</div>
+        <div className="rpg-arg-note is-warning">events[{index + 1}] 는 객체가 아니라 고칠 수 없다 ({stringifyJsonLossless(ev)})</div>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { ExtensionRegistries } from "@initial-editor/core";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { runInAction } from "mobx";
+import { observable, runInAction } from "mobx";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Editor } from "../../editor/Editor";
 import { EditorProvider } from "../../editor/EditorContext";
@@ -49,5 +49,19 @@ describe("확장 패널", () => {
     expect(screen.queryByText("데모 본문")).toBeNull();
     fireEvent.click(screen.getByText("데모"));
     expect(shown).toEqual(["ext:demo"]);
+  });
+
+  it("visible이 거짓인 패널(이 프로젝트에 해당하지 않는다)은 목록에 없고, 참이 되면 나타난다", () => {
+    const { registries } = setup();
+    const visible = observable.box(false);
+    act(() =>
+      runInAction(() => {
+        registries.panels.set("events", { id: "events", title: "이벤트", Component: () => null, visible: () => visible.get() });
+      }),
+    );
+    expect(screen.queryByTestId("extension-panel-entry")).toBeNull();
+    expect(screen.getByTestId("extensions-empty")).toBeTruthy();
+    act(() => runInAction(() => visible.set(true)));
+    expect(screen.getAllByTestId("extension-panel-entry").map((e) => e.getAttribute("data-panel"))).toEqual(["events"]);
   });
 });

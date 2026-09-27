@@ -1,7 +1,7 @@
 // condition: 조건의 꼴(스키마 conditions: item, flag, var)을 고르고 그 꼴의 칸을 적는다.
 // 꼴을 바꾸면 다른 꼴의 칸은 지우고 스키마에 없는 칸은 둔다. 꼴이 둘 이상인 파일은 엔진처럼 앞의 것을 보인다.
 
-import { field, isObjectPlace, isPlainObject, setOwn, type JsonObject } from "../../model/json";
+import { field, isObjectPlace, isPlainObject, setOwn, stringifyJsonLossless, type JsonObject } from "../../model/json";
 import { judgedCondition } from "../../model/schema";
 import { ArgRow } from "./ArgField";
 import type { ArgWidgetProps } from "./context";
@@ -11,7 +11,7 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
   if (value !== undefined && !isObjectPlace(value)) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        조건이 객체가 아니다 ({JSON.stringify(value)}){" "}
+        조건이 객체가 아니다 ({stringifyJsonLossless(value)}){" "}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} onClick={() => onChange(schema.conditions[0] ? { [schema.conditions[0].kind]: "" } : {})}>
           새 조건
         </button>

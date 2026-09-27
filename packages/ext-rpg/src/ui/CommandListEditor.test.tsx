@@ -2,6 +2,7 @@
 // 커맨드 목록 편집기 (e5 문서 4절): 트리, 폼, 팔레트, 넣기와 빼기와 옮기기, 복사와 붙여넣기, 키, 문제 표시.
 // 모든 편집은 모델의 EventEditor 명령이고 한 동작이 되돌리기 한 단계다.
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cloneJson, field } from "../model/json";
 import { validateEvents } from "../model/validate";
@@ -460,6 +461,17 @@ describe("복사와 붙여넣기", () => {
     const text = cb.write([{ code: "wait", ms: 1 }]);
     expect(writeText).toHaveBeenCalledWith(text);
     expect(cb.read()).toEqual([{ code: "wait", ms: 1 }]);
+  });
+
+  it("2^53을 넘는 정수는 시스템 클립보드에 JSON의 수로 가고, 다시 읽으면 같은 값이다", () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    const cb = new CommandClipboard({ writeText });
+    const cmd = { code: "setVar", key: "big", value: bigIntValue("12345678901234567890") };
+    const text = cb.write([cmd]);
+    expect(text).toBe('[\n  {\n    "code": "setVar",\n    "key": "big",\n    "value": 12345678901234567890\n  }\n]');
+    expect(writeText).toHaveBeenCalledWith(text);
+    expect(cb.read()).toEqual([cmd]);
+    expect(parseCommandsJson('{"code":"setVar","key":"k","value":98765432109876543210}')).toEqual([{ code: "setVar", key: "k", value: bigIntValue("98765432109876543210") }]);
   });
 });
 

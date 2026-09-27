@@ -1,6 +1,7 @@
 // 이벤트 도구 (e5 문서 3절): 클릭 고르기, 끌어 옮기기(한 단계, 놓을 수 없으면 제자리), 구역 가장자리, 더블클릭 놓기,
 // Delete, Ctrl+C/V/D (확장의 클립보드), 방향키, Enter, Escape, 상자 선택, 잠긴 레이어. 진짜 port_town 픽스처로 본다.
 import type { MapLayerPointer, MapLayerToolContext } from "@initial-editor/ext-tilemap";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import { field } from "../model/json";
 import { fixtureSources, layerHarness, PORT_TOWN, stateOf } from "../testing/layerHarness";
@@ -231,6 +232,11 @@ describe("놓기와 키", () => {
     t.click(16, 44);
     expect(t.key("c", { mod: true })).toBe(true);
     expect(JSON.parse(t.clipboard.json!)[0]).toMatchObject({ id: "captain", x: 16, y: 44 });
+    // 2^53을 넘는 정수는 사본 글에서 JSON의 수다
+    const big = new EventClipboard(null);
+    const ev = { id: "well", x: 1, y: 2, data: { seed: bigIntValue("12345678901234567890") } };
+    expect(big.write([ev])).toContain('"seed": 12345678901234567890');
+    expect(big.read()).toEqual([ev]);
     expect(t.notices.at(-1)).toBe("이벤트 1개를 복사했다");
     t.tool.pointerMove(t.at(3, 44));
     expect(t.key("v", { mod: true })).toBe(true);

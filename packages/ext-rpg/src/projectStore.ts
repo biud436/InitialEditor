@@ -14,7 +14,7 @@
 import type { ChangeEvent, Workspace } from "@initial-editor/core";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { bareProjectPath, GAME_CONFIG_MISSING, GAME_CONFIG_PATH, parseGameConfig, parseItemTable, type GameConfig, type ItemTable } from "./model/game";
-import { asList, field } from "./model/json";
+import { asList, field, parseJsonLossless } from "./model/json";
 import type { RpgSources } from "./model/layer";
 import { PLAY_MEMORY_PATH, readPlayMemory, writePlayMemory } from "./model/play";
 import { EVENT_SCHEMA_PATH, parseEventSchema, schemaLockReason, type EventSchema } from "./model/schema";
@@ -361,7 +361,7 @@ export class RpgProjectStore implements RpgSources {
 function eventsOfMapText(r: ReadResult): readonly unknown[] | null {
   if (r.kind !== "text") return null;
   try {
-    const events = field(JSON.parse(r.text), "events");
+    const events = field(parseJsonLossless(r.text), "events");
     return asList(events) ?? null;
   } catch {
     return null;

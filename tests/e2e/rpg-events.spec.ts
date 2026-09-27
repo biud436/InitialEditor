@@ -12,6 +12,7 @@
 //               시작 상태가 고른 가지의 rpg:message 줄, rpg:route:done 이 차례로 나오고 게임이 스스로 끝난다.
 //               game.json 이 mruby 여도 RPG 실행은 play.env 의 INITIAL2D_SCRIPT=lua 로 뜬다 (언어 검사는 덧씌운 값으로 한다).
 //               씬을 바꾸는 배(ship)의 자동 재생은 새 게임으로 다시 시작하는 자리에서 러너가 멈추고 이유를 콘솔과 알림에 남긴다.
+//               이 판은 rpg-game.json의 play에서 INITIAL2D_RPG_TRACE를 빼고 돈다: 지켜보는 줄은 에디터가 자동 재생에 늘 넣는 trace로 나온다.
 
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -322,8 +323,14 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     if (shot) await page.screenshot({ path: shot });
   });
 
-  test("씬을 바꾸는 배(ship)의 자동 재생: 게임이 새 게임으로 다시 시작하는 자리에서 러너가 멈추고 이유를 남긴다 (되풀이하지 않는다)", async ({ page }) => {
+  test("씬을 바꾸는 배(ship)의 자동 재생: 게임이 새 게임으로 다시 시작하는 자리에서 러너가 멈추고 이유를 남긴다 (되풀이하지 않는다, 프로젝트가 trace를 빼도)", async ({ page }) => {
     test.setTimeout(120_000);
+    // play.env와 play.probe에서 trace를 뺀다 (M2 계약에서 trace는 검사용 장치라 프로젝트가 뺄 수 있다)
+    const configPath = path.join(projectDir, "resources", "data", "rpg-game.json");
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as { play: { env: Record<string, string>; probe?: Record<string, string> } };
+    delete config.play.env.INITIAL2D_RPG_TRACE;
+    if (config.play.probe) delete config.play.probe.INITIAL2D_RPG_TRACE;
+    writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
     await page.goto(`/?backend=bridge&url=${encodeURIComponent(bridge!.url)}`);
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
@@ -346,6 +353,8 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     await expect.poll(async () => (await editorLogTexts(page)).some((l) => l.startsWith(stopped)), { timeout: 90_000 }).toBe(true);
     await expect.poll(() => ev<string>(page, "(e) => e.runner.state"), { timeout: 15_000 }).toBe("idle");
     await expect(page.getByTestId("toasts")).toContainText(stopped);
+    const logs = await editorLogTexts(page);
+    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을") && l.includes("INITIAL2D_RPG_TRACE=1")), logs.join("\n")).toBe(true);
     const lines = (await engineLines(page)).filter((l) => l.startsWith("rpg:"));
     expect(lines.filter((l) => l === "rpg:event:ship"), lines.join("\n")).toHaveLength(1);
     expect(lines).toContain("rpg:message:|배는 저녁 물때에 항구를 떠났다.");

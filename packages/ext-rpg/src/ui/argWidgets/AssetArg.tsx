@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { assetIndex, charsetFrame, faceRect, resolveAssetFile, type Rect } from "../../model/assets";
 import { bareProjectPath } from "../../model/game";
 import { fileArgValue } from "../../model/events";
-import { field, isPlainObject, type JsonObject } from "../../model/json";
+import { field, isJsonText, isPlainObject, jsonValueText, stringifyJsonLossless, type JsonObject } from "../../model/json";
 import type { AssetKind, EventSchema } from "../../model/schema";
 import { pickableFiles, type ArgWidgetProps, type ImageUrl } from "./context";
 
@@ -116,7 +116,7 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
 
   const set = field(value, "set");
   const file = field(value, "file");
-  const fileBare = typeof file === "string" ? bareProjectPath(file) : "";
+  const fileBare = isJsonText(file) ? bareProjectPath(file) : "";
   return (
     <div className="rpg-asset">
       <span className="rpg-arg-inline">
@@ -130,8 +130,8 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
           </option>
         </select>
         {mode === "set" && (
-          <select className="input field-select" value={String(set)} disabled={ctx.disabled} data-testid={`${testId}-set`} aria-label={`${spec.label} 이름`} onChange={(e) => setSet(e.target.value)}>
-            {typeof set !== "string" || !sets.includes(set) ? <option value={String(set)}>{String(set)} (모르는 이름)</option> : null}
+          <select className="input field-select" value={jsonValueText(set)} disabled={ctx.disabled} data-testid={`${testId}-set`} aria-label={`${spec.label} 이름`} onChange={(e) => setSet(e.target.value)}>
+            {!isJsonText(set) || !sets.includes(set) ? <option value={jsonValueText(set)}>{jsonValueText(set)} (모르는 이름)</option> : null}
             {sets.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -156,7 +156,7 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
           프로젝트에 없는 그림 {resolved}
         </div>
       )}
-      {present && !isPlainObject(value) && <div className="rpg-arg-note is-warning">지금 값 {JSON.stringify(value)} 는 객체가 아니다</div>}
+      {present && !isPlainObject(value) && <div className="rpg-arg-note is-warning">지금 값 {stringifyJsonLossless(value)} 는 객체가 아니다</div>}
     </div>
   );
 }

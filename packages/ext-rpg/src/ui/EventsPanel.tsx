@@ -12,7 +12,7 @@
 import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
 import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
-import { field, isPlainObject } from "../model/json";
+import { field, isJsonText, isPlainObject, jsonValueText, stringifyJsonLossless } from "../model/json";
 import { EVENTS_LAYER_ID, eventsStateOf, type EventsLayerState } from "../model/layer";
 import { itemIds } from "../model/game";
 import { parseStartState } from "../model/play";
@@ -65,7 +65,7 @@ export const EventsPanel = observer(function EventsPanel({ services, hint }: Eve
 function searchText(ev: unknown): string {
   const id = field(ev, "id");
   const trigger = field(ev, "trigger") ?? "action";
-  return `${typeof id === "string" ? id : ""} ${String(trigger)} ${JSON.stringify(field(ev, "commands") ?? "")}`.toLowerCase();
+  return `${isJsonText(id) ? id : ""} ${jsonValueText(trigger)} ${stringifyJsonLossless(field(ev, "commands") ?? "")}`.toLowerCase();
 }
 
 /** 객체가 아닌 칸의 표식 (엔진이 건너뛰는 이벤트) */
@@ -73,7 +73,7 @@ const BROKEN_BADGE = { letter: "!", token: "danger", label: "객체가 아니라
 
 /** 줄에 보일 짧은 JSON (40자에서 자른다) */
 function shortJson(v: unknown): string {
-  const text = JSON.stringify(v) ?? String(v);
+  const text = stringifyJsonLossless(v) ?? String(v);
   return text.length > 40 ? `${text.slice(0, 40)}…` : text;
 }
 
@@ -211,7 +211,7 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
               data-testid="rpg-events-row"
               data-index={index}
               data-broken={broken ? "true" : undefined}
-              data-id={typeof id === "string" ? id : ""}
+              data-id={isJsonText(id) ? id : ""}
               onClick={(e) => pick(e, index)}
               onContextMenu={(e) => {
                 e.preventDefault();
@@ -227,7 +227,7 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
               <span className={`rpg-badge is-${badge.token}`} title={badge.label}>
                 {badge.letter}
               </span>
-              <span className="rpg-events-id">{typeof id === "string" && id !== "" ? id : `events[${index + 1}]`}</span>
+              <span className="rpg-events-id">{isJsonText(id) && id !== "" ? id : `events[${index + 1}]`}</span>
               <span className="muted rpg-events-cell" data-testid="rpg-events-cell">
                 {where}
               </span>

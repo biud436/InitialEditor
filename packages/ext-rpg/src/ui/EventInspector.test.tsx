@@ -149,6 +149,34 @@ describe("이벤트 하나", () => {
     expect(t.doc.undo.depth).toBe(0);
   });
 
+  it("이미 고른 외형과 얼굴 칸을 다시 누르거나 같은 값을 적으면 되돌리기 단계도 수정됨도 없다", () => {
+    const t = setup();
+    act(() => t.st.select([t.idx("captain")]));
+    const before = t.doc.text();
+    const cell = (i: number) => screen.getByTestId(`rpg-field-charset-grid-${i}`);
+    expect(cell(6).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(cell(6));
+    fireEvent.click(cell(6));
+    expect([t.doc.undo.depth, t.doc.dirty]).toEqual([0, false]);
+    const x = input("rpg-field-x");
+    act(() => x.focus());
+    fireEvent.change(x, { target: { value: "16.0" } });
+    act(() => x.blur());
+    expect([t.doc.undo.depth, t.doc.dirty]).toEqual([0, false]);
+    // 얼굴 (대사 커맨드의 face)
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    fireEvent.click(within(tree).getAllByTestId("rpg-cmd-row").find((r) => r.textContent?.includes("선장"))!);
+    const face = screen.getByTestId("rpg-arg-face-grid-6");
+    expect(face.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(face);
+    expect([t.doc.undo.depth, t.doc.dirty, t.doc.text()]).toEqual([0, false, before]);
+    // 다른 칸은 한 단계이고, 그 칸을 다시 눌러도 늘지 않는다
+    fireEvent.click(cell(5));
+    fireEvent.click(cell(5));
+    expect([t.doc.undo.depth, t.doc.dirty]).toEqual([1, true]);
+    expect(field(t.st.section.list[t.idx("captain")], "charset")).toEqual({ set: "npc", index: 5 });
+  });
+
   it("트리거를 고르면 한 단계이고 머리의 표식이 바뀐다", () => {
     const t = setup();
     act(() => t.st.select([t.idx("bench")]));

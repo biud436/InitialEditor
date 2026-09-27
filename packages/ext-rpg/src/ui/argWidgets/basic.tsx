@@ -1,29 +1,25 @@
 // 글, 여러 줄 글, 정수와 수, 참거짓, 고르기, 스칼라, JSON 위젯 (엔진 M2 2.3).
+// 2^53을 넘는 정수(표식 글, model/json.ts)는 수다: 숫자 칸에 숫자 그대로 보이고, 글 칸에서는 타입이 틀린 값이다.
 
-import { parseJsonLossless, stringifyJsonLossless } from "@initial-editor/ext-tilemap/model";
 import { useFieldText } from "@initial-editor/ui";
 import { useEffect, useId, useState } from "react";
-import { stableKey } from "../../model/json";
+import { bigIntText, isJsonNumber, isJsonText, jsonValueText, numberFromText, parseJsonLossless, stableKey, stringifyJsonLossless } from "../../model/json";
 import { NumberInput, TextField } from "../fields";
 import { emptyText, textValue, type ArgWidgetProps } from "./context";
 
-function shown(v: unknown): string {
-  return typeof v === "string" ? v : JSON.stringify(v);
-}
-
 /** 파일의 값이 이 위젯의 타입이 아닐 때의 알림 */
 function WrongValue({ value }: { value: unknown }) {
-  return <div className="rpg-arg-note is-warning">지금 값 {shown(value)} 는 이 칸의 타입이 아니다</div>;
+  return <div className="rpg-arg-note is-warning">지금 값 {jsonValueText(value)} 는 이 칸의 타입이 아니다</div>;
 }
 
 /** string: 한 줄 입력. suggest 가 있으면 제안 목록 */
 export function StringArg({ spec, value, onChange, ctx, sessionPrefix, testId }: ArgWidgetProps) {
   const listId = useId();
-  const wrong = value !== undefined && typeof value !== "string";
+  const wrong = value !== undefined && !isJsonText(value);
   return (
     <>
       <TextField
-        value={typeof value === "string" ? value : ""}
+        value={isJsonText(value) ? value : ""}
         onChange={(v, s) => onChange(textValue(spec, v), s)}
         sessionPrefix={sessionPrefix}
         disabled={ctx.disabled}
@@ -46,11 +42,11 @@ export function StringArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
 
 /** text: 여러 줄 입력. 줄바꿈은 JSON 의 \n 그대로다 */
 export function TextArg({ spec, value, onChange, ctx, sessionPrefix, testId }: ArgWidgetProps) {
-  const wrong = value !== undefined && typeof value !== "string";
+  const wrong = value !== undefined && !isJsonText(value);
   return (
     <>
       <TextField
-        value={typeof value === "string" ? value : ""}
+        value={isJsonText(value) ? value : ""}
         onChange={(v, s) => onChange(textValue(spec, v), s)}
         sessionPrefix={sessionPrefix}
         multiline
@@ -65,14 +61,16 @@ export function TextArg({ spec, value, onChange, ctx, sessionPrefix, testId }: A
   );
 }
 
-/** integer, number: 숫자 입력. min 과 max 로 자르고 integer 는 반올림한다 */
+/** integer, number: 숫자 입력. min과 max로 자르고 integer는 반올림한다. 큰 정수는 숫자 그대로 보이고 적은 그대로 들어간다 */
 export function NumberArg({ spec, value, onChange, ctx, sessionPrefix, testId }: ArgWidgetProps) {
-  const wrong = value !== undefined && typeof value !== "number";
+  const number = isJsonNumber(value);
+  const wrong = value !== undefined && !number;
   const range = spec.min !== undefined || spec.max !== undefined ? `${spec.min ?? ""}~${spec.max ?? ""}` : "";
   return (
     <>
       <NumberInput
-        value={typeof value === "number" ? value : undefined}
+        value={number ? (value as number | string) : undefined}
+        exact
         onChange={(v, s) => onChange(v, s)}
         sessionPrefix={sessionPrefix}
         integer={spec.type === "integer"}
@@ -123,8 +121,8 @@ export function BooleanArg({ spec, value, onChange, ctx, testId }: ArgWidgetProp
 /** enum: 고르기. 파일의 값이 목록에 없으면 그 값을 덧붙여 보인다. 선택 인자는 비울 수 있다 */
 export function EnumArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) {
   const values = spec.values ?? [];
-  const current = value === undefined ? "" : shown(value);
-  const outside = value !== undefined && (typeof value !== "string" || !values.includes(value));
+  const current = value === undefined ? "" : jsonValueText(value);
+  const outside = value !== undefined && (!isJsonText(value) || !values.includes(value));
   return (
     <select
       className="input field-select"
@@ -153,7 +151,7 @@ type ScalarKind = "boolean" | "number" | "string";
 
 function scalarKind(v: unknown): ScalarKind | "" {
   if (typeof v === "boolean") return "boolean";
-  if (typeof v === "number") return "number";
+  if (isJsonNumber(v)) return "number";
   if (typeof v === "string") return "string";
   return "";
 }
@@ -161,10 +159,10 @@ function scalarKind(v: unknown): ScalarKind | "" {
 function convertScalar(v: unknown, kind: ScalarKind): unknown {
   if (kind === "boolean") return typeof v === "boolean" ? v : true;
   if (kind === "number") {
-    const n = typeof v === "number" ? v : Number(v);
-    return Number.isFinite(n) && v !== "" && typeof v !== "boolean" ? n : 0;
+    if (isJsonNumber(v)) return v;
+    return typeof v === "string" ? (numberFromText(v) ?? 0) : 0;
   }
-  return v === undefined ? "" : String(v);
+  return v === undefined ? "" : jsonValueText(v);
 }
 
 /** scalar: 종류(참거짓, 수, 글)를 고르고 값을 적는다 */
@@ -197,7 +195,7 @@ export function ScalarArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
         </select>
       )}
       {kind === "number" && (
-        <NumberInput value={value as number} onChange={(v, s) => onChange(v, s)} sessionPrefix={sessionPrefix} disabled={ctx.disabled} testId={testId} ariaLabel={spec.label} />
+        <NumberInput value={value as number | string} exact onChange={(v, s) => onChange(v, s)} sessionPrefix={sessionPrefix} disabled={ctx.disabled} testId={testId} ariaLabel={spec.label} />
       )}
       {kind === "string" && <TextField value={value as string} onChange={(v, s) => onChange(v, s)} sessionPrefix={sessionPrefix} disabled={ctx.disabled} testId={testId} ariaLabel={spec.label} />}
       {wrong && <WrongValue value={value} />}
@@ -219,8 +217,8 @@ export function jsonKind(v: unknown): string {
   if (v === null) return "null";
   if (Array.isArray(v)) return `배열 (${v.length}칸)`;
   if (typeof v === "object") return `객체 (키 ${Object.keys(v as object).length}개)`;
+  if (bigIntText(v) !== null || typeof v === "number") return "수";
   if (typeof v === "string") return "글";
-  if (typeof v === "number") return "수";
   if (typeof v === "boolean") return "참거짓";
   return typeof v;
 }

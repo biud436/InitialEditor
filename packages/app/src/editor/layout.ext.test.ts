@@ -136,6 +136,26 @@ describe("확장 패널의 탭", () => {
     store.dispose();
   });
 
+  it("visible이 거짓인 패널은 프리셋이 넣지 않고 창 메뉴의 커맨드로도 열리지 않는다 (참이 되면 된다)", async () => {
+    const shown = observable.box(false);
+    const { dock, store, warnings } = await setup([{ ...EVENTS, visible: () => shown.get() }]);
+    store.applyPreset("tilemap");
+    expect(dock.getPanel("mapObjects")).toBeDefined();
+    expect(dock.getPanel("ext:rpg.events")).toBeUndefined();
+    store.togglePanel("ext:rpg.events");
+    store.showPanel("ext:rpg.events");
+    expect(dock.getPanel("ext:rpg.events")).toBeUndefined();
+    expect(warnings).toEqual(["이 프로젝트에 해당하지 않는 확장 패널이다: 이벤트", "이 프로젝트에 해당하지 않는 확장 패널이다: 이벤트"]);
+    runInAction(() => shown.set(true));
+    store.applyPreset("tilemap");
+    expect(dock.getPanel("ext:rpg.events")).toBeDefined();
+    // 열린 패널은 visible이 거짓이 되어도 닫을 수 있다
+    runInAction(() => shown.set(false));
+    store.togglePanel("ext:rpg.events");
+    expect(dock.getPanel("ext:rpg.events")).toBeUndefined();
+    store.dispose();
+  });
+
   it("등록되지 않은 확장 패널은 켜지 않고 알린다", async () => {
     const { dock, store, warnings } = await setup([]);
     store.togglePanel("ext:gone" as ToolPanelId);

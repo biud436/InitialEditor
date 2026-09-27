@@ -5,8 +5,26 @@
 //           두 저장소가 같은 픽스처(tests/fixtures/events/invalid_events.json)로 같은 경로 집합을 내는지 대조한다
 //   editor  엔진이 모르는 것: 맵 밖, 같은 칸, 없는 참조, 없는 파일, 배열 끝의 null 등. 픽스처에 넣지 않는다
 // 경로는 엔진과 같은 1부터 세는 표기다 (events[3].commands[2].branches[1][3].text).
+// 2^53을 넘는 정수(맵을 읽을 때 표식 글로 온다, json.ts)는 엔진처럼 수로 본다: 수와 정수 자리를 채우고 글 자리는 채우지 못한다.
 
-import { asList, engineLength, field, isArrayPlace, isFiniteNumber, isInteger, isNonNegInt, isObjectPlace, isPlainObject, type JsonObject } from "./json";
+import {
+  asList,
+  bigIntText,
+  engineLength,
+  field,
+  isArrayPlace,
+  isInteger,
+  isJsonInteger,
+  isJsonNumber,
+  isJsonText,
+  isNonNegInt,
+  isNonNegIntValue,
+  isObjectPlace,
+  isPlainObject,
+  jsonNumber,
+  jsonValueText,
+  type JsonObject,
+} from "./json";
 import { AREA_KEYS, REF_KEYS, WANDER_KEYS } from "./events";
 import { commandSpec, fieldValues, judgedCondition, sheetCount, type ArgSpec, type AssetKind, type CommandSpec, type EventSchema } from "./schema";
 import { mapByName, type GameConfig } from "./game";
@@ -81,20 +99,21 @@ function subject(word: string): string {
 
 function typeOfValue(v: unknown): string {
   if (v === null || v === undefined) return "nil";
+  if (bigIntText(v) !== null) return "number";
   if (Array.isArray(v) || isPlainObject(v)) return "table";
   return typeof v;
 }
 
 const VALUE_TESTS: Record<string, (v: unknown) => boolean> = {
-  string: (v) => typeof v === "string",
-  text: (v) => typeof v === "string",
-  enum: (v) => typeof v === "string",
-  ref: (v) => typeof v === "string",
-  file: (v) => typeof v === "string",
-  integer: isInteger,
-  number: isFiniteNumber,
+  string: isJsonText,
+  text: isJsonText,
+  enum: isJsonText,
+  ref: isJsonText,
+  file: isJsonText,
+  integer: isJsonInteger,
+  number: isJsonNumber,
   boolean: (v) => typeof v === "boolean",
-  scalar: (v) => typeof v === "boolean" || isFiniteNumber(v) || typeof v === "string",
+  scalar: (v) => typeof v === "boolean" || isJsonNumber(v) || isJsonText(v),
   json: () => true,
 };
 
@@ -110,11 +129,12 @@ export function checkAssetRef(schema: EventSchema, kind: AssetKind, ref: unknown
   const hasFile = file !== undefined;
   if (hasSet && hasFile) add("", "set 과 file 중 하나만 적는다");
   else if (!hasSet && !hasFile) add("", "set 이나 file 이 필요하다");
-  if (hasSet && (typeof set !== "string" || !schema.assets[kind].has(set))) add(".set", `모르는 ${kind} 이름 ${String(set)}`);
-  if (hasFile && (typeof file !== "string" || file === "")) add(".file", "경로가 글이 아니다");
+  if (hasSet && (!isJsonText(set) || !schema.assets[kind].has(set))) add(".set", `모르는 ${kind} 이름 ${jsonValueText(set)}`);
+  if (hasFile && (!isJsonText(file) || file === "")) add(".file", "경로가 글이 아니다");
   const index = field(ref, "index");
   const count = sheetCount(schema, kind);
-  if (index !== undefined && !(isInteger(index) && index >= 0 && index < count)) add(".index", `0..${count - 1} 의 정수가 아니다 (지금은 ${String(index)})`);
+  const n = jsonNumber(index);
+  if (index !== undefined && !(isJsonInteger(index) && n !== undefined && n >= 0 && n < count)) add(".index", `0..${count - 1} 의 정수가 아니다 (지금은 ${jsonValueText(index)})`);
 }
 
 function checkStrings(value: unknown, here: string, add: Add, what: string): number | null {
@@ -125,7 +145,7 @@ function checkStrings(value: unknown, here: string, add: Add, what: string): num
   }
   const count = engineLength(list);
   for (let k = 0; k < count; k++) {
-    if (typeof list[k] !== "string") add(`${here}[${k + 1}]`, `${subject(what)} 글이 아니다 (지금은 ${typeOfValue(list[k])})`);
+    if (!isJsonText(list[k])) add(`${here}[${k + 1}]`, `${subject(what)} 글이 아니다 (지금은 ${typeOfValue(list[k])})`);
   }
   return count;
 }
@@ -163,19 +183,21 @@ export function checkArg(schema: EventSchema, spec: ArgSpec, value: unknown, her
       return;
   }
   const test = VALUE_TESTS[spec.type];
+  // 큰 정수의 범위는 가까운 수로 견준다 (보이는 글은 숫자 그대로)
+  const n = jsonNumber(value);
   if (test && !test(value)) {
-    const shown = typeof value === "number" ? String(value) : typeOfValue(value);
+    const shown = n !== undefined ? jsonValueText(value) : typeOfValue(value);
     add(here, `${subject(TYPE_NAMES[spec.type])} 아니다 (지금은 ${shown})`);
   } else if (spec.type === "file" && value === "") {
     add(here, "경로가 비었다");
   } else if (spec.type === "ref" && (spec.ref === "flag" || spec.ref === "var") && schema.stateReserved.includes(value as string)) {
     add(here, `${String(value)} 는 소지품 자리라 깃발이나 변수 이름으로 쓸 수 없다`);
   } else if (spec.values && !spec.values.includes(value as string)) {
-    add(here, `${spec.values.join(", ")} 중 하나가 아니다 (지금은 ${String(value)})`);
-  } else if (typeof value === "number" && spec.min !== undefined && value < spec.min) {
-    add(here, `${spec.min} 이상이 아니다 (지금은 ${value})`);
-  } else if (typeof value === "number" && spec.max !== undefined && value > spec.max) {
-    add(here, `${spec.max} 이하가 아니다 (지금은 ${value})`);
+    add(here, `${spec.values.join(", ")} 중 하나가 아니다 (지금은 ${jsonValueText(value)})`);
+  } else if (n !== undefined && spec.min !== undefined && n < spec.min) {
+    add(here, `${spec.min} 이상이 아니다 (지금은 ${jsonValueText(value)})`);
+  } else if (n !== undefined && spec.max !== undefined && n > spec.max) {
+    add(here, `${spec.max} 이하가 아니다 (지금은 ${jsonValueText(value)})`);
   }
 }
 
@@ -188,7 +210,7 @@ export function checkCommand(schema: EventSchema, cmd: unknown, here: string, ad
   const code = field(cmd, "code");
   const spec = commandSpec(schema, code);
   if (!spec) {
-    add(here, `알 수 없는 code ${String(code)}`);
+    add(here, `알 수 없는 code ${jsonValueText(code)}`);
     return;
   }
   for (const a of spec.args) checkArg(schema, a, field(cmd, a.name), `${here}.${a.name}`, add);
@@ -241,21 +263,23 @@ function checkWander(wander: unknown, here: string, add: Add): void {
   }
   const minWait = field(wander, "minWait");
   const maxWait = field(wander, "maxWait");
-  if (minWait !== undefined && !isNonNegInt(minWait)) add(`${here}.minWait`, "0 이상의 정수가 아니다");
-  if (maxWait !== undefined && !isNonNegInt(maxWait)) add(`${here}.maxWait`, "0 이상의 정수가 아니다");
+  if (minWait !== undefined && !isNonNegIntValue(minWait)) add(`${here}.minWait`, "0 이상의 정수가 아니다");
+  if (maxWait !== undefined && !isNonNegIntValue(maxWait)) add(`${here}.maxWait`, "0 이상의 정수가 아니다");
   const lo = minWait === undefined ? WANDER_MIN : minWait;
   const hi = maxWait === undefined ? WANDER_MAX : maxWait;
-  if (isNonNegInt(lo) && isNonNegInt(hi) && lo > hi) add(`${here}${maxWait !== undefined ? ".maxWait" : ".minWait"}`, `minWait(${lo})가 maxWait(${hi})보다 크다`);
+  if (isNonNegIntValue(lo) && isNonNegIntValue(hi) && jsonNumber(lo)! > jsonNumber(hi)!) {
+    add(`${here}${maxWait !== undefined ? ".maxWait" : ".minWait"}`, `minWait(${jsonValueText(lo)})가 maxWait(${jsonValueText(hi)})보다 크다`);
+  }
   const area = field(wander, "area");
   if (area === undefined) return;
   if (!isObjectPlace(area)) {
     add(`${here}.area`, "구역이 객체가 아니다");
     return;
   }
-  for (const k of ["x", "y"]) if (!isNonNegInt(field(area, k))) add(`${here}.area.${k}`, "0 이상의 정수가 아니다");
+  for (const k of ["x", "y"]) if (!isNonNegIntValue(field(area, k))) add(`${here}.area.${k}`, "0 이상의 정수가 아니다");
   for (const k of ["w", "h"]) {
     const v = field(area, k);
-    if (!(isInteger(v) && v >= 1)) add(`${here}.area.${k}`, "1 이상의 정수가 아니다");
+    if (!(isJsonInteger(v) && jsonNumber(v)! >= 1)) add(`${here}.area.${k}`, "1 이상의 정수가 아니다");
   }
 }
 
@@ -263,16 +287,16 @@ function checkWander(wander: unknown, here: string, add: Add): void {
 export function checkEventField(schema: EventSchema, name: string, value: unknown, here: string, add: Add): void {
   switch (name) {
     case "id":
-      if (typeof value !== "string" || value === "") add(here, "id 가 비었거나 글이 아니다");
+      if (!isJsonText(value) || value === "") add(here, "id 가 비었거나 글이 아니다");
       else if (schema.reserved.includes(value)) add(here, `예약된 id ${value}`);
       return;
     case "x":
     case "y":
-      if (!isNonNegInt(value)) add(here, `0 이상의 정수가 아니다 (지금은 ${String(value)})`);
+      if (!isNonNegIntValue(value)) add(here, `0 이상의 정수가 아니다 (지금은 ${jsonValueText(value)})`);
       return;
     case "dir":
     case "trigger":
-      if (value !== undefined && (typeof value !== "string" || !fieldValues(schema, name).includes(value))) add(here, `모르는 ${name === "dir" ? "방향" : "트리거"} ${String(value)}`);
+      if (value !== undefined && (!isJsonText(value) || !fieldValues(schema, name).includes(value))) add(here, `모르는 ${name === "dir" ? "방향" : "트리거"} ${jsonValueText(value)}`);
       return;
     case "charset":
       if (value !== undefined) checkAssetRef(schema, "charset", value, (p, m) => add(here + p, `외형: ${m}`));
@@ -282,7 +306,7 @@ export function checkEventField(schema: EventSchema, name: string, value: unknow
       if (value !== undefined && typeof value !== "boolean") add(here, "참거짓이 아니다");
       return;
     case "speed":
-      if (value !== undefined && !(isFiniteNumber(value) && value > 0)) add(here, "0 보다 큰 수가 아니다");
+      if (value !== undefined && !(isJsonNumber(value) && jsonNumber(value)! > 0)) add(here, "0 보다 큰 수가 아니다");
       return;
     case "wander":
       if (value !== undefined) checkWander(value, here, add);
@@ -304,7 +328,7 @@ function checkEvent(schema: EventSchema, ev: unknown, here: string, seen: Readon
   for (const name of EVENT_FIELDS_CHECKED) {
     const value = field(ev, name);
     checkEventField(schema, name, value, `${here}.${name}`, add);
-    if (name === "id" && typeof value === "string" && value !== "" && !schema.reserved.includes(value) && seen.has(value)) {
+    if (name === "id" && isJsonText(value) && value !== "" && !schema.reserved.includes(value) && seen.has(value)) {
       add(`${here}.id`, `id ${value} 가 events[${seen.get(value)}] 와 겹친다`);
     }
   }
@@ -325,7 +349,7 @@ export function engineProblems(events: unknown, schema: EventSchema): PathProble
     const ev = list[i];
     checkEvent(schema, ev, `events[${i + 1}]`, seen, add);
     const id = field(ev, "id");
-    if (isObjectPlace(ev) && typeof id === "string" && !seen.has(id)) seen.set(id, i + 1);
+    if (isObjectPlace(ev) && isJsonText(id) && !seen.has(id)) seen.set(id, i + 1);
   }
   return problems;
 }
@@ -374,14 +398,14 @@ function checkUnknownKeys(o: unknown, known: readonly string[], here: string, wh
 }
 
 function checkFile(value: unknown, here: string, accept: readonly string[] | undefined, scope: EditorScope): void {
-  if (typeof value !== "string" || value === "") return;
+  if (!isJsonText(value) || value === "") return;
   if (accept && accept.length > 0 && !accept.includes(extOf(value))) scope.add("warning", here, `확장자가 ${accept.join(", ")} 가 아니다`);
   const exists = scope.ctx.fileExists;
   if (exists && !exists(bare(value))) scope.add("warning", here, `프로젝트에 없는 파일 ${value}`);
 }
 
 function checkRef(spec: ArgSpec, value: unknown, here: string, scope: EditorScope): void {
-  if (typeof value !== "string") return;
+  if (!isJsonText(value)) return;
   const { ctx } = scope;
   if (value === "") {
     scope.add("warning", here, `${subject(spec.label)} 비었다`);
@@ -407,7 +431,7 @@ function checkRouteSteps(value: unknown, here: string, scope: EditorScope): void
   if (!list) return;
   const { moves, turnPrefix, waitPrefix } = scope.ctx.schema.route;
   list.forEach((step, k) => {
-    if (typeof step !== "string") return;
+    if (!isJsonText(step)) return;
     if (moves.includes(step)) return;
     if (step.startsWith(turnPrefix) && moves.includes(step.slice(turnPrefix.length))) return;
     if (step.startsWith(waitPrefix) && /^\d+$/.test(step.slice(waitPrefix.length))) return;
@@ -459,14 +483,14 @@ function checkCommandEditor(cmd: JsonObject, here: string, spec: CommandSpec, sc
   // 선택지: 취소가 고르는 항목이 항목 수 안인가
   const options = asList(field(cmd, "options"));
   const cancel = field(cmd, "cancel");
-  if (spec.code === "choice" && options && isInteger(cancel) && cancel > engineLength(options)) {
-    scope.add("warning", `${here}.cancel`, `취소키가 고르는 항목 ${cancel} 이 항목 수 ${engineLength(options)} 밖이다`);
+  if (spec.code === "choice" && options && isJsonInteger(cancel) && jsonNumber(cancel)! > engineLength(options)) {
+    scope.add("warning", `${here}.cancel`, `취소키가 고르는 항목 ${jsonValueText(cancel)} 이 항목 수 ${engineLength(options)} 밖이다`);
   }
   if (spec.code === "transfer" && (field(cmd, "x") === undefined) !== (field(cmd, "y") === undefined)) {
     scope.add("warning", here, "x 와 y 중 하나만 있다 (없는 쪽은 정의 파일의 시작 값을 쓴다)");
   }
   const scriptName = field(cmd, "name");
-  if (spec.code === "script" && typeof scriptName === "string" && scriptName !== "") {
+  if (spec.code === "script" && isJsonText(scriptName) && scriptName !== "") {
     scope.add("info", here, "스크립트 이름은 엔진만 확인할 수 있다 (정의 파일의 scripts)");
   }
   checkUnknownKeys(
@@ -525,6 +549,9 @@ function checkEventEditor(ev: JsonObject, i: number, scope: EditorScope, cells: 
     if (x >= map.width) scope.add("error", `${here}.x`, `맵 밖이다 (가로 ${map.width} 칸)`);
     if (y >= map.height) scope.add("error", `${here}.y`, `맵 밖이다 (세로 ${map.height} 칸)`);
   }
+  // 2^53을 넘는 칸은 엔진에게 0 이상의 정수라 엔진 검사를 지나지만 어느 맵에도 들지 않는다
+  if (map && bigIntText(x) !== null && isNonNegIntValue(x)) scope.add("error", `${here}.x`, `맵 밖이다 (가로 ${map.width} 칸)`);
+  if (map && bigIntText(y) !== null && isNonNegIntValue(y)) scope.add("error", `${here}.y`, `맵 밖이다 (세로 ${map.height} 칸)`);
   if (hasCell && (trigger === "action" || trigger === "touch")) {
     const key = `${String(trigger)}:${cellText(x, y)}`;
     const first = cells.get(key);
@@ -554,7 +581,7 @@ function checkEventEditor(ev: JsonObject, i: number, scope: EditorScope, cells: 
     }
   }
   const id = field(ev, "id");
-  if (typeof id === "string" && ctx.defIds?.has(id)) scope.add("warning", `${here}.id`, `정의 파일에 같은 id ${id} 가 있다. 게임에서는 Lua 정의가 이긴다`);
+  if (isJsonText(id) && ctx.defIds?.has(id)) scope.add("warning", `${here}.id`, `정의 파일에 같은 id ${id} 가 있다. 게임에서는 Lua 정의가 이긴다`);
   if (trigger === "auto") {
     autoCount.n++;
     scope.add("info", `${here}.trigger`, `맵에 들어올 때 병합 순서대로 하나씩 돈다. 이 맵의 auto 중 ${autoCount.n}번째`);
@@ -587,7 +614,7 @@ export function validateEvents(events: unknown, ctx: ValidateContext): EventProb
   const idAt = (i: number | undefined) => {
     if (i === undefined || !list) return undefined;
     const id = field(list[i], "id");
-    return typeof id === "string" ? id : undefined;
+    return isJsonText(id) ? id : undefined;
   };
   const push = (severity: Severity, source: "engine" | "editor", location: string, message: string) => {
     const eventIndex = eventIndexOf(location);
@@ -606,7 +633,7 @@ export function validateEvents(events: unknown, ctx: ValidateContext): EventProb
   const hasCharset = new Map<string, boolean>();
   for (const ev of list) {
     const id = field(ev, "id");
-    if (typeof id === "string" && id !== "") {
+    if (isJsonText(id) && id !== "") {
       ids.add(id);
       if (!hasCharset.has(id)) hasCharset.set(id, field(ev, "charset") !== undefined);
     }

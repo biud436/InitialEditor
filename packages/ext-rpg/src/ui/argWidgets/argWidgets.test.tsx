@@ -196,6 +196,24 @@ describe("integer, number", () => {
     renderArg(argOf("wait", "ms"), "300");
     expect(screen.getByText(/이 칸의 타입이 아니다/)).toBeTruthy();
   });
+
+  it("2^53을 넘는 정수는 수다: 숫자 그대로 보이고, 적은 큰 정수는 그대로 간다 (범위 밖이면 자른다)", () => {
+    const r = renderArg(argOf("setVar", "value"), bigIntValue("12345678901234567890"));
+    expect(input().value).toBe("12345678901234567890");
+    expect(screen.queryByText(/이 칸의 타입이 아니다/)).toBeNull();
+    expect(document.body.textContent).not.toContain("INT:");
+    focus(input());
+    typeIn(input(), "98765432109876543210");
+    typeIn(input(), "-98765432109876543210");
+    typeIn(input(), "0012");
+    expect(r.values()).toEqual([bigIntValue("98765432109876543210"), bigIntValue("-98765432109876543210"), 12]);
+    cleanup();
+    const ms = renderArg(argOf("wait", "ms"), 10);
+    focus(input());
+    typeIn(input(), "-12345678901234567890");
+    typeIn(input(), "12345678901234567890");
+    expect(ms.values()).toEqual([0, bigIntValue("12345678901234567890")]);
+  });
 });
 
 describe("boolean, enum, scalar", () => {
@@ -234,6 +252,24 @@ describe("boolean, enum, scalar", () => {
     fireEvent.change(select("arg"), { target: { value: "false" } });
     fireEvent.change(select("arg-kind"), { target: { value: "" } });
     expect(r.values()).toEqual([0, 5, "5", true, false, undefined]);
+  });
+
+  it("스칼라의 큰 정수는 수 종류로 숫자 그대로 보이고, 글로 바꾸면 그 숫자 글이다", () => {
+    const r = renderArg(argOf("setFlag", "value"), bigIntValue("12345678901234567890"));
+    expect(select("arg-kind").value).toBe("number");
+    expect(input().value).toBe("12345678901234567890");
+    fireEvent.change(select("arg-kind"), { target: { value: "string" } });
+    fireEvent.change(select("arg-kind"), { target: { value: "number" } });
+    expect(r.values()).toEqual(["12345678901234567890", bigIntValue("12345678901234567890")]);
+  });
+
+  it("글과 고르기 칸의 큰 정수는 타입이 틀린 값이고 숫자로 알린다", () => {
+    renderArg(argOf("message", "name"), bigIntValue("12345678901234567890"));
+    expect(input().value).toBe("");
+    expect(screen.getByText(/이 칸의 타입이 아니다/).textContent).toBe("지금 값 12345678901234567890 는 이 칸의 타입이 아니다");
+    cleanup();
+    renderArg(argOf("turn", "dir"), bigIntValue("12345678901234567890"));
+    expect(optionTexts(select("arg"))[0]).toBe("12345678901234567890 (목록에 없음)");
   });
 });
 
@@ -479,6 +515,8 @@ describe("json", () => {
     focus(input());
     typeIn(input(), '{"seed": 98765432109876543210, "n": 1}');
     expect(r.last()).toEqual({ seed: bigIntValue("98765432109876543210"), n: 1 });
+    typeIn(input(), "12345678901234567890");
+    expect(screen.getByTestId("arg-result").textContent).toBe("수");
   });
 });
 

@@ -1,7 +1,8 @@
 // RPG 이벤트 편집기의 검수 뒤 고친 것 e2e (docs/plans/e5-rpg.md "레이어 검수 뒤 고친 것"). 메모리 모드에 픽스처를 써 넣는다 (support/rpg.ts).
 //   기본 폭(280px) 인스펙터의 선택지 항목과 이동 루트 걸음 칸, 입력 칸 안의 Ctrl+Z (커맨드 폼과 씬 인스펙터가 같다),
 //   앞의 이벤트를 지우고 되돌린 뒤의 고르기, 폼이 열린 채 가지의 끝 줄 두 번 누르기, 커맨드 트리의 도구 글자, 한 줄 칸의 Enter,
-//   숨긴 이벤트 레이어, 목록 패널의 틀린 칸, 2^53 을 넘는 정수, RPG 스키마가 없는 프로젝트의 메뉴
+//   숨긴 이벤트 레이어, 목록 패널의 틀린 칸, 2^53을 넘는 정수(저장, 수 인자의 폼과 검사, 클립보드), 이미 고른 외형을 다시 누르기,
+//   RPG 스키마가 없는 프로젝트의 메뉴와 확장 패널 목록과 타일맵 레이아웃
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { cellPoint, ev, LAYOUT_KEY, MEADOW, openMap, openRpgProject, PORT, primaryKey } from "./support/rpg";
@@ -9,6 +10,7 @@ import { cellPoint, ev, LAYOUT_KEY, MEADOW, openMap, openRpgProject, PORT, prima
 type Cmd = Record<string, unknown>;
 
 const depth = (page: Page) => ev<number>(page, "(e) => e.documents.active.undo.depth");
+const dirty = (page: Page) => ev<boolean>(page, "(e) => e.documents.active.dirty");
 
 function commandsOf(page: Page, id: string): Promise<Cmd[] | null> {
   return ev<Cmd[] | null>(page, "(e, id) => { const s = e.documents.active.layerState('rpg.events'); const i = s.section.indexOfId(id); return i < 0 ? null : (s.section.list[i].commands ?? []); }", id);
@@ -280,6 +282,66 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     const saved = await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT);
     expect(saved).toContain('"seed": 12345678901234567890');
   });
+
+  test("2^53을 넘는 정수는 수 인자에서 수다: 폼은 숫자 그대로, 트리 줄과 저장에 오류가 없고, 복사한 글은 JSON의 수다", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await openRpgProject(page);
+    const mod = await primaryKey(page);
+    const data = JSON.parse(await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT)) as { events: Array<Record<string, unknown>> };
+    const well = data.events.find((e) => e.id === "well")!;
+    well.data = { seed: "@BIG@" };
+    (well.commands as Cmd[]).push({ code: "setVar", key: "big", value: "@BIG@" });
+    await ev(page, "(e, a) => e.backend.writeText(a.p, a.t)", { p: PORT, t: JSON.stringify(data, null, 2).replaceAll('"@BIG@"', "12345678901234567890") });
+    await openMap(page, PORT, "port_town.json");
+    await pick(page, "well");
+    const tree = page.getByTestId("rpg-cmd-tree");
+    const row = tree.locator('[data-row-key="c.commands[2]"]');
+    await expect(row).toContainText("변수");
+    await expect(row.getByTestId("rpg-cmd-marker")).toHaveCount(0);
+    await row.click();
+    await expect(page.getByTestId("rpg-arg-value")).toHaveValue("12345678901234567890");
+    await expect(page.getByTestId("rpg-inspector")).not.toContainText("INT:");
+    await expect(page.getByTestId("rpg-inspector")).not.toContainText("타입이 아니다");
+
+    // 커맨드 복사 (트리의 Ctrl+C)와 이벤트 복사 (맵 뷰의 Ctrl+C)는 시스템 클립보드에 수로 간다
+    await expect(tree).toBeFocused();
+    await page.keyboard.press(`${mod}+c`);
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"value": 12345678901234567890');
+    expect(await ev<string>(page, "(e) => e.extensions.exportsOf('rpg').services.commandClipboard.json")).not.toContain("INT:");
+    const host = page.getByTestId("map-view").locator(".map-view-host");
+    await host.focus();
+    await page.keyboard.press(`${mod}+c`);
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"seed": 12345678901234567890');
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toContain('"value": 12345678901234567890');
+    expect(copied).not.toContain("INT:");
+
+    // 다른 이벤트를 옮기고 저장해도 오류 대화상자 없이 저장되고 큰 정수는 그대로다
+    await pick(page, "bench");
+    await host.focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect.poll(() => eventCell(page, "bench")).toEqual([18, 34]);
+    await page.keyboard.press(`${mod}+s`);
+    await expect(page.getByTestId("toasts")).toContainText("저장했다: port_town.json");
+    await expect(page.getByRole("button", { name: "그래도 저장" })).toHaveCount(0);
+    const saved = await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT);
+    expect(saved).toContain('"seed": 12345678901234567890');
+    expect(saved).toContain('"value": 12345678901234567890');
+  });
+
+  test("이미 고른 외형 칸을 다시 누르면 되돌리기 단계도 저장 안 됨도 없다", async ({ page }) => {
+    await openRpgProject(page);
+    await openMap(page, PORT, "port_town.json");
+    await pick(page, "captain");
+    const cell = (i: number) => page.getByTestId(`rpg-field-charset-grid-${i}`);
+    await expect(cell(6)).toHaveAttribute("aria-pressed", "true");
+    await cell(6).click();
+    await cell(6).click();
+    expect([await depth(page), await dirty(page)]).toEqual([0, false]);
+    await cell(5).click();
+    await cell(5).click();
+    expect([await depth(page), await dirty(page)]).toEqual([1, true]);
+  });
 });
 
 test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
@@ -296,6 +358,13 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     for (const label of ["이벤트 도구", "이 이벤트 앞에서 실행", "이 이벤트 자동 재생"]) expect(mapMenu).not.toContain(label);
     expect(await menuLabels(page, "창")).not.toContain("이벤트");
     await expect(page.getByTestId("layers").getByTestId("layer-hint")).toHaveCount(0);
+    // 확장 패널 목록에도 없고, 타일맵 레이아웃도 이벤트 탭을 넣지 않는다
+    await expect(page.getByTestId("extensions-empty")).toBeVisible();
+    await expect(page.getByTestId("extension-panel-entry")).toHaveCount(0);
+    await ev(page, "(e) => e.commands.execute('window.layout.tilemap')");
+    await expect(page.getByTestId("map-view")).toBeVisible();
+    expect(await ev<boolean>(page, "(e) => e.layout.isPanelOpen('ext:rpg.events')")).toBe(false);
+    await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
   });
 
   test("RPG 프로젝트에서는 같은 항목이 보인다 (대조)", async ({ page }) => {
@@ -304,5 +373,8 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     const mapMenu = await menuLabels(page, "맵");
     for (const label of ["이벤트 도구", "이 이벤트 앞에서 실행", "이 이벤트 자동 재생"]) expect(mapMenu).toContain(label);
     expect(await menuLabels(page, "창")).toContain("이벤트");
+    await expect(page.locator('[data-testid="extension-panel-entry"][data-panel="rpg.events"]')).toHaveCount(1);
+    await ev(page, "(e) => e.commands.execute('window.layout.tilemap')");
+    await expect.poll(() => ev<boolean>(page, "(e) => e.layout.isPanelOpen('ext:rpg.events')")).toBe(true);
   });
 });

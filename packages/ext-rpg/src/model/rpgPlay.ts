@@ -6,14 +6,15 @@
 //                    셋 다 없으면 위치 변수를 넣지 않아 정의 파일의 시작에 선다
 //   eventPlay        이 이벤트 앞에서 실행(play)과 이 이벤트 자동 재생(probe, play.probe 를 더한다). 자리와 경로는 play.ts 의 eventPlayPlan
 //   시작 상태         맵마다 기억한 글을 {state} 로 넘긴다. 비었으면 INITIAL2D_RPG_STATE 를 넣지 않는다
-//   지켜보기         자동 재생은 러너가 게임의 줄을 넘겨 지켜보게 한다 (probeWatch: 새 게임으로 다시 시작하면 멈춘다, 이벤트가 돌지 않았으면 알린다)
+//   지켜보기         자동 재생은 러너가 게임의 줄을 넘겨 지켜보게 한다 (probeWatch: 새 게임으로 다시 시작하면 멈춘다, 이벤트가 돌지 않았으면 알린다).
+//                    지켜보는 줄은 trace라 자동 재생의 변수는 늘 INITIAL2D_RPG_TRACE=1을 든다 (play.ts의 probeEnv). {event}는 이벤트 id다
 // 레이어가 붙지 않은 맵(스키마를 읽는 중이거나 없다)도 맵 파일의 events 원본으로 자리를 고른다.
 
 import type { PlayContext, PlayPlan, PlayProviderSpec, PlayRequest, PlayWatch } from "@initial-editor/ext-tilemap";
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { EVENTS_SECTION } from "./events";
 import { GAME_CONFIG_MISSING, itemIds, mapEntryFor, type MapEntry, type PlaySection } from "./game";
-import { asList, field } from "./json";
+import { asList, field, isJsonText } from "./json";
 import { eventsStateOf, type RpgSources } from "./layer";
 import { eventPlayPlan, herePlayPlan, parseStartState, planEnv, probeEnv, type Cell, type PlayPlanChoice } from "./play";
 import type { MapGeometry } from "./validate";
@@ -189,10 +190,11 @@ export function eventPlay(sources: RpgPlaySources, doc: MapDocument, index: numb
   if (mode !== "probe") return toPlan(planEnv(t.play, target), r.plan, state.note);
   const ev = events[index];
   const id = field(ev, "id");
-  const eventId = typeof id === "string" && id !== "" ? id : null;
+  const eventId = isJsonText(id) && id !== "" ? id : null;
   const wanders = field(ev, "wander") !== undefined && field(ev, "charset") !== undefined;
   const extra = [wanders ? "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다" : null, state.note].filter((x): x is string => !!x).join(", ");
-  return { ...toPlan(probeEnv(t.play, { ...target, route: r.plan.route ?? "" }), r.plan, extra || null), watch: () => probeWatch(eventId, { wanders }) };
+  const env = probeEnv(t.play, { ...target, route: r.plan.route ?? "", event: eventId });
+  return { ...toPlan(env, r.plan, extra || null), watch: () => probeWatch(eventId, { wanders }) };
 }
 
 /** 이 이벤트로 띄울 수 없는 이유. 띄울 수 있으면 undefined */

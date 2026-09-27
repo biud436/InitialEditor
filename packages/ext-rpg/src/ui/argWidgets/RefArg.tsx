@@ -2,6 +2,7 @@
 // 이 프로젝트에서 쓰인 깃발과 변수. 맵, 아이템, 이벤트는 목록에 없으면 경고하고, 깃발과 변수는 새 이름이라고 알린다.
 
 import { useId, useMemo } from "react";
+import { isJsonText, jsonValueText } from "../../model/json";
 import { refSuggestions } from "../../model/refs";
 import { TextField } from "../fields";
 import { emptyText, textValue, type ArgWidgetProps } from "./context";
@@ -12,10 +13,10 @@ export function RefArg({ spec, value, onChange, ctx, sessionPrefix, testId }: Ar
   const listId = useId();
   const kind = spec.ref;
   const suggestions = useMemo(() => (kind ? refSuggestions(kind, ctx.refs) : []), [kind, ctx.refs]);
-  const text = typeof value === "string" ? value : "";
+  const text = isJsonText(value) ? value : "";
   const found = suggestions.find((s) => s.value === text);
   let note: { text: string; tone: "warning" | "muted" } | null = null;
-  if (value !== undefined && typeof value !== "string") note = { text: `지금 값 ${JSON.stringify(value)} 는 글이 아니다`, tone: "warning" };
+  if (value !== undefined && !isJsonText(value)) note = { text: `지금 값 ${jsonValueText(value)} 는 글이 아니다`, tone: "warning" };
   else if (text !== "" && !found) note = kind && CLOSED_KINDS.has(kind) ? { text: "목록에 없다", tone: "warning" } : { text: "새 이름", tone: "muted" };
   else if (found?.detail) note = { text: found.detail, tone: "muted" };
   return (

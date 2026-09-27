@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { fixtureGame, fixtureItems, fixtureSchema, fixtureText } from "../testing/fixtures";
 import { defFileIds, engineProblems, hasErrors, validateEvents, type EventProblem, type ValidateContext } from "./validate";
 import { itemIds } from "./game";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 
 const schema = fixtureSchema();
 
@@ -76,6 +77,26 @@ describe("엔진과 같은 검사의 모양 규칙", () => {
   it("정수는 2.0 도 정수다, NaN 과 무한대는 수가 아니다", () => {
     expect(paths([{ id: "a", x: 2.0, y: 0 }])).toEqual([]);
     expect(paths([{ id: "a", x: 0, y: 0, commands: [{ code: "setVar", key: "k", value: Infinity }] }])).toEqual(["events[1].commands[1].value"]);
+  });
+
+  it("2^53을 넘는 정수(맵을 읽을 때의 표식 글)는 엔진처럼 수다: 수와 정수 자리를 채우고 글 자리는 채우지 못한다", () => {
+    const big = bigIntValue("12345678901234567890");
+    const neg = bigIntValue("-12345678901234567890");
+    const one = (cmd: Record<string, unknown>) => paths([{ id: "a", x: 0, y: 0, commands: [cmd] }]);
+    expect(one({ code: "setVar", key: "big", value: big })).toEqual([]);
+    expect(one({ code: "setFlag", key: "f", value: big })).toEqual([]);
+    expect(one({ code: "wait", ms: big })).toEqual([]);
+    expect(one({ code: "wait", ms: neg })).toEqual(["events[1].commands[1].ms"]);
+    expect(one({ code: "message", text: big })).toEqual(["events[1].commands[1].text"]);
+    expect(engineProblems([{ id: "a", x: 0, y: 0, commands: [{ code: "message", text: big }, { code: "wait", ms: neg }] }], schema).map((p) => p.message)).toEqual([
+      "글이 아니다 (지금은 12345678901234567890)",
+      "0 이상이 아니다 (지금은 -12345678901234567890)",
+    ]);
+    // 이벤트 칸: id는 글이어야 한다. 칸과 속도는 수라 엔진 검사를 지나고, 에디터는 그 칸을 맵 밖으로 본다
+    expect(paths([{ id: big, x: 0, y: 0 }])).toEqual(["events[1].id"]);
+    expect(paths([{ id: "a", x: big, y: 0, speed: big, charset: { set: "npc", index: big } }])).toEqual(["events[1].charset.index"]);
+    const errors = validateEvents([{ id: "a", x: big, y: 0 }], { schema, map: { width: 10, height: 8, collision: null } }).filter((p) => p.severity === "error");
+    expect(errors.map(({ location, message, source }) => ({ location, message, source }))).toEqual([{ location: "events[1].x", message: "맵 밖이다 (가로 10 칸)", source: "editor" }]);
   });
 
   it("스크립트: 빈 이름과 없는 이름은 name 자리의 엔진 오류다 (등록된 이름일 수 없다)", () => {

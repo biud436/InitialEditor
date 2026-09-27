@@ -5,7 +5,7 @@
 //   header   하위 목록의 머리줄 (참이면, 아니면, 1. 떠난다). 접을 수 있다. 키는 "h" + 목록 표기
 //   end      목록 끝의 빈 줄. 여기서 넣으면 목록 끝에 붙는다 (빈 하위 목록에도 넣을 수 있다). 키는 "e" + 목록 표기
 
-import { asList, engineLength, field, isArrayPlace, isPlainObject, type JsonObject } from "../model/json";
+import { asList, engineLength, field, isArrayPlace, isJsonText, isPlainObject, jsonValueText, stringifyJsonLossless, type JsonObject } from "../model/json";
 import { commandSpec, judgedCondition, type ArgSpec, type CommandSpec, type EventSchema } from "../model/schema";
 import { childList, commandSuffix, listSuffix, parseLocation, type CommandPath, type ListPath } from "../model/tree";
 import type { EventProblem } from "../model/validate";
@@ -74,35 +74,36 @@ export function conditionSummary(schema: EventSchema, cond: unknown): string {
   return parts.join(" ");
 }
 
-/** 인자 값 하나를 요약에 쓸 글로 */
+/** 인자 값 하나를 요약에 쓸 글로 (2^53을 넘는 정수는 숫자 그대로) */
 export function valueText(arg: ArgSpec | undefined, v: unknown, schema: EventSchema): string {
   if (v === undefined || v === null) return "";
   switch (arg?.type) {
     case "text":
     case "string": {
-      if (typeof v !== "string") break;
+      if (!isJsonText(v)) break;
       const lines = v.split("\n");
       return lines.length > 1 ? `${lines[0]} …` : v;
     }
     case "options":
     case "route": {
       const list = asList(v);
-      return list ? list.map((x) => String(x)).join(arg.type === "options" ? " / " : ", ") : JSON.stringify(v);
+      return list ? list.map((x) => jsonValueText(x)).join(arg.type === "options" ? " / " : ", ") : stringifyJsonLossless(v);
     }
     case "condition":
       return conditionSummary(schema, v);
     case "face":
     case "charset": {
-      const name = field(v, "set") ?? (typeof field(v, "file") === "string" ? baseName(field(v, "file") as string) : undefined);
+      const file = field(v, "file");
+      const name = field(v, "set") ?? (isJsonText(file) ? baseName(file) : undefined);
       const index = field(v, "index");
-      return `${String(name ?? "?")}${index === undefined ? "" : ` ${String(index)}번`}`;
+      return `${name === undefined ? "?" : jsonValueText(name)}${index === undefined ? "" : ` ${jsonValueText(index)}번`}`;
     }
     case "file":
-      return typeof v === "string" ? baseName(v) : JSON.stringify(v);
+      return isJsonText(v) ? baseName(v) : stringifyJsonLossless(v);
     case "json":
-      return JSON.stringify(v);
+      return stringifyJsonLossless(v);
   }
-  return typeof v === "object" ? JSON.stringify(v) : String(v);
+  return jsonValueText(v);
 }
 
 /**
@@ -127,9 +128,9 @@ export function fillSummary(template: string, value: (name: string) => string): 
 
 /** 줄의 요약. 스키마의 summary, 없으면 첫 필수 인자 (없으면 첫 인자) */
 export function commandSummary(schema: EventSchema, cmd: unknown): string {
-  if (!isPlainObject(cmd)) return cmd === null ? "null" : JSON.stringify(cmd) ?? "";
+  if (!isPlainObject(cmd)) return cmd === null ? "null" : (stringifyJsonLossless(cmd) ?? "");
   const spec = commandSpec(schema, cmd.code);
-  if (!spec) return clip(JSON.stringify(cmd));
+  if (!spec) return clip(stringifyJsonLossless(cmd));
   const text = (name: string) => {
     const arg = spec.args.find((a) => a.name === name);
     return valueText(arg, field(cmd, name), schema);
@@ -143,12 +144,12 @@ export function commandSummary(schema: EventSchema, cmd: unknown): string {
 export function commandLabel(schema: EventSchema, cmd: unknown): string {
   if (!isPlainObject(cmd)) return "커맨드가 아니다";
   const spec = commandSpec(schema, cmd.code);
-  return spec ? spec.label : `알 수 없는 커맨드 ${String(cmd.code)}`;
+  return spec ? spec.label : `알 수 없는 커맨드 ${jsonValueText(cmd.code)}`;
 }
 
 /** 가지 머리줄 이름: "{n}. {option}" 틀 */
 export function branchLabel(template: string, n: number, option: unknown): string {
-  const text = typeof option === "string" ? option : option === undefined ? "(항목 없음)" : JSON.stringify(option);
+  const text = option === undefined ? "(항목 없음)" : jsonValueText(option);
   return template.replace(/\{n\}/g, String(n)).replace(/\{option\}/g, text);
 }
 

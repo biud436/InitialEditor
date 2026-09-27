@@ -412,7 +412,7 @@ if (skipReason !== null) {
     check("자동 재생은 talk 한 번", plan1.route === "talk");
     const env = probeRequestEnv(i).env;
     check("실행 변수 (명령의 요청)", env.INITIAL2D_MAP === "port_town" && env.INITIAL2D_RPG_AT === `${plan1.at.x},${plan1.at.y},${plan1.at.dir}` && env.INITIAL2D_RPG_ROUTE === "talk" && !("INITIAL2D_RPG_STATE" in env), env);
-    check("명령의 요청이 probeEnv 와 같다", JSON.stringify(env) === JSON.stringify(probeEnv(game.play, { map: entry.name, at: plan1.at, state: null, route: plan1.route })), env);
+    check("명령의 요청이 probeEnv 와 같다", JSON.stringify(env) === JSON.stringify(probeEnv(game.play, { map: entry.name, at: plan1.at, state: null, route: plan1.route, event: "e2e_sign" })), env);
 
     const run = runEngine(env);
     const lines = run.lines;
@@ -463,7 +463,7 @@ if (skipReason !== null) {
     const { at, route } = planned.plan;
     check("[2] 자동 재생은 이벤트 쪽으로 한 걸음", route === at.dir);
     env2 = probeRequestEnv(j).env;
-    check("[2] 명령의 요청이 probeEnv 와 같다", JSON.stringify(env2) === JSON.stringify(probeEnv(game.play, { map: entry.name, at, route })), env2);
+    check("[2] 명령의 요청이 probeEnv 와 같다", JSON.stringify(env2) === JSON.stringify(probeEnv(game.play, { map: entry.name, at, route, event: "e2e_door" })), env2);
     const run = runEngine(env2);
     const lines = run.lines;
     commonChecks("2", run);
@@ -536,7 +536,7 @@ if (skipReason !== null) {
     startStates.set(entry.file, "arrived");
     const env = probeRequestEnv(section.indexOfId("e2e_sign")).env;
     check("[4] 시작 상태 변수", env.INITIAL2D_RPG_STATE === "arrived", env);
-    check("[4] 명령의 요청이 probeEnv 와 같다", JSON.stringify(env) === JSON.stringify(probeEnv(game.play, { map: entry.name, at: plan1.at, state: "arrived", route: plan1.route })), env);
+    check("[4] 명령의 요청이 probeEnv 와 같다", JSON.stringify(env) === JSON.stringify(probeEnv(game.play, { map: entry.name, at: plan1.at, state: "arrived", route: plan1.route, event: "e2e_sign" })), env);
     const run = runEngine(env);
     const lines = run.lines;
     commonChecks("4", run);

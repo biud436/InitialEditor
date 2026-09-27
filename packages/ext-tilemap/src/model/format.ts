@@ -104,7 +104,9 @@ function numberArray(v: unknown, length: number, where: string): number[] {
 // JSON.parse 는 안전한 범위 밖의 정수(12345678901234567890)를 가까운 실수로 바꿔 저장하면 다른 숫자가 된다. 엔진은 64비트 정수로
 // 읽으므로(엔진 47e4fca) 손대지 않은 이벤트의 data 같은 값이 저장만으로 바뀌면 안 된다. 그래서 읽을 때 그런 정수를 원래 글을 든
 // 표식 글("\u0000INT:<숫자>\u0000")로 싣고, 쓸 때 표식을 벗겨 숫자 그대로 쓴다. 표식은 글이라 사본(JSON 왕복)과 되돌리기를
-// 지나도 그대로다. 숫자 자리의 검사는 이 값을 수로 보지 않는다 (그런 값이 맵 칸에 올 일은 없다).
+// 지나도 그대로다. 파일에서는 수이므로 값을 보는 쪽은 아래의 isJsonNumber, isJsonText, jsonValueText로 수로 다룬다:
+// 검사는 수로, 보이기는 숫자로, 사본 글(클립보드)은 stringifyJsonLossless로 숫자 그대로 쓴다.
+// 맵의 크기와 타일 배열처럼 칸 수를 적는 자리는 그대로 수만 받는다 (그런 값이 올 일이 없다).
 
 const BIG_INT_MARK = "\u0000INT:";
 const BIG_INT_END = "\u0000";
@@ -166,6 +168,50 @@ export function parseJsonLossless(text: string): unknown {
 export function stringifyJsonLossless(value: unknown, space?: number): string {
   const text = JSON.stringify(value, null, space);
   return text === undefined ? text : text.replace(BIG_INT_JSON, "$1");
+}
+
+/** JSON의 수인가 (표식 글로 실은 큰 정수도 수다) */
+export function isJsonNumber(v: unknown): boolean {
+  return (typeof v === "number" && Number.isFinite(v)) || bigIntText(v) !== null;
+}
+
+/** JSON의 정수인가 (2.0도 정수다. 표식 글은 늘 정수다) */
+export function isJsonInteger(v: unknown): boolean {
+  return (typeof v === "number" && Number.isInteger(v)) || bigIntText(v) !== null;
+}
+
+/** 수의 값. 표식 글은 가장 가까운 수다 (크기 견주기에만 쓴다). 수가 아니면 undefined */
+export function jsonNumber(v: unknown): number | undefined {
+  if (typeof v === "number") return Number.isFinite(v) ? v : undefined;
+  const digits = bigIntText(v);
+  return digits === null ? undefined : Number(digits);
+}
+
+/** JSON의 글인가 (표식 글은 수라 글이 아니다) */
+export function isJsonText(v: unknown): v is string {
+  return typeof v === "string" && bigIntText(v) === null;
+}
+
+/** 값을 보일 글: 글은 그대로, 표식 글은 숫자, 그 밖은 JSON (그 안의 표식도 숫자로) */
+export function jsonValueText(v: unknown): string {
+  if (typeof v === "string") return bigIntText(v) ?? v;
+  const text = stringifyJsonLossless(v);
+  return text === undefined ? String(v) : text;
+}
+
+/**
+ * 입력 칸에 적은 수를 값으로: 수로 바꾸면 글이 바뀌는 16자리 이상의 정수는 표식 글(숫자 그대로), 그 밖은 수.
+ * 수가 아니면 null. 정수의 앞의 0은 뗀다
+ */
+export function numberFromText(text: string): number | string | null {
+  const t = text.trim();
+  if (t === "") return null;
+  if (/^-?\d+$/.test(t)) {
+    const digits = t.replace(/^(-?)0+(?=\d)/, "$1");
+    if (/\d{16}/.test(digits) && String(Number(digits)) !== digits) return bigIntValue(digits);
+  }
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
 }
 
 export function parseMap(text: string): MapData {

@@ -154,6 +154,19 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect(eventPlayBlocked(sources, doc, i, "play")).toBeUndefined();
   });
 
+  it("자동 재생은 play.env에 trace가 없어도 INITIAL2D_RPG_TRACE=1을 넣고, play.probe의 {event}를 이벤트 id로 채운다", () => {
+    const { h, sources } = setup();
+    const doc = h.open(PORT_TOWN);
+    const game = sources.game!;
+    const env = Object.fromEntries(Object.entries(game.play!.env).filter(([k]) => k !== "INITIAL2D_RPG_TRACE"));
+    const probe = { ...game.play!.probe, INITIAL2D_RPG_HOLD: "{event}", INITIAL2D_RPG_TRACE: "0" };
+    sources.set({ game: { ...game, play: { env, probe } } });
+    const i = indexOf(doc, "kid");
+    expect((eventPlay(sources, doc, i, "probe") as PlayPlan).env).toMatchObject({ INITIAL2D_RPG_TRACE: "1", INITIAL2D_RPG_HOLD: "kid", INITIAL2D_RPG_ROUTE: "talk" });
+    // 손으로 하는 실행은 지켜보지 않으므로 프로젝트의 변수 그대로다
+    expect((eventPlay(sources, doc, i, "play") as PlayPlan).env).not.toHaveProperty("INITIAL2D_RPG_TRACE");
+  });
+
   it("등록되지 않은 맵이나 play 가 없으면 이유를 준다", () => {
     const { h, sources } = setup();
     const inn = h.open(INN);

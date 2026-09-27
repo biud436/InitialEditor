@@ -6,6 +6,12 @@
 //   칸 수      끝의 null 을 뺀 길이. 가운데의 null 은 한 칸이다
 //   키의 null  없는 키와 같다
 
+import { isJsonInteger, jsonNumber } from "@initial-editor/ext-tilemap/model";
+
+// 2^53을 넘는 정수는 맵 파일을 읽을 때 원래 글을 든 표식 글로 온다 (타일맵의 parseJsonLossless). 엔진에게는 수이므로
+// 검사와 보이기와 사본 글은 타일맵의 도우미로 수로 다룬다: 수와 정수 판정, 글 판정(표식은 글이 아니다), 보일 글, JSON 글
+export { bigIntText, isJsonInteger, isJsonNumber, isJsonText, jsonNumber, jsonValueText, numberFromText, parseJsonLossless, stringifyJsonLossless } from "@initial-editor/ext-tilemap/model";
+
 export type JsonObject = Record<string, unknown>;
 
 export function isPlainObject(v: unknown): v is JsonObject {
@@ -62,6 +68,12 @@ export function isFiniteNumber(v: unknown): v is number {
 
 export function isNonNegInt(v: unknown): v is number {
   return isInteger(v) && v >= 0;
+}
+
+/** 0 이상의 정수인가 (표식 글로 온 큰 정수도 본다. 엔진의 isNonNegInt와 같다) */
+export function isNonNegIntValue(v: unknown): boolean {
+  const n = jsonNumber(v);
+  return isJsonInteger(v) && n !== undefined && n >= 0;
 }
 
 export function cloneJson<T>(v: T): T {

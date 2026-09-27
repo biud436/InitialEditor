@@ -1,4 +1,5 @@
 // 커맨드 목록의 줄: 펴기, 요약, 머리줄 이름, 접기, 문제 붙이기, 고르기와 넣을 자리
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import { fixtureMap, fixtureSchema } from "../testing/fixtures";
 import { field } from "../model/json";
@@ -150,6 +151,14 @@ describe("요약", () => {
     expect(commandSummary(schema, { code: "moveRoute", target: "player", route: ["up", "wait:300"] })).toBe("player");
     expect(commandSummary(schema, { code: "playSe", file: "./resources/audio/door.wav" })).toBe("door.wav");
     expect(commandSummary(schema, { code: "comment" })).toBe("");
+  });
+
+  it("2^53을 넘는 정수(표식 글)는 숫자 그대로 보인다", () => {
+    const big = bigIntValue("12345678901234567890");
+    expect(commandSummary(schema, { code: "wait", ms: big })).toContain("12345678901234567890");
+    expect(commandSummary(schema, { code: "wait", ms: big })).not.toContain("INT:");
+    expect(commandSummary(schema, { code: "unknownThing", data: { seed: big } })).toBe('{"code":"unknownThing","data":{"seed":12345678901234567890}}');
+    expect(branchLabel("{n}. {option}", 1, big)).toBe("1. 12345678901234567890");
   });
 
   it("조건 한 줄: 깃발의 값은 = 로, 빈 조건은 늘 참", () => {

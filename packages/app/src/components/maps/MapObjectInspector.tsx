@@ -7,7 +7,7 @@
 // 변경은 전부 objectTools/actions.ts를 거쳐 명령이 된다.
 
 import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
-import { typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
+import { bigIntText, stringifyJsonLossless, typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useEditor } from "../../editor/EditorContext";
@@ -21,6 +21,17 @@ export const RANGE_LABEL = "순찰 범위";
 
 function sameValue(values: unknown[]): unknown {
   return values.length > 0 && values.every((v) => v === values[0]) ? values[0] : null;
+}
+
+/** 칸에 보일 값: 2^53을 넘는 정수(맵 파일의 표식 글)는 bigint로 넘겨 숫자 그대로 보인다 */
+function shownValue(v: unknown): unknown {
+  const digits = bigIntText(v);
+  return digits === null ? v : BigInt(digits);
+}
+
+function shownNumber(v: unknown): number | bigint | undefined {
+  const shown = shownValue(v);
+  return typeof shown === "number" || typeof shown === "bigint" ? shown : undefined;
 }
 
 function prefix(doc: MapDocument, id: string, key: string): string {
@@ -91,7 +102,7 @@ const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: Ma
     <div className="map-range" data-testid="map-range">
       <FieldRow label={RANGE_LABEL} hint={`${min.label} (${min.name}) ~ ${max.label} (${max.name})`}>
         <OptionalNumberField
-          value={typeof lo === "number" ? lo : undefined}
+          value={shownNumber(lo)}
           onChange={(v, s) => set(min, v, s)}
           sessionPrefix={prefix(doc, object.id, min.name)}
           integer={min.type === "integer"}
@@ -102,7 +113,7 @@ const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: Ma
         />
         <span className="muted map-range-sep">~</span>
         <OptionalNumberField
-          value={typeof hi === "number" ? hi : undefined}
+          value={shownNumber(hi)}
           onChange={(v, s) => set(max, v, s)}
           sessionPrefix={prefix(doc, object.id, max.name)}
           integer={max.type === "integer"}
@@ -135,7 +146,7 @@ const SchemaFields = observer(function SchemaFields({ doc, object, spec }: { doc
         return (
           <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
             <FieldRow label={f.label} hint={`${f.name} (${f.type}${f.required ? ", 필수" : ""})`}>
-              <SchemaFieldInput field={f} value={value} onChange={(v, s) => setObjectsProp(doc, [object.id], f.name, v, s)} sessionPrefix={prefix(doc, object.id, f.name)} testId={`map-field-${f.name}`} />
+              <SchemaFieldInput field={f} value={shownValue(value)} onChange={(v, s) => setObjectsProp(doc, [object.id], f.name, v, s)} sessionPrefix={prefix(doc, object.id, f.name)} testId={`map-field-${f.name}`} />
               {!f.required && value !== undefined && <ClearButton onClick={() => setObjectsProp(doc, [object.id], f.name, undefined)} testId={`map-field-${f.name}-clear`} label={f.label} />}
             </FieldRow>
           </div>
@@ -205,7 +216,7 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
         ) : (
           <div className="inspector-section">
             <div className="muted inspector-note">스키마에 없는 타입이라 속성 폼이 없다. props 는 파일에 그대로 남는다</div>
-            {Object.keys(object.props).length > 0 && <pre className="map-raw-props">{JSON.stringify(object.props, null, 2)}</pre>}
+            {Object.keys(object.props).length > 0 && <pre className="map-raw-props">{stringifyJsonLossless(object.props, 2)}</pre>}
           </div>
         )}
         <ProblemList doc={doc} problems={problems} testId="map-inspector-problems" />
@@ -235,7 +246,7 @@ const ManyObjects = observer(function ManyObjects({ doc, objects }: { doc: MapDo
           {fields.map((f) => (
             <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
               <FieldRow label={f.label} hint={`${f.name}: 고른 ${objects.length}개를 한 번에 바꾼다`}>
-                <SchemaFieldInput field={f} value={sameValue(objects.map((o) => o.props[f.name]))} onChange={(v) => setObjectsProp(doc, ids, f.name, v)} sessionPrefix={`map:${ids.join(",")}:${f.name}`} testId={`map-field-${f.name}`} />
+                <SchemaFieldInput field={f} value={shownValue(sameValue(objects.map((o) => o.props[f.name])))} onChange={(v) => setObjectsProp(doc, ids, f.name, v)} sessionPrefix={`map:${ids.join(",")}:${f.name}`} testId={`map-field-${f.name}`} />
               </FieldRow>
             </div>
           ))}

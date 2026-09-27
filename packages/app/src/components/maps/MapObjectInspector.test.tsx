@@ -42,8 +42,8 @@ const SCHEMA = parseObjectSchema(
   }),
 );
 
-async function setup() {
-  const mem = new MemoryBackend({ [MAP_PATH]: MAP });
+async function setup(map = MAP) {
+  const mem = new MemoryBackend({ [MAP_PATH]: map });
   await mem.open("/p");
   const doc = await MapDocument.open(mem, MAP_PATH, SCHEMA);
   const documents = new DocumentRegistry();
@@ -106,5 +106,18 @@ describe("맵 오브젝트 인스펙터의 id 칸", () => {
     act(() => idInput().blur());
     expect(doc.model.objectIds()).toEqual(["start", "slime_boss"]);
     expect(doc.undo.depth).toBe(1);
+  });
+});
+
+describe("맵 오브젝트 인스펙터의 큰 정수", () => {
+  it("2^53을 넘는 정수는 숫자 그대로 보이고 검사도 수로 본다. 같은 값을 다시 적으면 명령이 없다", async () => {
+    const map = MAP.replace('"minX":80', '"minX":-12345678901234567890').replace('"maxX":200', '"maxX":12345678901234567890');
+    const { doc } = await setup(map);
+    expect((screen.getByTestId("map-field-minX") as HTMLInputElement).value).toBe("-12345678901234567890");
+    expect((screen.getByTestId("map-field-maxX") as HTMLInputElement).value).toBe("12345678901234567890");
+    expect(document.body.textContent).not.toContain("INT:");
+    expect(doc.problems.filter((p) => p.objectId === "slime_1")).toEqual([]);
+    type(screen.getByTestId("map-inspector-x") as HTMLInputElement, "120");
+    expect([doc.undo.depth, doc.dirty]).toEqual([0, false]);
   });
 });

@@ -2,6 +2,7 @@
 // JSON 을 손으로 적지 않고 addPanel 의 상대 위치로 짓는다. dockview 의 직렬화 모양이 바뀌어도 살아남게.
 // 확장이 registerPanel 로 등록한 패널은 제 탭이다 (docs/plans/e5-rpg.md 2.1): 도킹 id 는 ext:<id>, 컴포넌트는 하나
 // (EXT_PANEL_COMPONENT)이고 params.panelId 로 등록된 패널을 찾는다. 패널의 presets 에 든 프리셋을 지을 때 함께 넣는다.
+// 패널의 visible이 거짓이면(이 프로젝트에 해당하지 않는 패널) 프리셋도 창 메뉴도 확장 패널 목록도 그 패널을 넣거나 보이지 않는다.
 
 import type { AddPanelOptions, DockviewApi } from "dockview";
 
@@ -22,6 +23,13 @@ export interface ExtPanelSpec {
   title: string;
   defaultDock?: "left" | "right" | "bottom" | "center";
   presets?: string[];
+  /** 거짓이면 이 프로젝트에 해당하지 않는 패널이다. 생략하면 늘 보인다 */
+  visible?(): boolean;
+}
+
+/** 이 프로젝트에서 보이는 확장 패널인가 (visible이 없으면 늘) */
+export function isExtPanelVisible(spec: Pick<ExtPanelSpec, "visible">): boolean {
+  return spec.visible ? spec.visible() : true;
 }
 
 export interface ExtPanelParams {
@@ -227,7 +235,7 @@ export function buildPreset(api: DockviewApi, name: PresetName, extPanels: reado
       add("mapLayers", { referencePanel: "inspector", direction: "below" });
       break;
   }
-  for (const spec of extPanels) if (spec.presets?.includes(name)) addExtensionPanel(api, spec);
+  for (const spec of extPanels) if (spec.presets?.includes(name) && isExtPanelVisible(spec)) addExtensionPanel(api, spec);
 }
 
 /** 문서 그룹이 놓인 뒤 부르는 크기 조정 */

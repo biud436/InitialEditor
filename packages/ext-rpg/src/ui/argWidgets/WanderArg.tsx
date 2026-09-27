@@ -1,6 +1,6 @@
 // wander (이벤트 칸): 켜기와 기다리는 프레임 수 둘, 구역의 칸 넷. 구역은 맵 위 사각형으로도 고친다 (이벤트 레이어).
 
-import { field, isObjectPlace, isPlainObject, type JsonObject } from "../../model/json";
+import { field, isJsonNumber, isObjectPlace, isPlainObject, stringifyJsonLossless, type JsonObject } from "../../model/json";
 import { NumberInput } from "../fields";
 import type { ArgWidgetProps } from "./context";
 
@@ -13,7 +13,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
   if (on && !isObjectPlace(value)) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        배회가 객체가 아니다 ({JSON.stringify(value)})
+        배회가 객체가 아니다 ({stringifyJsonLossless(value)})
       </div>
     );
   }
@@ -25,7 +25,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
     else next[key] = v;
     onChange(next, session);
   };
-  const putArea = (key: string, v: number, session: string) => put("area", { ...(isPlainObject(area) ? area : {}), [key]: v }, session);
+  const putArea = (key: string, v: number | string, session: string) => put("area", { ...(isPlainObject(area) ? area : {}), [key]: v }, session);
   return (
     <div className="rpg-wander" data-testid={testId}>
       <label className="rpg-arg-inline">
@@ -37,7 +37,8 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
           <label className="rpg-arg-inline" key={k}>
             <span className="muted">{k}</span>
             <NumberInput
-              value={typeof field(w, k) === "number" ? (field(w, k) as number) : undefined}
+              value={isJsonNumber(field(w, k)) ? (field(w, k) as number | string) : undefined}
+              exact
               integer
               min={0}
               placeholder={`기본 ${WAIT_DEFAULTS[k]}`}
@@ -55,7 +56,8 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
           {(["x", "y", "w", "h"] as const).map((k) => (
             <NumberInput
               key={k}
-              value={typeof area[k] === "number" ? (area[k] as number) : undefined}
+              value={isJsonNumber(area[k]) ? (area[k] as number | string) : undefined}
+              exact
               integer
               min={k === "w" || k === "h" ? 1 : 0}
               onChange={(v, s) => putArea(k, v, s)}

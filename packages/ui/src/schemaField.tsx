@@ -2,6 +2,7 @@
 //   string: 한 줄 입력, text: 여러 줄 입력, number/integer: 숫자 입력 (integer는 반올림),
 //   boolean: 체크 상자, enum: 고르기
 // 값이 없으면(undefined) "비어 있음"으로 보이고, 여러 오브젝트의 값이 다르면(null) "여러 값"이다.
+// 숫자 칸은 bigint도 숫자 그대로 보인다 (수로 바꾸면 자릿수를 잃는 큰 정수. 고치면 수로 돌려준다).
 // 타이핑은 초점 하나가 한 세션이고 같은 합치기 키로 들어가 되돌리기 한 번에 돌아간다 (fields.tsx와 같은 방식).
 
 import { useEffect, useRef, type KeyboardEvent } from "react";
@@ -25,7 +26,8 @@ export const EMPTY_LABEL = "비어 있음";
 export type FieldValue = unknown;
 
 interface OptionalNumberProps {
-  value: number | undefined | null;
+  /** undefined는 비어 있음, null은 여러 값. bigint는 숫자 그대로 보인다 */
+  value: number | bigint | undefined | null;
   onChange: (value: number, session: string) => void;
   sessionPrefix: string;
   integer?: boolean;
@@ -36,8 +38,8 @@ interface OptionalNumberProps {
   className?: string;
 }
 
-function numberText(value: number | undefined | null): string {
-  return typeof value === "number" ? String(value) : "";
+function numberText(value: number | bigint | undefined | null): string {
+  return typeof value === "number" || typeof value === "bigint" ? String(value) : "";
 }
 
 /** 비어 있을 수 있는 숫자 칸. 비운 채 두면 값을 바꾸지 않는다 (지우기는 따로) */
@@ -122,7 +124,7 @@ export function SchemaFieldInput({ field, value, onChange, sessionPrefix, testId
     case "integer":
       return (
         <OptionalNumberField
-          value={typeof value === "number" ? value : mixed ? null : undefined}
+          value={typeof value === "number" || typeof value === "bigint" ? value : mixed ? null : undefined}
           onChange={(v, s) => onChange(v, s)}
           sessionPrefix={sessionPrefix}
           integer={field.type === "integer"}

@@ -19,7 +19,7 @@ import type { Command } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { EditRefused, type EventEditor } from "../model/commands";
-import { field, isArrayPlace, isPlainObject, type JsonObject } from "../model/json";
+import { field, isArrayPlace, isPlainObject, stringifyJsonLossless, type JsonObject } from "../model/json";
 import type { RefSources } from "../model/refs";
 import type { EventSchema } from "../model/schema";
 import { commandLocation, copyCommands, getList, parseLocation, type CommandPath, type ListPath } from "../model/tree";
@@ -469,7 +469,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
       )}
       {!commandsOk ? (
         <div className="rpg-arg-note is-warning" data-testid="rpg-cmd-broken">
-          events[{eventIndex + 1}].commands 가 배열이 아니라 고칠 수 없다 ({JSON.stringify(commands)})
+          events[{eventIndex + 1}].commands 가 배열이 아니라 고칠 수 없다 ({stringifyJsonLossless(commands)})
         </div>
       ) : (
         <div
@@ -573,7 +573,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
       )}
       {cursor?.kind === "command" && !cursor.spec && range?.count === 1 && (
         <div className="rpg-arg-note is-warning" data-testid="rpg-cmd-unknown-command">
-          {isPlainObject(cursor.cmd) ? "스키마에 없는 커맨드라 고칠 수 없다. 빼거나 옮길 수만 있다" : "커맨드가 객체가 아니다. 뺄 수만 있다"}: <code>{JSON.stringify(cursor.cmd)}</code>
+          {isPlainObject(cursor.cmd) ? "스키마에 없는 커맨드라 고칠 수 없다. 빼거나 옮길 수만 있다" : "커맨드가 객체가 아니다. 뺄 수만 있다"}: <code>{stringifyJsonLossless(cursor.cmd)}</code>
         </div>
       )}
       {notice && (

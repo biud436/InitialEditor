@@ -3,13 +3,14 @@
 import { useMemo } from "react";
 import { bareProjectPath } from "../../model/game";
 import { fileArgValue } from "../../model/events";
+import { isJsonText, jsonValueText } from "../../model/json";
 import { emptyText, pickableFiles, type ArgWidgetProps } from "./context";
 
 export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) {
   const files = useMemo(() => pickableFiles(ctx.files, spec.accept, spec.dir), [ctx.files, spec.accept, spec.dir]);
-  const current = typeof value === "string" && value !== "" ? bareProjectPath(value) : "";
+  const current = isJsonText(value) && value !== "" ? bareProjectPath(value) : "";
   const missing = current !== "" && !ctx.files.includes(current);
-  const wrong = value !== undefined && typeof value !== "string";
+  const wrong = value !== undefined && !isJsonText(value);
   return (
     <>
       <select
@@ -37,7 +38,7 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
           고를 파일이 없다{spec.accept ? ` (${spec.accept.join(", ")})` : ""}
         </div>
       )}
-      {wrong && <div className="rpg-arg-note is-warning">지금 값 {JSON.stringify(value)} 는 경로 글이 아니다</div>}
+      {wrong && <div className="rpg-arg-note is-warning">지금 값 {jsonValueText(value)} 는 경로 글이 아니다</div>}
     </>
   );
 }

@@ -45,9 +45,18 @@ export interface EditOptions {
   mergeKey?: string;
 }
 
-/** 섹션의 목록을 갈아 끼우는 명령. focus 는 명령이 다룬 이벤트 번호 (새 이벤트를 고를 때 쓴다) */
+/** 이벤트 목록의 내용이 같은가: 칸마다 같은 객체이거나 키 순서까지 같은 JSON (저장할 글이 같다) */
+function sameList(a: readonly unknown[], b: readonly unknown[]): boolean {
+  return a.length === b.length && a.every((x, i) => x === b[i] || JSON.stringify(x) === JSON.stringify(b[i]));
+}
+
+/**
+ * 섹션의 목록을 갈아 끼우는 명령. focus는 명령이 다룬 이벤트 번호 (새 이벤트를 고를 때 쓴다).
+ * 목록의 내용이 그대로면 unchanged다: 문서의 스택이 쌓지 않아 이미 고른 외형을 다시 누르거나 같은 값을 넣어도 되돌리기 단계와 수정됨이 없다
+ */
 export class EventListCommand implements Command {
   readonly coalesceKey?: string;
+  readonly unchanged: boolean;
 
   constructor(
     readonly label: string,
@@ -58,6 +67,7 @@ export class EventListCommand implements Command {
     coalesceKey?: string,
   ) {
     if (coalesceKey !== undefined) this.coalesceKey = coalesceKey;
+    this.unchanged = sameList(before, after);
   }
 
   execute(): void {

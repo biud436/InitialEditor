@@ -1,7 +1,7 @@
 // route: 걸음 목록. 걸음은 이동(스키마 route.moves), 돌기(turnPrefix + 방향), 기다리기(waitPrefix + ms) 셋이고,
 // 모르는 걸음은 글 그대로 둔다 (실행이 건너뛴다). 걸음 하나를 더하고 빼고 옮기는 일이 되돌리기 한 단계다.
 
-import { asList } from "../../model/json";
+import { asList, isJsonText, jsonValueText, stringifyJsonLossless } from "../../model/json";
 import type { EventSchema } from "../../model/schema";
 import { NumberInput, TextField } from "../fields";
 import type { ArgWidgetProps } from "./context";
@@ -46,7 +46,7 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
   if (!list) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        걸음 목록이 배열이 아니다 ({JSON.stringify(value)}){" "}
+        걸음 목록이 배열이 아니다 ({stringifyJsonLossless(value)}){" "}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} onClick={() => onChange([])}>
           비우고 새로
         </button>
@@ -71,7 +71,7 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
   return (
     <div className="rpg-route" data-testid={testId} aria-label={spec.label}>
       {list.map((raw, k) => {
-        const step = typeof raw === "string" ? parseStep(schema, raw) : null;
+        const step = isJsonText(raw) ? parseStep(schema, raw) : null;
         return (
           <div className="rpg-route-step" key={k} data-testid={`${testId}-${k}`}>
             <span className="rpg-option-no muted">{k + 1}.</span>
@@ -130,7 +130,7 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
                 )}
               </>
             ) : (
-              <span className="rpg-arg-note is-warning">{JSON.stringify(raw)} (글이 아니다)</span>
+              <span className="rpg-arg-note is-warning">{jsonValueText(raw)} (글이 아니다)</span>
             )}
             <span className="rpg-option-tools">
               <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 걸음 위로`} data-testid={`${testId}-${k}-up`} onClick={() => move(k, k - 1)}>

@@ -1,7 +1,7 @@
 // 도킹 레이아웃 상태: dockview api를 쥐고 저장과 복원과 프리셋과 패널 토글을 맡는다.
 // 저장은 layoutPersistence.ts, 프리셋은 layoutPresets.ts, 문서 탭 동기화는 documentDock.ts.
 // 확장 패널(ext:<id>)도 도구 패널이다: 창 메뉴로 켜고 끄고, 레이아웃이 기억한다. 되살린 레이아웃에 등록되지 않은
-// 확장의 패널이 있으면 뺀다 (그 확장이 없다).
+// 확장의 패널이 있으면 뺀다 (그 확장이 없다). visible이 거짓인 확장 패널은 새로 열지 않는다 (닫기는 된다).
 
 import type { DockviewApi } from "dockview";
 
@@ -18,6 +18,7 @@ import {
   firstDocPanelId,
   isBuiltinPanelId,
   isExtPanelId,
+  isExtPanelVisible,
   MAP_PANEL_HEIGHTS,
   mapPanelPlacement,
   missingMapPanels,
@@ -159,8 +160,9 @@ export class LayoutStore {
     }
     const key = extPanelKey(id);
     const spec = this.extensionPanels().find((p) => p.id === key);
-    if (spec) addExtensionPanel(api, spec);
-    else this.deps.warn(`등록되지 않은 확장 패널이다: ${id}`);
+    if (!spec) this.deps.warn(`등록되지 않은 확장 패널이다: ${id}`);
+    else if (!isExtPanelVisible(spec)) this.deps.warn(`이 프로젝트에 해당하지 않는 확장 패널이다: ${spec.title}`);
+    else addExtensionPanel(api, spec);
   }
 
   private extensionPanels(): readonly ExtPanelSpec[] {

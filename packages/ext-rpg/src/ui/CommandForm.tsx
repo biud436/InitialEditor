@@ -2,8 +2,7 @@
 // 타이핑은 초점 한 번이 되돌리기 한 단계이고(합치기 키), 고르기와 누르기는 한 번이 한 단계다.
 
 import type { Command } from "@initial-editor/core";
-import { stringifyJsonLossless } from "@initial-editor/ext-tilemap/model";
-import { asList, engineLength, field, type JsonObject } from "../model/json";
+import { asList, engineLength, field, stringifyJsonLossless, type JsonObject } from "../model/json";
 import type { EventEditor } from "../model/commands";
 import type { CommandSpec } from "../model/schema";
 import { commandSuffix, type CommandPath } from "../model/tree";

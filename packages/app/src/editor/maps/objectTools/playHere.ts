@@ -6,7 +6,7 @@
 // (메뉴 툴팁에도 있다). 이유도 없으면 이 프로젝트에 실행할 것이 없어 끄고 스키마에 play를 더하는 법을 보인다.
 // 커서는 이 맵의 뷰에 남은 것만 쓴다. 엔진은 파일을 읽으므로 저장하지 않은 맵은 먼저 저장할지 묻는다.
 // 확장이 제 명령으로 맵을 띄우는 길(타일맵의 play, 예: 레이어의 한 항목 앞에서 실행)도 같은 함수(playRequest)를 지난다.
-// 계획에 watch 가 있으면 러너가 게임의 줄을 넘겨 지켜보게 한다 (자동 재생이 끝나지 않으면 멈춘다, 이벤트가 돌지 않았으면 알린다).
+// 계획에 watch가 있으면 러너가 게임이 찍는 줄과 종료를 넘긴다. 멈출 이유나 알릴 실패는 계획을 세운 제공자가 정한다.
 
 import { ReloadFailedError, type Document, type DocumentRegistry, type SaveOutcome } from "@initial-editor/core";
 import type { PlayPlan, PlayProviderSpec, PlayRequest } from "@initial-editor/ext-tilemap";

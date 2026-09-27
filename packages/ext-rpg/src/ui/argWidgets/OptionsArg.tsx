@@ -2,7 +2,7 @@
 // 그 맞추기는 모델의 항목 명령(addOption, removeOption, moveOption, setOption)이 하고, 위젯은 ops 로 부른다.
 // 가지에 커맨드가 있는 항목을 빼면 먼저 묻는다. 좁은 인스펙터에서는 글 칸이 한 줄을 차지하고 고르기와 단추가 다음 줄로 내려간다.
 
-import { asList, engineLength, isInteger } from "../../model/json";
+import { asList, engineLength, isInteger, jsonValueText, stringifyJsonLossless } from "../../model/json";
 import type { ArgSpec } from "../../model/schema";
 import { TextField } from "../fields";
 import type { ArgContext } from "./context";
@@ -34,7 +34,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
   if (!list) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        항목 목록이 배열이 아니라 고칠 수 없다 ({JSON.stringify(value)})
+        항목 목록이 배열이 아니라 고칠 수 없다 ({stringifyJsonLossless(value)})
       </div>
     );
   }
@@ -53,7 +53,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
         <div className="rpg-option" key={k} data-testid={`${testId}-${k}`}>
           <span className="rpg-option-no muted">{k + 1}.</span>
           <TextField
-            value={typeof opt === "string" ? opt : JSON.stringify(opt)}
+            value={jsonValueText(opt)}
             onChange={(v, s) => ops.set(k, v, s)}
             sessionPrefix={`${sessionPrefix}:${k}`}
             disabled={ctx.disabled}

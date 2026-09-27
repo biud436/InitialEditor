@@ -1,5 +1,5 @@
 // 확장 패널의 창 메뉴 (docs/plans/e5-rpg.md 2.1). 확장이 registerPanel 로 등록한 패널마다 커맨드 window.panel.ext:<id> 와
-// "창/<제목>" 메뉴를 둔다 (패널의 visible 이 거짓이면 메뉴에서 빠진다). 등록과 해제를 따라간다. 패널 자체는 제 도킹 탭이다 (layoutPresets.ts, components/panels/ExtensionPanelHost.tsx).
+// "창/<제목>" 메뉴를 둔다 (패널의 visible이 거짓이면 메뉴에서 빠지고, 커맨드를 불러도 레이아웃이 열지 않는다). 등록과 해제를 따라간다. 패널 자체는 제 도킹 탭이다 (layoutPresets.ts, components/panels/ExtensionPanelHost.tsx).
 
 import type { CommandRegistry, ExtensionRegistries, MenuRegistry, PanelSpec } from "@initial-editor/core";
 import { reaction } from "mobx";

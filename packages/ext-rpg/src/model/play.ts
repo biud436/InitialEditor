@@ -4,7 +4,8 @@
 //                  플레이어는 이벤트 쪽을 본다. 네 칸이 다 막혔으면 가장 가까운 칸으로 넘어간다
 //   설 수 있는 칸  맵 안이고, 통행 0 이고, 막는 이벤트(엔진 Event:isSolid)가 없는 칸
 //   가장 가까운 칸 넓이 우선 (맨해튼 거리, 같은 거리면 아래, 왼쪽, 오른쪽, 위 순서)
-//   실행 변수      rpg-game.json 의 play.env (자동 재생은 play.probe 를 더한다). 채울 값이 없는 자리표시자가 든 변수는 넣지 않는다
+//   실행 변수      rpg-game.json의 play.env (자동 재생은 play.probe를 더한다). 채울 값이 없는 자리표시자가 든 변수는 넣지 않는다.
+//                  자동 재생은 에디터가 게임의 줄(rpg:map:, rpg:event:)을 지켜보므로 play 설정과 상관없이 INITIAL2D_RPG_TRACE=1을 넣는다
 // 교차 검사(yarn test:engine-events)가 이 함수들을 그대로 불러 엔진 프로세스를 띄운다.
 
 import { field, isNonNegInt, isObjectPlace, isPlainObject } from "./json";
@@ -187,6 +188,8 @@ export function startStateValue(text: string | null | undefined): string | null 
 export interface PlayTarget {
   /** rpg-game.json 의 맵 이름 */
   map: string;
+  /** 자동 재생하는 이벤트의 id ({event}, 엔진의 INITIAL2D_RPG_HOLD가 그 이벤트의 배회를 멈춘다). 없으면 그 변수를 넣지 않는다 */
+  event?: string | null;
   /** 없으면 정의 파일의 시작에 선다 */
   at?: PlayAt | null;
   /** 시작 상태 글 */
@@ -205,7 +208,7 @@ export function fillPlayEnv(templates: Readonly<Record<string, string>>, values:
 }
 
 function targetValues(target: PlayTarget, route?: string): Record<string, string | null | undefined> {
-  const values: Record<string, string | null | undefined> = { "rpg.map": target.map, state: startStateValue(target.state), route };
+  const values: Record<string, string | null | undefined> = { "rpg.map": target.map, state: startStateValue(target.state), route, event: target.event };
   if (target.at) {
     values.cx = String(target.at.x);
     values.cy = String(target.at.y);
@@ -220,10 +223,16 @@ export function planEnv(play: PlaySection | null | undefined, target: PlayTarget
   return fillPlayEnv(play.env, targetValues(target));
 }
 
-/** 자동 재생의 변수: play.env 에 play.probe 를 더한다. 빈 경로도 값이다 (걸음 없이 auto 만 기다린다) */
+/** 자동 재생이 늘 넣는 변수: 에디터가 지켜보는 줄(rpgPlay.ts의 probeWatch)을 엔진이 찍게 한다 */
+export const PROBE_TRACE_ENV: Readonly<Record<string, string>> = { INITIAL2D_RPG_TRACE: "1" };
+
+/**
+ * 자동 재생의 변수: play.env에 play.probe를 더하고 PROBE_TRACE_ENV를 덮는다 (프로젝트가 trace를 빼도 지켜보기가 선다).
+ * 빈 경로도 값이다 (걸음 없이 auto만 기다린다). {event}는 이벤트 id다
+ */
 export function probeEnv(play: PlaySection | null | undefined, target: PlayTarget & { route: string }): Record<string, string> {
   if (!play) return {};
-  return fillPlayEnv({ ...play.env, ...play.probe }, targetValues(target, target.route));
+  return { ...fillPlayEnv({ ...play.env, ...play.probe }, targetValues(target, target.route)), ...PROBE_TRACE_ENV };
 }
 
 // ---- 실행 명령이 고르는 자리 ----
