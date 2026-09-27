@@ -161,9 +161,10 @@
   width: 100%;
 }
 
+/* 패널이 머리(시작 상태, 찾기)보다 낮아도 목록이 0 으로 사라지지 않게 한 줄은 남긴다. 그때는 패널 자리(panel-body)가 통째로 스크롤한다 */
 .rpg-events-list {
   flex: 1;
-  min-height: 0;
+  min-height: 24px;
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);

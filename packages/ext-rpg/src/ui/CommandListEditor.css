@@ -76,10 +76,12 @@
   overflow-wrap: anywhere;
 }
 
+/* 트리는 줄 수만큼 자라고 세로 스크롤은 바깥(인스펙터 자리)이 맡는다. 휠을 가로채지 않고, 깊은 줄과 폼이 넓으면 옆으로만 민다 */
 .rpg-cmd-tree {
-  flex: 1;
+  flex: none;
   min-height: 80px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-input);
