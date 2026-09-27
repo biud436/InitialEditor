@@ -190,7 +190,8 @@ jobs:
           name: engine-aarch64-apple-darwin
           path: engine-dist
 
-      # 생성물(플래피 그림)까지 템플릿 묶음과 빠짐없이 대조한다
+      # 생성물(플래피 그림)까지 템플릿 묶음과 빠짐없이 대조한다. 추적하는 파일은 바이트로, 생성물 PNG 는 풀어 낸 픽셀로
+      # 견준다 (위 engine 잡의 Pillow 는 판을 고정하지 않아 사본을 만든 Pillow 와 압축한 바이트가 다르다. scripts/lib/templateCompare.mjs)
       - name: 템플릿 대조
         working-directory: InitialEditor
         env:

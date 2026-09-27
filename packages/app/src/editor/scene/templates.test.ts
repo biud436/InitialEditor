@@ -2,15 +2,26 @@
 //   1. packages/app/templates/ 의 파일이 MANIFEST.json 의 sha256 과 같다 (사본이 손으로 바뀌지 않았다)
 //   2. INITIAL2D_DIR 의 엔진 체크아웃과 같다. 체크아웃에 없어도 되는 것은 MANIFEST 가 generated 로 적은 생성물뿐이다
 //   3. INITIAL2D_TEMPLATES_SRC(풀어 둔 템플릿 묶음)가 있으면 생성물까지 빠짐없이 같다
+// 2 와 3 의 견주기는 scripts/lib/templateCompare.mjs: 추적하는 파일은 바이트로, 생성물 PNG 는 풀어 낸 픽셀로
+// (Pillow 판마다 압축한 바이트가 다르다. 릴리스의 check 잡은 CI 의 Pillow 로 만든 묶음과 견준다).
 
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
-import type { TemplateManifest } from "./templateManifest";
+import type { TemplateFileEntry, TemplateManifest } from "./templateManifest";
 
 const TEMPLATES_DIR = fileURLToPath(new URL("../../../templates/", import.meta.url));
+const REPO = fileURLToPath(new URL("../../../../../", import.meta.url));
+const compare = (await import(pathToFileURL(path.join(REPO, "scripts", "lib", "templateCompare.mjs")).href)) as {
+  compareTemplateCopy(
+    manifest: TemplateManifest,
+    copyDir: string,
+    otherDir: string,
+    opts?: { allowMissing?: (entry: TemplateFileEntry) => boolean },
+  ): { missing: string[]; differ: Array<{ path: string; by: string; detail: string }>; compared: { bytes: number; pixels: number } };
+};
 const manifest = JSON.parse(fs.readFileSync(path.join(TEMPLATES_DIR, "MANIFEST.json"), "utf8")) as TemplateManifest;
 const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? path.join(TEMPLATES_DIR, "..", "..", "..", "..", "Initial2D"));
 const engineHasLoader = fs.existsSync(path.join(engineDir, "scripts", "lua", "scene_loader.lua"));
@@ -79,19 +90,10 @@ describe("템플릿 사본 (packages/app/templates)", () => {
     }
   });
 
-  it.skipIf(!engineHasLoader)("엔진 저장소(INITIAL2D_DIR)의 원본과 같다 (없어도 되는 것은 생성물뿐)", () => {
-    const stale: string[] = [];
-    const missing: string[] = [];
-    for (const f of manifest.files) {
-      const original = path.join(engineDir, f.path);
-      if (!fs.existsSync(original)) {
-        if (!f.generated) missing.push(f.path);
-        continue;
-      }
-      if (sha256(original) !== f.sha256) stale.push(f.path);
-    }
-    expect(missing, `엔진 체크아웃에 없다 (INITIAL2D_DIR=${engineDir})`).toEqual([]);
-    expect(stale, `엔진과 다른 사본이 있다. INITIAL2D_DIR=${engineDir} yarn sync:templates 로 다시 복사한다`).toEqual([]);
+  it.skipIf(!engineHasLoader)("엔진 저장소(INITIAL2D_DIR)의 원본과 같다 (없어도 되는 것은 생성물뿐, 생성물은 픽셀로)", () => {
+    const r = compare.compareTemplateCopy(manifest, TEMPLATES_DIR, engineDir, { allowMissing: (f) => f.generated });
+    expect(r.missing, `엔진 체크아웃에 없다 (INITIAL2D_DIR=${engineDir})`).toEqual([]);
+    expect(r.differ, `엔진과 다른 사본이 있다. INITIAL2D_DIR=${engineDir} yarn sync:templates 로 다시 복사한다`).toEqual([]);
   });
 
   it.skipIf(!fs.existsSync(engineList))("엔진의 tools/templates_list.txt 와 복사 목록이 같다", () => {
@@ -103,12 +105,12 @@ describe("템플릿 사본 (packages/app/templates)", () => {
     expect([...listed].sort()).toEqual(manifest.files.map((f) => f.path).sort());
   });
 
-  it.skipIf(!bundleDir)("템플릿 묶음(INITIAL2D_TEMPLATES_SRC)과 생성물까지 빠짐없이 같다", () => {
+  it.skipIf(!bundleDir)("템플릿 묶음(INITIAL2D_TEMPLATES_SRC)과 생성물까지 빠짐없이 같다 (생성물은 픽셀로)", () => {
     const dir = bundleDir!;
-    const missing = manifest.files.filter((f) => !fs.existsSync(path.join(dir, f.path))).map((f) => f.path);
-    expect(missing, `묶음에 없다: ${dir}`).toEqual([]);
-    const differ = manifest.files.filter((f) => sha256(path.join(dir, f.path)) !== f.sha256).map((f) => f.path);
-    expect(differ, "묶음과 다른 사본이 있다. yarn sync:templates --from-zip 으로 다시 맞춘다").toEqual([]);
+    const r = compare.compareTemplateCopy(manifest, TEMPLATES_DIR, dir);
+    expect(r.missing, `묶음에 없다: ${dir}`).toEqual([]);
+    expect(r.differ, "묶음과 다른 사본이 있다. yarn sync:templates --from-zip 으로 다시 맞춘다").toEqual([]);
+    expect(r.compared).toEqual({ bytes: manifest.files.length - GENERATED.length, pixels: GENERATED.length });
     // 묶음의 MANIFEST(tools/pack_templates.py)가 있으면 생성물 표시도 같다
     const bundleManifest = path.join(dir, "MANIFEST.json");
     if (fs.existsSync(bundleManifest)) {
