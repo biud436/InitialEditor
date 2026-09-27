@@ -4,6 +4,7 @@ import { fixtureMap, fixtureSchema } from "../testing/fixtures";
 import { EditRefused, EventEditor, EventListCommand, newCommand, uniqueEventId, type EditContext } from "./commands";
 import { EventsSection } from "./events";
 import { getList, type CommandPath } from "./tree";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { field } from "./json";
 import type { MapGeometry } from "./validate";
 
@@ -63,6 +64,14 @@ describe("이벤트 추가, 지우기, 붙여넣기", () => {
     // 맵 밖에 붙이거나 구역이 음수가 되면 거절한다
     expect(() => ed.pasteEvents([ev("s", 0, 0)], { x: 10, y: 0 })).toThrow(/맵 밖/);
     expect(() => ed.pasteEvents(copied, { x: 9, y: 0 })).toThrow(/wander\.area\.y/);
+  });
+
+  it("붙여넣기: 2^53을 넘는 정수 id(표식 글)는 글이 아니라 새 event_N 이 된다 (표식 글에 _2 를 붙이지 않는다)", () => {
+    const big = bigIntValue("12345678901234567890");
+    const { section, ed, stack } = setup([ev("event_1", 0, 0), { id: big, x: 1, y: 0 }]);
+    stack.push(ed.pasteEvents([{ id: big, x: 1, y: 0 }], { x: 3, y: 3 }));
+    expect(section.ids()).toEqual(["event_1", "event_2"]);
+    expect(JSON.stringify(section.list)).not.toMatch(/INT:[^"]*_/);
   });
 });
 
@@ -188,6 +197,14 @@ describe("칸 바꾸기, 이름 바꾸기", () => {
     expect(() => ed.renameEvent(0, "b")).toThrow(/겹친다/);
   });
 
+  it("옛 id 가 2^53을 넘는 정수(표식 글)면 글이 아니라 참조를 바꾸지 않는다", () => {
+    const big = bigIntValue("12345678901234567890");
+    const { section, ed, stack } = setup([{ id: big, x: 0, y: 0 }, ev("c", 2, 0, { commands: [{ code: "turn", target: big, dir: "up" }] })]);
+    stack.push(ed.renameEvent(0, "kid"));
+    expect(section.ids()).toEqual(["kid", "c"]);
+    expect((at(section, 1).commands as Array<Record<string, unknown>>)[0].target).toBe(big);
+  });
+
   it("옛 id 를 쓰는 다른 이벤트가 남아 있으면 참조는 두다", () => {
     const { section, ed, stack } = setup([ev("dup", 0, 0), ev("dup", 1, 0), ev("c", 2, 0, { commands: [{ code: "turn", target: "dup", dir: "up" }] })]);
     stack.push(ed.renameEvent(1, "other"));
@@ -248,6 +265,11 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect(() => ed.setArg(0, P(0), "name", undefined)).toThrow(/필요하다/);
     stack.push(ed.setArg(0, P(0), "name", "boss2"));
     expect(at(section, 0).commands).toEqual([{ code: "script", name: "boss2" }]);
+  });
+
+  it("모르는 커맨드의 인자는 고칠 수 없다. code 가 2^53을 넘는 정수(표식 글)면 숫자 그대로 알린다", () => {
+    const { ed } = setup([ev("a", 0, 0, { commands: [{ code: bigIntValue("12345678901234567890"), text: "x" }] })]);
+    expect(() => ed.setArg(0, P(0), "text", "y")).toThrow("모르는 커맨드 12345678901234567890 는 고칠 수 없다");
   });
 
   it("빼기와 옮기기", () => {

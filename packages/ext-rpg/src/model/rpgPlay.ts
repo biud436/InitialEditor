@@ -208,13 +208,14 @@ export function eventPlayBlocked(sources: RpgPlaySources, doc: MapDocument, inde
  * id 가 없는 이벤트는 번호 그대로다
  */
 export function eventPlayRequest(sources: RpgPlaySources, doc: MapDocument, index: number, mode: EventPlayMode): PlayRequest {
-  const id = field(mapEventsOf(doc)[index], "id");
+  const raw = field(mapEventsOf(doc)[index], "id");
+  const id = isJsonText(raw) && raw !== "" ? raw : null;
   return {
     label: EVENT_PLAY_LABELS[mode],
     plan: (d) => {
       const events = mapEventsOf(d);
-      const at = typeof id === "string" && id !== "" ? events.findIndex((e) => field(e, "id") === id) : index < events.length ? index : -1;
-      if (at < 0) return `이벤트 ${typeof id === "string" && id !== "" ? id : `events[${index + 1}]`} 이(가) 이 맵에 없다`;
+      const at = id !== null ? events.findIndex((e) => field(e, "id") === id) : index < events.length ? index : -1;
+      if (at < 0) return `이벤트 ${id ?? `events[${index + 1}]`} 이(가) 이 맵에 없다`;
       return eventPlay(sources, d, at, mode);
     },
   };

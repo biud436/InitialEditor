@@ -7,7 +7,7 @@
 //
 // 모든 함수는 원본을 고치지 않고 바뀐 길만 새로 만든 목록을 돌려준다 (손대지 않은 커맨드는 같은 객체다).
 
-import { asList, cloneJson, engineLength, isPlainObject, stableKey, type JsonObject } from "./json";
+import { asList, cloneJson, engineLength, isPlainObject, jsonValueText, stableKey, type JsonObject } from "./json";
 import { commandSpec, type EventSchema, type ListSpec } from "./schema";
 import { orderCommand } from "./events";
 
@@ -191,7 +191,7 @@ export function updateList(commands: unknown, list: ListPath, schema: EventSchem
   const cmd = items[step.at];
   if (!isPlainObject(cmd)) throw new TreeError(`${step.at + 1} 번째 커맨드가 객체가 아니다`);
   const spec = listSpecOf(cmd, step.list, schema);
-  if (!spec) throw new TreeError(`${String(cmd.code)} 에는 ${step.list} 목록이 없다`);
+  if (!spec) throw new TreeError(`${jsonValueText(cmd.code)} 에는 ${step.list} 목록이 없다`);
   const had = Object.prototype.hasOwnProperty.call(cmd, step.list) && cmd[step.list] !== null && cmd[step.list] !== undefined;
   let nextValue: unknown;
   if (spec.perOption) {

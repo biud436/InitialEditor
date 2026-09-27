@@ -1,4 +1,4 @@
-import { parseObjectSchema, validateObjects, type MapObject } from "@initial-editor/ext-tilemap/model";
+import { bigIntValue, parseObjectSchema, validateObjects, type MapObject } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import {
   buildPlayEnv,
@@ -102,6 +102,8 @@ describe("목록 묶음과 요약", () => {
     expect(summarizeObject(obj("c", "zone", 10, { y: 20, width: 40, height: 24 }), SCHEMA.types[5])).toBe("10,20 40x24");
     expect(summarizeObject(obj("d", "start", 56), SCHEMA.types[1])).toBe("56, 400");
     expect(summarizeObject(obj("e", "npc", 5, { width: 10 }), undefined)).toBe("5..15");
+    // 2^53을 넘는 정수(표식 글)는 숫자 그대로
+    expect(summarizeObject(obj("f", "spawn", 300, { props: { species: bigIntValue("12345678901234567890") } }), spawn)).toBe("12345678901234567890");
   });
 
   it("범위 칸 한 쌍과 여럿을 함께 고칠 칸", () => {

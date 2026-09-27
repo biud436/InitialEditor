@@ -22,7 +22,7 @@
 // 글을 쓰게 되기 때문이다.
 
 import { action, makeObservable, observable } from "mobx";
-import { asList, field, hasOwn, isArrayPlace, isObjectPlace, isPlainObject, ordered, type JsonObject } from "./json";
+import { asList, field, hasOwn, isArrayPlace, isJsonText, isObjectPlace, isPlainObject, ordered, type JsonObject } from "./json";
 import { commandSpec, judgedCondition, type ArgType, type EventSchema } from "./schema";
 
 export const EVENTS_SECTION = "events";
@@ -359,12 +359,12 @@ export class EventsSection {
     return this.items.findIndex((ev) => isObjectPlace(ev) && field(ev, "id") === id);
   }
 
-  /** 글인 id 전부 (파일 순서, 겹친 것도) */
+  /** 글인 id 전부 (파일 순서, 겹친 것도). 표식 글로 실은 큰 정수는 수라 빠진다 */
   ids(): string[] {
     const out: string[] = [];
     for (const ev of this.items) {
       const id = field(ev, "id");
-      if (typeof id === "string") out.push(id);
+      if (isJsonText(id)) out.push(id);
     }
     return out;
   }

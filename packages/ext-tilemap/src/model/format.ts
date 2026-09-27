@@ -233,14 +233,14 @@ export function parseMap(text: string): MapData {
   const tilesets = raw.tilesets.map((t, i) => {
     const where = `tilesets[${i}]`;
     if (!isRecord(t)) throw new MapFormatError(`${where} 는 객체여야 한다`, where);
-    if (typeof t.image !== "string" || t.image === "") throw new MapFormatError(`${where}.image 가 없다`, `${where}.image`);
+    if (!isJsonText(t.image) || t.image === "") throw new MapFormatError(`${where}.image 가 없다`, `${where}.image`);
     return { image: t.image, firstGid: int(t, "firstGid", where, 1), columns: int(t, "columns", where, 1), extra: extraOf(t, TILESET_KEYS) };
   });
   if (!Array.isArray(raw.layers)) throw new MapFormatError("layers 는 배열이어야 한다", "layers");
   const layers = raw.layers.map((l, i) => {
     const where = `layers[${i}]`;
     if (!isRecord(l)) throw new MapFormatError(`${where} 는 객체여야 한다`, where);
-    return { name: typeof l.name === "string" ? l.name : `layer${i + 1}`, data: [...numberArray(l.data, cells, `${where}.data`)], extra: extraOf(l, LAYER_KEYS) };
+    return { name: isJsonText(l.name) ? l.name : `layer${i + 1}`, data: [...numberArray(l.data, cells, `${where}.data`)], extra: extraOf(l, LAYER_KEYS) };
   });
   const collision = raw.collision === undefined || raw.collision === null ? null : [...numberArray(raw.collision, cells, "collision")];
   const events = eventsOf(raw.events);
@@ -251,7 +251,7 @@ export function parseMap(text: string): MapData {
   }
   return {
     version: version as number,
-    name: typeof raw.name === "string" ? raw.name : "",
+    name: isJsonText(raw.name) ? raw.name : "",
     id: typeof raw.id === "number" ? raw.id : 0,
     width,
     height,
@@ -281,8 +281,9 @@ function eventsOf(v: unknown): unknown[] | null {
 function parseObject(o: unknown, i: number): MapObject {
   const where = `objects[${i}]`;
   if (!isRecord(o)) throw new MapFormatError(`${where} 는 객체여야 한다`, where);
-  if (typeof o.id !== "string" || o.id === "") throw new MapFormatError(`${where}.id 는 비어 있지 않은 문자열이어야 한다`, `${where}.id`);
-  if (typeof o.type !== "string" || o.type === "") throw new MapFormatError(`${where}.type 이 없다`, `${where}.type`);
+  // 표식 글로 실은 큰 정수는 파일에서 수라 글 자리(id, type)에 올 수 없다
+  if (!isJsonText(o.id) || o.id === "") throw new MapFormatError(`${where}.id 는 비어 있지 않은 문자열이어야 한다`, `${where}.id`);
+  if (!isJsonText(o.type) || o.type === "") throw new MapFormatError(`${where}.type 이 없다`, `${where}.type`);
   const num = (key: string, required: boolean): number | undefined => {
     const v = o[key];
     if (v === undefined) {

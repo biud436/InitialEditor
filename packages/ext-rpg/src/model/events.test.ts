@@ -11,7 +11,7 @@ import { EventEditor, newCommand } from "./commands";
 import { commandSpec, type EventSchema } from "./schema";
 import { engineProblems, validateEvents } from "./validate";
 import { walkCommands } from "./tree";
-import { field, isPlainObject, ordered } from "./json";
+import { field, isPlainObject, ordered, parseJsonLossless } from "./json";
 import { REF_KEYS, WANDER_KEYS, AREA_KEYS } from "./events";
 
 const schema = fixtureSchema();
@@ -127,6 +127,9 @@ describe("events 섹션 왕복", () => {
     expect(section.indexOfId("zz")).toBe(-1);
     expect(section.ids()).toEqual(["a", "b", "a"]);
     expect(section.eventAt(1)).toBeUndefined();
+    // 2^53을 넘는 정수 id(표식 글)는 글이 아니라 빠진다
+    const big = new EventsSection(parseJsonLossless('[{"id":12345678901234567890,"x":0,"y":0},{"id":"b","x":1,"y":0}]'), schema);
+    expect(big.ids()).toEqual(["b"]);
     const before = section.revision;
     section.reset([{ id: "c", x: 0, y: 0 }]);
     expect(section.ids()).toEqual(["c"]);

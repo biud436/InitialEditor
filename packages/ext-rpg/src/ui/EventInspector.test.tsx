@@ -197,6 +197,19 @@ describe("이벤트 하나", () => {
     expect(screen.getByTestId("rpg-inspector").querySelector(".rpg-badge")?.textContent).toBe("밟");
   });
 
+  it("머리의 위치는 타일 좌표이고, 2^53을 넘는 정수(표식 글)는 숫자 그대로, 없으면 ? 다", () => {
+    const data = JSON.parse(layerHarnessText()) as { events: Array<Record<string, unknown>> };
+    delete data.events[1].y;
+    const text = JSON.stringify(data).replace(/"x":14,"y":40/, '"x":12345678901234567890,"y":40');
+    const t = setup({ text });
+    act(() => t.st.select([0]));
+    expect(screen.getByTestId("rpg-inspector-where").textContent).toBe("events[1], 타일 12345678901234567890,40");
+    act(() => t.st.select([1]));
+    expect(screen.getByTestId("rpg-inspector-where").textContent).toBe("events[2], 타일 16,?");
+    act(() => t.st.select([t.idx("captain")]));
+    expect(screen.getByTestId("rpg-inspector-where").textContent).toBe(`events[${t.idx("captain") + 1}], 타일 16,44`);
+  });
+
   it("칸의 문제는 그 칸 아래에 보인다", () => {
     const data = JSON.parse(layerHarnessText()) as { events: Array<Record<string, unknown>> };
     data.events[0] = { ...data.events[0], x: 99 };

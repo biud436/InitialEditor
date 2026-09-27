@@ -6,7 +6,7 @@
 //   flag, var  이 프로젝트의 맵 파일들에서 이미 쓰인 이름 (이름표는 나중 후보)
 // 시작 상태 칸(INITIAL2D_RPG_STATE)의 제안도 여기서 만든다: 깃발, 변수, item:<id>.
 
-import { asList, field, isPlainObject } from "./json";
+import { asList, field, isJsonText, isPlainObject } from "./json";
 import { commandSpec, judgedCondition, type EventSchema, type RefKind } from "./schema";
 import { walkCommands } from "./tree";
 import type { GameConfig, ItemTable } from "./game";
@@ -73,7 +73,7 @@ export function refSuggestions(kind: RefKind, src: RefSources): Suggestion[] {
       const seen = new Set<string>();
       for (const ev of src.events ?? []) {
         const id = field(ev, "id");
-        if (typeof id === "string" && id !== "" && !seen.has(id)) {
+        if (isJsonText(id) && id !== "" && !seen.has(id)) {
           seen.add(id);
           out.push(field(ev, "charset") === undefined ? { value: id, detail: "외형 없음" } : { value: id });
         }

@@ -17,7 +17,7 @@
 
 import { Emitter } from "@initial-editor/core";
 import type { MapLayerSpec, MapLayerTool, MapLayerToolContext, MapLayerView, MapLayerViewContext } from "@initial-editor/ext-tilemap";
-import { tileSource, typeOf, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
+import { isJsonText, tileSource, typeOf, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, UPDATE_PRIORITY } from "pixi.js";
 import type { LoadedTexture, TextureCache } from "../sceneView/textures";
@@ -1010,9 +1010,10 @@ export class MapRenderer {
 
   private labelText(o: MapObject, spec: ObjectTypeSchema | undefined): string {
     if (!spec) return o.id;
-    const enumField = spec.fields.find((f) => f.type === "enum" && typeof o.props[f.name] === "string");
+    // 글인 값만 이름표에 쓴다 (표식 글로 실은 큰 정수는 수다)
+    const enumField = spec.fields.find((f) => f.type === "enum" && isJsonText(o.props[f.name]));
     if (enumField) return `${spec.label} ${String(o.props[enumField.name])}`;
-    const textField = spec.fields.find((f) => (f.type === "text" || f.type === "string") && typeof o.props[f.name] === "string" && o.props[f.name] !== "");
+    const textField = spec.fields.find((f) => (f.type === "text" || f.type === "string") && isJsonText(o.props[f.name]) && o.props[f.name] !== "");
     if (textField) {
       const text = String(o.props[textField.name]).split("\n")[0];
       return `${spec.label} ${text.length > 12 ? text.slice(0, 12) + "..." : text}`;

@@ -10,7 +10,7 @@ import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
 import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
-import { field, isJsonText, isPlainObject, stringifyJsonLossless } from "../model/json";
+import { field, isJsonText, isPlainObject, jsonValueText, stringifyJsonLossless } from "../model/json";
 import { EventsLayerState } from "../model/layer";
 import type { RefSources } from "../model/refs";
 import { EVENT_PLAY_LABELS, type EventPlayMode } from "../model/rpgPlay";
@@ -172,6 +172,11 @@ const PlayButtons = observer(function PlayButtons({ doc, index, play }: { doc: M
   );
 });
 
+/** 머리에 보일 좌표 하나 (큰 정수는 숫자 그대로, 없으면 ?) */
+function cellText(v: unknown): string {
+  return v === undefined ? "?" : jsonValueText(v);
+}
+
 /** 가장 가까운 세로 스크롤 조상 (overflow-y 가 auto 나 scroll). 없으면 null */
 function scrollParent(el: HTMLElement | null): HTMLElement | null {
   for (let a = el?.parentElement ?? null; a; a = a.parentElement) {
@@ -260,8 +265,8 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
           {badge.letter}
         </span>
         <strong data-testid="rpg-inspector-id">{eventLabel(ev, index)}</strong>
-        <span className="muted">
-          events[{index + 1}], {String(x)},{String(y)} 칸
+        <span className="muted" data-testid="rpg-inspector-where">
+          events[{index + 1}], 타일 {cellText(x)},{cellText(y)}
         </span>
         <span className="rpg-toolbar-gap" />
         <button type="button" className="btn btn-ghost rpg-mini" disabled={state.locked !== null} data-testid="rpg-inspector-remove" onClick={remove}>

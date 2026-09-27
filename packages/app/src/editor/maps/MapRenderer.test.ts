@@ -2,7 +2,7 @@
 // 맵 렌더러의 입력과 상태 (WebGL 없이). PIXI 앱 대신 캔버스와 렌더러 흉내를 넣고 비공개 단계를 직접 부른다.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Emitter, MemoryBackend } from "@initial-editor/core";
-import { MapDocument, parseMap, singleBrush } from "@initial-editor/ext-tilemap/model";
+import { bigIntValue, MapDocument, parseMap, parseObjectSchema, singleBrush, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { Container, TextureSource } from "pixi.js";
 import { MapRenderer } from "./MapRenderer";
 import { fillLimitNotice } from "./mapTools";
@@ -236,6 +236,34 @@ describe("MapRenderer", () => {
     await doc.reload();
     internals.frame();
     expect(r.status.warning).toBe("타일셋 밖의 gid 1칸");
+    r.dispose();
+  });
+
+  it("오브젝트 이름표는 글인 값만 쓴다: 2^53을 넘는 정수(표식 글)는 enum 이나 글 칸에 있어도 이름표가 아니다", () => {
+    const { r } = makeRenderer();
+    const schema = parseObjectSchema(
+      JSON.stringify({
+        version: 1,
+        types: [
+          {
+            type: "spawn",
+            label: "몬스터",
+            color: "danger",
+            fields: [
+              { name: "species", type: "enum", values: ["wolf"] },
+              { name: "note", type: "string" },
+            ],
+          },
+        ],
+      }),
+    );
+    const spec = schema.types[0] as ObjectTypeSchema;
+    const labelText = (props: Record<string, unknown>) =>
+      (r as unknown as { labelText(o: MapObject, s: ObjectTypeSchema): string }).labelText({ id: "a", type: "spawn", x: 0, y: 0, props, extra: {} }, spec);
+    const big = bigIntValue("12345678901234567890");
+    expect(labelText({ species: "wolf" })).toBe("몬스터 wolf");
+    expect(labelText({ species: big, note: "보스" })).toBe("몬스터 보스");
+    expect(labelText({ species: big, note: big })).toBe("몬스터");
     r.dispose();
   });
 });

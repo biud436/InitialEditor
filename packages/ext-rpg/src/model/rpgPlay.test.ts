@@ -167,6 +167,22 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect((eventPlay(sources, doc, i, "play") as PlayPlan).env).not.toHaveProperty("INITIAL2D_RPG_TRACE");
   });
 
+  it("2^53을 넘는 id 는 글이 아니라 이름으로 쓰지 않는다: 설명과 요청은 events[n] 이고 표식 글이 새지 않는다", () => {
+    const { h, sources } = setup();
+    const data = JSON.parse(mapText(PORT_TOWN)) as { events: Array<Record<string, unknown>> };
+    const k = data.events.findIndex((e) => e.id === "captain");
+    const text = JSON.stringify(data).replace('"id":"captain"', '"id":12345678901234567890');
+    const doc = h.open(PORT_TOWN, text);
+    const plan = eventPlay(sources, doc, k, "probe") as PlayPlan;
+    expect(plan.note).toBe(`이벤트 events[${k + 1}] 앞에서 말 걸기`);
+    expect(JSON.stringify(plan)).not.toContain("INT:");
+    const req = eventPlayRequest(sources, doc, k, "play");
+    expect((req.plan(doc) as PlayPlan).note).toBe(`이벤트 events[${k + 1}] 앞`);
+    stateOf(doc).run((ed) => ed.removeEvents([k]));
+    // id 가 없으니 번호로 찾는다: 번호의 이벤트가 바뀌어 다른 이벤트 앞이다 (표식 글로 찾지 않는다)
+    expect(JSON.stringify(req.plan(doc))).not.toContain("INT:");
+  });
+
   it("등록되지 않은 맵이나 play 가 없으면 이유를 준다", () => {
     const { h, sources } = setup();
     const inn = h.open(INN);

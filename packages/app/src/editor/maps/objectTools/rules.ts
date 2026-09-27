@@ -11,6 +11,7 @@ import {
   cloneObject,
   defaultProps,
   isBandObject,
+  jsonValueText,
   playAllowsMap,
   playEnv,
   shiftObject,
@@ -62,7 +63,7 @@ export function groupObjects(objects: readonly MapObject[], schema: MapObjectSch
 export function summarizeObject(o: MapObject, spec: ObjectTypeSchema | undefined): string {
   const parts: string[] = [];
   const firstEnum = spec?.fields.find((f) => f.type === "enum");
-  if (firstEnum && o.props[firstEnum.name] !== undefined) parts.push(String(o.props[firstEnum.name]));
+  if (firstEnum && o.props[firstEnum.name] !== undefined) parts.push(jsonValueText(o.props[firstEnum.name]));
   const shape = spec?.shape ?? (o.width !== undefined ? "band" : "point");
   if (shape === "band") parts.push(`${o.x}..${o.x + (o.width ?? 0)}`);
   else if (shape === "rect") parts.push(`${o.x},${o.y} ${o.width ?? 0}x${o.height ?? 0}`);

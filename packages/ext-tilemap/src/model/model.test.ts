@@ -120,6 +120,18 @@ describe("맵 파일", () => {
     expect(parseJsonLossless('{"a":1e30,"b":1.5,"c":10000000000000000}')).toEqual({ a: 1e30, b: 1.5, c: 10000000000000000 });
   });
 
+  it("2^53 을 넘는 정수는 글 자리(오브젝트 id 와 type, 레이어와 맵의 이름, 타일셋 그림)의 글이 아니다 (표식 글이 이름으로 새지 않는다)", () => {
+    const base = JSON.parse(serializeMap(tiny())) as Record<string, unknown>;
+    const withRaw = (key: string, raw: string) => JSON.stringify({ ...base, [key]: "@@" }).replace('"@@"', raw);
+    const big = "12345678901234567890";
+    expect(() => parseMap(withRaw("objects", `[{"id":${big},"type":"spawn","x":1}]`))).toThrow(/objects\[0\]\.id 는 비어 있지 않은 문자열이어야 한다/);
+    expect(() => parseMap(withRaw("objects", `[{"id":"a","type":${big},"x":1}]`))).toThrow(/objects\[0\]\.type 이 없다/);
+    const layers = parseMap(withRaw("layers", `[{"name":${big},"data":${JSON.stringify(new Array(12).fill(1))}}]`)).layers;
+    expect(layers[0].name).toBe("layer1");
+    expect(parseMap(withRaw("name", big)).name).toBe("");
+    expect(() => parseMap(withRaw("tilesets", `[{"image":${big},"firstGid":1,"columns":8}]`))).toThrow(/image 가 없다/);
+  });
+
   it("표식 글은 수다: 수와 정수 판정, 글 판정, 보일 글, 적은 글을 값으로", () => {
     const big = bigIntValue("12345678901234567890");
     expect([isJsonNumber(big), isJsonInteger(big), isJsonText(big)]).toEqual([true, true, false]);

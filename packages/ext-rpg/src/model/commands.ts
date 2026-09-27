@@ -8,7 +8,7 @@
 // 오류는 막지 않는다 (고치는 편집까지 막으면 안 된다). 잠긴 레이어(스키마 버전, RTP 쌍둥이 맵)는 모든 편집을 막는다.
 
 import type { Command } from "@initial-editor/core";
-import { asList, cloneJson, field, hasOwn, isArrayPlace, isInteger, isNonNegInt, isObjectPlace, isPlainObject, setOwn, type JsonObject } from "./json";
+import { asList, cloneJson, field, hasOwn, isArrayPlace, isInteger, isJsonText, isNonNegInt, isObjectPlace, isPlainObject, jsonValueText, setOwn, type JsonObject } from "./json";
 import { canonicalCommand, canonicalEvent, orderArea, orderCommand, orderEvent, orderRef, orderWander, type EventsSection } from "./events";
 import { commandSpec, fieldSpec, type ArgSpec, type EventSchema } from "./schema";
 import {
@@ -239,9 +239,9 @@ export class EventEditor {
     if (!isNonNegInt(first.x) || !isNonNegInt(first.y)) throw new EditRefused("붙일 이벤트의 칸이 틀렸다");
     const dx = cell.x - first.x;
     const dy = cell.y - first.y;
-    const taken = new Set(list.map((ev) => field(ev, "id")).filter((id): id is string => typeof id === "string"));
+    const taken = new Set(list.map((ev) => field(ev, "id")).filter(isJsonText));
     const added = copies.map((ev) => {
-      const id = typeof ev.id === "string" && ev.id !== "" ? uniqueCopyId(ev.id, taken) : uniqueEventId([...list, ...[...taken].map((t) => ({ id: t }))]);
+      const id = isJsonText(ev.id) && ev.id !== "" ? uniqueCopyId(ev.id, taken) : uniqueEventId([...list, ...[...taken].map((t) => ({ id: t }))]);
       taken.add(id);
       return canonicalEvent(shifted({ ...ev, id }, dx, dy, false), ctx.schema);
     });
@@ -306,7 +306,7 @@ export class EventEditor {
     let after = this.withEvent(index, orderEvent({ ...ev, id }, ctx.schema));
     // 옛 id 를 쓰는 다른 이벤트가 남아 있으면 참조는 그쪽을 가리키므로 두다
     const stillUsed = list.some((e, i) => i !== index && field(e, "id") === old);
-    if (typeof old === "string" && old !== "" && old !== id && !stillUsed && !ctx.schema.reserved.includes(old)) {
+    if (isJsonText(old) && old !== "" && old !== id && !stillUsed && !ctx.schema.reserved.includes(old)) {
       after = after.map((e) => renameRefs(e, old, id, ctx.schema));
     }
     this.guard(list, after, ctx);
@@ -395,7 +395,7 @@ export class EventEditor {
     const ctx = this.ctx();
     const cmd = this.commandAt(index, path, ctx.schema);
     const spec = commandSpec(ctx.schema, cmd.code);
-    if (!spec) throw new EditRefused(`모르는 커맨드 ${String(cmd.code)} 는 고칠 수 없다`);
+    if (!spec) throw new EditRefused(`모르는 커맨드 ${jsonValueText(cmd.code)} 는 고칠 수 없다`);
     const arg = spec.args.find((a) => a.name === name);
     if (!arg) throw new EditRefused(`${spec.label} 에는 ${name} 인자가 없다`);
     if (arg.type === "options") throw new EditRefused("항목은 항목 명령으로 고친다 (가지와 취소 번호를 함께 맞춘다)");

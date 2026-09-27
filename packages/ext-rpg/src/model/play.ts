@@ -8,7 +8,7 @@
 //                  자동 재생은 에디터가 게임의 줄(rpg:map:, rpg:event:)을 지켜보므로 play 설정과 상관없이 INITIAL2D_RPG_TRACE=1을 넣는다
 // 교차 검사(yarn test:engine-events)가 이 함수들을 그대로 불러 엔진 프로세스를 띄운다.
 
-import { field, isNonNegInt, isObjectPlace, isPlainObject } from "./json";
+import { field, isJsonText, isNonNegInt, isObjectPlace, isPlainObject } from "./json";
 import type { PlaySection } from "./game";
 import type { MapGeometry } from "./validate";
 
@@ -249,7 +249,7 @@ export type PlayPlanResult = { ok: true; plan: PlayPlanChoice } | { ok: false; r
 
 function eventName(ev: unknown, index: number): string {
   const id = field(ev, "id");
-  return typeof id === "string" && id !== "" ? id : `events[${index + 1}]`;
+  return isJsonText(id) && id !== "" ? id : `events[${index + 1}]`;
 }
 
 /**
