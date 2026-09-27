@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EngineCandidate } from "./engineCandidates";
-import { decideTrust, trustCovers, type TrustQuestion } from "./engineTrust";
+import { decideTrust, mergeTrust, trustCovers, type TrustQuestion } from "./engineTrust";
 
 const BUILD: EngineCandidate = { source: "project-build", path: "/g/build/Initial2D", needsTrust: true };
 const SIBLING: EngineCandidate = { source: "sibling", path: "/Initial2D/build/Initial2D", needsTrust: true };
@@ -66,8 +66,34 @@ describe("decideTrust", () => {
     expect(denied.skipped).toEqual([BUILD, SIBLING]);
   });
 
+  it("기록이 함수면 파일을 본 뒤에 읽는다 (그사이 겹친 탐색이 남긴 답을 쓴다)", async () => {
+    let record: { allow: boolean; exes: string[] } | undefined;
+    const d = await decideTrust({
+      ...base,
+      record: () => record,
+      exists: async () => {
+        record = { allow: true, exes: [BUILD.path, SIBLING.path] };
+        return [true, true];
+      },
+      askTrust: async () => {
+        throw new Error("묻지 않아야 한다");
+      },
+    });
+    expect([...d.allowed]).toEqual([BUILD.path, SIBLING.path]);
+    expect(d.asked).toBe(false);
+  });
+
   it("답 없이 닫으면 이번만 건너뛴다", async () => {
     const d = await decideTrust({ ...base, askTrust: async () => null });
     expect(d).toEqual({ allowed: new Set(), record: null, asked: true, skipped: [BUILD, SIBLING] });
+  });
+});
+
+describe("mergeTrust", () => {
+  it("같은 답이면 경로를 합치고, 다른 답이면 새 답으로 바꾼다", () => {
+    expect(mergeTrust(undefined, { allow: true, exes: [BUILD.path] })).toEqual({ allow: true, exes: [BUILD.path] });
+    expect(mergeTrust({ allow: true, exes: [BUILD.path] }, { allow: true, exes: [SIBLING.path, BUILD.path] })).toEqual({ allow: true, exes: [BUILD.path, SIBLING.path] });
+    expect(mergeTrust({ allow: false, exes: [BUILD.path] }, { allow: false, exes: [SIBLING.path] })).toEqual({ allow: false, exes: [BUILD.path, SIBLING.path] });
+    expect(mergeTrust({ allow: true, exes: [BUILD.path] }, { allow: false, exes: [SIBLING.path] })).toEqual({ allow: false, exes: [SIBLING.path] });
   });
 });

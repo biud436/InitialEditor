@@ -31,7 +31,7 @@ import {
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { errorText } from "../gameView/errorText";
 import { ENGINE_FILE, ENGINE_SOURCE_LABELS, engineCandidates, type EngineCandidate, type EngineSource } from "./engineCandidates";
-import { decideTrust, type TrustAnswer, type TrustQuestion } from "./engineTrust";
+import { decideTrust, mergeTrust, type TrustAnswer, type TrustDecision, type TrustQuestion } from "./engineTrust";
 import { collectHmrFiles } from "./hmrCollect";
 
 export type RunnerState = "idle" | "starting" | "running" | "stopping";
@@ -204,6 +204,8 @@ export class RunnerStore {
   private readonly askTrust: ((q: TrustQuestion) => Promise<TrustAnswer>) | null;
   /** 떠 있는 신뢰 질문. 탐색이 겹쳐도 같은 질문을 두 번 띄우지 않는다 */
   private pendingTrust: { key: string; answer: Promise<TrustAnswer> } | null = null;
+  /** 진행 중인 신뢰 결정 (파일 보기, 기록 읽기, 묻기, 답 남기기). 겹친 탐색은 같은 후보 무리의 결정을 기다려 나눠 쓴다 */
+  private readonly trustInFlight = new Map<string, Promise<TrustDecision>>();
   private readonly unavailableText: string;
   private readonly stopTimeoutMs: number;
   private readonly clock: () => number;
@@ -212,6 +214,8 @@ export class RunnerStore {
   private startPromise: Promise<void> | null = null;
   private lastStart: StartOptions = {};
   private resolveToken = 0;
+  /** 돌고 있는 가장 새 탐색. 실행은 새로 찾지 않고 이것을 기다린다 (신뢰 질문이 떠 있는 동안 F5 를 눌러도 한 번만 묻는다) */
+  private resolveInFlight: Promise<string | null> | null = null;
   private exitWaiters: Array<() => void> = [];
   /** 에디터 안 엔진이 뜨는 중에 들어온 리로드. 첫 프레임을 돈 뒤 한 번에 올린다 ("all" 은 scripts 와 씬과 맵 전부) */
   private queuedReload: Set<string> | "all" | null = null;
@@ -455,7 +459,31 @@ export class RunnerStore {
    * 프로젝트가 가리키는 후보는 신뢰를 받은 것만 찌른다 (engineTrust.ts). askTrust 가 거짓이면 이번에는 묻지 않고 건너뛴다.
    * 결과는 콘솔에 남긴다. 브라우저 모드는 찾지 않는다.
    */
-  async resolveEngine(opts: { askTrust?: boolean } = {}): Promise<string | null> {
+  resolveEngine(opts: { askTrust?: boolean } = {}): Promise<string | null> {
+    const search = this.searchEngine(opts);
+    this.resolveInFlight = search;
+    const clear = () => {
+      if (this.resolveInFlight === search) this.resolveInFlight = null;
+    };
+    search.then(clear, clear);
+    return search;
+  }
+
+  /**
+   * 실행이 쓸 엔진을 정한다. 이미 찾았으면 그대로, 탐색이 돌고 있으면(프로젝트를 열자마자 실행, 자가 검사) 새로 찾지 않고 그 탐색이
+   * 끝나기를 기다려 그 결과를 쓴다. 새로 찾으면 신뢰 질문을 닫은 직후의 실행이 같은 질문을 한 번 더 띄운다
+   */
+  private async engineForStart(): Promise<void> {
+    if (this.enginePath) return;
+    let waited = false;
+    while (this.resolveInFlight) {
+      waited = true;
+      await this.resolveInFlight.catch(() => null);
+    }
+    if (!waited && !this.enginePath) await this.resolveEngine();
+  }
+
+  private async searchEngine(opts: { askTrust?: boolean }): Promise<string | null> {
     const token = ++this.resolveToken;
     const { backend, project, settings, log } = this.host;
     if (!backend.capabilities.run || !this.probe) {
@@ -482,27 +510,27 @@ export class RunnerStore {
     }
     const root = project.root;
     const candidates = engineCandidates({ root, settingsPath: settings.settings.enginePath, projectFile, platform: this.host.platform, bundledPath: bundled?.path ?? null });
-    let allowed: ReadonlySet<string> | null = null;
-    let skipped: EngineCandidate[] = [];
+    // 신뢰는 신뢰가 필요 없는 후보 사이의 무리마다 정한다: .initial-editor/engine 과 build/ 가 한 무리, 앱에 든 엔진 뒤의 형제가
+    // 또 한 무리다. 앞의 무리에 닿으면 그 무리만 묻고, 앱에 든 엔진이 답하면 형제는 묻지도 보지도 않는다. 앱에 든 엔진이 없으면
+    // (개발 빌드) 셋이 한 무리라 한 번에 묻는다
+    const allowed = new Set<string>();
+    const skipped: EngineCandidate[] = [];
+    let decidedUntil = -1;
     let found: { candidate: EngineCandidate; features: string[] } | null = null;
     const failures: string[] = [];
-    for (const candidate of candidates) {
+    for (let i = 0; i < candidates.length; i++) {
+      const candidate = candidates[i];
       if (candidate.needsTrust) {
-        if (!allowed) {
-          const decision = await decideTrust({
-            root,
-            candidates: candidates.filter((c) => c.needsTrust),
-            exists: this.exists ?? undefined,
-            record: settings.settings.engineTrust[root],
-            askTrust: this.askTrust ? (q) => this.askOnce(q) : undefined,
-            ask: opts.askTrust !== false,
-            hasBundled: !!bundled,
-          });
-          // 답은 그사이 다시 탐색했어도 남긴다 (사람이 고른 것이다)
-          if (decision.record) settings.setEngineTrust(root, decision.record);
+        if (i > decidedUntil) {
+          let end = i;
+          while (end + 1 < candidates.length && candidates[end + 1].needsTrust) end++;
+          const group = candidates.slice(i, end + 1);
+          const laterBundled = candidates.slice(end + 1).some((c) => c.source === "bundled");
+          const decision = await this.decideTrustShared(root, group, opts.askTrust !== false, laterBundled);
           if (token !== this.resolveToken) return this.enginePath; // 묻는 사이 다시 탐색했다
-          allowed = decision.allowed;
-          skipped = decision.skipped;
+          decidedUntil = end;
+          for (const p of decision.allowed) allowed.add(p);
+          skipped.push(...decision.skipped);
         }
         if (!allowed.has(candidate.path)) continue;
       }
@@ -548,6 +576,33 @@ export class RunnerStore {
       this.host.log.append("debug", LOG_SOURCE, `${candidate.path}: ${errorText(e)}. 한 번 더 찔러 본다`);
       return probe(candidate.path, { timeoutMs: BUNDLED_PROBE_TIMEOUT_MS });
     }
+  }
+
+  /**
+   * 후보 무리 하나의 신뢰 결정. 같은 프로젝트의 같은 무리를 정하는 중이면(프로젝트 열기와 설정 바꾸기가 겹치면) 그 결정을
+   * 기다려 같은 답을 쓴다. 기록은 파일을 본 뒤에 읽고, 답은 그사이 다시 탐색했어도 한 번 남긴다 (사람이 고른 것이다)
+   */
+  private decideTrustShared(root: string, group: EngineCandidate[], ask: boolean, hasBundled: boolean): Promise<TrustDecision> {
+    const key = `${root}\n${ask ? "ask" : "quiet"}\n${group.map((c) => c.path).join("\n")}`;
+    const pending = this.trustInFlight.get(key);
+    if (pending) return pending;
+    const { settings } = this.host;
+    const decision = decideTrust({
+      root,
+      candidates: group,
+      exists: this.exists ?? undefined,
+      record: () => settings.settings.engineTrust[root],
+      askTrust: this.askTrust ? (q) => this.askOnce(q) : undefined,
+      ask,
+      hasBundled,
+    })
+      .then((d) => {
+        if (d.record) settings.setEngineTrust(root, mergeTrust(settings.settings.engineTrust[root], d.record));
+        return d;
+      })
+      .finally(() => this.trustInFlight.delete(key));
+    this.trustInFlight.set(key, decision);
+    return decision;
   }
 
   /** 같은 질문이 떠 있으면 그 답을 기다린다 */
@@ -620,7 +675,7 @@ export class RunnerStore {
     });
     // 프로세스 방식인데 엔진이 없으면 이 실행만 에디터 안으로 (설정은 그대로)
     if (mode === "process" && this.embedded) {
-      if (!this.enginePath) await this.resolveEngine();
+      await this.engineForStart();
       if (!this.enginePath) {
         mode = "embedded";
         log.info(LOG_SOURCE, `${this.notFoundText(FALLBACK_NOTICE)}. 설정의 실행 방식은 그대로다`);
@@ -690,7 +745,7 @@ export class RunnerStore {
   /** 엔진 프로세스를 띄운다 (모드 A) */
   private async launchProcess(opts: StartOptions): Promise<{ handle: RunHandle; summary: string } | null> {
     const { backend, project } = this.host;
-    if (!this.enginePath) await this.resolveEngine();
+    await this.engineForStart();
     const exe = this.enginePath;
     if (!exe) return this.failStart(this.startHint ?? "엔진을 찾지 못했다");
 

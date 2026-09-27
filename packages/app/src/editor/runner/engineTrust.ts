@@ -40,7 +40,8 @@ export interface DecideTrustInput {
   candidates: EngineCandidate[];
   /** 경로마다 파일이 있는지. 없으면 모두 있다고 보고 묻는다 */
   exists?: (paths: string[]) => Promise<boolean[]>;
-  record: EngineTrustRecord | undefined;
+  /** 남아 있는 답. 함수면 파일을 본 뒤에 읽는다 (그사이 겹친 탐색이 남긴 답을 쓴다) */
+  record: EngineTrustRecord | undefined | (() => EngineTrustRecord | undefined);
   /** 모달. 없거나 ask 가 거짓이면 묻지 않고 건너뛴다 */
   askTrust?: (q: TrustQuestion) => Promise<TrustAnswer>;
   ask: boolean;
@@ -66,8 +67,9 @@ export async function decideTrust(input: DecideTrustInput): Promise<TrustDecisio
   }
   if (present.length === 0) return { allowed: none, record: null, asked: false, skipped: [] };
   const paths = present.map((c) => c.path);
-  if (trustCovers(input.record, paths)) {
-    return input.record.allow
+  const record = typeof input.record === "function" ? input.record() : input.record;
+  if (trustCovers(record, paths)) {
+    return record.allow
       ? { allowed: new Set(paths), record: null, asked: false, skipped: [] }
       : { allowed: none, record: null, asked: false, skipped: present };
   }
@@ -76,4 +78,13 @@ export async function decideTrust(input: DecideTrustInput): Promise<TrustDecisio
   if (answer === "allow") return { allowed: new Set(paths), record: { allow: true, exes: paths }, asked: true, skipped: [] };
   if (answer === "deny") return { allowed: none, record: { allow: false, exes: paths }, asked: true, skipped: present };
   return { allowed: none, record: null, asked: true, skipped: present };
+}
+
+/**
+ * 새 답을 남은 기록에 더한다. 같은 답(둘 다 허용이거나 둘 다 거절)이면 경로를 합친다: 앱에 든 엔진이 답하지 않아 형제 무리를
+ * 따로 물었을 때 앞 무리의 답이 지워지지 않게. 답이 다르면 새 답으로 바꾼다 (한 프로젝트의 기록은 답 하나다)
+ */
+export function mergeTrust(prev: EngineTrustRecord | undefined, next: EngineTrustRecord): EngineTrustRecord {
+  if (!prev || prev.allow !== next.allow) return next;
+  return { allow: next.allow, exes: [...new Set([...prev.exes, ...next.exes])] };
 }

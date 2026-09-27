@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ModalStore } from "../modals";
-import { askEngineTrust, TRUST_ALLOW, TRUST_DENY, TRUST_DENY_NO_BUNDLED, TRUST_TITLE } from "./EngineTrustDialog";
+import { askEngineTrust, TRUST_ALLOW, TRUST_DENY, TRUST_DENY_NO_BUNDLED, TRUST_TITLE, trustMessage } from "./EngineTrustDialog";
 import type { TrustQuestion } from "./engineTrust";
 
 afterEach(cleanup);
@@ -50,6 +50,13 @@ describe("엔진 신뢰 확인 모달", () => {
       expect(modals.stack).toHaveLength(0);
     });
   }
+
+  it("형제 폴더는 프로젝트가 가리킨 것이 아니라 옆에 있는 것이라고 말한다", () => {
+    const sibling = { source: "sibling" as const, path: "/Users/u/Downloads/Initial2D/build/Initial2D", needsTrust: true };
+    expect(trustMessage({ ...question, candidates: [sibling], hasBundled: false })).toBe("프로젝트 옆 폴더의 엔진을 실행할까?");
+    expect(trustMessage({ ...question, candidates: [question.candidates[1], sibling] })).toBe("이 프로젝트가 가리키거나 옆 폴더에 있는 엔진들을 실행할까?");
+    expect(trustMessage({ ...question, candidates: [question.candidates[1]] })).toBe("이 프로젝트가 가리키는 엔진을 실행할까?");
+  });
 
   it("Escape 나 가림막으로 닫으면 답이 없다 (기억하지 않는다)", async () => {
     const modals = new ModalStore();

@@ -159,14 +159,32 @@ describe("engineCandidates", () => {
     }
   });
 
-  it("프로젝트가 앱에 든 엔진을 가리키면 그 자리에 두되 신뢰를 묻지 않는다", () => {
+  it("프로젝트가 앱에 든 엔진을 가리키면 그 자리의 후보가 앱에 든 엔진이다 (신뢰를 묻지 않고 시간 제한과 판도 그것의 것)", () => {
     const bundled = "/Applications/InitialEditor.app/Contents/MacOS/Initial2D";
     const list = engineCandidates({ root: "/home/u/game", settingsPath: "", projectFile: bundled, platform: "mac", bundledPath: bundled });
     expect(list).toEqual([
-      { source: "project-file", path: bundled, needsTrust: false },
+      { source: "bundled", path: bundled, needsTrust: false },
       { source: "project-build", path: "/home/u/game/build/Initial2D", needsTrust: true },
       { source: "sibling", path: "/home/u/Initial2D/build/Initial2D", needsTrust: true },
     ]);
+    // 설정이 번들 안 경로를 적어도 같다
+    const fromSettings = engineCandidates({ root: "/home/u/game", settingsPath: bundled, projectFile: null, platform: "mac", bundledPath: bundled });
+    expect(fromSettings.map((c) => [c.source, c.path])).toEqual([
+      ["bundled", bundled],
+      ["project-build", "/home/u/game/build/Initial2D"],
+      ["sibling", "/home/u/Initial2D/build/Initial2D"],
+    ]);
+    // Windows 는 구분자와 대소문자가 달라도 같은 파일이다
+    const winBundled = "C:\\Users\\u\\AppData\\Local\\InitialEditor\\Initial2D.exe";
+    const win = engineCandidates({ root: "C:\\Users\\u\\game", settingsPath: "", projectFile: "c:/users/u/appdata/local/initialeditor/initial2d.exe", platform: "win", bundledPath: winBundled });
+    expect(win.map((c) => [c.source, c.path, c.needsTrust])).toEqual([
+      ["bundled", winBundled, false],
+      ["project-build", "C:\\Users\\u\\game\\build\\Initial2D.exe", true],
+      ["sibling", "C:\\Users\\u\\Initial2D\\build\\Initial2D.exe", true],
+    ]);
+    // macOS 와 Linux 는 대소문자를 가린다 (다른 파일로 보고 신뢰를 묻는다)
+    const upper = engineCandidates({ root: "/home/u/game", settingsPath: "", projectFile: bundled.toUpperCase(), platform: "linux", bundledPath: bundled });
+    expect(upper.map((c) => c.source)).toEqual(["project-file", "project-build", "bundled", "sibling"]);
   });
 
   it("Windows 는 역슬래시와 .exe", () => {

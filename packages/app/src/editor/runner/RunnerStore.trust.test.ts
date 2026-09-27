@@ -71,6 +71,10 @@ interface Setup {
   slow?: Record<string, number>;
   /** 모달을 막아 두는 약속 (겹친 탐색) */
   gate?: Promise<void>;
+  /** n 번째(0 부터) engine_exists 가 답하기 전에 기다릴 약속 */
+  existsGate?: (call: number) => Promise<void> | undefined;
+  /** 이 경로의 --features 가 답하기 전에 기다릴 약속 */
+  probeGate?: Record<string, Promise<void>>;
 }
 
 async function setup(o: Setup = {}) {
@@ -109,6 +113,7 @@ async function setup(o: Setup = {}) {
   const runner = new RunnerStore(host, {
     probe: async (exe: string, opts?: ProbeOptions) => {
       probed.push([exe, opts?.timeoutMs]);
+      await o.probeGate?.[exe];
       if ((slow[exe] ?? 0) > 0) {
         slow[exe]--;
         throw new BackendError(`${exe} --features 가 15초 안에 응답하지 않는다`, "io", exe);
@@ -118,7 +123,9 @@ async function setup(o: Setup = {}) {
       return features;
     },
     exists: async (paths) => {
+      const call = existsCalls.length;
       existsCalls.push(paths);
+      await o.existsGate?.(call);
       return paths.map((p) => present.has(p));
     },
     bundled: async () => o.bundled ?? null,
@@ -140,7 +147,7 @@ function bundledEngine(tag: string | null = "v2.0.0-alpha.1"): BundledEngine {
 }
 
 describe("신뢰하지 않은 프로젝트", () => {
-  it("프로젝트 안과 형제 경로의 실행 파일은 한 번도 찌르지 않고 설정과 앱에 든 엔진만 찌른다", async () => {
+  it("프로젝트 안과 형제 경로의 실행 파일은 한 번도 찌르지 않고 설정과 앱에 든 엔진만 찌른다. 앱에 든 엔진 앞의 무리만 묻는다", async () => {
     const t = await setup({
       projectFile: PROJECT_FILE,
       enginePath: SETTINGS,
@@ -152,20 +159,45 @@ describe("신뢰하지 않은 프로젝트", () => {
     expect(await t.runner.resolveEngine()).toBe(BUNDLED);
     expect(paths(t.probed)).toEqual([SETTINGS, BUNDLED]);
     expect(t.runner.engineSource).toBe("bundled");
-    // 묻기 전에 실행하지 않고 파일만 보았다
-    expect(t.existsCalls).toEqual([[PROJECT_FILE, BUILD, SIBLING]]);
+    // 묻기 전에 실행하지 않고 파일만 보았다. 형제는 앱에 든 엔진이 답해 보지도 않았다
+    expect(t.existsCalls).toEqual([[PROJECT_FILE, BUILD]]);
     expect(t.questions).toHaveLength(1);
     expect(t.questions[0].root).toBe(ROOT);
     expect(t.questions[0].hasBundled).toBe(true);
     expect(t.questions[0].candidates.map((c) => [c.source, c.path])).toEqual([
       ["project-file", PROJECT_FILE],
       ["project-build", BUILD],
-      ["sibling", SIBLING],
     ]);
     // 답은 앱 설정에 남는다 (프로젝트 폴더에는 쓰지 않는다)
-    expect(t.settings.settings.engineTrust).toEqual({ [ROOT]: { allow: false, exes: [PROJECT_FILE, BUILD, SIBLING] } });
+    expect(t.settings.settings.engineTrust).toEqual({ [ROOT]: { allow: false, exes: [PROJECT_FILE, BUILD] } });
     expect((await t.host.backend.list(".initial-editor")).map((e) => e.name)).toEqual(["engine"]);
-    expect(texts(t.log)).toContainEqual(`info/runner: 프로젝트가 가리키는 엔진을 신뢰하지 않아 실행하지 않았다: ${PROJECT_FILE}, ${BUILD}, ${SIBLING}. 설정에서 다시 물을 수 있다`);
+    expect(texts(t.log)).toContainEqual(`info/runner: 프로젝트가 가리키는 엔진을 신뢰하지 않아 실행하지 않았다: ${PROJECT_FILE}, ${BUILD}. 설정에서 다시 물을 수 있다`);
+  });
+
+  it("앱에 든 엔진이 답하면 형제 폴더의 엔진은 묻지도 보지도 않는다 (build/ 도 .initial-editor/engine 도 없는 프로젝트)", async () => {
+    const t = await setup({ files: [SIBLING], engines: { [SIBLING]: ["lua"], [BUNDLED]: ["lua", "mruby"] }, bundled: bundledEngine(), answers: ["allow"] });
+    expect(await t.runner.resolveEngine()).toBe(BUNDLED);
+    expect(t.questions).toEqual([]);
+    expect(t.existsCalls).toEqual([[BUILD]]);
+    expect(paths(t.probed)).toEqual([BUNDLED]);
+    expect(t.runner.skipped).toEqual([]);
+    expect(t.settings.settings.engineTrust).toEqual({});
+    expect(texts(t.log).some((l) => l.includes("신뢰하지 않아"))).toBe(false);
+  });
+
+  it("build/ 와 형제가 다 있어도 앱에 든 엔진 앞의 build/ 만 묻는다", async () => {
+    const t = await setup({ files: [BUILD, SIBLING], engines: { [BUILD]: ["lua"], [SIBLING]: ["lua"], [BUNDLED]: ["lua"] }, bundled: bundledEngine(), answers: ["deny"] });
+    expect(await t.runner.resolveEngine()).toBe(BUNDLED);
+    expect(t.questions.map((q) => q.candidates.map((c) => c.path))).toEqual([[BUILD]]);
+    expect(t.settings.settings.engineTrust[ROOT]).toEqual({ allow: false, exes: [BUILD] });
+    expect(t.runner.skipped.map((c) => c.path)).toEqual([BUILD]);
+  });
+
+  it("앱에 든 엔진이 없으면(개발 빌드) build/ 와 형제를 한 번에 묻는다", async () => {
+    const t = await setup({ files: [BUILD, SIBLING], engines: { [SIBLING]: ["lua"] }, answers: ["allow"] });
+    expect(await t.runner.resolveEngine()).toBe(SIBLING);
+    expect(t.questions.map((q) => [q.hasBundled, q.candidates.map((c) => c.path)])).toEqual([[false, [BUILD, SIBLING]]]);
+    expect(paths(t.probed)).toEqual([BUILD, SIBLING]);
   });
 
   it("거절을 기억한다: 다시 열어도 묻지 않고 찌르지 않는다", async () => {
@@ -210,22 +242,28 @@ describe("신뢰하지 않은 프로젝트", () => {
 });
 
 describe("허용한 프로젝트", () => {
-  it("허용한 뒤에는 순서대로 부른다: 설정 > .initial-editor/engine > build/ > 앱에 든 엔진 > 형제", async () => {
+  it("허용한 뒤에는 순서대로 부른다: 설정 > .initial-editor/engine > build/ > 앱에 든 엔진 > 형제. 앱에 든 엔진이 답하지 않으면 형제를 따로 묻는다", async () => {
     const t = await setup({
       projectFile: PROJECT_FILE,
       enginePath: SETTINGS,
       files: [PROJECT_FILE, BUILD, SIBLING],
       engines: { [SIBLING]: ["lua"] },
       bundled: bundledEngine(),
-      answers: ["allow"],
+      answers: ["allow", "allow"],
     });
     expect(await t.runner.resolveEngine()).toBe(SIBLING);
     expect(paths(t.probed)).toEqual([SETTINGS, PROJECT_FILE, BUILD, BUNDLED, SIBLING]);
     expect(t.runner.engineSource).toBe("sibling");
+    // 앱에 든 엔진이 답하지 않았으니 형제 무리는 그 단추 없이 따로 묻는다
+    expect(t.questions.map((q) => [q.hasBundled, q.candidates.map((c) => c.path)])).toEqual([
+      [true, [PROJECT_FILE, BUILD]],
+      [false, [SIBLING]],
+    ]);
+    // 같은 답은 합쳐 남긴다
     expect(t.settings.settings.engineTrust[ROOT]).toEqual({ allow: true, exes: [PROJECT_FILE, BUILD, SIBLING] });
     // 두 번째부터는 묻지 않는다
     await t.runner.resolveEngine();
-    expect(t.questions).toHaveLength(1);
+    expect(t.questions).toHaveLength(2);
   });
 
   it("허용한 엔진 저장소의 build/ 가 앱에 든 엔진보다 먼저다 (저자가 엔진 저장소를 열 때)", async () => {
@@ -269,6 +307,77 @@ describe("허용한 프로젝트", () => {
     await first;
     expect(t.runner.enginePath).toBe(SETTINGS);
     expect(t.settings.settings.engineTrust[ROOT]).toEqual({ allow: false, exes: [BUILD] });
+  });
+
+  it("겹친 탐색이 묻는 동안 파일을 보고 있었어도 두 번 묻지 않고 허용한 build/ 를 쓴다", async () => {
+    // 탐색 1 이 묻고 기다리는 사이 탐색 2 가 시작해 engine_exists 를 기다린다. 탐색 1 의 답이 난 뒤에야 탐색 2 의 exists 가 돌아온다
+    let open!: () => void;
+    const gate = new Promise<void>((r) => (open = r));
+    let answered!: () => void;
+    const afterAnswer = new Promise<void>((r) => (answered = r));
+    const t = await setup({
+      files: [BUILD],
+      engines: { [BUILD]: ["lua"], [BUNDLED]: ["lua"] },
+      bundled: bundledEngine(),
+      answers: ["allow"],
+      gate,
+      existsGate: (call) => (call === 1 ? afterAnswer : undefined),
+    });
+    const first = t.runner.resolveEngine();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(t.questions).toHaveLength(1);
+    const second = t.runner.resolveEngine();
+    await new Promise((r) => setTimeout(r, 0));
+    open();
+    await first;
+    answered();
+    await second;
+    expect(t.questions).toHaveLength(1);
+    expect(t.runner.enginePath).toBe(BUILD);
+    expect(t.runner.engineSource).toBe("project-build");
+    expect(t.settings.settings.engineTrust[ROOT]).toEqual({ allow: true, exes: [BUILD] });
+  });
+
+  it("질문을 닫은 뒤 그 탐색이 아직 도는 동안 실행하면 새로 찾지 않고 그 탐색의 결과를 쓴다 (자가 검사의 열기와 실행)", async () => {
+    let release!: () => void;
+    const probeGate = { [BUNDLED]: new Promise<void>((r) => (release = r)) };
+    const t = await setup({ files: [BUILD], engines: { [BUILD]: ["lua"], [BUNDLED]: ["lua"] }, bundled: bundledEngine(), answers: [null], probeGate });
+    const opened = t.runner.resolveEngine();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(t.questions).toHaveLength(1);
+    const started = t.runner.start();
+    await new Promise((r) => setTimeout(r, 0));
+    release();
+    await opened;
+    await started;
+    expect(t.questions).toHaveLength(1);
+    expect(t.specs.map((spec) => spec.exe)).toEqual([BUNDLED]);
+    expect(t.runner.engineSource).toBe("bundled");
+    await t.runner.stop();
+  });
+
+  it("질문이 떠 있는 동안 실행하면 그 답을 기다려 쓴다", async () => {
+    let open!: () => void;
+    const gate = new Promise<void>((r) => (open = r));
+    const t = await setup({ files: [BUILD], engines: { [BUILD]: ["lua"], [BUNDLED]: ["lua"] }, bundled: bundledEngine(), answers: ["allow"], gate });
+    const opened = t.runner.resolveEngine();
+    await new Promise((r) => setTimeout(r, 0));
+    const started = t.runner.start();
+    await new Promise((r) => setTimeout(r, 0));
+    open();
+    await opened;
+    await started;
+    expect(t.questions).toHaveLength(1);
+    expect(t.specs.map((spec) => spec.exe)).toEqual([BUILD]);
+    await t.runner.stop();
+  });
+
+  it("앞의 탐색이 답을 남긴 뒤에 파일을 본 탐색은 그 답을 읽는다 (다시 묻지 않는다)", async () => {
+    const t = await setup({ files: [BUILD], engines: { [BUILD]: ["lua"] }, answers: ["deny"] });
+    await t.runner.resolveEngine();
+    await t.runner.resolveEngine();
+    expect(t.questions).toHaveLength(1);
+    expect(t.existsCalls).toEqual([[BUILD, SIBLING], [BUILD, SIBLING]]);
   });
 
   it("탐색이 겹쳐도 같은 질문은 한 번만 띄운다", async () => {
@@ -370,6 +479,18 @@ describe("앱에 든 엔진", () => {
     const failing = new RunnerStore(t.host, { probe: async () => ["lua"], bundled: async () => Promise.reject(new Error("셸이 없다")) });
     expect(await failing.resolveEngine()).toBe(SETTINGS);
     expect(failing.bundled).toBeNull();
+  });
+
+  it(".initial-editor/engine 이 앱에 든 엔진을 가리키면 앱에 든 엔진이다: 묻지 않고, 15초와 재시도, 판", async () => {
+    const t = await setup({ projectFile: BUNDLED, engines: { [BUNDLED]: ["lua", "mruby"] }, bundled: bundledEngine(null), slow: { [BUNDLED]: 1 } });
+    expect(await t.runner.resolveEngine()).toBe(BUNDLED);
+    expect(t.questions).toEqual([]);
+    expect(t.runner.engineSource).toBe("bundled");
+    expect(t.probed).toEqual([
+      [BUNDLED, 15_000],
+      [BUNDLED, 15_000],
+    ]);
+    expect(t.runner.engineDescription).toBe("앱에 든 엔진 (cac4b94, lua mruby)");
   });
 
   it("실행 직전의 다시 묻기도 15초다", async () => {

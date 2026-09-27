@@ -12,7 +12,11 @@ export const TRUST_DENY = "앱에 든 엔진만 쓰기";
 /** 개발 빌드처럼 앱에 든 엔진이 없을 때의 거절 단추 */
 export const TRUST_DENY_NO_BUNDLED = "실행하지 않기";
 
+/** 형제 폴더(../Initial2D/build/)는 프로젝트가 가리킨 것이 아니라 옆에 있는 것이라 그렇게 말한다 */
 export function trustMessage(q: TrustQuestion): string {
+  const siblings = q.candidates.filter((c) => c.source === "sibling").length;
+  if (siblings > 0 && siblings === q.candidates.length) return "프로젝트 옆 폴더의 엔진을 실행할까?";
+  if (siblings > 0) return "이 프로젝트가 가리키거나 옆 폴더에 있는 엔진들을 실행할까?";
   return q.candidates.length > 1 ? "이 프로젝트가 가리키는 엔진들을 실행할까?" : "이 프로젝트가 가리키는 엔진을 실행할까?";
 }
 

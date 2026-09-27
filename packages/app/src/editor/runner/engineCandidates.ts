@@ -64,7 +64,17 @@ function join(base: string, sep: string, ...parts: string[]): string {
   return (head.endsWith(sep) ? head : head + sep) + parts.join(sep);
 }
 
-/** 후보 목록. 같은 경로는 처음 것만 남긴다 (앱에 든 엔진과 같은 파일이면 신뢰를 묻지 않는다) */
+/** 같은 파일인가를 볼 열쇠: 구분자를 맞추고, Windows 는 대소문자를 가리지 않는다 */
+function pathKey(p: string, platform: Platform): string {
+  const unified = p.replace(/\\/g, "/");
+  return platform === "win" ? unified.toLowerCase() : unified;
+}
+
+/**
+ * 후보 목록. 같은 파일은 앞의 자리에 하나만 남긴다. 그 파일이 앱에 든 엔진이면 어느 이름으로 나왔든(.initial-editor/engine 이나
+ * 설정이 번들 안 경로를 적었어도) 앱에 든 엔진으로 친다: 신뢰를 묻지 않고, 첫 실행의 격리 검사를 견디는 시간 제한과 재시도,
+ * engine.json 의 판이 그대로 따른다
+ */
 export function engineCandidates(input: EngineCandidateInput): EngineCandidate[] {
   const sep = input.root.includes("\\") && !input.root.includes("/") ? "\\" : "/";
   const exe = input.platform === "win" ? "Initial2D.exe" : "Initial2D";
@@ -86,12 +96,12 @@ export function engineCandidates(input: EngineCandidateInput): EngineCandidate[]
   if (bundled) add("bundled", bundled);
   add("sibling", join(parentDir(root, sep), sep, "Initial2D", "build", exe));
 
-  // 같은 경로는 앞의 것만 남기되, 뒤에 신뢰가 필요 없는 출처(앱에 든 엔진)로도 나오면 신뢰를 묻지 않는다
+  // Map 은 처음 넣은 열쇠의 자리를 지키므로, 뒤에 앱에 든 엔진으로 나온 같은 파일은 앞 자리의 값만 바꾼다
   const kept = new Map<string, EngineCandidate>();
   for (const c of out) {
-    const first = kept.get(c.path);
-    if (!first) kept.set(c.path, c);
-    else if (!c.needsTrust) first.needsTrust = false;
+    const key = pathKey(c.path, input.platform);
+    if (!kept.has(key)) kept.set(key, c);
+    else if (c.source === "bundled") kept.set(key, { source: "bundled", path: c.path, needsTrust: false });
   }
   return [...kept.values()];
 }
