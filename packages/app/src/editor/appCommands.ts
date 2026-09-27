@@ -4,16 +4,18 @@
 import { BridgeBackend } from "@initial-editor/backend-bridge";
 import type { EditorCommand, ScriptBackend } from "@initial-editor/core";
 import { openAboutDialog } from "../components/AboutDialog";
+import { ENGINE_README_API, PLANS_INDEX } from "./about";
 import { openSettingsDialog } from "../components/SettingsDialog";
 import { browserFolders } from "./browserFolders";
 import type { Editor } from "./Editor";
 import { WELCOME_KIND } from "./documents/WelcomeDocument";
 import { PANEL_IDS, PANEL_TITLES, PRESET_LABELS, type PresetName } from "./layoutPresets";
-import { createNewProject } from "./newProject";
+import { createNewProject, newProjectBlocker } from "./newProject";
+import { openLink } from "./openExternal";
 import { saveActiveDocument, saveAllDocuments } from "./saveCommands";
 
-export const ENGINE_README_API = "https://github.com/biud436/Initial2D#lua-대응표";
-export const PLANS_INDEX = "https://github.com/biud436/InitialEditor/blob/master/docs/plans/index.md";
+// 바깥 링크 주소는 about.ts 에 있다 (정보 창과 시작 화면이 같이 쓴다)
+export { ENGINE_README_API, PLANS_INDEX };
 
 export const BROWSER_NO_RUN = "브라우저 모드에서는 엔진을 띄울 수 없다";
 export const SCENE_LATER = "E2 에서 붙는다";
@@ -53,18 +55,14 @@ async function openProjectCommand(editor: Editor): Promise<void> {
   await editor.openProject(clean);
 }
 
-function openExternal(url: string): void {
-  window.open(url, "_blank", "noopener,noreferrer");
-}
-
 export function registerAppCommands(editor: Editor): void {
   const c = editor.commands;
-  const browser = editor.isBrowser;
   const active = () => editor.documents.active;
   const reg = (cmd: EditorCommand) => c.register(cmd);
   // 파일
-  reg({ id: "file.newProject", label: "새 프로젝트", category: "file", shortcut: "Ctrl+N", enabled: () => !browser, run: () => void createNewProject(editor) });
-  editor.setHint("file.newProject", () => (browser ? "브라우저 모드에서는 새 프로젝트를 만들 수 없다 (Tauri 앱에서 폴더를 고른다)" : undefined));
+  // 새 프로젝트는 폴더를 고를 수 있는 곳(데스크톱 앱, 폴더 열기가 있는 브라우저의 웹판)에서 된다
+  reg({ id: "file.newProject", label: "새 프로젝트", category: "file", shortcut: "Ctrl+N", enabled: () => newProjectBlocker(editor) === null, run: () => void createNewProject(editor) });
+  editor.setHint("file.newProject", () => newProjectBlocker(editor) ?? undefined);
   reg({ id: "file.openProject", label: "프로젝트 열기", category: "file", shortcut: "Ctrl+O", run: () => openProjectCommand(editor) });
   reg({
     id: "file.save",
@@ -138,7 +136,7 @@ export function registerAppCommands(editor: Editor): void {
   reg({ id: "window.layout.reset", label: "레이아웃 초기화", category: "window", run: () => editor.layout.reset() });
 
   // 도움말
-  reg({ id: "help.api", label: "엔진 API 대응표", category: "help", run: () => openExternal(ENGINE_README_API) });
-  reg({ id: "help.plans", label: "계획 문서", category: "help", run: () => openExternal(PLANS_INDEX) });
+  reg({ id: "help.api", label: "엔진 API 대응표", category: "help", run: () => void openLink(editor, ENGINE_README_API) });
+  reg({ id: "help.plans", label: "계획 문서", category: "help", run: () => void openLink(editor, PLANS_INDEX) });
   reg({ id: "help.about", label: "InitialEditor 정보", category: "help", run: () => openAboutDialog(editor) });
 }

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "types": [
+    {
+      "type": "marker",
+      "label": "표식",
+      "shape": "point",
+      "color": "accent",
+      "fields": [
+        {
+          "name": "label",
+          "type": "string",
+          "label": "이름"
+        }
+      ]
+    }
+  ]
+}

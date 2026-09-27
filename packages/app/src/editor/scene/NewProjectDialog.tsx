@@ -1,4 +1,4 @@
-// 새 프로젝트 대화상자 (파일 > 새 프로젝트, Tauri 모드). 템플릿(빈 프로젝트, 플래피버드), 언어(Lua, Ruby), 이름을
+// 새 프로젝트 대화상자 (파일 > 새 프로젝트). 템플릿(빈 프로젝트, 플래피버드, 타일맵), 언어(Lua, Ruby), 이름을
 // 받는다. 폴더는 그 전에 OS 대화상자로 골랐다 (newProject.ts). 파일 쓰기는 projectTemplates.ts 가 한다.
 
 import type { ScriptBackend } from "@initial-editor/core";
@@ -9,7 +9,27 @@ import { TEMPLATE_LABELS, type ProjectTemplateId } from "./templateManifest";
 
 const LANGUAGE_LABELS: Record<ScriptBackend, string> = { lua: "Lua", mruby: "Ruby (mruby)" };
 
-function NewProjectForm({ initialName, folder, onSubmit, onCancel }: { initialName: string; folder: string; onSubmit: (o: ProjectTemplateOptions) => void; onCancel: () => void }) {
+/** 템플릿 목록 아래의 설명 */
+export const TEMPLATE_HELP: Record<ProjectTemplateId, string> = {
+  empty: "씬 하나(resources/scenes/main.json)와 씬 로더. 진입점이 game.json 의 startScene 을 연다",
+  flappy: "엔진 저장소의 플래피버드를 씬(resources/scenes/flappy.json)과 컴포넌트 다섯으로 옮긴 것",
+  tilemap: "타일셋과 맵 한 장(resources/maps/start.json), 그 맵을 여는 씬, 맵 오브젝트 스키마. 맵을 칠하고 F5 로 돌린다",
+};
+
+export function NewProjectForm({
+  initialName,
+  folder,
+  rubyNote,
+  onSubmit,
+  onCancel,
+}: {
+  initialName: string;
+  folder: string;
+  /** Ruby 를 고르면 보일 안내 (웹판에서 웹 엔진에 mruby 가 없을 때, newProject.ts) */
+  rubyNote?: string | null;
+  onSubmit: (o: ProjectTemplateOptions) => void;
+  onCancel: () => void;
+}) {
   const [template, setTemplate] = useState<ProjectTemplateId>("empty");
   const [language, setLanguage] = useState<ScriptBackend>("lua");
   const [name, setName] = useState(initialName);
@@ -42,7 +62,9 @@ function NewProjectForm({ initialName, folder, onSubmit, onCancel }: { initialNa
               </option>
             ))}
           </select>
-          <div className="form-help">{template === "empty" ? "씬 하나(resources/scenes/main.json)와 씬 로더. 진입점이 game.json 의 startScene 을 연다" : "엔진 저장소의 플래피버드를 씬(resources/scenes/flappy.json)과 컴포넌트 다섯으로 옮긴 것"}</div>
+          <div className="form-help" data-testid="new-project-template-help">
+            {TEMPLATE_HELP[template]}
+          </div>
         </div>
         <div className="form-row">
           <label htmlFor="new-project-language">언어</label>
@@ -53,7 +75,12 @@ function NewProjectForm({ initialName, folder, onSubmit, onCancel }: { initialNa
               </option>
             ))}
           </select>
-          <div className="form-help">{language === "lua" ? "scripts/lua/ 에 main.lua 와 씬 로더" : "scripts/ruby/ 에 main.rb 와 씬 로더. 엔진 빌드에 mruby 가 있어야 돈다"}</div>
+          <div className="form-help" data-testid="new-project-language-help">{language === "lua" ? "scripts/lua/ 에 main.lua 와 씬 로더" : "scripts/ruby/ 에 main.rb 와 씬 로더. 엔진 빌드에 mruby 가 있어야 돈다"}</div>
+          {language === "mruby" && rubyNote && (
+            <div className="form-help new-project-note" data-testid="new-project-ruby-note">
+              {rubyNote}
+            </div>
+          )}
         </div>
       </div>
       <div className="modal-actions">
@@ -69,7 +96,7 @@ function NewProjectForm({ initialName, folder, onSubmit, onCancel }: { initialNa
 }
 
 /** 대화상자를 띄우고 고른 것을 돌려준다. 취소면 null */
-export function openNewProjectDialog(editor: Editor, defaults: { name: string; folder: string }): Promise<ProjectTemplateOptions | null> {
+export function openNewProjectDialog(editor: Editor, defaults: { name: string; folder: string; rubyNote?: string | null }): Promise<ProjectTemplateOptions | null> {
   return new Promise((resolve) => {
     let result: ProjectTemplateOptions | null = null;
     void editor.modals
@@ -80,6 +107,7 @@ export function openNewProjectDialog(editor: Editor, defaults: { name: string; f
           <NewProjectForm
             initialName={defaults.name}
             folder={defaults.folder}
+            rubyNote={defaults.rubyNote}
             onSubmit={(o) => {
               result = o;
               close();

@@ -9,6 +9,17 @@ export type ThemePreference = "system" | "dark" | "light";
 export type RunMode = "process" | "embedded";
 export const RUN_MODES: readonly RunMode[] = ["process", "embedded"];
 
+/**
+ * 프로젝트가 가리키는 엔진 실행 파일(.initial-editor/engine, build/, 형제 폴더)에 대한 답 (E6 2.3 절).
+ * 프로젝트 폴더가 아니라 앱 설정에 남아서 프로젝트가 스스로 신뢰를 적을 수 없다
+ */
+export interface EngineTrustRecord {
+  /** "이 엔진 실행 허용" 이면 true, "앱에 든 엔진만 쓰기" 면 false */
+  allow: boolean;
+  /** 물을 때 보인 실행 파일의 절대 경로. 이 밖의 경로가 생기면 다시 묻는다 */
+  exes: string[];
+}
+
 export interface EditorSettings {
   theme: ThemePreference;
   /** 엔진 실행 파일. 비우면 자동 탐색 (E1) */
@@ -29,6 +40,12 @@ export interface EditorSettings {
   editorWordWrap: boolean;
   /** 스크립트 편집기의 미니맵 */
   editorMinimap: boolean;
+  /** 프로젝트 정규 경로별 엔진 신뢰 (E6) */
+  engineTrust: Record<string, EngineTrustRecord>;
+  /** 안드로이드 스테이징에 쓸 엔진 저장소 (android/prepare_assets.sh 가 있는 폴더). 비우면 자동 탐색 (E6) */
+  engineRepoPath: string;
+  /** 프로젝트 정규 경로별로 실행을 허용한 스테이징 스크립트 (E6 6.3, 엔진 신뢰와 같은 모양. exes 가 스크립트 경로) */
+  androidTrust: Record<string, EngineTrustRecord>;
 }
 
 export const DEFAULT_SETTINGS: EditorSettings = {
@@ -42,10 +59,26 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   editorTabSize: 2,
   editorWordWrap: false,
   editorMinimap: false,
+  engineTrust: {},
+  engineRepoPath: "",
+  androidTrust: {},
 };
 
 export const EDITOR_FONT_SIZE_RANGE = { min: 8, max: 40 } as const;
 export const EDITOR_TAB_SIZE_RANGE = { min: 1, max: 8 } as const;
+
+/** 손으로 고친 설정 파일도 받는다: 모양이 틀린 항목은 버린다 */
+function cleanEngineTrust(value: unknown): Record<string, EngineTrustRecord> {
+  const out: Record<string, EngineTrustRecord> = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return out;
+  for (const [root, record] of Object.entries(value as Record<string, unknown>)) {
+    const r = record as Partial<EngineTrustRecord> | null;
+    if (!root || !r || typeof r !== "object" || typeof r.allow !== "boolean" || !Array.isArray(r.exes)) continue;
+    const exes = r.exes.filter((e): e is string => typeof e === "string" && e !== "");
+    out[root] = { allow: r.allow, exes };
+  }
+  return out;
+}
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
@@ -70,10 +103,17 @@ export class MemorySettingsStorage implements SettingsStorage {
 const MAX_RECENT = 10;
 
 export class SettingsStore {
-  settings: EditorSettings = { ...DEFAULT_SETTINGS, recentProjects: [] };
+  settings: EditorSettings = { ...DEFAULT_SETTINGS, recentProjects: [], engineTrust: {}, androidTrust: {} };
 
   constructor(private readonly storage: SettingsStorage) {
-    makeObservable(this, { settings: observable, update: action, addRecentProject: action, removeRecentProject: action });
+    makeObservable(this, {
+      settings: observable,
+      update: action,
+      addRecentProject: action,
+      removeRecentProject: action,
+      setEngineTrust: action,
+      clearEngineTrust: action,
+    });
   }
 
   async load(): Promise<void> {
@@ -90,6 +130,9 @@ export class SettingsStore {
     next.editorTabSize = clampInt(next.editorTabSize, EDITOR_TAB_SIZE_RANGE.min, EDITOR_TAB_SIZE_RANGE.max, DEFAULT_SETTINGS.editorTabSize);
     next.editorWordWrap = !!next.editorWordWrap;
     next.editorMinimap = !!next.editorMinimap;
+    next.engineTrust = cleanEngineTrust(next.engineTrust);
+    next.engineRepoPath = typeof next.engineRepoPath === "string" ? next.engineRepoPath : "";
+    next.androidTrust = cleanEngineTrust(next.androidTrust);
     this.settings = next;
     if (persist) void this.persist();
   }
@@ -101,6 +144,19 @@ export class SettingsStore {
 
   removeRecentProject(root: string): void {
     this.update({ recentProjects: this.settings.recentProjects.filter((r) => r !== root) });
+  }
+
+  /** 프로젝트(정규 경로)가 가리키는 엔진에 대한 답을 남긴다 */
+  setEngineTrust(root: string, record: EngineTrustRecord): void {
+    this.update({ engineTrust: { ...this.settings.engineTrust, [root]: { allow: record.allow, exes: [...record.exes] } } });
+  }
+
+  /** 답을 지운다. 다음 탐색에서 다시 묻는다 */
+  clearEngineTrust(root: string): void {
+    if (!(root in this.settings.engineTrust)) return;
+    const rest = { ...this.settings.engineTrust };
+    delete rest[root];
+    this.update({ engineTrust: rest });
   }
 
   private async persist(): Promise<void> {

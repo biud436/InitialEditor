@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "InitialEditor 프런트(packages/app)가 쓰는 권한. 파일과 프로세스는 전부 src-tauri 의 명령을 거치므로 fs, shell 플러그인은 열지 않는다.",
+  "description": "InitialEditor 프런트(packages/app)가 쓰는 권한. 파일과 프로세스는 전부 src-tauri 의 명령을 거치므로 fs, shell 플러그인은 열지 않는다. opener 는 바깥 링크를 여는 openUrl 하나만, 주소는 저자의 GitHub 와 웹판으로 좁힌다.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -37,6 +37,10 @@
     "dialog:allow-message",
     "dialog:allow-ask",
     "dialog:allow-confirm",
-    "window-state:default"
+    "window-state:default",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [{ "url": "https://github.com/biud436/*" }, { "url": "https://initial-editor.biud436.com/*" }]
+    }
   ]
 }

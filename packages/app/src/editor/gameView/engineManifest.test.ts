@@ -1,5 +1,5 @@
 // 웹 엔진 사본(packages/app/public/engine, yarn sync:engine-web)의 검사.
-//   1. MANIFEST.json 에 적힌 파일이 전부 있고 sha256 과 크기가 맞다 (사본이 손으로 바뀌지 않았다)
+//   1. MANIFEST.json 에 적힌 파일이 전부 있고 sha256 과 크기가 맞다 (사본이 손으로 바뀌지 않았다). 옆에 엔진의 제3자 고지가 있다
 //   2. 기능 목록이 wasm 과 맞고(mruby), 로더가 에디터가 기대는 export(bootInitial2D)를 가진다
 //   3. 엔진 저장소(INITIAL2D_DIR, 기본 ../Initial2D)가 MANIFEST 의 엔진 커밋에 있고 build-web/site/ 가 있으면 그쪽과도
 //      같다 (어긋나면 yarn sync:engine-web). 저장소가 다른 커밋이거나 빌드가 없으면 그 까닭을 이름에 적고 건너뛴다
@@ -52,14 +52,29 @@ describe("웹 엔진 사본 (packages/app/public/engine)", () => {
       expect(fs.statSync(file).size, f.path).toBe(f.size);
       expect(sha256(file), f.path).toBe(f.sha256);
     }
-    // 폴더에 목록 밖의 파일이 없다
-    expect(fs.readdirSync(ENGINE_DIR).sort()).toEqual(["Initial2D.js", "Initial2D.wasm", "MANIFEST.json", "initial2d-loader.js"]);
+    // 폴더에 목록 밖의 파일이 없다 (제3자 고지 말고)
+    expect(fs.readdirSync(ENGINE_DIR).sort()).toEqual(["Initial2D.js", "Initial2D.wasm", "MANIFEST.json", "THIRD-PARTY.md", "initial2d-loader.js"]);
+  });
+
+  it("엔진의 제3자 고지(THIRD-PARTY.md, sync 가 엔진 저장소에서 복사한다)에 웹 판이 싣는 것이 적혀 있다", () => {
+    const notices = fs.readFileSync(path.join(ENGINE_DIR, "THIRD-PARTY.md"), "utf8");
+    expect(notices.startsWith("# 제3자 고지")).toBe(true);
+    for (const name of ["SDL2", "SDL2_image", "SDL2_mixer", "Lua", "mruby", "emsdk"]) expect(notices, name).toContain(name);
+    // 엔진 저장소가 MANIFEST 의 커밋에 있고 고지가 있으면 그것과 같다 (build-web/site 대조와 같은 조건)
+    const source = path.join(engineRepo, "THIRD-PARTY.md");
+    if (engineHead(engineRepo) === manifest.engineCommit && fs.existsSync(source)) expect(notices).toBe(fs.readFileSync(source, "utf8"));
   });
 
   it("기능 목록에 lua 와 wasm 이 있고 엔진 커밋이 적혀 있다", () => {
     expect(manifest.features).toContain("lua");
     expect(manifest.features).toContain("wasm");
     expect(manifest.engineCommit).toMatch(/^[0-9a-f]{40}$/);
+  });
+
+  it("출처와 다시 만드는 명령이 적혀 있고 커밋 안 된 엔진에서 오지 않았다 (핀과의 대조는 yarn engine:check)", () => {
+    expect(["checkout", "release"]).toContain(manifest.source);
+    expect(manifest.syncCommand).toMatch(/^yarn sync:engine-web/);
+    expect(manifest.engineDirty).not.toBe(true);
   });
 
   it("기능의 mruby 는 wasm 에 libmruby 가 링크되었는지와 맞다 (sync 가 mruby 코어의 MRUBY_COPYRIGHT 로 정한다)", () => {

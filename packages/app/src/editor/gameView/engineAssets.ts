@@ -51,6 +51,10 @@ export type BootEngine = (options: BootOptions) => Promise<EngineGame>;
 
 export interface EngineManifest {
   engineCommit: string | null;
+  /** 엔진 체크아웃에서 만들었는지(checkout), 엔진 릴리스에서 받았는지(release) */
+  source?: "checkout" | "release";
+  /** 이 사본을 다시 만드는 명령 */
+  syncCommand?: string;
   engineDirty?: boolean | null;
   builtAt?: string;
   syncedAt?: string;

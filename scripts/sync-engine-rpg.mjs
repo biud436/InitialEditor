@@ -6,6 +6,10 @@
 //   yarn sync:rpg                                    엔진 저장소는 INITIAL2D_DIR (기본 ../Initial2D)
 //   INITIAL2D_DIR=/path/to/Initial2D node scripts/sync-engine-rpg.mjs
 //   node scripts/sync-engine-rpg.mjs --allow-dirty   엔진의 작업 트리가 커밋과 달라도 복사한다 (MANIFEST 에 dirty 표시)
+//   node scripts/sync-engine-rpg.mjs --out <폴더>    다른 폴더에 쓴다 (테스트용)
+//
+// MANIFEST 는 엔진에서 온 다른 사본(템플릿, 웹 엔진)과 같은 칸을 가진다: source "checkout", syncCommand, 40자 engineCommit.
+// yarn engine:check 가 그 커밋을 engine-pin.json 과 대조하므로, 엔진을 올릴 때는 핀의 커밋으로 체크아웃한 엔진에서 다시 돌린다.
 //
 // 파일은 엔진 저장소 안의 경로 그대로 둔다 (test/fixtures/resources/maps/port_town.json). 그래서 픽스처 폴더가 작은
 // 프로젝트처럼 보이고, e2e 가 메모리 백엔드에 같은 경로로 쓸 수 있다. resources/rtp/ 는 라이선스 때문에 복사하지 않는다.
@@ -19,9 +23,22 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "..");
 const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? path.join(repo, "..", "Initial2D"));
-const outDir = path.join(repo, "packages", "ext-rpg", "test", "fixtures");
 const MANIFEST = "MANIFEST.json";
-const allowDirty = process.argv.includes("--allow-dirty");
+const USAGE = "사용법: sync-engine-rpg.mjs [--allow-dirty] [--out <폴더>]";
+
+let allowDirty = false;
+let outDir = path.join(repo, "packages", "ext-rpg", "test", "fixtures");
+{
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--allow-dirty") allowDirty = true;
+    else if (args[i] === "--out" && args[i + 1]) outDir = path.resolve(args[++i]);
+    else {
+      console.error(`모르는 인자: ${args[i]}\n${USAGE}`);
+      process.exit(2);
+    }
+  }
+}
 
 /** 복사 목록. 엔진 저장소 안의 경로이자 픽스처 폴더 안의 경로 */
 const SOURCES = [

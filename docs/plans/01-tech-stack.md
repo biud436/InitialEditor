@@ -108,7 +108,7 @@ InitialEditor/
 | `fs_list(rel)`, `fs_read(rel)`, `fs_write(rel, bytes)`, `fs_delete(rel)`, `fs_exists(rel)` | 프로젝트 루트 기준 상대 경로만. 정규화 뒤 루트 밖이면 거부, 심링크 탈출 거부 | 쓰기는 임시 파일 뒤 rename |
 | `fs_watch(rel)` | 변경 이벤트를 프런트로 (`notify` 크레이트) | 브리지의 `/ws`와 같은 이벤트 모양 |
 | `hmr_push(host, port, files)` | `I2DH` 묶음을 TCP로 보낸다 | `tools/bridge/lib/hmr.js`와 같은 인코딩, 같은 테스트 벡터 |
-| `engine_run(exe, cwd, env, args)`, `engine_stop(id)` | 프로세스 spawn, stdout과 stderr를 줄 단위 이벤트로, 종료 코드 전달 | shell 플러그인. E6에서는 사이드카 |
+| `engine_run(exe, cwd, env, args)`, `engine_stop(id)` | 프로세스 spawn, stdout과 stderr를 줄 단위 이벤트로, 종료 코드 전달 | `std::process` 로 직접 (shell 플러그인은 열지 않는다). E6 의 사이드카도 `externalBin` 으로 파일만 놓고 같은 길로 띄운다 (`engine_bundled`, `engine_exists`, e6-packaging.md 2.1 절) |
 | `dialog_pick_folder()` | 네이티브 폴더 선택 | dialog 플러그인 |
 
 메뉴와 창 상태와 테마 감지는 Tauri API를 직접 쓴다. 이 표 밖의 것이 필요해지면 먼저 "브리지 모드에서는 어떻게 되는가"를 답하고 넣는다.

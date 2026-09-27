@@ -1,0 +1,55 @@
+# 배포한 웹판 검사 (docs/plans/e6-packaging.md 7.5 절). 저자가 Actions 탭에서 주소를 넣고 누른다
+# (프로덕션 https://initial-editor.biud436.com, next 미리보기 https://next.initial-editor.pages.dev 등).
+# tests/e2e/pages.spec.ts 를 PAGES_URL 로 돌린다: 엔진 파일의 헤더(wasm 의 content-type, 캐시), 샘플 실행, 칠한 칸이 게임 탭에 보이는지,
+# 스트리밍 컴파일 실패 줄이 없는지. 완료 기준은 ci.yml 의 로컬 Pages(wrangler) 검사이고 이것은 덧붙인 확인이다.
+name: pages-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 검사할 웹판 주소
+        required: true
+        default: https://next.initial-editor.pages.dev
+
+permissions:
+  contents: read
+
+jobs:
+  pages:
+    name: 웹판 (${{ inputs.url }})
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: 의존성
+        run: yarn install --immutable
+
+      # Playwright 설정이 미리보기 서버를 함께 띄우므로 빌드한다
+      - name: 빌드
+        run: yarn build
+
+      - name: Playwright 브라우저
+        run: yarn playwright install --with-deps chromium
+
+      - name: pages.spec.ts
+        env:
+          CI: "1"
+          PAGES_URL: ${{ inputs.url }}
+        run: yarn test:e2e tests/e2e/pages.spec.ts
+
+      - name: Playwright 결과 보관
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-smoke-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7

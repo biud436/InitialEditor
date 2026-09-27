@@ -73,3 +73,8 @@
   color: var(--fg-muted);
   font-size: 12px;
 }
+
+/* 도움말 칸의 주의 (새 프로젝트의 웹판 Ruby 안내) */
+.form-help.new-project-note {
+  color: var(--warning);
+}

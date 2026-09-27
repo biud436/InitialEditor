@@ -5,8 +5,9 @@ import { defineConfig } from "vitest/config";
 // 별도 스크립트(yarn test:conformance)로 돈다. RPG 이벤트의 엔진 교차 검사도 따로 돈다 (yarn test:engine-events).
 export default defineConfig({
   test: {
-    // tests/e2e/support 의 도우미 단위 테스트는 *.unit.ts 다 (Playwright 가 *.test.ts 를 모으지 않게)
-    include: ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.test.tsx", "packages/*/test/**/*.test.ts", "tests/e2e/support/**/*.unit.ts"],
+    // tests/e2e/support 의 도우미 단위 테스트는 *.unit.ts 다 (Playwright 가 *.test.ts 를 모으지 않게).
+    // tests/scripts 는 scripts/*.mjs (판 번호, 고지, 자가 검사 계획과 판정)의 단위 테스트다
+    include: ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.test.tsx", "packages/*/test/**/*.test.ts", "tests/e2e/support/**/*.unit.ts", "tests/scripts/**/*.unit.ts"],
     exclude: ["**/node_modules/**", "**/dist/**", "packages/backend-bridge/test/conformance/**", "packages/ext-rpg/test/engine/**"],
     environment: "node",
   },

@@ -1,0 +1,474 @@
+# 설치 파일 (docs/plans/e6-packaging.md 4.1 절, 5절, 결정 기록 2026-09-27)
+#
+# macOS arm64 (dmg), Linux x86_64 (AppImage, deb), Windows x86_64 (NSIS) 번들을 만들고, 그 설치본이 스스로 새 프로젝트를 만들어
+# 도는지(자가 검사) 본 뒤 번들과 SHA256SUMS.txt 를 워크플로 산출물로 올린다.
+#   - 엔진은 공개 릴리스가 없으므로 engine-pin.json 의 커밋을 체크아웃해 tools/build_dist.sh 로 직접 만든다 (engine 잡)
+#   - Windows 는 엔진이 없다 (R5 전). 사이드카 없이 내고, 자가 검사는 에디터 안(웹 엔진)으로 넘어가는 길을 본다
+#   - 릴리스는 v* 태그를 민 실행에서만, 그것도 초안으로만 만든다 (공개는 저자). workflow_dispatch 와 PR 은 산출물뿐이다
+# 로컬에서 같은 검사: yarn selftest:app <빌드한 앱> (README 의 "설치 파일과 자가 검사")
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 산출물만 올리고 릴리스는 만들지 않는다
+        type: boolean
+        default: true
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - src-tauri/**
+      - scripts/fetch-engine.mjs
+      - scripts/check-sidecar.mjs
+      - scripts/selftest-*.mjs
+      - scripts/lib/**
+      - scripts/version.mjs
+      - scripts/gen-licenses.mjs
+      - engine-pin.json
+      - packages/app/src/editor/selftest/**
+      - .github/workflows/release.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # 태그를 민 실행만 초안 릴리스를 만든다
+  PUBLISH: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+
+jobs:
+  # 핀의 엔진 커밋을 읽는다 (ciEngineRef 가 있으면 그것. 릴리스의 check 잡은 ciEngineRef 가 있으면 실패한다)
+  pin:
+    name: 엔진 핀
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      ref: ${{ steps.pin.outputs.ref }}
+      commit: ${{ steps.pin.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pin
+        run: |
+          node -e '
+            const p = require("./engine-pin.json");
+            console.log("ref=" + (p.ciEngineRef || p.engineCommit));
+            console.log("commit=" + p.engineCommit);
+          ' >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+  # 배포용 엔진 (엔진 저장소 dist.yml 의 native 와 같은 길). macOS 잡은 템플릿 묶음도 만든다
+  engine:
+    name: 엔진 (${{ matrix.target }})
+    needs: pin
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            target: aarch64-apple-darwin
+          - runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      SDL_VIDEODRIVER: dummy
+      SDL_AUDIODRIVER: dummy
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: biud436/Initial2D
+          ref: ${{ needs.pin.outputs.ref }}
+          fetch-depth: 0
+
+      - name: 의존성 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install ruby bison
+          python3 -m pip install --break-system-packages pillow numpy
+
+      - name: 의존성 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ruby bison \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev \
+            libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev \
+            libasound2-dev libpulse-dev libdbus-1-dev libudev-dev
+          python3 -m pip install --user pillow numpy
+
+      - name: SDL 소스와 mruby 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            external/sdl-src
+            external/mruby-src
+          key: engine-src-${{ matrix.target }}-${{ hashFiles('tools/sdl_versions.sh', 'tools/build_mruby.sh') }}
+
+      # 판 헤더가 --dirty 를 달지 않게 그림을 만들기 전에 빌드한다
+      - name: 배포용 엔진 빌드
+        run: tools/build_dist.sh
+
+      - name: 배포용 엔진 검사
+        run: tools/check_dist.sh "dist/Initial2D-${{ matrix.target }}"
+
+      - name: 템플릿 묶음 (플래피 그림은 생성물)
+        if: runner.os == 'macOS'
+        run: |
+          python3 tools/generate_placeholder_assets.py
+          python3 tools/pack_templates.py
+
+      - name: 고지
+        run: cp THIRD-PARTY.md dist/
+
+      - name: 산출물
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-${{ matrix.target }}
+          path: |
+            dist/Initial2D-${{ matrix.target }}
+            dist/engine-dist.json
+            dist/THIRD-PARTY.md
+            dist/Initial2D-templates.zip
+          if-no-files-found: warn
+
+  # 릴리스 문 (태그면 필수): 판, 고지, 엔진 핀과 엔진에서 온 MANIFEST 전부, 템플릿 묶음과 번들의 템플릿 대조
+  check:
+    name: 판과 핀 대조
+    needs: [pin, engine]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: InitialEditor
+
+      - name: 엔진 저장소 (핀의 커밋)
+        uses: actions/checkout@v4
+        with:
+          repository: biud436/Initial2D
+          ref: ${{ needs.pin.outputs.ref }}
+          path: Initial2D
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: InitialEditor/yarn.lock
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: 의존성
+        working-directory: InitialEditor
+        run: yarn install --immutable
+
+      - name: 판
+        working-directory: InitialEditor
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            yarn version:check --tag "$GITHUB_REF_NAME"
+          else
+            yarn version:check
+          fi
+
+      - name: 제3자 고지
+        working-directory: InitialEditor
+        run: node scripts/gen-licenses.mjs --check
+
+      - name: 엔진 핀 (ciEngineRef 가 비었고, 엔진에서 온 MANIFEST 의 커밋이 핀과 같다)
+        working-directory: InitialEditor
+        run: yarn engine:check
+
+      - name: macOS 엔진 산출물 (템플릿 묶음)
+        uses: actions/download-artifact@v4
+        with:
+          name: engine-aarch64-apple-darwin
+          path: engine-dist
+
+      # 생성물(플래피 그림)까지 템플릿 묶음과 빠짐없이 대조한다. 추적하는 파일은 바이트로, 생성물 PNG 는 풀어 낸 픽셀로
+      # 견준다 (위 engine 잡의 Pillow 는 판을 고정하지 않아 사본을 만든 Pillow 와 압축한 바이트가 다르다. scripts/lib/templateCompare.mjs)
+      - name: 템플릿 대조
+        working-directory: InitialEditor
+        env:
+          INITIAL2D_DIR: ${{ github.workspace }}/Initial2D
+        run: |
+          yarn engine:fetch --from "$GITHUB_WORKSPACE/engine-dist" --templates "$RUNNER_TEMP/templates"
+          INITIAL2D_TEMPLATES_SRC="$RUNNER_TEMP/templates" yarn vitest run packages/app/src/editor/scene/templates.test.ts
+
+  # 번들, 사이드카 검사, 자가 검사. check 가 실패해도 산출물은 만든다 (dry run 은 산출물이 목적이다)
+  bundle:
+    name: 번들 (${{ matrix.target }})
+    needs: [pin, engine]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            os: mac
+            target: aarch64-apple-darwin
+            bundles: app,dmg
+            sidecar: true
+            engine: aarch64-apple-darwin
+          - runner: ubuntu-22.04
+            os: linux
+            target: x86_64-unknown-linux-gnu
+            bundles: appimage,deb
+            sidecar: true
+            engine: x86_64-unknown-linux-gnu
+          - runner: windows-latest
+            os: windows
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+            sidecar: false
+            # Windows 엔진이 없으므로 macOS 산출물에서 고지만 받는다
+            engine: aarch64-apple-darwin
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+        working-directory: InitialEditor
+    env:
+      SELFTEST_DIR: ${{ github.workspace }}/selftest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: InitialEditor
+
+      # 자가 검사의 숲 (E3 완료 기준 1) 이 엔진 저장소의 알데바란 맵을 연다
+      - name: 엔진 저장소 (핀의 커밋)
+        if: matrix.sidecar
+        uses: actions/checkout@v4
+        with:
+          repository: biud436/Initial2D
+          ref: ${{ needs.pin.outputs.ref }}
+          path: Initial2D
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: InitialEditor/yarn.lock
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: InitialEditor/src-tauri -> target
+          key: ${{ matrix.target }}
+
+      - name: 의존성 (Linux)
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: |
+          sudo apt-get update
+          # libgl1-mesa-dri: xvfb 에서 WebGL(맵 뷰, 게임 탭)을 소프트웨어 렌더링으로
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xvfb libgl1-mesa-dri
+
+      - name: 의존성
+        run: yarn install --immutable
+
+      - name: 엔진 산출물
+        uses: actions/download-artifact@v4
+        with:
+          name: engine-${{ matrix.engine }}
+          path: engine-dist
+
+      # 산출물 zip 은 실행 권한을 잃는다
+      - name: 앱에 싣는 엔진 받기
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/engine-dist/Initial2D-"* || true
+          yarn engine:fetch --from "$GITHUB_WORKSPACE/engine-dist" --target "${{ matrix.target }}"
+
+      - name: 번들
+        run: |
+          configs=(--config src-tauri/tauri.dist.conf.json)
+          if [ "${{ matrix.sidecar }}" = "true" ]; then configs+=(--config src-tauri/tauri.sidecar.conf.json); fi
+          yarn tauri build --target "${{ matrix.target }}" --bundles "${{ matrix.bundles }}" "${configs[@]}"
+
+      - name: 번들 이름의 판
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            yarn version:check --tag "$GITHUB_REF_NAME" --bundles "src-tauri/target/${{ matrix.target }}/release/bundle"
+          else
+            yarn version:check --bundles "src-tauri/target/${{ matrix.target }}/release/bundle"
+          fi
+
+      - name: 소스맵 없는 프런트
+        run: node scripts/check-web-dist.mjs --desktop
+
+      - name: 번들 안 사이드카 (macOS)
+        if: runner.os == 'macOS'
+        run: node scripts/check-sidecar.mjs "src-tauri/target/${{ matrix.target }}/release/bundle/macos/InitialEditor.app"
+
+      - name: 번들 안 사이드카 (Linux deb)
+        if: runner.os == 'Linux'
+        run: |
+          deb=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb)
+          rm -rf "$RUNNER_TEMP/deb" && dpkg-deb -x "$deb" "$RUNNER_TEMP/deb"
+          meta=$(find "$RUNNER_TEMP/deb" -path '*/engine/engine.json' | head -1)
+          if [ -z "$meta" ]; then
+            echo "deb 에 engine/engine.json 이 없다 (tauri.sidecar.conf.json 의 리소스)"
+            exit 1
+          fi
+          node scripts/check-sidecar.mjs "$RUNNER_TEMP/deb/usr/bin/Initial2D" --engine-json "$meta"
+
+      - name: deb 설치와 엔진 --version
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y "./$(ls src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb)"
+          work=$(mktemp -d)
+          (cd "$work" && SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy timeout 20 /usr/bin/Initial2D --version)
+          test -z "$(ls -A "$work")"
+
+      # ---- 자가 검사 (5절). 판정은 다음 단계가 로그와 스크린샷으로 한다 ----
+
+      - name: 자가 검사 (macOS, dmg 안의 앱)
+        if: runner.os == 'macOS'
+        timeout-minutes: 20
+        run: |
+          dmg=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg)
+          mount=$(hdiutil attach -nobrowse -readonly "$dmg" | awk -F'\t' '/\/Volumes\// {print $NF}' | tail -1)
+          echo "dmg: $dmg -> $mount"
+          node scripts/selftest-plan.mjs --os mac --work "$SELFTEST_DIR/run" --out "$SELFTEST_DIR/plan.json" --forest "$GITHUB_WORKSPACE/Initial2D"
+          code=0
+          node scripts/selftest-app.mjs "$mount/InitialEditor.app" --plan "$SELFTEST_DIR/plan.json" --no-check || code=$?
+          hdiutil detach "$mount" || true
+          exit $code
+
+      # AppImage 는 FUSE 없이 풀어서 돈다. xvfb 에는 GPU 가 없어 WebKitGTK 의 DMA-BUF 렌더러를 끈다
+      - name: 자가 검사 (Linux, AppImage)
+        if: runner.os == 'Linux'
+        timeout-minutes: 20
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          WEBKIT_DISABLE_DMABUF_RENDERER: "1"
+        run: |
+          appimage=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage)
+          chmod +x "$appimage"
+          node scripts/selftest-plan.mjs --os linux --work "$SELFTEST_DIR/run" --out "$SELFTEST_DIR/plan.json" --forest "$GITHUB_WORKSPACE/Initial2D"
+          xvfb-run -a -s "-screen 0 1600x1000x24" node scripts/selftest-app.mjs "$appimage" --plan "$SELFTEST_DIR/plan.json" --no-check
+
+      - name: 자가 검사 (Windows, 무인 설치본)
+        if: runner.os == 'Windows'
+        timeout-minutes: 20
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe" | Select-Object -First 1
+          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
+          $dir = Join-Path $env:LOCALAPPDATA "InitialEditor"
+          $exe = Get-ChildItem $dir -Filter *.exe | Where-Object { $_.Name -notlike "uninstall*" } | Select-Object -First 1
+          if (-not $exe) { Get-ChildItem -Recurse $dir; throw "설치한 실행 파일이 없다: $dir" }
+          Write-Host "설치본: $($exe.FullName)"
+          node scripts/selftest-plan.mjs --os windows --work "$env:SELFTEST_DIR/run" --out "$env:SELFTEST_DIR/plan.json"
+          node scripts/selftest-app.mjs $exe.FullName --plan "$env:SELFTEST_DIR/plan.json" --no-check
+          exit $LASTEXITCODE
+
+      - name: 자가 검사 판정 (보고서가 없으면 실패)
+        if: always()
+        run: node scripts/selftest-check.mjs --plan "$SELFTEST_DIR/plan.json"
+
+      - name: 자가 검사 폴더 (보고서, 실행별 로그, 스크린샷)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selftest-${{ matrix.target }}
+          path: |
+            ${{ github.workspace }}/selftest
+            !${{ github.workspace }}/selftest/run-forest
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: 번들 모으기
+        run: |
+          out="$GITHUB_WORKSPACE/bundles"
+          mkdir -p "$out"
+          bundle="src-tauri/target/${{ matrix.target }}/release/bundle"
+          find "$bundle" -maxdepth 2 -type f \( -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' -o -name '*-setup.exe' \) -exec cp {} "$out/" \;
+          ls -la "$out"
+
+      - name: 번들 산출물
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ matrix.target }}
+          path: ${{ github.workspace }}/bundles
+          if-no-files-found: error
+
+  # 세 OS 의 번들을 한 산출물로 모으고 SHA256SUMS.txt 를 붙인다
+  collect:
+    name: 모으기
+    needs: bundle
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: 번들 받기
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundle-*
+          merge-multiple: true
+          path: InitialEditor-bundles
+
+      - name: SHA256SUMS.txt
+        run: |
+          cd InitialEditor-bundles
+          sha256sum -- * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: 산출물
+        uses: actions/upload-artifact@v4
+        with:
+          name: InitialEditor-${{ github.sha }}
+          path: InitialEditor-bundles
+          if-no-files-found: error
+
+  # 태그를 민 실행만. 초안이고 공개는 저자가 한다
+  release:
+    name: 초안 릴리스
+    needs: [check, collect]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 번들
+        uses: actions/download-artifact@v4
+        with:
+          name: InitialEditor-${{ github.sha }}
+          path: out
+
+      - name: 본문
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          {
+            cat docs/releases/first-open.md
+            echo
+            if [ -f "docs/releases/$version.md" ]; then
+              cat "docs/releases/$version.md"
+            else
+              prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+              echo "## 바뀐 것"
+              echo
+              git log --no-merges --format='- %s' ${prev:+"$prev.."}"$GITHUB_REF_NAME"
+            fi
+          } > "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+
+      - name: 초안 만들기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=(--draft --title "InitialEditor ${GITHUB_REF_NAME}" --notes-file "$RUNNER_TEMP/notes.md")
+          case "$GITHUB_REF_NAME" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "$GITHUB_REF_NAME" "${flags[@]}" out/*

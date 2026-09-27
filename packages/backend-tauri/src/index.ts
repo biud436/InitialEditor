@@ -6,9 +6,12 @@
 //         fs_write_text(rel, text), fs_write_binary(raw body, 헤더 x-rel), fs_mkdir(rel), fs_remove(rel)
 //         fs_rename(from, to), fs_exists(rel) → boolean
 //         hmr_push(host, port, files[{ path, data: base64 }]) → { count }
-//         engine_run(exe, cwd, args, env) → { id, pid }, engine_stop(id), engine_features(exe) → string[]
+//         engine_run(exe, cwd, args, env) → { id, pid }, engine_stop(id), engine_features(exe, timeoutMs?) → string[]
+//         engine_exists(paths) → boolean[], engine_bundled() → BundledEngine | null
 //         settings_load() → string | null, settings_save(json)
-//   이벤트: fs:change { path, kind, origin }, engine:output { id, stream, line }, engine:exit { id, code }
+//         android_stage(repo, project, withRtp, dryRun) → { id, pid } (정지는 engine_stop), android_repo_probe(paths) → AndroidRepoProbe[]
+//   이벤트: fs:change { path, kind, origin }, engine:output { id, stream, line }, engine:exit { id, code },
+//         tool:output 과 tool:exit (안드로이드 스테이징, 모양은 engine:* 와 같다)
 //   오류: { code, message, path? } (code 는 BackendErrorCode) 를 받아 core 의 BackendError 로 되만든다
 //
 // 바이너리 전달
@@ -46,6 +49,8 @@ export function isTauri(): boolean {
 export const EVENT_FS_CHANGE = "fs:change";
 export const EVENT_ENGINE_OUTPUT = "engine:output";
 export const EVENT_ENGINE_EXIT = "engine:exit";
+export const EVENT_TOOL_OUTPUT = "tool:output";
+export const EVENT_TOOL_EXIT = "tool:exit";
 
 const ERROR_CODES: ReadonlySet<string> = new Set<BackendErrorCode>([
   "not_found",
@@ -136,19 +141,19 @@ class TauriRunHandle implements RunHandle {
   private exit: ExitPayload | null = null;
   private unlisteners: UnlistenFn[] = [];
 
-  static async start(spec: RunSpec): Promise<TauriRunHandle> {
+  static start(spec: RunSpec): Promise<TauriRunHandle> {
+    return TauriRunHandle.launch("engine_run", { exe: spec.exe, cwd: spec.cwd, args: spec.args ?? [], env: spec.env ?? {} }, [EVENT_ENGINE_OUTPUT, EVENT_ENGINE_EXIT]);
+  }
+
+  /** 명령 하나로 프로세스를 띄운다. 도구(안드로이드 스테이징)는 엔진과 같은 프로세스 표를 쓰고 이벤트 이름만 다르다 */
+  static async launch(command: string, args: Record<string, unknown>, events: readonly [output: string, exit: string]): Promise<TauriRunHandle> {
     const handle = new TauriRunHandle();
     handle.unlisteners = await Promise.all([
-      listen<OutputPayload>(EVENT_ENGINE_OUTPUT, (ev) => handle.onEvent(ev.payload)),
-      listen<ExitPayload>(EVENT_ENGINE_EXIT, (ev) => handle.onEvent(ev.payload)),
+      listen<OutputPayload>(events[0], (ev) => handle.onEvent(ev.payload)),
+      listen<ExitPayload>(events[1], (ev) => handle.onEvent(ev.payload)),
     ]);
     try {
-      const info = await call<RunInfo>("engine_run", {
-        exe: spec.exe,
-        cwd: spec.cwd,
-        args: spec.args ?? [],
-        env: spec.env ?? {},
-      });
+      const info = await call<RunInfo>(command, args);
       handle.id = info.id;
       handle.pid = info.pid;
     } catch (e) {
@@ -338,12 +343,74 @@ export class TauriSettingsStorage implements SettingsStorage {
   }
 }
 
-/** `exe --features` 의 단어들 ("lua" 또는 "lua mruby"). E1 이 언어 토글을 잠그는 데 쓴다 */
-export function engineFeatures(exe: string): Promise<string[]> {
-  return call<string[]>("engine_features", { exe });
+/** `exe --features` 의 단어들 ("lua" 또는 "lua mruby"). timeoutMs 가 없으면 셸의 기본 5초 */
+export function engineFeatures(exe: string, opts: { timeoutMs?: number } = {}): Promise<string[]> {
+  return call<string[]>("engine_features", { exe, timeoutMs: opts.timeoutMs ?? null });
+}
+
+/** 경로마다 파일이 있는지. 실행하지 않는다 (신뢰를 묻기 전에 프로젝트가 가리키는 엔진을 본다) */
+export function engineExists(paths: string[]): Promise<boolean[]> {
+  return call<boolean[]>("engine_exists", { paths });
+}
+
+/** 앱에 든 엔진의 판 정보 (번들 리소스 engine/engine.json, scripts/fetch-engine.mjs 가 쓴다) */
+export interface BundledEngineMeta {
+  /** v2 이상의 엔진 태그. 태그 없는 커밋이면 null */
+  engineTag: string | null;
+  /** 엔진 커밋 40자 */
+  engineCommit: string;
+  /** git describe (태그가 없으면 짧은 커밋) */
+  describe: string | null;
+  target: string;
+  sha256: string;
+  features: string[];
+}
+
+/** 메인 실행 파일 옆의 사이드카 (src-tauri/src/bundled.rs) */
+export interface BundledEngine {
+  path: string;
+  /** engine.json 이 없거나 깨졌으면 null */
+  meta: BundledEngineMeta | null;
+  metaError?: string;
+}
+
+/** 앱에 든 엔진. 개발 빌드처럼 사이드카가 없으면 null */
+export function engineBundled(): Promise<BundledEngine | null> {
+  return call<BundledEngine | null>("engine_bundled");
+}
+
+/** 안드로이드 스테이징 한 번 (src-tauri/src/android.rs). 스크립트는 <repo>/android/prepare_assets.sh 로 고정이다 */
+export interface AndroidStageRequest {
+  repo: string;
+  project: string;
+  withRtp: boolean;
+  dryRun: boolean;
+}
+
+/** 엔진 저장소 후보를 실행하지 않고 본 결과 */
+export interface AndroidRepoProbe {
+  script: boolean;
+  sdl: boolean;
+  gradlew: boolean;
+}
+
+/** 엔진 저장소의 android/prepare_assets.sh 를 띄운다. 출력과 끝은 RunHandle 로 온다 */
+export async function androidStage(req: AndroidStageRequest): Promise<RunHandle> {
+  try {
+    return await TauriRunHandle.launch("android_stage", { repo: req.repo, project: req.project, withRtp: req.withRtp, dryRun: req.dryRun }, [EVENT_TOOL_OUTPUT, EVENT_TOOL_EXIT]);
+  } catch (e) {
+    throw toBackendError(e);
+  }
+}
+
+/** 경로마다 스테이징 스크립트, SDL 소스, Gradle 래퍼가 있는지 */
+export function androidRepoProbe(paths: string[]): Promise<AndroidRepoProbe[]> {
+  return call<AndroidRepoProbe[]>("android_repo_probe", { paths });
 }
 
 /** 시작할 때 열 프로젝트 (환경 변수 INITIAL_EDITOR_OPEN 또는 `--open <경로>`). 없으면 null */
 export function startupOpenPath(): Promise<string | null> {
   return call<string | null>("startup_open_path");
 }
+
+export { selftestFinish, selftestPlan, selftestProgress, selftestWriteLog } from "./selftest";
