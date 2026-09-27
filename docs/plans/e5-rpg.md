@@ -524,7 +524,7 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 - [x] 명령: 이 이벤트 앞에서 실행, 이 이벤트 자동 재생 (5.2), 시작 상태
 - [x] `RunnerStore` 단위 테스트: 프로세스 모드에서 제공자의 `plan.env` 가 `RunSpec.env` 에 그대로 실린다 (가짜 백엔드). Playwright 가 프로세스 모드를 볼 수 없어 이 테스트와 `yarn test:engine-events` 가 그 자리를 맡는다
 - [x] Playwright `tests/e2e/rpg-events.spec.ts`. 메모리 모드는 샘플 프로젝트에 RPG 파일이 없으므로, 프로젝트를 연 뒤 `withEditor` 로 메모리 백엔드에 `packages/ext-rpg/test/fixtures/` 의 파일(두 스키마, 아이템 표, `port_town.json`, `port16.png`, 플레이스홀더 CharSet 과 FaceSet)을 쓰고 ext-rpg 가 다시 읽기를 기다린다 (샘플 프로젝트 자체는 늘리지 않는다: 앱 번들에 실리기 때문이다). 본다: 표식 17개, `meadow.json` 에는 이벤트 줄이 없고 힌트만, 놓기, 끌기, 인스펙터, 커맨드 넣기와 되돌리기, 맵 뷰의 Ctrl+C 가 씬 복사를 부르지 않는다(씬 클립보드가 비어 있고 이벤트가 붙여진다), 저장한 파일 내용과 키 순서. 브리지 모드는 엔진 사본을 열고 내장 게임 뷰로 자동 재생해 콘솔의 `rpg:player:` 줄(자리와 방향)과 `rpg:message:` 줄과 `rpg:route:done` 을 본다
-- [ ] README 두 저장소 (이벤트 레이어 사용법, 이 이벤트 앞에서 실행과 자동 재생과 시작 상태, `yarn test:engine-events`, `yarn sync:rpg`, 새 환경 변수), 두 `index.md` 진행 표, 이 문서의 구현 노트 (`test:engine-events` 의 건너뛰지 않은 실행 기록 포함). 에디터 쪽(README, `index.md`, 구현 노트)은 했다. 엔진 README 는 환경 변수와 `play` 를 이미 적었고, 에디터의 두 명령과 `play.probe` 한 줄과 엔진 `index.md` 의 표가 남았다
+- [x] README 두 저장소 (이벤트 레이어 사용법, 이 이벤트 앞에서 실행과 자동 재생과 시작 상태, `yarn test:engine-events`, `yarn sync:rpg`, 새 환경 변수), 두 `index.md` 진행 표, 이 문서의 구현 노트 (`test:engine-events` 의 건너뛰지 않은 실행 기록 포함). 에디터 쪽(README, `index.md`, 구현 노트)은 앞에서 했다. 엔진 쪽은 엔진 PR #57(`ef00946`)로 들어갔다: 엔진 README 의 RPG 절이 "이 이벤트 앞에서 실행"과 "이 이벤트 자동 재생", `play.env` 와 `play.probe`(`INITIAL2D_RPG_HOLD` 포함), 손으로 주는 같은 변수를 적고, 엔진 `index.md` 의 M2 줄이 그 README 와 에디터에 남은 것을 적는다 (구현 노트 "next 합치기와 엔진 핀")
 
 ## 완료 기준
 
@@ -536,11 +536,11 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
   사진 셋(`port_town_events.png`, `port_town_events_view.png`, `aldebaran_forest_no_event_layer.png`)과 결과(`look-result.json`)는 그 세션의 scratchpad `e5layerfix/look/` 에 두었다.
   남은 것은 Tauri 창에서 여는 것 하나다. E3 의 숲과 같이 창을 띄울 수 없는 환경이라 E6 의 설치된 앱 자체 시험이나 저자의 확인으로 넘긴다
 - [x] **에디터로만 만든 이벤트가 게임에서 돈다.** 맵에 놓고, 트리거와 외형을 고르고, 분기가 있는 커맨드를 적어 저장한 이벤트를 `yarn test:engine-events` 가 진짜 엔진으로 띄워 대사와 분기 결과와 플레이어가 선 자리를 stdout 으로 확인한다. Lua 는 한 줄도 고치지 않는다. **건너뛴(SKIP) 실행은 치지 않는다**: 건너뛰지 않은 실행 기록이 구현 노트에 있어야 한다
-- [ ] 같은 이벤트를 "이 이벤트 앞에서 실행"으로 띄우면 플레이어가 그 앞에서 그 쪽을 보고 선다 (`rpg:player:` 줄). 내장 모드는 e2e(브리지 모드의 게임 뷰)가, 프로세스 모드는 같은 `planEnv` 와 `probeEnv` 로 엔진 프로세스를 띄우는 `yarn test:engine-events` 와 `RunnerStore` 단위 테스트가 확인한다. 자동 재생은 대사를 콘솔에 남기고 스스로 끝난다 (경로를 다 걸었다). 씬을 바꾸는 이벤트(데모의 배)는 러너가 새 게임으로 다시 시작하는 자리에서 멈추고 이유를 남기며(레이어 검수 뒤, `yarn test:engine-events` 의 [6] 과 브리지 e2e), 이벤트가 돌지 않은 자동 재생은 실패로 알린다 ([7]). Tauri 앱에서의 프로세스 모드는 저자가 한 번 눌러 본다. 저자가 눌러 보는 것만 남았다
+- [ ] 같은 이벤트를 "이 이벤트 앞에서 실행"으로 띄우면 플레이어가 그 앞에서 그 쪽을 보고 선다 (`rpg:player:` 줄). 내장 모드는 e2e(브리지 모드의 게임 뷰)가, 프로세스 모드는 같은 `planEnv` 와 `probeEnv` 로 엔진 프로세스를 띄우는 `yarn test:engine-events` 와 `RunnerStore` 단위 테스트가 확인한다. 자동 재생은 대사를 콘솔에 남기고 스스로 끝난다 (경로를 다 걸었다). 씬을 바꾸는 이벤트(데모의 배)는 러너가 새 게임으로 다시 시작하는 자리에서 멈추고 이유를 남기며(레이어 검수 뒤, `yarn test:engine-events` 의 [6] 과 브리지 e2e), 이벤트가 돌지 않은 자동 재생은 실패로 알린다 ([7]). 엔진 핀 `ef00946` 부터는 `play.probe` 의 `INITIAL2D_RPG_HOLD` 가 배회하는 kid 를 제자리에 세워 [7] 이 새 게임 그대로 `rpg:event:kid` 까지 가야 통과한다 (구현 노트 "next 합치기와 엔진 핀"). Tauri 앱에서의 프로세스 모드는 저자가 한 번 눌러 본다. 저자가 눌러 보는 것만 남았다
 - [x] 스키마와 `commands.lua` 가 어긋나면 엔진 테스트가 깨진다 (커맨드를 하나 더해 깨지는 것을 보고 되돌린다). 경로 픽스처가 두 저장소에서 같은 경로 집합을 낸다. 엔진 쪽은 M2 문서 9절의 "깨지는 것을 보았다", 에디터 쪽은 `validate.test.ts` 의 경로 집합 대조
 - [x] 항구 마을과 여관의 이벤트가 전부 맵 파일에 있고, 인수 시나리오가 한 줄도 안 고치고 통과하며 골든 세 장(title, town, bag)과 벽 앞 픽셀 검사(wall)가 그대로다 (엔진 PR #50, M2 문서 9절)
 - [x] 이전한 맵을 에디터로 열어 저장하면 바이트가 같고, 이벤트 하나를 옮기면 diff 는 그 이벤트의 `x`, `y` 줄뿐이다 (`events.test.ts` 의 엔진 모든 맵 왕복, `layer.test.ts` 의 옮기기 diff)
-- [ ] 두 저장소의 README 에 사용법이 있다. 에디터 README 는 했고, 엔진 README 의 두 명령과 `play.probe` 한 줄이 남았다
+- [x] 두 저장소의 README 에 사용법이 있다. 에디터 README 는 앞에서 했고, 엔진 README 는 엔진 PR #57(`ef00946`, 이 단계의 엔진 핀)에서 두 명령과 `play.probe` 를 적었다 (RPG 절의 "`play`는 에디터가 게임을 띄울 때 넘기는 환경 변수입니다" 문단과 `INITIAL2D_RPG_HOLD` 줄)
 
 ## 의존 관계
 
@@ -584,7 +584,7 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 | 맵 사이 문 짝 만들기 | 맵 이동 이벤트를 놓을 때 반대편 문을 함께 |
 | 전역 `edit.*` 를 활성 문서로 보내기 | 씬, 맵 오브젝트, 이벤트가 저마다 복사와 붙여넣기를 따로 받는 것이 셋을 넘을 때 (지금은 레이어 도구의 키가 받는다, 2.4) |
 | 자동 재생에서 선택지 항목 고르기 (`INITIAL2D_RPG_ROUTE` 의 `pick:<n>`) | 첫 항목이 아닌 가지를 손 없이 확인하고 싶을 때. 지금은 시작 상태와 손으로 하는 실행으로 본다 |
-| 자동 재생 동안 그 이벤트의 배회 멈추기 (엔진의 `INITIAL2D_RPG_HOLD`, 아래 "레이어 검수 뒤 고친 것") | 배회하는 NPC 를 새 게임 그대로 자동 재생해야 할 때. 에디터만으로는 게임 속 NPC 의 자리를 알 수 없어 엔진 계약(M2)부터 고친다 |
+| 자동 재생 동안 그 이벤트의 배회 멈추기 (엔진의 `INITIAL2D_RPG_HOLD`, 아래 "레이어 검수 뒤 고친 것") | 했다: 엔진 PR #57 이 `play.probe` 에 더했고 에디터 핀이 `ef00946` 이다 (구현 노트 "next 합치기와 엔진 핀") |
 
 ## 결정 기록 (2026-09-27)
 
@@ -1182,3 +1182,51 @@ E5 는 🟡 로 둔다. 남은 것: 완료 기준 첫째의 Tauri 창(웹 번들
 새 테스트: 단위 테스트는 `MapSupport.test.ts`(고르는 동안 `map.tool.*`가 꺼지고 끝나면 켜진다), `extLayers.test.ts`(도구 단축키가 꺼지면 레이어 커맨드와 키도), `refs.test.ts` 둘과 `argWidgets.test.tsx`, `EventsPanel.test.tsx`의 표식 글 없는 제안, `assets.test.ts`의 글이 아닌 파일 참조, `locationPick.test.ts`의 x, y 판정 열셋, `engineLoad.test.ts`와 `projectStore.test.ts`의 맵 크기, 파일과 고르기 위젯의 `title`, 새 알림 글. e2e 는 `inspector-scroll.spec.ts`의 폼 폭 판에 긴 파일 이름(효과음, 얼굴, 이벤트의 외형), 목록에 없는 긴 방향과 트리거, 끊을 곳 없는 긴 글과 `title`을 더했고(커맨드 스물다섯), `rpg-transfer-pick.spec.ts`에 x, y 의 이유 여덟, 띠 아래의 타일(1280x600, 1024x480), 고르는 동안의 단축키(같은 맵과 여관)를 더했다.
 
 남은 것: WebKit 에서만 깨지는 옛 판 넷(Tab, 클립보드 권한, 씬 인스펙터 메뉴, 되살린 레이아웃)은 이 작업 전부터이고 따로 본다. 나머지는 앞 절 그대로다.
+
+### next 합치기와 엔진 핀 `ef00946` (2026-09-27, `feat/e5-layer`)
+
+`origin/next`(`802ea25`, E6 배포와 스크립트 훅 PR #55 까지)를 합쳤다 (합치기 커밋 `68a4188`, 되감기 없음). 부딪힌 곳은 넷이고 두 쪽을 모두 남겼다:
+`MapRenderer.ts`(E5 의 `reveal`과 고르기 도우미, E6 의 `captureTiles`), `RunnerStore.ts` 의 `StartOptions`(E5 의 `watch`, E6 의 `mode`),
+README 의 저장소 구성(`packages/ui` 줄과 앱에 든 엔진 찾기), `index.md` 의 진행 표(E5 줄은 이 가지, E6 줄은 next).
+
+합친 뒤 고친 것:
+
+| 문제 | 고친 것 |
+|---|---|
+| next 의 엔진 신뢰 확인(프로젝트가 가리키는 엔진은 묻고 쓴다) 때문에 E5 의 러너 테스트 여섯이 엔진을 찾지 못한다 | next 의 러너 테스트처럼 신뢰 질문에 허용으로 답한다 (`askTrust`). 신뢰 규칙은 `RunnerStore.trust.test.ts` 가 따로 본다 |
+| next 의 타일맵 템플릿 테스트가 `checkEngineMap` 의 옛 모양을 기대한다 (E5 가 맵 크기를 더했다) | 기대값에 `width: 48, height: 56` 을 더했다 (템플릿의 `map.json` 과 같다) |
+| 합친 번들의 `yarn build` 가 Node 기본 힙(8 GB 기계에서 약 2 GB)을 넘어 두 번 모두 죽는다. 주 청크 4.6 MB 에 소스맵 17 MB 다. next 만으로는 든다 (같은 기계에서 확인) | 앱의 `build` 가 Vite 를 `NODE_OPTIONS=--max-old-space-size=4096` 으로 돌린다. CI 의 macOS 러너(7 GB)도 같은 한도에 걸린다. 소스맵 없는 `build:desktop` 은 기본 힙으로 들어 그대로 둔다 |
+
+엔진 핀: `engine-pin.json` 을 `ef00946`(엔진 master, PR #57 `INITIAL2D_RPG_HOLD`)으로 올렸다. 그 뒤의 `f04eba2` 는 쓰지 않는다. 문구가 바뀐 엔진이라
+E5 의 검사가 따라 하는 옛 글과 어긋나고, 문구 PR 은 E5 뒤에 한다. `ef00946` 을 깨끗이 체크아웃한 사본(`git describe` 가 `v1.1.0-234-gef00946`,
+dirty 없음, 그 커밋의 `build-web/site`)에서 `yarn sync:engine-web`, `yarn sync:templates`, `yarn sync:rpg` 를 돌렸다 (저자의 작업 트리에서는 맞추지 않는다).
+바뀐 것은 웹 엔진의 `Initial2D.wasm`, 세 MANIFEST 의 커밋, 픽스처 `rpg-game.json` 의 `play.probe` 에 더해진 `"INITIAL2D_RPG_HOLD": "{event}"` 와
+`"INITIAL2D_RPG_TRACE": "1"` 이다. 템플릿 파일은 `cdaf1ee` 때와 같다 (MANIFEST 의 커밋만 바뀌었다). `yarn engine:check` 는 핀의 모양, 빈 `ciEngineRef`,
+MANIFEST 셋(웹 엔진, 템플릿, RPG 픽스처)이 모두 `ef00946` 이라 통과했다.
+
+`play.probe` 가 이벤트를 세우므로 자동 재생 계획이 `INITIAL2D_RPG_HOLD=<이벤트 id>` 를 싣고, 세운 이벤트의 설명과 실패 알림에는 배회의 까닭이 붙지 않는다.
+기대값을 엔진의 설정대로 고친 테스트: `game.test.ts`, `rpgPlay.test.ts`, `extension.test.ts`, `RunnerStore.play.test.ts`, `rpg-events.spec.ts`(두 모드 모두
+설명에 배회 글이 없는 것도 본다). 배회 알림 판은 세우지 않는 경우를 `play.probe` 에서 HOLD 를 빼서 만들어 두 경우를 그대로 본다.
+`yarn test:engine-events` 의 [7] 은 이제 `INITIAL2D_RPG_HOLD=kid`, 배회 글 없는 설명, 그리고 `rpg:event:kid` 를 요구한다 (전에는 이벤트가 돌았든 돌지 않았든
+알림만 맞으면 통과했다).
+
+검수 (엔진은 모두 `ef00946` 의 깨끗한 사본이고 `INITIAL2D_DIR` 로 준다):
+
+| 검사 | 결과 |
+|---|---|
+| `yarn typecheck`, `yarn lint`, `yarn check:colors` | 통과 |
+| `yarn engine:check` | 통과 (위) |
+| CI 의 나머지 검사: `yarn version:check`, `gen-licenses.mjs --check`, `check-web-dist.mjs`(웹과 `--desktop`), `yarn test:conformance` | 통과 (적합성 14건) |
+| Vitest 전체 | 154 파일, 1769건 통과, 2건 건너뜀, 실패 없음. `templates.test.ts`(엔진 사본과 대조 포함)와 `gameView/engineManifest.test.ts`(사본의 `build-web/site` 와 대조)도 통과한다. 건너뛴 둘은 받아 둔 사이드카가 없어서(`engineScripts.test.ts`), 템플릿 묶음(`INITIAL2D_TEMPLATES_SRC`)을 주지 않아서(`templates.test.ts`)다. 세 번 돌려 세 번 같았다 |
+| `yarn test:engine-events` | 건너뛰지 않음. 판 10, 검사 106개 통과, 엔진 `ef00946` (사본에서 cmake 로 빌드한 `build/Initial2D`, 기능 `lua mruby`). [6] 배는 7.7초에 "자동 재생을 멈췄다: 이벤트 ship 뒤에 게임이 새 게임으로 처음부터 다시 시작했다 (씬을 바꾸는 커맨드)" 로 멈췄다. [7] kid 는 새 게임 그대로 `rpg:hold:kid`, `rpg:event:kid`, `rpg:route:done` 이고 알림이 없다 |
+| `yarn build` | 통과 (위의 힙 고침 뒤. 고치기 전에는 두 번 모두 힙 부족) |
+| Playwright 전체 Chromium (포트 4930, 브리지 6730) | 134건 가운데 131건 통과, 실패 없음, 다시 돌린 것 없음. 고정 브리지 포트를 쓰는 네 파일(`game-view`, `rpg-events`, `rpg-transfer-pick`, `save-conflict`)은 워커 하나로 45건, 나머지 열아홉 파일은 워커 둘로 86건. 건너뛴 셋은 `pages.spec.ts` 의 `_headers` 검사로, `PAGES_URL` 이나 `PAGES_WRANGLER=1` 이 없어서다 (CI 는 `PAGES_WRANGLER=1` 로 돈다) |
+| Playwright WebKit (`--browser=webkit`, 설정에 WebKit 프로젝트는 아직 없다) `inspector-scroll`, `rpg-editor`, `rpg-events`, `rpg-transfer-pick`, `scripting` | 47건 가운데 42건 통과. 폼 폭 판과 브리지 모드의 kid 자동 재생(`rpg:event:kid`)이 통과한다. 실패 다섯은 따로 다시 돌려도 같다. 넷은 앞 절의 옛 판(`clipboard-write` 권한, 씬 인스펙터의 메뉴 누르기, 되살린 레이아웃, 고르기 단추의 Tab)이고, 하나는 next 에서 온 `scripting.spec.ts` 의 "언어별 인자"(Ruby 스크립트 뒤 두 번째 탭에 친 글이 제안을 띄우지 않는다)다. 이것은 `802ea25` 빌드에서도 같은 줄에서 깨지고, E5 는 스크립트 편집 코드를 고치지 않았다. 고침은 `fix/webkit-script-tabs` 의 `371eb93` 에 있다 |
+
+완료 기준과 마일스톤: 완료 기준 일곱 중 다섯(둘째, 넷째, 다섯째, 여섯째, 일곱째)을 검사와 문서가 뒷받침한다. 일곱째(두 저장소 README)와 마일스톤 6 의
+README 항목은 엔진 PR #57 의 README 와 엔진 `index.md` 로 닫았다. 셋째는 [6], [7] 과 두 브라우저의 브리지 e2e 까지 됐고, Tauri 앱의 프로세스 모드를
+저자가 한 번 눌러 보는 것만 남았다. 마일스톤 1, 2, 4, 5, 6 은 다 됐고 마일스톤 3 은 사람의 브리지 왕복 하나가 남았다.
+
+남은 것 (저자): Tauri 창에서 `port_town.json` 의 이벤트 17개 보기(완료 기준 첫째, 웹 번들로는 확인), Tauri 앱의 프로세스 모드로 "이 이벤트 앞에서 실행"과
+"이 이벤트 자동 재생"을 한 번씩 눌러 보기(셋째), 사람의 브리지 왕복 한 번(마일스톤 3). WebKit 에서만 깨지는 판 다섯은 이 가지 밖의 일이다 (넷은 E5 전부터,
+하나는 `fix/webkit-script-tabs`). 엔진 문구를 바꾼 `f04eba2` 로 핀을 올리는 일은 문구 PR 에서 한다.
