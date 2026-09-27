@@ -314,6 +314,19 @@ describe("ref", () => {
     renderArg(argOf("setVar", "key"), "");
     expect(suggested().map((s) => s[0])).toEqual(["coins"]);
   });
+
+  it("깃발과 변수: 2^53을 넘는 정수 키(표식 글)는 제안에 나오지 않는다", () => {
+    const big = editorHarness([
+      { id: "a", x: 1, y: 1, commands: [{ code: "setFlag", key: bigIntValue("12345678901234567890") }, { code: "setFlag", key: "met" }] },
+      { id: "b", x: 2, y: 1, commands: [{ code: "setVar", key: bigIntValue("98765432109876543210"), value: 1 }, { code: "if", cond: { var: "coins" }, thenDo: [] }] },
+    ]);
+    renderArg(argOf("setFlag", "key"), "", { refs: big.refs });
+    expect(suggested().map((s) => s[0])).toEqual(["met"]);
+    cleanup();
+    renderArg(argOf("setVar", "key"), "", { refs: big.refs });
+    expect(suggested().map((s) => s[0])).toEqual(["coins"]);
+    expect(screen.getByTestId("arg-suggest").innerHTML).not.toContain("INT:");
+  });
 });
 
 describe("file", () => {

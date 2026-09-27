@@ -248,6 +248,16 @@ describe("시작 상태", () => {
     expect(values()).toEqual(expect.arrayContaining(["arrived,item:shell=1"]));
   });
 
+  it("제안에는 2^53을 넘는 정수 키(표식 글)가 나오지 않는다", () => {
+    const data = JSON.parse(mapText(PORT_TOWN)) as { events: unknown[] };
+    data.events.push({ id: "bigkeys", x: 1, y: 1, commands: [{ code: "setFlag", key: "BIG_FLAG" }, { code: "setVar", key: "BIG_VAR", value: 1 }] });
+    const text = JSON.stringify(data).replace('"BIG_FLAG"', "12345678901234567890").replace('"BIG_VAR"', "98765432109876543210");
+    setup({ text });
+    const values = [...screen.getByTestId("rpg-start-state-suggest").querySelectorAll("option")].map((o) => o.getAttribute("value") ?? "");
+    expect(values).toEqual(expect.arrayContaining(["arrived", "item:shell=1"]));
+    expect(values.filter((v) => v.includes("INT:") || v.includes("\u0000") || /\d{20}/.test(v))).toEqual([]);
+  });
+
   it("기억한 값은 맵을 다시 열어도 보인다", () => {
     const sources = fixtureSources();
     void sources.setStartState(PORT_TOWN, "arrived");

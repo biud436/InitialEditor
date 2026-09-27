@@ -1,3 +1,4 @@
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import { fixtureGame, fixtureItems, fixtureMap, fixtureSchema } from "../testing/fixtures";
 import { assetIndex, characterDrawPos, charsetFrame, faceRect, isRtpPath, resolveAssetFile } from "./assets";
@@ -16,6 +17,10 @@ describe("외형과 얼굴 (엔진 Assets.pick 과 specs.lua)", () => {
     expect(resolveAssetFile(schema, "charset", { file: "./resources/charsets/hero.png", index: 1 }, () => false)).toBe("resources/charsets/hero.png");
     expect(resolveAssetFile(schema, "face", { set: "player" }, () => true)).toBeNull();
     expect(resolveAssetFile(schema, "charset", "npc", () => true)).toBeNull();
+    // 2^53을 넘는 정수(표식 글)와 수는 경로가 아니다 (엔진 assets.lua 의 checkRef: file 은 글이어야 한다)
+    expect(resolveAssetFile(schema, "face", { file: bigIntValue("12345678901234567890") }, () => true)).toBeNull();
+    expect(resolveAssetFile(schema, "face", { set: bigIntValue("12345678901234567890") }, () => true)).toBeNull();
+    expect(resolveAssetFile(schema, "face", { file: 7 }, () => true)).toBeNull();
     expect(isRtpPath("./resources/rtp/FaceSet/People1.png")).toBe(true);
     expect(isRtpPath("resources/faces/placeholder.png")).toBe(false);
   });

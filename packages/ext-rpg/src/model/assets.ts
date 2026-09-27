@@ -5,7 +5,7 @@
 // 그리기는 CharSet 의 서 있는 프레임(standPattern 열, 방향 행)과 FaceSet 의 칸이고, 자리는 게임과 같다
 // (가로는 칸 가운데, 발이 칸 아래 변. character.lua 의 pixelPos).
 
-import { field, isInteger } from "./json";
+import { field, isInteger, isJsonText } from "./json";
 import { bareProjectPath } from "./game";
 import type { AssetKind, EventSchema } from "./schema";
 
@@ -31,9 +31,9 @@ export function isRtpPath(path: string): boolean {
  */
 export function resolveAssetFile(schema: EventSchema, kind: AssetKind, ref: unknown, exists: (projectPath: string) => boolean, opts: ResolveOptions = {}): string | null {
   const file = field(ref, "file");
-  if (typeof file === "string" && file !== "") return bareProjectPath(file);
+  if (isJsonText(file) && file !== "") return bareProjectPath(file);
   const set = field(ref, "set");
-  if (typeof set !== "string") return null;
+  if (!isJsonText(set)) return null;
   const candidates = schema.assets[kind].get(set);
   if (!candidates || candidates.length === 0) return null;
   const allowRtp = opts.rtp !== false;

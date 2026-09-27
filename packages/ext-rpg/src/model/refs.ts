@@ -32,12 +32,12 @@ export interface StateNames {
   vars: string[];
 }
 
-/** 이벤트 목록들에서 쓰인 깃발과 변수 이름 (setFlag.key, setVar.key, 조건의 flag 와 var). 처음 나온 순서 */
+/** 이벤트 목록들에서 쓰인 깃발과 변수 이름 (setFlag.key, setVar.key, 조건의 flag 와 var). 처음 나온 순서, 글인 키만 */
 export function usedStateNames(schema: EventSchema, eventLists: ReadonlyArray<readonly unknown[]>): StateNames {
   const flags = new Set<string>();
   const vars = new Set<string>();
   const note = (kind: RefKind | undefined, value: unknown) => {
-    if (typeof value !== "string" || value === "") return;
+    if (!isJsonText(value) || value === "") return;
     if (kind === "flag") flags.add(value);
     else if (kind === "var") vars.add(value);
   };
