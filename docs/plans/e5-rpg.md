@@ -167,6 +167,11 @@ export interface TilemapApi {
   play(doc: MapDocument, request: { label: string; plan(doc: MapDocument): PlayPlan | string }): Promise<boolean>;
   playBlocked(): string | undefined;
   setPlayer(player: { blocked(): string | undefined; play(doc, request): Promise<boolean> }): () => void;
+  /** 맵 뷰 길 (마일스톤 5 에서 더했다). 맵 파일을 탭으로 열고 그 뷰에서 타일 하나를 고르거나(취소면 null), 타일을 뷰 가운데에 둔다 */
+  pickCell(request: { path: string; prompt: string; returnTo?: Document }): Promise<Point | null>;
+  revealCell(path: string, cell: Point): Promise<boolean>;
+  mapViewsBlocked(): string | undefined;
+  setMapViews(views: { pickCell(request): Promise<Point | null>; revealCell(path, cell): Promise<boolean> }): () => void;
 }
 
 export interface MapLayerSpec {
@@ -363,7 +368,7 @@ RTP 쌍둥이 맵(마을, 오두막): `rpg-game.json` 의 항목에 `alt` 가 �
 - **편집.** 줄을 고르면 그 아래에 인자 폼이 펼쳐진다 (1.2절 위젯). 추가는 스키마 `group` 으로 묶은 팔레트(찾기 입력 포함). 위에 넣기, 아래에 넣기, 지우기, 위로, 아래로, 복사와 붙여넣기(여러 줄, JSON), 하위 목록 안으로 넣기
 - **키보드.** 위아래로 줄 이동, Enter 로 폼, Delete, Ctrl+위아래로 옮기기, Ctrl+C/V, Insert 로 팔레트. 이 키들은 트리 요소의 keydown 이 받고 전파를 막는다 (전역 `edit.*` 와 맵 뷰의 이벤트 복사에 닿지 않는다, 2.4)
 - **항목과 가지.** `choice` 의 항목을 더하면 빈 가지가 생기고, 빼면 그 가지도 빠진다 (가지에 커맨드가 있으면 묻는다). `cancel` 은 번호를 따라간다
-- **맵 이동의 대상 고르기.** `transfer` 폼의 "맵에서 고르기"가 대상 맵(`rpg-game.json` 의 `file`)을 탭으로 열고 "칸을 누르면 이동 대상이 된다 (Esc 취소)" 띠를 띄운다. 칸을 누르면 원래 맵으로 돌아와 x, y 를 한 명령으로 넣는다 (원래 맵의 되돌리기 스택). "대상 보기"는 그 칸으로 뷰를 옮긴다
+- **맵 이동의 대상 고르기.** `transfer` 폼의 "맵에서 고르기"가 대상 맵(`rpg-game.json` 의 `file`)을 탭으로 열고 "타일을 클릭해 이동 위치 지정 (Esc: 취소)" 띠를 띄운다. 타일을 누르면 원래 맵으로 돌아와 x, y 를 한 명령(`setArgs`)으로 넣는다 (원래 맵의 되돌리기 스택). "대상 보기"는 그 타일로 뷰를 옮긴다. 구현과 결정은 구현 노트의 "마일스톤 5: 맵 이동의 대상 고르기"
 - **문제 표시.** 줄 옆에 표식, 인스펙터 머리에 문제 수, 누르면 그 줄로. 위치는 1.5절 표기
 - **되돌리기.** 모든 편집이 `doc.apply` 로 맵 문서의 스택에 들어간다. 타이핑은 초점 한 번이 한 단계 (합치기 키). 명령은 이벤트 하나의 `commands` 전후를 통째로 들고 있어도 된다 (가장 긴 여관 주인이 커맨드 30개 안팎)
 
@@ -509,7 +514,9 @@ PR 은 넷으로 나눈다 (저자의 "큰 작업은 PR 둘로" 규칙을 두 �
 - [x] 인자 위젯 (1.2절 표 전부. `file` 은 `./` 꼴)
 - [x] 항목, 가지, cancel 맞추기
 - [x] 문제 표시와 줄로 가기
-- [ ] 맵 이동의 대상 고르기 (4절. 넘치면 나중 후보로 미룬다). x 와 y 를 한 명령으로 넣는 모델 명령(`setArgs`)이 먼저 필요하다
+- [x] 맵 이동의 대상 고르기 (4절). 모델 명령 `setArgs`(인자 여럿을 한 단계로), 타일맵의 맵 뷰 길(`pickCell`, `revealCell`, 앱의 `cellPick.ts`), ext-rpg 의 `locationPick.ts` 와 폼의 두 단추.
+  근거: 단위 테스트(`commands.test.ts` 의 `setArgs` 셋, `locationPick.test.ts` 11, `EventInspector.test.tsx` 넷, `projectStore.test.ts` 하나, 앱의 `cellPick.test.ts` 11,
+  `MapRenderer.pick.test.ts` 3, `MapSupport.test.ts` 둘, 타일맵 `contrib.test.ts` 셋)와 Playwright `rpg-transfer-pick.spec.ts` 7건(메모리 모드 여섯, 브리지 모드 하나) 통과 (구현 노트)
 
 ### 마일스톤 6: 실행과 e2e (PR 4)
 
@@ -1081,3 +1088,47 @@ E5 는 🟡 로 둔다. 남은 것: 완료 기준 첫째의 Tauri 창(웹 번들
 
 남은 것은 앞 절 그대로다. 엔진이 `play.probe`에 `INITIAL2D_RPG_HOLD`를 더하면 배회 알림은 저절로 빠진다.
 
+### 마일스톤 5: 맵 이동의 대상 고르기 (2026-09-27, `feat/e5-transfer-pick`)
+
+만든 것:
+
+- 모델: `EventEditor.setArgs(index, path, values)` 는 인자 여럿을 한 명령으로 넣는다 (되돌리기 한 단계). 규칙은 `setArg` 와 같다: undefined 는 지우고,
+  필수 인자 지우기와 항목(options)은 거절하고, 인자 하나라도 틀리면 전부 거절한다. 값이 모두 그대로면 `unchanged` 라 스택이 쌓지 않는다.
+  `model/location.ts` 는 맵 위치 인자(맵 인자 `ref: "map"` 과 정수 인자 x, y 를 함께 가진 커맨드. 커맨드 이름은 코드에 적지 않는다), 대상 맵,
+  맵 파일의 엔진 판정(`checkMapFile`, `mapFileProblem`), 두 단추의 막는 이유를 정한다
+- 타일맵 자리(`contrib.ts`): `pickCell`, `revealCell`, `mapViewsBlocked`, `setMapViews`. RPG 낱말이 없는 맵 뷰 길이다. 확장이 맵 파일 경로와 띠의 글과
+  돌아갈 문서를 주면 앱이 그 맵을 탭으로 열고 타일 하나를 받아 돌려준다
+- 앱: `editor/maps/cellPick.ts`(`CellPicker`: 고르는 상태, 고르는 동안만 듣는 창의 Esc 와 뷰 밖 누름, 탭 바뀜과 두 문서의 닫기), `MapSupport.pickCell`
+  과 `revealCell`(뷰가 아직 없으면 붙을 때 옮긴다), `MapRenderer` 의 고르기(왼쪽 누름이 도구 대신 고르기로 가고 맵 밖은 취소, 포인터 아래 타일 테두리,
+  십자 커서)와 `reveal`(첫 화면을 맞춘 뒤, 뷰가 보일 때 가운데에 둔다), `MapView` 의 띠(`data-picking`, `data-pick-surface`), `Editor` 가 `setMapViews` 로 넣는다
+- ext-rpg: 저장소가 등록된 맵 파일마다 엔진 판정을 든다 (`mapChecks`, 파일이 바뀌면 다시 판정). `ui/locationPick.ts`(`LocationPicker`),
+  `ui/LocationTools.tsx`(두 단추와 이유 줄). 이벤트 인스펙터가 레이어 상태와 이벤트 번호를 묶어 커맨드 목록 편집기와 폼에 넘긴다.
+  레이어 상태의 `requestFocus` 가 커맨드 위치를 받는다
+
+| 물음 | 결정 |
+|---|---|
+| 고르기의 자리 | 코어와 앱은 RPG 를 모르므로 "맵 뷰에서 타일 하나 고르기"를 타일맵 확장의 자리(`TilemapApi.pickCell`)로 두고 앱이 채운다. 다른 장르의 확장(예: 플랫포머의 체크포인트 연결)도 같은 길을 쓸 수 있다. 맵 탭을 여는 일은 이미 있던 `workspace.openPath` 가 아니라 이 길이 한다 (연 문서를 받아 그 뷰에서 골라야 해서) |
+| 어느 커맨드에 단추가 있나 | 스키마에서 맵 인자와 정수 인자 x, y 가 함께 있는 커맨드. 지금 스키마에서는 `transfer` 뿐이다 |
+| 막는 이유 | 두 단추를 함께 막는 것: 맵 미지정, `rpg-game.json` 에 없는 맵, 맵 파일 없음, 엔진이 열 수 없는 맵(엔진의 `Tilemap::load` 규칙과 `resources/` 아래 타일셋 그림), 맵 파일 확인 중, 맵 뷰 없음. 레이어 잠금(스키마 버전, 읽기 전용 맵)은 고르기만 막는다 (대상 보기는 고치지 않는다). x, y 가 없으면 대상 보기만 막는다. 이유는 단추의 툴팁과 폼의 한 줄(두 단추가 같으면 한 줄, 다르면 단추 이름과 함께) |
+| 취소 | Esc(창 어디서든), 맵 밖 누름(뷰의 여백), 뷰 밖 누름(띠의 취소 단추 포함)은 바꾸지 않고 원래 탭으로 돌아간다. 다른 탭을 고르면 그 탭에 두고 취소한다. 원래 문서가 닫히면 취소하고 고르던 맵에 둔다. 고르던 맵이 닫히면 원래 탭으로 돌아간다. 새 요청은 앞의 요청을 돌아가지 않고 끝낸다 |
+| 고르는 동안의 도구 | 왼쪽 누름과 키와 두 번 누르기는 도구에 가지 않는다. 오른쪽 버튼은 도구가 쓰는 것이어도 팬이고, 휠과 가운데 버튼과 Space+끌기도 그대로다. 고른 누름의 놓기도 도구에 가지 않아 끝나면 도구가 그대로 이어진다 |
+| 돌아온 뒤 | 원래 맵의 탭이 다시 활성이 되면 인스펙터가 새로 그려져 커맨드 트리의 고르기가 처음으로 돌아간다. 그래서 고르기가 끝나면(취소도) 그 이벤트를 고르고 `requestFocus("commands", 커맨드 위치)` 로 그 커맨드의 폼을 연다 |
+| 고르는 동안 바뀐 것 | 이벤트는 열쇠로 다시 찾는다 (앞의 이벤트를 지워 번호만 바뀌면 넣는다). 이벤트가 사라졌거나 커맨드의 code 나 맵 인자가 바뀌었으면 넣지 않고 알린다 |
+| 띠의 자리 | 캔버스 위 가운데에 겹쳐 그린다. 도구 줄 아래의 줄로 두면 띠가 생기고 사라질 때 캔버스가 밀려 맵이 움직인다 (e2e 의 같은 맵 판이 찾았다) |
+| 탭 닫기 단추 | 고르는 동안 원래 탭의 닫기 단추를 누르면 그 누름이 먼저 뷰 밖 누름이라 고르기가 취소된 뒤 탭이 닫힌다. 바꾼 것이 없는 결과는 같다 |
+
+검수:
+
+| 검사 | 결과 |
+|---|---|
+| `yarn typecheck`, `yarn lint`, `yarn check:colors` | 통과 |
+| Vitest (`packages/ext-tilemap`, `packages/ext-rpg`, `packages/app`, `INITIAL2D_DIR=/Users/u/Initial2D`) | 95 파일, 1122건 통과, 1건 건너뜀, 1건 실패. 실패는 앞과 같은 `templates.test.ts`(엔진 `e897f95` 의 `hangul.fnt`)이고 이 작업과 상관없다 |
+| `yarn build` | 통과 |
+| Playwright `rpg-transfer-pick.spec.ts` (포트 4830, 브리지 6630, workers 2) | 7건 통과: 다른 맵에서 고르기(여관은 칠해지지 않고 이벤트 도구가 이어진다), 같은 맵에서 고르기(캔버스가 밀리지 않고 도구가 이어진다), Tab 과 Enter 와 Esc 와 맵 밖 누름과 띠의 취소, 원래 탭 닫기, 막는 이유 여섯, 대상 보기(새 탭과 이미 열린 탭), 브리지 모드의 엔진 저장소 사본에서 고르고 저장한 디스크의 글과 키 순서 |
+
+새 단위 테스트 38건: `setArgs` 셋(한 단계와 다시 실행, 같은 값과 합치기, 거절), 저장소의 맵 파일 판정 하나, `locationPick.test.ts` 11, 인스펙터의 두 단추 넷,
+`cellPick.test.ts` 11, `MapRenderer.pick.test.ts` 셋, `MapSupport.test.ts` 둘, 타일맵 `contrib.test.ts` 셋. 테스트가 깨지는 것을 보았다 (바꾸고 돌린 뒤 되돌렸다):
+렌더러가 고르는 동안의 왼쪽 누름을 도구에 넘기면 렌더러 1건, 끝난 뒤 원래 문서로 돌아가지 않으면 `cellPick.test.ts` 6건, 고른 뒤 그 커맨드로 초점을 보내지
+않으면 `locationPick.test.ts` 2건과 인스펙터 1건.
+
+남은 것: Tauri 창에서 눌러 보는 일은 완료 기준 첫째와 함께 저자 확인으로 넘긴다.

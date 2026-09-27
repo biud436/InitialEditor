@@ -151,6 +151,13 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
   트리에서 누른 글자 키는 맵 도구를 바꾸지 않습니다. 인자 폼의 한 줄 칸은 Enter로 값을 넣고 폼에 남고, Escape로 트리에 돌아갑니다.
   입력 칸 안의 Ctrl+Z는 문서를 되돌리고 칸도 되돌린 글을 보입니다 (씬 인스펙터와 같습니다). 고른 이벤트는 번호가 아니라 이벤트라서
   앞의 이벤트를 지우고 되돌려도 같은 이벤트가 골라져 있습니다.
+- 맵 이동의 대상 고르기: `transfer`(맵 인자와 x, y가 있는 커맨드)의 인자 폼 아래에 "맵에서 고르기"와 "대상 보기" 단추가 있고
+  Tab으로 갈 수 있습니다. "맵에서 고르기"는 대상 맵(`rpg-game.json`의 `file`)을 탭으로 열고 뷰 위에 "타일을 클릭해 이동 위치 지정 (Esc: 취소)"
+  띠를 띄웁니다. 타일을 누르면 원래 맵의 탭으로 돌아와 x, y가 한 번에 바뀌고(원래 맵의 되돌리기 한 단계) 그 커맨드의 폼이 열려 있습니다.
+  Esc, 맵 밖이나 뷰 밖의 누름, 띠의 취소는 바꾸지 않고 돌아오고, 고르는 동안 원래 탭을 닫으면 바꾸지 않고 끝납니다. 같은 맵으로 가는
+  이동이면 그 맵의 뷰에서 고릅니다. 고르는 동안 맵 도구는 누름과 키를 받지 않고, 휠과 오른쪽 끌기와 Space+끌기는 그대로 뷰를 옮깁니다.
+  "대상 보기"는 대상 맵을 열고 x, y 타일을 뷰 가운데에 둡니다. 맵이 비었거나, `rpg-game.json`에 없거나, 파일이 없거나, 엔진이 열 수 없는
+  맵(모르는 버전, 타일셋 그림 없음 등)이면 두 단추가 꺼지고 이유가 한 줄 보입니다. 읽기 전용 레이어는 고르기만, x, y가 없으면 대상 보기만 꺼집니다.
 - 이벤트 패널(창 > 이벤트, 타일맵 레이아웃에 들어 있음): 이 맵의 이벤트 목록과 찾기(id, 트리거, 대사), 오류와 경고 수, 그리고 시작 상태
   한 줄(`arrived,item:warehouse_key=1` 꼴, `INITIAL2D_RPG_STATE`와 같은 규칙)입니다. 시작 상태는 맵마다 `.initial-editor/rpg-play.json`에 남습니다.
 - 저장: 엔진이 건너뛸 오류가 있는 맵은 저장하기 전에 목록을 보이고 묻습니다. 에디터의 편집은 그런 값을 만들지 않으므로 밖에서 고친 파일에서만 나옵니다.
@@ -193,6 +200,7 @@ yarn build && yarn test:e2e tests/e2e/rpg-layer.spec.ts  # 메모리 모드에 �
 RPG_LAYER_SCREENSHOT=/tmp/shots yarn test:e2e tests/e2e/rpg-layer.spec.ts  # 맵 뷰를 찍어 남긴다
 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/rpg-events.spec.ts     # 놓기부터 저장까지, 실행 명령의 변수, 브리지 모드의 자동 재생
 yarn build && yarn test:e2e tests/e2e/rpg-editor.spec.ts  # 좁은 인스펙터, 입력 칸의 Ctrl+Z, 숨긴 레이어, RPG 아닌 프로젝트의 메뉴
+INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/rpg-transfer-pick.spec.ts  # 맵 이동의 대상 고르기와 대상 보기, 브리지 모드의 저장
 E2E_BRIDGE_PORT=6561 RPG_EVENTS_SCREENSHOT=/tmp/rpg.png yarn test:e2e tests/e2e/rpg-events.spec.ts  # 포트를 바꾸고 끝난 화면을 찍는다
 ```
 
@@ -215,7 +223,7 @@ packages/backend-fsaccess/ ProjectBackend 의 브라우저 폴더(File System Ac
 packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
 packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
 packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입,
-                          다른 확장이 맵에 레이어와 여기서 실행 제공자를 붙이고 맵을 띄우는 자리(contrib.ts)
+                          다른 확장이 맵에 레이어와 여기서 실행 제공자를 붙이고, 맵을 띄우고, 맵 뷰에서 타일을 고르는 자리(contrib.ts)
 packages/ui/              React 입력 부품: 인스펙터의 숫자, 글, 스키마 칸 입력. 앱과 확장이 함께 쓴다
 packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 실행 제공자와 실행 변수), 맵 뷰의 이벤트 레이어
                           (뷰, 도구, 인스펙터, 목록 패널), 커맨드 목록 편집기, 이벤트 실행 명령, 엔진 교차 검사
