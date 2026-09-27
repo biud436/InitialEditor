@@ -44,6 +44,7 @@ import {
 } from "./commandRows";
 import { CommandForm } from "./CommandForm";
 import { CommandPalette } from "./CommandPalette";
+import type { CommandLocationActions } from "./LocationTools";
 import "./CommandListEditor.css";
 
 export interface CommandListEditorProps {
@@ -73,6 +74,8 @@ export interface CommandListEditorProps {
   focusRequest?: { location: string; nonce: number } | null;
   /** 고른 커맨드가 바뀌었다 */
   onSelect?: (path: CommandPath | null) => void;
+  /** 맵 위치 인자(맵 이동의 대상)의 맵에서 고르기와 대상 보기. 없으면 폼에 단추가 없다 */
+  location?: CommandLocationActions;
 }
 
 const NO_FILES: readonly string[] = [];
@@ -572,6 +575,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
                   run={run}
                   problems={mine.filter((p) => p.location === location || p.location.startsWith(`${location}.`))}
                   location={location}
+                  locationActions={props.location}
                 />
               </div>,
             ];

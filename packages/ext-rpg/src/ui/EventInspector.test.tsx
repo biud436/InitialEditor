@@ -6,10 +6,11 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { runInAction } from "mobx";
 import { afterEach, describe, expect, it } from "vitest";
 import { field } from "../model/json";
-import { FakePlay, fixtureSources, layerHarness, PORT_TOWN, stateOf } from "../testing/layerHarness";
+import { FakeMapViews, FakePlay, fixtureSources, INN, layerHarness, PORT_TOWN, stateOf } from "../testing/layerHarness";
 import { CommandClipboard } from "./clipboard";
 import { EventClipboard } from "./eventClipboard";
 import { makeEventInspector } from "./EventInspector";
+import { LocationPicker, PICK_PROMPT } from "./locationPick";
 import type { RpgUiServices } from "./services";
 
 afterEach(cleanup);
@@ -25,6 +26,7 @@ function setup(opts: { lockPort?: boolean; text?: string; slot?: boolean } = {})
   const st = stateOf(doc);
   const notified: string[] = [];
   const play = new FakePlay(sources);
+  const views = new FakeMapViews();
   const services: RpgUiServices = {
     store: sources,
     play,
@@ -33,6 +35,7 @@ function setup(opts: { lockPort?: boolean; text?: string; slot?: boolean } = {})
     commandClipboard: new CommandClipboard(null),
     notify: (m) => void notified.push(m),
     confirm: () => true,
+    location: new LocationPicker({ views, documents: h.documents, sources, notify: (m) => void notified.push(m) }),
   };
   const Inspector = makeEventInspector(services);
   // slot: 앱의 인스펙터 자리처럼 세로 스크롤하는 틀 안에 그린다
@@ -46,7 +49,7 @@ function setup(opts: { lockPort?: boolean; text?: string; slot?: boolean } = {})
     ),
   );
   const idx = (id: string) => st.section.indexOfId(id);
-  return { h, doc, st, view, idx, notified, sources, play };
+  return { h, doc, st, view, idx, notified, sources, play, views };
 }
 
 const input = (testId: string) => screen.getByTestId(testId) as HTMLInputElement;
@@ -366,5 +369,93 @@ describe("여럿과 잠금", () => {
     render(<Inspector document={doc} state={stateOf(doc)} />);
     expect(screen.getByTestId("rpg-inspector-locked").textContent).toBe("읽기 전용: 모르는 버전");
     expect(screen.queryByTestId("rpg-field-id")).toBeNull();
+  });
+});
+
+describe("맵 이동의 대상 (맵에서 고르기, 대상 보기)", () => {
+  const button = (id: string) => screen.getByTestId(id) as HTMLButtonElement;
+  const notes = () => screen.queryAllByTestId("rpg-location-note").map((n) => n.textContent);
+
+  /** inn_door 를 고르고 transfer 줄을 누른다 */
+  function openTransfer(t: ReturnType<typeof setup>): void {
+    act(() => t.st.select([t.idx("inn_door")]));
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    fireEvent.click(tree.querySelector('[data-row-key="c.commands[2]"]')!);
+  }
+
+  it("transfer 폼에만 두 단추가 있고, 누르면 대상 맵에서 고르고 고른 x, y 가 폼에 보인다 (한 단계)", async () => {
+    const t = setup();
+    act(() => t.st.select([t.idx("inn_door")]));
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    fireEvent.click(tree.querySelector('[data-row-key="c.commands[1]"]')!);
+    expect(screen.queryByTestId("rpg-location")).toBeNull();
+    fireEvent.click(tree.querySelector('[data-row-key="c.commands[2]"]')!);
+    expect(button("rpg-location-pick").textContent).toBe("맵에서 고르기");
+    expect(button("rpg-location-reveal").textContent).toBe("대상 보기");
+    expect(button("rpg-location-pick").disabled).toBe(false);
+    expect(button("rpg-location-reveal").disabled).toBe(false);
+    expect(notes()).toEqual([]);
+    fireEvent.click(button("rpg-location-pick"));
+    expect(t.views.picks).toEqual([{ path: INN, prompt: PICK_PROMPT, returnTo: t.doc }]);
+    await act(async () => t.views.end({ x: 4, y: 6 }));
+    expect(input("rpg-arg-x").value).toBe("4");
+    expect(input("rpg-arg-y").value).toBe("6");
+    expect(t.doc.undo.depth).toBe(1);
+    fireEvent.click(button("rpg-location-reveal"));
+    await act(async () => undefined);
+    expect(t.views.reveals).toEqual([[INN, { x: 4, y: 6 }]]);
+  });
+
+  it("쓸 수 없으면 끄고 이유를 보인다: 같은 이유는 한 줄, 한쪽만 막히면 단추 이름과 함께", () => {
+    const t = setup();
+    openTransfer(t);
+    const i = t.idx("inn_door");
+    const P = { list: [], index: 1 };
+    act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "village" })));
+    expect(button("rpg-location-pick").disabled).toBe(true);
+    expect(button("rpg-location-reveal").disabled).toBe(true);
+    expect(button("rpg-location-pick").title).toBe("맵 파일 없음: resources/maps/village.json");
+    expect(notes()).toEqual(["맵 파일 없음: resources/maps/village.json"]);
+    act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "inn", x: undefined })));
+    expect(button("rpg-location-pick").disabled).toBe(false);
+    expect(button("rpg-location-reveal").disabled).toBe(true);
+    expect(notes()).toEqual(["대상 보기: x, y 미지정"]);
+    act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "" })));
+    expect(notes()).toEqual(["맵 미지정"]);
+    act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "forest", x: 1 })));
+    expect(notes()).toEqual(["rpg-game.json 에 등록되지 않은 맵: forest"]);
+    // 맵 파일의 판정이 바뀌면 따라간다
+    act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "inn" })));
+    expect(notes()).toEqual([]);
+    act(() => t.sources.mapChecks.set(INN, { kind: "invalid", reason: "레이어가 없다" }));
+    expect(notes()).toEqual(["엔진이 열 수 없는 맵: 레이어가 없다"]);
+    act(() => runInAction(() => (t.views.blocked = "맵 뷰 없음")));
+    expect(notes()).toEqual(["맵 뷰 없음"]);
+  });
+
+  it("잠긴 레이어는 고르기만 끄고 대상 보기는 된다", () => {
+    const t = setup({ lockPort: true });
+    openTransfer(t);
+    expect(button("rpg-location-pick").disabled).toBe(true);
+    expect(button("rpg-location-reveal").disabled).toBe(false);
+    expect(notes()[0]).toMatch(/^맵에서 고르기: 읽기 전용: RTP 판과 기본 판/);
+  });
+
+  it("다른 맵에서 고르고 돌아와 인스펙터를 새로 그리면 그 커맨드의 폼이 열려 있고 트리에 초점이 있다 (초점 요청)", async () => {
+    const t = setup();
+    openTransfer(t);
+    fireEvent.click(button("rpg-location-pick"));
+    // 대상 맵의 탭으로 가면 이 인스펙터는 내려간다
+    t.view.unmount();
+    await act(async () => t.views.end({ x: 7, y: 8 }));
+    const Inspector = makeEventInspector({ store: t.sources, documents: t.h.documents, clipboard: new EventClipboard(null), location: new LocationPicker({ views: t.views, documents: t.h.documents, sources: t.sources }) });
+    render(<Inspector document={t.doc} state={t.st} />);
+    const tree = screen.getByTestId("rpg-cmd-tree");
+    expect(document.activeElement).toBe(tree);
+    expect((tree.querySelector(".is-cursor") as HTMLElement).dataset.rowKey).toBe("c.commands[2]");
+    expect(input("rpg-arg-x").value).toBe("7");
+    expect(input("rpg-arg-y").value).toBe("8");
+    expect(screen.getByTestId("rpg-location")).toBeTruthy();
+    expect(t.doc.undo.depth).toBe(1);
   });
 });

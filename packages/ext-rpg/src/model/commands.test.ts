@@ -308,6 +308,65 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect((broken.section.list[0] as { commands: Array<Record<string, unknown>> }).commands[0].cond).toEqual({ flag: "y" });
   });
 
+  it("인자 여럿(setArgs): x 와 y 가 한 명령, 되돌리기 한 단계이고 다시 실행하면 둘 다 돌아온다. 키 순서는 스키마 순서", () => {
+    const transfer = { code: "transfer", map: "inn", dir: "up" };
+    const { section, ed, stack } = setup([ev("door", 0, 0, { commands: [{ code: "playSe", file: "./a.wav" }, transfer] })]);
+    const cmd = () => (at(section, 0).commands as Array<Record<string, unknown>>)[1];
+    const made = ed.setArgs(0, P(1), { x: 4, y: 7 });
+    expect(made.unchanged).toBe(false);
+    expect(made.label).toBe("인자 바꾸기: x, y");
+    expect(made.focus).toEqual([0]);
+    stack.push(made);
+    expect(stack.depth).toBe(1);
+    expect(cmd()).toEqual({ code: "transfer", map: "inn", x: 4, y: 7, dir: "up" });
+    expect(Object.keys(cmd())).toEqual(["code", "map", "x", "y", "dir"]);
+    stack.push(ed.setArgs(0, P(1), { y: 2, x: 9 }));
+    expect(stack.depth).toBe(2);
+    expect(cmd()).toMatchObject({ x: 9, y: 2 });
+    stack.undo();
+    expect(cmd()).toMatchObject({ x: 4, y: 7 });
+    stack.undo();
+    expect(cmd()).toEqual(transfer);
+    stack.redo();
+    expect(cmd()).toEqual({ code: "transfer", map: "inn", x: 4, y: 7, dir: "up" });
+    stack.redo();
+    expect(cmd()).toMatchObject({ x: 9, y: 2 });
+    // undefined 는 지운다 (선택 인자)
+    stack.push(ed.setArgs(0, P(1), { x: undefined, y: undefined }));
+    expect(cmd()).toEqual(transfer);
+  });
+
+  it("인자 여럿(setArgs): 값이 모두 그대로면 unchanged 라 스택이 쌓지 않는다. 합치기 키가 같으면 하나로 합친다", () => {
+    const { section, ed, stack } = setup([ev("door", 0, 0, { commands: [{ code: "transfer", map: "inn", x: 3, y: 4 }] })]);
+    const same = ed.setArgs(0, P(0), { x: 3, y: 4 });
+    expect(same.unchanged).toBe(true);
+    const state = stack.stateId;
+    stack.push(same);
+    expect(stack.depth).toBe(0);
+    expect(stack.stateId).toBe(state);
+    stack.push(ed.setArgs(0, P(0), { x: 5, y: 6 }, { mergeKey: "k" }));
+    stack.push(ed.setArgs(0, P(0), { x: 7, y: 8 }, { mergeKey: "k" }));
+    expect(stack.depth).toBe(1);
+    expect((at(section, 0).commands as Array<Record<string, unknown>>)[0]).toMatchObject({ x: 7, y: 8 });
+    stack.undo();
+    expect((at(section, 0).commands as Array<Record<string, unknown>>)[0]).toMatchObject({ x: 3, y: 4 });
+  });
+
+  it("인자 여럿(setArgs): 하나라도 틀리면 전부 거절하고 목록은 그대로다", () => {
+    const transfer = { code: "transfer", map: "inn", x: 3, y: 4 };
+    const { section, ed } = setup([ev("door", 0, 0, { commands: [transfer, { code: "choice", options: ["a"] }] })]);
+    expect(() => ed.setArgs(0, P(0), { x: 5, y: -1 })).toThrow(/^y: /);
+    expect(() => ed.setArgs(0, P(0), { x: 1.5, y: 2 })).toThrow(/^x: /);
+    expect(() => ed.setArgs(0, P(0), { x: 1, zzz: 2 })).toThrow(/zzz 인자가 없다/);
+    expect(() => ed.setArgs(0, P(0), { map: undefined, x: 1 })).toThrow(/필요하다/);
+    expect(() => ed.setArgs(0, P(1), { options: ["b"] })).toThrow(/항목 명령/);
+    expect(() => ed.setArgs(0, P(0), {})).toThrow("바꿀 인자 없음");
+    expect(() => ed.setArgs(0, P(5), { x: 1 })).toThrow(EditRefused);
+    expect((at(section, 0).commands as unknown[])[0]).toEqual(transfer);
+    const locked = setup([ev("door", 0, 0, { commands: [transfer] })], { locked: "읽기 전용 맵" });
+    expect(() => locked.ed.setArgs(0, P(0), { x: 1, y: 1 })).toThrow("읽기 전용 맵");
+  });
+
   it("선택지 항목: 가지와 취소 번호가 함께 간다", () => {
     const branches = [[{ code: "message", text: "A" }], [{ code: "message", text: "B" }], [{ code: "message", text: "C" }]];
     const { section, ed, stack } = setup([ev("a", 0, 0, { commands: [{ code: "choice", options: ["a", "b", "c"], cancel: 3, branches }] })]);

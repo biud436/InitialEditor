@@ -1,4 +1,4 @@
-// RPG 확장의 React 와 PIXI 부품: 커맨드 목록 편집기, 인자 위젯, 이벤트 레이어(뷰, 도구, 인스펙터, 목록 패널)
+// RPG 확장의 React 와 PIXI 부품: 커맨드 목록 편집기, 인자 위젯, 이벤트 레이어(뷰, 도구, 인스펙터, 목록 패널), 맵 이동의 대상 고르기
 export * from "./argWidgets";
 export { CommandClipboard, commandClipboard, parseCommandsJson } from "./clipboard";
 export { CommandForm } from "./CommandForm";
@@ -12,5 +12,7 @@ export { createEventsLayer } from "./eventsLayer";
 export { EventsLayerView, type DrawnMarker, type EventsLayerViewDeps } from "./EventsLayerView";
 export { EventsPanel, makeEventsPanel, type EventsPanelProps } from "./EventsPanel";
 export { EventsTool } from "./eventsTool";
+export { LocationPicker, PICK_PROMPT, type LocationBlockers, type LocationPickerDeps, type MapViewsPort, type PickOutcome } from "./locationPick";
+export { blockerNotes, LocationTools, type CommandLocationActions } from "./LocationTools";
 export * from "./markers";
 export { ImageUrls, type RpgPlayActions, type RpgStoreView, type RpgUiServices } from "./services";

@@ -82,8 +82,8 @@ export class EventsLayerState implements MapLayerState {
   /** 고른 이벤트의 열쇠 (섹션의 keyAt). 목록이 바뀌어도 같은 이벤트를 가리키고, 목록에 없는 열쇠는 selected 가 뺀다 */
   private readonly selection = observable.set<number>();
   drag: EventDrag | null = null;
-  /** 인스펙터에 초점을 보내 달라는 요청 (nonce 가 바뀔 때마다) */
-  focusRequest: { target: FocusTarget; nonce: number } | null = null;
+  /** 인스펙터에 초점을 보내 달라는 요청 (nonce 가 바뀔 때마다). location 은 commands 일 때 갈 커맨드 (엔진 표기) */
+  focusRequest: { target: FocusTarget; nonce: number; location?: string } | null = null;
   /** 스키마 없이 붙었을 때 쓸 원본 */
   private raw: unknown;
   private nonce = 0;
@@ -273,8 +273,9 @@ export class EventsLayerState implements MapLayerState {
     this.drag = drag;
   }
 
-  requestFocus(target: FocusTarget): void {
-    this.focusRequest = { target, nonce: ++this.nonce };
+  /** 인스펙터의 초점: id 칸이나 커맨드 트리. location 을 주면 그 커맨드로 간다 (없으면 첫 커맨드) */
+  requestFocus(target: FocusTarget, location?: string): void {
+    this.focusRequest = location === undefined ? { target, nonce: ++this.nonce } : { target, nonce: ++this.nonce, location };
   }
 
   // ---- 편집 ----

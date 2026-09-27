@@ -409,6 +409,33 @@ export class EventEditor {
     return this.commit(`인자 바꾸기: ${arg.label}`, after, [index], key);
   }
 
+  /**
+   * 인자 여럿을 한 명령으로 (맵 이동의 x 와 y 처럼 함께 바뀌는 값). 되돌리기 한 단계이고 값이 모두 그대로면 unchanged 다.
+   * 규칙은 setArg 와 같다: undefined 는 지우고(필수 인자는 거절), 항목(options)은 항목 명령으로, 인자 하나라도 틀리면 전부 거절한다
+   */
+  setArgs(index: number, path: CommandPath, values: Readonly<Record<string, unknown>>, opts: EditOptions = {}): EventListCommand {
+    const ctx = this.ctx();
+    const names = Object.keys(values);
+    if (names.length === 0) throw new EditRefused("바꿀 인자 없음");
+    const cmd = this.commandAt(index, path, ctx.schema);
+    const spec = commandSpec(ctx.schema, cmd.code);
+    if (!spec) throw new EditRefused(`모르는 커맨드 ${String(cmd.code)} 는 고칠 수 없다`);
+    const next: JsonObject = { ...cmd };
+    for (const name of names) {
+      const arg = spec.args.find((a) => a.name === name);
+      if (!arg) throw new EditRefused(`${spec.label} 에는 ${name} 인자가 없다`);
+      if (arg.type === "options") throw new EditRefused("항목은 항목 명령으로 고친다 (가지와 취소 번호를 함께 맞춘다)");
+      const value = values[name];
+      if (value === undefined) delete next[name];
+      else next[name] = (canonicalCommand({ code: cmd.code, [name]: cloneJson(value) }, ctx.schema) as JsonObject)[name];
+    }
+    const ordered = orderCommand(next, ctx.schema);
+    for (const name of names) this.checkArgValue(ordered, name, ctx.schema);
+    const after = this.replaceAt(index, path, ordered, ctx.schema);
+    const key = opts.mergeKey === undefined ? undefined : `rpg:args:${index}:${JSON.stringify(path)}:${names.join(",")}:${opts.mergeKey}`;
+    return this.commit(`인자 바꾸기: ${names.join(", ")}`, after, [index], key);
+  }
+
   /** 커맨드 하나를 따로 검사해 name 인자 자리의 오류만 본다 (하위 목록의 옛 오류는 막지 않는다) */
   private checkArgValue(cmd: JsonObject, name: string, schema: EventSchema): void {
     const probe = [{ id: "probe", x: 0, y: 0, commands: [cmd] }];

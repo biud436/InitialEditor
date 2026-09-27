@@ -5,6 +5,7 @@
 //   - 스키마 파일이 없는 프로젝트(플래피)에서는 레이어 줄도 힌트도 나오지 않고, 맵 메뉴의 이벤트 항목 셋과 창 메뉴의 이벤트도 빠진다
 //     (커맨드와 패널의 visible, 문서 2.5)
 //   - 복사, 붙여넣기, 복제, 지우기는 커맨드가 아니라 레이어 도구의 키다 (전역 edit.* 와 겹치지 않는다)
+//   - 맵 이동의 대상 고르기와 대상 보기는 타일맵의 맵 뷰 길(pickCell, revealCell)로 대상 맵을 연다 (ui/locationPick.ts)
 //   - 여기서 실행(Ctrl+F5)은 rpgPlay 제공자(priority 10)가 받는다. 이 이벤트 앞에서 실행과 자동 재생은 고른 이벤트 하나에 걸리는
 //     명령(맵 메뉴, 인스펙터의 단추, 목록의 우클릭)이고 타일맵의 실행 길(play)로 띄운다. 앱이 저장할지 묻고 러너에 넘긴다
 
@@ -18,6 +19,7 @@ import { commandClipboard } from "./ui/clipboard";
 import { EventClipboard } from "./ui/eventClipboard";
 import { createEventsLayer } from "./ui/eventsLayer";
 import { makeEventsPanel } from "./ui/EventsPanel";
+import { LocationPicker } from "./ui/locationPick";
 import { ImageUrls, type RpgPlayActions, type RpgUiServices } from "./ui/services";
 
 export const RPG_EXTENSION_ID = "rpg";
@@ -67,6 +69,7 @@ export const rpgExtension: Extension = {
       commandClipboard,
       imageUrl: images.url,
       notify: (message) => ws.toasts.warn(message),
+      location: new LocationPicker({ views: tilemap, documents: ws.documents, sources: store, notify: (message) => ws.toasts.warn(message) }),
     };
     const layer = createEventsLayer(services);
     api.onDeactivate(tilemap.registerMapLayer(layer));

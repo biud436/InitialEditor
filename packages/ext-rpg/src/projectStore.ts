@@ -5,6 +5,7 @@
 //   아이템 표                  아이템 칸의 제안과 없는 id 경고
 //   맵마다의 정의 파일(Lua)     같은 id 경고 (어림)
 //   등록된 맵 파일의 events     깃발과 변수 이름의 제안
+//   등록된 맵 파일의 엔진 판정   맵 이동의 대상 고르기가 막히는 이유 (파일 없음, 엔진이 열 수 없는 맵)
 //   resources/ 아래 파일 목록   외형과 얼굴을 후보 중 있는 파일로 풀기, 파일 고르기, 없는 파일 경고
 //   .initial-editor/rpg-play.json  맵마다의 시작 상태
 //
@@ -16,6 +17,7 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import { bareProjectPath, GAME_CONFIG_MISSING, GAME_CONFIG_PATH, parseGameConfig, parseItemTable, type GameConfig, type ItemTable } from "./model/game";
 import { asList, field, parseJsonLossless } from "./model/json";
 import type { RpgSources } from "./model/layer";
+import { checkMapFile, mapFileProblem, type MapFileCheck } from "./model/location";
 import { PLAY_MEMORY_PATH, readPlayMemory, writePlayMemory } from "./model/play";
 import { EVENT_SCHEMA_PATH, parseEventSchema, schemaLockReason, type EventSchema } from "./model/schema";
 import { defFileIds } from "./model/validate";
@@ -49,6 +51,8 @@ export class RpgProjectStore implements RpgSources {
   readonly defs = observable.map<string, ReadonlySet<string> | null>({}, { deep: false });
   /** 등록된 맵 파일 → events (제안 재료) */
   readonly mapEvents = observable.map<string, readonly unknown[]>({}, { deep: false });
+  /** 등록된 맵 파일 → 엔진 규칙의 판정 */
+  readonly mapChecks = observable.map<string, MapFileCheck>({}, { deep: false });
   /** 맵 경로 → 시작 상태 글 */
   readonly playMemory = observable.map<string, string>({}, { deep: false });
 
@@ -111,6 +115,17 @@ export class RpgProjectStore implements RpgSources {
     return out;
   }
 
+  /**
+   * 등록된 맵 파일을 엔진이 열 수 없는 이유. 열 수 있으면 null, 아직 모르거나 등록되지 않은 경로면 undefined.
+   * 파일 목록은 resources/ 아래만 알아서 그 밖의 타일셋 그림은 있다고 본다
+   */
+  mapFileProblem(path: string): string | null | undefined {
+    const key = bareProjectPath(path);
+    const exists = this.fileExists;
+    const imageExists = exists ? (p: string) => !(p === FILES_ROOT || p.startsWith(`${FILES_ROOT}/`)) || exists(p) : null;
+    return mapFileProblem(key, this.mapChecks.get(key), imageExists);
+  }
+
   startState(mapPath: string): string {
     return this.playMemory.get(bareProjectPath(mapPath)) ?? "";
   }
@@ -146,6 +161,7 @@ export class RpgProjectStore implements RpgSources {
     this.loaded = false;
     this.defs.clear();
     this.mapEvents.clear();
+    this.mapChecks.clear();
     this.playMemory.clear();
   }
 
@@ -242,6 +258,7 @@ export class RpgProjectStore implements RpgSources {
         if (e) events.set(p, e);
       });
       this.mapEvents.replace(events);
+      this.mapChecks.replace(new Map(mapPaths.map((p, i) => [p, checkMapFile(maps[i])])));
     });
   }
 
@@ -332,6 +349,7 @@ export class RpgProjectStore implements RpgSources {
       runInAction(() => {
         if (events) this.mapEvents.set(path, events);
         else this.mapEvents.delete(path);
+        this.mapChecks.set(path, checkMapFile(r));
       });
       return;
     }

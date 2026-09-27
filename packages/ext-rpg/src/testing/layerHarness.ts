@@ -2,14 +2,16 @@
 // 이벤트 레이어를 붙인다 (앱과 같은 길: TilemapContrib.registerMapLayer, 문서 열기). 소스는 MobX 관찰 가능한 고정 값이다.
 
 import { DocumentRegistry, MemoryBackend } from "@initial-editor/core";
-import { TilemapContrib, type MapLayerSpec } from "@initial-editor/ext-tilemap";
+import { TilemapContrib, type CellPickRequest, type MapLayerSpec, type Point } from "@initial-editor/ext-tilemap";
 import { MapDocument, parseMap } from "@initial-editor/ext-tilemap/model";
 import { action, makeObservable, observable } from "mobx";
 import type { GameConfig, ItemTable } from "../model/game";
 import { field } from "../model/json";
 import { EVENTS_LAYER_ID, eventsLayerCore, eventsStateOf, type EventsLayerState, type RpgSources } from "../model/layer";
+import { mapFileProblem, type MapFileCheck } from "../model/location";
 import { eventPlayBlocked, mapEventsOf, type EventPlayMode } from "../model/rpgPlay";
 import type { EventSchema } from "../model/schema";
+import type { MapViewsPort } from "../ui/locationPick";
 import type { RpgPlayActions, RpgStoreView } from "../ui/services";
 import { fixtureGame, fixtureItems, fixtureSchema, fixtureText } from "./fixtures";
 
@@ -39,6 +41,8 @@ export class MutableSources implements RpgStoreView {
   items: ItemTable | null = fixtureItems();
   files: Set<string> | null = new Set(HARNESS_FILES);
   defs = new Map<string, ReadonlySet<string>>();
+  /** 맵 파일의 엔진 판정. 없는 경로는 파일 목록에 있으면 ok, 없으면 missing */
+  readonly mapChecks = observable.map<string, MapFileCheck>({}, { deep: false });
   readonly memory = new Map<string, string>();
   /** setStartState 로 쓴 것 */
   readonly writes: Array<[string, string]> = [];
@@ -66,6 +70,11 @@ export class MutableSources implements RpgStoreView {
   get fileExists(): ((projectPath: string) => boolean) | null {
     const files = this.files;
     return files ? (p: string) => files.has(p.replace(/^\.\//, "")) : null;
+  }
+
+  mapFileProblem(path: string): string | null | undefined {
+    const check = this.mapChecks.get(path) ?? (this.files?.has(path) ? { kind: "ok" as const, images: [] } : { kind: "missing" as const });
+    return mapFileProblem(path, check, this.fileExists);
   }
 
   defIds(path: string): ReadonlySet<string> | null {
@@ -160,5 +169,38 @@ export class FakePlay implements RpgPlayActions {
   async run(doc: MapDocument, index: number, mode: EventPlayMode): Promise<boolean> {
     this.runs.push({ id: field(mapEventsOf(doc)[index], "id"), index, mode });
     return true;
+  }
+}
+
+/** 맵 뷰 길의 가짜: 고르기는 테스트가 end 로 끝낼 때까지 기다리고, 부른 것을 남긴다 */
+export class FakeMapViews implements MapViewsPort {
+  blocked: string | undefined = undefined;
+  readonly picks: CellPickRequest[] = [];
+  readonly reveals: Array<[string, Point]> = [];
+  private finish: ((cell: Point | null) => void) | null = null;
+
+  constructor() {
+    makeObservable(this, { blocked: observable });
+  }
+
+  pickCell(request: CellPickRequest): Promise<Point | null> {
+    this.picks.push(request);
+    return new Promise((resolve) => (this.finish = resolve));
+  }
+
+  async revealCell(path: string, cell: Point): Promise<boolean> {
+    this.reveals.push([path, cell]);
+    return true;
+  }
+
+  mapViewsBlocked(): string | undefined {
+    return this.blocked;
+  }
+
+  /** 고르던 것을 끝낸다 */
+  end(cell: Point | null): void {
+    const f = this.finish;
+    this.finish = null;
+    f?.(cell);
   }
 }

@@ -121,6 +121,30 @@ describe("바뀐 파일", () => {
     expect(store.projectEvents("resources/maps/inn.json", ["지금"])).toEqual([store.mapEvents.get("resources/maps/port_town.json"), ["지금"]]);
   });
 
+  it("등록된 맵 파일의 엔진 판정: 있으면 null, 없으면 이유, 엔진 규칙에 어긋나거나 타일셋 그림이 없으면 이유. 파일이 바뀌면 다시 판정한다", async () => {
+    const { store, m } = await opened();
+    expect(store.mapFileProblem("resources/maps/inn.json")).toBeNull();
+    expect(store.mapFileProblem("./resources/maps/port_town.json")).toBeNull();
+    expect(store.mapFileProblem("resources/maps/village.json")).toBe("맵 파일 없음: resources/maps/village.json");
+    // 등록되지 않은 경로는 모른다
+    expect(store.mapFileProblem("resources/maps/meadow.json")).toBeUndefined();
+    const inn = JSON.parse(rpgProjectFiles()["resources/maps/inn.json"] as string);
+    await m.backend.writeText("resources/maps/room.json", JSON.stringify({ ...inn, version: 9 }));
+    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/room.json")).toBe("엔진이 열 수 없는 맵: 모르는 맵 버전이다: 9 (지원: 1, 2)"));
+    await m.backend.writeText("resources/maps/village.json", JSON.stringify({ ...inn, tilesets: [{ image: "./resources/tiles/none.png", firstGid: 1, columns: 8 }] }));
+    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/village.json")).toBe("엔진이 열 수 없는 맵: 타일셋 그림 없음 (resources/tiles/none.png)"));
+    await m.backend.writeText("resources/tiles/none.png", "png");
+    expect(store.mapFileProblem("resources/maps/village.json")).toBeNull();
+    // resources 밖의 그림은 파일 목록이 모르므로 있다고 본다
+    await m.backend.writeText("resources/maps/village.json", JSON.stringify({ ...inn, tilesets: [{ image: "art/tiles.png", firstGid: 1, columns: 8 }] }));
+    await vi.waitFor(() => expect(store.mapChecks.get("resources/maps/village.json")).toEqual({ kind: "ok", images: ["art/tiles.png"] }));
+    expect(store.mapFileProblem("resources/maps/village.json")).toBeNull();
+    await m.backend.remove("resources/maps/inn.json");
+    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/inn.json")).toBe("맵 파일 없음: resources/maps/inn.json"));
+    m.close();
+    expect(store.mapFileProblem("resources/maps/port_town.json")).toBeUndefined();
+  });
+
   it("resources 아래 파일이 생기거나 지워지면 목록을 고친다", async () => {
     const { store, m } = await opened();
     await m.backend.writeText("resources/rtp/CharSet/People1.png", "png");

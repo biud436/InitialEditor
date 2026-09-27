@@ -8,6 +8,7 @@ import type { GameConfig, ItemTable } from "../model/game";
 import type { CommandClipboard } from "./clipboard";
 import type { ImageUrl } from "./argWidgets/context";
 import type { EventClipboard } from "./eventClipboard";
+import type { LocationPicker } from "./locationPick";
 
 /** 부품이 보는 저장소 (RpgProjectStore 가 맞는다. 테스트는 고정 값) */
 export interface RpgStoreView extends RpgSources {
@@ -33,6 +34,8 @@ export interface RpgUiServices {
   store: RpgStoreView;
   /** 이벤트 실행. 없으면 인스펙터와 목록에 실행 단추가 없다 */
   play?: RpgPlayActions;
+  /** 맵 이동의 대상 고르기와 대상 보기. 없으면 커맨드 폼에 두 단추가 없다 */
+  location?: LocationPicker;
   /** 열린 문서 (목록 패널이 활성 맵을 찾는다) */
   documents: DocumentRegistry;
   clipboard: EventClipboard;

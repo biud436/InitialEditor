@@ -1,5 +1,6 @@
 // 고른 커맨드 하나의 인자 폼 (e5 문서 4절). 위젯의 값은 setArg 로, 항목은 항목 명령으로 넣는다.
 // 타이핑은 초점 한 번이 되돌리기 한 단계이고(합치기 키), 고르기와 누르기는 한 번이 한 단계다.
+// 맵 위치 인자(맵 인자와 x, y)가 있는 커맨드는 인자 줄 아래에 맵에서 고르기와 대상 보기 단추가 있다 (location 을 받았을 때).
 
 import type { Command } from "@initial-editor/core";
 import { asList, engineLength, field, stringifyJsonLossless, type JsonObject } from "../model/json";
@@ -10,6 +11,7 @@ import type { EventProblem } from "../model/validate";
 import { ArgRow } from "./argWidgets/ArgField";
 import type { ArgContext } from "./argWidgets/context";
 import { OptionsArg, type OptionOps } from "./argWidgets/OptionsArg";
+import { LocationTools, type CommandLocationActions } from "./LocationTools";
 
 interface CommandFormProps {
   editor: EventEditor;
@@ -24,13 +26,15 @@ interface CommandFormProps {
   problems: readonly EventProblem[];
   /** 이 커맨드의 엔진 표기 (events[3].commands[2]) */
   location: string;
+  /** 맵 위치 인자의 고르기와 보기. 없으면 단추가 없다 */
+  locationActions?: CommandLocationActions;
 }
 
 function under(location: string, p: EventProblem): boolean {
   return p.location === location || p.location.startsWith(`${location}.`) || p.location.startsWith(`${location}[`);
 }
 
-export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, problems, location }: CommandFormProps) {
+export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, problems, location, locationActions }: CommandFormProps) {
   const optionsList = spec.lists.find((l) => l.perOption);
   const optionsName = optionsList?.perOption;
   // 모델의 항목 명령이 가지와 함께 맞추는 취소 번호 (commands.ts optionsCommand 의 cancel)
@@ -80,6 +84,7 @@ export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, pro
           }
           return <ArgRow key={a.name} {...common} onChange={(v, s) => void setArg(a.name, v, s)} />;
         })}
+      {locationActions?.applies(cmd) && <LocationTools cmd={cmd} path={path} actions={locationActions} />}
       {unknown.length > 0 && (
         <div className="rpg-unknown" data-testid="rpg-cmd-unknown">
           <div className="muted">스키마에 없는 인자 (지우지 않고 그대로 둔다)</div>

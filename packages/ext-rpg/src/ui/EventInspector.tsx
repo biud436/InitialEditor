@@ -2,7 +2,7 @@
 //   고른 것 없음   이 맵의 이벤트 수, 잠금 이유, 문제 목록 (누르면 그 이벤트를 고른다)
 //   여럿           고른 수와 id, 함께 지우기
 //   하나           이 이벤트 앞에서 실행과 자동 재생 단추, 스키마 event.fields 로 만든 칸 (인자 위젯), 칸마다의 문제,
-//                  아래 절반은 커맨드 목록 편집기
+//                  아래 절반은 커맨드 목록 편집기 (맵 이동의 대상 고르기와 대상 보기는 services.location 으로 잇는다)
 // 모든 편집은 레이어 상태의 run 으로 모델 명령을 doc.apply 에 넣는다 (한 동작이 되돌리기 한 단계, 타이핑은 초점 한 번이 한 단계).
 // id 를 바꾸면 이 맵의 moveRoute.target, turn.target 도 함께 바뀐다 (모델의 이름 바꾸기).
 
@@ -20,6 +20,7 @@ import type { EventProblem } from "../model/validate";
 import { ArgRow } from "./argWidgets/ArgField";
 import type { ArgContext } from "./argWidgets/context";
 import { CommandListEditor } from "./CommandListEditor";
+import type { CommandLocationActions } from "./LocationTools";
 import { triggerBadge } from "./markers";
 import type { RpgPlayActions, RpgUiServices } from "./services";
 import "./EventsLayer.css";
@@ -218,7 +219,7 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
       input?.focus();
       input?.select?.();
     } else if (hasCommands) {
-      setCmdFocus({ location: commandLocation(index, { list: [], index: 0 }), nonce: request.nonce });
+      setCmdFocus({ location: request.location ?? commandLocation(index, { list: [], index: 0 }), nonce: request.nonce });
     } else {
       root?.querySelector<HTMLElement>('[data-testid="rpg-cmd-tree"]')?.focus();
     }
@@ -254,6 +255,15 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
     if (r.ok) state.clearSelection();
     else setNotice(r.reason);
   };
+  const picker = services.location;
+  const location: CommandLocationActions | undefined = picker
+    ? {
+        applies: (cmd) => picker.applies(state, cmd),
+        blockers: (cmd) => picker.blockers(state, cmd),
+        pick: (path) => void picker.pick(state, index, path),
+        reveal: (path) => void picker.reveal(state, index, path),
+      }
+    : undefined;
   const badge = triggerBadge(field(ev, "trigger"));
   const x = field(ev, "x");
   const y = field(ev, "y");
@@ -312,6 +322,7 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
           confirm={services.confirm}
           onRefused={services.notify}
           focusRequest={cmdFocus}
+          location={location}
         />
       </div>
     </div>
