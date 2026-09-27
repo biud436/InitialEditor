@@ -108,6 +108,10 @@ export function compareMapFrame(map, frame, tol = CHANNEL_TOLERANCE) {
 export const LAYER_MIN_RATIO = 0.9;
 /** 레이어와 칠한 칸이 사각형 안에서 이만큼은 보여야 증명이 된다 */
 export const LAYER_MIN_PIXELS = 64;
+/** 칸 하나가 게임 화면과 같아야 하는 비율. 이보다 낮은 칸은 빠지거나 다르게 그려진 칸이다 */
+export const CELL_MIN_RATIO = 0.75;
+/** 그런 칸이 이보다 많으면 실패. 좋은 실행의 숲 화면은 플레이어가 덮은 한 칸만 어긋난다 */
+export const CELL_MAX_MISMATCH = 2;
 /** 맵 뷰 뽑기가 기준과 같아야 하는 비율 (둘 다 같은 타일셋을 1배로 그린다) */
 export const VIEW_REFERENCE_MIN_RATIO = 0.999;
 
@@ -249,6 +253,27 @@ export function referenceChecks({ map, images, rect, frame, capture = null, edit
 
   const all = matchFrame(ref, frame, scale, () => true, tol);
   checks.push({ name: `게임 화면이 저장한 맵의 타일과 같다 (레이어 전부, ${MAP_FRAME_MIN_RATIO * 100}% 이상)`, ok: all.count > 0 && all.ratio >= MAP_FRAME_MIN_RATIO, detail: pct(all) });
+
+  // 칸마다: 전체 비율은 몇 칸이 통째로 빠져도 문턱을 넘으므로, 기준이 불투명한 칸 하나하나를 따로 본다
+  const tw = map.tileWidth;
+  const th = map.tileHeight;
+  const bad = [];
+  let cells = 0;
+  for (let cy = Math.ceil(rect.y / th); (cy + 1) * th <= rect.y + rect.height; cy++) {
+    for (let cx = Math.ceil(rect.x / tw); (cx + 1) * tw <= rect.x + rect.width; cx++) {
+      const x0 = cx * tw - rect.x;
+      const y0 = cy * th - rect.y;
+      const m = matchFrame(ref, frame, scale, (x, y) => x >= x0 && x < x0 + tw && y >= y0 && y < y0 + th, tol);
+      if (m.count < (tw * th) / 4) continue;
+      cells++;
+      if (m.ratio < CELL_MIN_RATIO) bad.push(`${cx},${cy}`);
+    }
+  }
+  checks.push({
+    name: `칸마다 게임 화면이 저장한 맵과 같다 (칸의 ${CELL_MIN_RATIO * 100}% 이상, 어긋난 칸 ${CELL_MAX_MISMATCH} 개 이하)`,
+    ok: cells > 0 && bad.length <= CELL_MAX_MISMATCH,
+    detail: `${cells} 칸 가운데 ${bad.length} 칸 어긋남${bad.length ? `: ${bad.slice(0, 12).join(" ")}` : ""}`,
+  });
 
   (map.layers ?? []).forEach((layer, li) => {
     const without = renderMapRect(map, images, rect, { skipLayer: li });

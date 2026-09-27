@@ -361,7 +361,7 @@ describe("맵 뷰와 게임 화면 견주기 (mapFrame)", () => {
   }
 
   /** 게임 화면: 배경 위에 타일을 2배로, 주인공 자리에 땅을 조금 가리는 스프라이트 하나 (12x20) */
-  function gameOf(map: unknown, opts: { skipLayer?: number; noise?: number } = {}) {
+  function gameOf(map: unknown, opts: { skipLayer?: number; noise?: number; holes?: Array<[number, number]> } = {}) {
     const tiles = frame.renderMapRect(map, images(), RECT, opts.skipLayer === undefined ? {} : { skipLayer: opts.skipLayer }) as Img;
     const out = new Uint8Array(W * 2 * H * 2 * 4);
     for (let y = 0; y < H; y++) {
@@ -370,6 +370,8 @@ describe("맵 뷰와 게임 화면 견주기 (mapFrame)", () => {
         let rgb = tiles.rgba[i + 3] === 255 ? [tiles.rgba[i], tiles.rgba[i + 1], tiles.rgba[i + 2]] : BACKGROUND;
         if (x >= 186 && x < 198 && y >= 310 && y < 330) rgb = [250, 0, 250];
         if (opts.noise && (y * W + x) % 100 < opts.noise && tiles.rgba[i + 3] === 255) rgb = [255 - rgb[0], 0, 0];
+        // 게임이 빼먹은 칸 (맵 칸 좌표): 바탕색으로
+        if (opts.holes?.some(([cx, cy]) => Math.floor((x + RECT.x) / 16) === cx && Math.floor((y + RECT.y) / 16) === cy)) rgb = BACKGROUND;
         for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) out.set([...rgb, 255], ((y * 2 + dy) * W * 2 + x * 2 + dx) * 4);
       }
     }
@@ -422,9 +424,26 @@ describe("맵 뷰와 게임 화면 견주기 (mapFrame)", () => {
     // 뽑기와 게임 화면의 비율 검사는 deco 몫(1024/약 55000)이 작아 통과한다. 그것만으로는 모자랐던 이유다
     expect(r.lines.join("\n")).toMatch(/PASS {2}forest 실행 1 \(process, mapFrame\): 맵 뷰의 타일 픽셀이 게임 화면과 같다/);
     expect(failuresOf(r)).toEqual([
+      "칸마다 게임 화면이 저장한 맵과 같다 (칸의 75% 이상, 어긋난 칸 2 개 이하)",
       "레이어 deco 가 게임 화면에 있다 (그 레이어만 보이는 픽셀 64 개 이상, 90% 이상)",
       "칠한 칸 (80, 8) 이 게임 화면에 있다 (칠하기 전 gid 0 와 다른 픽셀 64 개 이상, 90% 이상)",
     ]);
+  });
+
+  it("실패: 게임이 바닥 타일 세 칸을 빼먹으면 전체 비율은 넘어도 칸 검사에서 떨어진다. 두 칸까지는 스프라이트 몫이다", () => {
+    const plan = forestPlan();
+    const { logs } = happy(plan);
+    const map = forestMap();
+    const run = (holes: Array<[number, number]>) => {
+      setup(plan, forestReport(plan, RECT), { ...logs, "forest-1.log": LOG, "forest-1.map.bmp": captureOf(map), "forest-1.bmp": gameOf(map, { holes }) });
+      return judge(plan);
+    };
+    const three = run([[64, 22], [65, 22], [66, 22]]);
+    expect(three.lines.join("\n")).toMatch(/PASS {2}forest 실행 1 \(process, mapFrame\): 게임 화면이 저장한 맵의 타일과 같다/);
+    expect(failuresOf(three)).toEqual(["칸마다 게임 화면이 저장한 맵과 같다 (칸의 75% 이상, 어긋난 칸 2 개 이하)"]);
+    expect(three.lines.join("\n")).toContain("64,22 65,22 66,22");
+    // 빠진 칸이 하나면 스프라이트 몫(두 칸) 안이라 통과
+    expect(failuresOf(run([[64, 22]]))).toEqual([]);
   });
 
   it("실패: 저장한 맵의 deco 가 비었으면(판정이 그 파일로 그린다) 레이어를 증명할 수 없고 칠한 칸도 없다", () => {
