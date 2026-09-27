@@ -2,7 +2,7 @@
   "comment": "scripts/sync-engine-rpg.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 같은 경로",
   "source": "checkout",
   "syncCommand": "yarn sync:rpg",
-  "engineCommit": "fab471059ac20b6aedcbee0f3a743eaddec796b4",
+  "engineCommit": "cac4b94e2dab79e13e5fd2ebdb6686fd23cfd33f",
   "syncedAt": "2026-09-27",
   "files": [
     {

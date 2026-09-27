@@ -2,6 +2,7 @@
 //   scripts/fetch-engine.mjs (yarn engine:fetch), scripts/check-engine-pin.mjs (yarn engine:check), scripts/check-sidecar.mjs.
 // 가짜 저장소(engine-pin.json)와 가짜 엔진 dist 폴더를 임시 폴더에 만들고 스크립트의 main 을 부른다.
 
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
@@ -174,6 +175,7 @@ describe("engineDist 공용 함수", () => {
     const rels = dist.findEngineManifests(REPO).map((m) => m.rel);
     expect(rels).toContain("packages/app/templates/MANIFEST.json");
     expect(rels).toContain("packages/app/public/engine/MANIFEST.json");
+    expect(rels).toContain("packages/ext-rpg/test/fixtures/MANIFEST.json");
     expect(rels.some((r) => r.includes("node_modules"))).toBe(false);
   });
 });
@@ -399,6 +401,63 @@ describe("yarn engine:check", () => {
     const bad = capture();
     expect(await checkPin.main({ repo, ...bad, fetchImpl: fakeFetch({ "Initial2D-web.zip": other }) })).toBe(1);
     expect(bad.lines.join("\n")).toContain("sha256 이 핀과 다르다");
+  });
+});
+
+describe("yarn sync:rpg 가 쓴 MANIFEST 와 yarn engine:check", () => {
+  const SYNC_RPG = path.join(REPO, "scripts", "sync-engine-rpg.mjs");
+  const FIXTURES = path.join(REPO, "packages", "ext-rpg", "test", "fixtures");
+  const git = (dir: string, ...args: string[]) =>
+    execFileSync("git", ["-C", dir, "-c", "user.name=t", "-c", "user.email=t@example.com", "-c", "commit.gpgsign=false", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+
+  /** 지금의 픽스처 사본으로 엔진 체크아웃 흉내 */
+  function fakeEngineCheckout(): string {
+    const dir = path.join(tmp, "engine");
+    const files = (JSON.parse(fs.readFileSync(path.join(FIXTURES, "MANIFEST.json"), "utf8")) as { files: Array<{ path: string }> }).files;
+    for (const f of files) write(path.join(dir, f.path), fs.readFileSync(path.join(FIXTURES, f.path)));
+    git(dir, "init", "-q", "-b", "main");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "fake engine");
+    return dir;
+  }
+
+  function syncRpg(engine: string, args: string[]) {
+    return spawnSync(process.execPath, [SYNC_RPG, ...args], { encoding: "utf8", env: { ...process.env, INITIAL2D_DIR: engine } });
+  }
+
+  it("체크아웃에서 쓴 MANIFEST 는 source 와 syncCommand 와 40자 커밋을 가지고, 핀이 그 커밋이면 engine:check 가 통과한다", async () => {
+    const engine = fakeEngineCheckout();
+    const head = git(engine, "rev-parse", "HEAD");
+    const repo = fakeRepo({ engineTag: null, engineCommit: head, ciEngineRef: null });
+    const out = path.join(repo, "packages", "ext-rpg", "test", "fixtures");
+    const r = syncRpg(engine, ["--out", out]);
+    expect(r.status, r.stderr).toBe(0);
+    const manifest = JSON.parse(fs.readFileSync(path.join(out, "MANIFEST.json"), "utf8")) as Record<string, unknown>;
+    expect(manifest).toMatchObject({ source: "checkout", syncCommand: "yarn sync:rpg", engineCommit: head });
+    expect(manifest.dirty).toBeUndefined();
+
+    const log = capture();
+    expect(await checkPin.main({ repo, ...log })).toBe(0);
+    expect(log.lines.join("\n")).toContain(`PASS  packages/ext-rpg/test/fixtures/MANIFEST.json (${head.slice(0, 7)}, checkout, yarn sync:rpg)`);
+
+    write(path.join(repo, "engine-pin.json"), JSON.stringify({ engineTag: null, engineCommit: COMMIT, ciEngineRef: null }));
+    const stale = capture();
+    expect(await checkPin.main({ repo, ...stale })).toBe(1);
+    expect(stale.lines.join("\n")).toContain(`엔진 커밋 ${head.slice(0, 7)} 이 핀 cac4b94 과 다르다`);
+  });
+
+  it("엔진의 작업 트리가 커밋과 다르면 멈추고, --allow-dirty 면 dirty 를 적는다. 모르는 인자는 2", () => {
+    const engine = fakeEngineCheckout();
+    fs.appendFileSync(path.join(engine, "resources", "data", "items.json"), "\n");
+    const out = path.join(tmp, "out");
+    const stopped = syncRpg(engine, ["--out", out]);
+    expect(stopped.status).toBe(1);
+    expect(stopped.stderr).toContain("작업 트리가 커밋과 다르다");
+    expect(fs.existsSync(out)).toBe(false);
+    const dirty = syncRpg(engine, ["--out", out, "--allow-dirty"]);
+    expect(dirty.status, dirty.stderr).toBe(0);
+    expect(JSON.parse(fs.readFileSync(path.join(out, "MANIFEST.json"), "utf8"))).toMatchObject({ dirty: true, source: "checkout" });
+    expect(syncRpg(engine, ["--bogus"]).status).toBe(2);
   });
 });
 
