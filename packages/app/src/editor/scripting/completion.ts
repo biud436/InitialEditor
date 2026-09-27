@@ -47,7 +47,6 @@ function toItem(s: Suggestion, range: monaco.IRange, index: number): monaco.lang
     sortText: `${s.kind === "hook" ? "0" : "1"}${String(index).padStart(4, "0")}`,
   };
   if (s.snippet) item.insertTextRules = monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet;
-  if (s.kind === "symbol") item.filterText = s.label.replace(/^:"?/, "");
   return item;
 }
 
@@ -72,7 +71,7 @@ function registerLanguage(lang: Lang, index: LangIndex): monaco.IDisposable[] {
       const ctx = analyzePrefix(prefix, lang);
       const list = candidates(index, ctx, lang, model.getValue());
       if (!list.length) return { suggestions: [] };
-      // 치던 단어를 통째로 바꾼다. Symbol 은 `:` 부터
+      // 치던 단어를 통째로 바꾼다. Symbol 은 `:` 부터라서 Monaco 는 친 `:sp` 를 라벨 `:space` 와 견준다
       const wordStart = position.column - ctx.word.length - (ctx.symbolArg && prefix.endsWith(":" + ctx.word) ? 1 : 0);
       const range: monaco.IRange = { startLineNumber: position.lineNumber, startColumn: Math.max(1, wordStart), endLineNumber: position.lineNumber, endColumn: position.column };
       return { suggestions: list.map((s, i) => toItem(s, range, i)) };

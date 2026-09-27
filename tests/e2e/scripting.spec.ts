@@ -1,6 +1,6 @@
 // 스크립트 편집 e2e (docs/plans/e1-scripting.md 마일스톤 1, 4, 5). 메모리 백엔드(?backend=memory)라 서버가 필요 없다.
 // 흐름: Monaco 로 열기 → 고치면 점 → 저장하면 점이 사라지고 토스트 → 다시 열면 남아 있다,
-//       외부 변경(미수정이면 다시 읽기, 수정 중이면 배너), 프로젝트 찾기, 자동완성(씬 계약 스니펫, 언어별 인자),
+//       외부 변경(미수정이면 다시 읽기, 수정 중이면 배너), 프로젝트 찾기, 자동완성(씬 계약 스니펫, 언어별 인자, Ruby Symbol 인자),
 //       새 스크립트, 수정한 탭 닫기 확인.
 
 import { expect, test, type Page } from "@playwright/test";
@@ -249,6 +249,19 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await expect(hints).toBeVisible();
     await expect(hints).toContainText("Audio.PlayMusic(path, id, loop) -> nil");
     await page.keyboard.press("Escape");
+  });
+
+  test("Ruby Symbol 인자: key_down?(: 뒤에 Keys 의 Symbol 이 뜨고 :sp 로 거르면 :space 가 들어간다", async ({ page }) => {
+    await openEmptyScript(page, "scripts/ruby/keys.rb", "ruby");
+    const suggest = page.locator(".monaco-editor .suggest-widget");
+    const symbolRow = (label: string) => suggest.locator(".monaco-list-row").filter({ has: page.locator(".label-name", { hasText: new RegExp(`^${label}$`) }) });
+    await page.keyboard.type("Input.key_down?(:");
+    await expect(symbolRow(":a")).toHaveCount(1);
+    await page.keyboard.type("sp");
+    await expect(symbolRow(":space")).toHaveCount(1);
+    await expect(suggest.locator(".monaco-list-row.focused")).toContainText(":space");
+    await page.keyboard.press("Enter");
+    await expect.poll(() => scriptText(page)).toBe("Input.key_down?(:space)");
   });
 
   test("편집 메뉴의 되돌리기와 다시 실행이 Monaco 의 스택을 쓴다", async ({ page }) => {
