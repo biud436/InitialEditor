@@ -1,10 +1,13 @@
 // 웹판의 폴더 열기 (browserFolders.ts). 저장하지 않은 문서를 묻는 곳에서 취소하면 기억한 기록과 이 페이지의 핸들이
 // 그대로여야 한다: 이름이 같은 두 폴더(a/game, b/game)에서 a 를 연 채 고치고, 폴더 열기로 b 를 고른 뒤 취소한다.
+// 샘플로 해 보기는 샘플 맵을 맵 뷰로 열고 칠하고 F5 안내를 한 번 띄운다.
 
 import { FsAccessBackend, HandleStore, MemoryFolderTable, type FolderRecord, type FsDirHandle } from "@initial-editor/backend-fsaccess";
 import { describe, expect, it } from "vitest";
-import { BrowserFolders } from "./browserFolders";
+import { SAMPLE_ROOT } from "./backends";
+import { BrowserFolders, SAMPLE_MAP_HINT } from "./browserFolders";
 import type { Editor } from "./Editor";
+import { SAMPLE_MAP_PATH } from "./sampleProject";
 
 /** 폴더 핸들 흉내. 기억(remember)은 이름만 본다 */
 function folder(name: string, where: string): FsDirHandle {
@@ -110,5 +113,51 @@ describe("BrowserFolders.openNew", () => {
     expect(state.open).toBe(key);
     expect(puts()).toBe(putsBefore);
     expect((await handles.list()).length).toBe(1);
+  });
+});
+
+describe("BrowserFolders.openSample", () => {
+  it("샘플을 열고 게임이 그리는 샘플 맵을 맵 뷰로 연다. 칠하고 F5 안내는 이 페이지에서 한 번만", async () => {
+    const opened: string[] = [];
+    const paths: string[] = [];
+    const toasts: Array<[string, string]> = [];
+    const editor = {
+      backend: new FsAccessBackend({ handles: new HandleStore(new MemoryFolderTable()) }),
+      events: { on: () => () => {} },
+      settings: { settings: { recentProjects: [] as string[] }, removeRecentProject: () => {} },
+      toasts: { info: () => {}, warn: () => {}, error: () => {}, show: (text: string, level: string) => toasts.push([text, level]) },
+      log: { error: () => {} },
+      replaceBackend: async () => true,
+      openProject: async (root: string) => {
+        opened.push(root);
+        return true;
+      },
+      openPath: async (p: string) => {
+        paths.push(p);
+      },
+    };
+    const folders = new BrowserFolders(editor as unknown as Editor);
+    expect(await folders.openSample()).toBe(true);
+    expect(await folders.openSample()).toBe(true);
+    expect(opened).toEqual([SAMPLE_ROOT, SAMPLE_ROOT]);
+    expect(paths).toEqual([SAMPLE_MAP_PATH, SAMPLE_MAP_PATH]);
+    expect(toasts).toEqual([[SAMPLE_MAP_HINT, "info"]]);
+  });
+
+  it("샘플 프로젝트를 열지 못하면 맵을 열지 않는다", async () => {
+    const paths: string[] = [];
+    const editor = {
+      backend: new FsAccessBackend({ handles: new HandleStore(new MemoryFolderTable()) }),
+      events: { on: () => () => {} },
+      settings: { settings: { recentProjects: [] as string[] }, removeRecentProject: () => {} },
+      toasts: { show: () => {} },
+      replaceBackend: async () => true,
+      openProject: async () => false,
+      openPath: async (p: string) => {
+        paths.push(p);
+      },
+    };
+    expect(await new BrowserFolders(editor as unknown as Editor).openSample()).toBe(false);
+    expect(paths).toEqual([]);
   });
 });

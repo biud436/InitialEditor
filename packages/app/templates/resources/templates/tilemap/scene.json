@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "main",
+  "objects": [
+    { "id": "map", "type": "tilemap", "x": 0, "y": 0, "visible": true,
+      "props": { "map": "resources/maps/start.json", "groundLayers": 1 },
+      "scripts": [] }
+  ]
+}

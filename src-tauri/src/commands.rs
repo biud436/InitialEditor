@@ -6,7 +6,8 @@
 //   fs_list(rel), fs_read_text(rel), fs_read_binary(rel) → 바이트(ArrayBuffer), fs_write_text(rel, text),
 //   fs_write_binary(raw body + 헤더 x-rel), fs_mkdir(rel), fs_remove(rel), fs_rename(from, to), fs_exists(rel)
 //   hmr_push(host, port, files[{path, data(base64)}]) → { count }
-//   engine_run(exe, cwd, args, env) → { id, pid }, engine_stop(id), engine_features(exe) → string[]
+//   engine_run(exe, cwd, args, env) → { id, pid }, engine_stop(id), engine_features(exe, timeout_ms?) → string[]
+//   engine_exists(paths) → boolean[], engine_bundled() → { path, meta, metaError? } | null
 //   settings_load() → string | null, settings_save(json)
 // 이벤트: fs:change { path, kind, origin }, engine:output { id, stream, line }, engine:exit { id, code }
 //
@@ -21,6 +22,7 @@ use percent_encoding::percent_decode_str;
 use tauri::ipc::{InvokeBody, Request, Response};
 use tauri::{AppHandle, Emitter, Manager, State};
 
+use crate::bundled::{self, BundledEngine};
 use crate::engine::{self, EngineState, RunInfo};
 use crate::error::{BackendError, ErrorCode, Result};
 use crate::fsutil::lock;
@@ -187,9 +189,56 @@ pub fn engine_stop(engine: State<'_, Arc<EngineState>>, id: u32) -> Result<()> {
     engine.stop(id)
 }
 
+/// `exe --features`. timeout_ms 가 없으면 5초 (앱에 든 엔진은 프런트가 15초를 준다). 결과를 stderr 에 한 줄 남긴다
 #[tauri::command(async)]
-pub fn engine_features(exe: String) -> Result<Vec<String>> {
-    engine::features(&exe)
+pub fn engine_features(exe: String, timeout_ms: Option<u64>) -> Result<Vec<String>> {
+    let started = std::time::Instant::now();
+    let result = engine::features(&exe, engine::features_timeout(timeout_ms));
+    let ms = started.elapsed().as_millis();
+    match &result {
+        Ok(words) => eprintln!(
+            "[initial-editor] {exe} --features: {} ({ms} ms)",
+            words.join(" ")
+        ),
+        Err(e) => eprintln!(
+            "[initial-editor] {exe} --features 실패 ({ms} ms): {}",
+            e.message
+        ),
+    }
+    result
+}
+
+/// 경로마다 파일이 있는지. 실행하지 않는다 (신뢰를 묻기 전의 확인)
+#[tauri::command(async)]
+pub fn engine_exists(paths: Vec<String>) -> Vec<bool> {
+    engine::exists(&paths)
+}
+
+/// 메인 실행 파일 옆의 사이드카와 번들 리소스의 engine.json. 사이드카가 없으면 null
+#[tauri::command(async)]
+pub fn engine_bundled(app: AppHandle) -> Option<BundledEngine> {
+    let exe = std::env::current_exe().ok()?;
+    let dir = exe.parent()?;
+    let resources = app.path().resource_dir().ok();
+    let found = bundled::find(dir, resources.as_deref());
+    match &found {
+        Some(engine) => eprintln!(
+            "[initial-editor] 앱에 든 엔진: {} ({})",
+            engine.path,
+            engine
+                .meta
+                .as_ref()
+                .map(|m| format!(
+                    "{} {}",
+                    m.describe.as_deref().unwrap_or(""),
+                    m.engine_commit
+                ))
+                .or_else(|| engine.meta_error.clone())
+                .unwrap_or_default()
+        ),
+        None => eprintln!("[initial-editor] 앱에 든 엔진 없음 ({})", dir.display()),
+    }
+    found
 }
 
 fn config_dir(app: &AppHandle) -> Result<PathBuf> {
@@ -218,5 +267,7 @@ pub fn startup_open_path() -> Option<String> {
         }
     }
     let args: Vec<String> = std::env::args().collect();
-    args.iter().position(|a| a == "--open").and_then(|i| args.get(i + 1).cloned())
+    args.iter()
+        .position(|a| a == "--open")
+        .and_then(|i| args.get(i + 1).cloned())
 }

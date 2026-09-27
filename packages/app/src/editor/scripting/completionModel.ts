@@ -5,12 +5,27 @@
 //      Sprite.Create 와 Sprite.SetPosition(id, ...) 로 전부 테이블 멤버다.
 // Ruby: Graphics.draw_text, Input.press?, Keys::SPACE, 그리고 sprite.position= 같은 인스턴스 메서드.
 //       Input 의 술어에는 Keys 상수를 소문자 Symbol(:space)로 낸다.
+// 인자, 타입, 반환은 언어별 값(luaParams, rubyType, rubyReturns 등)을 쓰고, 씬 계약 스니펫의 이름은 그 언어에서
+// 엔진이 부르는 이름이다 (Lua Initialize, Ruby init).
 
-import type { ApiFunction, ApiParam, ApiSpec, SceneHook } from "./apiSpec";
+import { hookName, paramsFor, paramType, returnsFor, type ApiFunction, type ApiParam, type ApiReturns, type ApiSpec, type ApiValue, type SceneHook, type ScriptLanguage } from "./apiSpec";
 
-export type Lang = "lua" | "ruby";
+export type Lang = ScriptLanguage;
 
 export type SuggestionKind = "module" | "class" | "function" | "method" | "constructor" | "property" | "constant" | "hook" | "symbol";
+
+export interface SignatureParam {
+  /** 시그니처 글에서 이 인자가 차지하는 범위 [시작, 끝) */
+  range: [number, number];
+  /** 타입, 기본값, 설명 */
+  doc: string;
+}
+
+export interface Signature {
+  /** 예: "Audio.play_music(path, id, loop = true) -> boolean" */
+  label: string;
+  params: SignatureParam[];
+}
 
 export interface Suggestion {
   label: string;
@@ -21,9 +36,14 @@ export interface Suggestion {
   /** 한 줄 시그니처. 예: "Graphics.draw_text(x, y, text) -> nil" */
   detail: string;
   doc: string;
+  /** 그 언어의 인자 (type 은 luaType, rubyType 을 반영한 값) */
   params: ApiParam[];
+  /** 그 언어의 반환 타입. Lua 의 여러 값은 쉼표로 잇는다 */
   returns?: string;
   alias?: boolean;
+  aliasOf?: string;
+  /** 시그니처 도움말. 첫째가 본 꼴이고 나머지는 다른 인자 꼴(overloads) */
+  signatures: Signature[];
 }
 
 export interface LangIndex {
@@ -35,7 +55,7 @@ export interface LangIndex {
   instanceMethods: Suggestion[];
   /** Ruby: Keys 상수의 Symbol 꼴 (:space). Lua 는 비어 있다 */
   symbols: Suggestion[];
-  /** 씬 계약 네 함수의 스니펫 */
+  /** 씬 계약 함수의 스니펫. 이름은 그 언어에서 엔진이 부르는 이름 (Lua Initialize, Ruby init) */
   hooks: Suggestion[];
   /** 시그니처 도움말과 호버용. 키는 "Graphics.draw_text", "DrawText", "Input.press?", 인스턴스 메서드는 "#set_position" */
   callables: Map<string, Suggestion>;
@@ -43,18 +63,66 @@ export interface LangIndex {
   named: Map<string, Suggestion>;
 }
 
-function paramLabel(p: ApiParam): string {
-  return p.optional ? `${p.name}?` : p.name;
+/** 기본값과 상수 값을 코드 글자로. null 은 nil, 문자열은 따옴표 */
+export function literal(value: ApiValue): string {
+  if (value === null) return "nil";
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
 }
 
-function signature(name: string, params: ApiParam[], returns?: string): string {
-  const inner = params.map(paramLabel).join(", ");
-  return `${name}(${inner})${returns ? ` -> ${returns}` : ""}`;
+/** 시그니처 속 인자 표기. Lua 선택 인자는 name?, Ruby 선택 인자는 name = 기본값, 가변 인자는 Lua ... 와 Ruby *name */
+function paramLabel(p: ApiParam, lang: Lang): string {
+  if (p.variadic) return lang === "lua" ? "..." : `*${p.name.replace(/^\.+/, "") || "args"}`;
+  if (!p.optional) return p.name;
+  return lang === "ruby" ? `${p.name} = ${literal(p.default ?? null)}` : `${p.name}?`;
 }
 
-/** 호출 스니펫: 필수 인자는 자리표시자, 필수가 없고 선택만 있으면 $1, 없으면 빈 괄호 */
+/** 인자 설명 한 줄: 타입, 기본값, 설명 */
+export function paramDoc(p: ApiParam): string {
+  const parts: string[] = [];
+  if (p.type) parts.push(`타입: ${p.type}`);
+  if (p.default !== undefined) parts.push(`기본값: ${literal(p.default)}`);
+  if (p.doc) parts.push(p.doc);
+  return parts.join(". ");
+}
+
+function returnsText(returns: ApiReturns | undefined): string | undefined {
+  if (returns === undefined) return undefined;
+  return Array.isArray(returns) ? returns.join(", ") : returns;
+}
+
+/** 인자 목록을 그 언어의 것으로: type 에 luaType 이나 rubyType 을 넣고 두 키는 뺀다 */
+function resolveParams(params: ApiParam[], lang: Lang): ApiParam[] {
+  return params.map((p) => {
+    const out: ApiParam = { name: p.name };
+    const type = paramType(p, lang);
+    if (type) out.type = type;
+    if (p.optional) out.optional = true;
+    if (p.default !== undefined) out.default = p.default;
+    if (p.variadic) out.variadic = true;
+    if (p.doc) out.doc = p.doc;
+    return out;
+  });
+}
+
+/** 시그니처 글과 인자별 범위 */
+function buildSignature(name: string, params: ApiParam[], returns: string | undefined, lang: Lang): Signature {
+  let label = `${name}(`;
+  const out: SignatureParam[] = [];
+  params.forEach((p, i) => {
+    if (i > 0) label += ", ";
+    const text = paramLabel(p, lang);
+    out.push({ range: [label.length, label.length + text.length], doc: paramDoc(p) });
+    label += text;
+  });
+  label += ")";
+  if (returns) label += ` -> ${returns}`;
+  return { label, params: out };
+}
+
+/** 호출 스니펫: 필수 인자는 placeholder, 필수가 없고 선택이나 가변 인자만 있으면 $1, 없으면 빈 괄호 */
 function callInsert(name: string, params: ApiParam[], emptyParens: boolean): { insert: string; snippet: boolean } {
-  const required = params.filter((p) => !p.optional);
+  const required = params.filter((p) => !p.optional && !p.variadic);
   if (required.length > 0) {
     const parts = required.map((p, i) => `\${${i + 1}:${p.name}}`);
     return { insert: `${name}(${parts.join(", ")})`, snippet: true };
@@ -63,8 +131,8 @@ function callInsert(name: string, params: ApiParam[], emptyParens: boolean): { i
   return { insert: emptyParens ? `${name}()` : name, snippet: false };
 }
 
-function suggestion(partial: Omit<Suggestion, "snippet" | "insert"> & Partial<Pick<Suggestion, "snippet" | "insert">>): Suggestion {
-  return { insert: partial.label, snippet: false, ...partial };
+function suggestion(partial: Omit<Suggestion, "snippet" | "insert" | "signatures"> & Partial<Pick<Suggestion, "snippet" | "insert" | "signatures">>): Suggestion {
+  return { insert: partial.label, snippet: false, signatures: [], ...partial };
 }
 
 /** Lua 클래스 메서드는 핸들을 첫 인자로 받는다. 명세가 이미 적었으면(id, handle, h) 그대로 둔다 */
@@ -74,56 +142,92 @@ function luaMethodParams(params: ApiParam[], handleName: string): ApiParam[] {
   return [{ name: handleName, type: "number" }, ...params];
 }
 
-function luaFunction(fullName: string, label: string, fn: ApiFunction, kind: SuggestionKind, params = fn.params): Suggestion {
+type ParamTransform = (params: ApiParam[]) => ApiParam[];
+
+function luaFunction(fullName: string, label: string, fn: ApiFunction, kind: SuggestionKind, transform: ParamTransform = (p) => p): Suggestion {
+  const params = transform(resolveParams(paramsFor(fn, "lua"), "lua"));
+  const returns = returnsText(returnsFor(fn, "lua"));
+  const main = buildSignature(fullName, params, returns, "lua");
+  const overloads = (fn.overloads ?? []).map((o) => buildSignature(fullName, transform(resolveParams(o, "lua")), returns, "lua"));
   const call = callInsert(label, params, true);
-  return { label, kind, detail: signature(fullName, params, fn.returns), doc: fn.doc ?? "", params, returns: fn.returns, alias: fn.alias, ...call };
+  return { label, kind, detail: main.label, doc: fn.doc ?? "", params, returns, alias: fn.alias, aliasOf: fn.aliasOf, signatures: [main, ...overloads], ...call };
 }
 
 function rubyFunction(fullName: string, label: string, fn: ApiFunction, fallbackKind: SuggestionKind): Suggestion {
   const rubyKind = fn.rubyKind ?? "method";
+  const params = resolveParams(paramsFor(fn, "ruby"), "ruby");
+  const returns = returnsText(returnsFor(fn, "ruby"));
   const doc = fn.doc ?? "";
   switch (rubyKind) {
-    case "getter":
-      return suggestion({ label, kind: "property", detail: `${fullName}${fn.returns ? ` -> ${fn.returns}` : ""}`, doc, params: [], returns: fn.returns, alias: fn.alias });
+    case "getter": {
+      const detail = `${fullName}${returns ? ` -> ${returns}` : ""}`;
+      return suggestion({ label, kind: "property", detail, doc, params: [], returns, alias: fn.alias, aliasOf: fn.aliasOf, signatures: [{ label: detail, params: [] }] });
+    }
     case "setter": {
       const base = label.endsWith("=") ? label.slice(0, -1) : label;
-      const valueName = fn.params[0]?.name ?? "value";
+      const valueName = params[0]?.name ?? "value";
+      const detail = `${fullName.endsWith("=") ? fullName.slice(0, -1) : fullName} = ${valueName}`;
+      const value: SignatureParam[] = params[0] ? [{ range: [detail.length - valueName.length, detail.length], doc: paramDoc(params[0]) }] : [];
       return suggestion({
         label: `${base} =`,
         insert: `${base} = \${1:${valueName}}`,
         snippet: true,
         kind: "property",
-        detail: `${fullName.endsWith("=") ? fullName.slice(0, -1) : fullName} = ${valueName}`,
+        detail,
         doc,
-        params: fn.params,
+        params,
         alias: fn.alias,
+        aliasOf: fn.aliasOf,
+        signatures: [{ label: detail, params: value }],
       });
     }
     default: {
-      const call = callInsert(label, fn.params, false);
-      return { label, kind: rubyKind === "predicate" ? "method" : fallbackKind, detail: signature(fullName, fn.params, fn.returns), doc, params: fn.params, returns: fn.returns, alias: fn.alias, ...call };
+      const main = buildSignature(fullName, params, returns, "ruby");
+      const overloads = (fn.overloads ?? []).map((o) => buildSignature(fullName, resolveParams(o, "ruby"), returns, "ruby"));
+      const call = callInsert(label, params, false);
+      const kind = rubyKind === "predicate" ? "method" : fallbackKind;
+      return { label, kind, detail: main.label, doc, params, returns, alias: fn.alias, aliasOf: fn.aliasOf, signatures: [main, ...overloads], ...call };
     }
   }
 }
 
-function hookSuggestion(hook: SceneHook, lang: Lang): Suggestion {
-  const params = hook.params.map((p) => p.name).join(", ");
-  const insert = lang === "lua" ? `function ${hook.name}(${params})\n\t$0\nend` : `def ${hook.name}${params ? `(${params})` : ""}\n\t$0\nend`;
+const HOOK_DOC = "엔진이 씬을 열고 닫을 때와 프레임마다 호출하는 함수";
+
+/** 씬 계약 스니펫. 그 언어에 없는 함수(이름이 null)는 null */
+function hookSuggestion(hook: SceneHook, lang: Lang): Suggestion | null {
+  const name = hookName(hook, lang);
+  if (!name) return null;
+  const params = resolveParams(hook.params, lang);
+  const names = params.map((p) => p.name).join(", ");
+  const insert = lang === "lua" ? `function ${name}(${names})\n\t$0\nend` : `def ${name}${names ? `(${names})` : ""}\n\t$0\nend`;
+  const required = lang === "lua" && hook.luaRequired === true;
+  const rule = required ? "필수 함수 (엔진이 정의 여부를 확인하지 않고 호출)" : "선택 함수 (정의된 것만 호출)";
   return {
-    label: hook.name,
+    label: name,
     insert,
     snippet: true,
     kind: "hook",
-    detail: `씬 계약: ${hook.name}(${params})`,
-    doc: hook.doc ?? "엔진이 프레임마다 또는 씬이 열리고 닫힐 때 부른다. 있는 것만 부른다.",
-    params: hook.params,
+    detail: `씬 계약: ${name}(${names})`,
+    doc: `${hook.doc ?? HOOK_DOC}\n\n${rule}`,
+    params,
+    signatures: [],
   };
+}
+
+function hooksFor(spec: ApiSpec, lang: Lang): Suggestion[] {
+  return spec.sceneContract.map((h) => hookSuggestion(h, lang)).filter((s): s is Suggestion => s !== null);
 }
 
 function put(map: Map<string, Suggestion[]>, key: string, value: Suggestion): void {
   const list = map.get(key);
   if (list) list.push(value);
   else map.set(key, [value]);
+}
+
+/** 상수 값이 있으면 " = 32" */
+function valueSuffix(values: Record<string, ApiValue> | undefined, name: string): string {
+  const value = values?.[name];
+  return value === undefined ? "" : ` = ${literal(value)}`;
 }
 
 function buildLuaIndex(spec: ApiSpec): LangIndex {
@@ -162,11 +266,13 @@ function buildLuaIndex(spec: ApiSpec): LangIndex {
       put(index.members, cls.lua, s);
       index.callables.set(full, s);
     }
+    // luaStyle 이 handle 인 클래스의 메서드는 숫자 핸들을 첫 인자로 받는다
     const handleName = cls.lua === "Tilemap" ? "handle" : "id";
+    const withHandle: ParamTransform | undefined = cls.luaStyle === "handle" ? (params) => luaMethodParams(params, handleName) : undefined;
     for (const m of cls.methods) {
       if (m.lua === null) continue;
       const full = `${cls.lua}.${m.lua}`;
-      const s = luaFunction(full, m.lua, m, "method", luaMethodParams(m.params, handleName));
+      const s = luaFunction(full, m.lua, m, "method", withHandle);
       put(index.members, cls.lua, s);
       index.callables.set(full, s);
     }
@@ -176,9 +282,9 @@ function buildLuaIndex(spec: ApiSpec): LangIndex {
     const s = suggestion({ label: c.lua, kind: "module", detail: `상수 ${c.lua}`, doc: c.doc ?? "", params: [] });
     index.globals.push(s);
     index.named.set(c.lua, s);
-    for (const name of c.names) put(index.members, c.lua, suggestion({ label: name, kind: "constant", detail: `${c.lua}.${name}`, doc: "", params: [] }));
+    for (const name of c.names) put(index.members, c.lua, suggestion({ label: name, kind: "constant", detail: `${c.lua}.${name}${valueSuffix(c.values, name)}`, doc: "", params: [] }));
   }
-  index.hooks = spec.sceneContract.map((h) => hookSuggestion(h, "lua"));
+  index.hooks = hooksFor(spec, "lua");
   return index;
 }
 
@@ -227,12 +333,12 @@ function buildRubyIndex(spec: ApiSpec): LangIndex {
     index.globals.push(s);
     index.named.set(c.ruby, s);
     for (const name of c.names) {
-      put(index.members, c.ruby, suggestion({ label: name, kind: "constant", detail: `${c.ruby}::${name}`, doc: "", params: [] }));
+      put(index.members, c.ruby, suggestion({ label: name, kind: "constant", detail: `${c.ruby}::${name}${valueSuffix(c.values, name)}`, doc: "", params: [] }));
       const sym = symbolFor(name);
       index.symbols.push(suggestion({ label: sym, kind: "symbol", detail: `${c.ruby}::${name} 의 Symbol`, doc: "", params: [] }));
     }
   }
-  index.hooks = spec.sceneContract.map((h) => hookSuggestion(h, "ruby"));
+  index.hooks = hooksFor(spec, "ruby");
   return index;
 }
 
@@ -274,9 +380,14 @@ export function analyzePrefix(prefix: string, lang: Lang): PrefixContext {
   return { receiver: null, separator: null, word: word?.[1] ?? "", symbolArg: false };
 }
 
-/** 문서에 이미 정의된 씬 함수인가 (function init / def init) */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** 문서에 이미 정의된 씬 함수인가 (Lua function Initialize(, Ruby def init). 이름은 대소문자까지 같아야 한다 */
 export function hasHook(docText: string, name: string, lang: Lang): boolean {
-  const re = lang === "lua" ? new RegExp(`^\\s*(local\\s+)?function\\s+${name}\\s*\\(`, "m") : new RegExp(`^\\s*def\\s+${name}\\b`, "m");
+  const n = escapeRegExp(name);
+  const re = lang === "lua" ? new RegExp(`^\\s*(local\\s+)?function\\s+${n}\\s*\\(`, "m") : new RegExp(`^\\s*def\\s+${n}(?![\\w?!=])`, "m");
   return re.test(docText);
 }
 
@@ -353,4 +464,21 @@ export function lookupHover(index: LangIndex, receiver: string | null, word: str
     return index.callables.get(`#${word}`);
   }
   return index.callables.get(word) ?? index.named.get(word);
+}
+
+/** 인자 번호에 맞는 시그니처: 그 번호의 인자가 있는 첫 꼴, 없으면 본 꼴 */
+export function pickSignature(signatures: Signature[], activeParameter: number): number {
+  const i = signatures.findIndex((sig) => activeParameter < sig.params.length);
+  return i >= 0 ? i : 0;
+}
+
+/** 완성 항목 문서와 호버의 마크다운: 시그니처(다른 꼴 포함), 설명, 인자별 타입과 기본값, 별명 */
+export function describe(s: Suggestion): string {
+  const lines: string[] = [];
+  if (s.detail) lines.push("```\n" + [s.detail, ...s.signatures.slice(1).map((sig) => sig.label)].join("\n") + "\n```");
+  if (s.doc) lines.push(s.doc);
+  const params = s.params.map((p) => ({ name: p.name, doc: paramDoc(p) })).filter((p) => p.doc);
+  if (params.length) lines.push(params.map((p) => `- \`${p.name}\`: ${p.doc}`).join("\n"));
+  if (s.alias) lines.push(s.aliasOf ? `_별명_: \`${s.aliasOf}\`` : "_별명_");
+  return lines.join("\n\n");
 }

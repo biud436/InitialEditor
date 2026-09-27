@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite --port 5173 --strictPort",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "build:desktop": "tsc -p tsconfig.json --noEmit && VITE_SOURCEMAP=0 vite build",
     "preview": "vite preview --strictPort",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

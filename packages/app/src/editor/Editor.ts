@@ -27,6 +27,7 @@ import { makeObservable, observable, runInAction } from "mobx";
 import { matchMediaSource, ThemeController, type SystemThemeSource, type ThemeTarget } from "../theme/ThemeController";
 import { registerAppCommands } from "./appCommands";
 import { registerAppMenus } from "./appMenus";
+import { installAndroidStage } from "./android";
 import { installGameView, type GameViewStore } from "./gameView";
 import { installRunner } from "./runner";
 import type { RunnerStore } from "./runner/RunnerStore";
@@ -179,6 +180,7 @@ export class Editor {
     installSceneTools(this);
     this.disposers.push(installGameView(this)); // 실행기보다 먼저: 실행기가 에디터 안 실행을 받는다
     installRunner(this);
+    installAndroidStage(this); // 실행기 뒤에: 찾은 엔진에서 엔진 저장소 후보 하나가 나온다
     installMapSchema(this);
     this.disposers.push(registerExtensionPanelCommands(this));
     try {

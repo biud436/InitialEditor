@@ -543,3 +543,178 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     }
   });
 });
+
+const SAMPLE_MAP_HINT = "샘플 게임이 그리는 맵이다. 팔레트에서 타일을 골라 칠하고 저장한 뒤 F5 로 돌려 본다";
+const WEB_NO_RUBY = "웹판에서는 실행하지 못한다 (데스크톱 앱에서 돈다)";
+
+/** engine/MANIFEST.json 을 가로채 기능에서 mruby 를 뺀다 (mruby 없는 웹 엔진 빌드 흉내) */
+async function withoutMruby(page: Page) {
+  await page.route("**/engine/MANIFEST.json", async (route) => {
+    const res = await route.fetch();
+    const manifest = (await res.json()) as { features: string[] };
+    await route.fulfill({ response: res, json: { ...manifest, features: manifest.features.filter((f) => f !== "mruby") } });
+  });
+}
+
+test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
+  test("샘플로 해 보기는 게임이 그리는 샘플 맵을 연 채로 뜨고 칠하고 F5 안내를 한 번 띄운다. 아래 줄은 데스크톱 앱 받기와 웹판에서 안 되는 것", async ({ page }) => {
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    const footer = page.getByTestId("welcome-web");
+    await expect(footer.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
+    await expect(footer.getByTestId("welcome-edition")).toHaveAttribute("href", "https://github.com/biud436/InitialEditor/releases");
+    await expect(footer.getByTestId("welcome-edition")).not.toHaveAttribute("target", /.+/);
+    // 이 웹 엔진 빌드에는 mruby 가 있어 Ruby 실행은 안 되는 것에 없다
+    await expect(page.getByTestId("welcome-web-limits")).toHaveText("웹판에서 안 되는 것: 엔진 프로세스 실행, 안드로이드 스테이징. 데스크톱 앱에서 된다.");
+
+    await welcome.getByRole("button", { name: "샘플로 해 보기" }).click();
+    await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
+    await expect(page.getByTestId("toasts")).toContainText(SAMPLE_MAP_HINT);
+    expect(await page.evaluate(() => (window as unknown as { initialEditor: { documents: { active: { path: string } | null } } }).initialEditor.documents.active?.path)).toBe("resources/maps/meadow.json");
+    // 같은 페이지에서 다시 열면 맵은 열지만 안내는 다시 띄우지 않는다
+    await page.evaluate(() => {
+      const toasts = (window as unknown as { initialEditor: { toasts: { toasts: { id: number }[]; dismiss(id: number): void } } }).initialEditor.toasts;
+      for (const t of [...toasts.toasts]) toasts.dismiss(t.id);
+    });
+    await expect(page.getByTestId("toasts")).not.toContainText(SAMPLE_MAP_HINT);
+    await openMenu(page, "파일", "프로젝트 닫기");
+    await page.getByTestId("welcome").getByRole("button", { name: "샘플로 해 보기" }).click();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await page.waitForTimeout(300);
+    await expect(page.getByTestId("toasts")).not.toContainText(SAMPLE_MAP_HINT);
+  });
+
+  test("웹 엔진에 mruby 가 없으면 아래 줄에 Ruby 게임 실행이 붙는다", async ({ page }) => {
+    await withoutMruby(page);
+    await page.goto("/?backend=browser");
+    await expectBrowserWelcome(page);
+    await expect(page.getByTestId("welcome-web-limits")).toHaveText("웹판에서 안 되는 것: 엔진 프로세스 실행, 안드로이드 스테이징, Ruby 게임 실행. 데스크톱 앱에서 된다.");
+  });
+});
+
+test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
+  test("시작 화면의 새 프로젝트: 빈 폴더를 고르고 플래피(Lua)를 만들면 그 폴더가 브라우저 폴더로 열리고 기억되며, F5 로 게임 탭에서 돈다", async ({ browser, context, page }) => {
+    await context.addInitScript(PICKER_STUB);
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "newgame"));
+    await welcome.getByRole("button", { name: "새 프로젝트", exact: true }).click();
+
+    const form = page.getByTestId("new-project-dialog");
+    await expect(form).toBeVisible();
+    await expect(form).toContainText("newgame");
+    await expect(page.getByTestId("new-project-name")).toHaveValue("newgame");
+    await page.getByTestId("new-project-template").selectOption("flappy");
+    // 이 웹 엔진 빌드에는 mruby 가 있어 Ruby 를 골라도 안내가 없다
+    await page.getByTestId("new-project-language").selectOption("mruby");
+    await expect(page.getByTestId("new-project-ruby-note")).toHaveCount(0);
+    await page.getByTestId("new-project-language").selectOption("lua");
+    await page.getByTestId("new-project-ok").click();
+
+    const tree = page.getByTestId("project-tree");
+    await expect(tree.locator('[data-path="game.json"]')).toBeVisible();
+    await expect(page.getByTestId("statusbar")).toContainText("newgame");
+    await expect(page.getByTestId("statusbar")).toContainText("브라우저 폴더");
+    await expect(page.getByTestId("toasts")).toContainText("새 프로젝트: newgame");
+    await expect(page.getByTestId("console-list")).toContainText(/새 프로젝트를 만들었다: newgame \(플래피버드[^)]*\), lua, 파일 \d+개\)/);
+    expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS]);
+    expect((await folderRecords(page)).map((r) => r.name)).toEqual(["newgame"]);
+    const game = JSON.parse(await readOpfs(page, "newgame/game.json")) as { name: string; script: string; startScene: string };
+    expect(game).toMatchObject({ name: "newgame", script: "lua", startScene: "flappy" });
+    expect(await readOpfs(page, "newgame/scripts/lua/components/flappy/bird.lua")).toContain("function");
+    expect(await readOpfs(page, "newgame/.gitignore")).toContain(".initial-editor/");
+
+    await page.keyboard.press("F5");
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    const list = page.getByTestId("console-list");
+    await expect(list.locator(".console-row", { hasText: "flappy:state:ready" })).toHaveCount(1, { timeout: 15_000 });
+    await expect(list).not.toContainText("Lua error");
+    await page.keyboard.press("Shift+F5");
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+    expect(browser.isConnected()).toBe(true);
+  });
+
+  test("샘플을 연 채로 파일 > 새 프로젝트: 비어 있지 않은 폴더는 한 번 묻고, 있는 파일은 두고 없는 것만 만든 뒤 브라우저 폴더로 바꿔 연다", async ({ context, page }) => {
+    await context.addInitScript(PICKER_STUB);
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    await writeOpfs(page, { "notes.txt": "메모\n", "scripts/lua/main.lua": "-- 내 것\n" }, "mine");
+    await welcome.getByRole("button", { name: "샘플로 해 보기" }).click();
+    await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
+
+    await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "mine"));
+    await openMenu(page, "파일", "새 프로젝트");
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText("폴더가 비어 있지 않다 (2개 항목)");
+    await dialog.getByRole("button", { name: "만들기" }).click();
+    await expect(page.getByTestId("new-project-dialog")).toBeVisible();
+    await page.getByTestId("new-project-ok").click();
+
+    await expect(page.getByTestId("statusbar")).toContainText("mine");
+    await expect(page.getByTestId("statusbar")).toContainText("브라우저 폴더");
+    await expect(page.getByTestId("console-list")).toContainText("백엔드 교체: browser");
+    expect(await readOpfs(page, "mine/scripts/lua/main.lua")).toBe("-- 내 것\n");
+    expect(await readOpfs(page, "mine/notes.txt")).toBe("메모\n");
+    expect(JSON.parse(await readOpfs(page, "mine/game.json"))).toMatchObject({ name: "mine", script: "lua", startScene: "main" });
+    expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS]);
+  });
+
+  test("웹 엔진에 mruby 가 없으면 새 프로젝트 대화상자에서 Ruby 를 고를 때 안내가 뜬다. 취소하면 폴더에 쓰지도 기억하지도 않는다", async ({ context, page }) => {
+    await withoutMruby(page);
+    await context.addInitScript(PICKER_STUB);
+    await page.goto("/?backend=browser");
+    await expectBrowserWelcome(page);
+    await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "rubygame"));
+    await page.keyboard.press("ControlOrMeta+n");
+    await expect(page.getByTestId("new-project-dialog")).toBeVisible();
+    await expect(page.getByTestId("new-project-ruby-note")).toHaveCount(0);
+    await page.getByTestId("new-project-language").selectOption("mruby");
+    await expect(page.getByTestId("new-project-ruby-note")).toHaveText(WEB_NO_RUBY);
+    await page.getByTestId("new-project-dialog").getByRole("button", { name: "취소" }).click();
+    await expect(page.getByTestId("new-project-dialog")).toHaveCount(0);
+    const names = await page.evaluate(async () => {
+      const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle("rubygame");
+      const out: string[] = [];
+      for await (const name of (dir as unknown as { keys(): AsyncIterable<string> }).keys()) out.push(name);
+      return out;
+    });
+    expect(names).toEqual([]);
+    expect(await folderRecords(page)).toEqual([]);
+    await expect(page.getByTestId("welcome")).toContainText("아직 없다");
+  });
+
+  test("폴더 열기가 없는 브라우저의 웹판은 새 프로젝트가 꺼져 있고 이유를 보인다", async ({ context, page }) => {
+    await context.addInitScript(() => {
+      delete (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker;
+    });
+    await page.goto("/?backend=browser");
+    const welcome = await expectBrowserWelcome(page);
+    const button = welcome.getByRole("button", { name: "새 프로젝트", exact: true });
+    await expect(button).toBeDisabled();
+    await expect(button).toHaveAttribute("title", "이 브라우저에는 폴더 열기가 없다 (크롬, 엣지에서 된다)");
+    expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
+  });
+});
+
+test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라우저)", () => {
+  test("로컬이 아닌 주소에서 폴더 열기가 없으면 메모리로 시작하고, 샘플 프로젝트 열기도 샘플 맵과 안내를 띄운다", async ({ context, page, baseURL }) => {
+    await context.addInitScript(() => {
+      delete (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker;
+    });
+    // *.localhost 는 크롬이 루프백으로 풀지만 앱의 isLocalHost 는 로컬로 보지 않는다 (배포된 페이지처럼 시작한다)
+    const deployed = new URL(baseURL!);
+    deployed.hostname = "pages.localhost";
+    await page.goto(deployed.href);
+    const welcome = page.getByTestId("welcome");
+    await expect(welcome).toContainText("메모리 모드.");
+    await expect(welcome).toContainText("이 브라우저에는 폴더 열기가 없어 샘플 프로젝트로 시작했다");
+    await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
+    await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await expect(page.getByTestId("toasts")).toContainText(SAMPLE_MAP_HINT);
+    expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
+  });
+});

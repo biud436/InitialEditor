@@ -389,6 +389,19 @@ export class MapRenderer {
     return c.x >= 0 && c.y >= 0 && c.x < m.width && c.y < m.height ? c : null;
   }
 
+  /**
+   * 타일 레이어만(격자, 통행, 오브젝트 표식 없이) 월드 좌표 rect 를 1배로 뽑는다. 줌과 팬과 상관없다.
+   * 자가 검사가 게임 프레임과 견준다 (e6-packaging.md 5절). 타일셋을 다 읽기 전이면 null
+   */
+  captureTiles(rect: { x: number; y: number; width: number; height: number }): { width: number; height: number; pixels: Uint8ClampedArray } | null {
+    const app = this.app;
+    if (!app || !this.tilesetsSettled) return null;
+    if (this.needLayers) this.rebuildLayers();
+    this.flushTiles();
+    const out = app.renderer.extract.pixels({ target: this.layerRoot, frame: new Rectangle(rect.x, rect.y, rect.width, rect.height), resolution: 1, antialias: false });
+    return { width: out.width, height: out.height, pixels: out.pixels };
+  }
+
   /** 테마가 바뀌었다: 색이 든 것을 전부 다시 그린다 */
   setTheme(theme: MapTheme): void {
     this.theme = theme;

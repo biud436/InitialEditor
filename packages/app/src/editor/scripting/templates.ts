@@ -1,9 +1,9 @@
-// 새 스크립트 템플릿 (docs/plans/e1-scripting.md 마일스톤 1). 씬 계약 네 함수(init, update, render, destroy)를
-// 가진 진입점(main 같은 것)과, 씬이 오브젝트에 붙여 (obj, scene) 을 넘기는 컴포넌트 두 가지. Lua 와 Ruby 한 벌씩.
-// 순수 함수라 Node 로 테스트한다 (templates.test.ts).
+// 새 스크립트 템플릿 (docs/plans/e1-scripting.md 마일스톤 1). 엔진이 부르는 씬 계약 함수(Lua Initialize, Update,
+// Render, Destroy, Ruby init, update, render, destroy)를 가진 진입점과, 씬이 오브젝트에 붙여 (obj, scene) 을 넘기는
+// 컴포넌트(함수 이름은 언어 중립 이름 init, update, render, destroy) 두 가지. 순수 함수라 Node 로 테스트한다.
 
 import type { SceneHook } from "./apiSpec";
-import { EMPTY_SPEC } from "./apiSpec";
+import { EMPTY_SPEC, hookName } from "./apiSpec";
 
 export type TemplateLanguage = "lua" | "ruby";
 export type TemplateKind = "scene" | "component";
@@ -47,9 +47,20 @@ export function scriptTemplate(options: TemplateOptions): string {
   return options.kind === "scene" ? rubyScene(options.name, hooks) : rubyComponent(pascalCase(options.name), hooks);
 }
 
+/** 진입점에 쓸 씬 함수: 그 언어의 엔진 이름이 있는 것만 */
+function sceneHooks(hooks: SceneHook[], lang: TemplateLanguage): Array<{ name: string; hook: SceneHook }> {
+  return hooks.flatMap((hook) => {
+    const name = hookName(hook, lang);
+    return name ? [{ name, hook }] : [];
+  });
+}
+
 function luaScene(name: string, hooks: SceneHook[]): string {
-  const body = hooks.map((h) => `function ${h.name}(${h.params.map((p) => p.name).join(", ")})\nend\n`).join("\n");
-  return `-- ${name}: 씬 계약 네 함수. 엔진은 있는 것만 부르고, 프레임마다 update 와 render 가 불린다.\n\n${body}`;
+  const list = sceneHooks(hooks, "lua");
+  const body = list.map(({ name: fn, hook }) => `function ${fn}(${hook.params.map((p) => p.name).join(", ")})\nend\n`).join("\n");
+  const required = list.filter(({ hook }) => hook.luaRequired).map(({ name: fn }) => fn);
+  const rule = required.length ? `\n-- 필수 함수 (엔진이 정의 여부를 확인하지 않고 호출): ${required.join(", ")}` : "";
+  return `-- ${name}: 엔진이 호출하는 씬 계약 전역 함수 (${list.map((h) => h.name).join(", ")}).${rule}\n\n${body}`;
 }
 
 function luaComponent(table: string, hooks: SceneHook[]): string {
@@ -63,13 +74,14 @@ function luaComponent(table: string, hooks: SceneHook[]): string {
 }
 
 function rubyScene(name: string, hooks: SceneHook[]): string {
-  const body = hooks
-    .map((h) => {
-      const params = h.params.map((p) => p.name).join(", ");
-      return `def ${h.name}${params ? `(${params})` : ""}\nend\n`;
+  const list = sceneHooks(hooks, "ruby");
+  const body = list
+    .map(({ name: fn, hook }) => {
+      const params = hook.params.map((p) => p.name).join(", ");
+      return `def ${fn}${params ? `(${params})` : ""}\nend\n`;
     })
     .join("\n");
-  return `# ${name}: 씬 계약 네 함수. Lua 판과 같은 규칙이다.\n\n${body}`;
+  return `# ${name}: 엔진이 호출하는 씬 계약 메서드 (${list.map((h) => h.name).join(", ")}). 정의된 것만 호출.\n\n${body}`;
 }
 
 function rubyComponent(klass: string, hooks: SceneHook[]): string {

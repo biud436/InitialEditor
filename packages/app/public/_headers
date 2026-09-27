@@ -1,0 +1,19 @@
+# Cloudflare Pages 응답 헤더 (docs/plans/e6-packaging.md 7.3). Vite 가 public/ 을 dist/ 로 옮긴다.
+# scripts/check-web-dist.mjs 가 규칙을 보고, tests/e2e/pages.spec.ts 가 wrangler pages dev 에서 실제 응답을 본다.
+# 교차 출처 격리(COOP, COEP)와 CSP 는 두지 않는다 (엔진이 스레드를 쓰지 않는다).
+
+# 웹 엔진은 이름에 해시가 없어 매번 다시 확인한다
+/engine/*
+  Cache-Control: no-cache
+
+# application/wasm 이 아니면 스트리밍 컴파일이 실패하고 콘솔에 오류 줄이 뜬다
+/engine/Initial2D.wasm
+  Content-Type: application/wasm
+
+# Vite 의 산출물은 이름에 해시가 있다
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

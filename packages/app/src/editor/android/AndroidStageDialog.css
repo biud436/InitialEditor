@@ -1,0 +1,11 @@
+/* 안드로이드 스테이징 대화상자 (AndroidStageDialog.tsx) */
+
+/* RTP 변환물을 넣을 때의 주의 */
+.form-help.android-stage-warning {
+  color: var(--warning);
+}
+
+/* 경로는 길어도 칸 안에서 줄을 바꾼다 */
+.android-stage-path {
+  word-break: break-all;
+}

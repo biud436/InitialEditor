@@ -125,25 +125,92 @@ function probeFor(h: Harness, available: Record<string, string[]>) {
   };
 }
 
+/** 프로젝트가 가리키는 엔진을 묻는 모달에 늘 허용으로 답한다 (신뢰 규칙 자체는 RunnerStore.trust.test.ts) */
+const trusting = { askTrust: async () => "allow" as const };
+
 const flush = () => new Promise((r) => setTimeout(r, 0));
 const logTexts = (log: LogStore) => log.entries.map((e) => `${e.level}/${e.source}: ${e.text}`);
 
 describe("engineCandidates", () => {
-  it("설정 > .initial-editor/engine > 프로젝트 build/ > 형제 폴더 순서이고 같은 경로는 한 번", () => {
-    const list = engineCandidates({ root: "/home/u/game", settingsPath: " /opt/engine/Initial2D ", projectFile: "# 주석\n../engines/Initial2D\n", platform: "mac" });
+  it("설정 > .initial-editor/engine > 프로젝트 build/ > 앱에 든 엔진 > 형제 폴더 순서이고 같은 경로는 한 번", () => {
+    const list = engineCandidates({
+      root: "/home/u/game",
+      settingsPath: " /opt/engine/Initial2D ",
+      projectFile: "# 주석\n../engines/Initial2D\n",
+      platform: "mac",
+      bundledPath: "/Applications/InitialEditor.app/Contents/MacOS/Initial2D",
+    });
     expect(list).toEqual([
-      { source: "settings", path: "/opt/engine/Initial2D" },
-      { source: "project-file", path: "/home/u/game/../engines/Initial2D" },
-      { source: "project-build", path: "/home/u/game/build/Initial2D" },
-      { source: "sibling", path: "/home/u/Initial2D/build/Initial2D" },
+      { source: "settings", path: "/opt/engine/Initial2D", needsTrust: false },
+      { source: "project-file", path: "/home/u/game/../engines/Initial2D", needsTrust: true },
+      { source: "project-build", path: "/home/u/game/build/Initial2D", needsTrust: true },
+      { source: "bundled", path: "/Applications/InitialEditor.app/Contents/MacOS/Initial2D", needsTrust: false },
+      { source: "sibling", path: "/home/u/Initial2D/build/Initial2D", needsTrust: true },
     ]);
     const dup = engineCandidates({ root: "/home/u/game", settingsPath: "/home/u/game/build/Initial2D", projectFile: null, platform: "mac" });
     expect(dup.map((c) => c.source)).toEqual(["settings", "sibling"]);
+    expect(dup[0].needsTrust).toBe(false);
+  });
+
+  it("앱에 든 엔진이 없으면(개발 빌드) 그 후보가 없다", () => {
+    for (const bundledPath of [undefined, null, " "]) {
+      const list = engineCandidates({ root: "/home/u/game", settingsPath: "", projectFile: null, platform: "mac", bundledPath });
+      expect(list.map((c) => c.source)).toEqual(["project-build", "sibling"]);
+    }
+  });
+
+  it("프로젝트가 앱에 든 엔진을 가리키면 그 자리의 후보가 앱에 든 엔진이다 (신뢰를 묻지 않고 시간 제한과 판도 그것의 것)", () => {
+    const bundled = "/Applications/InitialEditor.app/Contents/MacOS/Initial2D";
+    const list = engineCandidates({ root: "/home/u/game", settingsPath: "", projectFile: bundled, platform: "mac", bundledPath: bundled });
+    expect(list).toEqual([
+      { source: "bundled", path: bundled, needsTrust: false },
+      { source: "project-build", path: "/home/u/game/build/Initial2D", needsTrust: true },
+      { source: "sibling", path: "/home/u/Initial2D/build/Initial2D", needsTrust: true },
+    ]);
+    // 설정이 번들 안 경로를 적어도 같다
+    const fromSettings = engineCandidates({ root: "/home/u/game", settingsPath: bundled, projectFile: null, platform: "mac", bundledPath: bundled });
+    expect(fromSettings.map((c) => [c.source, c.path])).toEqual([
+      ["bundled", bundled],
+      ["project-build", "/home/u/game/build/Initial2D"],
+      ["sibling", "/home/u/Initial2D/build/Initial2D"],
+    ]);
+    // Windows 는 구분자와 대소문자가 달라도 같은 파일이다
+    const winBundled = "C:\\Users\\u\\AppData\\Local\\InitialEditor\\Initial2D.exe";
+    const win = engineCandidates({ root: "C:\\Users\\u\\game", settingsPath: "", projectFile: "c:/users/u/appdata/local/initialeditor/initial2d.exe", platform: "win", bundledPath: winBundled });
+    expect(win.map((c) => [c.source, c.path, c.needsTrust])).toEqual([
+      ["bundled", winBundled, false],
+      ["project-build", "C:\\Users\\u\\game\\build\\Initial2D.exe", true],
+      ["sibling", "C:\\Users\\u\\Initial2D\\build\\Initial2D.exe", true],
+    ]);
+    // macOS 와 Linux 는 대소문자를 가린다 (다른 파일로 보고 신뢰를 묻는다)
+    const upper = engineCandidates({ root: "/home/u/game", settingsPath: "", projectFile: bundled.toUpperCase(), platform: "linux", bundledPath: bundled });
+    expect(upper.map((c) => c.source)).toEqual(["project-file", "project-build", "bundled", "sibling"]);
   });
 
   it("Windows 는 역슬래시와 .exe", () => {
-    const list = engineCandidates({ root: "C:\\Users\\u\\game", settingsPath: "", projectFile: "D:\\engine\\Initial2D.exe", platform: "win" });
-    expect(list.map((c) => c.path)).toEqual(["D:\\engine\\Initial2D.exe", "C:\\Users\\u\\game\\build\\Initial2D.exe", "C:\\Users\\u\\Initial2D\\build\\Initial2D.exe"]);
+    const list = engineCandidates({
+      root: "C:\\Users\\u\\game",
+      settingsPath: "",
+      projectFile: "D:\\engine\\Initial2D.exe",
+      platform: "win",
+      bundledPath: "C:\\Users\\u\\AppData\\Local\\InitialEditor\\Initial2D.exe",
+    });
+    expect(list.map((c) => c.path)).toEqual([
+      "D:\\engine\\Initial2D.exe",
+      "C:\\Users\\u\\game\\build\\Initial2D.exe",
+      "C:\\Users\\u\\AppData\\Local\\InitialEditor\\Initial2D.exe",
+      "C:\\Users\\u\\Initial2D\\build\\Initial2D.exe",
+    ]);
+    expect(list.map((c) => c.needsTrust)).toEqual([true, true, false, true]);
+  });
+
+  it("Linux 의 AppImage 는 마운트 경로 안의 사이드카다", () => {
+    const list = engineCandidates({ root: "/home/u/game", settingsPath: "", projectFile: null, platform: "linux", bundledPath: "/tmp/.mount_InitiaXYZ/usr/bin/Initial2D" });
+    expect(list.map((c) => [c.source, c.path])).toEqual([
+      ["project-build", "/home/u/game/build/Initial2D"],
+      ["bundled", "/tmp/.mount_InitiaXYZ/usr/bin/Initial2D"],
+      ["sibling", "/home/u/Initial2D/build/Initial2D"],
+    ]);
   });
 
   it("루트 바로 아래 프로젝트의 형제는 루트 아래다", () => {
@@ -155,7 +222,7 @@ describe("engineCandidates", () => {
 describe("RunnerStore 엔진 탐색", () => {
   it("설정의 경로가 있으면 그것부터 찔러 보고 처음 응답하는 것을 쓴다", async () => {
     const h = await harness({ enginePath: "/opt/engine/Initial2D", files: { ".initial-editor/engine": "/proj/engines/Initial2D\n" } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { "/opt/engine/Initial2D": ["lua", "mruby"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { "/opt/engine/Initial2D": ["lua", "mruby"] }) });
     expect(await runner.resolveEngine()).toBe("/opt/engine/Initial2D");
     expect(h.probed).toEqual(["/opt/engine/Initial2D"]);
     expect(runner.engineSource).toBe("settings");
@@ -167,7 +234,7 @@ describe("RunnerStore 엔진 탐색", () => {
 
   it("설정이 비면 .initial-editor/engine, 그다음 build/, 그다음 형제 폴더 순서로", async () => {
     const h = await harness({ files: { ".initial-editor/engine": "/proj/engines/Initial2D\n" } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { "/home/u/Initial2D/build/Initial2D": ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { "/home/u/Initial2D/build/Initial2D": ["lua"] }) });
     await runner.resolveEngine();
     expect(h.probed).toEqual(["/proj/engines/Initial2D", "/home/u/game/build/Initial2D", "/home/u/Initial2D/build/Initial2D"]);
     expect(runner.enginePath).toBe("/home/u/Initial2D/build/Initial2D");
@@ -176,7 +243,7 @@ describe("RunnerStore 엔진 탐색", () => {
 
   it(".initial-editor/engine 의 상대 경로는 프로젝트 루트 기준이다", async () => {
     const h = await harness({ files: { ".initial-editor/engine": "tools/Initial2D" } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { "/home/u/game/tools/Initial2D": ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { "/home/u/game/tools/Initial2D": ["lua"] }) });
     await runner.resolveEngine();
     expect(runner.enginePath).toBe("/home/u/game/tools/Initial2D");
     expect(runner.engineSource).toBe("project-file");
@@ -184,7 +251,7 @@ describe("RunnerStore 엔진 탐색", () => {
 
   it("아무것도 없으면 찾아본 곳을 힌트와 콘솔에 남기고 실행 버튼은 꺼진다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, {}) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     await runner.resolveEngine();
     expect(runner.enginePath).toBeNull();
     expect(runner.engineSource).toBe("none");
@@ -209,7 +276,7 @@ describe("RunnerStore 엔진 탐색", () => {
 
   it("프로젝트가 닫혀 있으면 실행도 리로드도 안 된다", async () => {
     const h = await harness({ open: false });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, {}) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     expect(runner.startHint).toBe("프로젝트를 먼저 연다");
     expect(runner.canReload).toBe(false);
   });
@@ -221,7 +288,7 @@ describe("RunnerStore 실행", () => {
   it("프로젝트 루트를 작업 폴더로, INITIAL2D_HMR=1 과 언어를 환경 변수로 띄우고 출력을 콘솔에 흘린다", async () => {
     let t = 1_000_000;
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua", "mruby"] }), now: () => t });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua", "mruby"] }), now: () => t });
     await runner.start();
     expect(h.handles).toHaveLength(1);
     const handle = h.handles[0];
@@ -253,7 +320,7 @@ describe("RunnerStore 실행", () => {
 
   it("씬을 주면 INITIAL2D_SCENE 을 더하고 mruby 프로젝트는 INITIAL2D_SCRIPT=mruby", async () => {
     const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua", "mruby"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua", "mruby"] }) });
     await runner.start({ scene: "title" });
     expect(h.handles[0].spec.env).toEqual({ INITIAL2D_HMR: "1", INITIAL2D_SCRIPT: "mruby", INITIAL2D_SCENE: "title" });
     runner.dispose();
@@ -261,7 +328,7 @@ describe("RunnerStore 실행", () => {
 
   it("env 를 주면 기본 변수 뒤에 덧씌우고, 다시 시작해도 같은 변수로 띄운다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     await runner.start({ env: { INITIAL2D_SCENE: "aldebaran", INITIAL2D_ALDEBARAN_AT: "320", INITIAL2D_HMR: "0" } });
     expect(h.handles[0].spec.env).toEqual({ INITIAL2D_HMR: "0", INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "aldebaran", INITIAL2D_ALDEBARAN_AT: "320" });
     expect(logTexts(h.log).some((l) => l.includes("INITIAL2D_ALDEBARAN_AT=320"))).toBe(true);
@@ -333,7 +400,7 @@ describe("RunnerStore 실행", () => {
 
   it("mruby 프로젝트인데 빌드에 mruby 가 없으면 띄우지 않고 알린다", async () => {
     const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     await runner.resolveEngine();
     expect(runner.canRun).toBe(false);
     expect(runner.startHint).toBe(NO_MRUBY);
@@ -367,7 +434,7 @@ describe("RunnerStore 실행", () => {
 
   it("실행 중에 다시 start 하면 먼저 것을 정지하고 새로 띄운다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     await runner.start();
     const first = h.handles[0];
     await runner.start();
@@ -387,7 +454,7 @@ describe("RunnerStore 실행", () => {
 
   it("정지 뒤 종료 이벤트가 오지 않으면 시간 제한 뒤 상태를 정리한다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }), stopTimeoutMs: 10 });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }), stopTimeoutMs: 10 });
     await runner.start();
     const handle = h.handles[0];
     handle.stop = async () => {
@@ -403,7 +470,7 @@ describe("RunnerStore 실행", () => {
   it("엔진 실행 파일이 사라졌으면 엔진 정보를 지우고 알린다", async () => {
     const h = await harness();
     const probe = probeFor(h, { [ENGINE]: ["lua"] });
-    const runner = new RunnerStore(h.host, { probe });
+    const runner = new RunnerStore(h.host, { ...trusting, probe });
     await runner.resolveEngine();
     h.host.backend.run = async () => {
       throw new BackendError("엔진 실행 파일이 없다", "engine_not_found", ENGINE);
@@ -416,7 +483,7 @@ describe("RunnerStore 실행", () => {
 
   it("프로젝트를 닫으면 실행 중인 엔진을 정지한다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
     await runner.start();
     await runner.onProjectClosed();
     expect(h.handles[0].stopped).toBe(1);
@@ -429,7 +496,7 @@ describe("RunnerStore 실행", () => {
 describe("RunnerStore 핫 리로드", () => {
   it("Tauri 는 묶음을 모아 보낸다 (.lua .rb 와 씬 json)", async () => {
     const h = await harness({ files: { "scripts/ruby/main.rb": "puts 1", "resources/scenes/title.json": "{}", "resources/images/a.png": "x" } });
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, {}) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     const result = await runner.reload();
     expect(result).toEqual({ count: 3 });
     expect(h.mem.pushed[0].map((f) => f.path)).toEqual(["resources/scenes/title.json", "scripts/lua/main.lua", "scripts/ruby/main.rb"]);
@@ -471,7 +538,7 @@ describe("RunnerStore 핫 리로드", () => {
   it("Tauri 에서 보낼 파일이 없으면 보내지 않는다", async () => {
     const h = await harness();
     await h.mem.remove("scripts");
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, {}) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     expect(await runner.reload()).toBeNull();
     expect(h.mem.pushed).toEqual([]);
     expect(logTexts(h.log)).toContainEqual("warn/runner: 보낼 스크립트가 없다 (scripts/ 아래의 .lua 와 .rb)");
@@ -491,7 +558,7 @@ describe("formatElapsed", () => {
 describe("RunnerStore 정지", () => {
   it("stop 은 종료 이벤트를 기다린다", async () => {
     const h = await harness();
-    const runner = new RunnerStore(h.host, { probe: probeFor(h, { "/home/u/Initial2D/build/Initial2D": ["lua"] }) });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { "/home/u/Initial2D/build/Initial2D": ["lua"] }) });
     await runner.start();
     const stopping = runner.stop();
     expect(runner.state).toBe("stopping");

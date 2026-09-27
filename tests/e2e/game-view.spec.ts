@@ -1,6 +1,6 @@
 // 게임 뷰 e2e (docs/plans/e4-embedded-play.md 마일스톤 1 ~ 6, 완료 기준 셋째). 웹 엔진(packages/app/public/engine,
 // yarn sync:engine-web)이 에디터의 게임 탭에서 돈다.
-//   메모리 모드: 샘플 프로젝트의 main.lua 가 사각형을 칠하고 "sample:frame" 을 한 번 찍는다. F5 → 게임 탭과 canvas →
+//   메모리 모드: 샘플 프로젝트의 main.lua 가 초원 맵(meadow.json)을 화면 가운데에 그리고 "sample:frame" 을 한 번 찍는다. F5 → 게임 탭과 canvas →
 //               콘솔의 줄 → canvas 의 픽셀 → main.lua 를 고쳐 저장하면 핫 리로드 줄과 두 번째 출력 → Shift+F5 로 정지.
 //               스크립트 편집기(Monaco) 안의 F5 와 Shift+F5, 스크립트 옆 그룹에 열리는 게임 탭, 활성 게임 탭 누르기,
 //               엔진 밖으로 나온 예외(세션을 종료 코드 1 로 끝내고 읽는 글을 보인다). 다른 그룹으로 끌어 옮긴 게임 탭의
@@ -9,7 +9,7 @@
 //               끝나는 게임이 뜨는 중에 고쳐 저장한 것(올리지 않고 한 줄 남기며 종료 코드 1, F5가 고친 글로 돈다. update 는 Lua 와 Ruby).
 //               Lua 오류는 네이티브 엔진과 같다: 실행 중 저장한 문법 오류는 오류 줄을 찍고 스크립트만 멈추며(게임은 돈다)
 //               고쳐 저장하면 다시 그린다. Update 의 실행 오류는 오류 줄을 찍고 종료 코드 1 로 끝난다. 오류 줄의 링크는 그 자리로 간다.
-//               mruby: 웹 빌드에 mruby 가 있으면(MANIFEST 의 기능) Ruby 판 샘플이 같은 사각형을 그린다. 없는 빌드의 거부는
+//               mruby: 웹 빌드에 mruby 가 있으면(MANIFEST 의 기능) Ruby 판 샘플이 같은 맵을 그린다. 없는 빌드의 거부는
 //               MANIFEST 를 가로채 mruby 를 뺀 가짜로 본다. C 를 거치는 끝없는 재귀(SystemStackError)와 바인딩 안의
 //               C++ 예외(RuntimeError)는 네이티브 엔진과 같은 줄 묶음을 찍고 종료 코드 1 로 끝나며, rescue 로 잡으면 게임이 돈다.
 //   브리지 모드: 엔진 저장소(INITIAL2D_DIR, 기본 ../Initial2D)의 resources 와 scripts 를 임시 폴더에 복사하고 game.json 을
@@ -31,6 +31,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 const LAYOUT_KEY = "initial-editor.layout";
+/** 샘플 게임이 그리는 맵(meadow.json, 20x12 칸, 16px)의 픽셀 수. 타일에는 배경색 픽셀이 없다 */
+const SAMPLE_MAP_PIXELS = 20 * 12 * 16 * 16;
 const CODE = ".monaco-editor .view-lines";
 
 type CanvasStats = { width: number; height: number; nonBackground: number; distinctColors: number; dominantShare: number; grid: number[] };
@@ -257,10 +259,11 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(page.getByTestId("console-list")).toContainText("Initial2D web: renderer=");
     await expect(page.getByTestId("console-list")).toContainText(/에디터 안 엔진: \d+개 파일/);
 
-    // 사각형(64 x 48)이 그려졌다
+    // 맵(20x12 칸, 16px)이 그려졌다
+    await expect(consoleRows(page, "sample:map layers=2")).toHaveCount(1);
     await expect
       .poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 })
-      .toBeGreaterThanOrEqual(64 * 48);
+      .toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     const stats = (await capture(page))!;
     expect(stats.width).toBeGreaterThanOrEqual(768);
     expect(stats.distinctColors).toBeGreaterThanOrEqual(2);
@@ -721,7 +724,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(consoleRows(page, "sample:frame")).toHaveCount(1, { timeout: 15_000 });
-    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(64 * 48);
+    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
 
     await openMainLua(page);
     const original = await scriptText(page);
@@ -736,9 +739,9 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(errorRow).toHaveClass(/level-error/);
     await expect(page.getByTestId("console-list")).toContainText("스크립트 오류로 VM 이 다시 뜨지 못했다");
     await expect(page.getByTestId("toasts")).toContainText("핫 리로드: 스크립트 오류");
-    // 게임은 돌고 스크립트만 멈췄다: 사각형이 사라진다. 예외나 읽을 수 없는 글은 없다
+    // 게임은 돌고 스크립트만 멈췄다: 맵이 사라진다. 예외나 읽을 수 없는 글은 없다
     expect(await phase(page)).toBe("running");
-    await expect.poll(async () => (await capture(page))?.nonBackground ?? -1, { timeout: 10_000 }).toBeLessThan(64 * 48);
+    await expect.poll(async () => (await capture(page))?.nonBackground ?? -1, { timeout: 10_000 }).toBeLessThan(SAMPLE_MAP_PIXELS);
     for (const id of ["console-list", "toasts", "game-view"]) {
       await expect(page.getByTestId(id)).not.toContainText("undefined");
       await expect(page.getByTestId(id)).not.toContainText("fatal:");
@@ -760,7 +763,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("ControlOrMeta+s");
     await expect(consoleRows(page, "다시 올렸다. VM 을 다시 시작한다")).toHaveCount(1, { timeout: 10_000 });
     await expect(consoleRows(page, "sample:frame")).toHaveCount(2, { timeout: 10_000 });
-    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(64 * 48);
+    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     expect(await phase(page)).toBe("running");
 
     await view.getByRole("button", { name: "정지" }).click();
@@ -814,7 +817,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("F5");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect.poll(() => consoleRows(page, "sample:frame").count(), { timeout: 15_000 }).toBeGreaterThan(framesBefore);
-    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(64 * 48);
+    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     expect(await consoleRows(page, "Lua error").count()).toBe(errorsBefore);
     expect(await phase(page)).toBe("running");
     await page.keyboard.press("Shift+F5");
@@ -836,7 +839,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
   });
 
-  test("game.json 이 mruby 면 Ruby 판이 게임 탭에서 같은 사각형을 그린다", async ({ page }) => {
+  test("game.json 이 mruby 면 Ruby 판이 게임 탭에서 같은 맵을 그린다", async ({ page }) => {
     test.skip(!engineFeatures().includes("mruby"), "public/engine 의 웹 빌드에 mruby 가 없다 (MANIFEST 의 기능)");
     await page.evaluate(() =>
       (window as unknown as { initialEditor: { commands: { execute(id: string): Promise<boolean> } } }).initialEditor.commands.execute("run.language.mruby"),
@@ -847,8 +850,9 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 에디터 안 \(웹 엔진, lua mruby wasm\), 언어 mruby/);
     await expect(consoleRows(page, "sample:frame")).toHaveCount(1, { timeout: 15_000 });
+    await expect(consoleRows(page, "sample:map layers=2")).toHaveCount(1);
     await expect(page.getByTestId("console-list")).toContainText("샘플 프로젝트 시작");
-    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(64 * 48);
+    await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     await expect(page.getByTestId("console-list")).not.toContainText("mruby: uncaught exception");
     await expect(page.getByTestId("console-list")).not.toContainText("이 웹 엔진 빌드에는 mruby 가 없다");
     await page.keyboard.press("Shift+F5");

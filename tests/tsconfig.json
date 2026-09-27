@@ -11,5 +11,5 @@
     "types": ["node", "vite/client"],
     "allowImportingTsExtensions": true
   },
-  "include": ["e2e", "../packages/app/src/vite-env.d.ts"]
+  "include": ["e2e", "scripts", "../packages/app/src/vite-env.d.ts"]
 }
