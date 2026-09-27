@@ -387,6 +387,18 @@
   transform-origin: 0 0;
 }
 
+/* 맵 위치 단추와 막는 이유 줄 (LocationTools). 좁으면 단추가 다음 줄로 가고, 긴 맵 이름과 경로는 아무 데서나 줄을 바꾼다 */
+.rpg-location {
+  margin-bottom: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.rpg-location-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
 .rpg-unknown {
   margin-top: var(--space-1);
   font-size: 11px;

@@ -6,7 +6,7 @@
 //   이벤트 고르기: 맵을 눌러, 목록 패널에서 골라, 긴 이벤트 둘 사이를 오가도 인스펙터는 맨 위(자리의 scrollTop 0, id 칸이 보인다)에서
 //                  열린다. 트리의 키, 문제 목록으로 커서를 옮기면 그 줄이 보이게 민다
 //   커맨드 폼의 폭: 1280x600 과 1024x480 에서 모든 커맨드의 폼이 인스펙터 폭 안에 든다 (얼굴 격자의 칸이 자리 안, 트리와 자리에
-//                   가로 스크롤이 없다). 가지 안의 얼굴(들여 쓴 폼)도
+//                   가로 스크롤이 없다). 가지 안의 얼굴(들여 쓴 폼)과 맵 이동의 막는 이유 줄(긴 맵 이름)도
 // "닿는다" 는 휠만으로 대상이 모든 잘라 내는 조상 안에 온전히 보이는 것이다. 그다음 초점을 줄 수 있고,
 // 초점을 주어도 dockview 그룹(overflow: hidden)이 몰래 밀려 탭 머리가 사라지지 않는다.
 
@@ -330,7 +330,8 @@ test.describe("인스펙터 스크롤 (낮은 창, 메모리 모드)", () => {
     test(`커맨드 폼의 폭 (${size.width}x${size.height}): 모든 커맨드의 폼과 얼굴 격자가 인스펙터 폭 안에 든다`, async ({ page }) => {
       await page.setViewportSize(size);
       await openRpgProject(page);
-      // kid 에 커맨드마다 하나씩, 그리고 조건 분기 안 선택지 가지 안의 대사(들여 쓴 폼의 얼굴 격자)
+      // kid 에 커맨드마다 하나씩, 그리고 조건 분기 안 선택지 가지 안의 대사(들여 쓴 폼의 얼굴 격자),
+      // 끝에 등록되지 않은 긴 맵 이름의 맵 이동(맵 위치 단추 아래 막는 이유 줄)
       await ev(
         page,
         `async (e, p) => {
@@ -356,6 +357,7 @@ test.describe("인스펙터 스크롤 (낮은 창, 메모리 모드)", () => {
             { code: "scene", name: "title", fade: true },
             { code: "script", name: "portGreeting", args: { speaker: "kid", lines: ["하나", "둘"] } },
             { code: "comment", text: "메모 한 줄" },
+            { code: "transfer", map: "harbor_district_east_pier_warehouse_second_floor", x: 3, y: 4 },
           ];
           await e.backend.writeText(p, JSON.stringify(map, null, 2) + "\\n");
         }`,
@@ -368,7 +370,7 @@ test.describe("인스펙터 스크롤 (낮은 창, 메모리 모드)", () => {
       const tree = page.getByTestId("rpg-cmd-tree");
       const rows = tree.locator('.rpg-row.is-command[data-testid="rpg-cmd-row"]');
       const count = await rows.count();
-      expect(count).toBe(19);
+      expect(count).toBe(20);
 
       /** 폼 안의 요소 가운데 자리의 가로 범위를 벗어난 것 (보이는 것만), 트리와 자리의 가로 넘침 */
       const overflow = () =>
