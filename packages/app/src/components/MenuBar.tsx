@@ -133,7 +133,8 @@ const MenuList = observer(function MenuList({ nodes, onRun, autoFocus }: { nodes
               disabled={!enabled}
               title={hint}
               onClick={() => {
-                if (hasChildren) setOpenSub(openSub === node.label ? null : node.label);
+                // 하위 메뉴는 마우스를 올릴 때 이미 열리므로 누르기는 닫지 않고 열린 채로 둔다
+                if (hasChildren) setOpenSub(node.label);
                 else if (id) onRun(id);
               }}
               onKeyDown={(e) => {
