@@ -38,7 +38,7 @@ export const TILEMAP_OWN_KEYS: readonly string[] = ["version", "name", "id", "wi
 
 /** 섹션 이름을 쓸 수 없는 이유. 쓸 수 있으면 null */
 export function sectionKeyProblem(key: string): string | null {
-  if (key.trim() === "") return "섹션 이름이 비었다";
-  if (TILEMAP_OWN_KEYS.includes(key)) return `섹션 ${key} 은(는) 타일맵이 맡는다`;
+  if (key.trim() === "") return "섹션 이름 비어 있음";
+  if (TILEMAP_OWN_KEYS.includes(key)) return `섹션 ${key}: 타일맵 전용 키`;
   return null;
 }

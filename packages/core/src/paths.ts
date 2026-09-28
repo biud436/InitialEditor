@@ -19,13 +19,13 @@ export function normalizeRel(input: string): string {
   // 절대 경로는 실수로 넘어온 것이다 (대화상자가 준 OS 경로 등). 루트 기준으로 조용히 바꾸면
   // /Users/u/x 가 프로젝트 안의 Users/u/x 가 되어 버린다. "/" 하나만 루트로 본다.
   if (/^[a-zA-Z]:/.test(raw) || (raw.startsWith("/") && raw !== "/")) {
-    throw new PathError(`절대 경로는 쓸 수 없다: ${input}`, input);
+    throw new PathError(`절대 경로 사용 불가: ${input}`, input);
   }
   const parts: string[] = [];
   for (const seg of raw.split("/")) {
     if (seg === "" || seg === ".") continue;
     if (seg === "..") {
-      if (parts.length === 0) throw new PathError(`프로젝트 루트 밖이다: ${input}`, input);
+      if (parts.length === 0) throw new PathError(`프로젝트 루트 밖의 경로: ${input}`, input);
       parts.pop();
       continue;
     }

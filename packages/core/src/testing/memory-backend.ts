@@ -48,7 +48,7 @@ export class MemoryBackend implements ProjectBackend {
   }
 
   private check(rel: string): string {
-    if (this.root === null) throw new BackendError("프로젝트가 열려 있지 않다", "not_open");
+    if (this.root === null) throw new BackendError("열린 프로젝트 없음", "not_open");
     try {
       return normalizeRel(rel);
     } catch (e) {
@@ -69,7 +69,7 @@ export class MemoryBackend implements ProjectBackend {
 
   async list(rel: string): Promise<Entry[]> {
     const dir = this.check(rel);
-    if (dir !== "" && !this.dirs.has(dir)) throw new BackendError(`폴더가 없다: ${dir}`, "not_found", dir);
+    if (dir !== "" && !this.dirs.has(dir)) throw new BackendError(`폴더 없음: ${dir}`, "not_found", dir);
     const out: Entry[] = [];
     const prefix = dir === "" ? "" : dir + "/";
     for (const d of this.dirs) {
@@ -92,7 +92,7 @@ export class MemoryBackend implements ProjectBackend {
   async readBinary(rel: string): Promise<Uint8Array> {
     const p = this.check(rel);
     const data = this.files.get(p);
-    if (!data) throw new BackendError(`파일이 없다: ${p}`, "not_found", p);
+    if (!data) throw new BackendError(`파일 없음: ${p}`, "not_found", p);
     return data;
   }
 
@@ -102,7 +102,7 @@ export class MemoryBackend implements ProjectBackend {
 
   async writeBinary(rel: string, data: Uint8Array): Promise<void> {
     const p = this.check(rel);
-    if (p === "" || this.dirs.has(p)) throw new BackendError(`폴더에는 쓸 수 없다: ${p}`, "io", p);
+    if (p === "" || this.dirs.has(p)) throw new BackendError(`폴더 경로에 파일 쓰기 불가: ${p}`, "io", p);
     const existed = this.files.has(p);
     this.put(p, data);
     this.noteWrite(p);
@@ -123,13 +123,13 @@ export class MemoryBackend implements ProjectBackend {
 
   async remove(rel: string): Promise<void> {
     const p = this.check(rel);
-    if (p === "") throw new BackendError("루트는 지울 수 없다", "io", p);
+    if (p === "") throw new BackendError("프로젝트 루트 삭제 불가", "io", p);
     if (this.files.delete(p)) {
       this.noteWrite(p);
       this.events.emit("change", { path: p, kind: "delete", origin: "self" });
       return;
     }
-    if (!this.dirs.has(p)) throw new BackendError(`없다: ${p}`, "not_found", p);
+    if (!this.dirs.has(p)) throw new BackendError(`파일이나 폴더 없음: ${p}`, "not_found", p);
     for (const f of [...this.files.keys()]) if (f.startsWith(p + "/")) this.files.delete(f);
     for (const d of [...this.dirs]) if (d === p || d.startsWith(p + "/")) this.dirs.delete(d);
     this.noteWrite(p);
@@ -154,7 +154,7 @@ export class MemoryBackend implements ProjectBackend {
       for (const d of [...this.dirs]) if (d === from || d.startsWith(from + "/")) this.dirs.delete(d);
       this.dirs.add(to);
     } else {
-      throw new BackendError(`없다: ${from}`, "not_found", from);
+      throw new BackendError(`파일이나 폴더 없음: ${from}`, "not_found", from);
     }
     if (!isInside(EDITOR_DIR, from) || !isInside(EDITOR_DIR, to)) this.volatileWrites++;
     this.events.emit("change", { path: from, kind: "delete", origin: "self" });
@@ -184,11 +184,11 @@ export class MemoryBackend implements ProjectBackend {
   }
 
   async run(_spec: RunSpec): Promise<RunHandle> {
-    throw new BackendError("메모리 백엔드는 엔진을 띄우지 못한다", "unsupported");
+    throw new BackendError("메모리 백엔드는 엔진 프로세스 실행 미지원", "unsupported");
   }
 
   async pickFolder(): Promise<string | null> {
-    throw new BackendError("메모리 백엔드에는 폴더 선택이 없다", "unsupported");
+    throw new BackendError("메모리 백엔드는 폴더 선택 미지원", "unsupported");
   }
 
   async close(): Promise<void> {

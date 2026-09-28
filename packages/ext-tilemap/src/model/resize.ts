@@ -38,7 +38,7 @@ export interface CellOffset {
 /** 기준점의 가로와 세로 자리: 0은 왼쪽(위), 1은 가운데, 2는 오른쪽(아래) */
 function anchorParts(anchor: ResizeAnchor): [number, number] {
   const i = RESIZE_ANCHORS.indexOf(anchor);
-  if (i < 0) throw new Error(`모르는 기준점이다: ${String(anchor)}`);
+  if (i < 0) throw new Error(`잘못된 기준점: ${String(anchor)}`);
   return [i % 3, Math.floor(i / 3)];
 }
 
@@ -57,7 +57,7 @@ export function anchorOffset(anchor: ResizeAnchor, from: GridSize, to: GridSize)
 /** 폭과 높이 검사. 쓸 수 없으면 이유 */
 export function validateMapSize(width: number, height: number): string | null {
   const ok = (n: number) => Number.isInteger(n) && n >= 1 && n <= MAX_MAP_TILES;
-  if (!ok(width) || !ok(height)) return `폭과 높이는 1 이상 ${MAX_MAP_TILES} 이하의 정수다`;
+  if (!ok(width) || !ok(height)) return `너비와 높이는 1 이상 ${MAX_MAP_TILES} 이하의 정수여야 함`;
   return null;
 }
 

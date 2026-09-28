@@ -164,7 +164,7 @@ export class BridgeBackend implements ProjectBackend {
 
   async remove(rel: string): Promise<void> {
     const r = this.rel(rel);
-    if (r === "") throw new BackendError("루트는 지울 수 없다", "outside_root", rel);
+    if (r === "") throw new BackendError("프로젝트 루트 삭제 불가", "outside_root", rel);
     await this.request("DELETE", `/api/files/${encodePath(r)}`);
   }
 
@@ -191,13 +191,13 @@ export class BridgeBackend implements ProjectBackend {
 
   whenWatching(timeoutMs = 5000): Promise<void> {
     if (typeof WebSocket === "undefined") {
-      return Promise.reject(new BackendError("이 실행 환경에는 WebSocket 이 없어 변경 알림을 받을 수 없다 (브라우저나 Node 22 이상이 필요하다)", "unsupported"));
+      return Promise.reject(new BackendError("이 실행 환경은 WebSocket 미지원이라 변경 알림 수신 불가 (브라우저나 Node 22 이상 필요)", "unsupported"));
     }
     if (this.socketReady || this.watchers.size === 0) return Promise.resolve();
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.readyWaiters = this.readyWaiters.filter((w) => w !== done);
-        reject(new BackendError(`브리지 알림 연결이 ${timeoutMs}ms 안에 열리지 않았다`, "network"));
+        reject(new BackendError(`브리지 알림 연결 시간 초과 (${timeoutMs}ms)`, "network"));
       }, timeoutMs);
       const done = () => {
         clearTimeout(timer);
@@ -230,11 +230,11 @@ export class BridgeBackend implements ProjectBackend {
   }
 
   async run(_spec: RunSpec): Promise<RunHandle> {
-    throw new BackendError("브라우저 모드에서는 엔진을 띄울 수 없다. Tauri 앱을 쓰거나 터미널에서 실행한다", "unsupported");
+    throw new BackendError("브라우저 모드는 엔진 프로세스 실행 미지원. 데스크톱 앱이나 터미널에서 실행", "unsupported");
   }
 
   async pickFolder(): Promise<string | null> {
-    throw new BackendError("브라우저 모드에는 폴더 선택이 없다. 브리지 서버가 서빙하는 프로젝트가 곧 프로젝트다", "unsupported");
+    throw new BackendError("브라우저 모드는 폴더 선택 미지원. 브리지 서버가 서빙하는 프로젝트만 사용 가능", "unsupported");
   }
 
   async close(): Promise<void> {
@@ -247,7 +247,7 @@ export class BridgeBackend implements ProjectBackend {
   // ---- 내부 ----
 
   private assertOpen(): void {
-    if (!this.opened) throw new BackendError("프로젝트가 열려 있지 않다", "not_open");
+    if (!this.opened) throw new BackendError("열린 프로젝트 없음", "not_open");
   }
 
   private rel(input: string): string {
@@ -262,7 +262,7 @@ export class BridgeBackend implements ProjectBackend {
 
   private unreachable(): BackendError {
     return new BackendError(
-      `브리지 서버(${this.baseUrl})에 연결할 수 없다. Initial2D 저장소에서 node tools/bridge/server.js 를 실행했는지 확인한다`,
+      `브리지 서버(${this.baseUrl}) 연결 실패. Initial2D 저장소에서 node tools/bridge/server.js 실행 여부 확인`,
       "network",
     );
   }

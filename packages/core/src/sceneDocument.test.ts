@@ -32,7 +32,7 @@ describe("SceneDocument", () => {
     const be = new MemoryBackend({ "resources/scenes/x.json": '{"version": 1, "objects": [{"id": "a", "type": "ghost"}, {"id": "b", "type": "node"}]}' });
     await be.open("/mem");
     const doc = await SceneDocument.open(be, "resources/scenes/x.json", known);
-    expect(doc.problems.map((p) => p.message)).toEqual(["모르는 오브젝트 타입: ghost"]);
+    expect(doc.problems.map((p) => p.message)).toEqual(["등록되지 않은 오브젝트 타입: ghost"]);
     doc.select(["a"]);
     doc.select(["b"], true);
     expect(doc.selectedIds).toEqual(["a", "b"]);
@@ -71,11 +71,11 @@ describe("SceneDocument", () => {
     const validators: Validator[] = [sync, later, broken];
     const doc = await SceneDocument.open(be, "resources/scenes/x.json", known, () => validators);
     expect((seen[0] as { objects: Array<{ id: string }> }).objects.map((o) => o.id)).toEqual(["a"]);
-    expect(doc.problems.map((p) => p.message)).toEqual(["모르는 오브젝트 타입: ghost", "동기 a", "검사기가 실패했다: 깨졌다"]);
+    expect(doc.problems.map((p) => p.message)).toEqual(["등록되지 않은 오브젝트 타입: ghost", "동기 a", "검사기 오류: 깨졌다"]);
 
     resolvers[0]([{ severity: "warning", message: "비동기" }]);
     await new Promise((r) => setTimeout(r, 0));
-    expect(doc.problems.map((p) => p.message)).toEqual(["모르는 오브젝트 타입: ghost", "동기 a", "검사기가 실패했다: 깨졌다", "비동기"]);
+    expect(doc.problems.map((p) => p.message)).toEqual(["등록되지 않은 오브젝트 타입: ghost", "동기 a", "검사기 오류: 깨졌다", "비동기"]);
 
     // 다시 검사한 뒤에 끝난 옛 결과는 붙지 않는다
     doc.apply(doc.scene.addObject(makeObject("node", "b", {})));
@@ -87,7 +87,7 @@ describe("SceneDocument", () => {
     expect(doc.problems.map((p) => p.message)).not.toContain("옛 결과");
     resolvers[2]([]);
     await new Promise((r) => setTimeout(r, 0));
-    expect(doc.problems.map((p) => p.message)).toEqual(["모르는 오브젝트 타입: ghost", "동기 a", "동기 b", "검사기가 실패했다: 깨졌다"]);
+    expect(doc.problems.map((p) => p.message)).toEqual(["등록되지 않은 오브젝트 타입: ghost", "동기 a", "동기 b", "검사기 오류: 깨졌다"]);
   });
 
   it("경로 도우미", () => {

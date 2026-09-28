@@ -55,7 +55,7 @@ export const CORE_DEFAULT_PROPS: Record<CoreObjectType, Record<string, unknown>>
   text: { text: "", font: "" },
 };
 
-export const CORE_TYPE_LABELS: Record<CoreObjectType, string> = { node: "빈 노드", sprite: "스프라이트", text: "글자" };
+export const CORE_TYPE_LABELS: Record<CoreObjectType, string> = { node: "빈 노드", sprite: "스프라이트", text: "텍스트" };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -67,12 +67,12 @@ export function parseScene(text: string): SceneData {
   try {
     raw = JSON.parse(text);
   } catch (e) {
-    throw new SceneFormatError(`JSON 이 아니다: ${(e as Error).message}`);
+    throw new SceneFormatError(`JSON 구문 오류: ${(e as Error).message}`);
   }
-  if (!isRecord(raw)) throw new SceneFormatError("씬 파일은 객체여야 한다");
-  if (raw.version !== SCENE_VERSION) throw new SceneFormatError(`모르는 씬 버전이다: ${String(raw.version)} (지원: ${SCENE_VERSION})`, "version");
+  if (!isRecord(raw)) throw new SceneFormatError("씬 파일 최상위 값은 객체여야 함");
+  if (raw.version !== SCENE_VERSION) throw new SceneFormatError(`지원하지 않는 씬 버전: ${String(raw.version)} (지원: ${SCENE_VERSION})`, "version");
   const name = typeof raw.name === "string" ? raw.name : "";
-  if (raw.objects !== undefined && !Array.isArray(raw.objects)) throw new SceneFormatError("objects 는 배열이어야 한다", "objects");
+  if (raw.objects !== undefined && !Array.isArray(raw.objects)) throw new SceneFormatError("objects는 배열이어야 함", "objects");
   const objects = ((raw.objects as unknown[]) ?? []).map((o, i) => parseObject(o, i));
   const extra: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(raw)) if (!ROOT_KEYS.has(k)) extra[k] = v;
@@ -81,18 +81,18 @@ export function parseScene(text: string): SceneData {
 
 function parseObject(o: unknown, index: number): SceneObject {
   const where = `objects[${index}]`;
-  if (!isRecord(o)) throw new SceneFormatError(`${where} 는 객체여야 한다`, where);
-  if (typeof o.id !== "string" || o.id === "") throw new SceneFormatError(`${where}.id 는 비어 있지 않은 문자열이어야 한다`, `${where}.id`);
-  if (typeof o.type !== "string" || o.type === "") throw new SceneFormatError(`${where}.type 이 없다`, `${where}.type`);
+  if (!isRecord(o)) throw new SceneFormatError(`${where}: 객체여야 함`, where);
+  if (typeof o.id !== "string" || o.id === "") throw new SceneFormatError(`${where}.id는 비어 있지 않은 문자열이어야 함`, `${where}.id`);
+  if (typeof o.type !== "string" || o.type === "") throw new SceneFormatError(`${where}.type 없음`, `${where}.type`);
   const num = (key: "x" | "y") => {
     const v = o[key];
     if (v === undefined) return 0;
-    if (typeof v !== "number" || !Number.isFinite(v)) throw new SceneFormatError(`${where}.${key} 는 숫자여야 한다`, `${where}.${key}`);
+    if (typeof v !== "number" || !Number.isFinite(v)) throw new SceneFormatError(`${where}.${key}: 숫자여야 함`, `${where}.${key}`);
     return v;
   };
-  if (o.props !== undefined && !isRecord(o.props)) throw new SceneFormatError(`${where}.props 는 객체여야 한다`, `${where}.props`);
+  if (o.props !== undefined && !isRecord(o.props)) throw new SceneFormatError(`${where}.props는 객체여야 함`, `${where}.props`);
   if (o.scripts !== undefined && (!Array.isArray(o.scripts) || o.scripts.some((s) => typeof s !== "string"))) {
-    throw new SceneFormatError(`${where}.scripts 는 문자열 배열이어야 한다`, `${where}.scripts`);
+    throw new SceneFormatError(`${where}.scripts는 문자열 배열이어야 함`, `${where}.scripts`);
   }
   const extra: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(o)) if (!OBJECT_KEYS.has(k)) extra[k] = v;
@@ -111,19 +111,19 @@ function parseObject(o: unknown, index: number): SceneObject {
 /** 의미 검사. 엔진 로더가 거부하는 것과 같은 목록이다 */
 export function validateScene(data: SceneData, knownTypes: ReadonlySet<string> = new Set(CORE_OBJECT_TYPES)): ValidationProblem[] {
   const problems: ValidationProblem[] = [];
-  if (data.version !== SCENE_VERSION) problems.push({ severity: "error", message: `모르는 씬 버전: ${data.version}`, location: "version" });
+  if (data.version !== SCENE_VERSION) problems.push({ severity: "error", message: `지원하지 않는 씬 버전: ${data.version}`, location: "version" });
   const seen = new Set<string>();
   data.objects.forEach((o, i) => {
     const where = `objects[${i}]`;
-    if (seen.has(o.id)) problems.push({ severity: "error", message: `id 가 겹친다: ${o.id}`, location: `${where}.id` });
+    if (seen.has(o.id)) problems.push({ severity: "error", message: `id 중복: ${o.id}`, location: `${where}.id` });
     seen.add(o.id);
-    if (!knownTypes.has(o.type)) problems.push({ severity: "error", message: `모르는 오브젝트 타입: ${o.type}`, location: `${where}.type` });
+    if (!knownTypes.has(o.type)) problems.push({ severity: "error", message: `등록되지 않은 오브젝트 타입: ${o.type}`, location: `${where}.type` });
     if (o.type === "sprite" && (typeof o.props.image !== "string" || o.props.image === "")) {
-      problems.push({ severity: "warning", message: `스프라이트 ${o.id} 에 이미지가 없다`, location: `${where}.props.image` });
+      problems.push({ severity: "warning", message: `스프라이트 ${o.id}: 이미지(props.image) 비어 있음`, location: `${where}.props.image` });
     }
     o.scripts.forEach((s, j) => {
       if (s.startsWith("/") || s.includes("..") || /\.(lua|rb)$/.test(s) || s.includes("\\")) {
-        problems.push({ severity: "error", message: `스크립트는 논리 이름이어야 한다 (예: components/bird): ${s}`, location: `${where}.scripts[${j}]` });
+        problems.push({ severity: "error", message: `스크립트는 논리 이름이어야 함 (예: components/bird): ${s}`, location: `${where}.scripts[${j}]` });
       }
     });
   });
@@ -206,7 +206,7 @@ export class SceneModel {
   /** 오브젝트 하나를 새 값으로 바꾼다 (MobX 가 알아채도록 배열 원소를 교체한다) */
   private replaceObject(id: string, next: SceneObject): void {
     const i = this.indexOf(id);
-    if (i < 0) throw new Error(`오브젝트가 없다: ${id}`);
+    if (i < 0) throw new Error(`오브젝트 없음: ${id}`);
     this.objects[i] = next;
   }
 
@@ -218,7 +218,7 @@ export class SceneModel {
     return {
       label: `오브젝트 추가: ${obj.id}`,
       execute: action(() => {
-        if (model.find(obj.id)) throw new Error(`id 가 겹친다: ${obj.id}`);
+        if (model.find(obj.id)) throw new Error(`id 중복: ${obj.id}`);
         model.objects.splice(Math.min(at, model.objects.length), 0, cloneObject(obj));
       }),
       undo: action(() => {
@@ -236,7 +236,7 @@ export class SceneModel {
       label: `오브젝트 삭제: ${id}`,
       execute: action(() => {
         removedAt = model.indexOf(id);
-        if (removedAt < 0) throw new Error(`오브젝트가 없다: ${id}`);
+        if (removedAt < 0) throw new Error(`오브젝트 없음: ${id}`);
         removed = model.objects[removedAt];
         model.objects.splice(removedAt, 1);
       }),
@@ -282,7 +282,7 @@ export class SceneModel {
   setProp(id: string, key: string, value: unknown, coalesceKey?: string): Command {
     const model = this;
     const o = model.find(id);
-    if (!o) throw new Error(`오브젝트가 없다: ${id}`);
+    if (!o) throw new Error(`오브젝트 없음: ${id}`);
     const beforeProps = deepClone(o.props);
     const cmd: Command & { value: unknown } = {
       label: `속성 변경: ${id}.${key}`,
@@ -310,7 +310,7 @@ export class SceneModel {
   setField(id: string, field: "x" | "y" | "visible", value: number | boolean, coalesceKey?: string): Command {
     const model = this;
     const o = model.find(id);
-    if (!o) throw new Error(`오브젝트가 없다: ${id}`);
+    if (!o) throw new Error(`오브젝트 없음: ${id}`);
     const before = o[field];
     const cmd: Command & { value: number | boolean } = {
       label: `속성 변경: ${id}.${field}`,
@@ -339,7 +339,7 @@ export class SceneModel {
     return {
       label: `이름 바꾸기: ${id} → ${newId}`,
       execute: action(() => {
-        if (newId === "" || (newId !== id && model.find(newId))) throw new Error(`쓸 수 없는 id 다: ${newId}`);
+        if (newId === "" || (newId !== id && model.find(newId))) throw new Error(`비어 있거나 이미 있는 id: ${newId}`);
         const cur = model.find(id)!;
         model.replaceObject(id, { ...cur, id: newId });
       }),
@@ -354,7 +354,7 @@ export class SceneModel {
   reorder(from: number, to: number): Command {
     const model = this;
     return {
-      label: "순서 바꾸기",
+      label: "순서 변경",
       execute: action(() => {
         const [o] = model.objects.splice(from, 1);
         model.objects.splice(to, 0, o);
@@ -369,7 +369,7 @@ export class SceneModel {
   attachScript(id: string, logicalName: string): Command {
     const model = this;
     return {
-      label: `스크립트 붙이기: ${logicalName}`,
+      label: `스크립트 추가: ${logicalName}`,
       execute: action(() => {
         const cur = model.find(id)!;
         if (cur.scripts.includes(logicalName)) return;
@@ -386,7 +386,7 @@ export class SceneModel {
     const model = this;
     let index = -1;
     return {
-      label: `스크립트 떼기: ${logicalName}`,
+      label: `스크립트 제거: ${logicalName}`,
       execute: action(() => {
         const cur = model.find(id)!;
         index = cur.scripts.indexOf(logicalName);

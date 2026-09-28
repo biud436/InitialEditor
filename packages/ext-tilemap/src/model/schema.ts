@@ -91,24 +91,24 @@ export function parseObjectSchema(text: string): MapObjectSchema {
   try {
     raw = JSON.parse(text);
   } catch (e) {
-    throw new SchemaError(`JSON 이 아니다: ${(e as Error).message}`);
+    throw new SchemaError(`JSON 구문 오류: ${(e as Error).message}`);
   }
-  if (!isRecord(raw)) throw new SchemaError("스키마는 객체여야 한다");
-  if (raw.version !== 1) throw new SchemaError(`모르는 스키마 버전: ${String(raw.version)}`);
-  if (!Array.isArray(raw.types)) throw new SchemaError("types 는 배열이어야 한다");
+  if (!isRecord(raw)) throw new SchemaError("스키마 최상위 값은 객체여야 함");
+  if (raw.version !== 1) throw new SchemaError(`지원하지 않는 스키마 버전: ${String(raw.version)}`);
+  if (!Array.isArray(raw.types)) throw new SchemaError("types는 배열이어야 함");
   const seen = new Set<string>();
   const types = raw.types.map((t, i): ObjectTypeSchema => {
-    if (!isRecord(t) || typeof t.type !== "string" || t.type === "") throw new SchemaError(`types[${i}].type 이 없다`);
-    if (seen.has(t.type)) throw new SchemaError(`타입이 겹친다: ${t.type}`);
+    if (!isRecord(t) || typeof t.type !== "string" || t.type === "") throw new SchemaError(`types[${i}].type 없음`);
+    if (seen.has(t.type)) throw new SchemaError(`타입 중복: ${t.type}`);
     seen.add(t.type);
     const shape = (t.shape ?? "point") as ShapeKind;
-    if (!SHAPES.includes(shape)) throw new SchemaError(`${t.type}.shape 는 point, band, rect 중 하나다`);
+    if (!SHAPES.includes(shape)) throw new SchemaError(`${t.type}.shape는 point, band, rect 중 하나여야 함`);
     const color = (t.color ?? "accent") as ShapeColor;
-    if (!COLORS.includes(color)) throw new SchemaError(`${t.type}.color 는 ${COLORS.join(", ")} 중 하나다`);
+    if (!COLORS.includes(color)) throw new SchemaError(`${t.type}.color는 ${COLORS.join(", ")} 중 하나여야 함`);
     const fields = Array.isArray(t.fields) ? t.fields.map((f, j) => parseField(f, `${t.type}.fields[${j}]`)) : [];
     const names = new Set<string>();
     for (const f of fields) {
-      if (names.has(f.name)) throw new SchemaError(`${t.type} 의 칸이 겹친다: ${f.name}`);
+      if (names.has(f.name)) throw new SchemaError(`${t.type}의 필드 이름 중복: ${f.name}`);
       names.add(f.name);
     }
     return {
@@ -132,18 +132,18 @@ function parsePlay(raw: unknown): PlaySpec | null {
   for (const [k, v] of Object.entries(raw.env)) if (typeof v === "string") env[k] = v;
   if (raw.maps === undefined) return { env };
   if (!Array.isArray(raw.maps) || raw.maps.some((m) => typeof m !== "string" || m.trim() === "")) {
-    throw new SchemaError("play.maps는 맵 이름 글롭(비지 않은 글)의 배열이어야 한다");
+    throw new SchemaError("play.maps는 맵 이름 글롭(비어 있지 않은 문자열)의 배열이어야 함");
   }
   return { env, maps: raw.maps as string[] };
 }
 
 function parseField(f: unknown, where: string): FieldSpec {
-  if (!isRecord(f) || typeof f.name !== "string" || f.name === "") throw new SchemaError(`${where}.name 이 없다`);
+  if (!isRecord(f) || typeof f.name !== "string" || f.name === "") throw new SchemaError(`${where}.name 없음`);
   const type = f.type as FieldType;
-  if (!FIELD_TYPES.includes(type)) throw new SchemaError(`${where}.type 은 ${FIELD_TYPES.join(", ")} 중 하나다`);
+  if (!FIELD_TYPES.includes(type)) throw new SchemaError(`${where}.type은 ${FIELD_TYPES.join(", ")} 중 하나여야 함`);
   const spec: FieldSpec = { name: f.name, type, label: typeof f.label === "string" ? f.label : f.name };
   if (type === "enum") {
-    if (!Array.isArray(f.values) || f.values.length === 0 || f.values.some((v) => typeof v !== "string")) throw new SchemaError(`${where}.values 는 문자열 배열이어야 한다`);
+    if (!Array.isArray(f.values) || f.values.length === 0 || f.values.some((v) => typeof v !== "string")) throw new SchemaError(`${where}.values는 비어 있지 않은 문자열 배열이어야 함`);
     spec.values = f.values as string[];
   }
   if (f.default !== undefined) spec.default = f.default;
@@ -186,7 +186,7 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
   const uniqueCount = new Map<string, number>();
   objects.forEach((o, i) => {
     const where = `objects[${i}]`;
-    if (ids.has(o.id)) problems.push({ severity: "error", message: `id 가 겹친다: ${o.id}`, location: `${where}.id`, objectId: o.id });
+    if (ids.has(o.id)) problems.push({ severity: "error", message: `id 중복: ${o.id}`, location: `${where}.id`, objectId: o.id });
     ids.add(o.id);
     if (!schema) return;
     const spec = typeOf(schema, o.type);
@@ -196,10 +196,10 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
     }
     if (spec.unique) uniqueCount.set(o.type, (uniqueCount.get(o.type) ?? 0) + 1);
     if ((spec.shape === "band" || spec.shape === "rect") && !(typeof o.width === "number" && o.width > 0)) {
-      problems.push({ severity: "error", message: `${spec.label} ${o.id} 에 폭이 없다`, location: `${where}.width`, objectId: o.id });
+      problems.push({ severity: "error", message: `${spec.label} ${o.id}: 너비 없음`, location: `${where}.width`, objectId: o.id });
     }
     if (spec.shape === "rect" && !(typeof o.height === "number" && o.height > 0)) {
-      problems.push({ severity: "error", message: `${spec.label} ${o.id} 에 높이가 없다`, location: `${where}.height`, objectId: o.id });
+      problems.push({ severity: "error", message: `${spec.label} ${o.id}: 높이 없음`, location: `${where}.height`, objectId: o.id });
     }
     for (const f of spec.fields) {
       const v = o.props[f.name];
@@ -207,33 +207,33 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
       // 글 칸은 비었거나 공백뿐이어도 빈 것이다 (새 오브젝트의 필수 글 칸은 ""로 시작한다)
       const blankText = (f.type === "string" || f.type === "text") && isJsonText(v) && v.trim() === "";
       if (v === undefined || blankText) {
-        if (f.required) problems.push({ severity: "error", message: `${o.id}: ${f.label}이(가) 비어 있다`, location: loc, objectId: o.id });
+        if (f.required) problems.push({ severity: "error", message: `${o.id}: 필수 속성 ${f.label} 비어 있음`, location: loc, objectId: o.id });
         continue;
       }
       const bad = (why: string) => problems.push({ severity: "error", message: `${o.id}: ${f.label} ${why}`, location: loc, objectId: o.id });
       switch (f.type) {
         case "string":
         case "text":
-          if (!isJsonText(v)) bad("은(는) 글이어야 한다");
+          if (!isJsonText(v)) bad("값은 문자열이어야 함");
           break;
         case "number":
-          if (!isJsonNumber(v)) bad("은(는) 숫자여야 한다");
+          if (!isJsonNumber(v)) bad("값은 숫자여야 함");
           break;
         case "integer":
-          if (!isJsonInteger(v)) bad("은(는) 정수여야 한다");
+          if (!isJsonInteger(v)) bad("값은 정수여야 함");
           break;
         case "boolean":
-          if (typeof v !== "boolean") bad("은(는) 참이나 거짓이어야 한다");
+          if (typeof v !== "boolean") bad("값은 불리언(true 또는 false)이어야 함");
           break;
         case "enum":
-          if (!isJsonText(v) || !f.values!.includes(v)) bad(`의 값 ${stringifyJsonLossless(v)} 은(는) 목록에 없다 (${f.values!.join(", ")})`);
+          if (!isJsonText(v) || !f.values!.includes(v)) bad(`값은 ${f.values!.join(", ")} 중 하나여야 함 (현재: ${stringifyJsonLossless(v)})`);
           break;
       }
       // 2^53을 넘는 정수(표식 글)도 수라 범위를 본다 (견주기는 가까운 수로)
       const n = jsonNumber(v);
       if (n !== undefined) {
-        if (f.min !== undefined && n < f.min) bad(`은(는) ${f.min} 이상이어야 한다`);
-        if (f.max !== undefined && n > f.max) bad(`은(는) ${f.max} 이하여야 한다`);
+        if (f.min !== undefined && n < f.min) bad(`값은 ${f.min} 이상이어야 함`);
+        if (f.max !== undefined && n > f.max) bad(`값은 ${f.max} 이하여야 함`);
       }
     }
     const lo = spec.fields.find((f) => f.role === "rangeMin");
@@ -242,13 +242,13 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
     const b = hi ? jsonNumber(o.props[hi.name]) : undefined;
     if (lo && hi && a !== undefined && b !== undefined) {
       const range = `${jsonValueText(o.props[lo.name])}..${jsonValueText(o.props[hi.name])}`;
-      if (a > b) problems.push({ severity: "error", message: `${o.id}: ${lo.label} 이(가) ${hi.label} 보다 크다`, location: `${where}.props.${lo.name}`, objectId: o.id });
-      else if (o.x < a || o.x > b) problems.push({ severity: "warning", message: `${o.id}: 위치 ${o.x} 가 범위 ${range} 밖이다`, location: `${where}.x`, objectId: o.id });
+      if (a > b) problems.push({ severity: "error", message: `${o.id}: ${lo.label} 값은 ${hi.label} 값 이하여야 함`, location: `${where}.props.${lo.name}`, objectId: o.id });
+      else if (o.x < a || o.x > b) problems.push({ severity: "warning", message: `${o.id}: x 좌표가 범위 ${range} 밖 (현재: ${o.x})`, location: `${where}.x`, objectId: o.id });
     }
   });
   if (schema) {
     for (const [type, n] of uniqueCount) {
-      if (n > 1) problems.push({ severity: "error", message: `${typeOf(schema, type)!.label} 은(는) 하나만 둘 수 있다 (${n}개)`, location: "objects" });
+      if (n > 1) problems.push({ severity: "error", message: `${typeOf(schema, type)!.label} 타입은 맵당 1개만 허용 (현재 ${n}개)`, location: "objects" });
     }
   }
   return problems;

@@ -89,8 +89,8 @@ describe("시트 칸", () => {
 
   it("시트 크기를 검사한다", () => {
     expect(blobSheetProblem(128, 96, 16, 16)).toBeNull();
-    expect(blobSheetProblem(96, 128, 16, 16)).toMatch(/가로가 더 길다/);
-    expect(blobSheetProblem(64, 64, 16, 16)).toMatch(/가로가 더 길다/);
+    expect(blobSheetProblem(96, 128, 16, 16)).toMatch(/너비가 높이보다 커야 함/);
+    expect(blobSheetProblem(64, 64, 16, 16)).toMatch(/너비가 높이보다 커야 함/);
     expect(blobSheetProblem(256, 96, 16, 16)).toMatch(/128x96/);
     expect(blobSheetProblem(128, 96, 0, 16)).toMatch(/0보다/);
   });

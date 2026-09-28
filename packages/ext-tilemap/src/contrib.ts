@@ -187,7 +187,7 @@ export interface MapPlayer {
   play(doc: MapDocument, request: PlayRequest): Promise<boolean>;
 }
 
-export const NO_MAP_PLAYER = "맵을 띄울 길이 없다 (에디터가 실행기를 넣지 않았다)";
+export const NO_MAP_PLAYER = "맵 실행기 미설정 (setPlayer 호출 없음)";
 
 /**
  * 설치본 자가 검사(앱의 editor/selftest)가 확장에 묻는 것. 확장의 내보내기 selftest 칸에 둔다.
@@ -289,11 +289,11 @@ export class TilemapContrib implements TilemapApi {
   }
 
   registerMapLayer(spec: MapLayerSpec): () => void {
-    if (this.layers.has(spec.id)) throw new Error(`맵 레이어가 이미 있다: ${spec.id}`);
+    if (this.layers.has(spec.id)) throw new Error(`맵 레이어 id 중복: ${spec.id}`);
     const problem = sectionKeyProblem(spec.section);
     if (problem) throw new Error(`맵 레이어 ${spec.id}: ${problem}`);
     for (const other of this.layers.values()) {
-      if (other.section === spec.section) throw new Error(`섹션 ${spec.section} 은(는) 레이어 ${other.id} 이(가) 이미 맡았다`);
+      if (other.section === spec.section) throw new Error(`섹션 ${spec.section}: 레이어 ${other.id}에서 이미 사용 중`);
     }
     action(() => this.layers.set(spec.id, spec))();
     for (const doc of this.openMaps()) this.refreshOne(doc, spec);
@@ -307,7 +307,7 @@ export class TilemapContrib implements TilemapApi {
   }
 
   registerPlayProvider(spec: PlayProviderSpec): () => void {
-    if (this.providers.some((p) => p.id === spec.id)) throw new Error(`실행 제공자가 이미 있다: ${spec.id}`);
+    if (this.providers.some((p) => p.id === spec.id)) throw new Error(`실행 제공자 id 중복: ${spec.id}`);
     action(() => this.providers.push(spec))();
     return action(() => {
       this.providers.remove(spec);
@@ -338,7 +338,7 @@ export class TilemapContrib implements TilemapApi {
   pickCell(request: CellPickRequest): Promise<Point | null> {
     const views = this.views.get();
     if (!views) {
-      this.deps.warn?.(`타일 고르기 (${request.path}): ${NO_MAP_VIEWS}`);
+      this.deps.warn?.(`타일 선택 (${request.path}): ${NO_MAP_VIEWS}`);
       return Promise.resolve(null);
     }
     return views.pickCell(request);
@@ -375,7 +375,7 @@ export class TilemapContrib implements TilemapApi {
     try {
       doc.refreshLayer(spec);
     } catch (e) {
-      this.deps.warn?.(`맵 레이어 ${spec.label}(${spec.id}) 을(를) ${doc.path ?? doc.title} 에 붙이지 못했다: ${(e as Error).message}`);
+      this.deps.warn?.(`맵 레이어 ${spec.label}(${spec.id}) 연결 실패 (${doc.path ?? doc.title}): ${(e as Error).message}`);
     }
   }
 

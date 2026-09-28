@@ -98,7 +98,7 @@ export class SceneDocument extends Document {
   }
 
   async save(): Promise<void> {
-    if (!this.path) throw new Error("경로가 없는 씬은 저장할 수 없다");
+    if (!this.path) throw new Error("경로 없는 씬은 저장 불가");
     this.assertCanSave();
     this.revalidate();
     // 쓰는 동안 들어온 편집은 dirty로 남도록 쓰기 전의 상태로 표시한다
@@ -125,5 +125,5 @@ export class SceneDocument extends Document {
 }
 
 function validatorFailure(e: unknown): ValidationProblem {
-  return { severity: "warning", message: `검사기가 실패했다: ${e instanceof Error ? e.message : String(e)}` };
+  return { severity: "warning", message: `검사기 오류: ${e instanceof Error ? e.message : String(e)}` };
 }

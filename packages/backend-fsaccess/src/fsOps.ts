@@ -21,7 +21,7 @@ export function supportsFolderPicker(): boolean {
 export async function defaultPicker(): Promise<FsDirHandle | null> {
   const host = globalThis as PickerHost;
   if (typeof host.showDirectoryPicker !== "function") {
-    throw new BackendError("이 브라우저에는 폴더 열기가 없다. 크롬이나 엣지에서 연다", "unsupported");
+    throw new BackendError("이 브라우저는 폴더 열기 미지원. 크롬이나 엣지 필요", "unsupported");
   }
   try {
     return (await host.showDirectoryPicker({ mode: "readwrite", id: FOLDER_PICKER_ID })) as FsDirHandle;
@@ -33,7 +33,7 @@ export async function defaultPicker(): Promise<FsDirHandle | null> {
 
 export async function defaultOpfsRoot(): Promise<FsDirHandle> {
   const storage = (globalThis as PickerHost).navigator?.storage;
-  if (typeof storage?.getDirectory !== "function") throw new BackendError("이 브라우저에는 OPFS 가 없다", "unsupported");
+  if (typeof storage?.getDirectory !== "function") throw new BackendError("이 브라우저는 OPFS 미지원", "unsupported");
   return (await storage.getDirectory()) as FsDirHandle;
 }
 

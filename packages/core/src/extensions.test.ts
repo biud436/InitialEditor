@@ -28,7 +28,7 @@ describe("topoSort", () => {
     const a: Extension = { id: "a", name: "a", dependsOn: ["b"], activate() {} };
     const b: Extension = { id: "b", name: "b", dependsOn: ["a"], activate() {} };
     expect(() => topoSort([a, b])).toThrow(/순환/);
-    expect(() => topoSort([a])).toThrow(/없다/);
+    expect(() => topoSort([a])).toThrow(/의존 확장 b 없음/);
   });
 });
 
@@ -80,7 +80,7 @@ describe("ExtensionHost", () => {
         api.registerObjectType({ type: "x", label: "x", defaults: {} });
       },
     };
-    await expect(h.host.activate(bad)).rejects.toThrow(/이미 있다/);
+    await expect(h.host.activate(bad)).rejects.toThrow(/오브젝트 타입 중복 등록: x/);
     expect(h.host.active.has("bad")).toBe(false);
     expect(h.registries.objectTypes.size).toBe(0);
   });
@@ -163,7 +163,7 @@ describe("확장의 내보내기", () => {
         api = a;
       },
     });
-    expect(() => api!.exportsOf("base")).toThrow("확장 other 은(는) dependsOn 에 base 을(를) 적어야 그 내보내기를 받는다");
+    expect(() => api!.exportsOf("base")).toThrow("확장 other: dependsOn에 base 없음 (내보내기 사용 불가)");
   });
 });
 
@@ -201,8 +201,8 @@ describe("작업 공간", () => {
     const h = host();
     expect(h.host.workspace.project.isOpen).toBe(false);
     expect(h.host.workspace.documents.documents).toEqual([]);
-    expect(() => h.host.workspace.backend()).toThrow("작업 공간에 백엔드가 없다");
-    await expect(h.host.workspace.openPath("resources/maps/a.json")).rejects.toThrow("작업 공간에 열 프로젝트가 없다: resources/maps/a.json");
+    expect(() => h.host.workspace.backend()).toThrow("작업 공간에 백엔드 없음");
+    await expect(h.host.workspace.openPath("resources/maps/a.json")).rejects.toThrow("작업 공간에 열린 프로젝트 없음: resources/maps/a.json");
     expect(detachedWorkspace().documents).not.toBe(detachedWorkspace().documents);
   });
 
