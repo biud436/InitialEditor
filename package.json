@@ -34,6 +34,7 @@
     "sync:engine-web": "node scripts/sync-engine-web.mjs",
     "engine:fetch": "node scripts/fetch-engine.mjs",
     "engine:check": "node scripts/check-engine-pin.mjs",
+    "engine:pin": "node scripts/pin-engine.mjs",
     "version:set": "node scripts/version.mjs set",
     "version:check": "node scripts/version.mjs check",
     "licenses": "node scripts/gen-licenses.mjs",
