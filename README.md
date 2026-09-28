@@ -213,6 +213,7 @@ yarn engine:fetch --from ../Initial2D/dist
 yarn tauri build --bundles app --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json
 yarn selftest:app src-tauri/target/release/bundle/macos/InitialEditor.app
 yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲에 한 칸을 칠해 게임 화면과 견주는 것까지
+yarn selftest:app <앱> --rpg ../Initial2D        # 항구 마을의 이벤트 레이어와 이벤트 앞에서 실행, 자동 재생까지
 ```
 
 - `yarn selftest:app` 은 창을 띄우지 않습니다. 앱을 자가 검사 모드(`INITIAL_EDITOR_SELFTEST=<계획 파일>`)로 띄우면, 앱에 든 템플릿으로
@@ -220,6 +221,7 @@ yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲에 한 칸�
   끝나면 `scripts/selftest-check.mjs` 가 실행마다 남은 전체 로그와 스크린샷으로 판정합니다. 작업 폴더(보고서, 로그, 스크린샷)는 지우지 않고 경로를 찍습니다.
 - 자가 검사는 설정, 최근 프로젝트, 레이아웃, 창 위치, 웹뷰 저장소를 읽지도 쓰지도 않습니다. 확인 창이 뜨거나 웹뷰 보안 정책(CSP) 위반이 있으면 실패입니다.
 - `--forest <엔진 저장소>` 는 숲 맵의 사본을 맵 뷰로 열어 deco 레이어의 빈 칸 하나를 칠해 저장하고 앱에 든 엔진으로 돌린 뒤, 게임 화면을 맵 뷰와 견주고 저장한 맵과 타일셋으로 직접 그린 기준과도 견줍니다. 레이어마다, 칠한 칸까지 게임 화면에 있어야 통과합니다 (게임이 레이어 하나를 빼고 그리거나 칠하기 전 맵을 돌리면 실패).
+- `--rpg <엔진 저장소>` 는 항구 마을(`port_town.json`)의 사본을 맵 뷰로 열어 RPG 확장이 붙인 이벤트 레이어와 뷰가 그린 표식을 보고서에 적고, 맵 메뉴의 "이 이벤트 앞에서 실행"과 "이 이벤트 자동 재생"을 물고기 장수에게 앱에 든 엔진으로 돌립니다. 판정은 표식 17개가 맵 파일의 자리에 게임의 그리기 규칙대로 있는지, 게임이 이벤트를 다 읽었는지, 플레이어가 판정이 맵 파일로 셈한 자리에 섰는지(`rpg:player:`), 자동 재생이 이벤트를 돌렸는지(`rpg:event:`) 봅니다. `--forest` 와 같은 저장소면 사본 하나를 함께 씁니다.
 - `--embedded` 는 에디터 안 실행을 더하는데 창이 뜹니다. `--total-timeout <ms>` 로 전체 시간을 줄일 수 있습니다.
 - 로컬에서 dmg 까지 만들면(`--bundles app,dmg`) Finder 창이 잠깐 뜹니다. CI 에서는 뜨지 않습니다.
 - CSP 는 `src-tauri/tauri.conf.json` 의 `app.security.csp` 입니다. 새 기능이 막히면 자가 검사 보고서의 `cspViolations` 에 무엇이 막혔는지 나옵니다.
@@ -364,7 +366,7 @@ docs/plans/               계획과 진행 상황
 | `yarn version:set <판>`, `yarn version:check` | 판 번호를 한꺼번에 바꾸거나 한 가지인지 본다 (위 "설치 파일과 자가 검사") |
 | `yarn licenses` | 에디터의 제3자 고지 `src-tauri/licenses/THIRD-PARTY-editor.md` 를 다시 쓴다 (`scripts/gen-licenses.mjs`). `--check` 는 다르면 실패 |
 | `yarn build:desktop` | 소스맵 없는 빌드 (데스크톱 번들용, `src-tauri/tauri.dist.conf.json` 이 부른다) |
-| `yarn selftest:app <앱>` | 빌드한 앱의 자가 검사 (창 없음). `--forest <엔진 저장소>`, `--embedded`, `--plan <계획> --no-check` |
+| `yarn selftest:app <앱>` | 빌드한 앱의 자가 검사 (창 없음). `--forest <엔진 저장소>`, `--rpg <엔진 저장소>`, `--embedded`, `--plan <계획> --no-check` |
 | `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)와 제3자 고지(`THIRD-PARTY.md`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`). 먼저 엔진 저장소에서 `tools/build_web.sh` |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright, Chromium 으로 모든 스펙 (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |

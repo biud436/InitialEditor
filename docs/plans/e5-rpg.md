@@ -1255,3 +1255,43 @@ README 항목은 엔진 PR #57 의 README 와 엔진 `index.md` 로 닫았다. �
 | `yarn test:engine-events` | 건너뛰지 않음. 8건(판 10) 통과, 엔진 `ef00946` (사본에서 cmake 로 빌드한 `build/Initial2D`, 기능 `lua mruby`) |
 | Playwright Chromium 전체 | 138건 가운데 135건 통과, 실패 없음. 건너뛴 셋은 `pages.spec.ts` 의 `_headers` 검사다 (알데바란 숲 스펙은 네이티브 엔진을 빌드한 뒤 따로 돌려 통과) |
 | Playwright WebKit (`rpg-editor`, `rpg-layer`, `rpg-transfer-pick`, `rpg-events`, `inspector-scroll`, `scene-tools`) | 고치기 전 34건 가운데 27건, 고친 뒤 `rpg-editor`, `rpg-transfer-pick`, `scene-tools` 28건 모두 통과 |
+
+### 설치본 자가 검사의 항구 마을: 완료 기준 첫째와 셋째 (2026-09-28, `feat/e5-layer`)
+
+완료 기준 첫째(Tauri 앱에서 이벤트 17개 보기)와 셋째(Tauri 앱의 프로세스 모드로 이 이벤트 앞에서 실행)는 창을 띄워야 볼 수 있어
+저자에게 남겨 두었다. E3 의 숲처럼 E6 의 설치본 자가 검사로 옮겼다. CI 의 `release.yml` 이 macOS 와 Linux 설치본을 보이는 창으로 돌린다.
+
+- **장르를 모르는 자리** (`ext-tilemap` 의 `MapSelftestProbe`): 확장이 내보내기의 `selftest` 칸에 탐침을 둔다. `describe(doc)` 는 그 맵에
+  붙인 것을 JSON 으로 적고(`ready` 가 참이 될 때까지 자가 검사가 다시 묻는다), `playRequest(doc, args)` 는 메뉴의 실행 명령과 같은 실행
+  요청을 만든다. 앱의 자가 검사(`editor/selftest`)는 계획의 `probe: { extension, map }` 으로 탐침을 부르고, 실행의 `play: { extension, map, args }`
+  로 받은 요청을 앱의 맵 실행 길(`playRequest`, 여기서 실행과 같은 길: 러너 확인, 저장 여부 질문, 콘솔 한 줄, 러너 시작)로 띄운다.
+  계획의 `mode` 와 `env`(헤드리스 변수와 `INITIAL2D_EXIT_AFTER`)만 더하고 요청의 변수가 이긴다. 프로젝트를 연 뒤의 엔진 탐색이 끝나기를
+  기다린다 (그동안 실행 길은 "엔진을 찾는 중" 으로 막힌다). 앱 코드에는 RPG 낱말이 없다.
+- **RPG 확장의 탐침** (`packages/ext-rpg/src/selftest.ts`): `describe` 는 레이어가 붙었는지, 잠금, 오류 수, 레이어 목록의 이벤트(id, x, y,
+  외형 유무), 뷰가 그린 표식(`EventsLayerView.drawn`)과 읽지 못한 외형 그림을 적고, 뷰가 있고 외형 그림을 다 읽었으면 ready 다. 문서마다
+  지금 붙은 뷰는 레이어 명세가 적어 둔다 (`createEventsLayer` 의 `views`). `playRequest` 는 `args.event` 의 이벤트를 고르고(레이어 대상과
+  선택) `args.mode`(play, probe)의 `eventPlayRequest` 를 돌려준다. 메뉴 명령과 같은 요청이다.
+- **계획** (`selftest-plan.mjs --rpg <엔진 저장소>`): 엔진 체크아웃의 사본(숲과 같은 사본, 외형과 얼굴과 타이틀 그림을 더 복사한다)을
+  열어 `port_town.json` 을 맵 뷰로 열고 탐침에 묻는다. 실행 둘: 물고기 장수(`fishmonger`, 외형과 dir 이 있고 배회하지 않는다) 앞에서 실행
+  (`eventFront`, `INITIAL2D_EXIT_AFTER=240`)과 자동 재생(`eventProbe`, 경로를 다 걸으면 게임이 스스로 끝난다). 둘 다 앱에 든 엔진,
+  `INITIAL2D_NO_RTP=1`. `release.yml` 의 macOS 와 Linux 계획이 `--rpg` 를 준다.
+- **판정** (`selftest-check.mjs`): 탐침은 ready, 레이어가 붙었고 잠기지 않았고 오류 없음, 탐침의 이벤트가 디스크의 맵 파일 이벤트와 같음,
+  뷰가 표식 17개를 이벤트마다 하나씩 그렸고 자리가 게임의 그리기 규칙(엔진 `character.lua` 의 draw: 가로 가운데, 발이 칸 아래 변, 프레임은
+  스키마의 24x32. 외형이 없으면 칸)과 같음, 읽지 못한 외형 그림 없음, 그 시트 파일이 프로젝트에 있음. 실행은 종료 코드 0, 오류 줄 없음,
+  게임이 이벤트를 다 읽음(`rpg:map:port_town events:17 skipped:0`), 플레이어가 선 자리(`rpg:player:`)가 판정이 디스크의 맵 파일로
+  `eventPlayPlan`(ext-rpg 모델을 Vite SSR 로)을 불러 셈한 자리와 같음, 자동 재생은 `rpg:event:fishmonger` 까지.
+- 단위 시험: 앱의 흐름(`runSelftest.test.ts`: 탐침을 ready 까지 다시 묻기, 보이는 창에서만 ready 아님이 실패, 탐침 없는 확장, 요청의 변수가
+  이기는 실행, 거절된 요청), 계획(`plan.test.ts`), 탐침(`ext-rpg/src/selftest.test.ts`: 읽기 전, 17개, 그림을 다 읽어야 ready, 뷰를 치우면
+  없음, 메뉴 명령과 같은 계획), 판정(`tests/scripts/selftest.unit.ts`: 통과, 표식 한 픽셀 어긋남, 하나 빠짐, 그림 읽기 실패, 잠김, 이벤트 다름,
+  ready 아님, 다른 자리에 섬, 이벤트를 덜 읽음, 이벤트를 돌리지 않음, 거절된 요청, 숲과 사본 함께 쓰기).
+- **이 맥의 릴리스 `.app`** (2026-09-28, 사이드카는 엔진 `ef00946` 의 깨끗한 사본에서 `tools/build_dist.sh`, 숨은 창,
+  `yarn selftest:app <앱> --rpg <엔진 사본>`): 59 PASS / 0 FAIL. 탐침은 이벤트 17개, 뷰가 그린 표식 17개(외형 넷은 CharSet 프레임),
+  읽지 못한 그림 없음. 에디터 로그에 메뉴 명령과 같은 줄("이 이벤트 앞에서 실행: 항구 마을 x 14, y 35 (이벤트 fishmonger 앞)")이 남았고,
+  게임은 `rpg:map:port_town events:17 skipped:0`, `rpg:player:port_town,14,35,left`(물고기 장수의 왼쪽 칸과 아래 칸이 막혀 오른쪽 칸에서
+  왼쪽을 본다), 자동 재생은 `rpg:hold:fishmonger` 뒤 `rpg:event:fishmonger` 와 대사, 선택지를 찍고 코드 0 으로 끝났다 (6.0초).
+  **음성 대조**: 같은 앱의 사본에서 사이드카를 감싸개로 바꿔 `INITIAL2D_RPG_AT` 의 y 를 하나 늘리면 56 PASS / 3 FAIL (앞에서 실행과
+  자동 재생의 선 자리가 `14,36`, 자동 재생은 이벤트에 닿지 못했다).
+- 숨은 창에서는 맵 뷰의 렌더러가 준비되지 않아도(`mapView.ready` 거짓) 레이어 뷰는 표식을 만든다. 그래서 보이는 창의 계획에서는 판정이
+  맵 뷰가 WebGL 로 그릴 준비가 됐는지도 본다 (숲과 같다). CI 의 macOS 와 Linux 설치본이 보이는 창으로 돈다.
+
+완료 기준 첫째와 셋째는 CI 의 `release.yml` 자가 검사(보이는 창, 설치한 번들)가 통과하면 닫는다.

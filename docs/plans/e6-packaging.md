@@ -381,7 +381,7 @@ R5 전까지 Windows 번들은 사이드카 없이 내고 F5 는 웹 엔진으�
 
 | 러너 | 타깃 | `--bundles` | 덮어쓰기 | 사이드카 | 자가 검사 (5절) |
 |---|---|---|---|---|---|
-| `macos-26` | `aarch64-apple-darwin` | `app,dmg` | dist + sidecar | 있음 | dmg 를 `hdiutil attach -nobrowse -readonly` 해 그 안의 `.app` 으로. 계획 `--os mac --forest <엔진 체크아웃>`: 플래피 Lua, 플래피 Ruby, 타일맵, 숲 (프로세스 방식, `bundled`, 필수), 플래피 에디터 안 (시도). 창을 보인다 |
+| `macos-26` | `aarch64-apple-darwin` | `app,dmg` | dist + sidecar | 있음 | dmg 를 `hdiutil attach -nobrowse -readonly` 해 그 안의 `.app` 으로. 계획 `--os mac --forest <엔진 체크아웃> --rpg <엔진 체크아웃>`: 플래피 Lua, 플래피 Ruby, 타일맵, 숲, 항구 마을 (프로세스 방식, `bundled`, 필수), 플래피 에디터 안 (시도). 창을 보인다 |
 | `ubuntu-22.04` | `x86_64-unknown-linux-gnu` | `appimage,deb` | dist + sidecar | 있음 | `xvfb-run -a` 와 `APPIMAGE_EXTRACT_AND_RUN=1`, `WEBKIT_DISABLE_DMABUF_RENDERER=1`(xvfb 에는 GPU 가 없다) 로 AppImage. macOS 와 같은 계획. deb 는 `dpkg-deb -x` 로 푼 사이드카에 `check-sidecar.mjs`, `apt install ./<deb>` 뒤 `/usr/bin/Initial2D --version` (시간 제한, 임시 작업 폴더에 아무것도 남지 않는다) |
 | `windows-latest` | `x86_64-pc-windows-msvc` | `nsis` | dist | 없음 | 설치 파일을 `/S` 로 무인 설치하고 `%LOCALAPPDATA%\InitialEditor` 의 실행 파일로. 필수: 플래피 Lua 를 프로세스 방식으로 시작해 엔진을 못 찾고 에디터 안으로 넘어가 돈다 |
 
@@ -489,6 +489,7 @@ R5 전까지 Windows 번들은 사이드카 없이 내고 F5 는 웹 엔진으�
 | 번들 엔진으로 플래피(Lua 와 Ruby)가 돈다 | 필수 | 필수 | (R5 뒤) | 자가 검사, 프로세스 방식, `SDL_VIDEODRIVER=dummy`, `SDL_AUDIODRIVER=dummy` |
 | 맵 문서로 칠한 칸이 번들 엔진 화면에 나온다 | 필수 | 필수 | (R5 뒤) | 자가 검사, 타일맵 템플릿, `INITIAL2D_SCREENSHOT` |
 | 맵 뷰가 그린 알데바란 숲이 게임 화면과 같다 (E3 완료 기준 1) | 필수 | 필수 | (R5 뒤) | 자가 검사의 숲 프로젝트(엔진 저장소 체크아웃의 사본), 맵 뷰의 타일 뽑기와 같은 카메라의 게임 스크린샷 |
+| 항구 마을의 이벤트 17개가 게임의 자리에 보이고, 이벤트 앞에서 실행과 자동 재생이 앱에 든 엔진으로 돈다 (E5 완료 기준 첫째와 셋째) | 필수 | 필수 | (R5 뒤) | 자가 검사의 항구 마을 프로젝트(같은 사본), RPG 확장의 탐침과 확장의 실행 요청, 게임의 `rpg:` 줄 |
 | 엔진을 못 찾아 에디터 안(웹 엔진)으로 넘어가 플래피가 돈다 | (해당 없음) | (해당 없음) | 필수 | 자가 검사, 프로세스 방식으로 시작, `expectFallback`. WebView2 는 WARP 나 SwiftShader 로 WebGL 을 준다 |
 | 웹 엔진(에디터 안)으로 플래피가 돈다 | 시도 | 시도 | (위 줄) | 자가 검사, 에디터 안 방식. 러너의 WebGL(소프트웨어 렌더링)에 달렸다 |
 | 웹뷰 보안 정책 위반이 없다 | 필수 | 필수 | 필수 | 자가 검사의 `cspViolations` |
@@ -1132,6 +1133,7 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 - [x] `release.yml` 의 자가 검사 단계 (macOS 는 dmg 안의 앱, Linux 는 xvfb 와 AppImage, Windows 는 무인 설치본), `timeout-minutes`, `if: always()` 판정, 자가 검사 폴더를 산출물로 (actionlint 통과, 첫 CI 실행 전)
 - [x] `release.yml` 의 `check` 잡 (판, 고지, `check-engine-pin.mjs`, 템플릿 묶음에 대한 `templates.test.ts`. 생성물 PNG 는 픽셀로 견준다, 4.1)과 `collect` 잡(`SHA256SUMS.txt`)과 `release` 잡 (태그를 민 실행만, 초안, 프리릴리스 판정), `docs/releases/first-open.md` (본문 머리의 처음 열기)
 - [x] 로컬에서 같은 검사: `yarn selftest:app <빌드한 앱 경로> [--embedded] [--forest <엔진 저장소>]` (저자가 CI 없이 돌린다. 기본은 창이 뜨지 않는다). 2026-09-27 이 맥: 33 PASS, `--forest` 46 PASS. 숲이 칠한 칸과 레이어마다의 기준 대조를 더한 뒤 `--forest` 55 PASS (5절)
+- [x] 항구 마을 (E5 완료 기준 첫째와 셋째, 2026-09-28): `--rpg <엔진 저장소>`, 계획의 `probe`(확장의 탐침, `ext-tilemap` 의 `MapSelftestProbe`)와 실행의 `play`(확장의 실행 요청을 앱의 맵 실행 길로), 판정의 `eventFront` 와 `eventProbe`. 이 맥의 릴리스 `.app` 59 PASS, 음성 대조(선 자리를 한 칸 옮긴 감싸개 엔진) 3 FAIL. 설계와 결과는 e5 문서의 구현 노트 "설치본 자가 검사의 항구 마을"
 - [ ] E3 완료 기준 1 (Tauri 창의 숲이 게임과 같다): 자가 검사의 숲 단계가 CI 의 보이는 창에서 통과하면 E3 문서에 체크한다 (이 맥의 숨은 창에서는 통과. 2026-09-27 부터 숲 단계는 deco 의 한 칸을 칠해 저장하고, 판정이 저장한 맵으로 그린 기준과 레이어마다, 칠한 칸까지 견준다. 5절)
 - [ ] 첫 초안 릴리스 `v2.0.0-alpha.1` (결정 기록: 태그는 저자가 민다. 워크플로는 태그를 받으면 초안을 만들게 되어 있다)
 
