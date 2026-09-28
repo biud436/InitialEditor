@@ -148,13 +148,38 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
         스크립트 <span className="muted">({language === "mruby" ? "scripts/ruby" : "scripts/lua"} 기준 논리 이름)</span>
       </div>
       {object.scripts.length === 0 && <div className="muted inspector-note">추가된 스크립트 없음</div>}
-      {object.scripts.map((name) => (
+      {object.scripts.map((name, i) => (
         <div key={name} className="inspector-script" data-testid="inspector-script-row" data-name={name}>
+          <span className="inspector-script-order muted" title="엔진이 부르는 순서">
+            {i + 1}
+          </span>
           <span className="inspector-script-name" title={tools.scriptPath(name)}>
             {name}
           </span>
           <button type="button" className="btn btn-ghost" onClick={() => void open(name)} data-testid="inspector-script-open" title={tools.scriptPath(name)}>
             열기
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={i === 0}
+            onClick={() => tools.moveScript(object.id, name, -1)}
+            aria-label={`${name} 위로 이동`}
+            title="위로 이동 (먼저 실행)"
+            data-testid="inspector-script-up"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={i === object.scripts.length - 1}
+            onClick={() => tools.moveScript(object.id, name, 1)}
+            aria-label={`${name} 아래로 이동`}
+            title="아래로 이동 (나중에 실행)"
+            data-testid="inspector-script-down"
+          >
+            ↓
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => tools.detachScript(object.id, name)} aria-label={`${name} 제거`} data-testid="inspector-script-remove" title="제거">
             ×

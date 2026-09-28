@@ -140,6 +140,16 @@ textarea.field-text {
   font-size: 12px;
 }
 
+.inspector-script-order {
+  min-width: 1.2em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.inspector-script .btn {
+  padding: 1px 4px;
+}
+
 .inspector-script-name {
   flex: 1;
   min-width: 0;

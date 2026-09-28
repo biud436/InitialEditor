@@ -382,6 +382,41 @@ export class SceneModel {
     };
   }
 
+  /** 스크립트의 순서를 옮긴다 (로더가 배열 순서대로 부른다). delta 는 -1 위로, 1 아래로. 끝을 넘으면 아무것도 안 한다 */
+  moveScript(id: string, logicalName: string, delta: number): Command {
+    const model = this;
+    let from = -1;
+    let to = -1;
+    const now = model.find(id);
+    const at = now ? now.scripts.indexOf(logicalName) : -1;
+    const unchanged = delta === 0 || at < 0 || at + delta < 0 || at + delta >= (now?.scripts.length ?? 0);
+    const move = (a: number, b: number) => {
+      const cur = model.find(id)!;
+      const scripts = [...cur.scripts];
+      const [name] = scripts.splice(a, 1);
+      scripts.splice(b, 0, name);
+      model.replaceObject(id, { ...cur, scripts });
+    };
+    return {
+      label: `스크립트 순서 변경: ${logicalName}`,
+      unchanged,
+      execute: action(() => {
+        const cur = model.find(id)!;
+        from = cur.scripts.indexOf(logicalName);
+        to = from + delta;
+        if (from < 0 || to < 0 || to >= cur.scripts.length) {
+          from = -1;
+          return;
+        }
+        move(from, to);
+      }),
+      undo: action(() => {
+        if (from < 0) return;
+        move(to, from);
+      }),
+    };
+  }
+
   detachScript(id: string, logicalName: string): Command {
     const model = this;
     let index = -1;

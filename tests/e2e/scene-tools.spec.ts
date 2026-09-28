@@ -197,7 +197,26 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await page.getByTestId("attach-script-ok").click();
     await expect(page.getByTestId("toasts")).toContainText("이미 추가된 스크립트: components/mover");
     await page.getByTestId("attach-script-dialog").getByRole("button", { name: "취소" }).click();
-    await page.getByTestId("inspector-script-remove").click();
+
+    // 순서: 두 번째를 붙이고 위로 올리면 엔진이 먼저 부른다. 끝의 단추는 꺼져 있고, 되돌리기로 돌아간다
+    await page.getByTestId("inspector-attach").click();
+    await page.getByTestId("attach-script-name").fill("components/spinner");
+    await page.getByTestId("attach-script-ok").click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    const rows = page.getByTestId("inspector-scripts").getByTestId("inspector-script-row");
+    await expect(rows).toHaveCount(2);
+    await expect(rows.first().getByTestId("inspector-script-up")).toBeDisabled();
+    await expect(rows.last().getByTestId("inspector-script-down")).toBeDisabled();
+    await rows.last().getByTestId("inspector-script-up").click();
+    expect(await withEditor(page, (e) => e.documents.active!.scene.find("node")!.scripts)).toEqual(["components/spinner", "components/mover"]);
+    await expect(rows.first()).toHaveAttribute("data-name", "components/spinner");
+    await page.keyboard.press(`${await primaryKey(page)}+z`);
+    expect(await withEditor(page, (e) => e.documents.active!.scene.find("node")!.scripts)).toEqual(["components/mover", "components/spinner"]);
+    await rows.first().getByTestId("inspector-script-down").click();
+    await page.keyboard.press(`${await primaryKey(page)}+s`);
+    await expect.poll(async () => JSON.parse(await withEditor(page, (e) => e.backend.readText("resources/scenes/stage2.json"))).objects.find((o: { id: string }) => o.id === "node").scripts).toEqual(["components/spinner", "components/mover"]);
+
+    for (let i = 0; i < 2; i++) await page.getByTestId("inspector-script-remove").first().click();
     await expect(page.getByTestId("inspector-scripts")).toContainText("추가된 스크립트 없음");
   });
 

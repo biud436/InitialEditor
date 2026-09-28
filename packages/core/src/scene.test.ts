@@ -146,4 +146,26 @@ describe("SceneModel commands", () => {
     for (let i = 0; i < 20; i++) undo.undo();
     expect(serializeScene(model.toData())).toBe(serializeScene(parseScene(SAMPLE)));
   });
+
+  it("스크립트 순서 옮기기: 위아래로 한 칸, 끝을 넘으면 아무것도 안 하고, 되돌리면 제자리", () => {
+    const { model, undo } = setup();
+    for (const name of ["components/a", "components/b", "components/c"]) undo.push(model.attachScript("world", name));
+    undo.push(model.moveScript("world", "components/c", -1));
+    expect(model.find("world")?.scripts).toEqual(["components/a", "components/c", "components/b"]);
+    undo.push(model.moveScript("world", "components/a", 1));
+    expect(model.find("world")?.scripts).toEqual(["components/c", "components/a", "components/b"]);
+    const depth = undo.depth;
+    // 끝을 넘거나 없는 이름은 바꾸는 것이 없어 되돌리기 단계도 남기지 않는다
+    for (const [name, d] of [["components/c", -1], ["components/b", 1], ["components/nope", 1]] as const) {
+      const cmd = model.moveScript("world", name, d);
+      expect(cmd.unchanged).toBe(true);
+      undo.push(cmd);
+    }
+    expect(undo.depth).toBe(depth);
+    expect(model.find("world")?.scripts).toEqual(["components/c", "components/a", "components/b"]);
+    undo.undo();
+    expect(model.find("world")?.scripts).toEqual(["components/a", "components/c", "components/b"]);
+    undo.undo();
+    expect(model.find("world")?.scripts).toEqual(["components/a", "components/b", "components/c"]);
+  });
 });
