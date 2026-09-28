@@ -1,6 +1,6 @@
 {
   "name": "@initial-editor/app",
-  "version": "2.0.0-dev",
+  "version": "2.0.0-alpha.1",
   "private": true,
   "description": "React 셸: 도킹, 패널, 메뉴, 단축키, 테마. 브라우저와 Tauri 두 모드",
   "type": "module",
@@ -12,13 +12,13 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@initial-editor/backend-bridge": "2.0.0-dev",
-    "@initial-editor/backend-fsaccess": "2.0.0-dev",
-    "@initial-editor/backend-tauri": "2.0.0-dev",
-    "@initial-editor/core": "2.0.0-dev",
-    "@initial-editor/ext-rpg": "2.0.0-dev",
-    "@initial-editor/ext-tilemap": "2.0.0-dev",
-    "@initial-editor/ui": "2.0.0-dev",
+    "@initial-editor/backend-bridge": "2.0.0-alpha.1",
+    "@initial-editor/backend-fsaccess": "2.0.0-alpha.1",
+    "@initial-editor/backend-tauri": "2.0.0-alpha.1",
+    "@initial-editor/core": "2.0.0-alpha.1",
+    "@initial-editor/ext-rpg": "2.0.0-alpha.1",
+    "@initial-editor/ext-tilemap": "2.0.0-alpha.1",
+    "@initial-editor/ui": "2.0.0-alpha.1",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "dockview": "^4.0.0",

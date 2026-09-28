@@ -1,6 +1,6 @@
 {
   "name": "@initial-editor/backend-bridge",
-  "version": "2.0.0-dev",
+  "version": "2.0.0-alpha.1",
   "private": true,
   "description": "ProjectBackend 의 브리지 서버(HTTP + WebSocket) 구현. 브라우저 모드가 쓴다",
   "type": "module",
@@ -11,6 +11,6 @@
     "test:conformance": "vitest run --root . --config ./vitest.conformance.config.ts"
   },
   "dependencies": {
-    "@initial-editor/core": "2.0.0-dev"
+    "@initial-editor/core": "2.0.0-alpha.1"
   }
 }

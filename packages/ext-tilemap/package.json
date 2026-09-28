@@ -1,6 +1,6 @@
 {
   "name": "@initial-editor/ext-tilemap",
-  "version": "2.0.0-dev",
+  "version": "2.0.0-alpha.1",
   "private": true,
   "description": "타일맵 확장: 맵 파일(v1, v2)을 열어 타일과 통행과 오브젝트 레이어를 편집한다",
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@initial-editor/core": "2.0.0-dev",
+    "@initial-editor/core": "2.0.0-alpha.1",
     "mobx": "^6.13.0"
   },
   "exports": {
