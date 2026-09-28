@@ -366,7 +366,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     await expect(reload).toBeDisabled();
     await expect(toolbar.locator('span.toolbar-tip:has([data-command="run.reload"])')).toHaveAttribute("title", /게임 탭에서 실행 중인 게임 없음/);
     const list = page.getByTestId("console-list");
-    await expect(list).toContainText("외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 핫 리로드");
+    await expect(list).toContainText("외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 반영");
     await expect(list).not.toContainText("수동 리로드(Ctrl+Shift+R) 전송 가능");
 
     const tree = page.getByTestId("project-tree");
@@ -618,7 +618,7 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     await expect(page.getByTestId("statusbar")).toContainText("newgame");
     await expect(page.getByTestId("statusbar")).toContainText("브라우저 폴더");
     await expect(page.getByTestId("toasts")).toContainText("새 프로젝트: newgame");
-    await expect(page.getByTestId("console-list")).toContainText(/새 프로젝트를 만들었다: newgame \(플래피버드[^)]*\), lua, 파일 \d+개\)/);
+    await expect(page.getByTestId("console-list")).toContainText(/새 프로젝트 생성됨: newgame \(플래피버드[^)]*\), lua, 파일 \d+개\)/);
     expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS]);
     expect((await folderRecords(page)).map((r) => r.name)).toEqual(["newgame"]);
     const game = JSON.parse(await readOpfs(page, "newgame/game.json")) as { name: string; script: string; startScene: string };

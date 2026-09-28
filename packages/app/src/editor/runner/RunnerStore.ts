@@ -110,7 +110,7 @@ export function browserRunNotice(canPush: boolean): string {
   const run = "브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용";
   return canPush
     ? `${run}. 터미널에서 INITIAL2D_HMR=1 로 실행한 엔진에 수동 리로드(Ctrl+Shift+R) 전송 가능`
-    : `${run}. 외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 핫 리로드`;
+    : `${run}. 외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 반영`;
 }
 
 /** 브리지가 전한 핫 리로드 실패가 엔진 쪽 포트의 연결 거부인가 (엔진이 떠 있지 않다) */

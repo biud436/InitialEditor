@@ -156,7 +156,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     expect(await cells(page, "collision", 5 * W + 5, 1)).toEqual([0]);
     await page.mouse.click(c55.x, c55.y);
     expect(await cells(page, "collision", 5 * W + 5, 1)).toEqual([1]);
-    await expect(page.getByTestId("map-cursor")).toHaveText(/칸 5, 5/);
+    await expect(page.getByTestId("map-cursor")).toHaveText(/타일 5, 5/);
     await page.mouse.click(c55.x, c55.y, { button: "right" });
     expect(await cells(page, "collision", 5 * W + 5, 1)).toEqual([0]);
     await page.mouse.click(c55.x, c55.y);

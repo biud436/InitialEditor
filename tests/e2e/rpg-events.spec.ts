@@ -229,7 +229,7 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     await page.keyboard.press(`${mod}+F5`);
     await expect.poll(async () => (await runStarts(page)).length).toBe(4);
     expect((await runStarts(page))[3]).toEqual({ env: { ...base, INITIAL2D_RPG_AT: "13,30,up" } });
-    expect((await editorLogTexts(page)).some((l) => l.startsWith("여기서 실행: 항구 마을 x 13, y 30 (이벤트 inn_door 앞, 시작 상태 arrived,heardAltar)"))).toBe(true);
+    expect((await editorLogTexts(page)).some((l) => l.startsWith("이 맵에서 실행: 항구 마을 x 13, y 30 (이벤트 inn_door 앞, 시작 상태 arrived,heardAltar)"))).toBe(true);
   });
 });
 

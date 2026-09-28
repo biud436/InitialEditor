@@ -980,7 +980,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(page.getByTestId("language-select")).toHaveValue("mruby");
     await page.keyboard.press("F5");
     await expect(page.getByTestId("toasts")).toContainText("이 웹 엔진 빌드에 mruby 없음");
-    await expect(page.getByTestId("console-list")).toContainText("game.json 의 script 를 lua 로 바꾸거나");
+    await expect(page.getByTestId("console-list")).toContainText("game.json 의 script 를 lua 로 변경");
     await expect(page.getByTestId("doc-tab").filter({ hasText: "게임" })).toHaveCount(0);
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (게임 탭): 대기");
   });

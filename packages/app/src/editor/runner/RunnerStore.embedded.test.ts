@@ -500,7 +500,7 @@ describe("RunnerStore 실행 방식", () => {
     expect(browserRunNotice(true)).toBe(
       "브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용. 터미널에서 INITIAL2D_HMR=1 로 실행한 엔진에 수동 리로드(Ctrl+Shift+R) 전송 가능",
     );
-    expect(browserRunNotice(false)).toBe("브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용. 외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 핫 리로드");
+    expect(browserRunNotice(false)).toBe("브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용. 외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 반영");
     expect(browserRunNotice(false)).not.toContain("수동 리로드");
   });
 

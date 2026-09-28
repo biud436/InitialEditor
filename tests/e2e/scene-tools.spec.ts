@@ -217,7 +217,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
   test("여러 개를 고르면 공통 칸만 보이고 값이 다르면 여러 값이다", async ({ page }) => {
     await openSample(page);
     await newScene(page, "stage3");
-    await addObjectViaMenu(page, "글자");
+    await addObjectViaMenu(page, "텍스트");
     await addObjectViaMenu(page, "빈 노드");
     const hierarchy = page.getByTestId("hierarchy");
     const text = hierarchy.locator('[data-testid="hierarchy-row"][data-id="text"]');
