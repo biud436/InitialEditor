@@ -12,6 +12,7 @@ export * from "./extensions";
 export * from "./project";
 export * from "./projectScope";
 export * from "./scene";
+export * from "./componentParams";
 export * from "./sceneDocument";
 export * from "./log";
 export * from "./errorLinks";

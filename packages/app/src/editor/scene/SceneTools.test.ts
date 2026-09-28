@@ -238,6 +238,58 @@ describe("SceneTools", () => {
     expect(doc?.problems.map((p) => p.message)).toEqual(["검사 a"]);
   });
 
+  it("매개변수: 선언으로 검사하고, 선언 파일이 바뀌면 다시 검사하고, 없으면 값의 형식으로 만들어 연다", async () => {
+    const decl = (fields: unknown[]) => JSON.stringify({ version: 1, fields });
+    const h = await make({
+      "resources/scenes/p.json": JSON.stringify({
+        version: 1,
+        name: "p",
+        objects: [
+          { id: "a", type: "node", scripts: ["components/mover"], params: { "components/mover": { dx: 20, target: "ghost" } } },
+          { id: "b", type: "node", scripts: ["components/free"], params: { "components/free": { speed: 1.5, on: true } } },
+        ],
+      }),
+      "scripts/components/mover.json": decl([
+        { key: "dx", type: "number", max: 10 },
+        { key: "target", type: "object" },
+      ]),
+    });
+    const doc = (await h.tools.openScene("resources/scenes/p.json"))!;
+    await h.tools.declarations.resolve("components/mover");
+    await h.tools.declarations.resolve("components/free");
+    expect(doc.problems.map((p) => p.message)).toEqual(["a: components/mover.dx: 10 이하여야 함", "a: components/mover.target: 씬에 없는 오브젝트: ghost"]);
+    // 고치면 문제가 사라진다 (되돌리기 스택의 변경이 다시 검사한다)
+    h.tools.setParam("a", "components/mover", "dx", 5);
+    h.tools.setParam("a", "components/mover", "target", "b");
+    expect(doc.problems).toEqual([]);
+    // 선언 파일이 바뀌면 다시 읽고 다시 검사한다
+    await h.be.writeText("scripts/components/mover.json", decl([{ key: "dx", type: "integer", max: 3 }]));
+    h.tools.declarations.fileChanged("scripts/components/mover.json");
+    await h.tools.declarations.resolve("components/mover");
+    expect(doc.problems.map((p) => p.message)).toEqual(["a: components/mover.dx: 3 이하여야 함", "a: components/mover에 선언되지 않은 매개변수: target"]);
+    // 깨진 선언은 씬 검사에 오른다
+    await h.be.writeText("scripts/components/mover.json", "{");
+    h.tools.declarations.fileChanged("scripts/components/mover.json");
+    const broken = await h.tools.declarations.resolve("components/mover");
+    expect(broken.kind).toBe("broken");
+    expect(doc.problems[0].message).toMatch(/^컴포넌트 선언 오류 \(scripts\/components\/mover\.json\): JSON 구문 오류/);
+    // 선언이 없는 컴포넌트: 오브젝트의 값의 형식으로 필드를 적어 만들고 연다
+    expect(await h.tools.openDeclaration("b", "components/free")).toBe(true);
+    expect(h.opened.at(-1)).toBe("scripts/components/free.json");
+    expect(JSON.parse(await h.be.readText("scripts/components/free.json"))).toEqual({
+      version: 1,
+      fields: [
+        { key: "speed", type: "number", label: "speed" },
+        { key: "on", type: "boolean", label: "on" },
+      ],
+    });
+    expect((await h.tools.declarations.resolve("components/free")).kind).toBe("declared");
+    // 이미 있으면 덮어쓰지 않고 연다
+    await h.be.writeText("scripts/components/free.json", decl([]));
+    expect(await h.tools.openDeclaration("b", "components/free")).toBe(true);
+    expect(await h.be.readText("scripts/components/free.json")).toBe(decl([]));
+  });
+
   it("setStartScene: 활성 씬 이름을 game.json 에 쓴다", async () => {
     const h = await make();
     h.promptAnswer = "title";
@@ -251,7 +303,7 @@ describe("SceneTools", () => {
     expect(await h.tools.setStartScene()).toBe(false);
   });
 
-  it("프로젝트 자산 목록: 그림, 폰트, 언어별 컴포넌트", async () => {
+  it("프로젝트 자산 목록: 그림, 폰트, 언어별 컴포넌트, 매개변수 선언", async () => {
     const h = await make({
       "resources/images/a.png": "x",
       "resources/images/deep/b.jpg": "x",
@@ -261,8 +313,13 @@ describe("SceneTools", () => {
       "scripts/lua/components/mover.lua": "x",
       "scripts/lua/main.lua": "x",
       "scripts/ruby/components/bird.rb": "x",
+      "scripts/components/mover.json": "{}",
+      "scripts/components/flappy/bird.json": "{}",
+      "scripts/components/notes.txt": "x",
+      "scripts/lua/components/mover.json": "{}",
     });
     await h.tools.assets.refresh();
+    expect(h.tools.assets.declaredComponents).toEqual(["components/flappy/bird", "components/mover"]);
     expect(h.tools.assets.images).toEqual(["resources/images/a.png", "resources/images/deep/b.jpg"]);
     expect(h.tools.assets.fonts).toEqual(["resources/fonts/hangul.fnt"]);
     expect(h.tools.assets.components("lua")).toEqual(["components/flappy/bird", "components/mover"]);

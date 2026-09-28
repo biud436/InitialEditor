@@ -292,7 +292,7 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(tree.locator('[data-path="scripts/lua/player.lua"]')).toBeVisible();
     await expect(tabOf(page, "player.lua")).toBeVisible();
-    await expect(page.locator(CODE)).toContainText("function Player.init(obj, scene)");
+    await expect(page.locator(CODE)).toContainText("function Player.init(obj, scene, params)");
     await expect(page.getByTestId("console-list")).toContainText("스크립트 생성됨: scripts/lua/player.lua");
 
     // 같은 이름은 경고

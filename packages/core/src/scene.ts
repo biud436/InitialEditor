@@ -8,9 +8,12 @@
 //   5. 경로는 프로젝트 루트 기준 `/` 상대 경로
 //   6. objects 순서가 그리기 순서. x, y 기본 0, visible 기본 true, props 기본 {}, scripts 기본 []
 //   7. scripts 는 언어 중립 논리 이름 ("components/bird" → scripts/lua/components/bird.lua)
+//   8. params 는 컴포넌트 논리 이름에서 값 객체로 ({"components/bird": {"speed": 60}}). scripts 에 없는 컴포넌트는 오류.
+//      엔진처럼 null 은 없는 것, 빈 배열은 빈 객체다. 선언 파일(scripts/<논리 이름>.json)로 하는 검사는 componentParams.ts
 
 /* eslint-disable @typescript-eslint/no-this-alias -- 명령 객체의 execute/undo/merge 가 모델을 닫아 들고 있어야 해서 별칭이 자연스럽다 */
 import { action, makeObservable, observable } from "mobx";
+import { engineObject } from "./componentParams";
 import type { Command } from "./document";
 import type { ValidationProblem } from "./extensions";
 
@@ -26,6 +29,8 @@ export interface SceneObject {
   visible: boolean;
   props: Record<string, unknown>;
   scripts: string[];
+  /** 컴포넌트별 매개변수 값 (선언의 기본값을 덮는 것만). 비어 있으면 파일에 쓰지 않는다 */
+  params: Record<string, Record<string, unknown>>;
   /** 파일에 있던 모르는 키 (보존) */
   extra: Record<string, unknown>;
 }
@@ -45,7 +50,7 @@ export class SceneFormatError extends Error {
   }
 }
 
-const OBJECT_KEYS = new Set(["id", "type", "x", "y", "visible", "props", "scripts"]);
+const OBJECT_KEYS = new Set(["id", "type", "x", "y", "visible", "props", "scripts", "params"]);
 const ROOT_KEYS = new Set(["version", "name", "objects"]);
 
 /** 코어 타입의 기본 props. 확장 타입은 registerObjectType 의 defaults 가 준다 */
@@ -94,6 +99,16 @@ function parseObject(o: unknown, index: number): SceneObject {
   if (o.scripts !== undefined && (!Array.isArray(o.scripts) || o.scripts.some((s) => typeof s !== "string"))) {
     throw new SceneFormatError(`${where}.scripts는 문자열 배열이어야 함`, `${where}.scripts`);
   }
+  const params: Record<string, Record<string, unknown>> = {};
+  if (o.params !== undefined && o.params !== null) {
+    const table = engineObject(o.params);
+    if (!table) throw new SceneFormatError(`${where}.params는 객체여야 함`, `${where}.params`);
+    for (const [name, v] of Object.entries(table)) {
+      const values = engineObject(v);
+      if (!values) throw new SceneFormatError(`${where}.params.${name}는 객체여야 함`, `${where}.params.${name}`);
+      params[name] = deepClone(values);
+    }
+  }
   const extra: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(o)) if (!OBJECT_KEYS.has(k)) extra[k] = v;
   return {
@@ -104,6 +119,7 @@ function parseObject(o: unknown, index: number): SceneObject {
     visible: o.visible === undefined ? true : o.visible === true,
     props: { ...((o.props as Record<string, unknown>) ?? {}) },
     scripts: [...((o.scripts as string[]) ?? [])],
+    params,
     extra,
   };
 }
@@ -126,6 +142,9 @@ export function validateScene(data: SceneData, knownTypes: ReadonlySet<string> =
         problems.push({ severity: "error", message: `스크립트는 논리 이름이어야 함 (예: components/bird): ${s}`, location: `${where}.scripts[${j}]` });
       }
     });
+    for (const name of Object.keys(o.params)) {
+      if (!o.scripts.includes(name)) problems.push({ severity: "error", message: `${o.id}: 매개변수의 컴포넌트가 스크립트 목록에 없음: ${name}`, location: `${where}.params.${name}` });
+    }
   });
   return problems;
 }
@@ -138,6 +157,7 @@ export function serializeScene(data: SceneData): string {
     if (!o.visible) obj.visible = false;
     obj.props = o.props;
     obj.scripts = o.scripts;
+    if (Object.keys(o.params).length > 0) obj.params = o.params;
     for (const [k, v] of Object.entries(o.extra)) if (!(k in obj)) obj[k] = v;
     return obj;
   });
@@ -417,34 +437,76 @@ export class SceneModel {
     };
   }
 
+  /** 스크립트를 뗀다. 그 컴포넌트의 매개변수 값도 같이 지운다 (scripts 에 없는 컴포넌트의 params 는 오류다) */
   detachScript(id: string, logicalName: string): Command {
     const model = this;
     let index = -1;
+    let params: Record<string, unknown> | undefined;
     return {
       label: `스크립트 제거: ${logicalName}`,
       execute: action(() => {
         const cur = model.find(id)!;
         index = cur.scripts.indexOf(logicalName);
         if (index < 0) return;
-        model.replaceObject(id, { ...cur, scripts: cur.scripts.filter((_, i) => i !== index) });
+        params = cur.params[logicalName];
+        const rest = { ...cur.params };
+        delete rest[logicalName];
+        model.replaceObject(id, { ...cur, scripts: cur.scripts.filter((_, i) => i !== index), params: rest });
       }),
       undo: action(() => {
         if (index < 0) return;
         const cur = model.find(id)!;
         const scripts = [...cur.scripts];
         scripts.splice(index, 0, logicalName);
-        model.replaceObject(id, { ...cur, scripts });
+        model.replaceObject(id, { ...cur, scripts, params: params === undefined ? cur.params : { ...cur.params, [logicalName]: params } });
       }),
     };
+  }
+
+  /**
+   * 컴포넌트 매개변수 값 하나. value 가 undefined 면 값을 지워 선언의 기본값으로 돌아간다 (컴포넌트의 값이 모두 지워지면
+   * 그 컴포넌트 항목도 지운다). 같은 coalesceKey 의 연속 명령(타이핑)은 하나로 합쳐진다
+   */
+  setParam(id: string, logicalName: string, key: string, value: unknown, coalesceKey?: string): Command {
+    const model = this;
+    const o = model.find(id);
+    if (!o) throw new Error(`오브젝트 없음: ${id}`);
+    const before = deepClone(o.params);
+    const write = (v: unknown) => {
+      const cur = model.find(id)!;
+      const values = { ...(cur.params[logicalName] ?? {}) };
+      if (v === undefined) delete values[key];
+      else values[key] = v;
+      const params = { ...cur.params, [logicalName]: values };
+      if (Object.keys(values).length === 0) delete params[logicalName];
+      model.replaceObject(id, { ...cur, params });
+    };
+    const cmd: Command & { value: unknown } = {
+      label: `매개변수 변경: ${id}.${logicalName}.${key}`,
+      coalesceKey,
+      unchanged: sameJson(o.params[logicalName]?.[key], value),
+      value,
+      execute: action(() => write(cmd.value)),
+      undo: action(() => {
+        const cur = model.find(id)!;
+        model.replaceObject(id, { ...cur, params: deepClone(before) });
+      }),
+      merge(next) {
+        cmd.value = (next as typeof cmd).value;
+        cmd.execute();
+        return true;
+      },
+    };
+    return cmd;
   }
 }
 
 export function cloneObject(o: SceneObject): SceneObject {
-  return { ...o, props: { ...o.props }, scripts: [...o.scripts], extra: { ...o.extra } };
+  return { ...o, props: { ...o.props }, scripts: [...o.scripts], params: deepClone(o.params), extra: { ...o.extra } };
 }
 
 export function makeObject(type: string, id: string, defaults: Record<string, unknown>, init: Partial<SceneObject> = {}): SceneObject {
-  return { id, type, x: 0, y: 0, visible: true, props: { ...defaults }, scripts: [], extra: {}, ...init };
+  return { id, type, x: 0, y: 0, visible: true, props: { ...defaults }, scripts: [], params: {}, extra: {}, ...init };
 }
 
 /** JSON 값의 깊은 복사 (props 는 JSON 이다) */

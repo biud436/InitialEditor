@@ -34,13 +34,14 @@ describe("scriptTemplate", () => {
     expect(text).not.toContain("local ");
   });
 
-  it("Lua 컴포넌트는 모듈 테이블이고 (obj, scene) 을 받고 테이블을 돌려준다", () => {
+  it("Lua 컴포넌트는 모듈 테이블이고 (obj, scene) 과 마지막 인자 params 를 받고 테이블을 돌려준다", () => {
     const text = scriptTemplate({ language: "lua", kind: "component", name: "player_ship" });
     expect(text).toContain("local PlayerShip = {}");
-    expect(text).toContain("function PlayerShip.init(obj, scene)");
-    expect(text).toContain("function PlayerShip.update(obj, scene, elapsed)");
-    expect(text).toContain("function PlayerShip.render(obj, scene)");
-    expect(text).toContain("function PlayerShip.destroy(obj, scene)");
+    expect(text).toContain("function PlayerShip.init(obj, scene, params)");
+    expect(text).toContain("function PlayerShip.update(obj, scene, elapsed, params)");
+    expect(text).toContain("function PlayerShip.render(obj, scene, params)");
+    expect(text).toContain("function PlayerShip.destroy(obj, scene, params)");
+    expect(text).toContain("-- params 는 매개변수 선언(scripts/<논리 이름>.json)의 기본값에");
     expect(text.trimEnd().endsWith("return PlayerShip")).toBe(true);
   });
 
@@ -50,9 +51,9 @@ describe("scriptTemplate", () => {
     expect(text).toContain("def update(elapsed)\nend\n");
   });
 
-  it("Ruby 컴포넌트는 클래스이고 (obj, scene) 을 받는다", () => {
+  it("Ruby 컴포넌트는 클래스이고 initialize 가 params 를 받고 (없으면 빈 Hash), 훅은 (obj, scene) 을 받는다", () => {
     const text = scriptTemplate({ language: "ruby", kind: "component", name: "games/flappy" });
-    expect(text).toContain("class Flappy\n");
+    expect(text).toContain("class Flappy\n  def initialize(params = {})\n    @params = params\n  end\n");
     expect(text).toContain("  def init(obj, scene)\n  end\n");
     expect(text).toContain("  def update(obj, scene, elapsed)\n  end\n");
     expect(text.trimEnd().endsWith("end")).toBe(true);
@@ -71,7 +72,7 @@ describe("scriptTemplate", () => {
     const rubyScene = scriptTemplate({ language: "ruby", kind: "scene", name: "main", hooks });
     expect(rubyScene).toContain("def update(elapsed_ms)");
     expect(rubyScene).not.toContain("def destroy");
-    expect(scriptTemplate({ language: "lua", kind: "component", name: "x", hooks })).toContain("function X.update(obj, scene, elapsed_ms)");
+    expect(scriptTemplate({ language: "lua", kind: "component", name: "x", hooks })).toContain("function X.update(obj, scene, elapsed_ms, params)");
     expect(scriptTemplate({ language: "ruby", kind: "component", name: "x", hooks })).toContain("def update(obj, scene, elapsed_ms)");
   });
 });

@@ -2,6 +2,7 @@
 //   - activeScene: 활성 탭의 씬 문서 (아니면 null)
 //   - clipboard: 복사한 오브젝트 (앱 안의 클립보드)
 //   - assets: 인스펙터가 고르는 프로젝트 파일 목록 (그림, 폰트, 컴포넌트)
+//   - declarations: 컴포넌트 매개변수 선언 (인스펙터의 매개변수 폼과 씬 검사 paramsValidator 가 읽는다)
 //   - 오브젝트 추가, 삭제, 복제, 복사, 붙여넣기, 이름 바꾸기, 순서, 스크립트 붙이기. 전부 document.apply(명령) 으로 간다
 //     (docs/plans/e2-scene.md 마일스톤 5). 여러 오브젝트를 다루는 것은 compoundCommand 로 되돌리기 한 단계다.
 // Editor 전체가 아니라 SceneToolsHost 만 보므로 Node 로 테스트한다 (SceneTools.test.ts).
@@ -17,7 +18,11 @@ import {
   scenePathFor,
   scriptPathFor,
   serializeScene,
+  componentDeclarationPath,
+  declarationTemplate,
+  dirname,
   uniqueObjectId,
+  validateComponentParams,
   type Command,
   type DocumentRegistry,
   type ExtensionRegistries,
@@ -26,10 +31,13 @@ import {
   type Project,
   type ProjectBackend,
   type ProjectScope,
+  type SceneData,
   type SceneObject,
+  type Validator,
 } from "@initial-editor/core";
 import { computed, makeObservable, observable, reaction, runInAction } from "mobx";
 import { compoundCommand } from "./commands";
+import { ComponentDeclarations } from "./componentDeclarations";
 import { ProjectAssets } from "./projectAssets";
 
 export const PASTE_OFFSET = 16;
@@ -74,12 +82,14 @@ export function validateLogicalScriptName(value: string): string | null {
 export class SceneTools {
   clipboard: SceneObject[] = [];
   readonly assets: ProjectAssets;
+  readonly declarations: ComponentDeclarations;
   private pasteCount = 0;
   private disposers: Array<() => void> = [];
   private validateDisposer: (() => void) | null = null;
 
   constructor(private readonly host: SceneToolsHost) {
     this.assets = new ProjectAssets({ backend: () => host.backend, isOpen: () => host.project.isOpen, scope: () => host.tree.filter?.scope });
+    this.declarations = new ComponentDeclarations(() => host.backend);
     makeObservable(this, { clipboard: observable.ref, activeScene: computed, selectedObjects: computed });
   }
 
@@ -92,7 +102,14 @@ export class SceneTools {
       }),
       host.events.on("projectClosed", () => {
         this.assets.clear();
+        this.declarations.clear();
         this.unwatchProject();
+      }),
+      // 선언의 답이 바뀌면 그 컴포넌트를 쓰는 열린 씬을 다시 검사한다
+      this.declarations.events.on("changed", (name) => {
+        for (const doc of host.documents.documents) {
+          if (doc instanceof SceneDocument && doc.scene.objects.some((o) => o.scripts.includes(name))) doc.revalidate();
+        }
       }),
       // 무시 파일을 다시 읽어 범위가 바뀌면 자산 목록도 다시 훑는다
       reaction(
@@ -121,7 +138,10 @@ export class SceneTools {
 
   private watchProject(): void {
     this.unwatchProject();
-    this.projectUnwatch = this.host.project.events.on("change", (e) => this.assets.changed(e.path));
+    this.projectUnwatch = this.host.project.events.on("change", (e) => {
+      this.assets.changed(e.path);
+      this.declarations.fileChanged(e.path);
+    });
   }
 
   private unwatchProject(): void {
@@ -371,6 +391,45 @@ export class SceneTools {
     this.apply(doc, doc.scene.moveScript(id, logicalName, delta));
   }
 
+  /** 컴포넌트 매개변수 값 하나. undefined 면 값을 지워 선언의 기본값으로 돌아간다 */
+  setParam(id: string, logicalName: string, key: string, value: unknown, session?: string): void {
+    const doc = this.activeScene;
+    if (!doc || !doc.scene.find(id)) return;
+    this.apply(doc, doc.scene.setParam(id, logicalName, key, value, session));
+  }
+
+  /**
+   * 컴포넌트의 매개변수 선언 파일을 연다. 없으면 오브젝트에 이미 있는 값의 형식으로 필드를 적어 만든다.
+   * 만들었거나 이미 있으면 true
+   */
+  async openDeclaration(id: string, logicalName: string): Promise<boolean> {
+    const host = this.host;
+    const path = componentDeclarationPath(logicalName);
+    try {
+      if (!(await host.backend.exists(path))) {
+        const values = this.activeScene?.scene.find(id)?.params[logicalName] ?? {};
+        await host.backend.writeText(path, declarationTemplate(values));
+        // scripts/components 처럼 새로 생긴 폴더도 트리에 보이게 위 폴더부터 다시 읽는다
+        const dirs: string[] = [];
+        for (let d = dirname(path); d; d = dirname(d)) dirs.unshift(d);
+        for (const d of dirs) await host.project.refresh(d).catch(() => {});
+        this.declarations.fileChanged(path);
+        host.log.info(LOG, `매개변수 선언 생성됨: ${path}`);
+      }
+      await host.tree.reveal(path).catch(() => {});
+      await host.openPath(path);
+      return true;
+    } catch (e) {
+      const message = `매개변수 선언 열기 실패: ${(e as Error).message}`;
+      host.log.error(LOG, message);
+      host.toasts.error(message);
+      return false;
+    }
+  }
+
+  /** 씬 검사기: 선언으로 params 를 검사한다 (아직 읽지 않은 선언은 읽기 시작하고, 답이 오면 다시 검사된다) */
+  readonly paramsValidator: Validator = (data) => validateComponentParams(data as SceneData, (name) => this.declarations.lookup(name));
+
   /** 논리 이름의 스크립트 파일 경로 (game.json 의 언어로) */
   scriptPath(logicalName: string): string {
     return scriptPathFor(logicalName, this.host.project.gameJson.script);
@@ -391,7 +450,7 @@ export class SceneTools {
     if (opened instanceof SceneDocument) return opened;
     if (opened) host.documents.close(opened);
     try {
-      const doc = await SceneDocument.open(host.backend, path, () => new Set(host.registries.objectTypes.keys()), () => host.registries.validators);
+      const doc = await SceneDocument.open(host.backend, path, () => new Set(host.registries.objectTypes.keys()), () => [...host.registries.validators, this.paramsValidator]);
       host.documents.open(doc);
       return doc;
     } catch (e) {

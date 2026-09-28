@@ -1,7 +1,7 @@
 // 인스펙터 (docs/plans/e2-scene.md 마일스톤 3). 활성 씬에서 선택한 오브젝트의 속성.
 //   공통: id (초점을 잃거나 Enter 로 이름 바꾸기), x, y (타이핑은 한 세션이 되돌리기 한 번), 표시 여부
 //   타입별: registerObjectType 의 Inspector 컴포넌트 (코어 타입은 scene/coreTypes.tsx)
-//   스크립트: 논리 이름 목록, 열기, 떼기, 붙이기 (없으면 템플릿으로 만든다)
+//   스크립트: 논리 이름 목록, 열기, 순서, 떼기, 붙이기 (없으면 템플릿으로 만든다). 컴포넌트마다 매개변수 폼 (ComponentParams)
 //   맨 아래: 검사 결과 (document.problems)
 // 여러 개를 골랐으면 공통 칸만 보이고 값이 다르면 "여러 값" 이다. 변경은 전부 editor.sceneTools 를 거쳐 명령이 된다.
 
@@ -16,6 +16,7 @@ import { inspectorFor } from "../../editor/scene/coreTypes";
 import { FieldRow, NumberField } from "@initial-editor/ui";
 import { TypeIcon } from "../../editor/scene/typeIcons";
 import { MapObjectInspector } from "../maps/MapObjectInspector";
+import { ComponentParams } from "./ComponentParams";
 import "./InspectorPanel.css";
 
 export const INSPECTOR_EMPTY = "활성 씬 탭 없음. 씬 탭에서 오브젝트를 선택하면 속성 표시";
@@ -134,6 +135,12 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
   const editor = useEditor();
   const tools = editor.sceneTools;
   const language = editor.project.gameJson.script;
+  const [folded, setFolded] = useState<ReadonlySet<string>>(new Set());
+  const toggle = (name: string) => {
+    const next = new Set(folded);
+    if (!next.delete(name)) next.add(name);
+    setFolded(next);
+  };
   const open = async (name: string) => {
     const path = tools.scriptPath(name);
     if (!(await editor.backend.exists(path).catch(() => false))) {
@@ -149,41 +156,55 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
       </div>
       {object.scripts.length === 0 && <div className="muted inspector-note">추가된 스크립트 없음</div>}
       {object.scripts.map((name, i) => (
-        <div key={name} className="inspector-script" data-testid="inspector-script-row" data-name={name}>
-          <span className="inspector-script-order muted" title="엔진이 부르는 순서">
-            {i + 1}
-          </span>
-          <span className="inspector-script-name" title={tools.scriptPath(name)}>
-            {name}
-          </span>
-          <button type="button" className="btn btn-ghost" onClick={() => void open(name)} data-testid="inspector-script-open" title={tools.scriptPath(name)}>
-            열기
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={i === 0}
-            onClick={() => tools.moveScript(object.id, name, -1)}
-            aria-label={`${name} 위로 이동`}
-            title="위로 이동 (먼저 실행)"
-            data-testid="inspector-script-up"
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={i === object.scripts.length - 1}
-            onClick={() => tools.moveScript(object.id, name, 1)}
-            aria-label={`${name} 아래로 이동`}
-            title="아래로 이동 (나중에 실행)"
-            data-testid="inspector-script-down"
-          >
-            ↓
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => tools.detachScript(object.id, name)} aria-label={`${name} 제거`} data-testid="inspector-script-remove" title="제거">
-            ×
-          </button>
+        <div key={name} className="inspector-component" data-testid="inspector-component" data-name={name}>
+          <div className="inspector-script" data-testid="inspector-script-row" data-name={name}>
+            <button
+              type="button"
+              className="btn btn-ghost inspector-script-fold"
+              onClick={() => toggle(name)}
+              aria-expanded={!folded.has(name)}
+              aria-label={`${name} 매개변수 ${folded.has(name) ? "펼치기" : "접기"}`}
+              title={folded.has(name) ? "매개변수 펼치기" : "매개변수 접기"}
+              data-testid="inspector-script-fold"
+            >
+              {folded.has(name) ? "▸" : "▾"}
+            </button>
+            <span className="inspector-script-order muted" title="엔진이 부르는 순서">
+              {i + 1}
+            </span>
+            <span className="inspector-script-name" title={tools.scriptPath(name)}>
+              {name}
+            </span>
+            <button type="button" className="btn btn-ghost" onClick={() => void open(name)} data-testid="inspector-script-open" title={tools.scriptPath(name)}>
+              열기
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={i === 0}
+              onClick={() => tools.moveScript(object.id, name, -1)}
+              aria-label={`${name} 위로 이동`}
+              title="위로 이동 (먼저 실행)"
+              data-testid="inspector-script-up"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={i === object.scripts.length - 1}
+              onClick={() => tools.moveScript(object.id, name, 1)}
+              aria-label={`${name} 아래로 이동`}
+              title="아래로 이동 (나중에 실행)"
+              data-testid="inspector-script-down"
+            >
+              ↓
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => tools.detachScript(object.id, name)} aria-label={`${name} 제거`} data-testid="inspector-script-remove" title="제거 (이 컴포넌트의 매개변수 값도 삭제)">
+              ×
+            </button>
+          </div>
+          {!folded.has(name) && <ComponentParams object={object} name={name} />}
         </div>
       ))}
       <button type="button" className="btn inspector-attach" onClick={() => void openAttachScriptDialog(editor, object.id)} data-testid="inspector-attach">
