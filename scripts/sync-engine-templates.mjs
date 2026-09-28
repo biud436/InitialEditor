@@ -165,7 +165,7 @@ export function readZip(buf) {
 /** 엔진 체크아웃. 생성물은 git ls-files 에 없는 파일이다 */
 export function checkoutOrigin(engineDir, { allowDirty = false } = {}) {
   if (!fs.existsSync(path.join(engineDir, "scripts", "lua", "scene_loader.lua"))) {
-    fail(`엔진 저장소에 씬 로더가 없다: ${engineDir} (INITIAL2D_DIR 로 엔진 저장소를 가리킨다)`);
+    fail(`엔진 저장소에 씬 로더 없음: ${engineDir} (INITIAL2D_DIR에 엔진 저장소 경로 지정)`);
   }
   const git = (...args) => execFileSync("git", ["-C", engineDir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   let engineCommit = "";
@@ -178,7 +178,7 @@ export function checkoutOrigin(engineDir, { allowDirty = false } = {}) {
   const froms = SOURCES.map((s) => s.from);
   const missing = froms.filter((rel) => !fs.existsSync(path.join(engineDir, rel)));
   if (missing.length) {
-    fail(`엔진 저장소에 없다:\n${missing.map((m) => `  ${m}`).join("\n")}\n(플래피 그림이면 엔진에서 python3 tools/generate_placeholder_assets.py)`);
+    fail(`엔진 저장소에 없음:\n${missing.map((m) => `  ${m}`).join("\n")}\n(플래피 그림이면 엔진에서 python3 tools/generate_placeholder_assets.py)`);
   }
   const tracked = new Set(git("ls-files", "-z", "--", ...froms).split("\0").filter(Boolean));
   const changed = tracked.size
@@ -261,7 +261,7 @@ export function writeTemplates(origin, outDir) {
   const blobs = [];
   for (const src of SOURCES) {
     const data = origin.read(src.from);
-    if (src.kind === TEXT && data.includes("\r")) fail(`CRLF 가 들어 있다 (엔진 쪽을 LF 로 고친다): ${src.from}`);
+    if (src.kind === TEXT && data.includes("\r")) fail(`CRLF 줄바꿈 포함 (엔진 쪽 파일을 LF로 변환 필요): ${src.from}`);
     files.push({
       path: src.from,
       to: src.to,

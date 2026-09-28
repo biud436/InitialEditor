@@ -48,7 +48,7 @@ function die(reason) {
 
 if (!fs.existsSync(exe)) {
   if (explicitExe) die(`INITIAL2D_EXE 의 파일이 없다: ${exe}`);
-  skip(`엔진 실행 파일이 없다: ${exe} (INITIAL2D_DIR 로 저장소 위치를 주거나 cmake 로 빌드한다. INITIAL2D_EXE 로 직접 줄 수도 있다)`);
+  skip(`엔진 실행 파일 없음: ${exe} (INITIAL2D_DIR로 저장소 위치 지정 또는 cmake로 빌드, INITIAL2D_EXE로 직접 지정 가능)`);
 }
 
 function caseDir(name) {
@@ -66,7 +66,7 @@ const probe = spawnSync(exe, ["--features"], {
 fs.rmSync(probeDir, { recursive: true, force: true });
 const features = new Set((probe.stdout ?? "").split(/\s+/).filter(Boolean));
 if (probe.status !== 0 || !features.has("lua")) {
-  const why = `엔진이 --features 에 답하지 않는다: ${(probe.stderr ?? "").trim() || probe.status}`;
+  const why = `엔진 --features 확인 실패 (lua 없음 또는 오류): ${(probe.stderr ?? "").trim() || probe.status}`;
   if (explicitExe) die(why);
   skip(why);
 }
@@ -262,7 +262,7 @@ function tail(log, n = 400) {
 }
 
 function cleanup(dir) {
-  if (KEEP) console.log(`  작업 폴더를 남겼다: ${dir}`);
+  if (KEEP) console.log(`  작업 폴더 유지: ${dir}`);
   else fs.rmSync(dir, { recursive: true, force: true });
 }
 
@@ -273,7 +273,7 @@ function dumpOnFailure(result, log) {
 for (const language of ["lua", "ruby"]) {
   const script = language === "ruby" ? "mruby" : "lua";
   if (language === "ruby" && !hasMruby) {
-    for (const t of ["empty", "flappy", "tilemap"]) console.log(`\n[${t}/${language}] SKIP: 이 엔진 빌드에는 mruby 가 없다`);
+    for (const t of ["empty", "flappy", "tilemap"]) console.log(`\n[${t}/${language}] SKIP: 이 엔진 빌드에 mruby 없음`);
     continue;
   }
 
@@ -283,10 +283,10 @@ for (const language of ["lua", "ruby"]) {
     console.log(`\n[empty/${language}] ${dir}`);
     const written = await writeProject(dir, "empty", language);
     const component = addEditorObjects(dir, language);
-    console.log(`  프로젝트 파일 ${written.length}개 + ${component} + 씬에 오브젝트 둘`);
+    console.log(`  프로젝트 파일 ${written.length}개 + ${component} + 씬 오브젝트 2개`);
     const { result, log, shot } = runEngine(dir, { scene: "main", script, exitAfter: 120, shotFrame: 30 });
     for (const c of exitChecks(log, result.status)) check(c.name, c.ok, `${c.detail} signal=${result.signal}`);
-    check("컴포넌트 init 이 불렸다 (hello:init)", log.includes("hello:init"), tail(log));
+    check("컴포넌트 init 호출됨 (hello:init)", log.includes("hello:init"), tail(log));
     check("프레임 30 스크린샷", fs.existsSync(shot) && fs.statSync(shot).size > 1000, shot);
     dumpOnFailure(result, log);
     cleanup(dir);
@@ -297,7 +297,7 @@ for (const language of ["lua", "ruby"]) {
     const dir = caseDir(`flappy-${language}`);
     console.log(`\n[flappy/${language}] ${dir}`);
     const written = await writeProject(dir, "flappy", language);
-    console.log(`  프로젝트 파일 ${written.length}개 (INITIAL2D_AUTOPLAY=1, 900틱 뒤 스스로 끝난다)`);
+    console.log(`  프로젝트 파일 ${written.length}개 (INITIAL2D_AUTOPLAY=1, 900틱 후 자동 종료)`);
     const { result, log, shot } = runEngine(dir, { scene: "flappy", script, exitAfter: 60000, shotFrame: 150, extraEnv: { INITIAL2D_AUTOPLAY: "1" } });
     for (const c of flappyChecks(log, result.status)) check(c.name, c.ok, c.detail);
     check("프레임 150 스크린샷", fs.existsSync(shot) && fs.statSync(shot).size > 1000, shot);

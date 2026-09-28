@@ -45,7 +45,7 @@ describe("엔진 명령", () => {
   });
 
   it("셸의 오류는 core 의 BackendError 로", async () => {
-    failure = { code: "engine_not_found", message: "엔진 실행 파일이 없다: /x", path: "/x" };
+    failure = { code: "engine_not_found", message: "엔진 실행 파일 없음: /x", path: "/x" };
     await expect(engineFeatures("/x")).rejects.toMatchObject({ code: "engine_not_found", path: "/x" });
   });
 });

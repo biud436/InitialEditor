@@ -210,7 +210,7 @@ describe("자가 검사 판정 (selftest-check.mjs)", () => {
     setup(plan, report, logs);
     const r = judge(plan);
     expect(r.failures).toEqual([]);
-    expect(r.lines.join("\n")).toContain("PASS  flappy-lua 실행 1 (process, flappy): 대기에서 시작한다 (flappy:state:ready)");
+    expect(r.lines.join("\n")).toContain("PASS  flappy-lua 실행 1 (process, flappy): ready 상태로 시작 (flappy:state:ready)");
     expect(r.lines.join("\n")).toContain("칠한 칸 (24, 28) 이 표식 색 #d8c880 이다");
   });
 
@@ -241,7 +241,7 @@ describe("자가 검사 판정 (selftest-check.mjs)", () => {
     const { report, logs } = happy(plan);
     setup(plan, report, { ...logs, "flappy-lua-1.log": "flappy:state:ready\nflappy:state:play\n" });
     const r = judge(plan);
-    expect(r.failures).toEqual(expect.arrayContaining(["flappy-lua 실행 1 (process, flappy): 부딪히면 게임 오버 (flappy:state:dead)", "flappy-lua 실행 1 (process, flappy): 최종 요약 (씬이 스스로 끝냈다)"]));
+    expect(r.failures).toEqual(expect.arrayContaining(["flappy-lua 실행 1 (process, flappy): 부딪히면 게임 오버 (flappy:state:dead)", "flappy-lua 실행 1 (process, flappy): 최종 요약 (씬 자체 종료)"]));
   });
 
   it("오류 줄과 0 이 아닌 종료 코드는 실패", () => {

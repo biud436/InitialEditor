@@ -49,7 +49,7 @@ pub fn find(exe_dir: &Path, resource_dir: Option<&Path>) -> Option<BundledEngine
         return None;
     }
     let (meta, meta_error) = match resource_dir {
-        None => (None, Some("리소스 폴더를 모른다".to_string())),
+        None => (None, Some("리소스 폴더 경로 없음".to_string())),
         Some(dir) => match read_meta(&dir.join(META_PATH)) {
             Ok(meta) => (Some(meta), None),
             Err(e) => (None, Some(e)),

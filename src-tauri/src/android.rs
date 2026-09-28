@@ -24,7 +24,7 @@ pub const EVENT_TOOL_EXIT: &str = "tool:exit";
 pub const STAGE_SCRIPT: [&str; 2] = ["android", "prepare_assets.sh"];
 /// --project 를 아는 스크립트가 함께 부르는 도구. 없으면 옛 스크립트라 인자를 무시하고 저장소 자신을 스테이징한다
 pub const STAGE_LIST: [&str; 2] = ["tools", "stage_list.py"];
-pub const OLD_STAGE_SCRIPT: &str = "이 엔진 저장소의 스테이징 스크립트는 --project 를 모른다 (tools/stage_list.py 가 없다). 엔진 저장소를 --project 를 아는 판으로 올린다";
+pub const OLD_STAGE_SCRIPT: &str = "이 엔진 저장소의 스테이징 스크립트는 --project 미지원 (tools/stage_list.py 없음). --project 를 지원하는 판으로 엔진 저장소 업데이트 필요";
 /// SDL 소스 자리. 없으면 다음 명령은 download_sdl.sh 부터다
 pub const SDL_DIR: [&str; 4] = ["android", "app", "jni", "SDL2"];
 /// Gradle 래퍼 (커밋하지 않는다). 없으면 gradle wrapper 부터다
@@ -33,8 +33,8 @@ pub const GRADLEW: [&str; 2] = ["android", "gradlew"];
 pub const PYTHON_ENV: &str = "INITIAL2D_PYTHON";
 /// python 판을 물을 때 기다리는 시간
 pub const PYTHON_TIMEOUT: Duration = Duration::from_secs(5);
-pub const NEED_BASH: &str = "Git for Windows 의 bash 가 필요하다";
-pub const NEED_PYTHON: &str = "Python 3 이 필요하다";
+pub const NEED_BASH: &str = "Git for Windows 의 bash 필요";
+pub const NEED_PYTHON: &str = "Python 3 필요";
 
 /// 저장소 후보 하나를 실행하지 않고 본 결과
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
@@ -68,21 +68,21 @@ pub fn stage_script(repo: &str) -> Result<(PathBuf, PathBuf)> {
     if repo.is_empty() || !given.is_absolute() {
         return Err(BackendError::with_path(
             ErrorCode::Unsupported,
-            format!("엔진 저장소는 절대 경로여야 한다: {repo}"),
+            format!("엔진 저장소는 절대 경로여야 함: {repo}"),
             repo,
         ));
     }
     let root = std::fs::canonicalize(given).map_err(|_| {
         BackendError::with_path(
             ErrorCode::NotFound,
-            format!("엔진 저장소가 없다: {repo}"),
+            format!("엔진 저장소 없음: {repo}"),
             repo,
         )
     })?;
     if !root.is_dir() {
         return Err(BackendError::with_path(
             ErrorCode::NotFound,
-            format!("엔진 저장소가 폴더가 아니다: {repo}"),
+            format!("엔진 저장소가 폴더가 아님: {repo}"),
             repo,
         ));
     }
@@ -91,7 +91,7 @@ pub fn stage_script(repo: &str) -> Result<(PathBuf, PathBuf)> {
     if !script.is_file() {
         return Err(BackendError::with_path(
             ErrorCode::NotFound,
-            format!("스테이징 스크립트가 없다: {shown}"),
+            format!("스테이징 스크립트 없음: {shown}"),
             shown,
         ));
     }
@@ -99,7 +99,7 @@ pub fn stage_script(repo: &str) -> Result<(PathBuf, PathBuf)> {
     if !real.starts_with(&root) {
         return Err(BackendError::with_path(
             ErrorCode::OutsideRoot,
-            format!("스테이징 스크립트가 저장소 밖을 가리킨다: {shown}"),
+            format!("스테이징 스크립트가 저장소 밖을 가리킴: {shown}"),
             shown,
         ));
     }
@@ -344,7 +344,7 @@ pub fn spawn_stage(
     if req.project.is_empty() || !project.is_absolute() || !project.is_dir() {
         return Err(BackendError::with_path(
             ErrorCode::NotFound,
-            format!("프로젝트 폴더가 없다: {}", req.project),
+            format!("프로젝트 폴더 없음: {}", req.project),
             req.project,
         ));
     }

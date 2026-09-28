@@ -109,7 +109,7 @@ impl ProjectFs {
         if !root.is_dir() {
             return Err(BackendError::with_path(
                 ErrorCode::NotFound,
-                format!("폴더가 아니다: {path}"),
+                format!("폴더가 아님: {path}"),
                 path,
             ));
         }
@@ -210,7 +210,7 @@ impl ProjectFs {
         if abs.is_dir() {
             return Err(BackendError::with_path(
                 ErrorCode::Io,
-                format!("파일이 아니라 폴더다: {norm}"),
+                format!("파일이 아닌 폴더: {norm}"),
                 norm,
             ));
         }
@@ -222,7 +222,7 @@ impl ProjectFs {
     pub fn read_text(&self, rel: &str) -> Result<String> {
         let bytes = self.read(rel)?;
         String::from_utf8(bytes).map_err(|_| {
-            BackendError::with_path(ErrorCode::Io, format!("UTF-8 텍스트가 아니다: {rel}"), rel)
+            BackendError::with_path(ErrorCode::Io, format!("UTF-8 텍스트가 아님: {rel}"), rel)
         })
     }
 
@@ -232,13 +232,13 @@ impl ProjectFs {
         if norm.is_empty() {
             return Err(BackendError::new(
                 ErrorCode::Io,
-                "프로젝트 루트에는 쓸 수 없다",
+                "프로젝트 루트에 쓰기 불가",
             ));
         }
         if abs.is_dir() {
             return Err(BackendError::with_path(
                 ErrorCode::Io,
-                format!("폴더에는 쓸 수 없다: {norm}"),
+                format!("폴더 경로에 파일 쓰기 불가: {norm}"),
                 norm,
             ));
         }
@@ -265,7 +265,7 @@ impl ProjectFs {
             } else {
                 Err(BackendError::with_path(
                     ErrorCode::Io,
-                    format!("같은 이름의 파일이 있다: {norm}"),
+                    format!("같은 이름의 파일이 이미 있음: {norm}"),
                     norm,
                 ))
             };
@@ -281,7 +281,7 @@ impl ProjectFs {
         if norm.is_empty() {
             return Err(BackendError::new(
                 ErrorCode::Io,
-                "프로젝트 루트는 지울 수 없다",
+                "프로젝트 루트 삭제 불가",
             ));
         }
         // 링크 자체를 본다 (링크가 가리키는 폴더 안으로 들어가지 않게)
@@ -304,7 +304,7 @@ impl ProjectFs {
         if norm_from.is_empty() || norm_to.is_empty() {
             return Err(BackendError::new(
                 ErrorCode::Io,
-                "프로젝트 루트는 옮길 수 없다",
+                "프로젝트 루트 이동 불가",
             ));
         }
         let meta =

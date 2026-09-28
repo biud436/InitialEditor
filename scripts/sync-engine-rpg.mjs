@@ -79,21 +79,21 @@ function fail(message) {
 }
 
 for (const rel of SOURCES) {
-  if (rel.startsWith("resources/rtp/") || rel.includes("/rtp/")) fail(`RTP 소재는 복사하지 않는다: ${rel}`);
+  if (rel.startsWith("resources/rtp/") || rel.includes("/rtp/")) fail(`RTP 리소스는 복사 대상 아님: ${rel}`);
 }
 if (!fs.existsSync(path.join(engineDir, "resources", "schema", "event-commands.json"))) {
-  fail(`엔진 저장소에 이벤트 스키마가 없다: ${engineDir} (INITIAL2D_DIR 로 M2 가 든 저장소를 가리킨다)`);
+  fail(`엔진 저장소에 이벤트 스키마 없음: ${engineDir} (INITIAL2D_DIR에 M2 이후 엔진 저장소 경로 지정)`);
 }
 
 let engineCommit;
 try {
   engineCommit = git("rev-parse", "HEAD");
 } catch {
-  fail(`엔진 저장소의 커밋을 읽지 못했다: ${engineDir} (git 체크아웃이어야 한다)`);
+  fail(`엔진 저장소의 커밋 확인 실패: ${engineDir} (git 체크아웃 필요)`);
 }
-if (!/^[0-9a-f]{40}$/.test(engineCommit)) fail(`엔진 커밋이 40자가 아니다: ${engineCommit}`);
+if (!/^[0-9a-f]{40}$/.test(engineCommit)) fail(`엔진 커밋 해시가 40자가 아님: ${engineCommit}`);
 const dirty = git("status", "--porcelain", "--", ...SOURCES);
-if (dirty && !allowDirty) fail(`엔진의 작업 트리가 커밋과 다르다 (커밋하거나 --allow-dirty):\n${dirty}`);
+if (dirty && !allowDirty) fail(`엔진 작업 트리에 커밋 안 된 변경 있음 (커밋하거나 --allow-dirty 사용):\n${dirty}`);
 
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
@@ -101,9 +101,9 @@ fs.mkdirSync(outDir, { recursive: true });
 const files = [];
 for (const rel of SOURCES) {
   const from = path.join(engineDir, rel);
-  if (!fs.existsSync(from)) fail(`엔진 저장소에 없다: ${rel}`);
+  if (!fs.existsSync(from)) fail(`엔진 저장소에 없음: ${rel}`);
   const data = fs.readFileSync(from);
-  if (rel.endsWith(".json") && data.includes("\r")) fail(`CRLF 가 들어 있다 (엔진 쪽을 LF 로 고친다): ${rel}`);
+  if (rel.endsWith(".json") && data.includes("\r")) fail(`CRLF 줄바꿈 포함 (엔진 쪽 파일을 LF로 변환 필요): ${rel}`);
   const to = path.join(outDir, rel);
   fs.mkdirSync(path.dirname(to), { recursive: true });
   fs.writeFileSync(to, data);
