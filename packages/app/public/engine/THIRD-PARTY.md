@@ -39,7 +39,7 @@ emsdk 6.0.10 의 포트(`tools/web_ci.sh` 가 고정한다)다. 판을 올리면
 | Emscripten 런타임 | 6.0.10 | MIT 또는 UIUC/NCSA | | 들어감 |
 | musl (Emscripten 의 libc) | Emscripten 6.0.10 에 든 판 | MIT | | 들어감 |
 | LLVM libc++, libc++abi, compiler-rt | Emscripten 6.0.10 에 든 판 | Apache 2.0 (LLVM 예외) | | 들어감 |
-| 나눔고딕 (NanumGothic) | 3.021 에서 구운 비트맵 | SIL OFL 1.1 | 템플릿 (`resources/fonts/hangul.fnt`, `hangul_0.png`) | 템플릿 |
+| 나눔고딕 (NanumGothic) | 3.021 에서 구운 비트맵 | SIL OFL 1.1 | 템플릿 (`resources/fonts/hangul.fnt`, `hangul_0.png`, RPG 템플릿의 `hangul16.fnt`, `hangul16_0.png`) | 템플릿 |
 
 웹 판의 libjpeg 에 대한 고지: this software is based in part on the work of the Independent JPEG Group.
 
@@ -1134,7 +1134,7 @@ obstacle to adoption, that text has been removed.
 
 ### 나눔고딕 (NanumGothic)
 
-`resources/fonts/hangul.fnt` 와 `hangul_0.png` 는 `tools/generate_bmfont.py` 가 나눔고딕(판 3.021)의 글리프를 구운 비트맵 글꼴이다. 글꼴 파일에 적힌 저작권 표기는 다음과 같고, 나눔글꼴은 SIL Open Font License 1.1 로 배포된다.
+`resources/fonts/hangul.fnt` 와 `hangul_0.png`(32px), `hangul16.fnt` 와 `hangul16_0.png`(16px, RPG 템플릿의 맵 씬)는 `tools/generate_bmfont.py` 가 나눔고딕(판 3.021)의 글리프를 구운 비트맵 글꼴이다. 글꼴 파일에 적힌 저작권 표기는 다음과 같고, 나눔글꼴은 SIL Open Font License 1.1 로 배포된다.
 OFL 은 원 글꼴의 이름(Nanum, NanumGothic 등의 예약 글꼴 이름)을 바꾼 판에 쓰지 못하게 하므로, 구운 비트맵 글꼴의 이름(`.fnt` 의 `face`)은 `Initial2D Hangul` 이다.
 
 ```text

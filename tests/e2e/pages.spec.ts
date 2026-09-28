@@ -184,7 +184,8 @@ test.describe("웹판 흐름 (샘플 맵을 칠하고 F5)", () => {
     const base = pages.url ?? baseURL!;
     const browserConsole: string[] = [];
     page.on("console", (m) => browserConsole.push(m.text()));
-    await page.goto(`${base}/?backend=browser`);
+    // 칠한 칸을 게임 화면에서 찾으므로 한 화면에 다 들어오는 초원 샘플을 쓴다
+    await page.goto(`${base}/?backend=browser&sample=meadow`);
     await page.getByTestId("welcome").getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
     const mapView = page.getByTestId("map-view");

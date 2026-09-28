@@ -58,7 +58,7 @@ async function primaryKey(page: Page): Promise<string> {
 }
 
 async function openSampleMap(page: Page) {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
   await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();

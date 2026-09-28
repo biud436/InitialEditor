@@ -167,8 +167,8 @@ export const WelcomeView = observer(function WelcomeView() {
       <section className="welcome-section">
         <h2>계획</h2>
         <p>
-          단계: E0 기반(프로젝트 폴더, 파일 트리, 콘솔, 테마, 도킹 레이아웃 저장), E1 스크립트 편집, 핫 리로드, 실행 버튼, E2 씬과 오브젝트, E3 타일맵 확장. 진행
-          상황:{" "}
+          E0부터 E6까지 마쳤습니다: 프로젝트와 도킹 레이아웃, 스크립트 편집과 핫 리로드, 씬과 컴포넌트, 타일맵, 게임 탭, RPG 이벤트, 설치 파일. 현재는
+          컴포넌트 매개변수와 비주얼 스크립팅 검토 같은 다음 목표를 진행하고 있습니다. 진행 상황:{" "}
           <ExternalLink host={editor} href={PLANS_INDEX}>
             계획 문서
           </ExternalLink>

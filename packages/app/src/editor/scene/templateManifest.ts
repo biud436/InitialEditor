@@ -2,7 +2,7 @@
 // 어느 파일이 어느 템플릿과 언어에 들어가는지 고르는 순수 함수라 Node 로 테스트한다. 파일 내용을 읽는 것은
 // templateFiles.ts (Vite) 와 테스트의 fs 소스가 한다.
 
-export type ProjectTemplateId = "empty" | "flappy" | "tilemap";
+export type ProjectTemplateId = "empty" | "flappy" | "tilemap" | "rpg";
 export type TemplateFileLanguage = "lua" | "ruby";
 
 export interface TemplateFileEntry {
@@ -40,10 +40,14 @@ export const TEMPLATE_LABELS: Record<ProjectTemplateId, string> = {
   empty: "빈 프로젝트 (씬 1개)",
   flappy: "플래피버드 (씬과 컴포넌트)",
   tilemap: "타일맵",
+  rpg: "RPG 데모 (항구 마을)",
 };
 
-/** 템플릿이 여는 시작 씬 */
-export const TEMPLATE_START_SCENE: Record<ProjectTemplateId, string> = { empty: "main", flappy: "flappy", tilemap: "main" };
+/** 템플릿이 여는 시작 씬 (RPG 데모는 씬 파일 없이 진입점이 타이틀을 연다) */
+export const TEMPLATE_START_SCENE: Record<ProjectTemplateId, string | undefined> = { empty: "main", flappy: "flappy", tilemap: "main", rpg: undefined };
+
+/** 한 언어로만 만드는 템플릿 (RPG 레이어와 이벤트 실행기는 Lua 에만 있다) */
+export const TEMPLATE_LANGUAGE: Partial<Record<ProjectTemplateId, TemplateFileLanguage>> = { rpg: "lua" };
 
 /** 새 프로젝트에 넣을 파일을 고른다 (템플릿과 언어로) */
 export function templatePlan(manifest: TemplateManifest, template: ProjectTemplateId, language: TemplateFileLanguage): TemplateFileEntry[] {

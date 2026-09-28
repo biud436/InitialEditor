@@ -12,6 +12,7 @@ import { FsAccessBackend, requestReadWrite, supportsFolderPicker, type FolderRec
 import { makeObservable, observable, runInAction } from "mobx";
 import { createMemoryBackend, SAMPLE_ROOT } from "./backends";
 import type { Editor } from "./Editor";
+import { RPG_SAMPLE_MAP_PATH } from "./rpgSample";
 import { SAMPLE_MAP_PATH } from "./sampleProject";
 
 export class BrowserFolders {
@@ -115,7 +116,7 @@ export class BrowserFolders {
 
   /** 메모리의 샘플 프로젝트로 바꿔 연다. 폴더를 다시 열면 브라우저 폴더 백엔드로 돌아온다 */
   async openSample(): Promise<boolean> {
-    if (!(await this.editor.replaceBackend(createMemoryBackend()))) return false;
+    if (!(await this.editor.replaceBackend(createMemoryBackend(pageSampleQuery())))) return false;
     if (!(await this.editor.openProject(SAMPLE_ROOT))) return false;
     await openSampleMap(this.editor);
     return true;
@@ -178,13 +179,20 @@ export function browserFolders(editor: Editor, backend?: FsAccessBackend): Brows
 
 /** 샘플 맵을 열었을 때 한 번 띄우는 안내 */
 export const SAMPLE_MAP_HINT = "샘플 게임에서 렌더링하는 맵입니다. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5를 눌러 실행하세요.";
+export const RPG_SAMPLE_HINT = "RPG 데모 「떠나기 전에」의 항구 마을입니다. 타일을 칠하거나 이벤트를 편집하고 저장한 뒤 F5를 눌러 실행하세요.";
+
+/** 페이지 주소의 ?sample= (메모리 샘플 고르기, backends.ts 의 sampleKind) */
+export function pageSampleQuery(): string | null {
+  return typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("sample");
+}
 
 const hinted = new WeakSet<object>();
 
-/** 샘플 맵(meadow.json)을 맵 뷰로 열고, 이 페이지에서 처음이면 "칠하고 F5" 를 알린다 */
-export async function openSampleMap(editor: Pick<Editor, "openPath" | "toasts">): Promise<void> {
-  await editor.openPath(SAMPLE_MAP_PATH);
+/** 샘플 맵(RPG 데모면 항구 마을, 초원 샘플이면 meadow.json)을 맵 뷰로 열고, 이 페이지에서 처음이면 "칠하고 F5" 를 알린다 */
+export async function openSampleMap(editor: Pick<Editor, "openPath" | "toasts" | "backend">): Promise<void> {
+  const rpg = await editor.backend.exists(RPG_SAMPLE_MAP_PATH).catch(() => false);
+  await editor.openPath(rpg ? RPG_SAMPLE_MAP_PATH : SAMPLE_MAP_PATH);
   if (hinted.has(editor)) return;
   hinted.add(editor);
-  editor.toasts.show(SAMPLE_MAP_HINT, "info", 8000);
+  editor.toasts.show(rpg ? RPG_SAMPLE_HINT : SAMPLE_MAP_HINT, "info", 8000);
 }

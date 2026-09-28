@@ -24,7 +24,7 @@ async function openMenu(page: Page, branch: string, item: string | RegExp) {
 }
 
 async function openSample(page: Page) {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate(
     ([layout, view]) => {
       localStorage.removeItem(layout);

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "maps": [
+    {
+      "name": "port_town",
+      "file": "resources/maps/port_town.json",
+      "def": "scripts/lua/maps/port_town.lua"
+    },
+    {
+      "name": "inn",
+      "file": "resources/maps/inn.json",
+      "def": "scripts/lua/maps/inn.lua"
+    }
+  ],
+  "items": "resources/data/items.json",
+  "play": {
+    "env": {
+      "INITIAL2D_SCRIPT": "lua",
+      "INITIAL2D_SCENE": "rpg",
+      "INITIAL2D_MAP": "{rpg.map}",
+      "INITIAL2D_RPG_AT": "{cx},{cy},{dir}",
+      "INITIAL2D_RPG_STATE": "{state}",
+      "INITIAL2D_RPG_TRACE": "1"
+    },
+    "probe": {
+      "INITIAL2D_AUTOPLAY": "1",
+      "INITIAL2D_RPG_ROUTE": "{route}",
+      "INITIAL2D_RPG_HOLD": "{event}",
+      "INITIAL2D_RPG_TRACE": "1"
+    }
+  }
+}

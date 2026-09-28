@@ -12,7 +12,7 @@ async function openRunMenu(page: Page) {
 
 test.describe("안드로이드로 스테이징 (메모리 모드)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
   });

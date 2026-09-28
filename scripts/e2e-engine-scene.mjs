@@ -12,6 +12,7 @@
 //      컴포넌트에는 매개변수 선언(scripts/components/hello.json)이 있고, 코어의 SceneModel.setParam 으로 값 둘을 정해
 //      저장한다. 엔진이 컴포넌트에 넘긴 params 가 선언의 기본값에 씬의 값을 덮은 것인지 본다
 //   2. 플래피는 INITIAL2D_AUTOPLAY=1 로 자동 시연을 돌려 상태 전이와 900틱 종료 요약을 본다
+//   4. RPG 데모(Lua)는 타이틀과, 이 맵에서 실행과 같은 변수(INITIAL2D_SCENE=rpg, INITIAL2D_MAP=port_town)로 항구 마을을 연다
 //   3. 타일맵은 맵 문서(ext-tilemap 의 MapDocument)로 칸 (24, 28) 을 표식 타일(gid 45)로 칠해 저장하고, 시작 씬(game.json)
 //      으로 돌려 스크린샷의 그 칸이 표식 색 #d8c880 이고 옆 칸은 잔디인지 본다
 // 엔진은 헤드리스다 (SDL_VIDEODRIVER=dummy, SDL_AUDIODRIVER=dummy, INITIAL2D_EXIT_AFTER). <INITIAL2D_DIR>/build/Initial2D 가
@@ -263,6 +264,26 @@ for (const language of ["lua", "ruby"]) {
     dumpOnFailure(result, log);
     cleanup(dir);
   }
+}
+
+// RPG 데모 (Lua 만): 새 프로젝트로 쓴 파일로 타이틀과, 이 맵에서 실행과 같은 변수로 항구 마을을 연다
+{
+  const dir = caseDir("rpg-lua");
+  console.log(`\n[rpg/lua] ${dir}`);
+  const written = await writeProject(dir, "rpg", "lua");
+  console.log(`  프로젝트 파일 ${written.length}개`);
+  for (const p of ["scripts/lua/main.lua", "resources/data/rpg-game.json", "resources/maps/port_town.json", "scripts/lua/rpg/interpreter.lua"]) {
+    check(`${p} 가 있다`, fs.existsSync(path.join(dir, p)), "");
+  }
+  const title = runEngine(dir, { scene: null, script: "lua", exitAfter: 60, shotFrame: 30 });
+  for (const c of exitChecks(title.log, title.result.status)) check(`타이틀: ${c.name}`, c.ok, `${c.detail} signal=${title.result.signal}`);
+  check("타이틀: 프레임 30 스크린샷", fs.existsSync(title.shot) && fs.statSync(title.shot).size > 1000, title.shot);
+  dumpOnFailure(title.result, title.log);
+  const town = runEngine(dir, { scene: "rpg", script: "lua", exitAfter: 120, extraEnv: { INITIAL2D_MAP: "port_town", INITIAL2D_RPG_TRACE: "1" } });
+  for (const c of exitChecks(town.log, town.result.status)) check(`항구 마을: ${c.name}`, c.ok, `${c.detail} signal=${town.result.signal}`);
+  check("항구 마을: 맵과 이벤트를 읽었다 (rpg:map:port_town)", town.log.includes("rpg:map:port_town"), tail(town.log));
+  dumpOnFailure(town.result, town.log);
+  cleanup(dir);
 }
 
 report.finish();

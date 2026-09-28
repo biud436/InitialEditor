@@ -363,7 +363,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
   });
 
   test("샘플로 해 보기(메모리 백엔드)는 밖에 엔진이 없다: 수동 리로드는 게임 탭이 돌 때만 켜지고, 게임이 끝난 뒤 저장해도 보냈다고 적지 않는다", async ({ page }) => {
-    await page.goto("/?backend=browser");
+    await page.goto("/?backend=browser&sample=meadow");
     const welcome = await expectBrowserWelcome(page);
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
@@ -550,7 +550,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
   });
 });
 
-const SAMPLE_MAP_HINT = "샘플 게임에서 렌더링하는 맵입니다. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5를 눌러 실행하세요.";
+const RPG_SAMPLE_HINT = "RPG 데모 「떠나기 전에」의 항구 마을입니다. 타일을 칠하거나 이벤트를 편집하고 저장한 뒤 F5를 눌러 실행하세요.";
 const WEB_NO_RUBY = "브라우저 모드에서 실행 불가 (데스크톱 앱에서 실행)";
 
 /** engine/MANIFEST.json 을 가로채 기능에서 mruby 를 뺀다 (mruby 없는 웹 엔진 빌드 흉내) */
@@ -563,7 +563,7 @@ async function withoutMruby(page: Page) {
 }
 
 test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
-  test("샘플로 해 보기는 게임이 그리는 샘플 맵을 연 채로 뜨고 칠하고 F5 안내를 한 번 띄운다. 아래 줄은 데스크톱 앱 받기와 웹판에서 안 되는 것", async ({ page }) => {
+  test("샘플로 해 보기는 RPG 데모의 항구 마을 맵을 연 채로 뜨고 칠하고 F5 안내를 한 번 띄운다. 아래 줄은 데스크톱 앱 받기와 웹판에서 안 되는 것", async ({ page }) => {
     await page.goto("/?backend=browser");
     const welcome = await expectBrowserWelcome(page);
     const footer = page.getByTestId("welcome-web");
@@ -575,21 +575,21 @@ test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
 
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
-    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible();
     await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
-    await expect(page.getByTestId("toasts")).toContainText(SAMPLE_MAP_HINT);
-    expect(await page.evaluate(() => (window as unknown as { initialEditor: { documents: { active: { path: string } | null } } }).initialEditor.documents.active?.path)).toBe("resources/maps/meadow.json");
+    await expect(page.getByTestId("toasts")).toContainText(RPG_SAMPLE_HINT);
+    expect(await page.evaluate(() => (window as unknown as { initialEditor: { documents: { active: { path: string } | null } } }).initialEditor.documents.active?.path)).toBe("resources/maps/port_town.json");
     // 같은 페이지에서 다시 열면 맵은 열지만 안내는 다시 띄우지 않는다
     await page.evaluate(() => {
       const toasts = (window as unknown as { initialEditor: { toasts: { toasts: { id: number }[]; dismiss(id: number): void } } }).initialEditor.toasts;
       for (const t of [...toasts.toasts]) toasts.dismiss(t.id);
     });
-    await expect(page.getByTestId("toasts")).not.toContainText(SAMPLE_MAP_HINT);
+    await expect(page.getByTestId("toasts")).not.toContainText(RPG_SAMPLE_HINT);
     await openMenu(page, "파일", "프로젝트 닫기");
     await page.getByTestId("welcome").getByRole("button", { name: "샘플 프로젝트 열기" }).click();
-    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible();
     await page.waitForTimeout(300);
-    await expect(page.getByTestId("toasts")).not.toContainText(SAMPLE_MAP_HINT);
+    await expect(page.getByTestId("toasts")).not.toContainText(RPG_SAMPLE_HINT);
   });
 
   test("웹 엔진에 mruby 가 없으면 아래 줄에 Ruby 게임 실행이 붙는다", async ({ page }) => {
@@ -719,8 +719,8 @@ test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라
     await expect(welcome).toContainText("이 브라우저는 폴더 열기를 지원하지 않아 샘플 프로젝트로 시작했습니다");
     await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
-    await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
-    await expect(page.getByTestId("toasts")).toContainText(SAMPLE_MAP_HINT);
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible();
+    await expect(page.getByTestId("toasts")).toContainText(RPG_SAMPLE_HINT);
     expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
   });
 });

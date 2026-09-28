@@ -404,7 +404,7 @@ test.describe("RPG 이벤트 (브리지 모드, 레이아웃)", () => {
     await expect.poll(() => page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).toContain("ext:rpg.events");
 
     // 같은 브라우저의 메모리 모드: 샘플 프로젝트에는 layout.json 이 없어 브라우저 저장소의 레이아웃을 되살린다
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     // 되살린 타일맵 레이아웃에서는 프로젝트 트리가 가려진 탭일 수 있어 프로젝트가 열렸는지로 기다린다
     await expect.poll(() => ev<boolean>(page, "(e) => e.project.isOpen")).toBe(true);

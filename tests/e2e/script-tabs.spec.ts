@@ -38,7 +38,7 @@ async function openMenu(page: Page, branch: string, item: string | RegExp) {
 
 /** 샘플 프로젝트를 열고 스크립트 파일들을 이 내용으로 만든다 */
 async function openSampleWith(page: Page, files: Record<string, string>) {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
   await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();

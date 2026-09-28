@@ -53,7 +53,7 @@ export async function waitRpgLoaded(page: Page, timeout = 15_000): Promise<void>
 }
 
 export async function openRpgProject(page: Page): Promise<void> {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
   await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
