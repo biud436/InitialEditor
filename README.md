@@ -169,7 +169,10 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 `engine-pin.json` 에 있습니다.
 
 ```sh
-# 엔진 저장소에서 (핀의 커밋으로 체크아웃한 뒤)
+# 핀이 엔진의 공개 릴리스를 가리키면 (engineTag) 엔진 빌드 없이 릴리스에서 받는다
+yarn engine:fetch                                     # 핀의 sha256 으로 확인한다
+
+# 엔진을 직접 만들 때: 엔진 저장소에서 (핀의 커밋으로 체크아웃한 뒤)
 tools/build_dist.sh                                   # dist/Initial2D-<트리플>, dist/engine-dist.json
 
 # 에디터에서
@@ -186,6 +189,7 @@ yarn engine:check                                     # 템플릿, 웹 엔진, R
 - 받은 파일은 gitignore 입니다: `src-tauri/binaries/Initial2D-<트리플>`, `src-tauri/binaries/engine.json`(판 정보. 상태 바 툴팁과 설정에 "앱에 든 엔진 (cac4b94, lua mruby)" 처럼 보입니다), `src-tauri/licenses/engine/THIRD-PARTY.md`.
 - `check-sidecar.mjs` 는 받은 파일이나 빌드한 `.app` 을 받아 동적 의존(Homebrew 경로가 없는지), `--features`, `--version` 의 커밋이 핀과 `engine.json` 에 같은지, 모르는 인자에 종료 코드 2 인지 봅니다. 엔진은 버리는 임시 폴더에서 창 없이 돕니다. `engine.json` 은 받은 파일 옆(`src-tauri/binaries/engine.json`)이나 앱의 `Contents/Resources/engine/` 에서 찾고, 없으면 실패합니다. 다른 곳에 있으면 `--engine-json <경로>`, 엔진 실행 파일만 볼 때는 `--no-engine-json` 을 붙입니다.
 - 엔진을 올릴 때는 `engine-pin.json` 의 `engineCommit` 을 바꾸고, 엔진 저장소를 그 커밋으로 체크아웃해 `yarn sync:templates`, `yarn sync:engine-web`, `yarn sync:rpg` 를 다시 돌린 뒤 `yarn engine:check` 로 맞춰졌는지 봅니다. `ciEngineRef` 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸이라 릴리스 전에는 비웁니다.
+- 그 커밋에 엔진 태그와 공개 릴리스가 있으면 `yarn engine:pin <태그>` 로 핀을 릴리스에 묶습니다. 릴리스의 `engine-dist.json` 과 `SHA256SUMS.txt` 를 받아 `engineTag` 와 자산(타깃별 엔진, 템플릿 묶음, 제3자 고지)의 sha256 을 적습니다. 릴리스의 커밋이 핀과 다르면 쓰지 않습니다. 폴더에서 읽으려면 `--from <폴더>` 를 붙입니다.
 
 ## 설치 파일과 자가 검사
 
@@ -364,6 +368,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |
 | `yarn engine:fetch` | 앱에 싣는 엔진을 받는다. `--from <엔진 dist 폴더>`, `--target <트리플>`, `--templates <폴더>`, `--any-commit` (위 "앱에 싣는 엔진") |
 | `yarn engine:check` | 핀(`engine-pin.json`)과 엔진에서 온 MANIFEST 전부, 받아 둔 `engine.json` 의 엔진 커밋 대조 |
+| `yarn engine:pin <태그>` | 핀을 엔진의 공개 릴리스에 묶는다 (`engineTag` 와 자산의 sha256). `--from <폴더>` (위 "앱에 싣는 엔진") |
 | `yarn version:set <판>`, `yarn version:check` | 판 번호를 한꺼번에 바꾸거나 한 가지인지 본다 (위 "설치 파일과 자가 검사") |
 | `yarn licenses` | 에디터의 제3자 고지 `src-tauri/licenses/THIRD-PARTY-editor.md` 를 다시 쓴다 (`scripts/gen-licenses.mjs`). `--check` 는 다르면 실패 |
 | `yarn build:desktop` | 소스맵 없는 빌드 (데스크톱 번들용, `src-tauri/tauri.dist.conf.json` 이 부른다) |

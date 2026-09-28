@@ -1100,7 +1100,7 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 ### 마일스톤 3: 사이드카 동봉, 찾기와 신뢰, 템플릿 (에디터)
 
 - [x] `engine-pin.json` (엔진 `cac4b94`, `ciEngineRef` 칸 포함, 릴리스 전이라 자산 칸 없음), `scripts/fetch-engine.mjs` (`yarn engine:fetch [--target <트리플>] [--from <엔진 dist 폴더>] [--templates <폴더>] [--any-commit]`, 공개 자산 주소, sha256 확인, `src-tauri/licenses/engine/THIRD-PARTY.md`). 시험 `runner/engineScripts.test.ts`
-- [ ] `yarn engine:pin <태그>` (네이티브 핀, 웹 엔진과 고지, 템플릿을 같은 릴리스로. 체크아웃에서 오는 MANIFEST 는 커밋 확인 뒤 다시 동기화). 태그가 생긴 뒤
+- [x] `yarn engine:pin <태그>` (네이티브 핀, 웹 엔진과 고지, 템플릿을 같은 릴리스로. 체크아웃에서 오는 MANIFEST 는 커밋 확인 뒤 다시 동기화). 태그가 생긴 뒤. 2026-09-28: `scripts/pin-engine.mjs` 가 릴리스(또는 `--from` 폴더)의 `engine-dist.json` 과 `SHA256SUMS.txt` 로 `engineTag`, `native`, `templates`, `thirdParty` 를 적는다. 릴리스의 커밋이 핀과 다르면 쓰지 않는다 (MANIFEST 는 핀의 커밋에서 온 것이라 먼저 다시 동기화한다). 엔진 릴리스에 웹 엔진 zip 은 없어 `web` 칸은 비운다 (웹 엔진은 핀의 커밋에서 빌드해 동기화한 사본). 핀은 엔진 `v2.0.0-alpha.1`(`f04eba2`)이고 `yarn engine:fetch` 가 릴리스에서 받아 sha256 을 확인했다. 시험 `engineScripts.test.ts` 의 "yarn engine:pin" 넷
 - [x] `scripts/check-engine-pin.mjs` (`yarn engine:check`): 핀, `ciEngineRef`, 엔진에서 온 MANIFEST 전부의 커밋 40자와 `source` 와 `syncCommand`, 받아 둔 `engine.json`, 핀에 `web` 이 있으면 릴리스 zip 대조. `next` 를 합친 뒤 ext-rpg 픽스처를 핀의 커밋에서 다시 동기화했다 (1절 끝)
 - [x] 엔진에서 온 MANIFEST 모두에 `source` 와 `syncCommand`, 커밋은 40자. 웹 엔진은 `sync-engine-web.mjs` 가 두 칸을 쓰고, 핀의 커밋 `cac4b94` 에서 다시 빌드해 가져왔다 (4.2 절 끝). `yarn engine:check` 가 전부 통과한다
 - [x] `sync-engine-templates.mjs --from-zip`(zip 이나 dist 폴더), 템플릿 MANIFEST 의 `source`, `syncCommand`, 커밋 40자, `generated` 표시 (로컬 체크아웃에서 복사할 때는 `git ls-files` 로 정한다), `--allow-dirty`. 시험 `scene/syncTemplates.test.ts` (가짜 체크아웃과 가짜 묶음, 엔진이 있으면 `pack_templates.py` 의 진짜 묶음이 체크아웃과 같다)

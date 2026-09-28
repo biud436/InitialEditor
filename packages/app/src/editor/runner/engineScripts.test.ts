@@ -1,5 +1,6 @@
 // 앱에 싣는 엔진을 다루는 스크립트 셋 (docs/plans/e6-packaging.md 마일스톤 3):
-//   scripts/fetch-engine.mjs (yarn engine:fetch), scripts/check-engine-pin.mjs (yarn engine:check), scripts/check-sidecar.mjs.
+//   scripts/fetch-engine.mjs (yarn engine:fetch), scripts/check-engine-pin.mjs (yarn engine:check), scripts/check-sidecar.mjs,
+//   scripts/pin-engine.mjs (yarn engine:pin).
 // 가짜 저장소(engine-pin.json)와 가짜 엔진 dist 폴더를 임시 폴더에 만들고 스크립트의 main 을 부른다.
 
 import { execFileSync, spawnSync } from "node:child_process";
@@ -21,6 +22,7 @@ type Main = (argv: string[], deps?: Record<string, unknown>) => Promise<number>;
 type Fetch = (url: string) => Promise<{ ok: boolean; status: number; arrayBuffer(): Promise<ArrayBuffer> }>;
 
 const fetchEngine = (await import(pathToFileURL(path.join(REPO, "scripts", "fetch-engine.mjs")).href)) as { main: Main; parseArgs(argv: string[]): unknown };
+const pinEngine = (await import(pathToFileURL(path.join(REPO, "scripts", "pin-engine.mjs")).href)) as { main: Main };
 const checkPin = (await import(pathToFileURL(path.join(REPO, "scripts", "check-engine-pin.mjs")).href)) as { main(deps?: Record<string, unknown>): Promise<number> };
 const sidecar = (await import(pathToFileURL(path.join(REPO, "scripts", "check-sidecar.mjs")).href)) as {
   main(argv: string[], deps?: Record<string, unknown>): number;
@@ -296,6 +298,84 @@ describe("yarn engine:fetch (공개 릴리스)", () => {
     const missing = capture();
     expect(await fetchEngine.main(["--target", TRIPLE], { repo, ...missing, fetchImpl: fakeFetch({}) })).toBe(1);
     expect(missing.lines.join("\n")).toContain("HTTP 404");
+  });
+});
+
+describe("yarn engine:pin", () => {
+  const TAG = "v2.0.0-alpha.1";
+  const LINUX = "x86_64-unknown-linux-gnu";
+  const TEMPLATES = "templates zip";
+  const THIRD = "# 고지\n";
+
+  /** 릴리스에 올린 dist 의 두 파일 */
+  function releaseFiles(opts: { tag?: string | null; commit?: string; sums?: Record<string, string> } = {}) {
+    const native = {
+      [TRIPLE]: { asset: `Initial2D-${TRIPLE}`, size: 3, sha256: sha("mac"), features: ["lua", "mruby"] },
+      [LINUX]: { asset: `Initial2D-${LINUX}`, size: 5, sha256: sha("linux"), features: ["lua", "mruby"] },
+    };
+    const sums = opts.sums ?? { [`Initial2D-${TRIPLE}`]: sha("mac"), [`Initial2D-${LINUX}`]: sha("linux"), "Initial2D-templates.zip": sha(TEMPLATES), "THIRD-PARTY.md": sha(THIRD), "engine-dist.json": sha("x") };
+    return {
+      "engine-dist.json": JSON.stringify({ comment: "test", engineTag: opts.tag === undefined ? TAG : opts.tag, describe: TAG, engineCommit: opts.commit ?? COMMIT, native }),
+      "SHA256SUMS.txt": Object.entries(sums).map(([n, s]) => `${s}  ${n}`).join("\n") + "\n",
+    };
+  }
+
+  it("릴리스의 engine-dist.json 과 SHA256SUMS.txt 로 태그와 자산의 sha256 을 적고, comment 와 ciEngineRef 는 그대로 둔다", async () => {
+    const repo = fakeRepo({ comment: "핀", engineTag: null, engineCommit: COMMIT, ciEngineRef: null });
+    const seen: string[] = [];
+    const out = capture();
+    expect(await pinEngine.main([TAG], { repo, ...out, fetchImpl: fakeFetch(releaseFiles(), seen) })).toBe(0);
+    expect(seen).toEqual([`https://github.com/biud436/Initial2D/releases/download/${TAG}/engine-dist.json`, `https://github.com/biud436/Initial2D/releases/download/${TAG}/SHA256SUMS.txt`]);
+    const pin = JSON.parse(fs.readFileSync(path.join(repo, "engine-pin.json"), "utf8"));
+    expect(pin).toEqual({
+      comment: "핀",
+      engineTag: TAG,
+      engineCommit: COMMIT,
+      ciEngineRef: null,
+      native: {
+        [TRIPLE]: { asset: `Initial2D-${TRIPLE}`, sha256: sha("mac"), size: 3, features: ["lua", "mruby"] },
+        [LINUX]: { asset: `Initial2D-${LINUX}`, sha256: sha("linux"), size: 5, features: ["lua", "mruby"] },
+      },
+      templates: { asset: "Initial2D-templates.zip", sha256: sha(TEMPLATES) },
+      thirdParty: { asset: "THIRD-PARTY.md", sha256: sha(THIRD) },
+    });
+    expect(dist.validatePin(pin)).toEqual([]);
+    // 그 핀으로 engine:fetch 가 릴리스에서 받는다
+    const fetched = capture();
+    expect(await fetchEngine.main(["--target", TRIPLE], { repo, ...fetched, fetchImpl: fakeFetch({ [`Initial2D-${TRIPLE}`]: "mac", "THIRD-PARTY.md": THIRD }) })).toBe(0);
+  });
+
+  it("--from 은 폴더에서 읽는다", async () => {
+    const repo = fakeRepo();
+    const dir = path.join(tmp, "release");
+    for (const [name, text] of Object.entries(releaseFiles())) write(path.join(dir, name), text);
+    expect(await pinEngine.main([TAG, "--from", dir], { repo, ...capture() })).toBe(0);
+    expect(JSON.parse(fs.readFileSync(path.join(repo, "engine-pin.json"), "utf8")).engineTag).toBe(TAG);
+  });
+
+  it("태그나 커밋이 다르거나 sha256 이 SHA256SUMS.txt 와 다르거나 템플릿이 없으면 핀을 바꾸지 않는다", async () => {
+    const cases: Array<[Record<string, string>, string]> = [
+      [releaseFiles({ tag: "v2.0.0-alpha.0" }), "engineTag 가 v2.0.0-alpha.1 가 아님"],
+      [releaseFiles({ tag: null }), "engineTag 가 v2.0.0-alpha.1 가 아님 (현재: null)"],
+      [releaseFiles({ commit: OTHER }), "핀의 커밋 cac4b94 과 다름"],
+      [releaseFiles({ sums: { [`Initial2D-${TRIPLE}`]: sha("other"), [`Initial2D-${LINUX}`]: sha("linux"), "Initial2D-templates.zip": sha(TEMPLATES), "THIRD-PARTY.md": sha(THIRD) } }), `Initial2D-${TRIPLE} 의 sha256 이 SHA256SUMS.txt 와 다름`],
+      [releaseFiles({ sums: { [`Initial2D-${TRIPLE}`]: sha("mac"), [`Initial2D-${LINUX}`]: sha("linux"), "THIRD-PARTY.md": sha(THIRD) } }), "SHA256SUMS.txt 에 Initial2D-templates.zip 없음"],
+    ];
+    for (const [files, message] of cases) {
+      const repo = fakeRepo();
+      const before = fs.readFileSync(path.join(repo, "engine-pin.json"), "utf8");
+      const out = capture();
+      expect(await pinEngine.main([TAG], { repo, ...out, fetchImpl: fakeFetch(files) }), message).toBe(1);
+      expect(out.lines.join("\n")).toContain(message);
+      expect(fs.readFileSync(path.join(repo, "engine-pin.json"), "utf8")).toBe(before);
+    }
+    const missing = capture();
+    expect(await pinEngine.main([TAG], { repo: fakeRepo(), ...missing, fetchImpl: fakeFetch({}) })).toBe(1);
+    expect(missing.lines.join("\n")).toContain("HTTP 404");
+  });
+
+  it("태그가 없거나 둘이거나 모르는 인자는 종료 코드 2", async () => {
+    for (const argv of [[], [TAG, "v2"], [TAG, "--bogus"], [TAG, "--from"]]) expect(await pinEngine.main(argv, { repo: fakeRepo(), ...capture() }), argv.join(" ")).toBe(2);
   });
 });
 
