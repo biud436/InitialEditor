@@ -67,7 +67,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
   test("새 씬, 오브젝트 추가, 인스펙터, 이름 바꾸기, 복제, 삭제, 되돌리기, 복사와 붙여넣기, 시작 씬, 저장", async ({ page }) => {
     await openSample(page);
     const mod = await primaryKey(page);
-    await expect(page.getByTestId("hierarchy")).toContainText("씬을 열면 여기에 오브젝트가 보인다");
+    await expect(page.getByTestId("hierarchy")).toContainText("활성 씬 탭 없음");
     await newScene(page, "stage1");
     const hierarchy = page.getByTestId("hierarchy");
     await expect(hierarchy).toContainText("그리기 순서: 위가 먼저");
@@ -87,7 +87,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(inspector).toContainText("sprite");
     await expect(page.getByTestId("inspector-sprite")).toBeVisible();
     await expect(page.getByTestId("prop-image")).toBeVisible();
-    await expect(page.getByTestId("inspector-problems")).toContainText("이미지가 없다");
+    await expect(page.getByTestId("inspector-problems")).toContainText("이미지(props.image) 비어 있음");
     const x = page.getByTestId("inspector-x");
     await x.click();
     await x.fill("5");
@@ -131,7 +131,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     // 복사와 붙여넣기 (편집 메뉴)
     await player.click();
     await openMenu(page, "편집", "복사");
-    await expect(page.getByTestId("toasts")).toContainText("오브젝트 1개를 복사했다");
+    await expect(page.getByTestId("toasts")).toContainText("오브젝트 1개 복사됨");
     await openMenu(page, "편집", "붙여넣기");
     const player3 = hierarchy.locator('[data-testid="hierarchy-row"][data-id="player_3"]');
     await expect(player3).toBeVisible();
@@ -143,13 +143,13 @@ test.describe("씬 도구 (메모리 모드)", () => {
 
     // 시작 씬으로 지정
     await openMenu(page, "씬", "시작 씬으로 지정");
-    await expect(page.getByTestId("toasts")).toContainText("시작 씬으로 지정했다: stage1");
+    await expect(page.getByTestId("toasts")).toContainText("시작 씬으로 지정됨: stage1");
     expect(await withEditor(page, (e) => e.project.gameJson.startScene)).toBe("stage1");
 
     // 저장 (Ctrl+S): 파일에 오브젝트가 있다
     await player.click();
     await page.keyboard.press(`${mod}+s`);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: stage1.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: stage1.json");
     const saved = JSON.parse(await withEditor(page, (e) => e.backend.readText("resources/scenes/stage1.json"))) as { version: number; name: string; objects: Array<{ id: string; type: string; x: number; visible?: boolean }> };
     expect(saved.version).toBe(1);
     expect(saved.name).toBe("stage1");
@@ -164,7 +164,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await addObjectViaMenu(page, "빈 노드");
     const node = page.getByTestId("hierarchy").locator('[data-testid="hierarchy-row"][data-id="node"]');
     await expect(node).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("inspector-scripts")).toContainText("붙은 스크립트가 없다");
+    await expect(page.getByTestId("inspector-scripts")).toContainText("추가된 스크립트 없음");
 
     await page.getByTestId("inspector-attach").click();
     const dialog = page.getByTestId("attach-script-dialog");
@@ -180,13 +180,13 @@ test.describe("씬 도구 (메모리 모드)", () => {
     const source = await withEditor(page, (e) => e.backend.readText("scripts/lua/components/mover.lua"));
     expect(source).toContain("function Mover.init(obj, scene)");
     expect(source).toContain("return Mover");
-    await expect(page.getByTestId("console-list")).toContainText("컴포넌트를 만들었다: scripts/lua/components/mover.lua");
+    await expect(page.getByTestId("console-list")).toContainText("컴포넌트 생성됨: scripts/lua/components/mover.lua");
 
     // 열기 → 편집기 탭. 씬 탭으로 돌아오면 계층이 다시 그 씬이다
     await page.getByTestId("inspector-script-open").click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "mover.lua" })).toBeVisible();
     await expect(page.locator(".monaco-editor .view-lines")).toContainText("Mover.init");
-    await expect(page.getByTestId("hierarchy")).toContainText("씬을 열면 여기에 오브젝트가 보인다");
+    await expect(page.getByTestId("hierarchy")).toContainText("활성 씬 탭 없음");
     await page.getByTestId("doc-tab").filter({ hasText: "stage2.json" }).click();
     await expect(page.getByTestId("hierarchy")).toHaveAttribute("data-scene", "stage2.json");
 
@@ -195,10 +195,10 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await page.getByTestId("inspector-attach").click();
     await page.getByTestId("attach-script-name").fill("components/mover");
     await page.getByTestId("attach-script-ok").click();
-    await expect(page.getByTestId("toasts")).toContainText("이미 붙어 있다: components/mover");
+    await expect(page.getByTestId("toasts")).toContainText("이미 추가된 스크립트: components/mover");
     await page.getByTestId("attach-script-dialog").getByRole("button", { name: "취소" }).click();
     await page.getByTestId("inspector-script-remove").click();
-    await expect(page.getByTestId("inspector-scripts")).toContainText("붙은 스크립트가 없다");
+    await expect(page.getByTestId("inspector-scripts")).toContainText("추가된 스크립트 없음");
   });
 
   test("하위 메뉴: 마우스를 올려 열린 뒤 부모 항목을 눌러도 닫히지 않는다", async ({ page }) => {

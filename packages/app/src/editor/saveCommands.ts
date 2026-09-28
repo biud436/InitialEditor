@@ -32,7 +32,7 @@ export function createDocumentSaver(deps: DocumentSaverDeps): (doc: Document) =>
   const run = async (doc: Document, phase: RunningSave["phase"]): Promise<SaveOutcome> => {
     const name = doc.path ?? doc.title;
     if (deps.beforeSave && !(await deps.beforeSave(doc))) {
-      deps.log.info("editor", `저장을 취소했다: ${name}`);
+      deps.log.info("editor", `저장 취소됨: ${name}`);
       return "cancelled";
     }
     let outcome: SaveOutcome;
@@ -43,12 +43,12 @@ export function createDocumentSaver(deps: DocumentSaverDeps): (doc: Document) =>
         },
       });
     } catch (e) {
-      if (e instanceof ReloadFailedError) deps.log.error("editor", `${name}을(를) 다시 읽지 못했다: ${e.reason}`);
+      if (e instanceof ReloadFailedError) deps.log.error("editor", `${name} 다시 읽기 실패: ${e.reason}`);
       throw e;
     }
     if (outcome === "saved") deps.onSaved(doc);
-    else if (outcome === "reloaded") deps.log.info("editor", `저장하지 않고 디스크 내용으로 다시 읽었다: ${name}`);
-    else deps.log.info("editor", `저장을 취소했다: ${name}`);
+    else if (outcome === "reloaded") deps.log.info("editor", `저장하지 않고 디스크 내용으로 다시 읽음: ${name}`);
+    else deps.log.info("editor", `저장 취소됨: ${name}`);
     return outcome;
   };
 
@@ -90,12 +90,12 @@ export async function saveActiveDocument(host: SaveHost): Promise<SaveOutcome | 
   if (!doc) return null;
   try {
     const outcome = await host.saveDocument(doc);
-    if (outcome === "saved") host.toasts.success(`저장했다: ${doc.title}`);
-    else if (outcome === "reloaded") host.toasts.info(`저장하지 않고 디스크 내용으로 다시 읽었다: ${doc.title}`);
+    if (outcome === "saved") host.toasts.success(`저장됨: ${doc.title}`);
+    else if (outcome === "reloaded") host.toasts.info(`저장하지 않고 디스크 내용으로 다시 읽음: ${doc.title}`);
     return outcome;
   } catch (e) {
     if (e instanceof ReloadFailedError) host.toasts.error(e.message);
-    else host.toasts.error(`${doc.title}을(를) 저장하지 못했다: ${(e as Error).message}`);
+    else host.toasts.error(`${doc.title} 저장 실패: ${(e as Error).message}`);
     return null;
   }
 }
@@ -112,10 +112,10 @@ export interface SaveAllResult {
 
 /** 모두 저장의 토스트 문구. 실패가 있으면 error, 저장하지 않은 것이 있으면 info */
 export function saveAllMessage(r: SaveAllResult): { level: "success" | "info" | "error"; text: string } {
-  const parts = [r.failed.length > 0 ? `${r.saved.length}개를 저장했고 ${r.failed.length}개는 저장하지 못했다: ${r.failed.join(", ")}` : `${r.saved.length}개 문서를 저장했다`];
-  if (r.reloadFailed.length > 0) parts.push(`다시 읽지 못한 것: ${r.reloadFailed.join(", ")}`);
-  if (r.reloaded.length > 0) parts.push(`다시 읽은 것: ${r.reloaded.join(", ")}`);
-  if (r.cancelled.length > 0) parts.push(`저장하지 않은 것: ${r.cancelled.join(", ")}`);
+  const parts = [r.failed.length > 0 ? `문서 ${r.saved.length}개 저장됨, ${r.failed.length}개 저장 실패: ${r.failed.join(", ")}` : `문서 ${r.saved.length}개 저장됨`];
+  if (r.reloadFailed.length > 0) parts.push(`다시 읽기 실패: ${r.reloadFailed.join(", ")}`);
+  if (r.reloaded.length > 0) parts.push(`다시 읽음: ${r.reloaded.join(", ")}`);
+  if (r.cancelled.length > 0) parts.push(`저장 취소됨: ${r.cancelled.join(", ")}`);
   const level = r.failed.length + r.reloadFailed.length > 0 ? "error" : r.reloaded.length + r.cancelled.length > 0 ? "info" : "success";
   return { level, text: parts.join(". ") };
 }

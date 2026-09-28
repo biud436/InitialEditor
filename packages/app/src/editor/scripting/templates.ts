@@ -18,8 +18,8 @@ export interface TemplateOptions {
 }
 
 export const TEMPLATE_LABELS: Record<TemplateKind, string> = {
-  scene: "씬 (진입점, 계약 네 함수)",
-  component: "컴포넌트 (오브젝트에 붙는 모듈)",
+  scene: "씬 스크립트 (진입점, 씬 계약 함수)",
+  component: "컴포넌트 (오브젝트에 추가하는 스크립트)",
 };
 
 export const LANGUAGE_LABELS: Record<TemplateLanguage, string> = { lua: "Lua", ruby: "Ruby (mruby)" };
@@ -70,7 +70,7 @@ function luaComponent(table: string, hooks: SceneHook[]): string {
       return `function ${table}.${h.name}(${params})\nend\n`;
     })
     .join("\n");
-  return `-- ${table} 컴포넌트. 씬이 오브젝트(obj)에 붙여 계약 함수를 부른다.\n\nlocal ${table} = {}\n\n${body}\nreturn ${table}\n`;
+  return `-- ${table} 컴포넌트. 씬이 이 컴포넌트가 추가된 오브젝트(obj)마다 계약 함수를 호출한다.\n\nlocal ${table} = {}\n\n${body}\nreturn ${table}\n`; // terms-ok: 생성하는 스크립트의 주석은 문장형
 }
 
 function rubyScene(name: string, hooks: SceneHook[]): string {
@@ -91,17 +91,17 @@ function rubyComponent(klass: string, hooks: SceneHook[]): string {
       return `  def ${h.name}(${params})\n  end\n`;
     })
     .join("\n");
-  return `# ${klass} 컴포넌트. 씬이 오브젝트(obj)에 붙여 계약 메서드를 부른다.\n\nclass ${klass}\n${body}end\n`;
+  return `# ${klass} 컴포넌트. 씬이 이 컴포넌트가 추가된 오브젝트(obj)마다 계약 메서드를 호출한다.\n\nclass ${klass}\n${body}end\n`; // terms-ok: 생성하는 스크립트의 주석은 문장형
 }
 
 /** 파일 이름 검사: 비어 있지 않고, 확장자 없이, `..` 없이, 하위 폴더는 허용 */
 export function validateScriptName(value: string): string | null {
   const v = value.trim();
-  if (!v) return "이름을 적는다";
-  if (/\\/.test(v)) return "폴더 구분은 / 로 적는다";
-  if (v.split("/").some((seg) => seg === "" || seg === "." || seg === "..")) return "경로 조각이 비었거나 . 이나 .. 이다";
-  if (/\.(lua|rb)$/i.test(v)) return "확장자는 붙이지 않는다 (언어에 따라 붙는다)";
-  if (!/^[A-Za-z0-9_\-./]+$/.test(v)) return "영문, 숫자, _, -, / 만 쓴다";
+  if (!v) return "이름 비어 있음";
+  if (/\\/.test(v)) return "폴더 구분자는 / 만 허용 (\\ 불가)";
+  if (v.split("/").some((seg) => seg === "" || seg === "." || seg === "..")) return "비어 있거나 . 또는 .. 인 경로 구성 요소 포함";
+  if (/\.(lua|rb)$/i.test(v)) return "확장자 불필요 (언어에 따라 .lua 또는 .rb 자동 추가)";
+  if (!/^[A-Za-z0-9_\-./]+$/.test(v)) return "영문, 숫자, _, -, / 만 허용";
   return null;
 }
 

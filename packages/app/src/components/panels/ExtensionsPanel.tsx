@@ -13,20 +13,20 @@ export const ExtensionsPanel = observer(function ExtensionsPanel() {
     return (
       <div className="panel-body">
         <div className="panel-hint" data-testid="extensions-empty">
-          확장이 registerPanel로 더한 패널이 여기 보인다. 지금 켠 확장에는 없다. 맵의 팔레트, 레이어, 맵 오브젝트는 맵 탭을 열면 따로 열린다 (창 메뉴)
+          registerPanel로 등록된 확장 패널 목록. 활성 확장에 등록된 패널 없음. 맵의 팔레트, 레이어, 맵 오브젝트 패널은 맵 탭을 열면 별도 탭으로 열림 (창 메뉴)
         </div>
       </div>
     );
   }
   return (
     <div className="panel-body">
-      <div className="panel-hint">확장 패널은 저마다 탭이다. 누르면 그 탭을 연다 (창 메뉴에도 있다)</div>
+      <div className="panel-hint">확장 패널마다 별도 탭. 클릭하면 해당 탭 열기 (창 메뉴에도 있음)</div>
       {panels.map((p) => {
         const dockId = extPanelId(p.id);
         const open = editor.layout?.isPanelOpen(dockId) ?? false;
         return (
           <section key={p.id} className="extension-panel" data-testid="extension-panel-entry" data-panel={p.id}>
-            <button type="button" className="btn extension-panel-title" onClick={() => editor.layout?.showPanel(dockId)} title={open ? "탭으로 가기" : "탭 열기"}>
+            <button type="button" className="btn extension-panel-title" onClick={() => editor.layout?.showPanel(dockId)} title={open ? "탭으로 이동" : "탭 열기"}>
               {p.title}
             </button>
             <span className="muted">{open ? "열림" : "닫힘"}</span>

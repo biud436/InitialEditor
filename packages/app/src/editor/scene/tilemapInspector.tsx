@@ -66,7 +66,7 @@ function useMapInfo(path: string): MapInfo | null {
 }
 
 function mapSummary(map: MapData): string {
-  return `${map.width}x${map.height} 칸, 타일 ${map.tileWidth}x${map.tileHeight}, 레이어 ${map.layers.length}`;
+  return `크기 ${map.width}x${map.height} 타일, 타일 ${map.tileWidth}x${map.tileHeight}px, 레이어 ${map.layers.length}개`;
 }
 
 export const TilemapInspector = observer(function TilemapInspector({ document, object }: ObjectInspectorProps) {
@@ -92,7 +92,7 @@ export const TilemapInspector = observer(function TilemapInspector({ document, o
           ))}
         </select>
       </FieldRow>
-      <FieldRow label="바닥 레이어 수" hint="게임에서 다른 오브젝트 아래에 그리는 레이어 수. 나머지는 위에 그린다">
+      <FieldRow label="오브젝트 아래 레이어 수" hint="모든 씬 오브젝트 아래에 그리는 맵 레이어 수 (첫 레이어부터). 나머지 레이어는 오브젝트 위에 그림">
         <NumberField
           value={p.groundLayers}
           onChange={(v, s) => set("groundLayers", v, s)}
@@ -100,22 +100,22 @@ export const TilemapInspector = observer(function TilemapInspector({ document, o
           min={0}
           integer
           testId="prop-groundLayers"
-          ariaLabel="바닥 레이어 수"
+          ariaLabel="오브젝트 아래 레이어 수"
         />
       </FieldRow>
       <FieldRow label="맵 문서">
-        <button type="button" className="btn" disabled={!p.map} onClick={() => void editor.openPath(p.map)} data-testid="tilemap-open-map" title="맵 파일을 맵 뷰로 연다">
+        <button type="button" className="btn" disabled={!p.map} onClick={() => void editor.openPath(p.map)} data-testid="tilemap-open-map" title="맵 파일을 맵 뷰로 열기">
           맵 열기
         </button>
       </FieldRow>
       {p.map && (
         <div className="inspector-note muted" data-testid="tilemap-map-info">
-          {info === null ? "읽는 중" : info.map ? mapSummary(info.map) : `읽지 못했다: ${info.error}`}
+          {info === null ? "읽는 중" : info.map ? mapSummary(info.map) : `읽기 실패: ${info.error}`}
         </div>
       )}
       {layers !== null && p.groundLayers > layers && (
         <div className="inspector-note muted" data-testid="tilemap-ground-note">
-          바닥 레이어 수가 맵의 레이어 수({layers})보다 많다. 게임은 레이어를 모두 아래에 그린다
+          오브젝트 아래 레이어 수가 맵의 레이어 수({layers})보다 큼. 게임에서는 모든 레이어를 오브젝트 아래에 그림
         </div>
       )}
     </div>

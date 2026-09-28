@@ -39,9 +39,9 @@ describe("openExternal", () => {
   it("http 와 https 만 연다. 다른 것은 두 모드 모두 아무것도 부르지 않고 던진다", async () => {
     for (const tauri of [true, false]) {
       const t = fakeDeps(tauri);
-      await expect(openExternal("file:///etc/passwd", t.deps)).rejects.toThrow("http 나 https 주소만 연다");
-      await expect(openExternal("javascript:alert(1)", t.deps)).rejects.toThrow("http 나 https 주소만 연다");
-      await expect(openExternal("그냥 글", t.deps)).rejects.toThrow("주소 모양이 아니다");
+      await expect(openExternal("file:///etc/passwd", t.deps)).rejects.toThrow("http 나 https URL 만 열기 가능: file:///etc/passwd");
+      await expect(openExternal("javascript:alert(1)", t.deps)).rejects.toThrow("http 나 https URL 만 열기 가능: javascript:alert(1)");
+      await expect(openExternal("그냥 글", t.deps)).rejects.toThrow("URL 형식 아님: 그냥 글");
       expect(t.invoked).toEqual([]);
       expect(t.opened).toEqual([]);
     }
@@ -58,7 +58,7 @@ describe("openExternal", () => {
 
     const denied = fakeDeps(true, new Error("url not allowed on the configured scope"));
     expect(await openLink(host, "https://example.com/", denied.deps)).toBe(false);
-    expect(lines).toEqual(["링크를 열지 못했다: https://example.com/ (url not allowed on the configured scope)"]);
+    expect(lines).toEqual(["링크 열기 실패: https://example.com/ (url not allowed on the configured scope)"]);
     expect(toasts).toEqual(lines);
   });
 });

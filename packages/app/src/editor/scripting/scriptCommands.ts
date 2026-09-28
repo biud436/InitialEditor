@@ -12,7 +12,7 @@ import { openNewScriptDialog } from "./NewScriptDialog";
 import type { ScriptSupport } from "./ScriptSupport";
 
 export const FIND_PANEL_ID = "find";
-const NEED_PROJECT = "프로젝트를 먼저 연다";
+const NEED_PROJECT = "열린 프로젝트 없음";
 
 /** 찾기 패널을 열고(없으면 켜고) 입력 칸에 초점을 준다 */
 export function openFindPanel(editor: Editor, support: ScriptSupport, query = ""): void {

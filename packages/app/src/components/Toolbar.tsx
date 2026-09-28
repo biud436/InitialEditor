@@ -64,18 +64,18 @@ export const Toolbar = observer(function Toolbar() {
       <div className="toolbar-sep" />
       <div className="toolbar-group" aria-label="도구">
         <span className="toolbar-caption">도구</span>
-        <button type="button" className="toolbar-button" disabled title="선택: E2 에서 붙는다">
+        <button type="button" className="toolbar-button" disabled title="선택: 미구현">
           선택
         </button>
-        <button type="button" className="toolbar-button" disabled title="이동: E2 에서 붙는다">
+        <button type="button" className="toolbar-button" disabled title="이동: 미구현">
           이동
         </button>
         {tools.map((t) => (
-          <button key={t.id} type="button" className="toolbar-button" disabled title={`${t.label}: 확장 도구는 E2 씬 뷰에서 붙는다`}>
+          <button key={t.id} type="button" className="toolbar-button" disabled title={`${t.label}: 툴바의 확장 도구 실행 미구현`}>
             {t.label}
           </button>
         ))}
-        {tools.length === 0 && <span className="toolbar-caption muted">확장 도구 자리</span>}
+        {tools.length === 0 && <span className="toolbar-caption muted">등록된 확장 도구 없음</span>}
       </div>
       <div className="toolbar-spacer" />
       <label className="toolbar-field">
@@ -87,8 +87,8 @@ export const Toolbar = observer(function Toolbar() {
       </label>
       <label className="toolbar-field">
         씬
-        <select className="select" disabled title="씬 선택은 E2 에서 붙는다">
-          <option>{project.gameJson.startScene ?? "(E2)"}</option>
+        <select className="select" disabled title="씬 선택: 미구현">
+          <option>{project.gameJson.startScene ?? "(시작 씬 없음)"}</option>
         </select>
       </label>
     </div>

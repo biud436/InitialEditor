@@ -90,7 +90,7 @@ test.describe("메모리 모드 스모크", () => {
     await page.reload();
     await expect(page.getByTestId("welcome")).toBeVisible();
     await expect(page.getByTestId("console")).toHaveCount(0);
-    await expect(page.getByText("씬을 열면 여기에 오브젝트가 보인다")).toBeVisible();
+    await expect(page.getByText("활성 씬 탭 없음")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
     // 다시 켜면 돌아온다
@@ -102,11 +102,11 @@ test.describe("메모리 모드 스모크", () => {
     const run = page.getByTestId("toolbar").locator('[data-command="run.start"]');
     const tip = page.getByTestId("toolbar").locator(".toolbar-tip").first();
     await expect(run).toBeDisabled();
-    await expect(tip).toHaveAttribute("title", /프로젝트를 먼저 연다/);
+    await expect(tip).toHaveAttribute("title", /열린 프로젝트 없음/);
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     // 브라우저 모드의 F5 는 웹 엔진을 게임 탭에서 돌린다 (E4, game-view.spec.ts)
     await expect(run).toBeEnabled();
-    await expect(tip).toHaveAttribute("title", /^실행 \(F5\) ?: 에디터 안 게임 탭에서 돈다 \(웹 엔진\)$/);
+    await expect(tip).toHaveAttribute("title", /^실행 \(F5\) ?: 게임 탭에서 실행 \(웹 엔진\)$/);
   });
 
   test("오른쪽 클릭 메뉴는 누른 자리에 뜬다", async ({ page }) => {
@@ -183,7 +183,7 @@ test.describe("메모리 모드 스모크", () => {
     const created = tree.locator('[data-path="resources/maps/notes.bin"]');
     await expect(created).toBeVisible();
     await created.dblclick();
-    await expect(page.getByTestId("toasts")).toContainText("미리보기가 없는 파일이다");
+    await expect(page.getByTestId("toasts")).toContainText("미리보기를 지원하지 않는 파일 형식");
   });
 });
 
@@ -197,7 +197,7 @@ test.describe("game.json 없는 프로젝트 등록", () => {
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
 
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("game.json 을 만듭니다");
+    await expect(dialog).toContainText("game.json 생성");
     const tree = page.getByTestId("project-tree");
     await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
     await expect(tree.locator('[data-path="game.json"]')).toHaveCount(0);
@@ -205,7 +205,7 @@ test.describe("game.json 없는 프로젝트 등록", () => {
     await dialog.getByRole("button", { name: "만들기" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(tree.locator('[data-path="game.json"]')).toBeVisible();
-    await expect(page.getByTestId("console-list")).toContainText("game.json 을 만들었다");
+    await expect(page.getByTestId("console-list")).toContainText("game.json 생성됨");
 
     // 만든 파일은 엔진 기본값이다
     await tree.locator('[data-path="game.json"]').dblclick();

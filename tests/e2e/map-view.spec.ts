@@ -121,7 +121,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     await expect(palette).toHaveAttribute("data-rows", "4");
     const pz = Number(await palette.getAttribute("data-zoom"));
     await palette.click({ position: { x: 2.5 * 16 * pz, y: 0.5 * 16 * pz } });
-    await expect(page.getByTestId("palette-brush")).toHaveText("붓 gid 3");
+    await expect(page.getByTestId("palette-brush")).toHaveText("브러시 gid 3");
     expect(await active(page, "(d) => d.brush")).toEqual({ width: 1, height: 1, gids: [[3]] });
 
     // 세 칸 붓질: (2,1)에서 (4,1)까지. 되돌리기 한 단계
@@ -184,7 +184,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
 
     // 저장: 고정 형식 v2, 새 값, 타일 배열은 맵 한 줄이 한 줄
     await page.keyboard.press("ControlOrMeta+s");
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: meadow.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: meadow.json");
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
     const text = await page.evaluate((p) => (window as unknown as EditorWindow).initialEditor.backend.readText(p), MAP_PATH);
     const saved = JSON.parse(text) as { version: number; layers: Array<{ data: number[] }>; collision: number[]; objects: MapObjectLike[] };
@@ -324,7 +324,7 @@ test.describe("맵 뷰: 밖에서 바뀐 파일", () => {
       await e.backend.writeText(p, '{ "version": 9 }\n');
       await e.openPath(p);
     }, "resources/maps/broken.json");
-    await expect(page.getByTestId("toasts")).toContainText("맵으로 열지 못해 텍스트로 연다");
+    await expect(page.getByTestId("toasts")).toContainText("맵 형식 아님, 텍스트 편집기로 열림");
     await expect(page.locator(".monaco-editor")).toBeVisible();
     expect(await active(page, "(d) => d.kind")).not.toBe("map");
     expect(errors).toEqual([]);

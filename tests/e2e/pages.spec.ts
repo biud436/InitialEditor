@@ -185,7 +185,7 @@ test.describe("웹판 흐름 (샘플 맵을 칠하고 F5)", () => {
     const browserConsole: string[] = [];
     page.on("console", (m) => browserConsole.push(m.text()));
     await page.goto(`${base}/?backend=browser`);
-    await page.getByTestId("welcome").getByRole("button", { name: "샘플로 해 보기" }).click();
+    await page.getByTestId("welcome").getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();
     const mapView = page.getByTestId("map-view");
     await expect(mapView).toHaveAttribute("data-ready", "true");
@@ -210,14 +210,14 @@ test.describe("웹판 흐름 (샘플 맵을 칠하고 F5)", () => {
     const col = (PAINT.gid - 1) % 8;
     const row = Math.floor((PAINT.gid - 1) / 8);
     await palette.click({ position: { x: (col + 0.5) * MAP.tile * pz, y: (row + 0.5) * MAP.tile * pz } });
-    await expect(page.getByTestId("palette-brush")).toHaveText(`붓 gid ${PAINT.gid}`);
+    await expect(page.getByTestId("palette-brush")).toHaveText(`브러시 gid ${PAINT.gid}`);
     const box = (await mapView.locator("canvas").boundingBox())!;
     const [zoom, panX, panY] = await Promise.all(["data-zoom", "data-pan-x", "data-pan-y"].map(async (a) => Number(await mapView.getAttribute(a))));
     await page.mouse.click(box.x + (PAINT.x * MAP.tile + MAP.tile / 2) * zoom + panX, box.y + (PAINT.y * MAP.tile + MAP.tile / 2) * zoom + panY);
     const cell = () => page.evaluate((i) => (window as unknown as EditorWindow).initialEditor.documents.active?.model.layers[0].data[i], PAINT.y * MAP.width + PAINT.x);
     expect(await cell()).toBe(PAINT.gid);
     await page.keyboard.press("ControlOrMeta+s");
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: meadow.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: meadow.json");
 
     // 다시 실행: 그 칸만 다르다
     await page.keyboard.press("F5");

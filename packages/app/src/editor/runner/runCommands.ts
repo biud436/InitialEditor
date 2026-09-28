@@ -10,7 +10,7 @@ import { MAP_KIND } from "@initial-editor/ext-tilemap/model";
 import type { Editor } from "../Editor";
 import type { RunnerStore } from "./RunnerStore";
 
-const NEED_SCENE_TAB = "씬 탭이 활성일 때 그 씬부터 실행한다";
+const NEED_SCENE_TAB = "활성 씬 탭 없음";
 const MAP_PLAY_HERE = "map.playHere";
 
 export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
@@ -19,10 +19,10 @@ export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
   editor.setHint("run.start", () => runner.startHint ?? runner.modeHint);
 
   c.register({ id: "run.stop", label: "정지", category: "run", shortcut: "Shift+F5", icon: "stop", enabled: () => runner.isRunning, run: () => runner.stop() });
-  editor.setHint("run.stop", () => (runner.isRunning ? undefined : "실행 중이 아니다"));
+  editor.setHint("run.stop", () => (runner.isRunning ? undefined : "실행 중인 게임 없음"));
 
   c.register({ id: "run.restart", label: "다시 시작", category: "run", enabled: () => runner.isRunning && runner.canRun, run: () => runner.restart() });
-  editor.setHint("run.restart", () => (runner.isRunning ? runner.startHint : "실행 중이 아니다"));
+  editor.setHint("run.restart", () => (runner.isRunning ? runner.startHint : "실행 중인 게임 없음"));
 
   c.register({ id: "run.reload", label: "리로드", category: "run", shortcut: "Ctrl+Shift+R", icon: "reload", enabled: () => runner.canReload, run: () => void runner.reload() });
   editor.setHint("run.reload", () => runner.reloadHint);
@@ -50,5 +50,5 @@ export function registerRunCommands(editor: Editor, runner: RunnerStore): void {
   });
   editor.setHint("run.fromScene", () => (mapActive() ? editor.commandHint(MAP_PLAY_HERE) : activeSceneName() === null ? NEED_SCENE_TAB : runner.startHint));
   editor.setNote("run.fromScene", () => (mapActive() ? editor.commandNote(MAP_PLAY_HERE) : undefined));
-  editor.setLabelProvider("run.fromScene", () => (mapActive() ? "여기서 실행 (맵)" : "현재 씬부터 실행"));
+  editor.setLabelProvider("run.fromScene", () => (mapActive() ? "이 맵에서 실행" : "현재 씬부터 실행"));
 }

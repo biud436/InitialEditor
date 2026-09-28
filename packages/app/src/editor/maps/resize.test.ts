@@ -56,8 +56,8 @@ describe("맵 크기 바꾸기 (앱)", () => {
     expect(resizeSourceOf(doc)).toMatchObject({ width: 4, height: 3, tileWidth: 16, tileHeight: 16, events: [{ id: "e", x: 3, y: 2, commands: [] }] });
     const s = previewResize(doc, { width: 2, height: 2, anchor: "top-left" });
     expect(s).toEqual({ offset: { dx: 0, dy: 0 }, clips: true, objectsOutside: ["slime_1"], objectsPartlyOutside: [], eventsOutside: 1 });
-    expect(describeOffset(s)).toBe("옮김 x 0칸, y 0칸");
-    expect(describeOffset(previewResize(doc, { width: 6, height: 1, anchor: "bottom-right" }))).toBe("옮김 x +2칸, y -2칸");
+    expect(describeOffset(s)).toBe("내용 이동 x 0, y 0 (타일)");
+    expect(describeOffset(previewResize(doc, { width: 6, height: 1, anchor: "bottom-right" }))).toBe("내용 이동 x +2, y -2 (타일)");
     expect(doc.model.width).toBe(4);
     expect(doc.undo.depth).toBe(0);
   });
@@ -70,7 +70,7 @@ describe("맵 크기 바꾸기 (앱)", () => {
     expect(doc.undo.depth).toBe(1);
     expect(doc.dirty).toBe(true);
     const texts = log.entries.map((e) => `${e.level}: ${e.text}`);
-    expect(texts).toContain("info: 맵 크기를 바꿨다: sample.json 4x3 → 2x2 칸 (기준 왼쪽 위, 옮김 x 0칸, y 0칸, 맵 밖으로 나간 오브젝트 1개: slime_1)");
+    expect(texts).toContain("info: 맵 크기 변경됨: sample.json 4x3 → 2x2 타일 (기준점 왼쪽 위, 내용 이동 x 0, y 0 (타일), 맵 밖으로 나간 오브젝트 1개: slime_1)");
     expect(texts).toContain("warn: 맵 밖으로 나간 이벤트 1개");
     expect(toasts).toEqual(["맵 밖으로 나간 오브젝트 1개: slime_1"]);
     // 지우지 않는다
@@ -98,11 +98,11 @@ describe("맵 크기 바꾸기 (앱)", () => {
     // 3x3 (폭 48px): slime_1은 x 56이라 밖, slime_2는 x 40이라 안인데 maxX 60이 밖이다
     const s = previewResize(doc, { width: 3, height: 3, anchor: "top-left" });
     expect([s.objectsOutside, s.objectsPartlyOutside]).toEqual([["slime_1"], ["slime_2"]]);
-    expect(outsideWarnings(s)).toEqual(["맵 밖으로 나간 오브젝트 1개: slime_1", "끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 1개: slime_2"]);
+    expect(outsideWarnings(s)).toEqual(["맵 밖으로 나간 오브젝트 1개: slime_1", "영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 1개: slime_2"]);
     expect(applyResize(host, doc, { width: 3, height: 3, anchor: "top-left" })).toBe(true);
-    expect(toasts).toEqual(["맵 밖으로 나간 오브젝트 1개: slime_1. 끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 1개: slime_2"]);
+    expect(toasts).toEqual(["맵 밖으로 나간 오브젝트 1개: slime_1. 영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 1개: slime_2"]);
     expect(log.entries.map((e) => e.text)).toContain(
-      "맵 크기를 바꿨다: sample.json 4x3 → 3x3 칸 (기준 왼쪽 위, 옮김 x 0칸, y 0칸, 맵 밖으로 나간 오브젝트 1개: slime_1, 끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 1개: slime_2)",
+      "맵 크기 변경됨: sample.json 4x3 → 3x3 타일 (기준점 왼쪽 위, 내용 이동 x 0, y 0 (타일), 맵 밖으로 나간 오브젝트 1개: slime_1, 영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 1개: slime_2)",
     );
     expect(doc.model.findObject("slime_2")?.props).toMatchObject({ minX: 8, maxX: 60 });
     expect(outsideWarnings({ ...s, objectsOutside: [], objectsPartlyOutside: [] })).toEqual([]);
@@ -112,7 +112,7 @@ describe("맵 크기 바꾸기 (앱)", () => {
     const { doc, host, toasts } = await setup();
     expect(applyResize(host, doc, { width: 4, height: 3, anchor: "center" })).toBe(false);
     expect(applyResize(host, doc, { width: 0, height: 3, anchor: "center" })).toBe(false);
-    expect(toasts).toEqual(["폭과 높이는 1 이상 1024 이하의 정수다"]);
+    expect(toasts).toEqual(["너비와 높이는 1 이상 1024 이하의 정수여야 함"]);
     expect(doc.undo.depth).toBe(0);
   });
 });

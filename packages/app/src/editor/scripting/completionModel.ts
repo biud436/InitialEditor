@@ -472,13 +472,13 @@ export function pickSignature(signatures: Signature[], activeParameter: number):
   return i >= 0 ? i : 0;
 }
 
-/** 완성 항목 문서와 호버의 마크다운: 시그니처(다른 꼴 포함), 설명, 인자별 타입과 기본값, 별명 */
+/** 완성 항목 문서와 호버의 마크다운: 시그니처(다른 꼴 포함), 설명, 인자별 타입과 기본값, 별칭 */
 export function describe(s: Suggestion): string {
   const lines: string[] = [];
   if (s.detail) lines.push("```\n" + [s.detail, ...s.signatures.slice(1).map((sig) => sig.label)].join("\n") + "\n```");
   if (s.doc) lines.push(s.doc);
   const params = s.params.map((p) => ({ name: p.name, doc: paramDoc(p) })).filter((p) => p.doc);
   if (params.length) lines.push(params.map((p) => `- \`${p.name}\`: ${p.doc}`).join("\n"));
-  if (s.alias) lines.push(s.aliasOf ? `_별명_: \`${s.aliasOf}\`` : "_별명_");
+  if (s.alias) lines.push(s.aliasOf ? `_별칭_: \`${s.aliasOf}\`` : "_별칭_");
   return lines.join("\n\n");
 }

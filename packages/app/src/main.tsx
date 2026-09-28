@@ -47,9 +47,9 @@ async function boot(): Promise<void> {
   });
   window.initialEditor = editor;
   await editor.start();
-  if (isFolderFallback(mode)) editor.log.info("editor", "이 브라우저에는 폴더 열기가 없어 메모리 모드로 시작했다 (크롬, 엣지에서 된다)");
+  if (isFolderFallback(mode)) editor.log.info("editor", "폴더 열기(File System Access API) 미지원 브라우저, 메모리 모드로 시작됨 (크롬, 엣지에서 지원)");
   const container = document.getElementById("root");
-  if (!container) throw new Error("#root 가 없다");
+  if (!container) throw new Error("#root 요소 없음");
   createRoot(container).render(
     <EditorProvider value={editor}>
       <App />

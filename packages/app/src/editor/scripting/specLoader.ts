@@ -36,7 +36,7 @@ export async function loadApiSpec(backend: ProjectBackend | null, projectOpen: b
         const text = await backend.readText(API_SPEC_PATH);
         return { spec: parseApiSpec(text), source: "project" };
       } catch (e) {
-        return { spec: fallbackSpec(), source: "fallback", problem: `${API_SPEC_PATH} 을(를) 읽지 못했다: ${(e as Error).message}` };
+        return { spec: fallbackSpec(), source: "fallback", problem: `${API_SPEC_PATH} 로드 실패: ${(e as Error).message}` };
       }
     }
   }

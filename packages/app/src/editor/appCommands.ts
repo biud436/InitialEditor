@@ -17,15 +17,15 @@ import { saveActiveDocument, saveAllDocuments } from "./saveCommands";
 // 바깥 링크 주소는 about.ts 에 있다 (정보 창과 시작 화면이 같이 쓴다)
 export { ENGINE_README_API, PLANS_INDEX };
 
-export const BROWSER_NO_RUN = "브라우저 모드에서는 엔진을 띄울 수 없다";
-export const SCENE_LATER = "E2 에서 붙는다";
+export const BROWSER_NO_RUN = "브라우저 모드: 엔진 프로세스 실행 미지원";
+export const SCENE_LATER = "미구현";
 
 function isHttpUrl(value: string): string | null {
   try {
     const u = new URL(value.trim());
-    return u.protocol === "http:" || u.protocol === "https:" ? null : "http 나 https 주소여야 한다";
+    return u.protocol === "http:" || u.protocol === "https:" ? null : "http 또는 https 주소여야 함";
   } catch {
-    return "주소 모양이 아니다 (예: http://127.0.0.1:5960)";
+    return "잘못된 주소 형식 (예: http://127.0.0.1:5960)";
   }
 }
 
@@ -113,7 +113,7 @@ export function registerAppCommands(editor: Editor): void {
       await project.saveGameJson({ ...project.gameJson, script });
       editor.log.info("editor", `스크립트 언어: ${script}`);
     } catch (e) {
-      editor.toasts.error(`game.json 을 저장하지 못했다: ${(e as Error).message}`);
+      editor.toasts.error(`game.json 저장 실패: ${(e as Error).message}`);
     }
   };
   reg({ id: "run.language.lua", label: "Lua", category: "run", enabled: () => editor.project.isOpen, run: () => setLanguage("lua") });

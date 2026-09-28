@@ -5,9 +5,9 @@ import type { Document, SaveConflict, SaveConflictChoice, SaveGuard } from "@ini
 import type { ModalStore } from "./modals";
 
 const TITLES: Record<SaveConflict["kind"], string> = {
-  changed: "밖에서 바뀐 파일",
-  missing: "지워진 파일",
-  unreadable: "다시 읽지 못한 파일",
+  changed: "외부에서 변경된 파일",
+  missing: "삭제된 파일",
+  unreadable: "다시 읽기 실패한 파일",
 };
 
 export function saveConflictTitle(conflict: SaveConflict): string {
@@ -17,11 +17,11 @@ export function saveConflictTitle(conflict: SaveConflict): string {
 export function saveConflictMessage(name: string, conflict: SaveConflict): string {
   switch (conflict.kind) {
     case "changed":
-      return `${name}이(가) 밖에서 바뀌었다. 덮어쓰면 디스크의 새 내용이 사라지고, 다시 읽으면 저장하지 않은 내 수정이 사라진다.`;
+      return `${name}: 외부에서 변경됨. 덮어쓰기: 디스크의 새 내용 손실. 다시 읽기: 저장하지 않은 변경 손실`;
     case "missing":
-      return `${name}이(가) 디스크에서 지워졌다. 덮어쓰면 내 것으로 다시 만든다.`;
+      return `${name}: 디스크에서 삭제됨. 덮어쓰기: 편집 내용으로 파일 다시 생성`;
     case "unreadable":
-      return `${name}을(를) 디스크에서 다시 읽지 못했다: ${conflict.reason ?? "이유 모름"}\n덮어쓰면 디스크의 내용이 사라진다.`;
+      return `${name} 다시 읽기 실패: ${conflict.reason ?? "원인 불명"}\n덮어쓰기: 디스크의 내용 손실`;
   }
 }
 
@@ -74,7 +74,7 @@ export function askSaveConflict(modals: ModalStore, doc: Document, conflict: Sav
 export function confirmDiscardEdits(modals: ModalStore, doc: Document): Promise<boolean> {
   return modals.confirm({
     title: "다시 읽기",
-    message: `${doc.title}의 저장하지 않은 수정을 버리고 디스크의 내용으로 다시 읽을까?`,
+    message: `${doc.title}: 저장하지 않은 변경을 버리고 디스크 내용으로 다시 읽을까요?`,
     okLabel: "버리고 다시 읽기",
     danger: true,
   });

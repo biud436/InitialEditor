@@ -12,7 +12,7 @@ import { brushInTileset } from "../../editor/maps/mapGeometry";
 import { useMapStructure } from "./useMapModel";
 import "./PalettePanel.css";
 
-export const PALETTE_EMPTY = "맵 탭을 열면 타일셋이 보인다";
+export const PALETTE_EMPTY = "활성 맵 탭 없음";
 
 interface LoadedImage {
   image: CanvasImageSource;
@@ -48,9 +48,9 @@ function brushLabel(doc: MapDocument): string {
   const b = doc.brush;
   const gids = b.gids.flat();
   const nonZero = gids.filter((g) => g > 0);
-  if (nonZero.length === 0) return `붓 ${b.width}x${b.height} (빈 칸)`;
-  if (gids.length === 1) return `붓 gid ${gids[0]}`;
-  return `붓 ${b.width}x${b.height} (gid ${Math.min(...nonZero)}..${Math.max(...nonZero)})`;
+  if (nonZero.length === 0) return `브러시 ${b.width}x${b.height} (빈 타일)`;
+  if (gids.length === 1) return `브러시 gid ${gids[0]}`;
+  return `브러시 ${b.width}x${b.height} (gid ${Math.min(...nonZero)}..${Math.max(...nonZero)})`;
 }
 
 const PaletteBody = observer(function PaletteBody({ doc }: { doc: MapDocument }) {
@@ -232,10 +232,10 @@ const PaletteBody = observer(function PaletteBody({ doc }: { doc: MapDocument })
         ) : null}
       </div>
       <div className="palette-scroll">
-        {!tileset ? <div className="panel-hint">이 맵에는 타일셋이 없다</div> : null}
+        {!tileset ? <div className="panel-hint">타일셋 없음</div> : null}
         {error ? (
           <div className="panel-hint palette-error">
-            {tileset?.image} 을(를) 읽지 못했다: {error}
+            {tileset?.image} 읽기 실패: {error}
           </div>
         ) : null}
         {tileset && !error ? (

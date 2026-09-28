@@ -3,7 +3,7 @@ import { MemoryBackend } from "@initial-editor/core/testing";
 import { MapDocument, parseObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import type { Editor } from "../../Editor";
-import { PLAY_HERE_ID, registerMapObjectCommands } from "./commands";
+import { PLAY_HERE_ID, PLAY_HERE_LABEL, registerMapObjectCommands } from "./commands";
 import { NEED_MAP_TAB } from "./playHere";
 import { PLAY_POSITION_RULE } from "./rules";
 
@@ -54,9 +54,9 @@ describe("여기서 실행 커맨드의 안내", () => {
     documents.open(doc);
     expect(editor.commands.isEnabled(PLAY_HERE_ID)).toBe(true);
     expect(hint()).toBe(PLAY_POSITION_RULE);
-    runner.unavailableReason = "브라우저 모드에서는 엔진을 띄울 수 없다";
+    runner.unavailableReason = "브라우저 모드: 엔진 프로세스 실행 미지원";
     expect(editor.commands.isEnabled(PLAY_HERE_ID)).toBe(false);
-    expect(hint()).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    expect(hint()).toBe("브라우저 모드: 엔진 프로세스 실행 미지원");
   });
 
   it("play.maps가 받지 않는 맵에서는 켜 두고, 그 이유가 안내와 툴팁에 있으며 실행하면 띄우지 않고 알린다", async () => {
@@ -65,14 +65,14 @@ describe("여기서 실행 커맨드의 안내", () => {
     runner.start = async (o: unknown) => void started.push(o);
     doc.setSchema({ ...SCHEMA, play: { ...SCHEMA.play!, maps: ["aldebaran_*"] } });
     documents.open(doc);
-    const reason = "맵 forest은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*";
+    const reason = "'이 맵에서 실행' 대상이 아닌 맵: forest (스키마의 play.maps: aldebaran_*)";
     expect(editor.commands.isEnabled(PLAY_HERE_ID)).toBe(true);
     expect(hint()).toBe(reason);
     expect(note()).toBe(reason);
     await editor.commands.execute(PLAY_HERE_ID);
     expect(started).toEqual([]);
     expect(toasts).toEqual([`warn: ${reason}`]);
-    expect(editor.log.entries.map((e) => e.text)).toContain(`여기서 실행하지 않았다: ${reason}`);
+    expect(editor.log.entries.map((e) => e.text)).toContain(`이 맵에서 실행 불가: ${reason}`);
     // 맞는 맵이면 툴팁이 없고 위치 규칙이 안내다
     doc.setSchema({ ...SCHEMA, play: { ...SCHEMA.play!, maps: ["for*"] } });
     expect(note()).toBeUndefined();
@@ -81,8 +81,20 @@ describe("여기서 실행 커맨드의 안내", () => {
     expect(started).toHaveLength(1);
     // 러너가 못 띄우면 꺼지고 그 이유가 먼저다
     doc.setSchema({ ...SCHEMA, play: { ...SCHEMA.play!, maps: ["aldebaran_*"] } });
-    runner.unavailableReason = "브라우저 모드에서는 엔진을 띄울 수 없다";
+    runner.unavailableReason = "브라우저 모드: 엔진 프로세스 실행 미지원";
     expect(editor.commands.isEnabled(PLAY_HERE_ID)).toBe(false);
-    expect(hint()).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    expect(hint()).toBe("브라우저 모드: 엔진 프로세스 실행 미지원");
+  });
+});
+
+describe("이 맵에서 실행의 메뉴 항목", () => {
+  it("맵 메뉴가 없으면 두지 않고 (실행 메뉴의 run.fromScene 이 맵 탭에서 같은 이름), 맵 메뉴가 생기면 그 아래에 둔다", async () => {
+    const { editor } = await setup();
+    const paths = () => editor.menus.items.filter((i) => i.commandId === PLAY_HERE_ID).map((i) => i.path);
+    expect(paths()).toEqual([]);
+    const off = editor.menus.register({ path: "맵/격자 표시", commandId: "map.toggleGrid", order: 100 });
+    expect(paths()).toEqual([`맵/${PLAY_HERE_LABEL}`]);
+    off();
+    expect(paths()).toEqual([]);
   });
 });

@@ -95,10 +95,10 @@ describe("MapSchemaStore", () => {
     await h.open();
     await waitFor(() => store.current !== null);
     expect(store.current!.play?.maps).toEqual(["aldebaran_*", "boss"]);
-    expect(texts(h.log)).toContain("info/maps: 맵 오브젝트 스키마: 타입 2개 (spawn, start), 여기서 실행 있음 (맵 aldebaran_*, boss)");
+    expect(texts(h.log)).toContain("info/maps: 맵 오브젝트 스키마: 타입 2개 (spawn, start), play 설정 있음 (맵 aldebaran_*, boss)");
     h.mem.simulateExternalChange(SCHEMA_PATH, "modify", SCHEMA);
     await waitFor(() => store.current?.play?.maps === undefined);
-    expect(texts(h.log).at(-1)).toBe("info/maps: 맵 오브젝트 스키마: 타입 2개 (spawn, start), 여기서 실행 있음");
+    expect(texts(h.log).at(-1)).toBe("info/maps: 맵 오브젝트 스키마: 타입 2개 (spawn, start), play 설정 있음");
     // 목록이 글의 배열이 아니면 스키마 오류다
     h.mem.simulateExternalChange(SCHEMA_PATH, "modify", JSON.stringify({ ...JSON.parse(SCHEMA), play: { env: {}, maps: "aldebaran_*" } }));
     await waitFor(() => store.error !== null);
@@ -114,11 +114,11 @@ describe("MapSchemaStore", () => {
     await waitFor(() => store.error !== null);
     expect(store.current).toBeNull();
     expect(store.source).toBe("none");
-    expect(store.error).toMatch(/spawn\.shape 는 point, band, rect 중 하나다/);
+    expect(store.error).toMatch(/spawn\.shape는 point, band, rect 중 하나여야 함/);
     expect(texts(h.log).some((l) => l.startsWith("error/maps: 맵 오브젝트 스키마 오류") && l.includes("spawn.shape"))).toBe(true);
 
     h.mem.simulateExternalChange(SCHEMA_PATH, "modify", "{ not json");
-    await waitFor(() => /JSON 이 아니다/.test(store.error ?? ""));
+    await waitFor(() => /JSON 구문 오류/.test(store.error ?? ""));
     await expect(store.load()).resolves.toBeNull();
     store.dispose();
   });
@@ -130,7 +130,7 @@ describe("MapSchemaStore", () => {
     await h.open();
     const doc = await MapDocument.open(h.mem, MAP_PATH);
     h.host.documents.open(doc);
-    await waitFor(() => texts(h.log).some((l) => l.includes("스키마가 없다")));
+    await waitFor(() => texts(h.log).some((l) => l.includes("맵 오브젝트 스키마 없음")));
     expect(store.source).toBe("none");
     expect(store.current).toBeNull();
 

@@ -88,17 +88,17 @@ function fail(message: string): never {
 }
 
 function obj(v: unknown, where: string): Record<string, unknown> {
-  if (!v || typeof v !== "object" || Array.isArray(v)) fail(`${where} 는 객체다`);
+  if (!v || typeof v !== "object" || Array.isArray(v)) fail(`${where}: 객체여야 함`);
   return v as Record<string, unknown>;
 }
 
 function str(v: unknown, where: string): string {
-  if (typeof v !== "string" || v === "") fail(`${where} 는 빈 문자열이 아닌 글이다`);
+  if (typeof v !== "string" || v === "") fail(`${where}: 비어 있지 않은 문자열이어야 함`);
   return v;
 }
 
 function int(v: unknown, where: string, min: number): number {
-  if (typeof v !== "number" || !Number.isInteger(v) || v < min) fail(`${where} 는 ${min} 이상의 정수다`);
+  if (typeof v !== "number" || !Number.isInteger(v) || v < min) fail(`${where}: ${min} 이상의 정수여야 함`);
   return v;
 }
 
@@ -107,7 +107,7 @@ function optStr(v: unknown, where: string): string | null {
 }
 
 function oneOf<T extends string>(v: unknown, list: readonly T[], where: string): T {
-  if (typeof v !== "string" || !(list as readonly string[]).includes(v)) fail(`${where} 는 ${list.join(", ")} 중 하나다`);
+  if (typeof v !== "string" || !(list as readonly string[]).includes(v)) fail(`${where}: ${list.join(", ")} 중 하나여야 함`);
   return v as T;
 }
 
@@ -116,7 +116,7 @@ function parseEnv(v: unknown, where: string): Record<string, string> {
   const o = obj(v, where);
   const out: Record<string, string> = {};
   for (const [k, value] of Object.entries(o)) {
-    if (typeof value !== "string") fail(`${where}.${k} 는 글이다`);
+    if (typeof value !== "string") fail(`${where}.${k}: 문자열이어야 함`);
     out[k] = value;
   }
   return out;
@@ -133,17 +133,17 @@ function parseRun(v: unknown, where: string): PlanRun {
     try {
       new RegExp(placement, "m");
     } catch {
-      fail(`${where}.mapCapture.placement 가 정규식이 아니다`);
+      fail(`${where}.mapCapture.placement: 정규식 구문 오류`);
     }
     mapCapture = { map: str(m.map, `${where}.mapCapture.map`), width: int(m.width, `${where}.mapCapture.width`, 1), height: int(m.height, `${where}.mapCapture.height`, 1), placement };
   }
-  if (check === "mapFrame" && !mapCapture) fail(`${where}: check mapFrame 에는 mapCapture 가 있어야 한다`);
+  if (check === "mapFrame" && !mapCapture) fail(`${where}: check mapFrame 에는 mapCapture 필요`);
   let play: PlanPlay | null = null;
   if (r.play != null) {
     const p = obj(r.play, `${where}.play`);
     play = { extension: str(p.extension, `${where}.play.extension`), map: str(p.map, `${where}.play.map`), args: p.args == null ? {} : obj(p.args, `${where}.play.args`) };
   }
-  if ((check === "eventFront" || check === "eventProbe") && !play) fail(`${where}: check ${check} 에는 play 가 있어야 한다`);
+  if ((check === "eventFront" || check === "eventProbe") && !play) fail(`${where}: check ${check} 에는 play 필요`);
   return {
     mode,
     optional: r.optional === true,
@@ -160,7 +160,7 @@ function parseRun(v: unknown, where: string): PlanRun {
 
 function parseEdit(v: unknown, where: string): PlanEdit {
   const e = obj(v, where);
-  if (e.kind !== "paintTile") fail(`${where}.kind 는 paintTile 이다`);
+  if (e.kind !== "paintTile") fail(`${where}.kind: paintTile 이어야 함`);
   return { kind: "paintTile", map: str(e.map, `${where}.map`), layer: int(e.layer, `${where}.layer`, 0), x: int(e.x, `${where}.x`, 0), y: int(e.y, `${where}.y`, 0), gid: int(e.gid, `${where}.gid`, 0) };
 }
 
@@ -175,22 +175,22 @@ export function entryScript(language: "lua" | "mruby"): string {
 
 export function parsePlan(raw: unknown): SelftestPlan {
   const p = obj(raw, "계획");
-  if (p.version !== 1) fail("version 은 1 이다");
+  if (p.version !== 1) fail("version: 1 이어야 함");
   const projectsRaw = p.projects;
-  if (!Array.isArray(projectsRaw) || projectsRaw.length === 0) fail("projects 는 비지 않은 배열이다");
+  if (!Array.isArray(projectsRaw) || projectsRaw.length === 0) fail("projects: 비어 있지 않은 배열이어야 함");
   const ids = new Set<string>();
   const projects = projectsRaw.map((v, i): PlanProject => {
     const where = `projects[${i}]`;
     const o = obj(v, where);
     const id = str(o.id, `${where}.id`);
-    if (ids.has(id)) fail(`프로젝트 id 가 겹친다: ${id}`);
+    if (ids.has(id)) fail(`프로젝트 id 중복: ${id}`);
     ids.add(id);
     const root = optStr(o.root, `${where}.root`);
     const template = o.template == null ? null : oneOf(o.template, TEMPLATES, `${where}.template`);
-    if (!root && !template) fail(`${where}: template 이나 root 가 있어야 한다`);
+    if (!root && !template) fail(`${where}: template 이나 root 필요`);
     const language = o.language == null ? "lua" : oneOf(o.language, ["lua", "mruby"] as const, `${where}.language`);
     const runsRaw = o.runs;
-    if (!Array.isArray(runsRaw) || runsRaw.length === 0) fail(`${where}.runs 는 비지 않은 배열이다`);
+    if (!Array.isArray(runsRaw) || runsRaw.length === 0) fail(`${where}.runs: 비어 있지 않은 배열이어야 함`);
     return {
       id,
       template,

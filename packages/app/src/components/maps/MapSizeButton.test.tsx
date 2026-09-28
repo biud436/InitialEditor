@@ -25,13 +25,13 @@ describe("맵 뷰 머리의 크기 단추", () => {
     let opened = 0;
     render(<MapSizeButton document={doc} onResize={() => opened++} />);
     const button = screen.getByTestId("map-size");
-    expect(button.textContent).toBe("20x12 칸 (320x192 px)");
-    expect(button.getAttribute("title")).toBe("레이어 1, 오브젝트 1. 누르면 크기 바꾸기");
+    expect(button.textContent).toBe("20x12 타일 (320x192 px)");
+    expect(button.getAttribute("title")).toBe("레이어 1개, 오브젝트 1개. 클릭하면 맵 크기 바꾸기");
     fireEvent.click(button);
     expect(opened).toBe(1);
     act(() => doc.apply(doc.model.resize(24, 14, "bottom-right")));
-    expect(screen.getByTestId("map-size").textContent).toBe("24x14 칸 (384x224 px)");
+    expect(screen.getByTestId("map-size").textContent).toBe("24x14 타일 (384x224 px)");
     act(() => doc.undo.undo());
-    expect(screen.getByTestId("map-size").textContent).toBe("20x12 칸 (320x192 px)");
+    expect(screen.getByTestId("map-size").textContent).toBe("20x12 타일 (320x192 px)");
   });
 });

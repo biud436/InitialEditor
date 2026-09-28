@@ -252,7 +252,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(page.getByTestId("game-canvas")).toBeVisible();
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(page.getByTestId("status-engine")).toContainText("엔진 (에디터 안): 실행 중");
-    await expect(page.getByTestId("toolbar-running")).toContainText("에디터 안");
+    await expect(page.getByTestId("toolbar-running")).toContainText("게임 탭");
 
     // 엔진 출력이 콘솔(source engine)에 온다
     await expect(consoleRows(page, "sample:frame")).toHaveCount(1, { timeout: 15_000 });
@@ -292,7 +292,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
     await expect(page.getByTestId("game-canvas")).toHaveCount(0);
-    await expect(page.getByTestId("game-message")).toContainText("정지했다");
+    await expect(page.getByTestId("game-message")).toContainText("정지됨");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 대기");
     await expect(page.getByTestId("console-list")).toContainText("엔진 정지");
     await expect(page.getByTestId("console-list")).not.toContainText("Lua error");
@@ -357,7 +357,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await markPage(page);
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지했다");
+    await expect(page.getByTestId("game-message")).toContainText("정지됨");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 대기");
     // 편집기의 글은 그대로다 (F5 와 Shift+F5 가 글자를 넣지 않았다). 보이는 줄은 편집기의 스크롤에 따라 달라서 모델의 글로 본다
     expect(await scriptText(page)).toBe(original);
@@ -510,9 +510,9 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.evaluate(() => (window as unknown as { __release: () => void }).__release());
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     // 뜬 뒤 저장한 파일만 다시 올려 새 글이 돈다
-    await expect(consoleRows(page, "핫 리로드: 에디터 안 엔진, 1개 파일을 다시 올렸다")).toHaveCount(1, { timeout: 10_000 });
+    await expect(consoleRows(page, "핫 리로드: 웹 엔진에 파일 1개 다시 복사됨. VM 재시작")).toHaveCount(1, { timeout: 10_000 });
     await expect(consoleRows(page, "marker:v2")).toHaveCount(1, { timeout: 10_000 });
-    await expect(page.getByTestId("console-list")).not.toContainText("개 파일을 보냈다");
+    await expect(page.getByTestId("console-list")).not.toContainText("개 전송됨");
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
   });
@@ -586,11 +586,11 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     });
     // 시작 때의 오류가 종료를 요청해 두어서 게임은 첫 프레임에 끝난다. 고침은 올리지 않고 그렇다고 한 줄 남긴다
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 30_000 });
-    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 종료됨 (종료 코드 1)");
     await expect(consoleRows(page, "boom in init")).toHaveCount(1);
-    await expect(consoleRows(page, "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다")).toHaveCount(1);
+    await expect(consoleRows(page, "핫 리로드: 게임이 시작 중 종료되어 저장한 파일 복사 안 함. F5로 다시 실행하면 저장한 내용 적용")).toHaveCount(1);
     const list = page.getByTestId("console-list");
-    await expect(list).not.toContainText("다시 올렸다");
+    await expect(list).not.toContainText("다시 복사됨");
     await expect(list).not.toContainText("HotReload: reloaded");
     await expect(consoleRows(page, "sample:frame")).toHaveCount(0);
 
@@ -668,15 +668,15 @@ test.describe("게임 뷰 (메모리 모드)", () => {
       // 첫 update 의 오류가 종료를 요청해 두어서 게임은 다음 프레임에 끝난다. 첫 프레임은 돌았지만 고침은 올리지 않는다
       await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 30_000 });
       await page.evaluate(() => (window as unknown as { __restoreFrames: () => void }).__restoreFrames());
-      await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
+      await expect(page.getByTestId("game-state")).toHaveText("오류로 종료됨 (종료 코드 1)");
       await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
       const errorHead = lang === "lua" ? "Lua error in update" : "mruby: uncaught exception in update";
       await expect(consoleRows(page, errorHead)).toHaveCount(1);
       await expect(consoleRows(page, "boom in update").first()).toBeVisible();
-      await expect(consoleRows(page, "핫 리로드: 게임이 뜨는 중에 끝나서 저장한 파일을 올리지 않았다. F5로 다시 실행하면 저장한 내용으로 돈다")).toHaveCount(1);
+      await expect(consoleRows(page, "핫 리로드: 게임이 시작 중 종료되어 저장한 파일 복사 안 함. F5로 다시 실행하면 저장한 내용 적용")).toHaveCount(1);
       const list = page.getByTestId("console-list");
       await expect(list).toContainText("엔진 종료 코드 1");
-      await expect(list).not.toContainText("다시 올렸다");
+      await expect(list).not.toContainText("다시 복사됨");
       await expect(list).not.toContainText("HotReload: reloaded");
       await expect(list).not.toContainText("핫 리로드 실패");
       await expect(list).not.toContainText("엔진 종료 (코드 0");
@@ -706,8 +706,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
       });
     });
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
-    await expect(page.getByTestId("game-message")).toContainText("엔진이 예외로 멈췄다 (종료 코드 1): C++ 예외");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 종료됨 (종료 코드 1)");
+    await expect(page.getByTestId("game-message")).toContainText("엔진 예외로 중단 (종료 코드 1): C++ 예외");
     await expect(consoleRows(page, "fatal: C++ 예외")).toHaveCount(1);
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
     await expect(page.getByTestId("console-list")).not.toContainText("undefined");
@@ -761,14 +761,14 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     // 되돌려 저장하면 VM 이 다시 떠서 그린다 (reload 가 true)
     await undoTo(page, original);
     await page.keyboard.press("ControlOrMeta+s");
-    await expect(consoleRows(page, "다시 올렸다. VM 을 다시 시작한다")).toHaveCount(1, { timeout: 10_000 });
+    await expect(consoleRows(page, "다시 복사됨. VM 재시작")).toHaveCount(1, { timeout: 10_000 });
     await expect(consoleRows(page, "sample:frame")).toHaveCount(2, { timeout: 10_000 });
     await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     expect(await phase(page)).toBe("running");
 
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지했다");
+    await expect(page.getByTestId("game-message")).toContainText("정지됨");
   });
 
   test("Update 의 Lua 실행 오류는 네이티브처럼 오류 줄을 찍고 종료 코드 1 로 끝나며, 그 줄을 누르면 그 자리로 간다", async ({ page }) => {
@@ -790,11 +790,11 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(errorRow).toBeVisible({ timeout: 30_000 });
     await expect(errorRow).toContainText("attempt to index a nil value");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
-    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 끝났다 (종료 코드 1)");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 종료됨 (종료 코드 1)");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 종료됨 (종료 코드 1)");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
     await expect(page.getByTestId("console-list")).toContainText("엔진 종료 코드 1");
-    await expect(page.getByTestId("toasts")).toContainText("엔진이 종료 코드 1 로 끝났다");
+    await expect(page.getByTestId("toasts")).toContainText("엔진 종료됨 (종료 코드 1)");
     await expect(page.getByTestId("game-canvas")).toHaveCount(0);
     for (const id of ["console-list", "toasts", "game-view"]) {
       await expect(page.getByTestId(id)).not.toContainText("undefined");
@@ -833,7 +833,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("ControlOrMeta+F5");
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
-    await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 에디터 안 \(웹 엔진, lua (?:mruby )?wasm\), 언어 lua \(INITIAL2D_SCENE=main INITIAL2D_SAMPLE_MAP=\S+ INITIAL2D_SAMPLE_AT=\d+,\d+\)/);
+    await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 게임 탭 \(웹 엔진, lua (?:mruby )?wasm\), 언어 lua \(INITIAL2D_SCENE=main INITIAL2D_SAMPLE_MAP=\S+ INITIAL2D_SAMPLE_AT=\d+,\d+\)/);
     await expect(consoleRows(page, "sample:frame")).toHaveCount(1, { timeout: 15_000 });
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
@@ -848,16 +848,16 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("F5");
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
-    await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 에디터 안 \(웹 엔진, lua mruby wasm\), 언어 mruby/);
+    await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 게임 탭 \(웹 엔진, lua mruby wasm\), 언어 mruby/);
     await expect(consoleRows(page, "sample:frame")).toHaveCount(1, { timeout: 15_000 });
     await expect(consoleRows(page, "sample:map layers=2")).toHaveCount(1);
     await expect(page.getByTestId("console-list")).toContainText("샘플 프로젝트 시작");
     await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     await expect(page.getByTestId("console-list")).not.toContainText("mruby: uncaught exception");
-    await expect(page.getByTestId("console-list")).not.toContainText("이 웹 엔진 빌드에는 mruby 가 없다");
+    await expect(page.getByTestId("console-list")).not.toContainText("이 웹 엔진 빌드에 mruby 없음");
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지했다");
+    await expect(page.getByTestId("game-message")).toContainText("정지됨");
   });
 
   test("Ruby 의 C 를 거치는 끝없는 재귀는 네이티브처럼 SystemStackError 와 역추적을 찍고 종료 코드 1 로 끝나며, rescue 로 잡으면 게임이 돈다", async ({ page }) => {
@@ -879,8 +879,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     expect(lines).toContain("stack:init");
     expect(lines).not.toContain("stack:alive");
     expect(lines).not.toContain("stack:destroy");
-    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
-    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 끝났다 (종료 코드 1)");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 종료됨 (종료 코드 1)");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 종료됨 (종료 코드 1)");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
     await expect(page.getByTestId("game-canvas")).toHaveCount(0);
     // 메모리가 깨진 흔적(엔진 밖 예외, 읽을 수 없는 글)이 없다
@@ -916,7 +916,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     expect(pageErrors).toEqual([]);
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지했다");
+    await expect(page.getByTestId("game-message")).toContainText("정지됨");
     await expect(consoleRows(page, "stack:destroy")).toHaveCount(1);
   });
 
@@ -944,8 +944,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     expect(blockAt(lines, RUBY_CPP_BLOCK[0], RUBY_CPP_BLOCK.length)).toEqual(RUBY_CPP_BLOCK);
     expect(lines.filter((l) => l.startsWith("mruby: uncaught exception"))).toHaveLength(1);
     expect(lines).not.toContain("cpp:destroy");
-    await expect(page.getByTestId("game-state")).toHaveText("오류로 끝남 (종료 코드 1)");
-    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 끝났다 (종료 코드 1)");
+    await expect(page.getByTestId("game-state")).toHaveText("오류로 종료됨 (종료 코드 1)");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 오류로 종료됨 (종료 코드 1)");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 종료 코드 1");
     for (const id of ["console-list", "toasts", "game-view"]) {
       await expect(page.getByTestId(id)).not.toContainText("fatal:");
@@ -979,7 +979,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     );
     await expect(page.getByTestId("language-select")).toHaveValue("mruby");
     await page.keyboard.press("F5");
-    await expect(page.getByTestId("toasts")).toContainText("이 웹 엔진 빌드에는 mruby 가 없다");
+    await expect(page.getByTestId("toasts")).toContainText("이 웹 엔진 빌드에 mruby 없음");
     await expect(page.getByTestId("console-list")).toContainText("game.json 의 script 를 lua 로 바꾸거나");
     await expect(page.getByTestId("doc-tab").filter({ hasText: "게임" })).toHaveCount(0);
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (에디터 안): 대기");
@@ -1138,7 +1138,7 @@ test.describe("게임 뷰 (브리지 모드, 알데바란)", () => {
     await expect.poll(() => (JSON.parse(readFileSync(path.join(projectDir, "game.json"), "utf8")) as { script?: string }).script).toBe("mruby");
     try {
       await playTitleToForest(page, { until: 15_000, errors: /mruby: uncaught exception|\(SyntaxError\)|Lua error|fatal:/ });
-      await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 에디터 안 \(웹 엔진, lua mruby wasm\), 언어 mruby/);
+      await expect(page.getByTestId("console-list")).toContainText(/엔진 시작: 게임 탭 \(웹 엔진, lua mruby wasm\), 언어 mruby/);
     } finally {
       await setLanguage(page, "lua");
     }
@@ -1171,7 +1171,7 @@ test.describe("게임 뷰 (브리지 모드, 알데바란)", () => {
     await page.keyboard.insertText("-- edit\n");
     await page.keyboard.press("ControlOrMeta+s");
     await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
-    await expect(consoleRows(page, "엔진이 떠 있지 않아 리로드를 건너뛰었다")).toHaveCount(1, { timeout: 10_000 });
+    await expect(consoleRows(page, "실행 중인 엔진 없음, 리로드 건너뜀")).toHaveCount(1, { timeout: 10_000 });
     await expect(page.getByTestId("console-list")).not.toContainText("ECONNREFUSED");
     await expect(page.getByTestId("toasts")).not.toContainText("핫 리로드");
 

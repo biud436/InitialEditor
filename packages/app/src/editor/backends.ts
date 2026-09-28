@@ -16,7 +16,7 @@ import { SAMPLE_ROOT, sampleProjectFiles } from "./sampleProject";
 export type BackendMode = "tauri" | "bridge" | "memory" | "browser";
 
 export const MODE_LABELS: Record<BackendMode, string> = {
-  tauri: "Tauri",
+  tauri: "데스크톱 앱",
   bridge: "브리지",
   memory: "메모리",
   browser: "브라우저 폴더",

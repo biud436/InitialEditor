@@ -18,7 +18,7 @@ import { ContextMenu, type ContextMenuState } from "../ContextMenu";
 import "./MapObjectInspector.css";
 import "./ObjectsPanel.css";
 
-export const OBJECTS_EMPTY = "맵을 열면 여기에 오브젝트가 보인다";
+export const OBJECTS_EMPTY = "활성 맵 탭 없음";
 
 /** 초점이 옮겨 간 곳이 입력 칸이나 누를 수 있는 것이면 true (그때는 초점을 되돌리지 않는다) */
 function focusLanded(next: EventTarget | null): boolean {
@@ -150,7 +150,7 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
           {schemaError}
         </div>
       )}
-      {!schema && !schemaError && <div className="panel-hint map-objects-noschema">스키마가 없어 타입별 추가 버튼이 없다 (resources/schema/map-objects.json)</div>}
+      {!schema && !schemaError && <div className="panel-hint map-objects-noschema">스키마 없음, 타입별 추가 버튼 없음 (resources/schema/map-objects.json)</div>}
       <div className="map-objects-list" role="listbox" aria-multiselectable="true" aria-label="맵 오브젝트" ref={listRef} onKeyDown={onListKey} onContextMenu={(e) => e.preventDefault()}>
         {groups.map((g) => (
           <div key={g.type || "(unknown)"} className="map-objects-group" data-testid="map-objects-group" data-type={g.type} data-count={g.objects.length}>
@@ -160,7 +160,7 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
               <span className="map-objects-badge" data-testid="map-objects-group-count">
                 {g.objects.length}
               </span>
-              {g.spec?.unique && <span className="muted map-objects-unique">하나만</span>}
+              {g.spec?.unique && <span className="muted map-objects-unique">맵당 1개</span>}
               {g.spec && (
                 <button type="button" className="btn btn-ghost map-objects-add" onClick={() => add(g.type)} aria-label={`${g.label} 추가`} title={`${g.label} 추가 (맵 뷰의 화면 가운데)`} data-testid="map-objects-add" data-type={g.type}>
                   추가
@@ -225,7 +225,7 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
             })}
           </div>
         ))}
-        {doc.model.objects.length === 0 && schema && <div className="panel-hint">오브젝트가 없다. 묶음의 추가 버튼으로 더한다</div>}
+        {doc.model.objects.length === 0 && schema && <div className="panel-hint">오브젝트 없음. 타입별 추가 버튼으로 추가</div>}
       </div>
       <div className="map-objects-problems" data-testid="map-objects-problems" data-count={problems.length}>
         <div className="map-objects-problems-head">
@@ -239,7 +239,7 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
               data-testid="map-objects-problem"
               data-object-id={p.objectId}
               data-severity={p.severity}
-              title={p.objectId ? "눌러서 고르기" : undefined}
+              title={p.objectId ? "클릭하면 해당 오브젝트 선택" : undefined}
               onClick={() => selectProblem(editor, doc, p)}
             >
               <span className="map-objects-problem-where">{p.location}</span>

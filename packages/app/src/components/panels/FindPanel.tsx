@@ -45,7 +45,7 @@ export const FindPanel = observer(function FindPanel() {
 
   let summary = "";
   if (find.running) summary = `찾는 중 (${find.scanned}개 파일)`;
-  else if (find.lastQuery) summary = `${find.results.length}개 파일, ${find.matchCount}곳`;
+  else if (find.lastQuery) summary = `파일 ${find.results.length}개, 일치 ${find.matchCount}개`;
 
   return (
     <div className="find-panel" data-testid="find-panel">
@@ -80,8 +80,8 @@ export const FindPanel = observer(function FindPanel() {
       </form>
       {find.error && <div className="find-error">{find.error}</div>}
       <div className="find-results" data-testid="find-results">
-        {!open && <div className="panel-hint">프로젝트를 열면 scripts/ 와 resources/ 의 텍스트 파일에서 찾는다</div>}
-        {open && !find.running && find.lastQuery !== "" && find.results.length === 0 && !find.error && <div className="panel-hint">"{find.lastQuery}" 을(를) 찾지 못했다</div>}
+        {!open && <div className="panel-hint">열린 프로젝트 없음. 검색 범위: scripts/, resources/의 텍스트 파일</div>}
+        {open && !find.running && find.lastQuery !== "" && find.results.length === 0 && !find.error && <div className="panel-hint">"{find.lastQuery}" 검색 결과 없음</div>}
         {find.results.map((file) => (
           <section key={file.path} className="find-file" data-testid="find-file" data-path={file.path}>
             <button type="button" className="find-file-head" onClick={() => goTo(file.path, file.matches[0])}>

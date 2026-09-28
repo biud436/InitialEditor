@@ -7,6 +7,6 @@ export const EditorProvider = EditorContext.Provider;
 
 export function useEditor(): Editor {
   const editor = useContext(EditorContext);
-  if (!editor) throw new Error("EditorProvider 밖에서 useEditor 를 불렀다");
+  if (!editor) throw new Error("EditorProvider 밖에서 useEditor 호출");
   return editor;
 }

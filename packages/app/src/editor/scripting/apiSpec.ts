@@ -335,9 +335,9 @@ function parseHook(raw: unknown): SceneHook | null {
  */
 export function parseApiSpec(input: string | unknown): ApiSpec {
   const raw: unknown = typeof input === "string" ? JSON.parse(input) : input;
-  if (!isObject(raw)) throw new Error("API 명세는 객체여야 한다");
+  if (!isObject(raw)) throw new Error("API 명세는 객체여야 함");
   const version = raw.version === undefined ? 1 : raw.version;
-  if (typeof version !== "number" || !Number.isFinite(version)) throw new Error("API 명세의 version 이 숫자가 아니다");
+  if (typeof version !== "number" || !Number.isFinite(version)) throw new Error("API 명세의 version 은 숫자여야 함");
   const sceneContract = arr(raw.sceneContract)
     .map(parseHook)
     .filter((h): h is SceneHook => h !== null);

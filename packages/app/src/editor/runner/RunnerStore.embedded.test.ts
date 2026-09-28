@@ -76,7 +76,7 @@ class FakeEmbedded implements EmbeddedEngine {
     if (this.launchError) throw this.launchError.value;
     if (this.gate) await this.gate;
     if (this.aborted) {
-      const e = new Error("실행을 그만뒀다");
+      const e = new Error("시작 취소됨");
       e.name = "AbortError";
       throw e;
     }
@@ -114,7 +114,7 @@ function browserLike(mem: MemoryBackend): MemoryBackend {
 }
 
 /** 브리지 서버가 엔진 포트에 연결하지 못했을 때의 502 */
-const REFUSED = "HMR push failed (127.0.0.1:5959): connect ECONNREFUSED 127.0.0.1:5959 — 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
+const REFUSED = "HMR push failed (127.0.0.1:5959): connect ECONNREFUSED 127.0.0.1:5959 (게임이 INITIAL2D_HMR=1 로 실행 중이어야 함)";
 
 /** 기본은 브리지처럼 (bridgeLike). memory 면 메모리 백엔드 그대로 (메모리 모드와 웹판의 샘플, 엔진이 없다) */
 async function setup(opts: { tauri?: boolean; memory?: boolean; browser?: boolean; runMode?: "process" | "embedded"; script?: "lua" | "mruby" } = {}) {
@@ -144,7 +144,7 @@ async function setup(opts: { tauri?: boolean; memory?: boolean; browser?: boolea
   const embedded = new FakeEmbedded();
   const runner = new RunnerStore(host, {
     embedded,
-    unavailableReason: "브라우저 모드에서는 엔진을 띄울 수 없다",
+    unavailableReason: "브라우저 모드: 엔진 프로세스 실행 미지원",
     probe: opts.tauri ? async () => ["lua"] : undefined,
     // 프로젝트의 build/ 를 엔진으로 쓴다 (신뢰 확인에 허용으로 답한다. 규칙 자체는 RunnerStore.trust.test.ts)
     askTrust: async () => "allow",
@@ -170,7 +170,7 @@ describe("RunnerStore 실행 방식", () => {
     expect(runner.canRun).toBe(true);
     expect(runner.startHint).toBeUndefined();
     expect(runner.modeHint).toBe(EMBEDDED_HINT);
-    expect(runner.statusText).toBe("엔진 (에디터 안): 대기");
+    expect(runner.statusText).toBe("엔진 (게임 탭): 대기");
     expect(runner.statusTitle).toBe(`${EMBEDDED_HINT}. 기능 lua wasm, 엔진 커밋 abc1234`);
   });
 
@@ -182,9 +182,9 @@ describe("RunnerStore 실행 방식", () => {
     expect(runner.state).toBe("running");
     expect(runner.activeMode).toBe("embedded");
     expect(runner.pid).toBeNull();
-    expect(runner.statusText).toBe("엔진 (에디터 안): 실행 중 00:00");
-    expect(runner.indicatorText).toBe("에디터 안 00:00");
-    expect(texts(log)).toContainEqual("info/runner: 엔진 시작: 에디터 안 (웹 엔진, lua wasm), 언어 lua, 씬 flappy (INITIAL2D_SAMPLE_AT=8,48)");
+    expect(runner.statusText).toBe("엔진 (게임 탭): 실행 중 00:00");
+    expect(runner.indicatorText).toBe("게임 탭 00:00");
+    expect(texts(log)).toContainEqual("info/runner: 엔진 시작: 게임 탭 (웹 엔진, lua wasm), 언어 lua, 씬 flappy (INITIAL2D_SAMPLE_AT=8,48)");
 
     // 출력은 콘솔의 engine 으로, 정지는 핸들의 stop
     embedded.handles[0].emit("Lua error in update: scripts/lua/main.lua:3: boom");
@@ -192,7 +192,7 @@ describe("RunnerStore 실행 방식", () => {
     await runner.stop();
     expect(embedded.handles[0].stopped).toBe(1);
     expect(runner.state).toBe("idle");
-    expect(runner.statusText).toBe("엔진 (에디터 안): 대기");
+    expect(runner.statusText).toBe("엔진 (게임 탭): 대기");
   });
 
   it("Tauri 는 설정을 따른다: process 면 엔진 프로세스, embedded 면 게임 탭", async () => {
@@ -212,7 +212,7 @@ describe("RunnerStore 실행 방식", () => {
     await t.runner.restart();
     expect(t.embedded.launches).toHaveLength(1);
     expect(t.runner.activeMode).toBe("embedded");
-    expect(t.runner.statusText).toBe("엔진 (에디터 안): 실행 중 00:00");
+    expect(t.runner.statusText).toBe("엔진 (게임 탭): 실행 중 00:00");
   });
 
   it("game.json 이 mruby 면 웹 엔진은 띄우지 않고 이유를 알린다", async () => {
@@ -220,8 +220,8 @@ describe("RunnerStore 실행 방식", () => {
     await runner.start();
     expect(embedded.launches).toEqual([]);
     expect(runner.state).toBe("idle");
-    expect(toasts[0]).toBe(`error: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱에서)`);
-    expect(texts(log)).toContainEqual(`error/runner: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱에서)`);
+    expect(toasts[0]).toBe(`error: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱 전용)`);
+    expect(texts(log)).toContainEqual(`error/runner: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱 전용)`);
     // 기능에 mruby 가 있으면 띄운다
     embedded.features = ["lua", "mruby", "wasm"];
     await runner.start();
@@ -233,13 +233,13 @@ describe("RunnerStore 실행 방식", () => {
     await runner.start({ env: { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" } });
     expect(toasts).toEqual([]);
     expect(embedded.launches).toEqual([{ INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" }]);
-    expect(texts(log)).toContainEqual("info/runner: 엔진 시작: 에디터 안 (웹 엔진, lua wasm), 언어 lua (INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg)");
+    expect(texts(log)).toContainEqual("info/runner: 엔진 시작: 게임 탭 (웹 엔진, lua wasm), 언어 lua (INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg)");
     await runner.stop();
     // 거꾸로 lua 프로젝트를 mruby 로 덮으면 거절한다
     const lua = await setup();
     await lua.runner.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
     expect(lua.embedded.launches).toEqual([]);
-    expect(lua.toasts[0]).toBe(`error: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱에서)`);
+    expect(lua.toasts[0]).toBe(`error: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱 전용)`);
   });
 
   it("Tauri 에서 mruby 를 거부할 때는 프로세스 실행을 권한다", async () => {
@@ -263,7 +263,7 @@ describe("RunnerStore 실행 방식", () => {
     await stopping;
     expect(runner.state).toBe("idle");
     expect(toasts).toEqual([]);
-    expect(texts(log)).toContainEqual("info/runner: 실행을 그만뒀다");
+    expect(texts(log)).toContainEqual("info/runner: 시작 취소됨");
   });
 
   it("리로드: 에디터 안 엔진이 돌면 저장한 경로를 그쪽으로, 아니면 백엔드로 push", async () => {
@@ -280,14 +280,14 @@ describe("RunnerStore 실행 방식", () => {
     expect(await runner.reload()).toEqual({ count: 5 });
     expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"], undefined]);
     expect(runner.lastReload?.count).toBe(5);
-    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진, 2개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)");
+    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 웹 엔진에 파일 2개 다시 복사됨. VM 재시작 (씬 상태 초기화)");
   });
 
   it("웹판(브라우저 폴더)은 밖으로 보낼 길이 없어 게임이 돌 때만 리로드한다", async () => {
     const { runner, embedded } = await setup({ browser: true });
     expect(runner.canPush).toBe(false);
     expect(runner.canReload).toBe(false);
-    expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
+    expect(runner.reloadHint).toBe("게임 탭에서 실행 중인 게임 없음");
     expect(await runner.reload()).toBeNull();
     await runner.start();
     expect(runner.canReload).toBe(true);
@@ -302,7 +302,7 @@ describe("RunnerStore 실행 방식", () => {
     expect(mem.capabilities.hmr).toBe(false);
     expect(runner.canPush).toBe(false);
     expect(runner.canReload).toBe(false);
-    expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
+    expect(runner.reloadHint).toBe("게임 탭에서 실행 중인 게임 없음");
     expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
     expect(await runner.reload()).toBeNull();
 
@@ -374,14 +374,14 @@ describe("RunnerStore 실행 방식", () => {
     expect(await runner.reload(["resources/maps/a.json", "scripts/lua/main.lua"], { fromSave: true })).toBeNull();
     expect(mem.pushed).toEqual([]);
     expect(embedded.reloads).toEqual([]);
-    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진이 뜨는 중이다. 뜨면 바뀐 파일을 다시 올린다");
+    expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 웹 엔진 시작 중. 시작 후 변경된 파일 다시 복사 예정");
     open();
     await starting;
     expect(runner.state).toBe("running");
     // 첫 프레임 뒤 (가짜는 바로 첫 프레임을 돈다)
     await vi.waitFor(() => expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"]]));
     expect(embedded.steppedFor).toEqual([embedded.handles[0]]);
-    await vi.waitFor(() => expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 에디터 안 엔진, 2개 파일을 다시 올렸다. VM 을 다시 시작한다 (씬 상태는 처음으로)"));
+    await vi.waitFor(() => expect(texts(log)).toContainEqual("info/runner: 핫 리로드: 웹 엔진에 파일 2개 다시 복사됨. VM 재시작 (씬 상태 초기화)"));
     expect(mem.pushed).toEqual([]);
     expect(toasts).toEqual([]);
 
@@ -410,7 +410,7 @@ describe("RunnerStore 실행 방식", () => {
     expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
     expect(await runner.reload(["resources/maps/a.json"], { fromSave: true })).toBeNull();
     expect(embedded.reloads).toEqual([]);
-    expect(texts(log).filter((l) => l.includes("에디터 안 엔진이 뜨는 중이다"))).toHaveLength(2);
+    expect(texts(log).filter((l) => l.includes("핫 리로드: 웹 엔진 시작 중"))).toHaveLength(2);
     step(true);
     await vi.waitFor(() => expect(embedded.reloads).toEqual([["scripts/lua/main.lua", "resources/maps/a.json"]]));
     // 첫 프레임 뒤의 리로드는 바로 간다
@@ -450,7 +450,7 @@ describe("RunnerStore 실행 방식", () => {
       expect(mem.pushed, order).toEqual([]);
       expect(texts(log).filter((l) => l === `info/runner: ${START_ENDED_RELOAD_DROPPED}`), order).toHaveLength(1);
       expect(texts(log).some((l) => l.includes("다시 올렸다")), order).toBe(false);
-      expect(toasts, order).toEqual(["error: 엔진이 종료 코드 1 로 끝났다. 콘솔을 본다"]);
+      expect(toasts, order).toEqual(["error: 엔진 종료됨 (종료 코드 1). 콘솔 확인 필요"]);
 
       // 버린 리로드는 다음 실행에 남지 않는다 (F5는 저장한 글을 처음부터 올린다)
       embedded.gate = null;
@@ -498,9 +498,9 @@ describe("RunnerStore 실행 방식", () => {
 
   it("엔진을 못 띄우는 백엔드의 시작 안내는 밖의 엔진으로 보낼 길이 있을 때만 수동 리로드를 적는다", () => {
     expect(browserRunNotice(true)).toBe(
-      "브라우저 모드: 실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다. 터미널에서 INITIAL2D_HMR=1 로 띄운 엔진에는 수동 리로드(Ctrl+Shift+R)가 간다",
+      "브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용. 터미널에서 INITIAL2D_HMR=1 로 실행한 엔진에 수동 리로드(Ctrl+Shift+R) 전송 가능",
     );
-    expect(browserRunNotice(false)).toBe("브라우저 모드: 실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다. 밖에서 띄운 엔진으로는 보내지 않고, 저장한 파일은 게임 탭이 돌 때 다시 읽는다");
+    expect(browserRunNotice(false)).toBe("브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용. 외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 핫 리로드");
     expect(browserRunNotice(false)).not.toContain("수동 리로드");
   });
 
@@ -531,7 +531,7 @@ describe("RunnerStore 실행 방식", () => {
     embedded.handles[0].exit(1);
     expect(runner.state).toBe("idle");
     expect(runner.exitCode).toBe(1);
-    expect(runner.statusText).toBe("엔진 (에디터 안): 종료 코드 1");
+    expect(runner.statusText).toBe("엔진 (게임 탭): 종료 코드 1");
     expect(toasts.at(-1)).toContain("종료 코드 1");
   });
 
@@ -540,7 +540,7 @@ describe("RunnerStore 실행 방식", () => {
     embedded.launchError = { value: wasmException() };
     await runner.start();
     expect(runner.state).toBe("idle");
-    expect(toasts.at(-1)).toMatch(/^error: 에디터 안 엔진을 띄우지 못했다: C\+\+ 예외/);
+    expect(toasts.at(-1)).toMatch(/^error: 웹 엔진 시작 실패: C\+\+ 예외/);
     embedded.launchError = null;
     embedded.featuresError = { value: undefined };
     await runner.start();
@@ -555,9 +555,9 @@ describe("RunnerStore 실행 방식", () => {
     expect(await runner.reload(["scripts/lua/main.lua"])).toEqual({ count: 1 });
     expect(runner.state).toBe("running");
     expect(texts(log)).toContainEqual(
-      "warn/runner: 핫 리로드: 에디터 안 엔진, 1개 파일을 다시 올렸지만 스크립트 오류로 VM 이 다시 뜨지 못했다. 위의 오류 줄을 누르면 그 자리로 간다",
+      "warn/runner: 핫 리로드: 웹 엔진에 파일 1개 다시 복사됨, 스크립트 오류로 VM 재시작 실패. 위 오류 줄을 클릭하면 해당 파일의 줄로 이동",
     );
-    expect(toasts.at(-1)).toBe("warn: 핫 리로드: 스크립트 오류. 콘솔의 오류 줄을 본다");
+    expect(toasts.at(-1)).toBe("warn: 핫 리로드: 스크립트 오류. 콘솔의 오류 줄 확인 필요");
   });
 
   it("리로드에서 엔진이 예외로 죽으면 읽는 글로 남기고 토스트는 종료 알림 하나다", async () => {
@@ -568,7 +568,7 @@ describe("RunnerStore 실행 방식", () => {
     expect(runner.state).toBe("idle");
     expect(runner.exitCode).toBe(1);
     expect(texts(log).find((l) => l.startsWith("error/runner: 핫 리로드 실패: "))).toMatch(/C\+\+ 예외/);
-    expect(toasts.filter((t) => t.startsWith("error:"))).toEqual(["error: 엔진이 종료 코드 1 로 끝났다. 콘솔을 본다"]);
+    expect(toasts.filter((t) => t.startsWith("error:"))).toEqual(["error: 엔진 종료됨 (종료 코드 1). 콘솔 확인 필요"]);
     for (const line of texts(log)) expect(line).not.toContain("undefined");
   });
 });

@@ -12,9 +12,9 @@ import { openAddObjectDialog } from "./AddObjectDialog";
 import type { SceneTools } from "./SceneTools";
 
 export const ADD_MENU_PATH = "씬/오브젝트 추가";
-const NEED_SCENE = "씬 탭이 활성일 때 쓸 수 있다";
-const NEED_SELECTION = "계층이나 씬 뷰에서 오브젝트를 고른다";
-const NEED_PROJECT = "프로젝트를 먼저 연다";
+const NEED_SCENE = "활성 씬 탭 없음";
+const NEED_SELECTION = "선택한 오브젝트 없음 (계층 패널이나 씬 뷰에서 선택)";
+const NEED_PROJECT = "열린 프로젝트 없음";
 
 export function registerSceneCommands(editor: Editor, tools: SceneTools): () => void {
   const c = editor.commands;
@@ -28,7 +28,7 @@ export function registerSceneCommands(editor: Editor, tools: SceneTools): () => 
   reg({ id: "scene.new", label: "새 씬", category: "scene", shortcut: "Ctrl+Shift+N", enabled: () => editor.project.isOpen, run: () => void tools.newScene() });
   editor.setHint("scene.new", () => (editor.project.isOpen ? undefined : NEED_PROJECT));
 
-  reg({ id: "scene.addObject", label: "목록에서 고르기", category: "scene", shortcut: "Ctrl+Shift+A", enabled: hasScene, run: () => openAddObjectDialog(editor) });
+  reg({ id: "scene.addObject", label: "목록에서 선택", category: "scene", shortcut: "Ctrl+Shift+A", enabled: hasScene, run: () => openAddObjectDialog(editor) });
   editor.setHint("scene.addObject", sceneHint);
 
   reg({ id: "scene.setStart", label: "시작 씬으로 지정", category: "scene", enabled: hasScene, run: () => void tools.setStartScene() });
@@ -58,7 +58,7 @@ export function registerSceneCommands(editor: Editor, tools: SceneTools): () => 
     hint: selectionHint,
     run: () => {
       const n = tools.copy();
-      if (n > 0) editor.toasts.info(`오브젝트 ${n}개를 복사했다`);
+      if (n > 0) editor.toasts.info(`오브젝트 ${n}개 복사됨`);
     },
   });
   edit({ id: "edit.cut", label: "잘라내기", shortcut: "Ctrl+X", action: "cut", enabled: hasSelection, hint: selectionHint, run: () => void tools.cut() });
@@ -68,7 +68,7 @@ export function registerSceneCommands(editor: Editor, tools: SceneTools): () => 
     shortcut: "Ctrl+V",
     action: "paste",
     enabled: () => hasScene() && tools.clipboard.length > 0,
-    hint: () => sceneHint() ?? (tools.clipboard.length > 0 ? undefined : "복사한 오브젝트가 없다"),
+    hint: () => sceneHint() ?? (tools.clipboard.length > 0 ? undefined : "복사한 오브젝트 없음"),
     run: () => void tools.paste(),
   });
   edit({ id: "edit.duplicate", label: "복제", shortcut: "Ctrl+D", action: "duplicate", enabled: hasSelection, hint: selectionHint, run: () => void tools.duplicateSelected() });

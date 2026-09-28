@@ -100,7 +100,7 @@ export class MapSchemaStore {
     try {
       text = (await backend.exists(SCHEMA_PATH)) ? await backend.readText(SCHEMA_PATH) : null;
     } catch (e) {
-      error = `${SCHEMA_PATH} 을(를) 읽지 못했다: ${(e as Error).message}`;
+      error = `${SCHEMA_PATH} 읽기 실패: ${(e as Error).message}`;
     }
     if (token !== this.token) return this.current;
     let schema: MapObjectSchema | null = null;
@@ -114,7 +114,7 @@ export class MapSchemaStore {
     this.setResult(schema, error, schema ? "project" : "none");
     if (error) log.error(LOG, error);
     else if (schema) log.info(LOG, `맵 오브젝트 스키마: 타입 ${schema.types.length}개 (${schema.types.map((t) => t.type).join(", ")})${playSummary(schema)}`);
-    else log.info(LOG, `맵 오브젝트 스키마가 없다 (${SCHEMA_PATH}). 오브젝트는 타입과 좌표만 보인다`);
+    else log.info(LOG, `맵 오브젝트 스키마 없음 (${SCHEMA_PATH}). 오브젝트는 타입과 좌표만 표시`);
     return schema;
   }
 
@@ -163,7 +163,7 @@ export class MapSchemaStore {
 function playSummary(schema: MapObjectSchema): string {
   if (!schema.play) return "";
   const maps = schema.play.maps;
-  return maps ? `, 여기서 실행 있음 (맵 ${maps.length > 0 ? maps.join(", ") : "없음"})` : ", 여기서 실행 있음";
+  return maps ? `, play 설정 있음 (맵 ${maps.length > 0 ? maps.join(", ") : "없음"})` : ", play 설정 있음";
 }
 
 /** editor.mapSchema를 만들어 붙이고, 맵 오브젝트 커맨드(여기서 실행)와 메뉴를 등록한다 */

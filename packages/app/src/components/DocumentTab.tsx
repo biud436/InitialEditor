@@ -16,7 +16,7 @@ export const DocumentTab = observer(function DocumentTab(props: IDockviewPanelHe
     if (doc?.dirty) {
       const ok = await editor.modals.confirm({
         title: "탭 닫기",
-        message: `${title} 에 저장하지 않은 변경이 있다. 저장하지 않고 닫을까?`,
+        message: `${title}: 저장하지 않은 변경 있음. 저장하지 않고 닫을까요?`,
         okLabel: "닫기",
         danger: true,
       });

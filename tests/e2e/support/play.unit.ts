@@ -32,7 +32,7 @@ function editorX(minX: number): number {
 describe("여기서 실행의 기대 위치 (rules.ts와 같은가)", () => {
   it("상수가 rules.ts와 같다", () => {
     expect([PLAY_RANGE_GAP, PLAY_MIN_X]).toEqual([rules.PLAY_RANGE_GAP, rules.PLAY_MIN_X]);
-    expect(rules.PLAY_POSITION_RULE).toContain(`왼끝에서 ${PLAY_RANGE_GAP}px 왼쪽, ${PLAY_MIN_X} 이상`);
+    expect(rules.PLAY_POSITION_RULE).toContain(`최소 X에서 ${PLAY_RANGE_GAP}px 왼쪽, ${PLAY_MIN_X} 이상`);
   });
 
   for (const minX of [2014, 1950, 64, 40, 0, 63.6, 1000.4]) {

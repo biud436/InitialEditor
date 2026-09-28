@@ -88,7 +88,7 @@ describe("자가 검사 계획", () => {
       [{ ...base, projects: [] }, /projects/],
       [{ ...base, workDir: "" }, /workDir/],
       [{ ...base, projects: [{ id: "x", runs: [run] }] }, /template 이나 root/],
-      [{ ...base, projects: [base.projects[0], base.projects[0]] }, /겹친다/],
+      [{ ...base, projects: [base.projects[0], base.projects[0]] }, /프로젝트 id 중복/],
       [{ ...base, projects: [{ ...base.projects[0], template: "rpg" }] }, /template/],
       [{ ...base, projects: [{ ...base.projects[0], runs: [] }] }, /runs/],
       [{ ...base, projects: [{ ...base.projects[0], runs: [{ ...run, mode: "web" }] }] }, /mode/],

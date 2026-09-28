@@ -12,9 +12,9 @@ import { openNewProjectDialog } from "./scene/NewProjectDialog";
 import { writeProjectTemplate, type ProjectTemplateOptions } from "./scene/projectTemplates";
 import { TEMPLATE_LABELS } from "./scene/templateManifest";
 
-export const NEW_PROJECT_NO_PICKER = "이 브라우저에는 폴더 열기가 없어 새 프로젝트를 만들 수 없다 (크롬, 엣지에서 된다)";
-export const NEW_PROJECT_BRIDGE = "브리지 모드에서는 새 프로젝트를 만들 수 없다 (데스크톱 앱이나 웹판에서 폴더를 고른다)";
-export const NEW_PROJECT_MEMORY = "메모리 모드에서는 새 프로젝트를 만들 수 없다 (데스크톱 앱이나 폴더를 열 수 있는 브라우저에서)";
+export const NEW_PROJECT_NO_PICKER = "폴더 열기 미지원 브라우저, 새 프로젝트 생성 불가 (크롬, 엣지에서 지원)";
+export const NEW_PROJECT_BRIDGE = "브리지 모드: 새 프로젝트 생성 미지원 (데스크톱 앱이나 브라우저 폴더 모드에서 폴더 선택)";
+export const NEW_PROJECT_MEMORY = "메모리 모드: 새 프로젝트 생성 미지원 (데스크톱 앱이나 폴더 열기를 지원하는 브라우저에서 가능)";
 
 /** 새 프로젝트를 못 만드는 이유. 만들 수 있으면 null */
 export function newProjectBlocker(editor: Editor): string | null {
@@ -44,7 +44,7 @@ async function defaultWebFeatures(editor: Editor): Promise<string[] | null> {
 }
 
 function failed(editor: Editor, e: unknown): false {
-  const message = `새 프로젝트를 만들지 못했다: ${e instanceof Error ? e.message : String(e)}`;
+  const message = `새 프로젝트 생성 실패: ${e instanceof Error ? e.message : String(e)}`;
   editor.log.error("editor", message);
   editor.toasts.error(message);
   return false;
@@ -55,7 +55,7 @@ async function confirmFolder(editor: Editor, count: number): Promise<boolean> {
   if (count === 0) return true;
   return editor.modals.confirm({
     title: "새 프로젝트",
-    message: `폴더가 비어 있지 않다 (${count}개 항목). 그래도 여기에 프로젝트를 만들까? 있는 파일은 그대로 두고 없는 것만 만든다.`,
+    message: `폴더가 비어 있지 않음 (항목 ${count}개). 그래도 이 폴더에 프로젝트를 만들까요? 기존 파일은 유지, 없는 파일만 생성`,
     okLabel: "만들기",
   });
 }
@@ -69,7 +69,7 @@ async function askOptions(editor: Editor, deps: NewProjectDeps, name: string, fo
 async function writeAndOpen(editor: Editor, deps: NewProjectDeps, backend: ProjectBackend, root: string, folder: { shown: string; name: string }, options: ProjectTemplateOptions): Promise<boolean> {
   try {
     const written = await (deps.write ?? writeProjectTemplate)(backend, options);
-    editor.log.info("editor", `새 프로젝트를 만들었다: ${folder.shown} (${TEMPLATE_LABELS[options.template]}, ${options.language}, 파일 ${written.length}개)`);
+    editor.log.info("editor", `새 프로젝트 생성됨: ${folder.shown} (${TEMPLATE_LABELS[options.template]}, ${options.language}, 파일 ${written.length}개)`);
     for (const p of written) editor.log.append("debug", "editor", `  만듦: ${p}`);
   } catch (e) {
     return failed(editor, e);

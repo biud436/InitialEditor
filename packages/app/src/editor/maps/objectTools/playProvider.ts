@@ -11,7 +11,7 @@ import { buildPlayEnv, PLAY_SOURCE_LABELS, playMapRefusal, playPosition, type Pl
 
 export const OBJECTS_PLAY_PROVIDER_ID = "tilemap.objects";
 
-/** 로그에 보일 위치 설명 ("선택한 오브젝트 wolf_1, 순찰 범위 왼끝 640에서 48px 왼쪽") */
+/** 로그에 보일 위치 설명 ("선택한 오브젝트 wolf_1, 범위 최소 X 640에서 48px 왼쪽") */
 export function playPositionNote(at: PlayPosition): string {
   return [at.objectId ? `${PLAY_SOURCE_LABELS[at.source]} ${at.objectId}` : PLAY_SOURCE_LABELS[at.source], at.note].filter(Boolean).join(", ");
 }

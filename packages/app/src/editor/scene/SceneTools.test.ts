@@ -224,7 +224,7 @@ describe("SceneTools", () => {
     expect(saved).toEqual({ version: 1, name: "stage1", objects: [], extra: {} });
     expect(h.project.folders.get("resources/scenes")!.map((e) => e.name)).toEqual(["main.json", "stage1.json"]);
     expect(await h.tools.newScene()).toBeNull();
-    expect(h.toasts.at(-1)).toContain("이미 있다");
+    expect(h.toasts.at(-1)).toContain("이미 있는 파일: resources/scenes/stage1.json");
     // 열려 있는 씬을 다시 열면 그 탭이 활성이 된다
     h.documents.activate(h.doc);
     expect(await h.tools.openScene("resources/scenes/stage1.json")).toBe(doc);

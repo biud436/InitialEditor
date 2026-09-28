@@ -79,7 +79,7 @@ describe("씬 뷰 지원의 타일맵", () => {
     const doc = (await support.openScene(SCENE_PATH))!;
     // 있는지 확인이 끝나면 없는 파일만 오른다 (엔진이 씬을 거부한다)
     await vi.waitFor(() => expect(locations(doc)).toEqual(["objects[1].props.map"]));
-    expect(doc.problems[0]).toMatchObject({ severity: "error", message: `타일맵 tm1의 맵 파일이 없다: ${GONE}. 엔진이 씬을 거부한다` });
+    expect(doc.problems[0]).toMatchObject({ severity: "error", message: `타일맵 tm1의 맵 파일 없음: ${GONE}. 실행하면 엔진에서 씬 로드 실패` });
     // 편집으로 다시 검사해도 기억한 답으로 곧바로 오른다
     expect(doc.revalidate().map((p) => p.location)).toEqual(["objects[1].props.map"]);
 
@@ -112,10 +112,10 @@ describe("씬 뷰 지원의 타일맵", () => {
     await backend.writeText(MAP_PATH, "{ not json");
     await vi.waitFor(() => expect(locations(doc)).toEqual(["objects[0].props.map"]));
     expect(doc.problems[0].severity).toBe("error");
-    expect(doc.problems[0].message).toMatch(new RegExp(`^타일맵 tm0의 맵 파일을 맵으로 읽지 못한다: ${MAP_PATH} \\(JSON 이 아니다: .+\\)\\. 엔진이 씬을 거부한다$`));
+    expect(doc.problems[0].message).toMatch(new RegExp(`^타일맵 tm0의 맵 파일 형식 오류: ${MAP_PATH} \\(JSON 구문 오류: .+\\)\\. 실행하면 엔진에서 씬 로드 실패$`));
     // JSON이지만 맵이 아니다
     await backend.writeText(MAP_PATH, "{}");
-    await vi.waitFor(() => expect(doc.problems[0]?.message).toContain("모르는 맵 버전이다"));
+    await vi.waitFor(() => expect(doc.problems[0]?.message).toContain("지원하지 않는 맵 버전"));
     expect(locations(doc)).toEqual(["objects[0].props.map"]);
     // 고치면 사라진다
     await backend.writeText(MAP_PATH, MAP);

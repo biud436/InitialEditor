@@ -42,25 +42,25 @@ export function mapPathFor(name: string): string {
 /** 맵 이름 검사: 파일 이름이 되는 글자만, 이미 있는 맵은 거부 (대소문자를 가리지 않는 파일 시스템을 생각해 소문자로 견준다) */
 export function validateMapName(value: string, existing: readonly string[]): string | null {
   const v = value.trim();
-  if (!v) return "이름을 적는다";
-  if (/\.json$/i.test(v)) return "확장자는 붙이지 않는다";
-  if (!/^[\p{L}\p{N}_-]+$/u.test(v)) return "글자, 숫자, _, -만 쓴다 (폴더 없이)";
+  if (!v) return "이름 비어 있음";
+  if (/\.json$/i.test(v)) return "확장자 불필요 (.json 자동 추가)";
+  if (!/^[\p{L}\p{N}_-]+$/u.test(v)) return "문자, 숫자, _, - 만 허용 (폴더 경로 불가)";
   const path = mapPathFor(v);
-  if (existing.some((p) => p.toLowerCase() === path.toLowerCase())) return `이미 있다: ${path}`;
+  if (existing.some((p) => p.toLowerCase() === path.toLowerCase())) return `이미 있는 맵: ${path}`;
   return null;
 }
 
-/** 정수 칸 검사. subject는 조사까지 붙인 주어다 (폭은, 높이는). 쓸 수 없으면 이유 */
+/** 정수 입력 검사. subject 는 대상 이름 (너비, 높이). 쓸 수 없으면 이유 */
 export function validateInt(value: string, subject: string, min: number, max: number): string | null {
   const t = value.trim();
-  if (!/^\d+$/.test(t)) return `${subject} 정수다`;
+  if (!/^\d+$/.test(t)) return `${subject}: 정수여야 함`;
   const n = Number(t);
-  if (n < min || n > max) return `${subject} ${min} 이상 ${max} 이하다`;
+  if (n < min || n > max) return `${subject}: ${min} 이상 ${max} 이하여야 함`;
   return null;
 }
 
 export const validateMapTiles = (value: string, subject: string) => validateInt(value, subject, 1, MAX_MAP_TILES);
-export const validateTileSize = (value: string) => validateInt(value, "타일 크기는", 1, MAX_TILE_SIZE);
+export const validateTileSize = (value: string) => validateInt(value, "타일 크기", 1, MAX_TILE_SIZE);
 
 /** 쉼표로 가른 레이어 이름. 하나 이상이고 겹치지 않아야 한다 */
 export function parseLayerNames(text: string): { names: string[]; error: string | null } {
@@ -68,10 +68,10 @@ export function parseLayerNames(text: string): { names: string[]; error: string 
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s !== "");
-  if (names.length === 0) return { names, error: "레이어를 하나 이상 적는다" };
+  if (names.length === 0) return { names, error: "레이어 이름 1개 이상 필요" };
   const seen = new Set<string>();
   for (const n of names) {
-    if (seen.has(n)) return { names, error: `레이어 이름이 겹친다: ${n}` };
+    if (seen.has(n)) return { names, error: `레이어 이름 중복: ${n}` };
     seen.add(n);
   }
   return { names, error: null };
@@ -134,7 +134,7 @@ export async function listMapPaths(backend: ProjectBackend): Promise<string[]> {
 
 export async function readImageSize(backend: ProjectBackend, path: string): Promise<ImageSize> {
   const size = pngSize(await backend.readBinary(path));
-  if (!size) throw new Error(`PNG가 아니다: ${path}`);
+  if (!size) throw new Error(`PNG 파일이 아님: ${path}`);
   return size;
 }
 
@@ -171,7 +171,7 @@ export async function createMapFile(host: NewMapHost, spec: NewMapSpec): Promise
   const path = mapPathFor(spec.name);
   try {
     if (await host.backend.exists(path)) {
-      host.toasts.warn(`이미 있다: ${path}`);
+      host.toasts.warn(`이미 있는 맵: ${path}`);
       return null;
     }
     const id = await nextMapId(host.backend, await listMapPaths(host.backend));
@@ -179,12 +179,12 @@ export async function createMapFile(host: NewMapHost, spec: NewMapSpec): Promise
     for (const dir of ["", RESOURCES_DIR, MAPS_DIR]) await host.project.refresh(dir).catch(() => {});
     await host.tree.reveal(path).catch(() => {});
   } catch (e) {
-    const message = `맵을 만들지 못했다: ${(e as Error).message}`;
+    const message = `맵 생성 실패: ${(e as Error).message}`;
     host.log.error(LOG, message);
     host.toasts.error(message);
     return null;
   }
   const tileset = `${spec.tileset.image} (${spec.tileset.columns}열)`;
-  host.log.info(LOG, `새 맵을 만들었다: ${path} (${spec.width}x${spec.height} 칸, 타일 ${spec.tileSize}px, 타일셋 ${tileset}, 레이어 ${spec.layers.join(", ")}, 통행 ${spec.collision ? "있음" : "없음"})`);
+  host.log.info(LOG, `새 맵 생성됨: ${path} (${spec.width}x${spec.height} 타일, 타일 크기 ${spec.tileSize}px, 타일셋 ${tileset}, 레이어 ${spec.layers.join(", ")}, 통행 ${spec.collision ? "있음" : "없음"})`);
   return path;
 }

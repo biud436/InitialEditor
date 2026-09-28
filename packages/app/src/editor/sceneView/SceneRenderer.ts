@@ -187,7 +187,7 @@ export class SceneRenderer {
       }
     } catch (e) {
       runInAction(() => {
-        this.status.error = `WebGL 을 쓸 수 없다: ${(e as Error).message}`;
+        this.status.error = `WebGL 초기화 실패: ${(e as Error).message}`;
       });
       return;
     }
@@ -617,7 +617,7 @@ export class SceneRenderer {
     const scale = num(props.scale, 1);
     entry.imagePath = image || null;
     if (!image) {
-      this.buildPlaceholder(entry, `${o.id} (이미지 없음)`, this.theme.colors.danger);
+      this.buildPlaceholder(entry, `${o.id} (이미지 미지정)`, this.theme.colors.danger);
       return;
     }
     this.buildPlaceholder(entry, o.id, this.theme.colors.border);

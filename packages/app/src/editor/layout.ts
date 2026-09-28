@@ -165,8 +165,8 @@ export class LayoutStore {
     }
     const key = extPanelKey(id);
     const spec = this.extensionPanels().find((p) => p.id === key);
-    if (!spec) this.deps.warn(`등록되지 않은 확장 패널이다: ${id}`);
-    else if (!isExtPanelVisible(spec)) this.deps.warn(`이 프로젝트에 해당하지 않는 확장 패널이다: ${spec.title}`);
+    if (!spec) this.deps.warn(`등록되지 않은 확장 패널: ${id}`);
+    else if (!isExtPanelVisible(spec)) this.deps.warn(`이 프로젝트에서 표시하지 않는 확장 패널: ${spec.title}`);
     else addExtensionPanel(api, spec);
   }
 
@@ -300,7 +300,7 @@ export class LayoutStore {
     try {
       json = api.toJSON() as unknown as LayoutJson;
     } catch (e) {
-      this.deps.warn(`레이아웃을 직렬화하지 못했다: ${(e as Error).message}`);
+      this.deps.warn(`레이아웃 직렬화 실패: ${(e as Error).message}`);
       return;
     }
     await this.deps.persistence.save(json);

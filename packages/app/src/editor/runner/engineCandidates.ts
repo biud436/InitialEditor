@@ -23,7 +23,7 @@ export const ENGINE_SOURCE_LABELS: Record<EngineSource, string> = {
   "project-file": ENGINE_FILE,
   "project-build": "프로젝트의 build/",
   bundled: "앱에 든 엔진",
-  sibling: "형제 폴더 ../Initial2D/build/",
+  sibling: "프로젝트 상위 폴더의 Initial2D/build/",
   none: "없음",
 };
 

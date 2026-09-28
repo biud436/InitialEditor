@@ -86,9 +86,9 @@ export class ScriptSupport {
     const n = countSpec(loaded.spec);
     if (loaded.problem) editor.log.warn("editor", loaded.problem);
     if (loaded.source === "project") {
-      editor.log.info("editor", `API 명세를 읽었다: ${API_SPEC_PATH} (함수 ${n.functions}, 클래스 ${n.classes}, 상수 ${n.constants})`);
+      editor.log.info("editor", `API 명세 로드됨: ${API_SPEC_PATH} (함수 ${n.functions}개, 클래스 ${n.classes}개, 상수 ${n.constants}개)`);
     } else {
-      editor.log.info("editor", `API 명세 파일이 없어 내장 기본값(fallback)으로 자동완성한다 (함수 ${n.functions}). 프로젝트에 ${API_SPEC_PATH} 을(를) 두면 그것을 읽는다`);
+      editor.log.info("editor", `내장 기본 API 명세(fallback) 사용 (함수 ${n.functions}개). 프로젝트의 ${API_SPEC_PATH} 없음 또는 로드 실패`);
     }
   }
 
@@ -109,7 +109,7 @@ export class ScriptSupport {
       try {
         await doc.load();
       } catch (e) {
-        const message = `${path} 을(를) 읽지 못했다: ${(e as Error).message}`;
+        const message = `${path} 열기 실패: ${(e as Error).message}`;
         editor.log.error("editor", message);
         editor.toasts.error(message);
         editor.documents.close(doc);
@@ -126,7 +126,7 @@ export class ScriptSupport {
     const editor = this.editor;
     this.projectDisposers.push(
       editor.events.on("documentReloaded", (doc) => {
-        if (doc instanceof ScriptDocument) editor.toasts.info(`밖에서 바뀌어 다시 읽었다: ${doc.title}`);
+        if (doc instanceof ScriptDocument) editor.toasts.info(`외부에서 변경되어 다시 읽음: ${doc.title}`);
       }),
     );
   }

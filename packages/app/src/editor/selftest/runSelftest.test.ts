@@ -263,10 +263,10 @@ describe("자가 검사 흐름", () => {
   });
 
   it("시작하지 못한 실행은 이유를 적는다", async () => {
-    const t = makeHost({ script: () => ({ startFails: "이 엔진 빌드에는 mruby 가 없다" }) });
+    const t = makeHost({ script: () => ({ startFails: "이 엔진 빌드에 mruby 없음" }) });
     const report = await runSelftest(plan([{ id: "p", template: "flappy", language: "mruby", runs: [RUN] }]), t.host, t.shell, fast);
     const run = report.projects[0].runs[0];
-    expect(run.problems).toEqual(expect.arrayContaining(["start_failed", "reason: 이 엔진 빌드에는 mruby 가 없다", "exit_code: null"]));
+    expect(run.problems).toEqual(expect.arrayContaining(["start_failed", "reason: 이 엔진 빌드에 mruby 없음", "exit_code: null"]));
     expect(report.projects[0].entryScript.path).toBe("scripts/ruby/main.rb");
   });
 
@@ -356,10 +356,10 @@ describe("자가 검사 흐름", () => {
     const capture = { map: "resources/maps/m.json", width: 384, height: 448, placement: "^시작 x (\\d+)" };
     const noLine = makeHost({ disks, script: () => ({ lines: ["frame"] }) });
     const r1 = await runSelftest(plan([{ id: "f", root: "/fx", runs: [{ mode: "process", check: "mapFrame", timeoutMs: 5000, mapCapture: capture }] }]), noLine.host, noLine.shell, fast);
-    expect(r1.projects[0].runs[0].problems[0]).toMatch(/자리 줄이 없다/);
+    expect(r1.projects[0].runs[0].problems[0]).toMatch(/위치 줄 없음/);
     const noTiles = makeHost({ disks, script: () => ({ lines: ["시작 x 100"] }), capture: () => null });
     const r2 = await runSelftest(plan([{ id: "f", root: "/fx", runs: [{ mode: "process", check: "mapFrame", timeoutMs: 5000, mapCapture: capture }] }]), noTiles.host, noTiles.shell, fast);
-    expect(r2.projects[0].runs[0].problems).toEqual(["capture: 맵 뷰에서 타일을 뽑지 못했다"]);
+    expect(r2.projects[0].runs[0].problems).toEqual(["capture: 맵 뷰에서 타일 추출 실패"]);
   });
 });
 

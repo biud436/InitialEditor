@@ -13,9 +13,9 @@ export const ExternalChangeBanner = observer(function ExternalChangeBanner({ doc
   const reload = async () => {
     try {
       await doc.reloadFromDisk();
-      editor.toasts.info(`다시 읽었다: ${doc.title}`);
+      editor.toasts.info(`디스크에서 다시 읽음: ${doc.title}`);
     } catch (e) {
-      editor.toasts.error(`다시 읽지 못했다: ${(e as Error).message}`);
+      editor.toasts.error(`다시 읽기 실패: ${(e as Error).message}`);
     }
   };
   const keep = () => {
@@ -28,29 +28,29 @@ export const ExternalChangeBanner = observer(function ExternalChangeBanner({ doc
     doc.allowOverwrite();
     try {
       await editor.saveDocument(doc);
-      editor.toasts.success(`내 것으로 덮어썼다: ${doc.title}`);
+      editor.toasts.success(`편집 내용으로 덮어씀: ${doc.title}`);
     } catch (e) {
-      editor.toasts.error(`저장하지 못했다: ${(e as Error).message}`);
+      editor.toasts.error(`저장 실패: ${(e as Error).message}`);
     }
   };
   const error = doc.reloadError;
   return (
     <div className="doc-banner" role="status" data-testid="external-change-banner" data-error={error !== null || undefined}>
       {error !== null ? (
-        <span>디스크의 파일을 다시 읽지 못해 저장을 막았다: {error}</span>
+        <span>디스크에서 다시 읽기 실패로 저장 차단: {error}</span>
       ) : (
-        <span>이 파일이 밖에서 바뀌었다. 지금 보는 내용은 디스크와 다르다.</span>
+        <span>외부에서 변경된 파일. 편집 내용이 디스크와 다름</span>
       )}
       <button type="button" className="btn btn-primary" onClick={() => void reload()}>
         다시 읽기
       </button>
       {error !== null ? (
         <button type="button" className="btn" onClick={() => void overwrite()}>
-          내 것으로 덮어쓰기
+          편집 내용으로 덮어쓰기
         </button>
       ) : (
         <button type="button" className="btn" onClick={keep}>
-          내 것 유지
+          편집 내용 유지
         </button>
       )}
     </div>

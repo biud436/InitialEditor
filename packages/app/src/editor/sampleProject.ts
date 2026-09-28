@@ -26,7 +26,7 @@ export const SAMPLE_MAP_PATH = "resources/maps/meadow.json";
 export const SAMPLE_MAIN_LUA = `-- 샘플 프로젝트의 Lua 진입점. 씬 계약 네 함수 (init, update, render, destroy).
 -- 엔진은 전역 Initialize, Update, Render, Destroy 를 부르고, 맨 아래에서 그것을 네 함수로 잇는다.
 -- init 에서 초원 맵(resources/maps/meadow.json)을 읽고, render 가 모든 레이어를 화면 가운데에 그린다.
--- 맵 뷰에서 칠하고 저장하면 칠한 칸이 게임에 그대로 나온다.
+-- 맵 뷰에서 칠하고 저장하면 칠한 타일이 게임에 그대로 나온다.
 
 local MAP_PATH = "./${SAMPLE_MAP_PATH}"
 local map = nil
@@ -76,7 +76,7 @@ function Initialize() init() end
 function Update(elapsed) update(elapsed) end
 function Render() render() end
 function Destroy() destroy() end
-`;
+`; // terms-ok: 샘플 스크립트의 코드 주석은 문장형
 
 export const SAMPLE_MAIN_RB = `# 샘플 프로젝트의 Ruby 진입점. Lua 판과 같은 씬 계약이고 같은 화면을 그린다.
 # 엔진이 init 을 한 번, 프레임마다 update(elapsed) 와 render 를 부른다. init 에서 초원 맵을 읽고 render 가 가운데에 그린다.
@@ -118,7 +118,7 @@ def destroy
   $map.dispose if $map && !$map.disposed?
   $map = nil
 end
-`;
+`; // terms-ok: 샘플 스크립트의 코드 주석은 문장형
 
 export const SAMPLE_GAME_JSON = `{
   "name": "샘플 프로젝트",
@@ -176,7 +176,7 @@ export const SAMPLE_MAP_SCHEMA_JSON = `{
       "defaultWidth": 32,
       "fields": [
         { "name": "title", "type": "string", "label": "제목" },
-        { "name": "text", "type": "text", "label": "글" }
+        { "name": "text", "type": "text", "label": "본문" }
       ]
     }
   ],
@@ -223,7 +223,7 @@ export const SAMPLE_SCENE_JSON = `{
       "y": 448,
       "props": { "interval": 1500 },
       "scripts": [],
-      "editorOnly": { "note": "컴포넌트를 붙이는 자리" }
+      "editorOnly": { "note": "컴포넌트 스크립트 추가용 빈 노드" }
     }
   ]
 }
@@ -231,16 +231,16 @@ export const SAMPLE_SCENE_JSON = `{
 
 export const SAMPLE_README = `# 샘플 프로젝트
 
-메모리 모드의 예제다. 파일은 브라우저 메모리에만 있고 새로 고치면 처음으로 돌아간다.
+메모리 모드의 예제. 파일은 브라우저 메모리에만 있고 새로 고침 시 초기 상태로 복원
 
-- scripts/lua/main.lua: Lua 진입점. 초원 맵을 화면 가운데에 그린다
-- scripts/ruby/main.rb: Ruby 진입점. Lua 판과 같은 화면
+- scripts/lua/main.lua: Lua 진입점. 초원 맵을 화면 가운데에 렌더링
+- scripts/ruby/main.rb: Ruby 진입점. 초원 맵을 화면 가운데에 렌더링
 - resources/images/checker.png: 이미지 미리보기용 체커
 - resources/images/coin.png: 두 프레임 동전 시트 (씬 뷰의 프레임 자르기 예)
 - resources/maps/sample.json: 맵 포맷 v2 예제
-- resources/maps/meadow.json: 20x12 초원 맵. 게임이 그리는 맵이라 맵 뷰에서 칠하고 저장한 뒤 F5 로 돌리면 칠한 칸이 나온다 (타일셋은 resources/tiles/meadow16.png)
+- resources/maps/meadow.json: 20x12 초원 맵. 게임이 렌더링하는 맵이라 맵 뷰에서 칠하고 저장한 뒤 F5 로 실행하면 칠한 타일이 게임에 표시 (타일셋은 resources/tiles/meadow16.png)
 - resources/schema/map-objects.json: 맵 오브젝트 스키마 예제 (오브젝트 목록과 인스펙터 폼)
-- resources/scenes/main.json: 씬 포맷 v1 예제 (씬 뷰에서 연다)
+- resources/scenes/main.json: 씬 포맷 v1 예제 (씬 뷰에서 열기)
 `;
 
 /** MemoryBackend 생성자에 넘길 초기 파일 */

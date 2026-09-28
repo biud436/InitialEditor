@@ -43,10 +43,10 @@ function emscriptenMessage(e: unknown, source: ErrorTextSource | null | undefine
 /** 로더 없이 값만 보고 만든 글 */
 export function plainErrorText(e: unknown): string {
   if (e === null || e === undefined) return `${UNKNOWN} (값 없음)`;
-  if (typeof e === "string") return e.trim() || `${UNKNOWN} (빈 글)`;
+  if (typeof e === "string") return e.trim() || `${UNKNOWN} (빈 문자열)`;
   if (typeof e === "number" || typeof e === "bigint") return `엔진 예외 (값 ${String(e)})`;
   if (typeof e !== "object") return String(e);
-  if (isWasmException(e)) return "C++ 예외 (WebAssembly.Exception, 메시지를 읽을 수 없다)";
+  if (isWasmException(e)) return "C++ 예외 (WebAssembly.Exception, 메시지 읽기 불가)";
   const { name, message } = e as { name?: unknown; message?: unknown };
   if (typeof message === "string" && message.trim()) {
     const label = typeof name === "string" && name && name !== "Error" ? `${name}: ` : "";

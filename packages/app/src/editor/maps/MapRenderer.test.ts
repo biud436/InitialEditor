@@ -226,7 +226,7 @@ describe("MapRenderer", () => {
     internals.loadTilesets();
     await tick();
     await tick();
-    expect(r.status.warning).toBe("타일셋 밖의 gid 1칸");
+    expect(r.status.warning).toBe("타일셋에 없는 gid 타일 1개");
     doc.apply(doc.model.paintCells(0, [{ index: 3, value: 0 }]));
     internals.frame();
     expect(r.status.warning).toBeNull();
@@ -235,7 +235,7 @@ describe("MapRenderer", () => {
     await backend.writeText("resources/maps/t.json", mapText(999));
     await doc.reload();
     internals.frame();
-    expect(r.status.warning).toBe("타일셋 밖의 gid 1칸");
+    expect(r.status.warning).toBe("타일셋에 없는 gid 타일 1개");
     r.dispose();
   });
 

@@ -154,8 +154,8 @@ describe("오브젝트 추가 규칙", () => {
 
   it("unique 타입은 둘째를 거부하고, 스키마에 없는 타입도 거부한다", () => {
     expect(planNewObject(SCHEMA, "start", [], { x: 0, y: 0 }, GEO).ok).toBe(true);
-    expect(planNewObject(SCHEMA, "start", [obj("start", "start", 56)], { x: 0, y: 0 }, GEO)).toEqual({ ok: false, reason: "시작 지점 은(는) 하나만 둘 수 있다" });
-    expect(planNewObject(SCHEMA, "npc", [], { x: 0, y: 0 }, GEO)).toEqual({ ok: false, reason: "스키마에 없는 타입이다: npc" });
+    expect(planNewObject(SCHEMA, "start", [obj("start", "start", 56)], { x: 0, y: 0 }, GEO)).toEqual({ ok: false, reason: "시작 지점: 맵당 1개만 허용" });
+    expect(planNewObject(SCHEMA, "npc", [], { x: 0, y: 0 }, GEO)).toEqual({ ok: false, reason: "스키마에 없는 타입: npc" });
     expect(planNewObject(null, "spawn", [], { x: 0, y: 0 }, GEO).ok).toBe(false);
   });
 
@@ -192,13 +192,13 @@ describe("오브젝트 추가 규칙", () => {
 
   it("이름 바꾸기 검사: 비움과 겹침을 거부하고 그대로면 통과", () => {
     expect(validateRename("a", " a ", ["a", "b"])).toBeNull();
-    expect(validateRename("a", "", ["a", "b"])).toBe("id 는 비울 수 없다");
-    expect(validateRename("a", "b", ["a", "b"])).toBe("이미 있는 id 다: b");
+    expect(validateRename("a", "", ["a", "b"])).toBe("id 비어 있음");
+    expect(validateRename("a", "b", ["a", "b"])).toBe("이미 있는 id: b");
     expect(validateRename("a", "c", ["a", "b"])).toBeNull();
   });
 });
 
-describe("여기서 실행", () => {
+describe("이 맵에서 실행", () => {
   const objects = [obj("start", "start", 56, { y: 384 }), obj("wolf_1", "spawn", 1200, { y: 380 })];
   const base = { objects, selectedIds: [] as string[], cursor: null, viewCenter: null, geometry: GEO };
 
@@ -255,11 +255,11 @@ describe("여기서 실행", () => {
     const listed = { ...SCHEMA, play: { env: { STAGE: "{map.name}" }, maps: ["aldebaran_*", "boss?"] } };
     expect(playMapRefusal(listed, { name: "aldebaran_forest", path: "resources/maps/aldebaran_forest.json" })).toBeNull();
     expect(playMapRefusal(listed, { name: "boss1", path: null })).toBeNull();
-    expect(playMapRefusal(listed, { name: "vm_a", path: "resources/maps/vm_a.json" })).toBe("맵 vm_a은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*, boss?");
-    expect(playMapRefusal(listed, { name: "항구 마을", path: "resources/maps/port_town.json" })).toContain("맵 항구 마을은(는)");
+    expect(playMapRefusal(listed, { name: "vm_a", path: "resources/maps/vm_a.json" })).toBe("'이 맵에서 실행' 대상이 아닌 맵: vm_a (스키마의 play.maps: aldebaran_*, boss?)");
+    expect(playMapRefusal(listed, { name: "항구 마을", path: "resources/maps/port_town.json" })).toContain("'이 맵에서 실행' 대상이 아닌 맵: 항구 마을 (스키마의 play.maps: aldebaran_*, boss?)");
     // 파일의 name이 비었으면 {map.name}과 같이 파일 이름으로 본다
     expect(playMapRefusal(listed, { name: "", path: "resources/maps/aldebaran_tomb.json" })).toBeNull();
-    expect(playMapRefusal({ ...listed, play: { env: {}, maps: [] } }, { name: "a", path: null })).toBe("맵 a은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: 비었다");
+    expect(playMapRefusal({ ...listed, play: { env: {}, maps: [] } }, { name: "a", path: null })).toBe("'이 맵에서 실행' 대상이 아닌 맵: a (스키마의 play.maps: 비어 있음)");
     // 목록이 없거나 play나 스키마가 없으면 이 규칙은 막지 않는다
     expect(playMapRefusal({ ...SCHEMA, play: { env: {} } }, { name: "vm_a", path: null })).toBeNull();
     expect(playMapRefusal({ ...SCHEMA, play: null }, { name: "vm_a", path: null })).toBeNull();

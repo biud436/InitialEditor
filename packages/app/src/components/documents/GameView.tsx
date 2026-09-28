@@ -15,13 +15,13 @@ import "./GameView.css";
 function phaseText(store: GameViewStore): string {
   switch (store.phase) {
     case "staging":
-      return store.progress && store.progress.total > 0 ? `파일 올리는 중 ${store.progress.done}/${store.progress.total}` : "파일 목록을 읽는 중";
+      return store.progress && store.progress.total > 0 ? `파일 복사 중 ${store.progress.done}/${store.progress.total}` : "파일 목록을 읽는 중";
     case "booting":
-      return "엔진 띄우는 중";
+      return "엔진 시작 중";
     case "running":
       return "실행 중";
     case "ended":
-      return store.lastExitCode ? `오류로 끝남 (종료 코드 ${store.lastExitCode})` : "끝남";
+      return store.lastExitCode ? `오류로 종료됨 (종료 코드 ${store.lastExitCode})` : "종료됨";
     case "failed":
       return "실패";
     default:
@@ -109,16 +109,16 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
         <span className={`game-view-state phase-${store.phase}${endedWithError ? " is-error" : ""}`} data-testid="game-state" data-exit-code={store.lastExitCode ?? undefined}>
           {phaseText(store)}
         </span>
-        <span title="game.json 의 창 크기와 보이는 배율">
+        <span title="game.json 창 크기와 표시 배율">
           {store.gameSize.width} x {store.gameSize.height}, {Math.round(scale * 100)}%
         </span>
         {running && store.fps !== null ? (
-          <span className="game-view-fps" data-testid="game-fps" title="초당 프레임 (엔진이 돈 프레임. 엔진 루프는 화면 주사율에 맞춰 돈다)">
+          <span className="game-view-fps" data-testid="game-fps" title="초당 프레임 (엔진이 실행한 프레임 수. 엔진 루프는 화면 주사율에 동기화)">
             {store.fps} FPS
           </span>
         ) : null}
         {running && store.audioSuspended ? (
-          <button type="button" className="btn game-view-audio" onClick={() => store.resumeAudio()} title="브라우저는 누르기 전에 소리를 내지 않는다. 게임 화면을 눌러도 켜진다" data-testid="game-audio">
+          <button type="button" className="btn game-view-audio" onClick={() => store.resumeAudio()} title="브라우저 자동 재생 정책으로 사용자 입력 전 오디오 일시 중지. 게임 화면 클릭으로도 재개" data-testid="game-audio">
             소리 켜기
           </button>
         ) : null}
@@ -128,7 +128,7 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
             <button type="button" className="btn" onClick={run("run.stop")} disabled={!editor.commands.isEnabled("run.stop")} title="정지 (Shift+F5)">
               정지
             </button>
-            <button type="button" className="btn" onClick={run("run.restart")} disabled={!running || !editor.commands.isEnabled("run.restart")} title="다시 시작 (파일을 다시 올린다)">
+            <button type="button" className="btn" onClick={run("run.restart")} disabled={!running || !editor.commands.isEnabled("run.restart")} title="다시 시작 (파일 다시 복사)">
               다시 시작
             </button>
           </>
@@ -142,7 +142,7 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
         <div className="game-view-host" ref={hostRef} />
         {canvas ? null : (
           <div className="game-view-placeholder" style={{ width, height }} data-testid="game-message">
-            {store.message ?? "F5 로 실행한다"}
+            {store.message ?? "실행 중인 게임 없음. F5로 실행"}
           </div>
         )}
       </div>

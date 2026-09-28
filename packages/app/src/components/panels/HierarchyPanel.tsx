@@ -12,7 +12,7 @@ import { TypeIcon } from "../../editor/scene/typeIcons";
 import { ContextMenu, type ContextMenuItem, type ContextMenuState } from "../ContextMenu";
 import "./HierarchyPanel.css";
 
-export const HIERARCHY_EMPTY = "씬을 열면 여기에 오브젝트가 보인다";
+export const HIERARCHY_EMPTY = "활성 씬 탭 없음";
 
 function EyeIcon({ open }: { open: boolean }) {
   return (
@@ -126,10 +126,10 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
       { label: "이름 바꾸기", disabled: many, onClick: () => beginRename(o.id) },
       { label: many ? `복제 (${count}개)` : "복제", onClick: () => tools.duplicateSelected() },
       { label: many ? `삭제 (${count}개)` : "삭제", danger: true, onClick: () => tools.deleteSelected() },
-      { label: "맨 앞으로 (가장 위에 그림)", separatorBefore: true, disabled: doc.scene.indexOf(o.id) === objects.length - 1, onClick: () => tools.bringToFront(o.id) },
-      { label: "맨 뒤로 (가장 아래에 그림)", disabled: doc.scene.indexOf(o.id) === 0, onClick: () => tools.sendToBack(o.id) },
+      { label: "맨 앞으로 (가장 나중에 그림)", separatorBefore: true, disabled: doc.scene.indexOf(o.id) === objects.length - 1, onClick: () => tools.bringToFront(o.id) },
+      { label: "맨 뒤로 (가장 먼저 그림)", disabled: doc.scene.indexOf(o.id) === 0, onClick: () => tools.sendToBack(o.id) },
     ];
-    if (o.scripts.length === 0) items.push({ label: "스크립트 열기: (붙은 것이 없다)", separatorBefore: true, disabled: true });
+    if (o.scripts.length === 0) items.push({ label: "스크립트 열기: (추가된 스크립트 없음)", separatorBefore: true, disabled: true });
     o.scripts.forEach((name, i) => items.push({ label: `스크립트 열기: ${name}`, separatorBefore: i === 0, onClick: () => void editor.openPath(tools.scriptPath(name)) }));
     setMenu({ x: e.clientX, y: e.clientY, items });
   };
@@ -196,7 +196,7 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
                 className={"btn btn-ghost hier-eye" + (o.visible ? "" : " is-off")}
                 aria-label={o.visible ? `${o.id} 숨기기` : `${o.id} 보이기`}
                 aria-pressed={o.visible}
-                title={o.visible ? "보임 (누르면 숨김)" : "숨김 (누르면 보임)"}
+                title={o.visible ? "보임 (클릭하면 숨김)" : "숨김 (클릭하면 보임)"}
                 data-testid="hierarchy-eye"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -244,7 +244,7 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
             </div>
           );
         })}
-        {objects.length === 0 && <div className="panel-hint">오브젝트가 없다. 씬 메뉴의 오브젝트 추가 (Ctrl+Shift+A) 로 더한다</div>}
+        {objects.length === 0 && <div className="panel-hint">오브젝트 없음. 씬 메뉴의 오브젝트 추가(Ctrl+Shift+A)로 추가</div>}
       </div>
       {menu && <ContextMenu state={menu} onClose={() => setMenu(null)} />}
     </div>

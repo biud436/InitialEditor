@@ -9,7 +9,7 @@ describe("about", () => {
   });
 
   it("데스크톱 앱은 웹판 열기, 나머지 모드는 데스크톱 앱 받기 (릴리스 페이지)", () => {
-    expect(editionLink("tauri")).toEqual({ label: "웹판 열기", url: WEB_EDITION_URL });
+    expect(editionLink("tauri")).toEqual({ label: "브라우저 모드 열기", url: WEB_EDITION_URL });
     for (const mode of ["browser", "memory", "bridge"] as const) expect(editionLink(mode)).toEqual({ label: "데스크톱 앱 받기", url: RELEASES_URL });
     expect(WEB_EDITION_URL).toBe("https://initial-editor.biud436.com/");
     expect(RELEASES_URL).toBe("https://github.com/biud436/InitialEditor/releases");
@@ -17,9 +17,9 @@ describe("about", () => {
 
   it("찾은 엔진 한 줄: 찾은 것이 있으면 그것, 없으면 프로젝트가 열렸는지와 찾는 중인지로", () => {
     expect(foundEngineText({ engineDescription: "앱에 든 엔진 (cac4b94, lua mruby)", resolving: false }, true)).toBe("앱에 든 엔진 (cac4b94, lua mruby)");
-    expect(foundEngineText({ engineDescription: null, resolving: false }, false)).toBe("프로젝트를 열면 찾는다");
-    expect(foundEngineText({ engineDescription: null, resolving: true }, true)).toBe("찾는 중");
-    expect(foundEngineText({ engineDescription: null, resolving: false }, true)).toBe("없음 (F5 는 에디터 안에서 돈다)");
+    expect(foundEngineText({ engineDescription: null, resolving: false }, false)).toBe("열린 프로젝트 없음 (프로젝트를 열면 탐색)");
+    expect(foundEngineText({ engineDescription: null, resolving: true }, true)).toBe("탐색 중");
+    expect(foundEngineText({ engineDescription: null, resolving: false }, true)).toBe("없음 (F5 는 게임 탭에서 실행)");
   });
 
   it("웹판에서 안 되는 것: Ruby 실행은 웹 엔진에 mruby 가 없다고 알 때만 더한다", () => {
@@ -45,6 +45,6 @@ describe("about", () => {
     expect(asked).toEqual([["https://initial-editor.biud436.com/engine/THIRD-PARTY.md", { cache: "no-cache" }]]);
 
     const missing = (async () => new Response("", { status: 404 })) as unknown as typeof fetch;
-    await expect(loadEngineNotices(missing, "http://127.0.0.1:4173/engine/")).rejects.toThrow("engine/THIRD-PARTY.md 을(를) 읽지 못했다 (HTTP 404)");
+    await expect(loadEngineNotices(missing, "http://127.0.0.1:4173/engine/")).rejects.toThrow("engine/THIRD-PARTY.md 읽기 실패 (HTTP 404)");
   });
 });

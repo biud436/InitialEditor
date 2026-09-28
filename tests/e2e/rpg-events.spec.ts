@@ -52,7 +52,7 @@ function drawnMarkers(page: Page): Promise<Drawn[]> {
 
 const SIGN_TEXT = '어서 오세요.\n"항구 마을" 입니다.';
 /** 배회하는 이벤트의 자동 재생 설명. 엔진의 play.probe 가 INITIAL2D_RPG_HOLD 로 그 이벤트를 세우면 붙지 않는다 */
-const WANDER_NOTE = "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다";
+const WANDER_NOTE = "배회하는 이벤트: 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있음";
 
 test.describe("RPG 이벤트 (메모리 모드)", () => {
   test("힌트, 표식 17개, 놓기와 끌기와 인스펙터, 커맨드 넣기와 되돌리기, 맵 뷰의 Ctrl+C, 저장 글과 키 순서", async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
 
     // 등록되지 않은 맵: 이벤트 줄은 없고 힌트 한 줄
     await openMap(page, MEADOW, "meadow.json");
-    await expect(layers.getByTestId("layer-hint")).toHaveText("이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다");
+    await expect(layers.getByTestId("layer-hint")).toHaveText("이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)");
     await expect(layers.locator('[data-target="ext:rpg.events"]')).toHaveCount(0);
 
     await openMap(page, PORT, "port_town.json");
@@ -160,7 +160,7 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     // 저장: 새 이벤트는 정해진 키 순서(id, x, y, trigger, commands)와 커맨드의 키 순서(code, text), 나머지 17개는 그대로
     await host.focus();
     await page.keyboard.press(`${mod}+s`);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: port_town.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: port_town.json");
     const savedText = await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT);
     const saved = JSON.parse(savedText) as { events: SavedEvent[] };
     const sign = saved.events.find((e) => e.id === "sign")!;
@@ -205,7 +205,7 @@ test.describe("RPG 이벤트 (메모리 모드)", () => {
     // 자동 재생은 러너가 게임의 줄을 지켜보게 한다 (watch)
     await expect.poll(() => runStarts(page)).toEqual([{ env: { ...base, ...probe, INITIAL2D_RPG_AT: "14,21,up", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" }, watch: "function" }]);
     const logs = await editorLogTexts(page);
-    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, 시작 상태 arrived,heardAltar) INITIAL2D_SCRIPT=lua")), logs.join("\n")).toBe(true);
+    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 결정 키 입력, 시작 상태 arrived,heardAltar) INITIAL2D_SCRIPT=lua")), logs.join("\n")).toBe(true);
     expect(logs.some((l) => l.includes(WANDER_NOTE))).toBe(false);
 
     // 맵 메뉴: 이 이벤트 앞에서 실행 (자동 재생 변수 없이)
@@ -319,8 +319,8 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
 
     // game.json 은 mruby 지만 RPG 실행은 play.env 의 lua 로 뜬다
     const logs = await editorLogTexts(page);
-    expect(logs.some((l) => /^엔진 시작: 에디터 안 \(웹 엔진, [^)]*\), 언어 lua /.test(l)), logs.join("\n")).toBe(true);
-    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 말 걸기, 시작 상태 arrived,heardAltar)")), logs.join("\n")).toBe(true);
+    expect(logs.some((l) => /^엔진 시작: 게임 탭 \(웹 엔진, [^)]*\), 언어 lua /.test(l)), logs.join("\n")).toBe(true);
+    expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 결정 키 입력, 시작 상태 arrived,heardAltar)")), logs.join("\n")).toBe(true);
     expect(logs.some((l) => l.includes(WANDER_NOTE))).toBe(false);
     // 이벤트가 돌았으니 지켜보는 것이 실패를 알리지 않는다
     expect(logs.some((l) => l.includes("돌지 않았다")), logs.join("\n")).toBe(false);
@@ -354,7 +354,7 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     await expect(page.getByTestId("rpg-inspector-id")).toHaveText("ship");
     await page.getByTestId("rpg-inspector-probe").click();
 
-    const stopped = "자동 재생을 멈췄다: 이벤트 ship 뒤에 게임이 새 게임으로 처음부터 다시 시작했다";
+    const stopped = "자동 재생 중단: 이벤트 ship 실행 뒤 게임이 새 게임으로 재시작됨";
     await expect.poll(async () => (await editorLogTexts(page)).some((l) => l.startsWith(stopped)), { timeout: 90_000 }).toBe(true);
     await expect.poll(() => ev<string>(page, "(e) => e.runner.state"), { timeout: 15_000 }).toBe("idle");
     await expect(page.getByTestId("toasts")).toContainText(stopped);
@@ -413,7 +413,7 @@ test.describe("RPG 이벤트 (브리지 모드, 레이아웃)", () => {
     await expect.poll(eventsOpen).toBe(false);
     await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
     await expect(page.locator(".dv-tab").filter({ hasText: /^이벤트$/ })).toHaveCount(0);
-    await expect(page.getByText("이 맵에는 이벤트 레이어가 없다")).toHaveCount(0);
+    await expect(page.getByText("이 맵에 이벤트 레이어 없음")).toHaveCount(0);
     // 사용자가 닫은 것이 아니다. 나머지 타일맵 레이아웃은 그대로다
     expect(await ev<boolean>(page, "(e) => e.layout.userClosed.has('ext:rpg.events')")).toBe(false);
     expect(await ev<boolean>(page, "(e) => e.layout.isPanelOpen('mapLayers')")).toBe(true);

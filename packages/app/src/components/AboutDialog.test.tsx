@@ -75,7 +75,7 @@ describe("정보 창", () => {
     renderTop(t.modals);
     const engine = screen.getByTestId("about-web-engine");
     await waitFor(() => expect(engine.getAttribute("data-state")).toBe("error"));
-    expect(engine.textContent).toBe("읽지 못했다: 웹 엔진 파일이 없다");
+    expect(engine.textContent).toBe("읽기 실패: 웹 엔진 파일이 없다");
   });
 
   it("데스크톱 앱은 찾은 엔진 줄을 보인다 (앱에 든 엔진이면 판). 웹판에는 그 줄이 없다", async () => {
@@ -90,7 +90,7 @@ describe("정보 창", () => {
     const missing = setup("tauri");
     void openAboutDialog({ ...missing.host, runner: { engineDescription: null, resolving: false }, project: { isOpen: true } }, { open: missing.open });
     renderTop(missing.modals);
-    expect(screen.getByTestId("about-engine").textContent).toBe("없음 (F5 는 에디터 안에서 돈다)");
+    expect(screen.getByTestId("about-engine").textContent).toBe("없음 (F5 는 게임 탭에서 실행)");
     await waitFor(() => expect(screen.getByTestId("about-web-engine").getAttribute("data-state")).toBe("ready"));
 
     cleanup();
@@ -103,7 +103,7 @@ describe("정보 창", () => {
 
   it("webEngineText: 커밋 일곱 자리와 기능, 커밋 안 된 변경이면 그렇다고", () => {
     expect(webEngineText(MANIFEST)).toBe("179cecc (lua mruby wasm)");
-    expect(webEngineText({ ...MANIFEST, engineCommit: null, engineDirty: true, features: ["lua", "wasm"] })).toBe("커밋 모름 (lua wasm, 커밋 안 된 변경)");
+    expect(webEngineText({ ...MANIFEST, engineCommit: null, engineDirty: true, features: ["lua", "wasm"] })).toBe("커밋 정보 없음 (lua wasm, 커밋 안 된 변경)");
   });
 
   it("데스크톱 앱은 웹판 열기이고 opener 플러그인으로 연다", () => {
@@ -111,7 +111,7 @@ describe("정보 창", () => {
     void openAboutDialog(t.host, { open: t.open });
     renderTop(t.modals);
     const link = screen.getByTestId("about-edition");
-    expect(link.textContent).toBe("웹판 열기");
+    expect(link.textContent).toBe("브라우저 모드 열기");
     expect(link.getAttribute("target")).toBeNull();
     fireEvent.click(link);
     expect(t.invoked).toEqual([[OPEN_URL_COMMAND, { url: WEB_EDITION_URL }]]);

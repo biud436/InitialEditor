@@ -31,7 +31,7 @@ export const ImagePreviewView = observer(function ImagePreviewView({ doc }: { do
       </div>
       <div className="image-preview-body">
         {doc.error ? (
-          <div className="panel-hint">읽지 못했다: {doc.error}</div>
+          <div className="panel-hint">열기 실패: {doc.error}</div>
         ) : doc.url ? (
           <img
             className="image-preview-img"

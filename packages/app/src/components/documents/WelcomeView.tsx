@@ -14,14 +14,14 @@ import { ExternalLink } from "../ExternalLink";
 import "./WelcomeView.css";
 
 const MODE_DESCRIPTION: Record<BackendMode, string> = {
-  memory: "브라우저 메모리의 샘플 프로젝트다. 서버가 필요 없고, 새로 고치면 처음으로 돌아간다.",
-  bridge: "브라우저 모드다. 엔진 저장소의 브리지 서버(node tools/bridge/server.js --project <폴더>)로 프로젝트 폴더를 읽고 쓴다. 엔진 실행은 데스크톱 앱에서만 된다.",
-  tauri: "데스크톱 앱이다. 폴더를 직접 열고 파일을 감시하며 엔진을 띄운다.",
-  browser: "웹판이다. 내 컴퓨터의 프로젝트 폴더를 브라우저에서 바로 열어 읽고 쓴다. 게임은 게임 뷰에서 엔진(WASM)으로 돈다. 밖에서 바꾼 파일은 1.5초 안에 보인다.",
+  memory: "브라우저 메모리의 샘플 프로젝트. 서버 불필요, 새로 고침 시 초기 상태로 복원",
+  bridge: "엔진 저장소의 브리지 서버(node tools/bridge/server.js --project <폴더>)로 프로젝트 폴더 읽기와 쓰기. 게임은 게임 탭의 웹 엔진으로 실행, 엔진 프로세스 실행은 데스크톱 앱 전용",
+  tauri: "폴더 직접 열기, 파일 변경 감시, 엔진 프로세스 실행",
+  browser: "로컬 프로젝트 폴더를 브라우저에서 직접 열어 읽기와 쓰기. 게임은 게임 탭의 웹 엔진(WASM)으로 실행. 외부에서 변경한 파일은 1.5초 이내 반영",
 };
 
-const FALLBACK_NOTICE = "이 브라우저에는 폴더 열기가 없어 샘플 프로젝트로 시작했다. 내 폴더를 열려면 크롬이나 엣지에서 이 페이지를 연다.";
-const NO_PICKER = "이 브라우저에는 폴더 열기가 없다 (크롬, 엣지에서 된다)";
+const FALLBACK_NOTICE = "폴더 열기 미지원 브라우저, 샘플 프로젝트로 시작됨. 로컬 폴더는 크롬이나 엣지에서 열기 가능";
+const NO_PICKER = "폴더 열기 미지원 브라우저 (크롬, 엣지에서 지원)";
 
 const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }: { editor: Editor }) {
   const folders = browserFolders(editor);
@@ -32,7 +32,7 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
           type="button"
           className="btn btn-primary"
           disabled={!folders.supported}
-          title={folders.supported ? "프로젝트 폴더(game.json 이 있는 폴더)를 고른다" : NO_PICKER}
+          title={folders.supported ? "프로젝트 폴더(game.json이 있는 폴더) 선택" : NO_PICKER}
           onClick={() => void folders.openNew()}
         >
           폴더 열기
@@ -41,20 +41,20 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
           type="button"
           className="btn"
           disabled={!folders.supported}
-          title={folders.supported ? "폴더를 고르고 템플릿으로 새 프로젝트를 만든다" : NO_PICKER}
+          title={folders.supported ? "폴더 선택 후 템플릿으로 새 프로젝트 생성" : NO_PICKER}
           onClick={() => void editor.commands.execute("file.newProject")}
         >
           새 프로젝트
         </button>
         <button type="button" className="btn" onClick={() => void folders.openSample()}>
-          샘플로 해 보기
+          샘플 프로젝트 열기
         </button>
       </div>
       {!folders.supported && <p className="welcome-notice">{NO_PICKER}</p>}
       <section className="welcome-section">
         <h2>최근 폴더</h2>
         {folders.records.length === 0 ? (
-          <p className="muted">{folders.loaded ? "아직 없다" : "읽는 중"}</p>
+          <p className="muted">{folders.loaded ? "최근 폴더 없음" : "읽는 중"}</p>
         ) : (
           <ul className="welcome-recent" data-testid="welcome-recent-folders">
             {folders.records.map((record) => (
@@ -65,7 +65,7 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
                 <button type="button" className="btn" onClick={() => void folders.reopen(record)}>
                   다시 열기
                 </button>
-                <button type="button" className="btn btn-ghost" aria-label={`${record.name} 을(를) 목록에서 지우기`} onClick={() => void folders.forget(record.key)}>
+                <button type="button" className="btn btn-ghost" aria-label={`최근 폴더 목록에서 제거: ${record.name}`} onClick={() => void folders.forget(record.key)}>
                   ×
                 </button>
               </li>
@@ -77,7 +77,7 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
             {folders.restoreNotice}
           </p>
         )}
-        <p className="muted welcome-hint">브라우저가 폴더 권한을 기억하지 않았으면 다시 열 때 한 번 더 묻는다.</p>
+        <p className="muted welcome-hint">브라우저에 폴더 권한이 저장되지 않은 경우 다시 열 때 권한 요청</p>
       </section>
     </>
   );
@@ -99,7 +99,7 @@ const WebEditionFooter = observer(function WebEditionFooter({ editor }: { editor
         </ExternalLink>
       </p>
       <p className="muted" data-testid="welcome-web-limits">
-        웹판에서 안 되는 것: {webLimits(features).join(", ")}. 데스크톱 앱에서 된다.
+        브라우저 모드 미지원: {webLimits(features).join(", ")} (데스크톱 앱에서 지원)
       </p>
     </section>
   );
@@ -147,7 +147,7 @@ export const WelcomeView = observer(function WelcomeView() {
         <section className="welcome-section">
           <h2>최근 프로젝트</h2>
           {recent.length === 0 ? (
-            <p className="muted">아직 없다</p>
+            <p className="muted">최근 프로젝트 없음</p>
           ) : (
             <ul className="welcome-recent">
               {recent.map((root) => (
@@ -155,7 +155,7 @@ export const WelcomeView = observer(function WelcomeView() {
                   <button type="button" className="btn btn-ghost welcome-recent-open" title={root} onClick={() => void editor.openProject(root)}>
                     {root}
                   </button>
-                  <button type="button" className="btn btn-ghost" aria-label={`${root} 을(를) 목록에서 지우기`} onClick={() => editor.settings.removeRecentProject(root)}>
+                  <button type="button" className="btn btn-ghost" aria-label={`최근 프로젝트 목록에서 제거: ${root}`} onClick={() => editor.settings.removeRecentProject(root)}>
                     ×
                   </button>
                 </li>
@@ -167,8 +167,8 @@ export const WelcomeView = observer(function WelcomeView() {
       <section className="welcome-section">
         <h2>계획</h2>
         <p>
-          E0(지금)은 토대다: 프로젝트 폴더를 열어 파일 트리와 콘솔을 보이고, 테마와 도킹 레이아웃이 저장된다. E1 에서 스크립트 편집과 핫 리로드와 실행 버튼이, E2 에서 씬과
-          오브젝트가, E3 에서 타일맵 확장이 붙는다.{" "}
+          단계: E0 기반(프로젝트 폴더, 파일 트리, 콘솔, 테마, 도킹 레이아웃 저장), E1 스크립트 편집, 핫 리로드, 실행 버튼, E2 씬과 오브젝트, E3 타일맵 확장. 진행
+          상황:{" "}
           <ExternalLink host={editor} href={PLANS_INDEX}>
             계획 문서
           </ExternalLink>

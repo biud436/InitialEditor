@@ -37,7 +37,7 @@ export interface TemplateManifest {
 }
 
 export const TEMPLATE_LABELS: Record<ProjectTemplateId, string> = {
-  empty: "빈 프로젝트 (씬 하나)",
+  empty: "빈 프로젝트 (씬 1개)",
   flappy: "플래피버드 (씬과 컴포넌트)",
   tilemap: "타일맵",
 };

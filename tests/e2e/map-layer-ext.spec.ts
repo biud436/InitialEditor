@@ -135,7 +135,7 @@ test.describe("확장 레이어 자리", () => {
     await page.keyboard.press(`${mod}+v`);
     expect((await marksLog(page)).keys).toEqual(["Mod+c", "Mod+v"]);
     expect(await ev<number>(page, "(e) => e.mapSupport.clipboard.size")).toBe(0);
-    await expect(page.getByTestId("toasts")).not.toContainText("복사했다");
+    await expect(page.getByTestId("toasts")).not.toContainText("복사됨");
     expect(await ev<number>(page, "(e) => e.documents.active.model.objects.length")).toBe(4);
 
     // 포인터와 더블클릭은 칸 좌표와 함께 레이어 도구로 간다
@@ -163,7 +163,7 @@ test.describe("확장 레이어 자리", () => {
     // 그래도 저장: 섹션의 값이 파일에 쓰인다
     await page.keyboard.press(`${mod}+s`);
     await modal.getByRole("button", { name: "그래도 저장" }).click();
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: meadow.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: meadow.json");
     const saved = JSON.parse(await disk()) as { marks?: unknown; layers: Array<{ data: number[] }> };
     expect(saved.marks).toEqual([{ id: "m1", x: 2, y: 3 }]);
     expect(saved.layers[0].data[0]).toBe(2);

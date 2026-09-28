@@ -51,8 +51,8 @@ export function ResizeMapForm({ width, height, tileWidth, tileHeight, preview, o
   const [heightText, setHeightText] = useState(String(height));
   const [anchor, setAnchor] = useState<ResizeAnchor>("top-left");
 
-  const widthError = validateMapTiles(widthText, "폭은");
-  const heightError = validateMapTiles(heightText, "높이는");
+  const widthError = validateMapTiles(widthText, "너비");
+  const heightError = validateMapTiles(heightText, "높이");
   const error = widthError ?? heightError;
   const req: ResizeRequest | null = error ? null : { width: Number(widthText.trim()), height: Number(heightText.trim()), anchor };
   const same = !!req && req.width === width && req.height === height;
@@ -67,17 +67,17 @@ export function ResizeMapForm({ width, height, tileWidth, tileHeight, preview, o
     <form onSubmit={submit} data-testid="resize-map-dialog">
       <div className="modal-body map-dialog">
         <div className="form-row">
-          <label>지금</label>
+          <label>현재 크기</label>
           <div className="map-dialog-now" data-testid="resize-current">
-            {width}x{height} 칸 ({width * tileWidth}x{height * tileHeight} px)
+            {width}x{height} 타일 ({width * tileWidth}x{height * tileHeight} px)
           </div>
         </div>
         <div className="form-row">
-          <label htmlFor="resize-width">새 크기 (칸)</label>
+          <label htmlFor="resize-width">새 크기 (타일)</label>
           <div className="map-dialog-pair">
-            <input id="resize-width" className="input" inputMode="numeric" value={widthText} onChange={(e) => setWidthText(e.target.value)} aria-label="새 폭 (칸)" data-autofocus autoFocus onFocus={(e) => e.target.select()} data-testid="resize-width" />
+            <input id="resize-width" className="input" inputMode="numeric" value={widthText} onChange={(e) => setWidthText(e.target.value)} aria-label="새 너비 (타일)" data-autofocus autoFocus onFocus={(e) => e.target.select()} data-testid="resize-width" />
             <span className="muted">x</span>
-            <input className="input" inputMode="numeric" value={heightText} onChange={(e) => setHeightText(e.target.value)} aria-label="새 높이 (칸)" data-testid="resize-height" />
+            <input className="input" inputMode="numeric" value={heightText} onChange={(e) => setHeightText(e.target.value)} aria-label="새 높이 (타일)" data-testid="resize-height" />
           </div>
           {req ? (
             <div className="form-help">
@@ -88,20 +88,20 @@ export function ResizeMapForm({ width, height, tileWidth, tileHeight, preview, o
         <div className="form-row">
           <label>기준점</label>
           <AnchorPicker value={anchor} onChange={setAnchor} />
-          <div className="form-help">옛 맵이 붙는 자리. 반대쪽이 늘거나 잘린다</div>
+          <div className="form-help">기준점: 기존 맵 내용을 고정할 위치. 반대쪽이 늘어나거나 잘림</div>
         </div>
         {summary ? (
           <div className="map-dialog-summary" data-testid="resize-summary" data-dx={summary.offset.dx} data-dy={summary.offset.dy}>
             {describeOffset(summary)}
-            {summary.clips ? ", 줄어드는 쪽의 칸은 잘린다" : ""}
+            {summary.clips ? ", 줄어드는 쪽의 타일은 잘림" : ""}
             {summary.objectsOutside.length > 0 ? (
               <div className="map-dialog-warning" data-testid="resize-outside" data-count={summary.objectsOutside.length}>
-                맵 밖으로 나가는 오브젝트 {summary.objectsOutside.length}개 (지우지 않는다): {summary.objectsOutside.join(", ")}
+                맵 밖으로 나가는 오브젝트 {summary.objectsOutside.length}개 (삭제 안 함): {summary.objectsOutside.join(", ")}
               </div>
             ) : null}
             {summary.objectsPartlyOutside.length > 0 ? (
               <div className="map-dialog-warning" data-testid="resize-partly" data-count={summary.objectsPartlyOutside.length}>
-                끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 {summary.objectsPartlyOutside.length}개: {summary.objectsPartlyOutside.join(", ")}
+                영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 {summary.objectsPartlyOutside.length}개: {summary.objectsPartlyOutside.join(", ")}
               </div>
             ) : null}
             {summary.eventsOutside > 0 ? <div className="map-dialog-warning">맵 밖으로 나가는 이벤트 {summary.eventsOutside}개</div> : null}
@@ -112,7 +112,7 @@ export function ResizeMapForm({ width, height, tileWidth, tileHeight, preview, o
             {error}
           </div>
         ) : null}
-        {same ? <div className="map-dialog-summary">크기가 같다</div> : null}
+        {same ? <div className="map-dialog-summary">현재 크기와 같음</div> : null}
       </div>
       <div className="modal-actions">
         <button type="button" className="btn" onClick={onCancel}>

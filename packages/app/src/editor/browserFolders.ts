@@ -58,7 +58,7 @@ export class BrowserFolders {
     try {
       handle = await this.backend.pickHandle();
     } catch (e) {
-      this.fail("폴더를 열지 못했다", e);
+      this.fail("폴더 열기 실패", e);
       return false;
     }
     if (!handle) return false;
@@ -67,7 +67,7 @@ export class BrowserFolders {
     try {
       key = (await this.backend.handles.remember(handle)).key;
     } catch (e) {
-      this.fail("폴더를 열지 못했다", e);
+      this.fail("폴더 열기 실패", e);
       return false;
     }
     await this.refresh();
@@ -88,23 +88,23 @@ export class BrowserFolders {
     try {
       handle = await this.backend.handles.restore(record.key);
     } catch (e) {
-      this.fail("기억한 폴더를 열지 못했다", e);
+      this.fail("최근 폴더 열기 실패", e);
       return false;
     }
     if (!handle) {
-      this.editor.toasts.warn(`${record.name} 폴더를 찾지 못했다. 폴더 열기로 다시 고른다`);
+      this.editor.toasts.warn(`${record.name} 폴더 없음. 폴더 열기로 다시 선택`);
       return false;
     }
     const granted = await requestReadWrite(handle, true).catch(() => false);
     if (!granted) {
-      this.editor.toasts.warn(`${record.name} 폴더에 읽고 쓸 권한을 받지 못했다`);
+      this.editor.toasts.warn(`${record.name} 폴더의 읽기와 쓰기 권한 없음`);
       return false;
     }
     return this.openKey(record.key);
   }
 
   async forget(key: string): Promise<void> {
-    await this.backend.handles.forget(key).catch((e) => this.fail("목록에서 지우지 못했다", e));
+    await this.backend.handles.forget(key).catch((e) => this.fail("최근 폴더 목록에서 제거 실패", e));
     await this.refresh();
   }
 
@@ -130,7 +130,7 @@ export class BrowserFolders {
     try {
       handle = await this.backend.pickHandle();
     } catch (e) {
-      this.fail("폴더를 고르지 못했다", e);
+      this.fail("폴더 선택 실패", e);
       return null;
     }
     if (!handle) return null;
@@ -144,7 +144,7 @@ export class BrowserFolders {
     try {
       key = (await this.backend.handles.remember(handle)).key;
     } catch (e) {
-      this.fail("폴더를 기억하지 못했다", e);
+      this.fail("최근 폴더 저장 실패", e);
       return null;
     }
     await this.refresh();
@@ -177,7 +177,7 @@ export function browserFolders(editor: Editor, backend?: FsAccessBackend): Brows
 }
 
 /** 샘플 맵을 열었을 때 한 번 띄우는 안내 */
-export const SAMPLE_MAP_HINT = "샘플 게임이 그리는 맵이다. 팔레트에서 타일을 골라 칠하고 저장한 뒤 F5 로 돌려 본다";
+export const SAMPLE_MAP_HINT = "샘플 게임이 렌더링하는 맵. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5 로 실행";
 
 const hinted = new WeakSet<object>();
 

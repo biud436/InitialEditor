@@ -136,8 +136,8 @@ describe("AndroidStageStore 신뢰", () => {
     const { store, host, runs } = setup({ exists: (p) => (p === "/home/u/games/Initial2D" ? {} : null) });
     const { found } = await store.discover();
     expect(store.isTrusted(found!)).toBe(false);
-    await expect(store.count(found!, false)).rejects.toThrow(/스크립트 실행을 허용하지 않았다/);
-    expect(await store.stage(found!, false).catch((e: Error) => e.message)).toMatch(/허용하지 않았다/);
+    await expect(store.count(found!, false)).rejects.toThrow(/스크립트 실행 허용 안 함/);
+    expect(await store.stage(found!, false).catch((e: Error) => e.message)).toMatch(/허용 안 함/);
     expect(runs).toEqual([]);
     store.trust(found!);
     expect(host.settings.settings.androidTrust).toEqual({
@@ -201,12 +201,12 @@ describe("AndroidStageStore 미리 세기와 스테이징", () => {
     expect(store.last).toEqual(summary);
     expect(runs).toEqual([{ repo: "/home/u/games/Initial2D", project: "/home/u/games/flappy", withRtp: false, dryRun: false }]);
     const log = androidLog(host);
-    expect(log[0]).toEqual(["info", "안드로이드 스테이징: /home/u/games/flappy 를 /home/u/games/Initial2D/android/app/src/main/assets/ 로 (RTP 변환물 빼기)"]);
+    expect(log[0]).toEqual(["info", "안드로이드 스테이징: /home/u/games/flappy 를 /home/u/games/Initial2D/android/app/src/main/assets/ 로 (RTP 변환물 제외)"]);
     expect(log).toContainEqual(["warn", "WARN aapt-ignored: resources/_old/a.png 는 APK 에 들어가지 않는 이름이라 뺐다"]);
     expect(log).toContainEqual(["info", STAGED]);
     const tail = log.slice(-6).map(([, t]) => t);
     expect(tail).toEqual([
-      "다음 명령 (/home/u/games/Initial2D 에서):",
+      "다음 셸 명령 (/home/u/games/Initial2D 에서):",
       "  ./android/download_sdl.sh",
       "  cd android",
       "  gradle wrapper --gradle-version 8.6",
@@ -228,7 +228,7 @@ describe("AndroidStageStore 미리 세기와 스테이징", () => {
     expect(androidLog(host)).toContainEqual(["warn", "WARN rtp: RTP 변환물이 들어간다. 이 APK 는 배포하지 않는다"]);
     // SDL 과 래퍼가 있으면 빌드부터
     expect(androidLog(host).slice(-4).map(([, t]) => t)).toEqual([
-      "다음 명령 (/home/u/games/Initial2D 에서):",
+      "다음 셸 명령 (/home/u/games/Initial2D 에서):",
       "  cd android",
       "  ./gradlew :app:assembleDebug",
       "  adb install -r app/build/outputs/apk/debug/app-debug.apk",
@@ -241,8 +241,8 @@ describe("AndroidStageStore 미리 세기와 스테이징", () => {
     expect(store.last).toBeNull();
     expect(store.state).toBe("idle");
     expect(androidLog(host)).toContainEqual(["error", "prepare_assets: game.json 이 없다: /home/u/games/flappy"]);
-    expect(androidLog(host)).toContainEqual(["error", "스테이징이 실패했다: game.json 이 없다: /home/u/games/flappy"]);
-    expect(host.toastLog).toEqual([["error", "안드로이드 스테이징이 실패했다: game.json 이 없다: /home/u/games/flappy"]]);
+    expect(androidLog(host)).toContainEqual(["error", "스테이징 실패: game.json 이 없다: /home/u/games/flappy"]);
+    expect(host.toastLog).toEqual([["error", "안드로이드 스테이징 실패: game.json 이 없다: /home/u/games/flappy"]]);
   });
 
   it("종료 코드가 0 이어도 STAGED 줄이 없으면 실패다", async () => {
@@ -261,7 +261,7 @@ describe("AndroidStageStore 미리 세기와 스테이징", () => {
     });
     expect(await failing.stage(trusted(), false)).toBeNull();
     expect(failing.state).toBe("idle");
-    expect(host.toastLog).toEqual([["error", "안드로이드 스테이징을 시작하지 못했다: Git for Windows 의 bash 가 필요하다"]]);
+    expect(host.toastLog).toEqual([["error", "안드로이드 스테이징 시작 실패: Git for Windows 의 bash 가 필요하다"]]);
     expect(store.state).toBe("idle");
   });
 

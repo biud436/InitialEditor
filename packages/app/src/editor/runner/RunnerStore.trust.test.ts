@@ -116,10 +116,10 @@ async function setup(o: Setup = {}) {
       await o.probeGate?.[exe];
       if ((slow[exe] ?? 0) > 0) {
         slow[exe]--;
-        throw new BackendError(`${exe} --features 가 15초 안에 응답하지 않는다`, "io", exe);
+        throw new BackendError(`${exe} --features 응답 시간 초과 (15초)`, "io", exe);
       }
       const features = o.engines?.[exe];
-      if (!features) throw new BackendError(`엔진 실행 파일이 없다: ${exe}`, "engine_not_found", exe);
+      if (!features) throw new BackendError(`엔진 실행 파일 없음: ${exe}`, "engine_not_found", exe);
       return features;
     },
     exists: async (paths) => {
@@ -171,7 +171,7 @@ describe("신뢰하지 않은 프로젝트", () => {
     // 답은 앱 설정에 남는다 (프로젝트 폴더에는 쓰지 않는다)
     expect(t.settings.settings.engineTrust).toEqual({ [ROOT]: { allow: false, exes: [PROJECT_FILE, BUILD] } });
     expect((await t.host.backend.list(".initial-editor")).map((e) => e.name)).toEqual(["engine"]);
-    expect(texts(t.log)).toContainEqual(`info/runner: 프로젝트가 가리키는 엔진을 신뢰하지 않아 실행하지 않았다: ${PROJECT_FILE}, ${BUILD}. 설정에서 다시 물을 수 있다`);
+    expect(texts(t.log)).toContainEqual(`info/runner: 프로젝트가 가리키는 엔진을 신뢰하지 않아 실행 안 함: ${PROJECT_FILE}, ${BUILD}. 설정에서 다시 확인 가능`);
   });
 
   it("앱에 든 엔진이 답하면 형제 폴더의 엔진은 묻지도 보지도 않는다 (build/ 도 .initial-editor/engine 도 없는 프로젝트)", async () => {
@@ -513,7 +513,7 @@ describe("엔진을 못 찾으면 에디터 안으로", () => {
     expect(t.runner.canRun).toBe(true);
     expect(t.runner.modeHint).toBe(FALLBACK_NOTICE);
     expect(t.runner.statusTitle).toContain(FALLBACK_NOTICE);
-    expect(t.runner.statusTitle).toContain(`신뢰하지 않아 건너뛴 곳: ${BUILD}`);
+    expect(t.runner.statusTitle).toContain(`신뢰하지 않아 건너뛴 경로: ${BUILD}`);
     await t.runner.start();
     expect(t.specs).toEqual([]);
     expect(t.embedded!.launches).toEqual([{ INITIAL2D_SCRIPT: "lua" }]);
@@ -521,10 +521,10 @@ describe("엔진을 못 찾으면 에디터 안으로", () => {
     expect(t.runner.fallback).toBe("embedded");
     expect(t.runner.engineSource).toBe("none");
     expect(t.settings.settings.runMode).toBe("process");
-    expect(t.runner.statusText).toBe("엔진 (에디터 안): 실행 중 00:00");
+    expect(t.runner.statusText).toBe("엔진 (게임 탭): 실행 중 00:00");
     const line = texts(t.log).find((l) => l.startsWith(`info/runner: ${FALLBACK_NOTICE}`));
-    expect(line).toContain(`찾아본 곳: ${SIBLING}`);
-    expect(line).toContain("설정의 실행 방식은 그대로다");
+    expect(line).toContain(`탐색한 경로: ${SIBLING}`);
+    expect(line).toContain("설정의 실행 방식은 변경 안 함");
     await t.runner.stop();
   });
 
@@ -559,7 +559,7 @@ describe("엔진을 못 찾으면 에디터 안으로", () => {
     const t = await setup({});
     await t.runner.resolveEngine();
     expect(t.runner.canRun).toBe(false);
-    expect(t.runner.startHint).toContain("엔진을 찾지 못했다");
+    expect(t.runner.startHint).toContain("엔진 탐색 실패");
   });
 });
 

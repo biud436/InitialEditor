@@ -124,7 +124,7 @@ export interface ReadStageResult {
 
 export class StageAbortedError extends Error {
   constructor() {
-    super("실행을 그만뒀다");
+    super("시작 취소됨");
     this.name = "AbortError";
   }
 }
@@ -146,7 +146,7 @@ export async function readStageFiles(backend: ProjectBackend, entries: readonly 
       try {
         data = await backend.readBinary(entry.path);
       } catch (e) {
-        throw new Error(`${entry.path} 을(를) 읽지 못했다: ${(e as Error).message}`);
+        throw new Error(`${entry.path} 읽기 실패: ${(e as Error).message}`);
       }
       if (data.byteLength > MAX_STAGE_BYTES) tooLarge.push(entry.path);
       else {

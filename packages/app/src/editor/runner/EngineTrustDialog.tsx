@@ -15,9 +15,9 @@ export const TRUST_DENY_NO_BUNDLED = "실행하지 않기";
 /** 형제 폴더(../Initial2D/build/)는 프로젝트가 가리킨 것이 아니라 옆에 있는 것이라 그렇게 말한다 */
 export function trustMessage(q: TrustQuestion): string {
   const siblings = q.candidates.filter((c) => c.source === "sibling").length;
-  if (siblings > 0 && siblings === q.candidates.length) return "프로젝트 옆 폴더의 엔진을 실행할까?";
-  if (siblings > 0) return "이 프로젝트가 가리키거나 옆 폴더에 있는 엔진들을 실행할까?";
-  return q.candidates.length > 1 ? "이 프로젝트가 가리키는 엔진들을 실행할까?" : "이 프로젝트가 가리키는 엔진을 실행할까?";
+  if (siblings > 0 && siblings === q.candidates.length) return "프로젝트 상위 폴더의 엔진을 실행할까요?";
+  if (siblings > 0) return "이 프로젝트가 가리키거나 프로젝트 상위 폴더에 있는 엔진들을 실행할까요?";
+  return q.candidates.length > 1 ? "이 프로젝트가 가리키는 엔진들을 실행할까요?" : "이 프로젝트가 가리키는 엔진을 실행할까요?";
 }
 
 export function EngineTrustBody({ question, onAnswer }: { question: TrustQuestion; onAnswer: (answer: Exclude<TrustAnswer, null>) => void }) {
@@ -33,7 +33,7 @@ export function EngineTrustBody({ question, onAnswer }: { question: TrustQuestio
           ))}
         </ul>
         <p className="form-help">
-          허용하면 엔진을 찾을 때와 실행할 때 이 파일을 띄운다. 받은 프로젝트라면 실행하지 않는다. 답은 앱 설정에 남고 설정에서 취소할 수 있다
+          허용하면 엔진 탐색과 실행에 이 파일을 사용. 다른 사람에게 받은 프로젝트면 허용 비권장. 선택은 앱 설정에 저장되고 설정에서 취소 가능
         </p>
         <p className="form-help">프로젝트: {question.root}</p>
       </div>

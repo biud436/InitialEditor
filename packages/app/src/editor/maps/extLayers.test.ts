@@ -165,11 +165,11 @@ describe("레이어 커맨드", () => {
     runInAction(() => (f.support.activeMap = other));
     expect(other.layerState("test.marks")).toBeNull();
     expect(f.commands.isEnabled(id)).toBe(false);
-    expect(f.hints.get(id)!()).toBe("이 맵에는 표식 레이어가 없다");
+    expect(f.hints.get(id)!()).toBe("이 맵에 표식 레이어 없음");
     expect(selectExtLayer(other, "test.marks")).toBe(false);
     expect(other.target).toEqual({ kind: "layer", index: 0 });
     runInAction(() => (f.support.activeMap = null));
-    expect(f.hints.get(id)!()).toBe("맵 탭이 활성일 때");
+    expect(f.hints.get(id)!()).toBe("활성 맵 탭 없음");
   });
 
   it("레이어의 visible 이 거짓이면(이 프로젝트에 없는 레이어) 커맨드가 메뉴에서 빠지고 단축키도 듣지 않는다", () => {
@@ -216,7 +216,7 @@ describe("저장 전 질문", () => {
     f.doc.apply(state.add({ id: "out", x: -2, y: 0 }));
     expect(await confirmLayerErrors(ok.modals, f.doc)).toBe(true);
     expect(ok.asked).toEqual([
-      { title: "오류가 있는 맵 저장", message: "town.json에 오류가 1개 있다. 엔진이 틀린 항목을 건너뛰거나 멈출 수 있다.\n- marks[2]: out 이(가) 맵 밖이다", okLabel: "그래도 저장", cancelLabel: "취소" },
+      { title: "오류가 있는 맵 저장", message: "town.json: 오류 1개. 엔진이 오류 항목을 건너뛰거나 실행을 멈출 수 있음. 그래도 저장할까요?\n- marks[2]: out 이(가) 맵 밖이다", okLabel: "그래도 저장", cancelLabel: "취소" },
     ]);
     const no = asker(false);
     expect(await confirmLayerErrors(no.modals, f.doc)).toBe(false);
@@ -235,7 +235,7 @@ describe("저장 전 질문", () => {
         }),
       ),
     );
-    expect(doc.problems.map((p) => [p.severity, p.message])).toEqual([["error", "id 가 겹친다: dup"]]);
+    expect(doc.problems.map((p) => [p.severity, p.message])).toEqual([["error", "id 중복: dup"]]);
     const a = asker(false);
     expect(await confirmLayerErrors(a.modals, doc)).toBe(true);
     expect(await confirmLayerErrors(a.modals, { kind: "script" } as never)).toBe(true);

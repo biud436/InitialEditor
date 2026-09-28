@@ -234,7 +234,7 @@ export class MapRenderer {
       }
     } catch (e) {
       runInAction(() => {
-        this.status.error = `WebGL을 쓸 수 없다: ${(e as Error).message}`;
+        this.status.error = `WebGL 초기화 실패: ${(e as Error).message}`;
       });
       return;
     }
@@ -870,7 +870,7 @@ export class MapRenderer {
   /** 읽지 못한 타일셋과 타일셋 밖의 gid를 헤더에 알린다 */
   private updateWarning(): void {
     const parts: string[] = [];
-    for (const slot of this.tilesets) if (slot.error) parts.push(`타일셋을 읽지 못했다: ${slot.image} (${slot.error})`);
+    for (const slot of this.tilesets) if (slot.error) parts.push(`타일셋 읽기 실패: ${slot.image} (${slot.error})`);
     let missing = 0;
     const seen = new Map<number, boolean>();
     for (const layer of this.model.layers) {
@@ -886,7 +886,7 @@ export class MapRenderer {
         if (!ok) missing++;
       }
     }
-    if (missing > 0) parts.push(`타일셋 밖의 gid ${missing}칸`);
+    if (missing > 0) parts.push(`타일셋에 없는 gid 타일 ${missing}개`);
     runInAction(() => {
       this.status.warning = parts.length ? parts.join(", ") : null;
     });

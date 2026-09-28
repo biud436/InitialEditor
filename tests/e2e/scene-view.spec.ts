@@ -103,7 +103,7 @@ test.describe("씬 뷰 (메모리 모드)", () => {
     expect(await objectPosition(page, "bg")).toEqual({ x: 72, y: 72 });
     const tab = page.getByTestId("doc-tab").filter({ hasText: "main.json" });
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(1);
-    await expect(page.getByTestId("statusbar")).toContainText("저장 안 됨 1");
+    await expect(page.getByTestId("statusbar")).toContainText("저장 안 된 문서 1개");
 
     // 편집 메뉴의 되돌리기는 끌기 전체를 한 번에 되돌린다
     await openMenu(page, "편집", "되돌리기");
@@ -121,12 +121,12 @@ test.describe("씬 뷰 (메모리 모드)", () => {
     // 저장: 파일에 새 좌표가 있고 모르는 키는 남는다
     await view.locator("canvas").click({ position: { x: 4, y: 4 } });
     await page.keyboard.press("ControlOrMeta+s");
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: main.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: main.json");
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
     const saved = await page.evaluate((p) => (window as unknown as EditorWindow).initialEditor.backend.readText(p), SCENE_PATH);
     const parsed = JSON.parse(saved) as { objects: Array<{ id: string; x: number; y: number; editorOnly?: unknown }> };
     expect(parsed.objects[0]).toMatchObject({ id: "bg", x: 72, y: 72 });
-    expect(parsed.objects[3].editorOnly).toEqual({ note: "컴포넌트를 붙이는 자리" });
+    expect(parsed.objects[3].editorOnly).toEqual({ note: "컴포넌트 스크립트 추가용 빈 노드" });
 
     // 둘째 씬 탭을 열고 닫는다
     await page.evaluate(async (p) => {
@@ -195,7 +195,7 @@ test.describe("씬 뷰 (메모리 모드)", () => {
     await expect(view).toHaveAttribute("data-zoom", "1.5");
     await openMenu(page, "씬", "줌 100%");
     await expect(zoom).toHaveText("100%");
-    await view.getByRole("button", { name: "카메라로" }).click();
+    await view.getByRole("button", { name: "카메라에 맞추기" }).click();
     // 캔버스가 896 보다 낮으니 줌은 1 아래로 내려간다
     const fitted = Number(await view.getAttribute("data-zoom"));
     expect(fitted).toBeLessThan(1);

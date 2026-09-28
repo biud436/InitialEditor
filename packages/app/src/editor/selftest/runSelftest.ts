@@ -177,7 +177,7 @@ export function followCamera(x: number, spec: Pick<MapCaptureSpec, "width" | "he
 
 function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${what}: ${ms} ms 안에 끝나지 않았다`)), ms);
+    const t = setTimeout(() => reject(new Error(`${what}: 시간 초과 (${ms} ms)`)), ms);
     p.then(
       (v) => {
         clearTimeout(t);
@@ -308,7 +308,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     await withTimeout(host.openPath(path), STEP_TIMEOUT_MS, "맵 열기");
     await progress({ step: "map-opened", map: path });
     const doc = host.findDocument(path);
-    if (!(doc instanceof MapDocument)) throw new Error(`맵 문서로 열리지 않았다: ${path}`);
+    if (!(doc instanceof MapDocument)) throw new Error(`맵 문서로 열기 실패: ${path}`);
     return doc;
   }
 
@@ -325,7 +325,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
         await progress({ step: "map-view-wait", view: status ? "있음" : "없음", ready: status?.ready ?? false });
       }
     }
-    return status ?? { ready: false, error: "맵 뷰가 없다", warning: null };
+    return status ?? { ready: false, error: "맵 뷰 없음", warning: null };
   }
 
   function noteMapView(path: string, doc: MapDocument, status: MapViewStatus, pr: ProjectReport): void {
@@ -357,7 +357,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     }
     pr.edit = { ...edit, cellBefore, dirtyAfterPaint, saved, dirtyAfterSave: doc.dirty, cellAfter };
     if (saved !== "saved") pr.problems.push(`edit_not_saved: ${saved}`);
-    if (cellAfter !== edit.gid) pr.problems.push(`edit_cell: 저장한 칸이 ${cellAfter} 다 (기대 ${edit.gid})`);
+    if (cellAfter !== edit.gid) pr.problems.push(`edit_cell: 저장한 타일 gid ${cellAfter} (기대 ${edit.gid})`);
   }
 
   async function openMapView(path: string, pr: ProjectReport): Promise<void> {
@@ -482,7 +482,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     await progress({ project: project.id, step: "capture", run: n, map: spec.map });
     const x = placementX(lines, spec.placement);
     if (x === null) {
-      rr.problems.push(`capture: 로그에 자리 줄이 없다 (${spec.placement})`);
+      rr.problems.push(`capture: 로그에 위치 줄 없음 (${spec.placement})`);
       return;
     }
     let doc: MapDocument;
@@ -500,7 +500,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
       tiles = await host.captureMapTiles(doc, rect);
     }
     if (!tiles) {
-      rr.problems.push("capture: 맵 뷰에서 타일을 뽑지 못했다");
+      rr.problems.push("capture: 맵 뷰에서 타일 추출 실패");
       return;
     }
     const file = await shell.writeLog(runLogName(project.id, n, "map.bmp"), encodeBmp32(tiles.width, tiles.height, tiles.pixels));

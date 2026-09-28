@@ -15,7 +15,7 @@ export const ExtensionPanelHost = observer(function ExtensionPanelHost(props: ID
     return (
       <div className="panel-body">
         <div className="panel-hint" data-testid="extension-panel-missing">
-          확장 패널 {id} 을(를) 등록한 확장이 없다
+          등록되지 않은 확장 패널: {id}
         </div>
       </div>
     );

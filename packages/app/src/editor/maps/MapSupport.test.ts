@@ -62,7 +62,7 @@ describe("MapSupport와 맵 패널", () => {
     });
     documents.open(a);
     expect(documents.active).toBe(a);
-    expect(log.entries.map((e) => `${e.level}: ${e.text}`)).toContain("warn: 맵 패널을 더하지 못했다: dockview가 없다");
+    expect(log.entries.map((e) => `${e.level}: ${e.text}`)).toContain("warn: 맵 패널 추가 실패: dockview가 없다");
     support.dispose();
   });
 

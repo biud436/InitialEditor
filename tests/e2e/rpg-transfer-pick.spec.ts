@@ -241,7 +241,7 @@ test.describe("맵 이동의 대상 고르기 (메모리 모드)", () => {
       ["맵 미지정", true, true],
       ["rpg-game.json 에 등록되지 않은 맵: forest", true, true],
       ["맵 파일 없음: resources/maps/village.json", true, true],
-      ["엔진이 열 수 없는 맵: 모르는 맵 버전이다: 9 (지원: 1, 2)", true, true],
+      ["엔진이 열 수 없는 맵: 지원하지 않는 맵 버전: 9 (지원: 1, 2)", true, true],
       ["대상 보기: x, y 미지정", false, true],
     ];
     for (const [k, [note, pickOff, revealOff]] of cases.entries()) {
@@ -262,7 +262,7 @@ test.describe("맵 이동의 대상 고르기 (메모리 모드)", () => {
     await openCommand(page, 2);
     await expect(pick).toBeDisabled();
     await expect(reveal).toBeEnabled();
-    await expect(notes).toHaveText([/^맵에서 고르기: 읽기 전용: event-commands\.json 의 버전 2/]);
+    await expect(notes).toHaveText([/^맵에서 선택: 읽기 전용: 지원하지 않는 event-commands\.json 버전: 2/]);
   });
 
   test("대상 보기를 막는 x, y 의 이유: 2^53을 넘는 정수, 음수, 소수, 여관(20x14) 밖, 한쪽만 미지정", async ({ page }) => {
@@ -271,11 +271,11 @@ test.describe("맵 이동의 대상 고르기 (메모리 모드)", () => {
     await expect.poll(() => ev<string | null>(page, MAP_PROBLEM, INN)).toBe(null);
     // 2^53을 넘는 정수는 JSON 글에 숫자 그대로 넣는다 (맵 문서가 표식 글로 읽는다)
     const cases: Array<[Cmd, string]> = [
-      [{ code: "transfer", map: "inn", x: "BIG_X", y: 3 }, "x 값이 맵 범위 밖: 12345678901234567890 (너비 20)"],
-      [{ code: "transfer", map: "inn", x: 2, y: -1 }, "y 값이 음수: -1"],
-      [{ code: "transfer", map: "inn", x: 1.5, y: 3 }, "x 값이 정수가 아님: 1.5"],
-      [{ code: "transfer", map: "inn", x: 20, y: 3 }, "x 값이 맵 범위 밖: 20 (너비 20)"],
-      [{ code: "transfer", map: "inn", x: 3, y: 14 }, "y 값이 맵 범위 밖: 14 (높이 14)"],
+      [{ code: "transfer", map: "inn", x: "BIG_X", y: 3 }, "x 값이 맵 범위 밖 (현재: 12345678901234567890, 너비 20)"],
+      [{ code: "transfer", map: "inn", x: 2, y: -1 }, "y 값은 0 이상이어야 함 (현재: -1)"],
+      [{ code: "transfer", map: "inn", x: 1.5, y: 3 }, "x 값은 정수여야 함 (현재: 1.5)"],
+      [{ code: "transfer", map: "inn", x: 20, y: 3 }, "x 값이 맵 범위 밖 (현재: 20, 너비 20)"],
+      [{ code: "transfer", map: "inn", x: 3, y: 14 }, "y 값이 맵 범위 밖 (현재: 14, 높이 14)"],
       [{ code: "transfer", map: "inn", y: 3 }, "x 미지정"],
       [{ code: "transfer", map: "inn" }, "x, y 미지정"],
       [{ code: "transfer", map: "inn", x: 19, y: 13 }, ""],
@@ -489,7 +489,7 @@ test.describe("맵 이동의 대상 고르기 (브리지 모드, 엔진 저장�
 
     await view.locator(".map-view-host").focus();
     await page.keyboard.press(`${await primaryKey(page)}+s`);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: port_town.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: port_town.json");
     const saved = JSON.parse(readFileSync(path.join(projectDir, PORT), "utf8")) as { events: Array<{ id: string; commands: Cmd[] }> };
     const door = saved.events.find((e) => e.id === "inn_door")!;
     expect(door.commands[n - 1]).toEqual({ ...before, x: target[0], y: target[1] });

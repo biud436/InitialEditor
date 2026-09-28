@@ -131,7 +131,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await docTab(page, "field.json").click();
     await page.keyboard.press(`${mod}+KeyS`);
     await expect(conflict(page)).toHaveAttribute("data-kind", "changed");
-    await expect(modal(page)).toContainText("밖에서 바뀐 파일");
+    await expect(modal(page)).toContainText("외부에서 변경된 파일");
     await expect(modal(page).getByRole("button", { name: "다시 읽기" })).toBeVisible();
     await modal(page).getByRole("button", { name: "취소" }).click();
     await expect(modal(page)).toHaveCount(0);
@@ -142,7 +142,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     // 덮어쓰기: 디스크는 내 것 (칸 0은 원래 1, 칸 1은 9), 배너가 걷히고 깨끗하다
     await page.keyboard.press(`${mod}+KeyS`);
     await modal(page).getByRole("button", { name: "덮어쓰기" }).click();
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: field.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: field.json");
     expect(JSON.parse(disk(MAP_PATH)).layers[0].data.slice(0, 3)).toEqual([1, 9, 1]);
     await expect(banner).toHaveCount(0);
     expect(await docState(page, MAP_PATH)).toEqual({ dirty: false, externallyChanged: false });
@@ -153,7 +153,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await expect.poll(async () => (await docState(page, MAP_PATH))?.externallyChanged).toBe(true);
     await page.keyboard.press(`${mod}+KeyS`);
     await expect(conflict(page)).toHaveAttribute("data-kind", "missing");
-    await expect(modal(page)).toContainText("지워진 파일");
+    await expect(modal(page)).toContainText("삭제된 파일");
     await expect(modal(page).getByRole("button", { name: "다시 읽기" })).toHaveCount(0);
     await modal(page).getByRole("button", { name: "덮어쓰기" }).click();
     await expect.poll(() => docState(page, MAP_PATH)).toEqual({ dirty: false, externallyChanged: false });
@@ -175,14 +175,14 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     writeOutside(JSON_PATH, outside);
     const banner = page.getByTestId("external-change-banner");
     await expect(banner).toBeVisible();
-    await banner.getByRole("button", { name: "내 것 유지" }).click();
+    await banner.getByRole("button", { name: "편집 내용 유지" }).click();
     await expect(banner).toHaveCount(0);
 
     // 배너를 거두었어도 디스크가 연 때와 다르므로 묻는다. 다시 읽기의 두 번째 확인에서 취소하면 그대로다
     await page.keyboard.press(`${mod}+KeyS`);
     await expect(conflict(page)).toHaveAttribute("data-kind", "changed");
     await modal(page).getByRole("button", { name: "다시 읽기" }).click();
-    await expect(modal(page)).toContainText("items.json의 저장하지 않은 수정을 버리고");
+    await expect(modal(page)).toContainText("items.json: 저장하지 않은 변경을 버리고");
     await modal(page).getByRole("button", { name: "취소" }).click();
     await expect(modal(page)).toHaveCount(0);
     expect(disk(JSON_PATH)).toBe(outside);
@@ -195,7 +195,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await modal(page).getByRole("button", { name: "다시 읽기" }).click();
     await modal(page).getByRole("button", { name: "버리고 다시 읽기" }).click();
     await expect(modal(page)).toHaveCount(0);
-    await expect(page.getByTestId("toasts")).toContainText("저장하지 않고 디스크 내용으로 다시 읽었다: items.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장하지 않고 디스크 내용으로 다시 읽음: items.json");
     await expect(code).toContainText("outside");
     await expect(code).not.toContainText("mine");
     expect(disk(JSON_PATH)).toBe(outside);
@@ -227,12 +227,12 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await docTab(page, "main.lua").click();
     await page.keyboard.press(`${mod}+Shift+KeyS`);
     await expect(conflict(page)).toBeVisible();
-    await expect(modal(page)).toContainText("main.json이(가) 밖에서 바뀌었다");
+    await expect(modal(page)).toContainText("main.json: 외부에서 변경됨");
     await modal(page).getByRole("button", { name: "덮어쓰기" }).click();
-    await expect(modal(page)).toContainText("main.lua이(가) 밖에서 바뀌었다");
+    await expect(modal(page)).toContainText("main.lua: 외부에서 변경됨");
     await modal(page).getByRole("button", { name: "취소" }).click();
     await expect(modal(page)).toHaveCount(0);
-    await expect(page.getByTestId("toasts")).toContainText("1개 문서를 저장했다. 저장하지 않은 것: main.lua");
+    await expect(page.getByTestId("toasts")).toContainText("문서 1개 저장됨. 저장 취소됨: main.lua");
 
     expect(JSON.parse(disk(SCENE_PATH)).objects[0]).toMatchObject({ id: "hero", x: 40 });
     expect(disk(LUA_PATH)).toBe(outsideLua);
@@ -260,14 +260,14 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await expect(modal(page)).toHaveCount(0);
     const toasts = page.getByTestId("toasts");
     await expect(toasts).toContainText("다시 읽지 못했다: JSON 이 아니다: ");
-    await expect(toasts).not.toContainText("저장하지 못했다");
+    await expect(toasts).not.toContainText("저장 실패");
     // 콘솔에도 남는다
     await expect
       .poll(() => ev<string[]>(page, "(e) => e.log.entries.filter((l) => l.level === 'error').map((l) => l.text)"))
-      .toContainEqual(expect.stringMatching(/^resources\/maps\/field\.json을\(를\) 다시 읽지 못했다: JSON 이 아니다: /));
+      .toContainEqual(expect.stringMatching(/^resources\/maps\/field\.json 다시 읽기 실패: JSON 구문 오류: /));
     // 배너는 다시 읽지 못한 상태로 남고, 내 수정과 디스크는 그대로다
     await expect(banner).toHaveAttribute("data-error", "true");
-    await expect(banner).toContainText("디스크의 파일을 다시 읽지 못해 저장을 막았다: JSON 이 아니다: ");
+    await expect(banner).toContainText("디스크에서 다시 읽기 실패로 저장 차단: JSON 구문 오류: ");
     expect(await ev(page, "(e) => [e.documents.active.dirty, e.documents.active.model.layers[0].data[0]]")).toEqual([true, 9]);
     expect(disk(MAP_PATH)).toBe(broken);
   });
@@ -306,7 +306,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     expect(await ev<string[]>(page, "() => window.__writes")).toEqual([MAP_PATH]);
     await ev(page, "() => window.__release()");
 
-    const saved = page.getByTestId("toasts").locator(".toast", { hasText: "저장했다: field.json" });
+    const saved = page.getByTestId("toasts").locator(".toast", { hasText: "저장됨: field.json" });
     await expect(saved).toHaveCount(2);
     await expect.poll(() => ev<string[]>(page, "() => window.__writes")).toEqual([MAP_PATH, MAP_PATH]);
     await expect.poll(() => JSON.parse(disk(MAP_PATH)).layers[0].data.slice(0, 3)).toEqual([1, 9, 7]);

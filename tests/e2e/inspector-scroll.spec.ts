@@ -137,7 +137,7 @@ test.describe("인스펙터 스크롤 (낮은 창, 메모리 모드)", () => {
     // 패널보다 길고, 세로 스크롤은 본문 하나
     expect(await verticalScrollers(inspector)).toEqual(["inspector-body"]);
 
-    await reachAndFocus(page, page.getByTestId("inspector-attach"), "스크립트 붙이기");
+    await reachAndFocus(page, page.getByTestId("inspector-attach"), "스크립트 추가");
     await reach(page, page.getByTestId("inspector-problems").locator(".inspector-subtitle"), "검사");
     await reachAndFocus(page, page.getByTestId("inspector-id"), "id");
   });

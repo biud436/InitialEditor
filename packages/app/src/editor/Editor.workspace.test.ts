@@ -86,7 +86,7 @@ describe("에디터의 타일맵 자리", () => {
     ]);
     // 확장의 실행 길은 앱이 넣은 것이다 (여기서 실행과 같이 러너의 이유를 따른다)
     expect(tilemap.playBlocked()).toBe(editor.runner.startHint);
-    expect(tilemap.playBlocked()).toBe("프로젝트를 먼저 연다");
+    expect(tilemap.playBlocked()).toBe("열린 프로젝트 없음");
     const off = tilemap.registerMapLayer(fakeLayer({ toolKey: "M" }).spec);
     expect(editor.commands.get(layerCommandId("test.marks"))?.shortcut).toBe("M");
     // 에디터가 켠 RPG 확장의 이벤트 레이어(order 10)가 가짜 레이어(order 0) 위에 있다

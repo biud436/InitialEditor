@@ -38,7 +38,7 @@ function errorMessage(e: unknown): string {
 
 /** "179cecc (lua mruby wasm)" */
 export function webEngineText(manifest: EngineManifest): string {
-  const commit = manifest.engineCommit ? manifest.engineCommit.slice(0, 7) : "커밋 모름";
+  const commit = manifest.engineCommit ? manifest.engineCommit.slice(0, 7) : "커밋 정보 없음";
   const dirty = manifest.engineDirty ? ", 커밋 안 된 변경" : "";
   return `${commit} (${manifest.features.join(" ")}${dirty})`;
 }
@@ -48,17 +48,17 @@ const AboutBody = observer(function AboutBody({ host, deps, close }: { host: Abo
   useEffect(() => {
     const view = host.gameView;
     if (!view) {
-      setEngine({ kind: "error", text: "웹 엔진이 없다" });
+      setEngine({ kind: "error", text: "웹 엔진 없음" });
       return;
     }
     let alive = true;
     view
       .loadFeatures()
       .then(() => {
-        if (alive) setEngine(view.manifest ? { kind: "ready", text: webEngineText(view.manifest) } : { kind: "error", text: "MANIFEST 가 없다" });
+        if (alive) setEngine(view.manifest ? { kind: "ready", text: webEngineText(view.manifest) } : { kind: "error", text: "MANIFEST 없음" });
       })
       .catch((e: unknown) => {
-        if (alive) setEngine({ kind: "error", text: `읽지 못했다: ${errorMessage(e)}` });
+        if (alive) setEngine({ kind: "error", text: `읽기 실패: ${errorMessage(e)}` });
       });
     return () => {
       alive = false;
@@ -72,7 +72,7 @@ const AboutBody = observer(function AboutBody({ host, deps, close }: { host: Abo
         <p>
           <strong>InitialEditor {host.version}</strong>
         </p>
-        <p>Initial2D 엔진의 편집기. 프로젝트를 열고 씬에 오브젝트를 놓고 스크립트를 쓰고 실행 버튼을 누르면 게임이 돈다.</p>
+        <p>Initial2D 엔진용 편집기. 프로젝트 열기, 씬에 오브젝트 배치, 스크립트 작성, 실행 버튼으로 게임 실행</p>
         <dl className="about-facts">
           <dt>판</dt>
           <dd data-testid="about-version">{host.version}</dd>
@@ -144,11 +144,10 @@ function NoticesBody({ host, deps, close }: { host: AboutHost; deps: AboutDeps; 
     <>
       <div className="modal-body about-notices" data-testid="notices-dialog">
         <p className="muted">
-          엔진(네이티브와 웹)에 들어간 제3자 소프트웨어의 고지다 (engine/{ENGINE_NOTICES_FILE}). 에디터가 쓰는 라이브러리의 고지는{" "}
+          엔진(네이티브와 웹)에 포함된 제3자 소프트웨어 고지 (engine/{ENGINE_NOTICES_FILE}). 에디터가 쓰는 라이브러리의 고지:{" "}
           <ExternalLink host={host} href={EDITOR_NOTICES_URL} testId="notices-editor" deps={deps.open ?? defaultOpenDeps}>
             저장소의 src-tauri/licenses
           </ExternalLink>
-          에 있다.
         </p>
         {state.kind === "loading" && <p className="muted">읽는 중</p>}
         {state.kind === "error" && (

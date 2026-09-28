@@ -105,7 +105,7 @@ async function pickPaletteTile(page: Page, map: MapData, gid: number): Promise<v
   const col = (gid - tileset.firstGid) % tileset.columns;
   const row = Math.floor((gid - tileset.firstGid) / tileset.columns);
   await palette.click({ position: { x: (col + 0.5) * tw * pz, y: (row + 0.5) * th * pz } });
-  await expect(page.getByTestId("palette-brush")).toHaveText(`붓 gid ${gid}`);
+  await expect(page.getByTestId("palette-brush")).toHaveText(`브러시 gid ${gid}`);
   expect(await activeDoc(page, "(d) => d.brush")).toEqual({ width: 1, height: 1, gids: [[gid]] });
 }
 
@@ -198,7 +198,7 @@ test.describe("알데바란 숲 (브리지 모드, 엔진의 실제 맵)", () =>
 
     // ---- 저장 ----
     await page.keyboard.press("ControlOrMeta+s");
-    await expect(page.getByTestId("toasts")).toContainText(`저장했다: ${MAP_FILE}`);
+    await expect(page.getByTestId("toasts")).toContainText(`저장됨: ${MAP_FILE}`);
     await expect(page.getByTestId("doc-tab").filter({ hasText: MAP_FILE }).locator(".doc-tab-dirty")).toHaveCount(0);
     await expect.poll(() => readFileSync(mapFile, "utf8") !== originalText).toBe(true);
     const savedText = readFileSync(mapFile, "utf8");
@@ -258,7 +258,7 @@ test.describe("알데바란 숲 (브리지 모드, 엔진의 실제 맵)", () =>
       [AT_VAR]: String(at),
     });
     const logs = await editorLogTexts(page);
-    const playLine = `여기서 실행: ${original.name} x ${at}, y ${wolf.y} (선택한 오브젝트 ${wolf.id}, 순찰 범위 왼끝 ${movedMin}에서 ${PLAY_RANGE_GAP}px 왼쪽)`;
+    const playLine = `이 맵에서 실행: ${original.name} x ${at}, y ${wolf.y} (선택한 오브젝트 ${wolf.id}, 범위 최소 X ${movedMin}에서 ${PLAY_RANGE_GAP}px 왼쪽)`;
     expect(logs.some((t) => t.startsWith(playLine)), `에디터 콘솔에 "${playLine}"이 없다:\n${logs.slice(-5).join("\n")}`).toBe(true);
     const env = started.env!;
     // 비교용: 같은 변수에서 시작 x만 뺀다 (스테이지의 시작 지점에서 시작한다)

@@ -82,7 +82,7 @@ export function captureCanvasStats(canvas: HTMLCanvasElement, alive: () => boole
         copy.width = canvas.width;
         copy.height = canvas.height;
         const ctx = copy.getContext("2d");
-        if (!ctx) throw new Error("2D 컨텍스트를 만들지 못했다");
+        if (!ctx) throw new Error("2D 컨텍스트 생성 실패");
         ctx.drawImage(canvas, 0, 0);
         const image = ctx.getImageData(0, 0, copy.width, copy.height);
         resolve(pixelStats(image.data, copy.width, copy.height));

@@ -15,30 +15,30 @@ import "./AndroidStageDialog.css";
 
 export const STAGE_TITLE = "안드로이드로 스테이징";
 export const STAGE_OK = "스테이징";
-export const RTP_LABEL = "RTP 변환물 넣기 (개인 기기 시험용)";
-export const RTP_CHECK_WARNING = "RTP 변환물은 재배포할 수 없다. 이 APK 는 배포하지 않는다";
-export const DEST_NOTE = "이 폴더는 통째로 바뀐다";
+export const RTP_LABEL = "RTP 변환물 포함 (개인 기기 시험용)";
+export const RTP_CHECK_WARNING = "RTP 변환물은 재배포 불가. 이 APK 는 배포 금지";
+export const DEST_NOTE = "이 폴더의 내용 전체가 교체됨";
 export const ALLOW_SCRIPT = "스크립트 실행 허용";
 export const COUNTING = "세는 중";
-export const MISSING_TITLE = "엔진 저장소를 찾지 못했다";
+export const MISSING_TITLE = "엔진 저장소 탐색 실패";
 export const OPEN_SETTINGS = "설정 열기";
-export const DIRTY_TITLE = "저장하지 않은 문서";
+export const DIRTY_TITLE = "저장 안 된 문서";
 export const DIRTY_SAVE = "저장하고 스테이징";
-export const DIRTY_KEEP = "그대로 스테이징";
+export const DIRTY_KEEP = "저장하지 않고 스테이징";
 
 /** 프로젝트에서 나온 저장소의 스크립트를 처음 실행할 때 */
 export function untrustedMessage(repo: RepoCandidate): string {
-  return `이 스크립트는 ${REPO_SOURCE_LABELS[repo.source]}에서 찾았다. 허용하면 미리 세기와 스테이징에 쓰고 답은 앱 설정에 남는다`;
+  return `스크립트 위치: ${REPO_SOURCE_LABELS[repo.source]}. 허용하면 미리 세기와 스테이징에 사용, 선택은 앱 설정에 저장됨`;
 }
 
 /** 못 찾았을 때 본문 */
 export function missingMessage(searched: readonly RepoCandidate[]): string {
   const where = searched.map((c) => `  ${c.script} (${REPO_SOURCE_LABELS[c.source]})`).join("\n");
-  return `android/prepare_assets.sh 가 있는 엔진 저장소(Initial2D 체크아웃)가 있어야 한다. 설정의 "엔진 저장소" 에 경로를 적는다.\n찾아본 곳:\n${where}`;
+  return `android/prepare_assets.sh 가 있는 엔진 저장소(Initial2D 체크아웃) 필요. 설정의 "엔진 저장소" 에 경로 입력 필요.\n탐색한 경로:\n${where}`;
 }
 
 export function dirtyMessage(count: number): string {
-  return `저장하지 않은 문서가 ${count}개 있다. 스테이징은 디스크의 파일을 옮긴다`;
+  return `저장 안 된 문서 ${count}개. 스테이징은 디스크의 파일을 복사함`;
 }
 
 type CountState = { kind: "idle" } | { kind: "counting" } | { kind: "done"; value: DryRunSummary } | { kind: "error"; message: string };
@@ -118,7 +118,7 @@ export const StageConfirmBody = observer(function StageConfirmBody({
         <div className="form-row">
           <label>미리 세기</label>
           <span data-testid="android-stage-count" data-kind={count.kind}>
-            {count.kind === "done" ? countText(count.value) : count.kind === "counting" ? COUNTING : count.kind === "error" ? count.message : "스크립트 실행을 허용하면 센다"}
+            {count.kind === "done" ? countText(count.value) : count.kind === "counting" ? COUNTING : count.kind === "error" ? count.message : "스크립트 실행을 허용하면 미리 세기 실행"}
           </span>
         </div>
         <div className="form-row">

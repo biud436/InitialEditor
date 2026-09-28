@@ -34,7 +34,7 @@ const ConsoleText = memo(function ConsoleText({ text, onLink }: { text: string; 
   let last = 0;
   links.forEach((link, i) => {
     if (link.start > last) parts.push(text.slice(last, link.start));
-    const where = `${link.path} ${link.line}번째 줄${link.column ? ` ${link.column}번째 칸` : ""}`;
+    const where = `${link.path} 줄 ${link.line}${link.column ? `, 열 ${link.column}` : ""}`;
     parts.push(
       <span
         key={i}
@@ -93,7 +93,7 @@ export const ConsolePanel = observer(function ConsolePanel() {
   // 줄 컴포넌트가 memo 라 핸들러는 고정한다 (append 마다 모든 줄이 다시 그려지지 않게)
   const onLink = useCallback(
     (link: ErrorLink) => {
-      void openErrorLink(editor, link).catch((e: Error) => editor.toasts.error(`${link.path} 을(를) 열지 못했다: ${e.message}`));
+      void openErrorLink(editor, link).catch((e: Error) => editor.toasts.error(`${link.path} 열기 실패: ${e.message}`));
     },
     [editor],
   );
@@ -109,7 +109,7 @@ export const ConsolePanel = observer(function ConsolePanel() {
             </option>
           ))}
         </select>
-        <label className="console-toggle" title="엔진 출력과 실행기 메시지만 보인다">
+        <label className="console-toggle" title="엔진 출력과 실행기 메시지만 표시">
           <input type="checkbox" checked={engineOnly} onChange={(e) => setEngineOnly(e.target.checked)} data-testid="console-engine-only" />
           엔진만
         </label>

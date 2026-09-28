@@ -104,11 +104,11 @@ export interface ToolContext {
 
 /** 채우기가 한도에 닿았을 때의 안내 */
 export function fillLimitNotice(filled: number, limit: number): string {
-  return `채우기가 한도 ${limit.toLocaleString("en-US")}칸에 닿아 ${filled.toLocaleString("en-US")}칸에서 멈췄다. 남은 칸을 눌러 이어서 채운다`;
+  return `채우기 한도(타일 ${limit.toLocaleString("en-US")}개) 도달: 타일 ${filled.toLocaleString("en-US")}개 채움. 남은 영역을 다시 클릭하면 이어서 채움`;
 }
 
-export const HIDDEN_TARGET_NOTICE = "숨긴 레이어에는 칠하지 않는다. 눈을 켜고 칠한다";
-export const HIDDEN_EXT_NOTICE = "숨긴 레이어는 고치지 않는다. 눈을 켜고 고친다";
+export const HIDDEN_TARGET_NOTICE = "숨긴 레이어나 통행에는 칠하기 불가 (레이어 패널에서 보이기를 켜면 가능)";
+export const HIDDEN_EXT_NOTICE = "숨긴 레이어는 편집 불가 (레이어 패널에서 보이기를 켜면 가능)";
 
 /** 칠하거나 고칠 대상(타일 레이어, 통행, 확장 레이어)을 숨겼는가 */
 export function targetHidden(doc: MapDocument): boolean {
@@ -518,7 +518,7 @@ export class MapToolController {
       if (signature === g.last) return;
       g.last = signature;
       doc.apply(
-        mergeableCompound(`띠 폭: ${g.id}`, [model.setObjectField(g.id, "x", next.x), model.setObjectField(g.id, "width", next.width)], g.key),
+        mergeableCompound(`너비 변경: ${g.id}`, [model.setObjectField(g.id, "x", next.x), model.setObjectField(g.id, "width", next.width)], g.key),
       );
     }
   }

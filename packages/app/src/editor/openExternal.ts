@@ -26,9 +26,9 @@ export function externalUrl(url: string): string {
   try {
     parsed = new URL(url.trim());
   } catch {
-    throw new Error(`주소 모양이 아니다: ${url}`);
+    throw new Error(`URL 형식 아님: ${url}`);
   }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error(`http 나 https 주소만 연다: ${url}`);
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error(`http 나 https URL 만 열기 가능: ${url}`);
   return parsed.href;
 }
 
@@ -53,7 +53,7 @@ export async function openLink(host: OpenLinkHost, url: string, deps: OpenExtern
     await openExternal(url, deps);
     return true;
   } catch (e) {
-    const message = `링크를 열지 못했다: ${url} (${e instanceof Error ? e.message : String(e)})`;
+    const message = `링크 열기 실패: ${url} (${e instanceof Error ? e.message : String(e)})`;
     host.log.warn("editor", message);
     host.toasts.warn(message);
     return false;

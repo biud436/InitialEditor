@@ -34,14 +34,14 @@ test.describe("실행기 (메모리 모드)", () => {
     await page.goto("/?backend=memory");
     const engine = page.getByTestId("status-engine");
     await expect(engine).toHaveText("엔진 (에디터 안): 대기");
-    await expect(engine).toHaveAttribute("title", /에디터 안 게임 탭에서 돈다 \(웹 엔진\)/);
+    await expect(engine).toHaveAttribute("title", /게임 탭에서 실행 \(웹 엔진\)/);
     // 프로젝트를 열면 웹 엔진의 MANIFEST 를 읽어 기능과 커밋을 툴팁에 더한다
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await expect(engine).toHaveText("엔진 (에디터 안): 대기");
     const manifest = JSON.parse(readFileSync(path.resolve("packages/app/public/engine/MANIFEST.json"), "utf8")) as { features: string[]; engineCommit: string };
     await expect(engine).toHaveAttribute("title", new RegExp(`기능 ${manifest.features.join(" ")}, 엔진 커밋 ${manifest.engineCommit.slice(0, 7)}`));
-    await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 에디터 안 게임 탭에서 웹 엔진으로 돈다");
+    await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 게임 탭의 웹 엔진 사용");
     // 실행 전이라 정지는 꺼져 있고 실행 표시도 없다
     const toolbar = page.getByTestId("toolbar");
     await expect(toolbar.locator('[data-command="run.stop"]')).toBeDisabled();
@@ -88,14 +88,14 @@ test.describe("실행기 (메모리 모드)", () => {
     await openSample(page);
     const reload = page.getByTestId("toolbar").locator('[data-command="run.reload"]');
     await expect(reload).toBeDisabled();
-    await expect(page.getByTestId("toolbar").locator('span.toolbar-tip:has([data-command="run.reload"])')).toHaveAttribute("title", /게임 탭에서 실행 중일 때 다시 읽는다/);
+    await expect(page.getByTestId("toolbar").locator('span.toolbar-tip:has([data-command="run.reload"])')).toHaveAttribute("title", /게임 탭에서 실행 중인 게임 없음/);
     await page.keyboard.press("F5");
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(reload).toBeEnabled();
     await reload.click();
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 에디터 안 엔진, \d+개 파일을 다시 올렸다/);
-    await expect(page.getByTestId("console-list")).not.toContainText("개 파일을 보냈다");
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개 다시 복사됨/);
+    await expect(page.getByTestId("console-list")).not.toContainText("개 전송됨");
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
     await expect(reload).toBeDisabled();
@@ -137,7 +137,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await page.getByTestId("doc-tab").filter({ hasText: "main.lua" }).click();
     await page.locator(".monaco-editor .view-lines").click();
     await page.keyboard.press("ControlOrMeta+Shift+R");
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 에디터 안 엔진, \d+개 파일을 다시 올렸다/);
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개 다시 복사됨/);
     await expect.poll(reloadKeys).toEqual([true, true, true]);
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });

@@ -3,12 +3,12 @@
 import { basename, dirname, joinRel, type Entry } from "@initial-editor/core";
 import type { Editor } from "./Editor";
 
-const NAME_ERROR = "이름에는 / 와 \\ 를 쓸 수 없다";
+const NAME_ERROR = "이름에 / 와 \\ 사용 불가";
 
 function validateName(value: string): string | null {
   const v = value.trim();
-  if (!v) return "이름을 적는다";
-  if (v === "." || v === "..") return "그 이름은 쓸 수 없다";
+  if (!v) return "이름 비어 있음";
+  if (v === "." || v === "..") return "사용할 수 없는 이름 (. 또는 ..)";
   if (/[\\/]/.test(v)) return NAME_ERROR;
   return null;
 }
@@ -25,15 +25,15 @@ export async function newFile(editor: Editor, dir: string): Promise<void> {
   const path = joinRel(dir, name.trim());
   try {
     if (await editor.backend.exists(path)) {
-      editor.toasts.warn(`이미 있다: ${path}`);
+      editor.toasts.warn(`이미 있는 파일: ${path}`);
       return;
     }
     await editor.backend.writeText(path, "");
     await editor.project.refresh(dir);
     await editor.tree.reveal(path);
-    editor.log.info("editor", `파일을 만들었다: ${path}`);
+    editor.log.info("editor", `파일 생성됨: ${path}`);
   } catch (e) {
-    fail(editor, "파일을 만들지 못했다", e);
+    fail(editor, "파일 생성 실패", e);
   }
 }
 
@@ -45,9 +45,9 @@ export async function newFolder(editor: Editor, dir: string): Promise<void> {
     await editor.backend.mkdir(path);
     await editor.project.refresh(dir);
     await editor.tree.reveal(path);
-    editor.log.info("editor", `폴더를 만들었다: ${path}`);
+    editor.log.info("editor", `폴더 생성됨: ${path}`);
   } catch (e) {
-    fail(editor, "폴더를 만들지 못했다", e);
+    fail(editor, "폴더 생성 실패", e);
   }
 }
 
@@ -58,25 +58,25 @@ export async function renameEntry(editor: Editor, entry: Entry): Promise<void> {
   const to = joinRel(parent, name.trim());
   try {
     if (await editor.backend.exists(to)) {
-      editor.toasts.warn(`이미 있다: ${to}`);
+      editor.toasts.warn(`이미 있는 경로: ${to}`);
       return;
     }
     await editor.backend.rename(entry.path, to);
     closeDocumentsUnder(editor, entry.path);
     await editor.project.refresh(parent);
     editor.tree.select(to);
-    editor.log.info("editor", `이름을 바꿨다: ${entry.path} → ${to}`);
+    editor.log.info("editor", `이름 변경됨: ${entry.path} → ${to}`);
   } catch (e) {
-    fail(editor, "이름을 바꾸지 못했다", e);
+    fail(editor, "이름 변경 실패", e);
   }
 }
 
 export async function removeEntry(editor: Editor, entry: Entry): Promise<void> {
-  let message = `${entry.path} 을(를) 지울까? 되돌릴 수 없다.`;
+  let message = `${entry.path} 삭제할까요? (되돌릴 수 없음)`;
   if (entry.kind === "dir") {
     try {
       const inside = await editor.backend.list(entry.path);
-      if (inside.length > 0) message = `${entry.path} 폴더가 비어 있지 않다. 안의 항목 ${inside.length}개도 함께 지운다. 되돌릴 수 없다.`;
+      if (inside.length > 0) message = `${entry.path} 폴더와 안의 항목 ${inside.length}개를 함께 삭제할까요? (되돌릴 수 없음)`;
     } catch {
       // 목록을 못 읽어도 삭제는 물어본다
     }
@@ -87,9 +87,9 @@ export async function removeEntry(editor: Editor, entry: Entry): Promise<void> {
     await editor.backend.remove(entry.path);
     closeDocumentsUnder(editor, entry.path);
     await editor.project.refresh(dirname(entry.path));
-    editor.log.info("editor", `지웠다: ${entry.path}`);
+    editor.log.info("editor", `삭제됨: ${entry.path}`);
   } catch (e) {
-    fail(editor, "지우지 못했다", e);
+    fail(editor, "삭제 실패", e);
   }
 }
 
@@ -97,7 +97,7 @@ export async function refreshDir(editor: Editor, dir: string): Promise<void> {
   try {
     await editor.project.refresh(dir);
   } catch (e) {
-    fail(editor, "새로 고치지 못했다", e);
+    fail(editor, "새로 고침 실패", e);
   }
 }
 

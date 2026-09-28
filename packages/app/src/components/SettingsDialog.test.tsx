@@ -49,7 +49,7 @@ const found = () => screen.getByTestId("settings-found-engine").textContent;
 describe("설정의 찾은 엔진 줄", () => {
   it("프로젝트를 열기 전에는 찾지 않았다고 한다", async () => {
     await setup([], false);
-    expect(found()).toBe("프로젝트를 열면 찾는다");
+    expect(found()).toBe("열린 프로젝트 없음 (프로젝트를 열면 탐색)");
     expect(screen.queryByTestId("settings-engine-trust")).toBeNull();
   });
 

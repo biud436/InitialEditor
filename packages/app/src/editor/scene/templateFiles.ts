@@ -27,14 +27,14 @@ const urlByPath = new Map(Object.entries(urls).map(([k, v]) => [strip(k), v]));
 export const bundledTemplateSource: TemplateSource = {
   text(path) {
     const t = textByPath.get(path);
-    if (t === undefined) throw new Error(`번들에 없는 템플릿 파일이다: ${path}`);
+    if (t === undefined) throw new Error(`번들에 없는 템플릿 파일: ${path}`);
     return t;
   },
   async binary(path) {
     const url = urlByPath.get(path);
-    if (url === undefined) throw new Error(`번들에 없는 템플릿 자산이다: ${path}`);
+    if (url === undefined) throw new Error(`번들에 없는 템플릿 파일: ${path}`);
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`템플릿 자산을 받지 못했다: ${path} (${res.status})`);
+    if (!res.ok) throw new Error(`템플릿 파일 요청 실패: ${path} (HTTP ${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   },
 };

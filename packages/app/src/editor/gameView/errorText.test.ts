@@ -46,7 +46,7 @@ describe("errorText", () => {
   });
 
   it("값만 보고: Error, 트랩, 글, 숫자, 빈 값, 객체", () => {
-    expect(plainErrorText(new Error("파일이 없다"))).toBe("파일이 없다");
+    expect(plainErrorText(new Error("파일 없음"))).toBe("파일 없음");
     expect(plainErrorText(trap("unreachable"))).toBe("RuntimeError: unreachable");
     expect(plainErrorText("abort")).toBe("abort");
     expect(plainErrorText(12345)).toBe("엔진 예외 (값 12345)");

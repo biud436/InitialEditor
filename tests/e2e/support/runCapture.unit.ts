@@ -7,7 +7,7 @@ import { playHere, type PlayHost } from "../../../packages/app/src/editor/maps/o
 import { RunnerStore } from "../../../packages/app/src/editor/runner/RunnerStore";
 import { installRunCapture, type RunStartOptions } from "./runCapture";
 
-const REASON = "브라우저 모드에서는 엔진을 띄울 수 없다";
+const REASON = "브라우저 모드: 엔진 프로세스 실행 미지원";
 const MAP_PATH = "resources/maps/forest.json";
 const MAP = JSON.stringify({
   version: 2,
@@ -83,7 +83,7 @@ describe("installRunCapture", () => {
     expect(await play(holder)).toBe(true);
     expect(sink).toEqual([{ env: { INITIAL2D_SCENE: "aldebaran", INITIAL2D_ALDEBARAN_STAGE: "forest", INITIAL2D_ALDEBARAN_AT: "612" } }]);
     expect(runner.state).toBe("idle");
-    expect(holder.log.entries.some((e) => e.text.includes("여기서 실행: forest x 612, y 48 (선택한 오브젝트 wolf_1"))).toBe(true);
+    expect(holder.log.entries.some((e) => e.text.includes("이 맵에서 실행: forest x 612, y 48 (선택한 오브젝트 wolf_1"))).toBe(true);
 
     restore();
     expect(holder.runner).toBe(runner);

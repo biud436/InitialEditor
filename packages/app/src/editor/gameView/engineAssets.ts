@@ -69,7 +69,7 @@ export interface EngineRuntime {
 }
 
 export const ENGINE_DIR = "engine/";
-export const ENGINE_MISSING = "웹 엔진 파일이 없다 (engine/MANIFEST.json). 엔진 저장소에서 tools/build_web.sh 뒤 yarn sync:engine-web";
+export const ENGINE_MISSING = "웹 엔진 파일 없음 (engine/MANIFEST.json). 엔진 저장소에서 tools/build_web.sh 실행 후 yarn sync:engine-web 필요";
 
 /** 앱이 놓인 곳 기준 engine/ 의 절대 URL */
 export function engineBaseUrl(): string {
@@ -102,7 +102,7 @@ async function loadRuntime(base: string): Promise<EngineRuntime> {
   if (!Array.isArray(manifest.features)) manifest.features = ["lua", "wasm"];
   const loaderUrl = new URL("initial2d-loader.js", base).href;
   const mod = (await import(/* @vite-ignore */ loaderUrl)) as { bootInitial2D?: BootEngine };
-  if (typeof mod.bootInitial2D !== "function") throw new Error(`로더에 bootInitial2D 가 없다: ${loaderUrl}`);
+  if (typeof mod.bootInitial2D !== "function") throw new Error(`로더에 bootInitial2D 없음: ${loaderUrl}`);
   const boot = mod.bootInitial2D;
   const wasmUrl = new URL("Initial2D.wasm", base).href;
   const jsUrl = new URL("Initial2D.js", base).href;

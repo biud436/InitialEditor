@@ -26,18 +26,18 @@ export interface ToolSpec {
 }
 
 export const MAP_TOOLS: readonly ToolSpec[] = [
-  { tool: "pen", label: "펜", key: "B", title: "붓을 찍는다. 끌면 선을 따라 찍는다" },
-  { tool: "rect", label: "사각형", key: "R", title: "사각형을 끌어 붓 무늬로 채운다" },
-  { tool: "fill", label: "채우기", key: "G", title: "이어진 같은 칸을 붓 무늬로 채운다" },
-  { tool: "erase", label: "지우개", key: "E", title: "칸을 비운다 (통행이 대상이면 지나감으로)" },
-  { tool: "pick", label: "스포이드", key: "I", title: "맵에서 칸이나 사각형을 떠서 붓으로 쓴다" },
-  { tool: "collision", label: "통행", key: "C", title: "통행을 칠한다. 왼쪽은 막힘, 오른쪽이나 Alt는 지나감" },
-  { tool: "object", label: "오브젝트", key: "V", title: "오브젝트를 고르고 옮긴다. 범위 손잡이와 띠 가장자리도 끈다" },
+  { tool: "pen", label: "펜", key: "B", title: "브러시 찍기. 드래그하면 지나간 타일마다 찍기" },
+  { tool: "rect", label: "사각형", key: "R", title: "드래그한 사각형 영역을 브러시로 반복해 채우기" },
+  { tool: "fill", label: "채우기", key: "G", title: "클릭한 타일과 같은 값으로 상하좌우 연결된 영역을 브러시로 반복해 채우기" },
+  { tool: "erase", label: "지우개", key: "E", title: "타일 지우기 (gid 0). 대상이 통행이면 통행 가능(0)으로 설정" },
+  { tool: "pick", label: "스포이드", key: "I", title: "맵의 타일 1개나 드래그한 사각형 영역을 브러시로 복사" },
+  { tool: "collision", label: "통행", key: "C", title: "통행 칠하기. 왼쪽 클릭은 통행 불가(1), 오른쪽 클릭이나 Alt+클릭은 통행 가능(0)" },
+  { tool: "object", label: "오브젝트", key: "V", title: "오브젝트 선택과 이동. 범위 끝점과 band 오브젝트의 좌우 경계도 드래그 가능" },
 ];
 
 const TILE_TOOLS: ReadonlySet<MapTool> = new Set(["pen", "rect", "fill", "erase", "pick"]);
-const NEED_MAP = "맵 탭이 활성일 때";
-const NEED_PROJECT = "프로젝트를 먼저 연다";
+const NEED_MAP = "활성 맵 탭 없음";
+const NEED_PROJECT = "열린 프로젝트 없음";
 
 /**
  * 도구를 고른다. 대상이 오브젝트나 확장 레이어이면 타일 도구는 마지막 타일 레이어로 돌아간다. 대상이 통행이면 펜과 스포이드는
@@ -115,7 +115,7 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
   editor.setChecked("map.toggleGrid", () => support.view.grid);
   reg({
     id: "map.toggleCollision",
-    label: "통행 보기",
+    label: "통행 오버레이",
     category: "map",
     enabled: hasMap,
     run: withMap((doc) => runInAction(() => (doc.showCollision = !doc.showCollision))),
@@ -123,7 +123,7 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
   editor.setChecked("map.toggleCollision", () => support.activeMap?.showCollision ?? false);
   reg({
     id: "map.toggleObjects",
-    label: "오브젝트 보기",
+    label: "오브젝트 오버레이",
     category: "map",
     enabled: hasMap,
     run: withMap((doc) => runInAction(() => (doc.showObjects = !doc.showObjects))),
@@ -142,8 +142,8 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
 
   disposers.push(
     editor.menus.register({ path: "맵/격자 표시", commandId: "map.toggleGrid", order: 100, separatorBefore: true }),
-    editor.menus.register({ path: "맵/통행 보기", commandId: "map.toggleCollision", order: 110 }),
-    editor.menus.register({ path: "맵/오브젝트 보기", commandId: "map.toggleObjects", order: 120 }),
+    editor.menus.register({ path: "맵/통행 오버레이", commandId: "map.toggleCollision", order: 110 }),
+    editor.menus.register({ path: "맵/오브젝트 오버레이", commandId: "map.toggleObjects", order: 120 }),
     editor.menus.register({ path: "맵/위 레이어 흐리게", commandId: "map.toggleDimAbove", order: 130 }),
     editor.menus.register({ path: "맵/줌 확대", commandId: "map.zoomIn", order: 200, separatorBefore: true }),
     editor.menus.register({ path: "맵/줌 축소", commandId: "map.zoomOut", order: 210 }),
