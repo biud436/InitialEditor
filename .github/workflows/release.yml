@@ -328,6 +328,20 @@ jobs:
           (cd "$work" && SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy timeout 20 /usr/bin/Initial2D --version)
           test -z "$(ls -A "$work")"
 
+      # 안드로이드 스테이징 교차 검사 (6.4): 핀의 엔진 체크아웃에 있는 prepare_assets.sh 로 스테이징한 플래피를 설치한 엔진으로 돌린다
+      - name: 안드로이드 스테이징 교차 검사 (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 10
+        env:
+          INITIAL2D_DIR: ${{ github.workspace }}/Initial2D
+          INITIAL2D_EXE: /usr/bin/Initial2D
+        run: |
+          yarn test:android-stage 2>&1 | tee "$RUNNER_TEMP/android-stage.log"
+          if grep -q '^SKIP:' "$RUNNER_TEMP/android-stage.log"; then
+            echo "건너뛰어 검사하지 않았다 (엔진 체크아웃의 prepare_assets.sh 나 엔진 없음)"
+            exit 1
+          fi
+
       # ---- 자가 검사 (5절). 판정은 다음 단계가 로그와 스크린샷으로 한다 ----
 
       - name: 자가 검사 (macOS, dmg 안의 앱)
