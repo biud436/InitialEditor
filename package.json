@@ -39,6 +39,7 @@
     "licenses": "node scripts/gen-licenses.mjs",
     "selftest:app": "node scripts/selftest-app.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
+    "check:terms": "node scripts/check-terms.mjs",
     "tauri": "tauri"
   },
   "devDependencies": {
