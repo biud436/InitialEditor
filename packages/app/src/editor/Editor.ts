@@ -429,7 +429,7 @@ export class Editor {
           );
         } else {
           runInAction(() => (doc.externallyChanged = true));
-      this.log.warn("editor", `외부에서 변경되었지만 저장하지 않은 변경이 있어 다시 읽지 않았습니다: ${e.path}`);
+          this.log.warn("editor", `외부에서 변경되었지만 저장하지 않은 변경이 있어 다시 읽지 않았습니다: ${e.path}`);
         }
       }),
     );

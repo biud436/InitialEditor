@@ -58,6 +58,8 @@ if (typeof window !== "undefined" && !window.MonacoEnvironment) {
 monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
   validate: true,
   enableSchemaRequest: false,
+  // 선언이 틀리면 엔진이 씬을 불러오지 못하므로 스키마 위반도 오류로 표시한다
+  schemaValidation: "error",
   schemas: [{ uri: DECLARATION_SCHEMA_URI, fileMatch: DECLARATION_FILE_MATCH, schema: DECLARATION_SCHEMA }],
 });
 

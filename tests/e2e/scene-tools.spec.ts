@@ -243,12 +243,17 @@ test.describe("씬 도구 (메모리 모드)", () => {
     const writeFile = (path: string, text: string) =>
       page.evaluate(([p, t]) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText(p, t), [path, text] as const);
     const writeDeclaration = (text: string) => writeFile("scripts/components/mover.json", text);
-    await page.locator(".monaco-editor .view-lines").click();
-    await page.keyboard.press(`${await primaryKey(page)}+a`);
-    await page.keyboard.insertText('{ "version": 1, "fields": [{ "key": "speed", "type": "vector" }] }');
+    // 외부에서 바뀐 선언 파일은 열린 탭이 다시 읽고, 모르는 type 에 오류 표시가 뜬다. 되돌리면 사라진다
+    const changeOnDisk = (text: string) =>
+      page.evaluate(([p, t]) => (window as unknown as { initialEditor: { backend: { simulateExternalChange(p: string, k: string, t: string): Promise<void> } } }).initialEditor.backend.simulateExternalChange(p, "modify", t), [
+        "scripts/components/mover.json",
+        text,
+      ] as const);
+    await changeOnDisk('{ "version": 1, "fields": [{ "key": "speed", "type": "vector" }] }\n');
     await expect(page.locator(".monaco-editor .view-lines")).toContainText("vector");
     await expect(page.locator(".monaco-editor .squiggly-error").first()).toBeAttached();
-    await page.keyboard.press(`${await primaryKey(page)}+z`);
+    await changeOnDisk('{ "version": 1, "fields": [] }\n');
+    await expect(page.locator(".monaco-editor .view-lines")).not.toContainText("vector");
     await expect(page.locator(".monaco-editor .squiggly-error")).toHaveCount(0);
     await expect(page.getByTestId("doc-tab").filter({ hasText: "mover.json" }).locator(".doc-tab-dirty")).toHaveCount(0);
     await page.getByTestId("doc-tab").filter({ hasText: "stage3.json" }).click();
