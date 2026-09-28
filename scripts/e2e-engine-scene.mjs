@@ -8,7 +8,9 @@
 //
 // 새 프로젝트는 앱과 같은 함수(scene/projectTemplates.ts 의 writeProjectTemplate)로 쓴다. TypeScript 모듈(그것과 맵 모델,
 // e2e 의 BMP 읽기 tests/e2e/support/bmp.ts)은 Vite 의 SSR 로 읽는다. 하는 일 (언어마다):
-//   1. 빈 프로젝트에 에디터가 하듯 오브젝트 둘(스프라이트와 컴포넌트가 붙은 노드)을 더해 돌리고 컴포넌트 init 을 본다
+//   1. 빈 프로젝트에 에디터가 하듯 오브젝트 둘(스프라이트와 컴포넌트가 붙은 노드)을 더해 돌리고 컴포넌트 init 을 본다.
+//      컴포넌트에는 매개변수 선언(scripts/components/hello.json)이 있고, 코어의 SceneModel.setParam 으로 값 둘을 정해
+//      저장한다. 엔진이 컴포넌트에 넘긴 params 가 선언의 기본값에 씬의 값을 덮은 것인지 본다
 //   2. 플래피는 INITIAL2D_AUTOPLAY=1 로 자동 시연을 돌려 상태 전이와 900틱 종료 요약을 본다
 //   3. 타일맵은 맵 문서(ext-tilemap 의 MapDocument)로 칸 (24, 28) 을 표식 타일(gid 45)로 칠해 저장하고, 시작 씬(game.json)
 //      으로 돌려 스크린샷의 그 칸이 표식 색 #d8c880 이고 옆 칸은 잔디인지 본다
@@ -43,7 +45,10 @@ console.log(`엔진: ${exe} (기능: ${[...features].join(" ")})`);
 
 // ---- 에디터 모듈 (TypeScript) ----
 
-const editor = Object.assign({}, ...(await loadEditorModules(repo, ["/packages/app/src/editor/scene/projectTemplates.ts", "/packages/ext-tilemap/src/model/index.ts", "/tests/e2e/support/bmp.ts"])));
+const editor = Object.assign(
+  {},
+  ...(await loadEditorModules(repo, ["/packages/app/src/editor/scene/projectTemplates.ts", "/packages/ext-tilemap/src/model/index.ts", "/tests/e2e/support/bmp.ts", "/packages/core/src/index.ts"])),
+);
 
 /** 번들 대신 packages/app/templates/ 를 읽는 템플릿 소스 */
 const fsSource = {
@@ -70,24 +75,25 @@ function serializeScene(data) {
   return JSON.stringify(out, null, 2) + "\n";
 }
 
-/** 에디터의 컴포넌트 템플릿(scripting/templates.ts)과 같은 꼴에 print 하나를 더한 것 */
+/** 에디터의 컴포넌트 템플릿(scripting/templates.ts)과 같은 꼴에 print 하나를 더한 것. init 이 받은 params 를 찍는다 */
 function componentSource(language, klass, marker) {
   if (language === "lua") {
     return `-- ${klass} 컴포넌트. 씬이 오브젝트(obj)에 붙여 계약 함수를 부른다.
 
 local ${klass} = {}
 
-function ${klass}.init(obj, scene)
+function ${klass}.init(obj, scene, params)
   print("${marker}")
+  print(string.format("hello:params greeting=%s count=%d target=%s", params.greeting, params.count, params.target))
 end
 
-function ${klass}.update(obj, scene, elapsed)
+function ${klass}.update(obj, scene, elapsed, params)
 end
 
-function ${klass}.render(obj, scene)
+function ${klass}.render(obj, scene, params)
 end
 
-function ${klass}.destroy(obj, scene)
+function ${klass}.destroy(obj, scene, params)
 end
 
 return ${klass}
@@ -96,8 +102,13 @@ return ${klass}
   return `# ${klass} 컴포넌트. 씬이 오브젝트(obj)에 붙여 계약 메서드를 부른다.
 
 class ${klass}
+  def initialize(params = {})
+    @params = params
+  end
+
   def init(obj, scene)
     puts "${marker}"
+    puts "hello:params greeting=#{@params["greeting"]} count=#{@params["count"].to_i} target=#{@params["target"]}"
   end
 
   def update(obj, scene, elapsed)
@@ -111,6 +122,17 @@ class ${klass}
 end
 `;
 }
+
+const PARAMS_DECLARATION = "scripts/components/hello.json";
+const PARAMS_FIELDS = {
+  version: 1,
+  fields: [
+    { key: "greeting", type: "string", default: "hi" },
+    { key: "count", type: "integer", default: 3, min: 0 },
+    { key: "target", type: "object" },
+  ],
+};
+const PARAMS_LINE = "hello:params greeting=안녕 count=3 target=bird";
 
 /** 빈 프로젝트에 에디터가 하듯 오브젝트 둘을 더한다 (코어 CORE_DEFAULT_PROPS.sprite 와 같은 기본값) */
 function addEditorObjects(dir, language) {
@@ -127,7 +149,13 @@ function addEditorObjects(dir, language) {
     scripts: [],
   });
   scene.objects.push({ id: "world", type: "node", x: 0, y: 0, props: {}, scripts: ["components/hello"] });
-  fs.writeFileSync(scenePath, serializeScene(scene));
+  // 매개변수: 선언의 기본값은 greeting "hi", count 3. 인스펙터가 하듯 코어 명령으로 greeting 과 target 을 정한다
+  fs.mkdirSync(path.join(dir, "scripts", "components"), { recursive: true });
+  fs.writeFileSync(path.join(dir, PARAMS_DECLARATION), JSON.stringify(PARAMS_FIELDS, null, 2) + "\n");
+  const model = new editor.SceneModel(editor.parseScene(serializeScene(scene)));
+  model.setParam("world", "components/hello", "greeting", "안녕").execute();
+  model.setParam("world", "components/hello", "target", "bird").execute();
+  fs.writeFileSync(scenePath, editor.serializeScene(model.toData()));
   const componentPath = language === "lua" ? "scripts/lua/components/hello.lua" : "scripts/ruby/components/hello.rb";
   fs.mkdirSync(path.dirname(path.join(dir, componentPath)), { recursive: true });
   fs.writeFileSync(path.join(dir, componentPath), componentSource(language, "Hello", "hello:init"));
@@ -187,6 +215,8 @@ for (const language of ["lua", "ruby"]) {
     const { result, log, shot } = runEngine(dir, { scene: "main", script, exitAfter: 120, shotFrame: 30 });
     for (const c of exitChecks(log, result.status)) check(c.name, c.ok, `${c.detail} signal=${result.signal}`);
     check("컴포넌트 init 호출됨 (hello:init)", log.includes("hello:init"), tail(log));
+    check(`컴포넌트가 받은 params 는 선언의 기본값에 씬의 값을 덮은 것 (${PARAMS_LINE})`, log.includes(PARAMS_LINE), tail(log));
+    check("씬 파일에는 정한 값만 있다", JSON.stringify(JSON.parse(fs.readFileSync(path.join(dir, "resources/scenes/main.json"), "utf8")).objects.find((o) => o.id === "world").params) === JSON.stringify({ "components/hello": { greeting: "안녕", target: "bird" } }), "");
     check("프레임 30 스크린샷", fs.existsSync(shot) && fs.statSync(shot).size > 1000, shot);
     dumpOnFailure(result, log);
     cleanup(dir);

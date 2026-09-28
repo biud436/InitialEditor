@@ -290,6 +290,47 @@ describe("SceneTools", () => {
     expect(await h.be.readText("scripts/components/free.json")).toBe(decl([]));
   });
 
+  it("이름 바꾸기는 선언의 object 필드가 가리키는 매개변수도 바꾸고, 되돌리기 한 번에 돌아온다", async () => {
+    const h = await make({
+      "scripts/components/follow.json": JSON.stringify({ version: 1, fields: [{ key: "target", type: "object" }, { key: "label", type: "string" }] }),
+      "resources/scenes/p.json": JSON.stringify({
+        version: 1,
+        name: "p",
+        objects: [
+          { id: "hero", type: "node", scripts: ["components/follow"], params: { "components/follow": { target: "hero", label: "hero" } } },
+          { id: "cam", type: "node", scripts: ["components/follow"], params: { "components/follow": { target: "hero" } } },
+        ],
+      }),
+    });
+    const doc = (await h.tools.openScene("resources/scenes/p.json"))!;
+    await h.tools.declarations.resolve("components/follow");
+    const depth = doc.undo.depth;
+    expect(h.tools.rename("hero", "player")).toBe(true);
+    expect(doc.undo.depth).toBe(depth + 1);
+    expect(doc.scene.find("player")?.params).toEqual({ "components/follow": { target: "player", label: "hero" } });
+    expect(doc.scene.find("cam")?.params).toEqual({ "components/follow": { target: "player" } });
+    expect(doc.problems).toEqual([]);
+    doc.undo.undo();
+    expect(doc.scene.find("hero")?.params).toEqual({ "components/follow": { target: "hero", label: "hero" } });
+    expect(doc.scene.find("cam")?.params).toEqual({ "components/follow": { target: "hero" } });
+  });
+
+  it("씬 로더가 매개변수를 모르면 params 가 있는 씬에 경고하고, 로더를 바꾸면 사라진다", async () => {
+    const h = await make({
+      "scripts/lua/scene_loader.lua": "-- 예전 로더\n",
+      "resources/scenes/p.json": JSON.stringify({ version: 1, name: "p", objects: [{ id: "a", type: "node", scripts: ["components/free"], params: { "components/free": { n: 1 } } }] }),
+    });
+    const doc = (await h.tools.openScene("resources/scenes/p.json"))!;
+    await h.tools.loader.refresh();
+    await h.tools.declarations.resolve("components/free");
+    expect(h.tools.loader.state).toBe("old");
+    expect(doc.problems.map((p) => `${p.severity} ${p.location}`)).toEqual(["warning objects[0].params"]);
+    expect(doc.problems[0].message).toContain("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 넘기지 않아");
+    await h.tools.loader.upgrade({ text: () => 'SceneLoader.DECLARATION_ROOT = "scripts/"\n', binary: async () => new Uint8Array() });
+    expect(h.tools.loader.state).toBe("params");
+    expect(doc.problems).toEqual([]);
+  });
+
   it("setStartScene: 활성 씬 이름을 game.json 에 쓴다", async () => {
     const h = await make();
     h.promptAnswer = "title";

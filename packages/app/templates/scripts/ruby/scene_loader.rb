@@ -1,10 +1,11 @@
-# scene_loader.rb : 씬 파일(씬 포맷 v1)을 읽어 실행 오브젝트를 만드는 로더, Ruby 판 (R1, docs/plans/r1-scene-loader.md)
+# scene_loader.rb : 씬 파일(씬 포맷 v1)을 읽어 실행 오브젝트를 만드는 로더 (R1, docs/plans/r1-scene-loader.md)
 #
-# scripts/lua/scene_loader.lua 에 대응한다 (구조와 주석을 그대로 옮겼다). 에디터가 저장한
-# resources/scenes/<이름>.json 을 읽어 코어 타입(node, sprite, text)을 만들고, 확장 타입(tilemap 등)은
-# scripts/ruby/scene_types/<타입>.rb 의 SceneTypes::<CamelCase> 에 맡긴다. 오브젝트에 붙은 스크립트
-# 컴포넌트(scripts/ruby/components/...)는 파일 이름 마지막 조각의 CamelCase 클래스이며
-# (components/pipe_spawner -> PipeSpawner) 오브젝트마다 하나씩 만들어 init, update, render, destroy 를 부른다.
+# 에디터가 저장한 resources/scenes/<이름>.json 을 읽어 코어 타입(node, sprite, text)을 만들고, 확장 타입(tilemap 등)은
+# scripts/ruby/scene_types/<타입>.rb 의 SceneTypes::<CamelCase> 에 맡긴다. Lua 의 scripts/lua/scene_loader.lua 와
+# 같은 파일을 같은 규칙으로 읽는다. 오브젝트에 붙은 스크립트 컴포넌트(scripts/ruby/components/...)는 논리 이름
+# 전체의 모듈 경로 클래스(components/flappy/bird -> Components::Flappy::Bird)이거나, 그것이 없으면 파일 이름
+# 마지막 조각의 CamelCase 클래스이며(components/pipe_spawner -> PipeSpawner) 오브젝트마다 하나씩 만들어
+# init, update, render, destroy 를 부른다.
 #
 #   require "scripts/ruby/scene_loader"
 #   scene = SceneLoader.open("flappy")             # resources/scenes/flappy.json
@@ -17,6 +18,8 @@
 #   def update(obj, scene, elapsed); end          # elapsed 는 ms
 #   def render(obj, scene); end                   # 로더가 스프라이트와 글자를 그린 뒤에 불린다
 #   def destroy(obj, scene); end
+# initialize 가 위치 인자를 받으면 new(params) 로 만든다. params 는 선언 파일(scripts/components/<경로>.json)의
+# 기본값 위에 오브젝트의 params[논리 이름] 을 덮은 문자열 키 Hash 다 (계획 문서 5.4절). 아니면 new.
 #
 # obj 는 실행 오브젝트(SceneObject)다: id, type, x, y, visible, props(문자열 키 Hash 복사본, 컴포넌트가
 # 고쳐도 된다), sprite(Sprite 객체, sprite 타입만), scene, spec(파일의 원본 항목, 모르는 키 포함).
@@ -33,6 +36,7 @@ module SceneLoader
   SCENE_DIR = "resources/scenes/"      # 이름만 주면 여기서 <이름>.json 을 찾는다
   SCRIPT_ROOT = "scripts/ruby/"        # 논리 이름 "components/bird" 앞에 붙는다
   SCENE_TYPES_DIR = "scene_types/"     # 확장 타입 모듈 폴더 (SCRIPT_ROOT 아래)
+  DECLARATION_ROOT = "scripts/"        # 컴포넌트 선언 파일: 논리 이름 + ".json" 을 여기서 찾는다
   CORE_TYPES = ["node", "sprite", "text"]
   DEFAULT_FRAME_DELAY = 100            # ms. 엔진 기본값 0 은 매 틱 프레임이 넘어가 버린다
 
@@ -46,6 +50,9 @@ module SceneLoader
   SPRITE_NUMBER_KEYS = ["width", "height", "frames", "scale", "angle", "opacity", "startFrame", "endFrame", "frameDelay"]
   SPRITE_INTEGER_KEYS = ["width", "height", "frames", "startFrame", "endFrame", "opacity"]
 
+  # 선언 파일의 필드 타입
+  FIELD_TYPES = ["string", "text", "number", "integer", "boolean", "enum", "object"]
+
   # 로더의 모든 오류. 메시지는 "scene: ..." 으로 시작한다 (Lua 판과 같은 문장)
   class Error < StandardError
   end
@@ -56,6 +63,8 @@ module SceneLoader
   @registered_types = {}   # 코드로 등록한 확장 타입 (이름 -> 모듈)
   @loaded_types = {}       # 파일에서 읽은 확장 타입 (이름 -> 모듈)
   @components = {}         # 논리 이름 -> 클래스
+  @declarations = {}       # 논리 이름 -> 검사를 통과한 선언 Hash, 선언 파일이 없으면 false
+  @takes_params = {}       # 컴포넌트 클래스 -> initialize 가 위치 인자를 받는가
   @hooks = {}              # 컴포넌트 클래스 -> { 훅 이름 => 있음 }
   @type_hooks = {}         # 확장 타입 모듈 -> { 훅 이름 => 있음 }
   @current_font = nil      # 엔진의 비트맵 폰트는 하나뿐이라 지금 준비된 .fnt 경로를 기억한다
@@ -139,19 +148,47 @@ module SceneLoader
       camel(name.split("/").last)
     end
 
-    # 컴포넌트 클래스를 찾는다. 없으면 논리 이름과 찾은 경로를 말하며 실패한다.
+    # "components/flappy/bird" -> "Components::Flappy::Bird"
+    def component_class_path(name)
+      name.split("/").map { |part| camel(part) }.join("::")
+    end
+
+    # 논리 이름 전체의 모듈 경로(Components::Flappy::Bird)에 클래스가 있으면 그것을, 없으면 nil.
+    # 한 단계씩 상속을 보지 않고 (const_defined?(이름, false)) 따라간다.
+    def nested_component_class(name)
+      mod = Object
+      name.split("/").each do |part|
+        return nil if part.empty? || !mod.is_a?(Module)
+        sym = camel(part).to_sym
+        begin
+          return nil unless mod.const_defined?(sym, false)
+        rescue NameError
+          return nil
+        end
+        mod = mod.const_get(sym)
+      end
+      mod.is_a?(Class) ? mod : nil
+    end
+
+    # 컴포넌트 클래스를 찾는다: 모듈 경로가 먼저, 없으면 마지막 조각의 클래스.
+    # 없으면 논리 이름과 찾은 경로를 말하며 실패한다.
     def load_component(name)
       klass = @components[name]
       return klass unless klass.nil?
       path = component_path(name)
       err("component '#{name}' not found (#{path})") unless File.exist?(path)
       require path
-      cname = component_class_name(name)
-      unless Object.const_defined?(cname.to_sym)
-        err("component '#{name}' must define class #{cname} (#{path})")
+      klass = nested_component_class(name)
+      if klass.nil?
+        cname = component_class_name(name)
+        unless Object.const_defined?(cname.to_sym)
+          full = component_class_path(name)
+          names = full == cname ? cname : "#{full} or #{cname}"
+          err("component '#{name}' must define class #{names} (#{path})")
+        end
+        klass = Object.const_get(cname.to_sym)
+        err("component '#{name}': #{cname} is not a class (#{path})") unless klass.is_a?(Class)
       end
-      klass = Object.const_get(cname.to_sym)
-      err("component '#{name}': #{cname} is not a class (#{path})") unless klass.is_a?(Class)
       @components[name] = klass
       klass
     end
@@ -197,6 +234,197 @@ module SceneLoader
       return if path == "" || path == @current_font
       err("text '#{label}': cannot load font #{path}") unless Graphics.prepare_font(resolve_path(path))
       @current_font = path
+    end
+
+    # -----------------------------------------------------------------------
+    # 컴포넌트 매개변수 (params, 계획 문서 5.4절)
+    # -----------------------------------------------------------------------
+
+    # JSON 객체인가: Hash, 또는 빈 Array (Lua 의 Json.Load 는 [] 과 {} 를 같은 빈 표로 읽으므로 같게 본다)
+    def json_object?(v)
+      v.is_a?(Hash) || (v.is_a?(Array) && v.empty?)
+    end
+
+    # JSON 배열인가: Array, 또는 빈 Hash
+    def json_array?(v)
+      v.is_a?(Array) || (v.is_a?(Hash) && v.empty?)
+    end
+
+    # 메시지 속의 숫자: 정수 값이면 정수로, 아니면 유효 숫자 14자리
+    def num_text(v)
+      return v.to_i.to_s if v == v.floor && v.abs < 1e15
+      format("%.14g", v)
+    end
+
+    # [A-Za-z_][A-Za-z0-9_]*
+    def identifier?(s)
+      return false unless s.is_a?(String) && !s.empty?
+      s.bytes.each_with_index do |b, i|
+        letter = (b >= 65 && b <= 90) || (b >= 97 && b <= 122) || b == 95
+        digit = b >= 48 && b <= 57
+        return false unless letter || (i > 0 && digit)
+      end
+      true
+    end
+
+    # 값 하나가 필드에 맞는지 본다. 맞지 않으면 "must be ..." 꼴의 문장, 맞으면 nil.
+    # has_id 를 주면 object 값이 가리키는 id 가 있는지도 본다 (선언의 default 검사는 주지 않는다).
+    def check_field_value(field, v, has_id)
+      t = field["type"]
+      if t == "string" || t == "text"
+        return "must be a string" unless v.is_a?(String)
+      elsif t == "number" || t == "integer"
+        return "must be a number" if t == "number" && !v.is_a?(Numeric)
+        return "must be an integer" if t == "integer" && !integer_like?(v)
+        min = field["min"]
+        max = field["max"]
+        return "must be >= #{num_text(min)}" if !min.nil? && v < min
+        return "must be <= #{num_text(max)}" if !max.nil? && v > max
+      elsif t == "boolean"
+        return "must be a boolean" unless v == true || v == false
+      elsif t == "enum"
+        return nil if v.is_a?(String) && field["values"].include?(v)
+        return "must be one of #{field['values'].join(', ')}"
+      elsif t == "object"
+        return "must be an object id" unless v.is_a?(String) && !v.empty?
+        return "names no object '#{v}'" if !has_id.nil? && !has_id.call(v)
+      end
+      nil
+    end
+
+    # 선언 Hash 를 검사한다. 문제가 있으면 문장을, 없으면 nil 을 돌려준다.
+    def check_declaration(decl)
+      return "not an object" unless json_object?(decl)
+      version = decl.is_a?(Hash) ? decl["version"] : nil
+      return "unsupported version #{version.nil? ? 'nil' : version} (expected 1)" unless version == 1
+      fields = decl["fields"]
+      return "fields must be an array" if !fields.nil? && !json_array?(fields)
+      seen = {}
+      (fields.is_a?(Array) ? fields : []).each_with_index do |f, i|
+        return "fields[#{i + 1}] is not an object" unless json_object?(f)
+        key = f.is_a?(Hash) ? f["key"] : nil
+        return "fields[#{i + 1}] needs a key ([A-Za-z_][A-Za-z0-9_]*)" unless identifier?(key)
+        return "duplicate key '#{key}'" if seen.key?(key)
+        seen[key] = true
+        where = "field '#{key}'"
+        type = f["type"]
+        return "#{where} needs a type" unless type.is_a?(String)
+        return "#{where}: unknown type '#{type}'" unless FIELD_TYPES.include?(type)
+        return "#{where}: label must be a string" if !f["label"].nil? && !f["label"].is_a?(String)
+        values = f["values"]
+        if type == "enum"
+          ok = json_array?(values) && !values.empty?
+          ok = values.all? { |v| v.is_a?(String) && !v.empty? } if ok
+          return "#{where}: values must be a non-empty array of strings" unless ok
+        elsif !values.nil?
+          return "#{where}: values is only for enum"
+        end
+        ["min", "max"].each do |bound|
+          next if f[bound].nil?
+          return "#{where}: #{bound} is only for number and integer" unless type == "number" || type == "integer"
+          return "#{where}: #{bound} must be a number" unless f[bound].is_a?(Numeric)
+        end
+        return "#{where}: min must be <= max" if !f["min"].nil? && !f["max"].nil? && f["min"] > f["max"]
+        unless f["default"].nil?
+          problem = check_field_value(f, f["default"], nil)
+          return "#{where}: default #{problem}" unless problem.nil?
+        end
+      end
+      nil
+    end
+
+    # Json.load 의 파싱 오류에서 파서의 설명만 한 줄로 떼어 낸다
+    def parse_error_detail(message)
+      detail = message
+      i = message.index("parse error in ")
+      unless i.nil?
+        j = message.index(": ", i)
+        detail = message[(j + 2)..-1] unless j.nil?
+      end
+      detail.split(" ").join(" ")
+    end
+
+    # 논리 이름 -> 선언 파일 경로 ("components/mover" -> "scripts/components/mover.json")
+    def declaration_path(name)
+      DECLARATION_ROOT + name + ".json"
+    end
+
+    # 선언 파일을 읽어 검사한다. 선언 Hash 를, 파일이 없으면 nil 을 돌려주고 깨졌으면 Error.
+    # 통과한 선언과 파일 없음은 기억해 두고 다시 읽지 않는다.
+    def load_declaration(name)
+      cached = @declarations[name]
+      return (cached == false ? nil : cached) unless cached.nil?
+      path = declaration_path(name)
+      unless File.exist?(resolve_path(path))
+        @declarations[name] = false
+        return nil
+      end
+      decl = nil
+      begin
+        decl = Json.load(resolve_path(path))
+      rescue RuntimeError => e
+        err("declaration #{path}: not valid JSON (#{parse_error_detail(e.message)})")
+      end
+      problem = check_declaration(decl)
+      err("declaration #{path}: #{problem}") unless problem.nil?
+      decl["fields"] = [] unless decl["fields"].is_a?(Array)
+      @declarations[name] = decl
+      decl
+    end
+
+    # 컴포넌트의 선언 (검사를 통과한 Hash 의 복사본). 선언 파일이 없으면 nil, 깨졌으면 Error.
+    def declaration(name)
+      deep_copy(load_declaration(name))
+    end
+
+    # 오브젝트 항목의 params 를 검사한다. 문제가 있으면 Error.
+    # has_id.call(id) 는 object 값이 가리킬 수 있는 id 인지 답한다. validate_object 를 통과한 항목에만 부른다.
+    def validate_params(spec, has_id)
+      label = spec["id"]
+      params = spec["params"]
+      err("params must be an object (#{label})") if !params.nil? && !json_object?(params)
+      decls = {}
+      (spec["scripts"] || []).each { |name| decls[name] = load_declaration(name) || false }
+      return nil unless params.is_a?(Hash)
+      params.keys.sort.each do |name|
+        values = params[name]
+        next if values.nil?
+        err("params '#{name}': not in scripts (#{label})") unless decls.key?(name)
+        err("params '#{name}' must be an object (#{label})") unless json_object?(values)
+        decl = decls[name]
+        next if decl == false || !values.is_a?(Hash)
+        values.keys.sort.each do |key|
+          v = values[key]
+          next if v.nil?
+          field = decl["fields"].find { |f| f["key"] == key }
+          err("params '#{name}': unknown key '#{key}' (#{label})") if field.nil?
+          problem = check_field_value(field, v, has_id)
+          err("params '#{name}': #{key} #{problem} (#{label})") unless problem.nil?
+        end
+      end
+      nil
+    end
+
+    # 컴포넌트 하나의 params Hash 를 만든다: 선언의 기본값 위에 오브젝트의 params[name] 을 덮는다 (깊은 복사).
+    def component_params(name, spec)
+      decl = load_declaration(name)
+      out = {}
+      unless decl.nil?
+        decl["fields"].each { |f| out[f["key"]] = deep_copy(f["default"]) unless f["default"].nil? }
+      end
+      params = spec["params"]
+      values = params.is_a?(Hash) ? params[name] : nil
+      values.each { |k, v| out[k] = deep_copy(v) unless v.nil? } if values.is_a?(Hash)
+      out
+    end
+
+    # initialize 가 위치 인자를 하나 이상 받는가 (def initialize(params), (params = {}), (*args)).
+    # 정의하지 않은 initialize 는 BasicObject 의 것이고 인자를 받지 않는다.
+    def takes_params?(klass)
+      cached = @takes_params[klass]
+      return cached unless cached.nil?
+      kinds = klass.instance_method(:initialize).parameters.map { |p| p[0] }
+      @takes_params[klass] = kinds.include?(:req) || kinds.include?(:opt) || kinds.include?(:rest)
     end
 
     # -----------------------------------------------------------------------
@@ -298,6 +526,9 @@ module SceneLoader
         validate_object(spec, i + 1, ids, false)
         ids[spec["id"]] = true
       end
+      # params 는 id 를 다 모은 뒤에 본다 (object 값이 뒤의 오브젝트를 가리킬 수 있다)
+      has_id = lambda { |id| ids.key?(id) }
+      (objects || []).each { |spec| validate_params(spec, has_id) }
       true
     end
 
@@ -432,6 +663,7 @@ module SceneLoader
         spec["id"] = auto_id(spec["type"])
       end
       SceneLoader.validate_object(spec, "spawn", @by_id, false)
+      SceneLoader.validate_params(spec, lambda { |id| id == spec["id"] || @by_id.key?(id) })
       pos = @order.size
       unless after_id.nil?
         anchor = @by_id[after_id]
@@ -595,7 +827,9 @@ module SceneLoader
         obj.type_module.create(obj, self)
       end
       obj.scripts.each do |name|
-        obj.components.push(SceneLoader.load_component(name).new)
+        klass = SceneLoader.load_component(name)
+        params = SceneLoader.component_params(name, spec)
+        obj.components.push(SceneLoader.takes_params?(klass) ? klass.new(params) : klass.new)
       end
       obj
     end

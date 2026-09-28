@@ -319,3 +319,24 @@ textarea.field-text {
   padding: 1px 4px;
   font-size: 12px;
 }
+
+.inspector-loader-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 2px 0 var(--space-1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+  font-size: 12px;
+}
+
+.inspector-loader-note span {
+  flex: 1;
+  min-width: 0;
+}
+
+.inspector-loader-note .btn {
+  padding: 1px 4px;
+  white-space: nowrap;
+}

@@ -12,10 +12,12 @@
 --   scene:close()
 --
 -- 컴포넌트 계약 (모듈이 표 하나를 돌려준다. 훅은 전부 선택):
---   function M.init(obj, scene) end
---   function M.update(obj, scene, elapsed) end   -- elapsed 는 ms
---   function M.render(obj, scene) end            -- 로더가 스프라이트와 글자를 그린 뒤에 불린다
---   function M.destroy(obj, scene) end
+--   function M.init(obj, scene, params) end
+--   function M.update(obj, scene, elapsed, params) end   -- elapsed 는 ms
+--   function M.render(obj, scene, params) end            -- 로더가 스프라이트와 글자를 그린 뒤에 불린다
+--   function M.destroy(obj, scene, params) end
+-- params 는 그 컴포넌트의 매개변수 표다: 선언 파일(scripts/components/<경로>.json)의 기본값 위에
+-- 오브젝트의 params[논리 이름] 을 덮은 것 (계획 문서 5.4절).
 --
 -- obj 는 실행 오브젝트다: id, type, x, y, visible, props(복사본, 컴포넌트가 고쳐도 된다),
 -- sprite(스프라이트 핸들, sprite 타입만), scene, 그리고 spec(파일의 원본 항목, 모르는 키 포함).
@@ -28,6 +30,7 @@ SceneLoader.VERSION = 1
 SceneLoader.SCENE_DIR = "resources/scenes/"     -- 이름만 주면 여기서 <이름>.json 을 찾는다
 SceneLoader.SCRIPT_ROOT = "scripts/lua/"         -- 논리 이름 "components/bird" 앞에 붙는다
 SceneLoader.SCENE_TYPES_DIR = "scene_types/"     -- 확장 타입 모듈 폴더 (SCRIPT_ROOT 아래)
+SceneLoader.DECLARATION_ROOT = "scripts/"        -- 컴포넌트 선언 파일: 논리 이름 + ".json" 을 여기서 찾는다
 SceneLoader.CORE_TYPES = { node = true, sprite = true, text = true }
 SceneLoader.DEFAULT_FRAME_DELAY = 100            -- ms. 엔진 기본값 0 은 매 틱 프레임이 넘어가 버린다
 
@@ -40,6 +43,7 @@ local TEXT_DEFAULTS = { text = "", font = "" }
 
 local registeredTypes = {}   -- 코드로 등록한 확장 타입 (이름 -> 모듈)
 local loadedTypes = {}       -- 파일에서 읽은 확장 타입 (이름 -> 모듈)
+local declarations = {}      -- 컴포넌트 논리 이름 -> 검사를 통과한 선언 표, 선언 파일이 없으면 false
 local currentFont = nil      -- 엔진의 비트맵 폰트는 하나뿐이라 지금 준비된 .fnt 경로를 기억한다
 
 -- ---------------------------------------------------------------------------
@@ -144,6 +148,231 @@ end
 -- 확장 타입을 코드로 등록한다 (파일 없이). 테스트와 게임이 쓴다.
 function SceneLoader.registerType(typeName, mod)
 	registeredTypes[typeName] = mod
+end
+
+-- ---------------------------------------------------------------------------
+-- 컴포넌트 매개변수 (params, 계획 문서 5.4절)
+-- ---------------------------------------------------------------------------
+
+local FIELD_TYPES = {
+	string = true, text = true, number = true, integer = true, boolean = true, enum = true, object = true,
+}
+
+-- JSON 객체인가: 키가 전부 문자열인 표. 빈 표도 된다 (Json.Load 는 [] 과 {} 를 같은 빈 표로 읽는다).
+local function isObject(v)
+	if type(v) ~= "table" then return false end
+	for k in pairs(v) do
+		if type(k) ~= "string" then return false end
+	end
+	return true
+end
+
+-- JSON 배열인가: 키가 정확히 1..n 인 표. 빈 표도 된다.
+local function isArray(v)
+	if type(v) ~= "table" then return false end
+	local n = 0
+	for k in pairs(v) do
+		if math.type(k) ~= "integer" or k < 1 then return false end
+		n = n + 1
+	end
+	return n == #v
+end
+
+local function sortedKeys(t)
+	local keys = {}
+	for k in pairs(t) do keys[#keys + 1] = k end
+	table.sort(keys)
+	return keys
+end
+
+-- 메시지 속의 숫자: 정수 값이면 정수로, 아니면 유효 숫자 14자리
+local function numText(v)
+	if v == math.floor(v) and math.abs(v) < 1e15 then return string.format("%d", v) end
+	return string.format("%.14g", v)
+end
+
+local function isIdentifier(s)
+	return type(s) == "string" and s:match("^[A-Za-z_][A-Za-z0-9_]*$") ~= nil
+end
+
+-- 값 하나가 필드에 맞는지 본다. 맞지 않으면 "must be ..." 꼴의 문장, 맞으면 nil.
+-- hasId 를 주면 object 값이 가리키는 id 가 있는지도 본다 (선언의 default 검사는 주지 않는다).
+local function checkFieldValue(field, v, hasId)
+	local t = field.type
+	if t == "string" or t == "text" then
+		if type(v) ~= "string" then return "must be a string" end
+	elseif t == "number" or t == "integer" then
+		if t == "number" and type(v) ~= "number" then return "must be a number" end
+		if t == "integer" and not isInteger(v) then return "must be an integer" end
+		if field.min ~= nil and v < field.min then return "must be >= " .. numText(field.min) end
+		if field.max ~= nil and v > field.max then return "must be <= " .. numText(field.max) end
+	elseif t == "boolean" then
+		if type(v) ~= "boolean" then return "must be a boolean" end
+	elseif t == "enum" then
+		for _, allowed in ipairs(field.values) do
+			if v == allowed then return nil end
+		end
+		return "must be one of " .. table.concat(field.values, ", ")
+	elseif t == "object" then
+		if type(v) ~= "string" or v == "" then return "must be an object id" end
+		if hasId ~= nil and not hasId(v) then return string.format("names no object '%s'", v) end
+	end
+	return nil
+end
+
+-- 선언 표를 검사한다. 문제가 있으면 문장을, 없으면 nil 을 돌려준다. fields 가 없으면 빈 배열로 채운다.
+local function checkDeclaration(decl)
+	if not isObject(decl) then return "not an object" end
+	if decl.version ~= 1 then
+		return string.format("unsupported version %s (expected 1)", tostring(decl.version))
+	end
+	if decl.fields == nil then decl.fields = {} end
+	if not isArray(decl.fields) then return "fields must be an array" end
+	local seen = {}
+	for i, f in ipairs(decl.fields) do
+		if not isObject(f) then return string.format("fields[%d] is not an object", i) end
+		if not isIdentifier(f.key) then
+			return string.format("fields[%d] needs a key ([A-Za-z_][A-Za-z0-9_]*)", i)
+		end
+		if seen[f.key] then return string.format("duplicate key '%s'", f.key) end
+		seen[f.key] = true
+		local where = string.format("field '%s'", f.key)
+		if type(f.type) ~= "string" then return where .. " needs a type" end
+		if not FIELD_TYPES[f.type] then return string.format("%s: unknown type '%s'", where, f.type) end
+		if f.label ~= nil and type(f.label) ~= "string" then return where .. ": label must be a string" end
+		if f.type == "enum" then
+			local ok = isArray(f.values) and #f.values > 0
+			for _, v in ipairs(ok and f.values or {}) do
+				if type(v) ~= "string" or v == "" then ok = false end
+			end
+			if not ok then return where .. ": values must be a non-empty array of strings" end
+		elseif f.values ~= nil then
+			return where .. ": values is only for enum"
+		end
+		for _, bound in ipairs({ "min", "max" }) do
+			if f[bound] ~= nil then
+				if f.type ~= "number" and f.type ~= "integer" then
+					return string.format("%s: %s is only for number and integer", where, bound)
+				end
+				if type(f[bound]) ~= "number" then
+					return string.format("%s: %s must be a number", where, bound)
+				end
+			end
+		end
+		if f.min ~= nil and f.max ~= nil and f.min > f.max then
+			return where .. ": min must be <= max"
+		end
+		if f.default ~= nil then
+			local problem = checkFieldValue(f, f.default, nil)
+			if problem then return string.format("%s: default %s", where, problem) end
+		end
+	end
+	return nil
+end
+
+-- Json.Load 의 파싱 오류에서 파서의 설명만 한 줄로 떼어 낸다
+local function parseErrorDetail(message)
+	message = tostring(message)
+	local detail = message:match("parse error in .-: (.*)$") or message
+	return (detail:gsub("%s+", " "):match("^%s*(.-)%s*$"))
+end
+
+-- 논리 이름 -> 선언 파일 경로 ("components/mover" -> "scripts/components/mover.json")
+function SceneLoader.declarationPath(name)
+	return SceneLoader.DECLARATION_ROOT .. name .. ".json"
+end
+
+-- 선언 파일을 읽어 검사한다. 선언 표를, 파일이 없으면 nil 을, 깨졌으면 nil 과 문장을 돌려준다.
+-- 통과한 선언과 파일 없음은 기억해 두고 다시 읽지 않는다.
+local function loadDeclaration(name)
+	local cached = declarations[name]
+	if cached ~= nil then return cached or nil end
+	local path = SceneLoader.declarationPath(name)
+	local f = io.open(resolvePath(path), "rb")
+	if f == nil then
+		declarations[name] = false
+		return nil
+	end
+	f:close()
+	local decl, err = Json.Load(resolvePath(path))
+	if decl == nil and err ~= nil then
+		return nil, string.format("declaration %s: not valid JSON (%s)", path, parseErrorDetail(err))
+	end
+	local problem = checkDeclaration(decl)
+	if problem then return nil, string.format("declaration %s: %s", path, problem) end
+	declarations[name] = decl
+	return decl
+end
+
+-- 컴포넌트의 선언 (검사를 통과한 표의 복사본). 선언 파일이 없으면 nil, 깨졌으면 오류.
+function SceneLoader.declaration(name)
+	local decl, err = loadDeclaration(name)
+	if err then error("scene: " .. err, 0) end
+	return deepcopy(decl)
+end
+
+local function fieldOf(decl, key)
+	for _, f in ipairs(decl.fields) do
+		if f.key == key then return f end
+	end
+	return nil
+end
+
+-- 오브젝트 항목의 params 를 검사한다. 문제가 있으면 문장을, 없으면 nil 을 돌려준다.
+-- hasId(id) 는 object 값이 가리킬 수 있는 id 인지 답한다. validateObject 를 통과한 항목에만 부른다.
+local function validateParams(spec, hasId)
+	local label = spec.id
+	local params = spec.params
+	if params ~= nil and not isObject(params) then
+		return string.format("params must be an object (%s)", label)
+	end
+	local decls = {}
+	for _, name in ipairs(spec.scripts or {}) do
+		local decl, err = loadDeclaration(name)
+		if err then return err end
+		decls[name] = decl or false
+	end
+	if params == nil then return nil end
+	for _, name in ipairs(sortedKeys(params)) do
+		local values = params[name]
+		if decls[name] == nil then
+			return string.format("params '%s': not in scripts (%s)", name, label)
+		end
+		if not isObject(values) then
+			return string.format("params '%s' must be an object (%s)", name, label)
+		end
+		local decl = decls[name]
+		if decl then
+			for _, key in ipairs(sortedKeys(values)) do
+				local field = fieldOf(decl, key)
+				if field == nil then
+					return string.format("params '%s': unknown key '%s' (%s)", name, key, label)
+				end
+				local problem = checkFieldValue(field, values[key], hasId)
+				if problem then
+					return string.format("params '%s': %s %s (%s)", name, key, problem, label)
+				end
+			end
+		end
+	end
+	return nil
+end
+
+-- 컴포넌트 하나의 params 표를 만든다: 선언의 기본값 위에 오브젝트의 params[name] 을 덮는다 (깊은 복사).
+local function componentParams(name, spec)
+	local decl, err = loadDeclaration(name)
+	if err then error("scene: " .. err, 0) end
+	local out = {}
+	if decl then
+		for _, f in ipairs(decl.fields) do
+			if f.default ~= nil then out[f.key] = deepcopy(f.default) end
+		end
+	end
+	local values = spec.params and spec.params[name]
+	if type(values) == "table" then
+		for k, v in pairs(values) do out[k] = deepcopy(v) end
+	end
+	return out
 end
 
 -- ---------------------------------------------------------------------------
@@ -261,6 +490,12 @@ function SceneLoader.validate(tbl)
 		local err = validateObject(spec, i, ids, false)
 		if err then return false, "scene: " .. err end
 		ids[spec.id] = true
+	end
+	-- params 는 id 를 다 모은 뒤에 본다 (object 값이 뒤의 오브젝트를 가리킬 수 있다)
+	local function hasId(id) return ids[id] == true end
+	for _, spec in ipairs(tbl.objects or {}) do
+		local err = validateParams(spec, hasId)
+		if err then return false, "scene: " .. err end
 	end
 	return true
 end
@@ -380,20 +615,22 @@ function Scene:_create(spec)
 		obj._type.create(obj, self)
 	end
 	for _, name in ipairs(obj.scripts) do
-		obj._components[#obj._components + 1] = { name = name, module = loadComponent(name) }
+		obj._components[#obj._components + 1] = {
+			name = name, module = loadComponent(name), params = componentParams(name, spec),
+		}
 	end
 	return obj
 end
 
 function Scene:_initComponents(obj)
 	for _, c in ipairs(obj._components) do
-		if c.module.init then c.module.init(obj, self) end
+		if c.module.init then c.module.init(obj, self, c.params) end
 	end
 end
 
 function Scene:_destroyObject(obj)
 	for _, c in ipairs(obj._components) do
-		if c.module.destroy then c.module.destroy(obj, self) end
+		if c.module.destroy then c.module.destroy(obj, self, c.params) end
 	end
 	if obj._type and obj._type.destroy then obj._type.destroy(obj, self) end
 	if obj.sprite then
@@ -471,6 +708,8 @@ function Scene:spawn(spec, afterId)
 	end
 	local err = validateObject(spec, "spawn", self._byId, false)
 	if err then error("scene: " .. err, 0) end
+	err = validateParams(spec, function(id) return id == spec.id or self._byId[id] ~= nil end)
+	if err then error("scene: " .. err, 0) end
 	local pos = #self._order + 1
 	if afterId ~= nil then
 		local anchor = self._byId[afterId]
@@ -507,7 +746,7 @@ function Scene:tick(elapsed)
 	for _, obj in ipairs(snapshot) do
 		if not obj.removed then
 			for _, c in ipairs(obj._components) do
-				if c.module.update then c.module.update(obj, self, elapsed) end
+				if c.module.update then c.module.update(obj, self, elapsed, c.params) end
 			end
 			if obj._type and obj._type.update then obj._type.update(obj, self, elapsed) end
 		end
@@ -540,7 +779,7 @@ function Scene:draw()
 				obj._type.draw(obj, self)
 			end
 			for _, c in ipairs(obj._components) do
-				if c.module.render then c.module.render(obj, self) end
+				if c.module.render then c.module.render(obj, self, c.params) end
 			end
 		end
 	end

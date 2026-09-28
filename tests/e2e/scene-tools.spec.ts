@@ -240,8 +240,9 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(tree.locator('[data-path="scripts/components/mover.json"]')).toBeVisible();
     expect(JSON.parse(await withEditor(page, (e) => e.backend.readText("scripts/components/mover.json")))).toEqual({ version: 1, fields: [] });
     // 편집기는 선언 파일의 스키마로 틀린 곳을 표시한다 (모르는 type)
-    const writeDeclaration = (text: string) =>
-      page.evaluate((t) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText("scripts/components/mover.json", t), text);
+    const writeFile = (path: string, text: string) =>
+      page.evaluate(([p, t]) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText(p, t), [path, text] as const);
+    const writeDeclaration = (text: string) => writeFile("scripts/components/mover.json", text);
     await page.locator(".monaco-editor .view-lines").click();
     await page.keyboard.press(`${await primaryKey(page)}+a`);
     await page.keyboard.insertText('{ "version": 1, "fields": [{ "key": "speed", "type": "vector" }] }');
@@ -294,8 +295,19 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(page.getByTestId("attach-script-suggestions").locator(".attach-script-suggestion").first()).toHaveAttribute("data-declared", "true");
     await page.getByTestId("attach-script-dialog").getByRole("button", { name: "취소" }).click();
 
-    // 떼면 그 컴포넌트의 값도 지워지고, 되돌리면 돌아온다
+    // 프로젝트의 씬 로더가 예전 사본이면 알리고 경고한다. 바꾸면 번들 템플릿의 로더(매개변수 지원)로 덮어쓴다
     await node.click();
+    await writeFile("scripts/lua/scene_loader.lua", "-- 예전 씬 로더\nreturn {}\n");
+    const note = page.getByTestId("inspector-loader-old");
+    await expect(note).toBeVisible();
+    await expect(page.getByTestId("inspector-problems")).toContainText("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 넘기지 않아");
+    await note.getByTestId("inspector-loader-upgrade").click();
+    await page.getByRole("dialog").getByRole("button", { name: "덮어쓰기" }).click();
+    await expect(note).toHaveCount(0);
+    expect(await withEditor(page, (e) => e.backend.readText("scripts/lua/scene_loader.lua"))).toContain('SceneLoader.DECLARATION_ROOT = "scripts/"');
+    await expect(page.getByTestId("inspector-problems")).toHaveAttribute("data-count", "0");
+
+    // 떼면 그 컴포넌트의 값도 지워지고, 되돌리면 돌아온다
     await page.getByTestId("inspector-script-remove").click();
     expect(await sceneParams()).toEqual({});
     await page.keyboard.press(`${await primaryKey(page)}+z`);
