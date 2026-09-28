@@ -202,7 +202,7 @@ export class EventsTool implements MapLayerTool {
     if (g.kind === "press") {
       if (g.moved && (g.dx !== 0 || g.dy !== 0)) {
         const r = st.run((ed) => ed.moveEvents(g.indices, g.dx, g.dy, { keepArea: g.keepArea }), { select: true });
-        if (!r.ok) this.notice(`이 타일로 이동 불가, 원래 위치 유지: ${r.reason}`);
+        if (!r.ok) this.notice(`이 타일로 이동할 수 없어 원래 위치를 유지합니다: ${r.reason}`);
       }
     } else if (g.kind === "box") {
       g.to = p.cell;
@@ -215,7 +215,7 @@ export class EventsTool implements MapLayerTool {
       if (!sameArea(g.area, g.start)) {
         const area = g.area;
         const r = st.run((ed) => ed.setWanderArea(g.index, area));
-        if (!r.ok) this.notice(`배회 영역 변경 불가: ${r.reason}`);
+        if (!r.ok) this.notice(`배회 영역을 변경할 수 없습니다: ${r.reason}`);
       }
     }
     this.ctx.changed();
@@ -234,7 +234,7 @@ export class EventsTool implements MapLayerTool {
     }
     const r = st.run((ed) => ed.addEvent(p.cell), { select: true });
     if (r.ok) st.requestFocus("id");
-    else this.notice(`이 타일에 이벤트 추가 불가: ${r.reason}`);
+    else this.notice(`이 타일에 이벤트를 추가할 수 없습니다: ${r.reason}`);
     this.ctx.changed();
   }
 
@@ -289,7 +289,7 @@ export class EventsTool implements MapLayerTool {
     const arrow = ARROWS[k.key];
     if (arrow) {
       const r = st.run((ed) => ed.moveEvents(selected, arrow[0], arrow[1], { keepArea: k.alt }), { select: true });
-      if (!r.ok) this.notice(`이벤트 이동 불가: ${r.reason}`);
+      if (!r.ok) this.notice(`이벤트를 이동할 수 없습니다: ${r.reason}`);
       return true;
     }
     if (k.key === "Enter" && st.primary !== null) {
@@ -316,16 +316,16 @@ export class EventsTool implements MapLayerTool {
   private paste(st: EventsLayerState): void {
     const events = this.clipboard.read();
     if (!events) {
-      this.notice("붙여넣을 이벤트 없음 (먼저 복사 필요)");
+      this.notice("붙여넣을 이벤트가 없습니다 (먼저 복사해야 합니다)");
       return;
     }
     const cell = this.hover;
     if (!cell) {
-      this.notice("포인터가 맵의 타일 위에 없음 (붙여넣을 타일 위에 포인터 필요)");
+      this.notice("포인터가 맵의 타일 위에 없습니다 (붙여넣을 타일 위에 포인터를 놓으세요)");
       return;
     }
     const r = st.run((ed) => ed.pasteEvents(events, cell), { select: true });
-    if (!r.ok) this.notice(`이 타일에 붙여넣기 불가: ${r.reason}`);
+    if (!r.ok) this.notice(`이 타일에 붙여넣을 수 없습니다: ${r.reason}`);
     this.ctx.changed();
   }
 
@@ -342,7 +342,7 @@ export class EventsTool implements MapLayerTool {
     const copies = st.editor.copyEvents(indices);
     const first = eventCell(copies[0]);
     if (!first) {
-      this.notice("좌표가 잘못된 이벤트는 복제 불가");
+      this.notice("좌표가 잘못된 이벤트는 복제할 수 없습니다");
       return;
     }
     for (const [dx, dy] of DUPLICATE_OFFSETS) {
@@ -352,7 +352,7 @@ export class EventsTool implements MapLayerTool {
       this.ctx.changed();
       return;
     }
-    this.notice("인접한 빈 타일 없음 (복제 불가)");
+      this.notice("인접한 빈 타일이 없어 복제할 수 없습니다");
   }
 
   // ---- 모양 ----

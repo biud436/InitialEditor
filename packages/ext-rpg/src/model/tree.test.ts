@@ -121,8 +121,8 @@ describe("고치기 (원본은 그대로)", () => {
     const c = sample();
     expect(() => insertCommands(c, [], 9, [msg("x")], schema)).toThrow(TreeError);
     expect(() => insertCommands(c, [{ at: 0, list: "thenDo" }], 0, [msg("x")], schema)).toThrow(/thenDo 목록 없음/);
-    expect(() => insertCommands([{ code: "if", thenDo: "x" }], [{ at: 0, list: "thenDo" }], 0, [msg("x")], schema)).toThrow(/thenDo: 배열이어야 함/);
-    expect(() => insertCommands([{ code: "choice", options: ["a"] }], [{ at: 0, list: "branches" }], 0, [msg("x")], schema)).toThrow(/분기 번호 필요/);
+    expect(() => insertCommands([{ code: "if", thenDo: "x" }], [{ at: 0, list: "thenDo" }], 0, [msg("x")], schema)).toThrow(/thenDo: 배열이어야 합니다/);
+    expect(() => insertCommands([{ code: "choice", options: ["a"] }], [{ at: 0, list: "branches" }], 0, [msg("x")], schema)).toThrow(/분기 번호가 필요합니다/);
     expect(() => removeCommands(c, [], 3, 1, schema)).toThrow(TreeError);
     expect(() => removeCommands(c, [], 1, 5, schema)).toThrow(TreeError);
     expect(() => insertCommands("x", [], 0, [], schema)).toThrow(TreeError);
@@ -155,8 +155,8 @@ describe("고치기 (원본은 그대로)", () => {
     const out = moveCommands(c, { list: [{ at: 1, list: "elseDo" }], index: 0 }, 1, { list: [], index: 0 }, schema);
     expect(out[0]).toEqual(msg("f"));
     expect(getList(out, [{ at: 2, list: "elseDo" }], schema)).toEqual([]);
-    expect(() => moveCommands(c, { list: [], index: 1 }, 1, { list: [{ at: 1, list: "thenDo" }], index: 0 }, schema)).toThrow(/자신의 하위 목록으로 이동 불가/);
-    expect(() => moveCommands(c, { list: [], index: 0 }, 2, { list: [{ at: 1, list: "elseDo" }], index: 0 }, schema)).toThrow(/자신의 하위 목록으로 이동 불가/);
+    expect(() => moveCommands(c, { list: [], index: 1 }, 1, { list: [{ at: 1, list: "thenDo" }], index: 0 }, schema)).toThrow(/커맨드를 자신의 하위 목록으로 이동할 수 없습니다/);
+    expect(() => moveCommands(c, { list: [], index: 0 }, 2, { list: [{ at: 1, list: "elseDo" }], index: 0 }, schema)).toThrow(/커맨드를 자신의 하위 목록으로 이동할 수 없습니다/);
   });
 });
 

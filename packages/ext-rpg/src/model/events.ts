@@ -329,7 +329,7 @@ export class EventsSection {
 
   /** usable 이 아닐 때의 이유 */
   get shapeError(): string | null {
-    return this.usable ? null : "events 는 배열이어야 함";
+    return this.usable ? null : "events 는 배열이어야 합니다";
   }
 
   setSchema(schema: EventSchema): void {

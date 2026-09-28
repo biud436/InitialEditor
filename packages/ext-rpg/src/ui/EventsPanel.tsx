@@ -69,7 +69,7 @@ function searchText(ev: unknown): string {
 }
 
 /** 객체가 아닌 칸의 표식 (엔진이 건너뛰는 이벤트) */
-const BROKEN_BADGE = { letter: "!", token: "danger", label: "객체가 아님 (엔진이 건너뜀)" } as const;
+const BROKEN_BADGE = { letter: "!", token: "danger", label: "객체가 아님 (엔진에서 건너뜁니다)" } as const;
 
 /** 줄에 보일 짧은 JSON (40자에서 자른다) */
 function shortJson(v: unknown): string {
@@ -193,7 +193,7 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
         onChange={(e) => setQuery(e.target.value)}
       />
       <div className="rpg-events-list" role="listbox" aria-multiselectable="true" aria-label="이벤트" data-testid="rpg-events-list" ref={listRef} onKeyDown={onKey}>
-        {rows.length === 0 && <div className="panel-hint">{list.length === 0 ? "이벤트 없음. 맵의 빈 타일을 더블클릭하면 추가" : "검색 결과 없음"}</div>}
+        {rows.length === 0 && <div className="panel-hint">{list.length === 0 ? "이벤트 없음. 맵의 빈 타일을 더블클릭하면 추가할 수 있습니다." : "검색 결과 없음"}</div>}
         {rows.map(({ ev, index }) => {
           const broken = !isPlainObject(ev);
           const badge = broken ? BROKEN_BADGE : triggerBadge(field(ev, "trigger"));

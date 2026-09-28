@@ -107,10 +107,10 @@ export interface ReloadOptions {
 
 /** 엔진을 띄우지 못하는 백엔드로 프로젝트를 열 때 콘솔에 남기는 안내. 수동 리로드는 밖의 엔진으로 보낼 길이 있을 때만 적는다 */
 export function browserRunNotice(canPush: boolean): string {
-  const run = "브라우저 모드: 실행(F5)은 게임 탭의 웹 엔진 사용";
+  const run = "브라우저 모드에서는 실행(F5)에 게임 탭의 웹 엔진을 사용합니다";
   return canPush
-    ? `${run}. 터미널에서 INITIAL2D_HMR=1 로 실행한 엔진에 수동 리로드(Ctrl+Shift+R) 전송 가능`
-    : `${run}. 외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 반영`;
+    ? `${run}. 터미널에서 INITIAL2D_HMR=1로 실행한 엔진에 수동 리로드(Ctrl+Shift+R)를 전송할 수 있습니다.`
+    : `${run}. 외부 엔진에는 전송하지 않습니다. 저장한 파일은 게임 탭에서 실행 중일 때만 반영됩니다.`;
 }
 
 /** 브리지가 전한 핫 리로드 실패가 엔진 쪽 포트의 연결 거부인가 (엔진이 떠 있지 않다) */
@@ -141,16 +141,16 @@ export interface StartOptions {
   mode?: RunMode;
 }
 
-export const NO_MRUBY = "이 엔진 빌드에 mruby 없음";
-export const WASM_NO_MRUBY = "이 웹 엔진 빌드에 mruby 없음. 해결: game.json 의 script 를 lua 로 변경, mruby 포함 웹 빌드를 yarn sync:engine-web 으로 가져오기, 또는 실행 방식을 프로세스로 변경";
+export const NO_MRUBY = "이 엔진 빌드에는 mruby가 없습니다";
+export const WASM_NO_MRUBY = "이 웹 엔진 빌드에는 mruby가 없습니다. game.json의 script를 lua로 변경하거나, mruby가 포함된 웹 빌드를 yarn sync:engine-web으로 가져오거나, 실행 방식을 프로세스로 변경하세요.";
 export const EMBEDDED_HINT = "게임 탭에서 실행 (웹 엔진)";
 export const RUN_MODE_LABELS: Record<RunMode, string> = { process: "프로세스", embedded: "게임 탭" };
-export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1 로 실행 중인지 확인";
-export const HMR_NO_ENGINE_SKIPPED = "실행 중인 엔진 없음, 리로드 건너뜀";
-export const START_ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 시작 중 종료되어 저장한 파일 복사 안 함. F5로 다시 실행하면 저장한 내용 적용";
-export const ENDED_RELOAD_DROPPED = "핫 리로드: 게임 종료로 저장한 파일 복사 안 함. F5로 다시 실행하면 저장한 내용 적용";
+export const HMR_UNREACHABLE_HINT = "게임이 INITIAL2D_HMR=1로 실행 중인지 확인하세요";
+export const HMR_NO_ENGINE_SKIPPED = "실행 중인 엔진이 없어 리로드를 건너뛰었습니다";
+export const START_ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 시작되는 중에 종료되어 저장한 파일을 복사하지 않았습니다. F5를 눌러 다시 실행하면 저장한 내용이 반영됩니다.";
+export const ENDED_RELOAD_DROPPED = "핫 리로드: 게임이 종료되어 저장한 파일을 복사하지 않았습니다. F5를 눌러 다시 실행하면 저장한 내용이 반영됩니다.";
 /** 프로세스 방식인데 엔진을 못 찾아 그 실행을 에디터 안으로 넘길 때 (E6 2.3 절) */
-export const FALLBACK_NOTICE = "엔진 실행 파일 탐색 실패, 게임 탭에서 실행";
+export const FALLBACK_NOTICE = "엔진 실행 파일을 찾지 못해 게임 탭에서 실행합니다";
 /** 앱에 든 엔진의 --features 시간 제한. 다운로드한 앱의 첫 실행은 macOS 의 격리 검사로 몇 초 걸린다 */
 export const BUNDLED_PROBE_TIMEOUT_MS = 15_000;
 const LOG_SOURCE = "runner";
@@ -377,7 +377,7 @@ export class RunnerStore {
     if (!this.enginePath) {
       if (this.resolving) return "엔진 탐색 중";
       if (this.embedded) return undefined; // 에디터 안으로 넘어간다 (modeHint)
-      return `${this.notFoundText("엔진 탐색 실패")}. 설정의 엔진 경로 입력 필요`;
+      return `${this.notFoundText("엔진 탐색 실패")}. 설정에 엔진 경로를 입력하세요.`;
     }
     if (this.host.project.gameJson.script === "mruby" && this.features && !this.features.includes("mruby")) return NO_MRUBY;
     return undefined;
@@ -572,14 +572,14 @@ export class RunnerStore {
       else this.setEngine(null, "none", null);
     });
     if (skipped.length) {
-      log.info(LOG_SOURCE, `프로젝트가 가리키는 엔진을 신뢰하지 않아 실행 안 함: ${skipped.map((c) => c.path).join(", ")}. 설정에서 다시 확인 가능`);
+      log.info(LOG_SOURCE, `프로젝트가 가리키는 엔진을 신뢰하지 않아 실행하지 않습니다: ${skipped.map((c) => c.path).join(", ")}. 설정에서 다시 확인할 수 있습니다.`);
     }
     if (found) {
       const label = found.candidate.source === "bundled" ? bundledEngineLabel(bundled, []) : ENGINE_SOURCE_LABELS[found.candidate.source];
       log.info(LOG_SOURCE, `엔진: ${found.candidate.path} (${label}, 기능: ${found.features.join(" ") || "(없음)"})`);
     } else {
       const lead = this.embedded && this.mode === "process" ? FALLBACK_NOTICE : "엔진 탐색 실패";
-      log.warn(LOG_SOURCE, `${this.notFoundText(lead)}. 설정의 엔진 경로 입력 필요`);
+      log.warn(LOG_SOURCE, `${this.notFoundText(lead)}. 설정에 엔진 경로를 입력하세요.`);
       for (const f of failures) log.append("debug", LOG_SOURCE, f);
     }
     return this.enginePath;
@@ -698,7 +698,7 @@ export class RunnerStore {
       await this.engineForStart();
       if (!this.enginePath) {
         mode = "embedded";
-        log.info(LOG_SOURCE, `${this.notFoundText(FALLBACK_NOTICE)}. 설정의 실행 방식은 변경 안 함`);
+      log.info(LOG_SOURCE, `${this.notFoundText(FALLBACK_NOTICE)}. 설정의 실행 방식은 변경하지 않습니다.`);
         runInAction(() => {
           this.activeMode = "embedded";
           this.fallback = "embedded";
@@ -796,7 +796,7 @@ export class RunnerStore {
     }
     const script = runLanguage(project.gameJson.script, opts.env);
     if (script === "mruby" && this.features && !this.features.includes("mruby")) {
-      return this.failStart(`${NO_MRUBY} (--features: ${this.features.join(" ") || "(없음)"}). 해결: 언어를 Lua 로 변경 또는 mruby 포함 빌드`, NO_MRUBY);
+      return this.failStart(`${NO_MRUBY} (--features: ${this.features.join(" ") || "(없음)"}). 언어를 Lua로 변경하거나 mruby가 포함된 빌드를 사용하세요.`, NO_MRUBY);
     }
 
     const env: Record<string, string> = { INITIAL2D_HMR: "1", INITIAL2D_SCRIPT: script };
@@ -862,8 +862,8 @@ export class RunnerStore {
     if (code === 0) log.info(LOG_SOURCE, `엔진 종료 (코드 0, 경과 ${elapsed})`);
     else if (code === null) log.info(LOG_SOURCE, `엔진 정지 (경과 ${elapsed})`);
     else {
-      log.error(LOG_SOURCE, `엔진 종료 코드 ${code} (경과 ${elapsed}). 위 오류 줄을 클릭하면 해당 파일의 줄로 이동`);
-      toasts.error(`엔진 종료됨 (종료 코드 ${code}). 콘솔 확인 필요`);
+      log.error(LOG_SOURCE, `엔진이 종료되었습니다 (종료 코드 ${code}, 경과 ${elapsed}). 위 오류 줄을 클릭하면 해당 파일의 줄로 이동합니다.`);
+      toasts.error(`엔진이 종료되었습니다 (종료 코드 ${code}). 콘솔을 확인하세요.`);
     }
     const w = this.watch?.handle === handle ? this.watch : null;
     this.watch = null;
@@ -935,7 +935,7 @@ export class RunnerStore {
     if (!project.isOpen) return null;
     if (this.embeddedStarting) {
       this.queueReload(paths);
-      log.info(LOG_SOURCE, "핫 리로드: 웹 엔진 시작 중. 시작 후 변경된 파일 다시 복사 예정");
+      log.info(LOG_SOURCE, "핫 리로드: 웹 엔진이 시작 중입니다. 시작되면 변경된 파일을 다시 복사합니다.");
       return null;
     }
     if (this.embeddedRunning) return this.reloadEmbedded(paths);
@@ -951,7 +951,7 @@ export class RunnerStore {
         return null;
       }
       if (files.length === 0) {
-        log.warn(LOG_SOURCE, "전송할 스크립트 없음 (scripts/ 아래의 .lua, .rb, .json)");
+        log.warn(LOG_SOURCE, "전송할 스크립트가 없습니다 (scripts/ 아래의 .lua, .rb, .json)");
         return null;
       }
     }
@@ -960,7 +960,7 @@ export class RunnerStore {
       this.watch?.watch.restarted?.();
       const result = await backend.hmrPush(files);
       runInAction(() => (this.lastReload = { count: result.count, at: this.clock() }));
-      log.info(LOG_SOURCE, `핫 리로드: 파일 ${result.count}개 전송됨. 엔진 VM 재시작 (씬 상태 초기화)`);
+      log.info(LOG_SOURCE, `핫 리로드: 파일 ${result.count}개를 전송했습니다. 엔진 VM을 다시 시작하여 씬 상태가 초기화됩니다.`);
       return result;
     } catch (e) {
       const err = e as BackendError;
@@ -1002,10 +1002,10 @@ export class RunnerStore {
       }
       runInAction(() => (this.lastReload = { count, at: this.clock() }));
       if (scriptsFailed) {
-        log.warn(LOG_SOURCE, `핫 리로드: 웹 엔진에 파일 ${count}개 다시 복사됨, 스크립트 오류로 VM 재시작 실패. 위 오류 줄을 클릭하면 해당 파일의 줄로 이동`);
-        toasts.warn("핫 리로드: 스크립트 오류. 콘솔의 오류 줄 확인 필요");
+        log.warn(LOG_SOURCE, `핫 리로드: 웹 엔진에 파일 ${count}개를 다시 복사했지만 스크립트 오류로 VM을 다시 시작하지 못했습니다. 위 오류 줄을 클릭하면 해당 파일의 줄로 이동합니다.`);
+        toasts.warn("핫 리로드: 스크립트 오류가 발생했습니다. 콘솔의 오류 줄을 확인하세요.");
       } else {
-        log.info(LOG_SOURCE, `핫 리로드: 웹 엔진에 파일 ${count}개 다시 복사됨. VM 재시작 (씬 상태 초기화)`);
+        log.info(LOG_SOURCE, `핫 리로드: 웹 엔진에 파일 ${count}개를 다시 복사했습니다. VM을 다시 시작하여 씬 상태가 초기화됩니다.`);
       }
       return { count };
     } catch (e) {
@@ -1021,7 +1021,7 @@ export class RunnerStore {
   /** 프로젝트를 닫을 때: 실행 중이면 끄고 엔진 정보를 지운다 */
   async onProjectClosed(): Promise<void> {
     if (this.state !== "idle") {
-      this.host.log.info(LOG_SOURCE, "프로젝트 닫힘, 엔진 정지");
+      this.host.log.info(LOG_SOURCE, "프로젝트가 닫혀 엔진을 정지합니다");
       await this.stop();
     }
     runInAction(() => {

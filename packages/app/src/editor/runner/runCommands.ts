@@ -21,7 +21,7 @@ export const RUN_DIRTY_KEEP = "저장하지 않고 실행";
 /** 저장 안 된 문서의 이름을 셋까지 적는다 */
 export function runDirtyMessage(titles: readonly string[]): string {
   const shown = titles.slice(0, 3).join(", ") + (titles.length > 3 ? ` 외 ${titles.length - 3}개` : "");
-  return `저장 안 된 문서 ${titles.length}개 (${shown}). 게임은 디스크의 파일을 읽으므로 저장하지 않은 변경은 실행에 반영되지 않음`;
+  return `저장하지 않은 문서가 ${titles.length}개 있습니다 (${shown}). 게임은 디스크의 파일을 읽으므로 저장하지 않은 변경은 실행에 반영되지 않습니다.`;
 }
 
 export function runDirtyAsk(titles: readonly string[]): DirtyAsk {

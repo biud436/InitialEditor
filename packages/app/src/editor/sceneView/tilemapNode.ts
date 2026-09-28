@@ -123,7 +123,7 @@ class TilemapNode {
     this.stopWatching = this.deps.maps.events.on("changed", (path) => {
       if (this.watched.has(path)) void this.load(map);
     });
-    this.placeholder("읽는 중", this.ctx.colors["fg-muted"]);
+    this.placeholder("불러오는 중", this.ctx.colors["fg-muted"]);
     void this.load(map);
   }
 

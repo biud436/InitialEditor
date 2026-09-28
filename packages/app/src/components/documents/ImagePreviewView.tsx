@@ -43,7 +43,7 @@ export const ImagePreviewView = observer(function ImagePreviewView({ doc }: { do
             data-testid="image-preview"
           />
         ) : (
-          <div className="panel-hint">읽는 중</div>
+          <div className="panel-hint">불러오는 중</div>
         )}
       </div>
     </div>

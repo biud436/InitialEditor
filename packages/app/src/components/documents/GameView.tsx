@@ -15,7 +15,7 @@ import "./GameView.css";
 function phaseText(store: GameViewStore): string {
   switch (store.phase) {
     case "staging":
-      return store.progress && store.progress.total > 0 ? `파일 복사 중 ${store.progress.done}/${store.progress.total}` : "파일 목록을 읽는 중";
+      return store.progress && store.progress.total > 0 ? `파일 복사 중 ${store.progress.done}/${store.progress.total}` : "파일 목록 불러오는 중";
     case "booting":
       return "엔진 시작 중";
     case "running":
@@ -113,12 +113,12 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
           {store.gameSize.width} x {store.gameSize.height}, {Math.round(scale * 100)}%
         </span>
         {running && store.fps !== null ? (
-          <span className="game-view-fps" data-testid="game-fps" title="초당 프레임 (엔진이 실행한 프레임 수. 엔진 루프는 화면 주사율에 동기화)">
+          <span className="game-view-fps" data-testid="game-fps" title="초당 프레임입니다 (엔진이 실행한 프레임 수). 엔진 루프는 화면 주사율에 동기화됩니다.">
             {store.fps} FPS
           </span>
         ) : null}
         {running && store.audioSuspended ? (
-          <button type="button" className="btn game-view-audio" onClick={() => store.resumeAudio()} title="브라우저 자동 재생 정책으로 사용자 입력 전 오디오 일시 중지. 게임 화면 클릭으로도 재개" data-testid="game-audio">
+          <button type="button" className="btn game-view-audio" onClick={() => store.resumeAudio()} title="브라우저 자동 재생 정책에 따라 사용자가 입력하기 전에는 오디오가 일시 중지됩니다. 게임 화면을 클릭해도 재개됩니다." data-testid="game-audio">
             소리 켜기
           </button>
         ) : null}
@@ -142,7 +142,7 @@ export const GameView = observer(function GameView({ doc }: { doc: GameDocument 
         <div className="game-view-host" ref={hostRef} />
         {canvas ? null : (
           <div className="game-view-placeholder" style={{ width, height }} data-testid="game-message">
-            {store.message ?? "실행 중인 게임 없음. F5로 실행"}
+            {store.message ?? "실행 중인 게임 없음. F5를 누르면 실행됩니다."}
           </div>
         )}
       </div>

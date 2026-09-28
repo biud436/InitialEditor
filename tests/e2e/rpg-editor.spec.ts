@@ -242,7 +242,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     const d0 = await depth(page);
     const empty = await cellPoint(view, 2, 44);
     await page.mouse.dblclick(empty.x, empty.y);
-    await expect(page.getByTestId("toasts")).toContainText("숨긴 레이어는 편집 불가");
+    await expect(page.getByTestId("toasts")).toContainText("숨긴 레이어는 편집할 수 없습니다");
     const captain = await cellPoint(view, 16, 44);
     await page.mouse.click(captain.x, captain.y);
     await host.focus();

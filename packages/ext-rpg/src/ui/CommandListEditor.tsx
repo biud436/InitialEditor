@@ -259,7 +259,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   const paste = () => {
     const pasted = clipboard.read();
     if (!pasted) {
-      setNotice("붙여넣을 커맨드 없음 (클립보드 내용이 커맨드 JSON 이 아님)");
+      setNotice("붙여넣을 커맨드가 없습니다 (클립보드 내용이 커맨드 JSON이 아닙니다)");
       return;
     }
     if (insert(pasted, insertTarget(cursor, range, "below"))) setStatus(`커맨드 ${pasted.length}개 붙여넣음`);
@@ -412,7 +412,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   if (!isPlainObject(ev)) {
     return (
       <div className="rpg-cmd-editor" data-testid="rpg-cmd-editor">
-        <div className="rpg-arg-note is-warning">이벤트가 없거나 객체가 아님 (events[{eventIndex + 1}])</div>
+        <div className="rpg-arg-note is-warning">이벤트가 없거나 객체가 아닙니다 (events[{eventIndex + 1}])</div>
       </div>
     );
   }
@@ -479,7 +479,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
       )}
       {!commandsOk ? (
         <div className="rpg-arg-note is-warning" data-testid="rpg-cmd-broken">
-          events[{eventIndex + 1}].commands 편집 불가 (배열이 아님): {stringifyJsonLossless(commands)}
+          events[{eventIndex + 1}].commands를 편집할 수 없습니다 (배열이 아닙니다): {stringifyJsonLossless(commands)}
         </div>
       ) : (
         <div
@@ -545,7 +545,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
                 {row.kind === "header" && (
                   <>
                     <span className="rpg-row-head">{row.label}</span>
-                    {row.broken ? <span className="rpg-arg-note is-warning">편집 불가 (배열이 아님)</span> : row.folded && <span className="muted">({row.count})</span>}
+                    {row.broken ? <span className="rpg-arg-note is-warning">편집할 수 없습니다 (배열이 아닙니다)</span> : row.folded && <span className="muted">({row.count})</span>}
                   </>
                 )}
                 {row.kind === "end" && (
@@ -584,7 +584,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
       )}
       {cursor?.kind === "command" && !cursor.spec && range?.count === 1 && (
         <div className="rpg-arg-note is-warning" data-testid="rpg-cmd-unknown-command">
-          {isPlainObject(cursor.cmd) ? "스키마에 없는 커맨드: 편집 불가, 삭제와 이동만 가능" : "객체가 아닌 커맨드: 삭제만 가능"}: <code>{stringifyJsonLossless(cursor.cmd)}</code>
+          {isPlainObject(cursor.cmd) ? "스키마에 없는 커맨드라 편집할 수 없으며 삭제와 이동만 가능합니다" : "객체가 아닌 커맨드라 삭제만 가능합니다"}: <code>{stringifyJsonLossless(cursor.cmd)}</code>
         </div>
       )}
       {notice && (

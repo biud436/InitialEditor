@@ -80,7 +80,7 @@ export const FindPanel = observer(function FindPanel() {
       </form>
       {find.error && <div className="find-error">{find.error}</div>}
       <div className="find-results" data-testid="find-results">
-        {!open && <div className="panel-hint">열린 프로젝트 없음. 검색 범위: scripts/, resources/의 텍스트 파일</div>}
+        {!open && <div className="panel-hint">열린 프로젝트 없음. scripts/와 resources/의 텍스트 파일을 검색합니다.</div>}
         {open && !find.running && find.lastQuery !== "" && find.results.length === 0 && !find.error && <div className="panel-hint">"{find.lastQuery}" 검색 결과 없음</div>}
         {find.results.map((file) => (
           <section key={file.path} className="find-file" data-testid="find-file" data-path={file.path}>

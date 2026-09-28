@@ -42,8 +42,8 @@ describe("타일맵 확장", () => {
       ["error", "objects[3].props.groundLayers"],
       ["error", "objects[4].props.groundLayers"],
     ]);
-    expect(problems[0].message).toBe("타일맵 empty: 맵 파일(props.map) 비어 있음. 실행하면 엔진에서 씬 로드 실패");
-    expect(problems[3].message).toBe('타일맵 text의 groundLayers는 0 이상의 숫자여야 함: "2"');
+    expect(problems[0].message).toBe("타일맵 empty: 맵 파일(props.map)이 비어 있습니다. 실행하면 엔진에서 씬을 불러오지 못합니다.");
+    expect(problems[3].message).toBe('타일맵 text의 groundLayers는 0 이상의 숫자여야 합니다: "2"');
     // props가 없는 타일맵, 씬이 아닌 값
     expect(validateTilemapObjects({ objects: [{ id: "bare", type: "tilemap" }] }).map((p) => p.location)).toEqual(["objects[0].props.map"]);
     expect(validateTilemapObjects(null)).toEqual([]);
@@ -114,10 +114,10 @@ describe("타일맵 확장", () => {
     });
     expect(asked).toEqual(["resources/maps/a.json", "resources/maps/old.json", "resources/maps/broken.json"]);
     expect(problems).toEqual([
-      { severity: "error", message: "타일맵 gone의 맵 파일 없음: resources/maps/old.json. 실행하면 엔진에서 씬 로드 실패", location: "objects[1].props.map" },
+      { severity: "error", message: "타일맵 gone: 맵 파일이 없습니다 (resources/maps/old.json). 실행하면 엔진에서 씬을 불러오지 못합니다.", location: "objects[1].props.map" },
       {
         severity: "error",
-        message: "타일맵 broken의 맵 파일 형식 오류: resources/maps/broken.json (JSON 구문 오류: Unexpected token). 실행하면 엔진에서 씬 로드 실패",
+        message: "타일맵 broken: 맵 파일 형식이 올바르지 않습니다 (resources/maps/broken.json, JSON 구문 오류: Unexpected token). 실행하면 엔진에서 씬을 불러오지 못합니다.",
         location: "objects[3].props.map",
       },
     ]);

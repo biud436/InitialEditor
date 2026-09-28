@@ -23,7 +23,7 @@ export const SCENE_LATER = "미구현";
 function isHttpUrl(value: string): string | null {
   try {
     const u = new URL(value.trim());
-    return u.protocol === "http:" || u.protocol === "https:" ? null : "http 또는 https 주소여야 함";
+    return u.protocol === "http:" || u.protocol === "https:" ? null : "http 또는 https 주소여야 합니다";
   } catch {
     return "잘못된 주소 형식 (예: http://127.0.0.1:5960)";
   }

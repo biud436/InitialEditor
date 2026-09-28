@@ -31,7 +31,7 @@ export interface NewMapSource {
 
 type SizeState = { path: string; size: ImageSize | null; error: string | null };
 
-export const NEW_MAP_NO_TILESET = "타일셋 이미지(PNG) 없음. resources 아래에 PNG 이미지 추가 필요";
+export const NEW_MAP_NO_TILESET = "타일셋 이미지(PNG) 없음. resources 아래에 PNG 이미지를 추가하세요.";
 
 /** 처음 고를 타일셋: tiles 폴더의 것이 있으면 그것, 없으면 첫 그림 */
 export function defaultTileset(images: readonly string[]): string {
@@ -95,7 +95,7 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
   let tilesetError: string | null = null;
   if (lists && images.length === 0) tilesetError = NEW_MAP_NO_TILESET;
   else if (image && size?.error) tilesetError = `이미지 읽기 실패: ${size.error}`;
-  else if (image && size?.size && tileSize > 0 && (columns < 1 || rows < 1)) tilesetError = `이미지(${size.size.width}x${size.size.height})가 타일 크기보다 작음`;
+  else if (image && size?.size && tileSize > 0 && (columns < 1 || rows < 1)) tilesetError = `이미지가 타일 크기보다 작습니다 (이미지: ${size.size.width}x${size.size.height})`;
   // 목록과 그림 크기를 읽는 동안은 만들기를 막지만 오류로 보이지는 않는다
   const loading = !lists || (!!image && !size);
   const problems = [nameError, widthError, heightError, tileError, tilesetError, layers.error].filter((p): p is string => !!p);
@@ -151,7 +151,7 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
             </select>
           ) : (
             <div className="muted" data-testid="new-map-no-images">
-              {lists ? "resources 아래에 PNG 없음" : "이미지 목록 읽는 중"}
+              {lists ? "resources 아래에 PNG 없음" : "이미지 목록 불러오는 중"}
             </div>
           )}
           {image && size?.size && tileSize > 0 ? (
@@ -163,7 +163,7 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
         <div className="form-row">
           <label htmlFor="new-map-layers">레이어</label>
           <input id="new-map-layers" className="input" value={layersText} onChange={(e) => setLayersText(e.target.value)} data-testid="new-map-layers" />
-          <div className="form-help">쉼표로 구분. 앞의 레이어가 아래에 그려짐</div>
+          <div className="form-help">쉼표로 구분합니다. 앞에 있는 레이어부터 아래에 그립니다.</div>
         </div>
         <div className="form-row">
           <label htmlFor="new-map-collision">통행</label>

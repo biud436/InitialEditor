@@ -185,26 +185,26 @@ export function walkCommands(commands: unknown, schema: EventSchema, visit: (cmd
 /** 목록 경로의 목록을 fn 으로 바꾼 새 commands. 없는 하위 목록은 만든다 (가지는 항목 수까지 빈 가지로 채운다) */
 export function updateList(commands: unknown, list: ListPath, schema: EventSchema, fn: (items: unknown[]) => unknown[]): unknown[] {
   const items = commands === undefined || commands === null ? [] : asList(commands);
-  if (!items) throw new TreeError("커맨드 목록은 배열이어야 함");
+  if (!items) throw new TreeError("커맨드 목록은 배열이어야 합니다");
   if (list.length === 0) return fn([...items]);
   const [step, ...rest] = list;
   const cmd = items[step.at];
-  if (!isPlainObject(cmd)) throw new TreeError(`${step.at + 1}번째 커맨드는 객체여야 함`);
+  if (!isPlainObject(cmd)) throw new TreeError(`${step.at + 1}번째 커맨드는 객체여야 합니다`);
   const spec = listSpecOf(cmd, step.list, schema);
   if (!spec) throw new TreeError(`${jsonValueText(cmd.code)}: ${step.list} 목록 없음`);
   const had = Object.prototype.hasOwnProperty.call(cmd, step.list) && cmd[step.list] !== null && cmd[step.list] !== undefined;
   let nextValue: unknown;
   if (spec.perOption) {
-    if (step.branch === undefined || step.branch < 0) throw new TreeError(`${step.list}: 분기 번호 필요`);
+    if (step.branch === undefined || step.branch < 0) throw new TreeError(`${step.list}: 분기 번호가 필요합니다`);
     const lists = had ? asList(cmd[step.list]) : [];
-    if (!lists) throw new TreeError(`${step.list}: 배열이어야 함`);
+    if (!lists) throw new TreeError(`${step.list}: 배열이어야 합니다`);
     const options = asList(cmd[spec.perOption]) ?? [];
     const size = Math.max(lists.length, step.branch + 1, had ? 0 : engineLength(options));
     const nextLists: unknown[] = [];
     for (let b = 0; b < size; b++) {
       const branch = lists[b];
       if (b === step.branch) {
-        if (branch !== undefined && branch !== null && !asList(branch)) throw new TreeError(`${step.list}[${b + 1}]: 배열이어야 함`);
+        if (branch !== undefined && branch !== null && !asList(branch)) throw new TreeError(`${step.list}[${b + 1}]: 배열이어야 합니다`);
         nextLists.push(updateList(branch, rest, schema, fn));
       } else {
         nextLists.push(branch === undefined || branch === null ? [] : branch);
@@ -212,7 +212,7 @@ export function updateList(commands: unknown, list: ListPath, schema: EventSchem
     }
     nextValue = nextLists;
   } else {
-    if (had && !asList(cmd[step.list])) throw new TreeError(`${step.list}: 배열이어야 함`);
+    if (had && !asList(cmd[step.list])) throw new TreeError(`${step.list}: 배열이어야 합니다`);
     nextValue = updateList(had ? cmd[step.list] : [], rest, schema, fn);
   }
   // 있던 키는 자리를 지키고, 새로 생긴 키는 정해진 순서에 끼운다
@@ -273,7 +273,7 @@ export function moveCommands(commands: unknown, from: CommandPath, count: number
   const depth = from.list.length;
   if (to.list.length > depth && isInside(to.list.slice(0, depth), from.list)) {
     const at = to.list[depth].at;
-    if (at >= from.index && at < from.index + count) throw new TreeError("커맨드를 자신의 하위 목록으로 이동 불가");
+    if (at >= from.index && at < from.index + count) throw new TreeError("커맨드를 자신의 하위 목록으로 이동할 수 없습니다");
   }
   const moving = source.slice(from.index, from.index + count);
   const sameList = to.list.length === from.list.length && isInside(to.list, from.list);

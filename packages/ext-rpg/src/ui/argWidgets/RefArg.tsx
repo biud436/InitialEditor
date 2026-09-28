@@ -16,7 +16,7 @@ export function RefArg({ spec, value, onChange, ctx, sessionPrefix, testId }: Ar
   const text = isJsonText(value) ? value : "";
   const found = suggestions.find((s) => s.value === text);
   let note: { text: string; tone: "warning" | "muted" } | null = null;
-  if (value !== undefined && !isJsonText(value)) note = { text: `문자열이어야 함 (현재: ${jsonValueText(value)})`, tone: "warning" };
+  if (value !== undefined && !isJsonText(value)) note = { text: `문자열이어야 합니다 (현재: ${jsonValueText(value)})`, tone: "warning" };
   else if (text !== "" && !found) note = kind && CLOSED_KINDS.has(kind) ? { text: "목록에 없음", tone: "warning" } : { text: "새 이름", tone: "muted" };
   else if (found?.detail) note = { text: found.detail, tone: "muted" };
   return (

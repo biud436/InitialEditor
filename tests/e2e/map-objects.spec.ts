@@ -190,8 +190,8 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     await maxX.fill("10");
     await maxX.press("Enter");
     const problem = page.locator('[data-testid="map-objects-problem"][data-object-id="slime_1"][data-severity="error"]');
-    await expect(problem).toContainText("순찰 왼끝 값은 순찰 오른끝 값 이하여야 함");
-    await expect(page.getByTestId("map-inspector-problems")).toContainText("순찰 왼끝 값은 순찰 오른끝 값 이하여야 함");
+    await expect(problem).toContainText("순찰 왼끝 값은 순찰 오른끝 값 이하여야 합니다");
+    await expect(page.getByTestId("map-inspector-problems")).toContainText("순찰 왼끝 값은 순찰 오른끝 값 이하여야 합니다");
     await row("start").click();
     await expect(inspector).toHaveAttribute("data-object", "start");
     await problem.click();

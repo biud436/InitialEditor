@@ -220,7 +220,7 @@ describe("scene params", () => {
 
   it("구조 오류와 스크립트에 없는 컴포넌트의 매개변수", () => {
     expect(() => parseScene(WITH_PARAMS.replace(`"params": { "components/mover": { "dx": 2 } }`, `"params": [1]`))).toThrow(/objects\[0\]\.params는 객체/);
-    expect(() => parseScene(WITH_PARAMS.replace(`{ "dx": 2 }`, `3`))).toThrow(/objects\[0\]\.params\.components\/mover는 객체/);
+    expect(() => parseScene(WITH_PARAMS.replace(`{ "dx": 2 }`, `3`))).toThrow(/objects\[0\]\.params\.components\/mover: 객체/);
     // 엔진처럼 null 은 없는 것, 빈 배열은 빈 객체다
     const loose = (params: string) => parseScene(WITH_PARAMS.replace(`{ "components/mover": { "dx": 2 } }`, params)).objects[0].params;
     expect(loose(`null`)).toEqual({});

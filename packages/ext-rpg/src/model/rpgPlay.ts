@@ -157,8 +157,8 @@ export function probeWatch(eventId: string | null, opts: { wanders?: boolean } =
         starts++;
         if (starts < 2) return undefined;
         return ran
-          ? `자동 재생 중단: 이벤트 ${name} 실행 뒤 게임이 새 게임으로 재시작됨 (씬 전환 커맨드). 자동 재생 결과는 위 줄까지`
-          : `자동 재생 중단: 이벤트 ${name} 실행 전에 게임이 새 게임으로 재시작됨`;
+          ? `자동 재생을 중단했습니다. 이벤트 ${name} 실행 뒤 씬 전환 커맨드로 게임이 새 게임으로 다시 시작되었습니다. 자동 재생 결과는 위 줄까지입니다.`
+          : `자동 재생을 중단했습니다. 이벤트 ${name} 실행 전에 게임이 새 게임으로 다시 시작되었습니다.`;
       } else if (eventId !== null && t === `rpg:event:${eventId}`) {
         ran = true;
       }
@@ -167,9 +167,9 @@ export function probeWatch(eventId: string | null, opts: { wanders?: boolean } =
     exit(code) {
       if (code !== 0 || eventId === null || ran) return undefined;
       const why = opts.wanders
-        ? " 배회하는 이벤트라 앞의 auto 이벤트 실행 중 원래 위치를 벗어났을 수 있음. 시작 상태로 그 auto 이벤트를 건너뛰거나 '이 이벤트 앞에서 실행' 으로 직접 실행"
+        ? " 배회하는 이벤트라 앞의 auto 이벤트를 실행하는 동안 원래 위치를 벗어났을 수 있습니다. 시작 상태에서 해당 auto 이벤트를 건너뛰거나 '이 이벤트 앞에서 실행' 기능으로 직접 실행하세요."
         : "";
-      return `자동 재생 종료, 이벤트 ${eventId} 실행되지 않음 (rpg:event:${eventId} 줄 없음).${why}`;
+      return `자동 재생이 종료되었지만 이벤트 ${eventId} 실행을 확인하지 못했습니다 (rpg:event:${eventId} 줄이 없습니다).${why}`;
     },
     restarted() {
       starts = 0;
@@ -194,7 +194,7 @@ export function eventPlay(sources: RpgPlaySources, doc: MapDocument, index: numb
   const env = probeEnv(t.play, { ...target, route: r.plan.route ?? "", event: eventId });
   // 배회하는 이벤트는 자리를 떠날 수 있다. 실행 변수가 그 이벤트를 세우면(INITIAL2D_RPG_HOLD) 알리지 않는다
   const wanders = field(ev, "wander") !== undefined && field(ev, "charset") !== undefined && !holdsEvent(env, eventId);
-  const extra = [wanders ? "배회하는 이벤트: 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있음" : null, state.note].filter((x): x is string => !!x).join(", ");
+  const extra = [wanders ? "배회하는 이벤트라 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있습니다" : null, state.note].filter((x): x is string => !!x).join(", ");
   return { ...toPlan(env, r.plan, extra || null), watch: () => probeWatch(eventId, { wanders }) };
 }
 

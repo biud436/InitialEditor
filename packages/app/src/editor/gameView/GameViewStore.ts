@@ -180,7 +180,7 @@ export class GameViewStore {
           // 이미 죽었다
         }
         releaseEngineResources(null, game.module);
-        throw new Error(current.crashText ?? "엔진이 부팅 중 종료됨");
+        throw new Error(current.crashText ?? "엔진이 시작되는 중에 종료되었습니다");
       }
       if (signal.aborted) {
         await current.stop();
@@ -417,12 +417,12 @@ export class GameViewStore {
     releaseEngineResources(this.canvas, session.game?.module ?? null);
     const message =
       code === null
-        ? "정지됨. F5로 다시 실행"
+        ? "게임이 정지되었습니다. F5를 누르면 다시 실행됩니다."
         : code === 0
-          ? "게임 종료됨. F5로 다시 실행"
+          ? "게임이 종료되었습니다. F5를 누르면 다시 실행됩니다."
           : session.crashText !== null
-            ? `엔진 예외로 중단 (종료 코드 ${code}): ${session.crashText}. F5로 다시 실행`
-            : `게임이 오류로 종료됨 (종료 코드 ${code}). 콘솔의 오류 줄을 클릭하면 해당 파일의 줄로 이동`;
+            ? `엔진 예외로 중단되었습니다 (종료 코드 ${code}): ${session.crashText}. F5를 누르면 다시 실행됩니다.`
+            : `게임이 오류로 종료되었습니다 (종료 코드 ${code}). 콘솔의 오류 줄을 클릭하면 해당 파일의 줄로 이동합니다.`;
     session.game = null;
     runInAction(() => {
       this.canvas = null;

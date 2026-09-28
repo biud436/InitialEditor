@@ -56,7 +56,7 @@ export const EngineRepoRow = observer(function EngineRepoRow() {
         onChange={(e) => settings.update({ engineRepoPath: e.target.value })}
         data-testid="settings-engine-repo"
       />
-      <div className="form-help">안드로이드로 스테이징에 사용 (android/prepare_assets.sh 가 있는 Initial2D 체크아웃)</div>
+      <div className="form-help">안드로이드 스테이징에 사용합니다 (android/prepare_assets.sh가 있는 Initial2D 체크아웃).</div>
       {trust?.allow && (
         <div className="form-help" data-testid="settings-android-trust">
           이 프로젝트에서 허용한 스테이징 스크립트: {trust.exes.join(", ")}{" "}
@@ -104,23 +104,23 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             <option value="process">프로세스 (엔진 실행 파일, 별도 창)</option>
             <option value="embedded">게임 탭 (웹 엔진)</option>
           </select>
-          <div className="form-help">{canSpawn ? "F5로 게임을 실행할 위치. 게임 탭 실행은 웹 엔진 빌드에 포함된 언어(Lua, mruby)만 지원" : "브라우저에서는 항상 게임 탭에서 실행 (웹 엔진)"}</div>
+          <div className="form-help">{canSpawn ? "F5로 게임을 실행할 위치입니다. 게임 탭에서는 웹 엔진 빌드에 포함된 언어(Lua, mruby)만 지원합니다." : "브라우저에서는 항상 게임 탭의 웹 엔진에서 실행합니다"}</div>
         </div>
         <div className="form-row">
           <label htmlFor="settings-engine">엔진 경로</label>
           <input id="settings-engine" className="input" value={s.enginePath} placeholder="지정 안 함 (자동 탐색: 프로젝트의 build/, 앱에 든 엔진, 프로젝트 상위 폴더의 Initial2D/build/)" onChange={(e) => update({ enginePath: e.target.value })} />
-          <div className="form-help">실행 방식이 프로세스일 때 사용</div>
+          <div className="form-help">실행 방식이 프로세스일 때 사용합니다</div>
         </div>
         {canSpawn && <FoundEngineRow />}
         {canSpawn && <EngineRepoRow />}
         <div className="form-row">
           <label htmlFor="settings-reload">저장 시 리로드</label>
           <label className="checkbox">
-            <input id="settings-reload" type="checkbox" checked={s.reloadOnSave} onChange={(e) => update({ reloadOnSave: e.target.checked })} /> 스크립트, 씬, 맵 저장 시 실행 중인 게임에 핫 리로드
+            <input id="settings-reload" type="checkbox" checked={s.reloadOnSave} onChange={(e) => update({ reloadOnSave: e.target.checked })} /> 스크립트, 씬, 맵을 저장하면 실행 중인 게임에 핫 리로드합니다
           </label>
         </div>
         <div className="form-row">
-          <label htmlFor="settings-font-size">편집기 폰트 크기</label>
+          <label htmlFor="settings-font-size">에디터 폰트 크기</label>
           <input
             id="settings-font-size"
             className="input"
@@ -139,11 +139,11 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             data-testid="settings-font-size"
           />
           <div className="form-help">
-            {EDITOR_FONT_SIZE_RANGE.min}부터 {EDITOR_FONT_SIZE_RANGE.max}까지 (px). 스크립트 편집기에 즉시 반영
+            {EDITOR_FONT_SIZE_RANGE.min}부터 {EDITOR_FONT_SIZE_RANGE.max}까지 (px). 스크립트 에디터에 즉시 반영됩니다.
           </div>
         </div>
         <div className="form-row">
-          <label htmlFor="settings-tab-size">편집기 탭 크기</label>
+          <label htmlFor="settings-tab-size">에디터 탭 크기</label>
           <select id="settings-tab-size" className="select" value={s.editorTabSize} onChange={(e) => update({ editorTabSize: Number(e.target.value) })} data-testid="settings-tab-size">
             {TAB_SIZES.map((n) => (
               <option key={n} value={n}>
@@ -153,7 +153,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
           </select>
         </div>
         <div className="form-row">
-          <label>편집기 표시</label>
+          <label>에디터 표시</label>
           <label className="checkbox">
             <input type="checkbox" checked={s.editorWordWrap} onChange={(e) => update({ editorWordWrap: e.target.checked })} data-testid="settings-word-wrap" /> 자동 줄바꿈
           </label>

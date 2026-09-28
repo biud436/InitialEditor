@@ -265,7 +265,7 @@ export async function installNativeMenu(editor: Editor): Promise<() => void> {
         execCommand: (kind) => document.execCommand(kind),
         rebuild: () => schedule(0),
       }).then((done) => {
-        if (done === "blocked") editor.log.warn("editor", `커맨드 실행 실패: ${editor.commandLabel(id)}. 메뉴 다시 생성됨, 한 번 더 선택 필요`);
+        if (done === "blocked") editor.log.warn("editor", `커맨드를 실행하지 못했습니다: ${editor.commandLabel(id)}. 메뉴를 다시 만들었습니다. 한 번 더 선택해 주세요.`);
       });
     },
   };

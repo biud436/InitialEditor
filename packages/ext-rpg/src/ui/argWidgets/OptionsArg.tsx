@@ -34,7 +34,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
   if (!list) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        항목 목록 편집 불가 (배열이 아님): {stringifyJsonLossless(value)}
+        항목 목록을 편집할 수 없습니다 (배열이 아닙니다): {stringifyJsonLossless(value)}
       </div>
     );
   }
@@ -43,7 +43,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
   const hasCancel = ops.setCancel !== undefined;
   const remove = async (k: number) => {
     const size = branchSizes[k] ?? 0;
-    if (size > 0 && !(await ctx.confirm(`${k + 1}번 항목의 분기에 커맨드 ${size}개 있음. 분기와 함께 삭제할까요?`))) return;
+    if (size > 0 && !(await ctx.confirm(`${k + 1}번 항목의 분기에 커맨드가 ${size}개 있습니다. 분기와 함께 삭제할까요?`))) return;
     ops.remove(k);
   };
   const name = `${testId}-cancel`;

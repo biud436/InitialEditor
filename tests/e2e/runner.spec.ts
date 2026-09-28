@@ -94,7 +94,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(reload).toBeEnabled();
     await reload.click();
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개 다시 복사됨/);
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개를 다시 복사했습니다/);
     await expect(page.getByTestId("console-list")).not.toContainText("개 전송됨");
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
@@ -137,7 +137,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await page.getByTestId("doc-tab").filter({ hasText: "main.lua" }).click();
     await page.locator(".monaco-editor .view-lines").click();
     await page.keyboard.press("ControlOrMeta+Shift+R");
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개 다시 복사됨/);
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개를 다시 복사했습니다/);
     await expect.poll(reloadKeys).toEqual([true, true, true]);
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });

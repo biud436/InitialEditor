@@ -550,7 +550,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
   });
 });
 
-const SAMPLE_MAP_HINT = "샘플 게임이 렌더링하는 맵. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5 로 실행";
+const SAMPLE_MAP_HINT = "샘플 게임에서 렌더링하는 맵입니다. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5를 눌러 실행하세요.";
 const WEB_NO_RUBY = "브라우저 모드에서 실행 불가 (데스크톱 앱에서 실행)";
 
 /** engine/MANIFEST.json 을 가로채 기능에서 mruby 를 뺀다 (mruby 없는 웹 엔진 빌드 흉내) */
@@ -700,7 +700,7 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     const welcome = await expectBrowserWelcome(page);
     const button = welcome.getByRole("button", { name: "새 프로젝트", exact: true });
     await expect(button).toBeDisabled();
-    await expect(button).toHaveAttribute("title", "폴더 열기 미지원 브라우저 (크롬, 엣지에서 지원)");
+    await expect(button).toHaveAttribute("title", "이 브라우저는 폴더 열기를 지원하지 않습니다 (크롬과 엣지에서 지원합니다)");
     expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
   });
 });
@@ -716,7 +716,7 @@ test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라
     await page.goto(deployed.href);
     const welcome = page.getByTestId("welcome");
     await expect(welcome).toContainText("메모리 모드.");
-    await expect(welcome).toContainText("폴더 열기 미지원 브라우저, 샘플 프로젝트로 시작됨");
+    await expect(welcome).toContainText("이 브라우저는 폴더 열기를 지원하지 않아 샘플 프로젝트로 시작했습니다");
     await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();

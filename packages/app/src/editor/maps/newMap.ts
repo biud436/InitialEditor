@@ -53,9 +53,9 @@ export function validateMapName(value: string, existing: readonly string[]): str
 /** 정수 입력 검사. subject 는 대상 이름 (너비, 높이). 쓸 수 없으면 이유 */
 export function validateInt(value: string, subject: string, min: number, max: number): string | null {
   const t = value.trim();
-  if (!/^\d+$/.test(t)) return `${subject}: 정수여야 함`;
+  if (!/^\d+$/.test(t)) return `${subject}: 정수여야 합니다`;
   const n = Number(t);
-  if (n < min || n > max) return `${subject}: ${min} 이상 ${max} 이하여야 함`;
+  if (n < min || n > max) return `${subject}: ${min} 이상 ${max} 이하여야 합니다`;
   return null;
 }
 
@@ -68,7 +68,7 @@ export function parseLayerNames(text: string): { names: string[]; error: string 
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s !== "");
-  if (names.length === 0) return { names, error: "레이어 이름 1개 이상 필요" };
+  if (names.length === 0) return { names, error: "레이어 이름이 1개 이상 필요합니다" };
   const seen = new Set<string>();
   for (const n of names) {
     if (seen.has(n)) return { names, error: `레이어 이름 중복: ${n}` };

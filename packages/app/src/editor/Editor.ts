@@ -265,7 +265,7 @@ export class Editor {
     if (!info.hasGameJson) {
       const ok = await this.modals.confirm({
         title: "프로젝트 등록",
-        message: "이 폴더에 game.json 없음. 프로젝트로 등록할까요? (game.json 생성)",
+          message: "이 폴더에는 game.json이 없습니다. game.json을 만들고 프로젝트로 등록할까요?",
         okLabel: "만들기",
         cancelLabel: "나중에",
       });
@@ -291,7 +291,7 @@ export class Editor {
     if (dirty > 0) {
       const ok = await this.modals.confirm({
         title: "프로젝트 닫기",
-        message: `저장 안 된 문서 ${dirty}개. 저장하지 않고 닫을까요?`,
+        message: `저장하지 않은 문서가 ${dirty}개 있습니다. 저장하지 않고 닫을까요?`,
         okLabel: "닫기",
         danger: true,
       });
@@ -429,7 +429,7 @@ export class Editor {
           );
         } else {
           runInAction(() => (doc.externallyChanged = true));
-          this.log.warn("editor", `외부에서 변경됨, 저장하지 않은 변경이 있어 다시 읽지 않음: ${e.path}`);
+      this.log.warn("editor", `외부에서 변경되었지만 저장하지 않은 변경이 있어 다시 읽지 않았습니다: ${e.path}`);
         }
       }),
     );

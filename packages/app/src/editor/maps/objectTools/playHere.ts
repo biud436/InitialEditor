@@ -138,7 +138,7 @@ export async function playRequest(host: PlayHost, doc: MapDocument, request: Pla
   if (doc.dirty) {
     const ok = await host.modals.confirm({
       title: request.label,
-      message: `${doc.title}: 저장하지 않은 변경 있음. 엔진은 디스크의 파일을 읽으므로 저장해야 변경 내용이 반영됨. 저장하고 실행할까요?`,
+      message: `${doc.title}: 저장하지 않은 변경이 있습니다. 엔진은 디스크의 파일을 읽으므로 저장해야 변경 내용이 반영됩니다. 저장하고 실행할까요?`,
       okLabel: "저장하고 실행",
       cancelLabel: "취소",
     });
@@ -148,7 +148,7 @@ export async function playRequest(host: PlayHost, doc: MapDocument, request: Pla
       if ((await host.saveDocument(doc)) === "cancelled") return false;
     } catch (e) {
       const message =
-        e instanceof ReloadFailedError ? `${doc.title} 다시 읽기 실패, 실행 안 함: ${e.reason}` : `${doc.title} 저장 실패, 실행 안 함: ${(e as Error).message}`;
+        e instanceof ReloadFailedError ? `${doc.title}: 다시 읽지 못해 실행하지 않습니다 (${e.reason})` : `${doc.title}: 저장하지 못해 실행하지 않습니다 (${(e as Error).message})`;
       host.log.error(LOG, message);
       host.toasts.error(message);
       return false;

@@ -90,10 +90,10 @@ export type LocationTarget =
  */
 function cellCoord(name: string, v: unknown, size: number | undefined, sizeLabel: string): number | string {
   const shown = stringifyJsonLossless(v) ?? String(v);
-  if (!isJsonNumber(v)) return `${name} 값은 숫자여야 함 (현재: ${shown})`;
-  if (!isJsonInteger(v)) return `${name} 값은 정수여야 함 (현재: ${shown})`;
+  if (!isJsonNumber(v)) return `${name} 값은 숫자여야 합니다 (현재: ${shown})`;
+  if (!isJsonInteger(v)) return `${name} 값은 정수여야 합니다 (현재: ${shown})`;
   const n = jsonNumber(v)!;
-  if (n < 0) return `${name} 값은 0 이상이어야 함 (현재: ${shown})`;
+  if (n < 0) return `${name} 값은 0 이상이어야 합니다 (현재: ${shown})`;
   if (bigIntText(v) !== null || (size !== undefined && n >= size)) return `${name} 값이 맵 범위 밖 (현재: ${shown}${size !== undefined ? `, ${sizeLabel} ${size}` : ""})`;
   return n;
 }
@@ -111,7 +111,7 @@ function targetCell(x: unknown, y: unknown, size: MapSize | undefined): { cell: 
 export function locationTarget(cmd: unknown, args: LocationArgs, sources: LocationSources): LocationTarget {
   const name = field(cmd, args.map);
   if (name === undefined || name === "") return { ok: false, reason: "맵 미지정" };
-  if (!isJsonText(name)) return { ok: false, reason: "맵 인자는 문자열이어야 함" };
+  if (!isJsonText(name)) return { ok: false, reason: "맵 인자는 문자열이어야 합니다" };
   if (!sources.game) return { ok: false, reason: `rpg-game.json 읽기 실패${sources.gameProblem ? ` (${sources.gameProblem})` : ""}` };
   const entry = mapByName(sources.game, name);
   if (!entry) return { ok: false, reason: `rpg-game.json 에 등록되지 않은 맵: ${name}` };

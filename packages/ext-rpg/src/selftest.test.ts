@@ -127,8 +127,8 @@ describe("자가 검사의 탐침", () => {
     const b = await boot();
     const doc = await openPort(b);
     const probe = b.rpg.selftest;
-    expect(probe.playRequest(doc, {})).toBe("args.event 값은 이벤트 id 여야 함");
+    expect(probe.playRequest(doc, {})).toBe("args.event 값은 이벤트 id 여야 합니다");
     expect(probe.playRequest(doc, { event: "nobody" })).toBe("이 맵에 없는 이벤트: nobody");
-    expect(probe.playRequest(doc, { event: "kid", mode: "walk" })).toBe("args.mode 값은 play 나 probe 여야 함 (현재: walk)");
+    expect(probe.playRequest(doc, { event: "kid", mode: "walk" })).toBe("args.mode 값은 play 나 probe 여야 합니다 (현재: walk)");
   });
 });

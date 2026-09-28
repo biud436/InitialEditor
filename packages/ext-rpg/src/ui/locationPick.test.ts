@@ -48,7 +48,7 @@ describe("단추의 막는 이유", () => {
     const reasons = (map: unknown) => t.picker.blockers(t.st, { ...t.transfer(), map });
     expect(reasons("")).toEqual({ pick: "맵 미지정", reveal: "맵 미지정" });
     expect(reasons(undefined)).toEqual({ pick: "맵 미지정", reveal: "맵 미지정" });
-    expect(reasons(3)).toEqual({ pick: "맵 인자는 문자열이어야 함", reveal: "맵 인자는 문자열이어야 함" });
+    expect(reasons(3)).toEqual({ pick: "맵 인자는 문자열이어야 합니다", reveal: "맵 인자는 문자열이어야 합니다" });
     expect(reasons("forest")).toEqual({ pick: "rpg-game.json 에 등록되지 않은 맵: forest", reveal: "rpg-game.json 에 등록되지 않은 맵: forest" });
     expect(reasons("village").pick).toBe("맵 파일 없음: resources/maps/village.json");
     t.sources.mapChecks.set("resources/maps/room.json", { kind: "invalid", reason: "타일셋 없음" });
@@ -76,12 +76,12 @@ describe("대상 보기의 x, y (대상 맵 inn 은 20x14)", () => {
     ["맵 안의 끝 타일", { x: 19, y: 13 }, undefined],
     ["2.0 은 정수", { x: 2.0, y: 0 }, undefined],
     ["2^53을 넘는 정수", { x: big, y: 1 }, "x 값이 맵 범위 밖 (현재: 12345678901234567890, 너비 20)"],
-    ["음의 큰 정수", { x: 1, y: bigIntValue("-12345678901234567890") }, "y 값은 0 이상이어야 함 (현재: -12345678901234567890)"],
-    ["음수", { x: -1, y: 2 }, "x 값은 0 이상이어야 함 (현재: -1)"],
-    ["소수", { x: 1.5, y: 2 }, "x 값은 정수여야 함 (현재: 1.5)"],
+    ["음의 큰 정수", { x: 1, y: bigIntValue("-12345678901234567890") }, "y 값은 0 이상이어야 합니다 (현재: -12345678901234567890)"],
+    ["음수", { x: -1, y: 2 }, "x 값은 0 이상이어야 합니다 (현재: -1)"],
+    ["소수", { x: 1.5, y: 2 }, "x 값은 정수여야 합니다 (현재: 1.5)"],
     ["너비 밖", { x: 20, y: 0 }, "x 값이 맵 범위 밖 (현재: 20, 너비 20)"],
     ["높이 밖", { x: 0, y: 14 }, "y 값이 맵 범위 밖 (현재: 14, 높이 14)"],
-    ["수가 아닌 값", { x: "3", y: true }, 'x 값은 숫자여야 함 (현재: "3"), y 값은 숫자여야 함 (현재: true)'],
+    ["수가 아닌 값", { x: "3", y: true }, 'x 값은 숫자여야 합니다 (현재: "3"), y 값은 숫자여야 합니다 (현재: true)'],
     ["y 만 없음", { x: 3, y: undefined }, "y 미지정"],
     ["x 는 없고 y 는 밖", { x: undefined, y: 99 }, "x 미지정, y 값이 맵 범위 밖 (현재: 99, 높이 14)"],
   ];
@@ -170,7 +170,7 @@ describe("맵에서 고르기", () => {
     t.st.run((ed) => ed.removeEvents([t.door]));
     t.views.end({ x: 1, y: 1 });
     expect(await removed).toBe("changed");
-    expect(t.notified).toEqual(["선택 중 이벤트나 커맨드가 변경되어 x, y 입력 안 함"]);
+    expect(t.notified).toEqual(["선택하는 동안 이벤트나 커맨드가 변경되어 x, y를 입력하지 않았습니다"]);
     t.doc.undo.undo();
     const retarget = t.picker.pick(t.st, t.door, TRANSFER);
     t.st.run((ed) => ed.setArgs(t.door, TRANSFER, { map: "port_town" }));

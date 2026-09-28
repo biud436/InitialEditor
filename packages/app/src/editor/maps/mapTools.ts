@@ -107,8 +107,8 @@ export function fillLimitNotice(filled: number, limit: number): string {
   return `채우기 한도(타일 ${limit.toLocaleString("en-US")}개) 도달: 타일 ${filled.toLocaleString("en-US")}개 채움. 남은 영역을 다시 클릭하면 이어서 채움`;
 }
 
-export const HIDDEN_TARGET_NOTICE = "숨긴 레이어나 통행에는 칠하기 불가 (레이어 패널에서 보이기를 켜면 가능)";
-export const HIDDEN_EXT_NOTICE = "숨긴 레이어는 편집 불가 (레이어 패널에서 보이기를 켜면 가능)";
+export const HIDDEN_TARGET_NOTICE = "숨긴 레이어나 통행에는 칠할 수 없습니다 (레이어 패널에서 보이기를 켜면 칠할 수 있습니다)";
+export const HIDDEN_EXT_NOTICE = "숨긴 레이어는 편집할 수 없습니다 (레이어 패널에서 보이기를 켜면 편집할 수 있습니다)";
 
 /** 칠하거나 고칠 대상(타일 레이어, 통행, 확장 레이어)을 숨겼는가 */
 export function targetHidden(doc: MapDocument): boolean {

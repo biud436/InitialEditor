@@ -59,22 +59,22 @@ export function checkEngineMap(text: string): EngineMapCheck {
 
   const [width, height, tileWidth, tileHeight] = ["width", "height", "tileWidth", "tileHeight"].map((k) => asInt(field(root, k)));
   if ([width, height, tileWidth, tileHeight].some((n) => n === undefined || n <= 0)) {
-    return { ok: false, reason: "맵 크기나 타일 크기가 0 이하" };
+    return { ok: false, reason: "맵 크기나 타일 크기가 0 이하입니다" };
   }
   const cells = width! * height!;
 
   const layers = field(root, "layers");
   if (!Array.isArray(layers) || layers.length === 0) return { ok: false, reason: "레이어 없음" };
   for (const layer of layers) {
-    if (asString(field(layer, "name")) === undefined) return { ok: false, reason: "레이어 이름은 문자열이어야 함" };
+    if (asString(field(layer, "name")) === undefined) return { ok: false, reason: "레이어 이름은 문자열이어야 합니다" };
     if (!intArrayOk(field(layer, "data"), cells)) {
-      return { ok: false, reason: `레이어 "${asString(field(layer, "name")) ?? ""}"의 data 길이가 너비 x 높이와 다르거나 정수가 아닌 요소 포함` };
+      return { ok: false, reason: `레이어 "${asString(field(layer, "name")) ?? ""}"의 data 길이가 너비 x 높이와 다르거나 정수가 아닌 요소를 포함합니다` };
     }
   }
 
   if (root !== null && typeof root === "object" && "collision" in root) {
     if (!intArrayOk(field(root, "collision"), cells)) {
-      return { ok: false, reason: "collision 길이가 너비 x 높이와 다르거나 정수가 아닌 요소 포함" };
+      return { ok: false, reason: "collision 길이가 너비 x 높이와 다르거나 정수가 아닌 요소를 포함합니다" };
     }
   }
 

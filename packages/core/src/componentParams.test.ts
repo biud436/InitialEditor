@@ -62,14 +62,14 @@ describe("선언 파일", () => {
         { key: "a", type: "string" },
       ]),
     ).toThrow(/fields\[1\]: key 중복: a/);
-    expect(bad([{ key: "a", type: "enum" }])).toThrow(/values는 빈 문자열이 아닌 문자열 1개 이상의 배열/);
-    expect(bad([{ key: "a", type: "string", values: ["x"] }])).toThrow(/values는 enum에만/);
-    expect(bad([{ key: "a", type: "string", min: 1 }])).toThrow(/min는 number, integer에만/);
-    expect(bad([{ key: "a", type: "integer", default: 1.5 }])).toThrow(/fields\[0\]\.default: 정수여야 함/);
+    expect(bad([{ key: "a", type: "enum" }])).toThrow(/values는 비어 있지 않은 문자열이 1개 이상 있는 배열/);
+    expect(bad([{ key: "a", type: "string", values: ["x"] }])).toThrow(/values는 enum 타입에만 사용할 수 있습니다/);
+    expect(bad([{ key: "a", type: "string", min: 1 }])).toThrow(/min: number와 integer 타입에만 사용할 수 있습니다/);
+    expect(bad([{ key: "a", type: "integer", default: 1.5 }])).toThrow(/fields\[0\]\.default: 정수여야 합니다/);
     expect(bad([{ key: "a", type: "enum", values: ["x"], default: "y" }])).toThrow(/default: x 중 하나/);
     expect(bad([{ key: "a", type: "number", max: 3, default: 4 }])).toThrow(/3 이하/);
-    expect(bad([{ key: "a", type: "number", min: 3, max: 2 }])).toThrow(/fields\[0\]: min이 max보다 큼/);
-    expect(bad([{ key: "a", type: "enum", values: ["x", ""] }])).toThrow(/values는 빈 문자열이 아닌 문자열 1개 이상/);
+    expect(bad([{ key: "a", type: "number", min: 3, max: 2 }])).toThrow(/fields\[0\]: min이 max보다 큽니다/);
+    expect(bad([{ key: "a", type: "enum", values: ["x", ""] }])).toThrow(/values는 비어 있지 않은 문자열이 1개 이상/);
     expect(bad([{ key: "a", type: "object", default: "" }])).toThrow(/default: 오브젝트 id/);
   });
 
@@ -84,8 +84,8 @@ describe("선언 파일", () => {
   it("값 검사와 합치기", () => {
     const d = parseComponentDeclaration(MOVER);
     const field = (key: string) => d.fields.find((f) => f.key === key)!;
-    expect(fieldValueProblem(field("dx"), 11)).toBe("10 이하여야 함");
-    expect(fieldValueProblem(field("loop"), 1)).toBe("true나 false여야 함");
+    expect(fieldValueProblem(field("dx"), 11)).toBe("10 이하여야 합니다");
+    expect(fieldValueProblem(field("loop"), 1)).toBe("true나 false여야 합니다");
     expect(fieldValueProblem(field("target"), "ghost", new Set(["a"]))).toBe("씬에 없는 오브젝트: ghost");
     expect(fieldValueProblem(field("target"), "ghost")).toBeNull();
     expect(mergedParams(d, { dx: 3 })).toEqual({
@@ -134,16 +134,16 @@ describe("씬의 매개변수 검사", () => {
     "components/broken": {
       kind: "broken",
       path: "scripts/components/broken.json",
-      message: "fields는 배열이어야 함",
+      message: "fields는 배열이어야 합니다",
     },
   };
 
   it("선언된 필드의 형식, 선언되지 않은 키, 없는 오브젝트, 깨진 선언 (씬마다 한 번)", () => {
     const problems = validateComponentParams(scene, (name) => states[name]);
     expect(problems.map((p) => `${p.location} ${p.message}`)).toEqual([
-      "objects[0].scripts 컴포넌트 선언 오류 (scripts/components/broken.json): fields는 배열이어야 함",
-      "objects[0].params.components/mover.dx a: components/mover.dx: 10 이하여야 함",
-      "objects[0].params.components/mover.kind a: components/mover.kind: ground, pipes 중 하나여야 함",
+      "objects[0].scripts 컴포넌트 선언 오류 (scripts/components/broken.json): fields는 배열이어야 합니다",
+      "objects[0].params.components/mover.dx a: components/mover.dx: 10 이하여야 합니다",
+      "objects[0].params.components/mover.kind a: components/mover.kind: ground, pipes 중 하나여야 합니다",
       "objects[0].params.components/mover.nope a: components/mover에 선언되지 않은 매개변수: nope",
       "objects[1].params.components/mover.target b: components/mover.target: 씬에 없는 오브젝트: ghost",
     ]);

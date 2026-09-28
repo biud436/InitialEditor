@@ -47,7 +47,7 @@ async function boot(): Promise<void> {
   });
   window.initialEditor = editor;
   await editor.start();
-  if (isFolderFallback(mode)) editor.log.info("editor", "폴더 열기(File System Access API) 미지원 브라우저, 메모리 모드로 시작됨 (크롬, 엣지에서 지원)");
+  if (isFolderFallback(mode)) editor.log.info("editor", "이 브라우저는 폴더 열기(File System Access API)를 지원하지 않아 메모리 모드로 시작했습니다 (크롬과 엣지에서 지원합니다)");
   const container = document.getElementById("root");
   if (!container) throw new Error("#root 요소 없음");
   createRoot(container).render(

@@ -72,15 +72,15 @@ const AboutBody = observer(function AboutBody({ host, deps, close }: { host: Abo
         <p>
           <strong>InitialEditor {host.version}</strong>
         </p>
-        <p>Initial2D 엔진용 편집기. 프로젝트 열기, 씬에 오브젝트 배치, 스크립트 작성, 실행 버튼으로 게임 실행</p>
+        <p>Initial2D 엔진용 에디터입니다. 프로젝트를 열고 씬에 오브젝트를 배치하며, 스크립트를 작성하고 게임을 실행할 수 있습니다.</p>
         <dl className="about-facts">
-          <dt>판</dt>
+          <dt>버전</dt>
           <dd data-testid="about-version">{host.version}</dd>
           <dt>커밋</dt>
           <dd data-testid="about-commit">{APP_COMMIT}</dd>
           <dt>웹 엔진</dt>
           <dd data-testid="about-web-engine" data-state={engine.kind}>
-            {engine.kind === "loading" ? "읽는 중" : engine.text}
+            {engine.kind === "loading" ? "불러오는 중" : engine.text}
           </dd>
           {host.mode === "tauri" && host.runner && (
             <>
@@ -144,12 +144,12 @@ function NoticesBody({ host, deps, close }: { host: AboutHost; deps: AboutDeps; 
     <>
       <div className="modal-body about-notices" data-testid="notices-dialog">
         <p className="muted">
-          엔진(네이티브와 웹)에 포함된 제3자 소프트웨어 고지 (engine/{ENGINE_NOTICES_FILE}). 에디터가 쓰는 라이브러리의 고지:{" "}
+          엔진(네이티브와 웹)에 포함된 제3자 소프트웨어 고지입니다 (engine/{ENGINE_NOTICES_FILE}). 에디터에서 사용하는 라이브러리의 고지는 다음과 같습니다.{" "}
           <ExternalLink host={host} href={EDITOR_NOTICES_URL} testId="notices-editor" deps={deps.open ?? defaultOpenDeps}>
             저장소의 src-tauri/licenses
           </ExternalLink>
         </p>
-        {state.kind === "loading" && <p className="muted">읽는 중</p>}
+        {state.kind === "loading" && <p className="muted">불러오는 중</p>}
         {state.kind === "error" && (
           <p className="about-error" data-testid="notices-error">
             {state.text}

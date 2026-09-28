@@ -34,7 +34,7 @@ const KNOWN_KEYS = new Set(["name", "windowWidth", "windowHeight", "renderScale"
 
 export function parseGameJson(text: string): GameJson {
   const raw = JSON.parse(text) as Record<string, unknown>;
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("game.json 최상위 값은 객체여야 함");
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) throw new Error("game.json 최상위 값은 객체여야 합니다");
   const num = (key: string, fallback: number) => {
     const v = raw[key];
     return typeof v === "number" && Number.isFinite(v) ? v : fallback;

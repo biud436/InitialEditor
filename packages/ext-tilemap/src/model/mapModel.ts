@@ -272,7 +272,7 @@ export class MapModel {
     return {
       label: `레이어 삭제: ${this.data.layers[index]?.name ?? index}`,
       execute: () => {
-        if (model.data.layers.length <= 1) throw new Error("마지막 레이어는 삭제 불가");
+        if (model.data.layers.length <= 1) throw new Error("마지막 레이어는 삭제할 수 없습니다");
         removed = model.data.layers.splice(index, 1)[0];
         model.bump();
         model.events.emit("layers", undefined);

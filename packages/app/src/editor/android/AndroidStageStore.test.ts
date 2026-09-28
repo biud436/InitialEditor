@@ -136,8 +136,8 @@ describe("AndroidStageStore 신뢰", () => {
     const { store, host, runs } = setup({ exists: (p) => (p === "/home/u/games/Initial2D" ? {} : null) });
     const { found } = await store.discover();
     expect(store.isTrusted(found!)).toBe(false);
-    await expect(store.count(found!, false)).rejects.toThrow(/스크립트 실행 허용 안 함/);
-    expect(await store.stage(found!, false).catch((e: Error) => e.message)).toMatch(/허용 안 함/);
+    await expect(store.count(found!, false)).rejects.toThrow(/스크립트 실행 허용 필요/);
+    expect(await store.stage(found!, false).catch((e: Error) => e.message)).toMatch(/스크립트 실행 허용 필요/);
     expect(runs).toEqual([]);
     store.trust(found!);
     expect(host.settings.settings.androidTrust).toEqual({
@@ -201,7 +201,7 @@ describe("AndroidStageStore 미리 세기와 스테이징", () => {
     expect(store.last).toEqual(summary);
     expect(runs).toEqual([{ repo: "/home/u/games/Initial2D", project: "/home/u/games/flappy", withRtp: false, dryRun: false }]);
     const log = androidLog(host);
-    expect(log[0]).toEqual(["info", "안드로이드 스테이징: /home/u/games/flappy 를 /home/u/games/Initial2D/android/app/src/main/assets/ 로 (RTP 변환물 제외)"]);
+    expect(log[0]).toEqual(["info", "안드로이드 스테이징, 프로젝트: /home/u/games/flappy, 대상: /home/u/games/Initial2D/android/app/src/main/assets/ (RTP 변환 파일 제외)"]);
     expect(log).toContainEqual(["warn", "WARN aapt-ignored: resources/_old/a.png 는 APK 에 들어가지 않는 이름이라 뺐다"]);
     expect(log).toContainEqual(["info", STAGED]);
     const tail = log.slice(-6).map(([, t]) => t);

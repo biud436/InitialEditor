@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // UI 문구 검사 (docs/design/ui-terms.md 3절).
 // packages/*/src 와 src-tauri/src 의 문자열 리터럴과 JSX 텍스트에서 용어표(1절)의 쓰지 않는 말과
-// 한다체 서술 끝맺음(-다)을 찾는다. 주석과 테스트(*.test.*, *.spec.*, test/, testing/, __fixtures__/, Rust 의 cfg(test) 모듈)는 보지 않는다.
+// 한다체 서술 끝맺음(-다)을 찾는다. 합니다체(-니다), 요청(-세요), 질문(-까요)은 허용한다.
+// 주석과 테스트(*.test.*, *.spec.*, test/, testing/, __fixtures__/, Rust 의 cfg(test) 모듈)는 보지 않는다.
 // JSON 도 보지 않는다 (api-fallback.json 의 설명은 엔진 resources/api/initial2d-api.json 과 같은 글이어야 한다).
 //
 // 사용: node scripts/check-terms.mjs [파일이나 폴더...]   (기본: packages/*/src, src-tauri/src)
@@ -14,6 +15,13 @@ import ts from "typescript";
 
 /** 용어표의 쓰지 않는 말. re 는 리터럴 안의 글에 맞춘다 */
 export const BANNED = [
+  { re: /편집기/, word: "편집기", use: "에디터" },
+  { re: /(?<![가-힣])판(?![가-힣])/, word: "판", use: "버전" },
+  { re: /읽는 중/, word: "읽는 중", use: "불러오는 중" },
+  { re: /기본값으로/, word: "기본값으로", use: "기본값 복원" },
+  { re: /씬 로더 (?:바꾸기|바꿈)/, word: "씬 로더 바꾸기", use: "씬 로더 교체" },
+  { re: /미리 세기|세는 중/, word: "미리 세기", use: "파일 수 확인" },
+  { re: /RTP 변환물/, word: "RTP 변환물", use: "RTP 변환 파일" },
   { re: /칸/, word: "칸", use: "타일, 속성, 요소" },
   { re: /폭(?!발)/, word: "폭", use: "너비" },
   { re: /가로|세로/, word: "가로, 세로", use: "너비, 높이" },
@@ -75,9 +83,17 @@ export const BANNED = [
   { re: /지금|손수|(?<![가-힣])늘(?![가-힣])/, word: "지금, 늘, 손수", use: "현재, 항상, 직접" },
 ];
 
-/** 한다체 서술 끝맺음: 한글 낱말이 -다 로 끝남 (조사 보다, 마다와 명사 바다는 뺀다) */
+/** 한다체 서술 끝맺음: 한글 낱말이 -다 로 끝남 (합니다체와 요청, 질문, 조사 보다와 마다, 명사 바다는 뺀다) */
 const NARRATIVE = /[가-힣]+다(?![가-힣])/g;
-const NOT_NARRATIVE = /(?:보다|마다|바다)$/;
+const NOT_NARRATIVE = /(?:니다|세요|까요|보다|마다|바다)$/;
+/** 레이블과 구별할 수 있는 전보체만 찾는다: 조건형과, 둘째 문장 이후의 명사형 종결 */
+const TELEGRAPH_CONDITION = /[가-힣]+야 함(?![가-힣])/g;
+const TELEGRAPH_AFTER_SENTENCE = /[.!?]\s+[^.!?\n]*(?:되지 않음|하지 않음|할 수 없음|필요|불가|미지원|아님|없음|있음|됨|함)(?=\s*(?:[.!?]|$))/g;
+const ENGINE_TEXT_MIRRORS = new Set([
+  "packages/ext-rpg/src/model/validate.ts",
+  "packages/ext-rpg/src/model/game.ts",
+  "packages/ext-rpg/src/model/play.ts",
+]);
 
 const OPT_OUT = /\/[/*]\s*terms-ok:/;
 const SOURCE_EXT = new Set([".ts", ".tsx", ".mjs", ".js", ".rs"]);
@@ -105,7 +121,13 @@ export function checkText(text) {
   }
   for (const m of text.matchAll(NARRATIVE)) {
     if (NOT_NARRATIVE.test(m[0])) continue;
-    out.push({ index: m.index, rule: "ending", detail: `한다체 끝맺음 '${m[0]}' (명사형으로)` });
+    out.push({ index: m.index, rule: "ending", detail: `한다체 끝맺음 '${m[0]}' (합니다체로)` });
+  }
+  for (const re of [TELEGRAPH_CONDITION, TELEGRAPH_AFTER_SENTENCE]) {
+    for (const m of text.matchAll(re)) {
+      const ending = m[0].trim().replace(/^[.!?]\s+/, "");
+      out.push({ index: m.index, rule: "telegraph", detail: `문장형이 아닌 끝맺음 '${ending}' (합니다체로)` });
+    }
   }
   return out;
 }
@@ -205,7 +227,7 @@ export function scanSource(file, text) {
   const lines = text.split("\n");
   const problems = [];
   for (const seg of segments) {
-    const found = checkText(text.slice(seg.start, seg.end));
+    const found = checkText(text.slice(seg.start, seg.end)).filter((f) => f.rule !== "telegraph" || !ENGINE_TEXT_MIRRORS.has(file));
     if (found.length === 0) continue;
     const exempt = [seg.outer[0], Math.max(seg.outer[0], seg.outer[1] - 1)].some((p) => OPT_OUT.test(lines[lineOf(p)]));
     for (const f of found) {
@@ -256,11 +278,11 @@ export function main(argv = process.argv.slice(2), cwd = process.cwd(), log = co
     }
   }
   if (problems.length) {
-    log.error(`UI 문구 ${problems.length}건. docs/design/ui-terms.md 의 용어와 끝맺음으로 바꾸거나 이유와 함께 // terms-ok: 주석 추가 필요`);
+    log.error(`UI 문구 ${problems.length}건. docs/design/ui-terms.md의 용어와 끝맺음으로 바꾸거나 이유와 함께 // terms-ok: 주석을 추가해야 합니다`);
     for (const p of problems) log.error("  " + p);
     return 1;
   }
-  log.log("UI 문구 검사 통과 (쓰지 않는 말, 한다체 끝맺음 없음)");
+  log.log("UI 문구 검사 통과 (쓰지 않는 말과 어색한 끝맺음 없음)");
   return 0;
 }
 

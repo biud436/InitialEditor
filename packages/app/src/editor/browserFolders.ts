@@ -177,7 +177,7 @@ export function browserFolders(editor: Editor, backend?: FsAccessBackend): Brows
 }
 
 /** 샘플 맵을 열었을 때 한 번 띄우는 안내 */
-export const SAMPLE_MAP_HINT = "샘플 게임이 렌더링하는 맵. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5 로 실행";
+export const SAMPLE_MAP_HINT = "샘플 게임에서 렌더링하는 맵입니다. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5를 눌러 실행하세요.";
 
 const hinted = new WeakSet<object>();
 

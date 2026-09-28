@@ -117,7 +117,7 @@ describe("스키마가 늦게 오거나 바뀔 때 (refreshLayer)", () => {
     sources.set({ schema: null, schemaPresent: false });
     h.contrib.refreshLayer(EVENTS_LAYER_ID);
     expect(stateOf(doc)).toBe(st);
-    expect(st.locked).toBe("event-commands.json 없음: 이벤트 편집 불가 (파일을 복원하면 해제)");
+    expect(st.locked).toBe("event-commands.json이 없어 이벤트를 편집할 수 없습니다 (파일을 복원하면 해제됩니다)");
     expect(doc.text()).toBe(edited);
     doc.undo.undo();
     expect(doc.text()).toBe(PORT_TEXT);
@@ -132,7 +132,7 @@ describe("스키마가 늦게 오거나 바뀔 때 (refreshLayer)", () => {
     sources.set({ game: { ...game, maps: game.maps.filter((m) => m.name !== "port_town") } });
     h.contrib.refreshLayer(EVENTS_LAYER_ID);
     expect(stateOf(doc)).toBe(st);
-    expect(st.locked).toBe("rpg-game.json 에 이 맵의 등록 없음: 이벤트 편집 불가 (등록을 복원하면 해제)");
+    expect(st.locked).toBe("rpg-game.json에 이 맵이 등록되지 않아 이벤트를 편집할 수 없습니다 (등록을 복원하면 해제됩니다)");
   });
 
   it("처음부터 모르는 버전이면 스키마 없이 붙어 잠기고, 원본을 그대로 쓴다 (제 모양 고치기도 하지 않는다)", () => {

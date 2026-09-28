@@ -237,7 +237,7 @@ describe("GameViewStore", () => {
     expect(t.host.querySelector("canvas")).toBeNull();
     expect(t.store.canvas).toBeNull();
     expect(t.store.phase).toBe("ended");
-    expect(t.store.message).toContain("정지됨. F5로 다시 실행");
+    expect(t.store.message).toContain("게임이 정지되었습니다. F5를 누르면 다시 실행됩니다.");
   });
 
   it("루프가 멈춘 줄이 오지 않아도 시간 제한 뒤 정리한다", async () => {
@@ -391,7 +391,7 @@ describe("엔진이 죽는 길", () => {
     expect(out.join("\n")).not.toContain("undefined");
     expect(t.store.phase).toBe("ended");
     expect(t.store.lastExitCode).toBe(1);
-    expect(t.store.message).toContain("엔진 예외로 중단 (종료 코드 1)");
+    expect(t.store.message).toContain("엔진 예외로 중단되었습니다 (종료 코드 1)");
     expect(t.store.canvas).toBeNull();
     // 루프가 아직 돌고 있을 수 있어 한 번 quit 한다. 죽은 엔진의 정지는 다시 부르지도 기다리지도 않는다
     expect(t.games[0].quits).toBe(1);
@@ -449,7 +449,7 @@ describe("엔진이 죽는 길", () => {
     t.games[1].opts.onExit?.(0);
     await vi.waitFor(() => expect(codes).toEqual([0]));
     expect(t.store.lastExitCode).toBe(0);
-    expect(t.store.message).toContain("게임 종료됨. F5로 다시 실행");
+    expect(t.store.message).toContain("게임이 종료되었습니다. F5를 누르면 다시 실행됩니다.");
   });
 
   it("quit 뒤 엔진 프레임이 더 돌지 않으면(이미 죽은 루프) 시간 제한을 기다리지 않는다", async () => {
@@ -553,7 +553,7 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     vi.useRealTimers();
     await vi.waitFor(() => expect(t.games[0].reloads).toHaveLength(1));
     expect(Object.keys(t.games[0].reloads[0]).sort()).toEqual(["resources/maps/forest.json", "scripts/lua/main.lua", "scripts/lua/title.lua"]);
-    await vi.waitFor(() => expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 웹 엔진에 파일 3개 다시 복사됨"))).toBe(true));
+    await vi.waitFor(() => expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 웹 엔진에 파일 3개를 다시 복사했습니다"))).toBe(true));
 
     // 설정을 끄면 보내지 않는다
     settings.update({ reloadOnSave: false }, false);
@@ -606,7 +606,7 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     await vi.waitFor(() => expect(saves.pending).toBe(false));
     await Promise.resolve();
     expect(t.backend.pushed).toEqual([]);
-    expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 웹 엔진 시작 중"))).toBe(true);
+    expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 웹 엔진이 시작 중입니다"))).toBe(true);
 
     release();
     await starting;
@@ -687,7 +687,7 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     expect(t.log.entries.filter((e) => e.text === START_ENDED_RELOAD_DROPPED)).toHaveLength(1);
     expect(t.log.entries.some((e) => e.text.includes("다시 올렸다"))).toBe(false);
     expect(t.backend.pushed).toEqual([]);
-    expect(toasts).toEqual(["error: 엔진 종료됨 (종료 코드 1). 콘솔 확인 필요"]);
+    expect(toasts).toEqual(["error: 엔진이 종료되었습니다 (종료 코드 1). 콘솔을 확인하세요."]);
 
     // 다시 실행하면 저장한 글을 처음부터 올린다
     await runner.start();
@@ -721,7 +721,7 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     await vi.waitFor(() => expect(game.reloads).toHaveLength(1));
     expect(Object.keys(game.reloads[0]).sort()).toEqual(["resources/maps/forest.json", "scripts/lua/main.lua"]);
     expect(text(game.reloads[0]["scripts/lua/main.lua"])).toBe("print('v4')");
-    await vi.waitFor(() => expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 웹 엔진에 파일 2개 다시 복사됨"))).toBe(true));
+    await vi.waitFor(() => expect(t.log.entries.some((e) => e.text.startsWith("핫 리로드: 웹 엔진에 파일 2개를 다시 복사했습니다"))).toBe(true));
     expect(t.log.entries.some((e) => e.text === START_ENDED_RELOAD_DROPPED)).toBe(false);
     expect(toasts).toEqual([]);
     await runner.stop();
@@ -736,8 +736,8 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     const runnerLines = t.log.entries.filter((e) => e.source === "runner");
     expect(runnerLines.some((e) => e.text.includes("다시 올렸다")), label).toBe(false);
     expect(runnerLines.some((e) => e.text.startsWith("핫 리로드 실패")), label).toBe(false);
-    expect(runnerLines.filter((e) => e.level === "error").map((e) => e.text), label).toEqual([expect.stringMatching(/^엔진 종료 코드 1 /)]);
-    expect(toasts, label).toEqual(["error: 엔진 종료됨 (종료 코드 1). 콘솔 확인 필요"]);
+    expect(runnerLines.filter((e) => e.level === "error").map((e) => e.text), label).toEqual([expect.stringMatching(/^엔진이 종료되었습니다 \(종료 코드 1/)]);
+    expect(toasts, label).toEqual(["error: 엔진이 종료되었습니다 (종료 코드 1). 콘솔을 확인하세요."]);
     // 가짜 엔진은 부팅과 성공한 reload 에서 sample:frame 을 찍는다
     expect(t.log.entries.filter((e) => e.source === "engine" && e.text === "sample:frame"), label).toHaveLength(1);
     expect(t.backend.pushed, label).toEqual([]);
@@ -804,7 +804,7 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
       await vi.waitFor(() => expect(runner.state, where).toBe("idle"));
       expect(runner.exitCode, where).toBe(1);
       expect(t.store.lastExitCode, where).toBe(1);
-      expect(t.store.message, where).toContain("게임이 오류로 종료됨 (종료 코드 1). 콘솔의 오류 줄을 클릭하면 해당 파일의 줄로 이동");
+      expect(t.store.message, where).toContain("게임이 오류로 종료되었습니다 (종료 코드 1). 콘솔의 오류 줄을 클릭하면 해당 파일의 줄로 이동합니다.");
       expect(game.reloads, where).toEqual([]);
       expect(lineCount(t, START_ENDED_RELOAD_DROPPED), where).toBe(1);
       expectOnlyDropped(t, toasts, where);
@@ -883,7 +883,7 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     await t.backend.writeText(MAIN, "local = = =");
     saves.onSaved(MAIN);
     await vi.waitFor(() => expect(game.reloads).toHaveLength(1));
-    await vi.waitFor(() => expect(runnerTexts().some((x) => x.includes("스크립트 오류로 VM 재시작 실패"))).toBe(true));
+    await vi.waitFor(() => expect(runnerTexts().some((x) => x.includes("스크립트 오류로 VM을 다시 시작하지 못했습니다"))).toBe(true));
     expect(t.log.entries.some((e) => e.source === "engine" && e.text.startsWith("Lua error in reload"))).toBe(true);
     expect(session.ending).toBe(false);
     // 게임은 돈다 (스크립트만 멈췄다)
@@ -896,14 +896,14 @@ describe("저장 시 핫 리로드 (실행기 + 게임 뷰 + 가짜 로더)", ()
     saves.onSaved(MAIN);
     await vi.waitFor(() => expect(game.reloads).toHaveLength(2));
     expect(text(game.reloads[1][MAIN])).toBe("print('fixed')");
-    await vi.waitFor(() => expect(runnerTexts().filter((x) => x.startsWith("핫 리로드: 웹 엔진에 파일 1개 다시 복사됨. VM 재시작"))).toHaveLength(1));
+    await vi.waitFor(() => expect(runnerTexts().filter((x) => x.startsWith("핫 리로드: 웹 엔진에 파일 1개를 다시 복사했습니다. VM을 다시 시작"))).toHaveLength(1));
     game.step();
     expect(runner.state).toBe("running");
     expect(session.ending).toBe(false);
     expect(lineCount(t, ENDED_RELOAD_DROPPED)).toBe(0);
     expect(lineCount(t, START_ENDED_RELOAD_DROPPED)).toBe(0);
     expect(runnerTexts().some((x) => x.startsWith("핫 리로드 실패"))).toBe(false);
-    expect(toasts).toEqual(["warn: 핫 리로드: 스크립트 오류. 콘솔의 오류 줄 확인 필요"]);
+    expect(toasts).toEqual(["warn: 핫 리로드: 스크립트 오류가 발생했습니다. 콘솔의 오류 줄을 확인하세요."]);
     await runner.stop();
     expect(runner.exitCode).toBeNull();
     runner.dispose();

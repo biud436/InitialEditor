@@ -300,7 +300,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await writeFile("scripts/lua/scene_loader.lua", "-- 예전 씬 로더\nreturn {}\n");
     const note = page.getByTestId("inspector-loader-old");
     await expect(note).toBeVisible();
-    await expect(page.getByTestId("inspector-problems")).toContainText("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 넘기지 않아");
+    await expect(page.getByTestId("inspector-problems")).toContainText("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 전달하지 않아");
     await note.getByTestId("inspector-loader-upgrade").click();
     await page.getByRole("dialog").getByRole("button", { name: "덮어쓰기" }).click();
     await expect(note).toHaveCount(0);

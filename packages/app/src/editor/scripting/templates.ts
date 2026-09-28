@@ -104,7 +104,7 @@ export function validateScriptName(value: string): string | null {
   const v = value.trim();
   if (!v) return "이름 비어 있음";
   if (/\\/.test(v)) return "폴더 구분자는 / 만 허용 (\\ 불가)";
-  if (v.split("/").some((seg) => seg === "" || seg === "." || seg === "..")) return "비어 있거나 . 또는 .. 인 경로 구성 요소 포함";
+  if (v.split("/").some((seg) => seg === "" || seg === "." || seg === "..")) return "비어 있거나 점(.) 또는 두 점(..)인 경로 구성 요소가 있습니다";
   if (/\.(lua|rb)$/i.test(v)) return "확장자 불필요 (언어에 따라 .lua 또는 .rb 자동 추가)";
   if (!/^[A-Za-z0-9_\-./]+$/.test(v)) return "영문, 숫자, _, -, / 만 허용";
   return null;

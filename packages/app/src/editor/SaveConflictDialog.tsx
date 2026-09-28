@@ -17,11 +17,11 @@ export function saveConflictTitle(conflict: SaveConflict): string {
 export function saveConflictMessage(name: string, conflict: SaveConflict): string {
   switch (conflict.kind) {
     case "changed":
-      return `${name}: 외부에서 변경됨. 덮어쓰기: 디스크의 새 내용 손실. 다시 읽기: 저장하지 않은 변경 손실`;
+      return `${name}: 외부에서 변경되었습니다. 덮어쓰면 디스크의 새 내용이 사라지고, 다시 읽으면 저장하지 않은 변경이 사라집니다.`;
     case "missing":
-      return `${name}: 디스크에서 삭제됨. 덮어쓰기: 편집 내용으로 파일 다시 생성`;
+      return `${name}: 디스크에서 삭제되었습니다. 덮어쓰면 편집 내용으로 파일을 다시 만듭니다.`;
     case "unreadable":
-      return `${name} 다시 읽기 실패: ${conflict.reason ?? "원인 불명"}\n덮어쓰기: 디스크의 내용 손실`;
+      return `${name}: 다시 읽지 못했습니다 (${conflict.reason ?? "알 수 없는 원인"}). 덮어쓰면 디스크의 내용이 사라집니다.`;
   }
 }
 

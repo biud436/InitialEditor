@@ -78,7 +78,7 @@ describe("크기 바꾸기 대화상자", () => {
     expect(summary.textContent).toBe("내용 이동 x +2, y +2 (타일)");
     type("resize-width", "10");
     fireEvent.click(cell("top-left"));
-    expect(screen.getByTestId("resize-summary").textContent).toContain("줄어드는 쪽의 타일은 잘림");
+    expect(screen.getByTestId("resize-summary").textContent).toContain("줄어드는 쪽의 타일이 잘립니다");
     expect(screen.getByTestId("resize-outside").getAttribute("data-count")).toBe("1");
     expect(screen.getByTestId("resize-outside").textContent).toContain("slime_1");
     // 띠 sign_1은 x 150이라 안이고 끝 182가 새 폭 160을 넘는다
@@ -91,11 +91,11 @@ describe("크기 바꾸기 대화상자", () => {
   it("잘못된 크기는 막고 이유를 보인다", async () => {
     const { ok } = await setup();
     type("resize-width", "2000");
-    expect(screen.getByTestId("resize-problem").textContent).toBe("너비: 1 이상 1024 이하여야 함");
+    expect(screen.getByTestId("resize-problem").textContent).toBe("너비: 1 이상 1024 이하여야 합니다");
     expect(ok.disabled).toBe(true);
     type("resize-width", "20");
     type("resize-height", "abc");
-    expect(screen.getByTestId("resize-problem").textContent).toBe("높이: 정수여야 함");
+    expect(screen.getByTestId("resize-problem").textContent).toBe("높이: 정수여야 합니다");
   });
 
   it("바꾸기를 누르면 새 크기와 기준점을 넘긴다", async () => {

@@ -109,7 +109,7 @@ impl ProjectFs {
         if !root.is_dir() {
             return Err(BackendError::with_path(
                 ErrorCode::NotFound,
-                format!("폴더가 아님: {path}"),
+                format!("폴더가 아닙니다: {path}"),
                 path,
             ));
         }
@@ -210,7 +210,7 @@ impl ProjectFs {
         if abs.is_dir() {
             return Err(BackendError::with_path(
                 ErrorCode::Io,
-                format!("파일이 아닌 폴더: {norm}"),
+                format!("파일이 아니라 폴더입니다: {norm}"),
                 norm,
             ));
         }
@@ -222,7 +222,7 @@ impl ProjectFs {
     pub fn read_text(&self, rel: &str) -> Result<String> {
         let bytes = self.read(rel)?;
         String::from_utf8(bytes).map_err(|_| {
-            BackendError::with_path(ErrorCode::Io, format!("UTF-8 텍스트가 아님: {rel}"), rel)
+            BackendError::with_path(ErrorCode::Io, format!("UTF-8 텍스트가 아닙니다: {rel}"), rel)
         })
     }
 

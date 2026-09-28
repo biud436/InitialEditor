@@ -127,7 +127,7 @@ describe("실행 앞의 저장 질문", () => {
   });
 
   it("문구: 문서 이름은 셋까지, 나머지는 개수", () => {
-    expect(runDirtyMessage(["a", "b"])).toBe("저장 안 된 문서 2개 (a, b). 게임은 디스크의 파일을 읽으므로 저장하지 않은 변경은 실행에 반영되지 않음");
+    expect(runDirtyMessage(["a", "b"])).toBe("저장하지 않은 문서가 2개 있습니다 (a, b). 게임은 디스크의 파일을 읽으므로 저장하지 않은 변경은 실행에 반영되지 않습니다.");
     expect(runDirtyMessage(["a", "b", "c", "d", "e"])).toContain("(a, b, c 외 2개)");
   });
 });

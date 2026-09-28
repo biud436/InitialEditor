@@ -162,8 +162,8 @@ export class MapSupport {
     } catch (e) {
       const reason = (e as Error).message;
       if (e instanceof MapFormatError && fallback) {
-        editor.log.warn("editor", `${path}: 맵 형식 아님, 텍스트 편집기로 열림 (${reason})`);
-        editor.toasts.error(`맵 형식 아님, 텍스트 편집기로 열림: ${reason}`);
+        editor.log.warn("editor", `${path}: 맵 형식이 아니어서 텍스트 에디터로 열었습니다 (${reason})`);
+        editor.toasts.error(`맵 형식이 아니어서 텍스트 에디터로 열었습니다: ${reason}`);
         await fallback(path);
         return null;
       }

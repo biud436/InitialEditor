@@ -150,7 +150,7 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
           {schemaError}
         </div>
       )}
-      {!schema && !schemaError && <div className="panel-hint map-objects-noschema">스키마 없음, 타입별 추가 버튼 없음 (resources/schema/map-objects.json)</div>}
+      {!schema && !schemaError && <div className="panel-hint map-objects-noschema">스키마 없음. 타입별 추가 버튼을 표시하려면 resources/schema/map-objects.json이 필요합니다.</div>}
       <div className="map-objects-list" role="listbox" aria-multiselectable="true" aria-label="맵 오브젝트" ref={listRef} onKeyDown={onListKey} onContextMenu={(e) => e.preventDefault()}>
         {groups.map((g) => (
           <div key={g.type || "(unknown)"} className="map-objects-group" data-testid="map-objects-group" data-type={g.type} data-count={g.objects.length}>
@@ -225,7 +225,7 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
             })}
           </div>
         ))}
-        {doc.model.objects.length === 0 && schema && <div className="panel-hint">오브젝트 없음. 타입별 추가 버튼으로 추가</div>}
+        {doc.model.objects.length === 0 && schema && <div className="panel-hint">오브젝트 없음. 타입별 추가 버튼으로 추가할 수 있습니다.</div>}
       </div>
       <div className="map-objects-problems" data-testid="map-objects-problems" data-count={problems.length}>
         <div className="map-objects-problems-head">

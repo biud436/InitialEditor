@@ -27,7 +27,7 @@ export function toBackendError(e: unknown, rel?: string): BackendError {
       return new BackendError(`다른 탭이나 프로그램에서 사용 중이라 수정 불가${where}`, "io", rel);
     case "NotAllowedError":
     case "SecurityError":
-      return new BackendError(`폴더 접근 권한 없음${where}. 시작 화면에서 다시 열기를 클릭하면 권한 요청`, "io", rel);
+      return new BackendError(`폴더 접근 권한이 없습니다${where}. 시작 화면에서 다시 열기를 클릭하면 권한을 요청합니다.`, "io", rel);
     case "QuotaExceededError":
       return new BackendError(`브라우저 저장 공간 부족${where}`, "io", rel);
     default:

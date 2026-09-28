@@ -94,7 +94,7 @@ export function installUnloadGuard(hasUnsaved: () => boolean, win: Pick<Window, 
     if (!hasUnsaved()) return;
     ev.preventDefault();
     // 크로미움 119 전과 사파리는 returnValue 가 빈 글이 아니어야 묻는다
-    (ev as BeforeUnloadEvent).returnValue = "페이지를 떠나면 저장하지 않은 변경 손실";
+    (ev as BeforeUnloadEvent).returnValue = "페이지를 떠나면 저장하지 않은 변경이 사라집니다";
   };
   win.addEventListener("beforeunload", handler);
   return () => win.removeEventListener("beforeunload", handler);

@@ -154,7 +154,7 @@ describe("확인 대화상자", () => {
     void askStageConfirm(modals, store, await found(store), ROOT);
     renderTop(modals);
     await waitFor(() => expect(screen.getByTestId("android-stage-count").getAttribute("data-kind")).toBe("error"));
-    expect(screen.getByTestId("android-stage-count").textContent).toBe("스크립트 종료 (종료 코드 2)");
+    expect(screen.getByTestId("android-stage-count").textContent).toBe("스크립트가 종료되었습니다 (종료 코드 2)");
     expect((screen.getByTestId("android-stage-ok") as HTMLButtonElement).disabled).toBe(true);
   });
 });
@@ -183,7 +183,7 @@ describe("못 찾음과 저장 안 된 문서", () => {
       const modals = new ModalStore();
       const answer = askDirtyBeforeStage(modals, 2);
       renderTop(modals);
-      expect(screen.getByTestId("android-stage-dirty").textContent).toContain("저장 안 된 문서 2개. 스테이징은 디스크의 파일을 복사함");
+      expect(screen.getByTestId("android-stage-dirty").textContent).toContain("저장하지 않은 문서가 2개 있습니다. 스테이징에서는 디스크의 파일을 복사합니다.");
       fireEvent.click(screen.getByRole("button", { name: label }));
       expect(await answer).toBe(choice);
     });

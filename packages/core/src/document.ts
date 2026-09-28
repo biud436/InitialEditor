@@ -270,7 +270,7 @@ export abstract class Document {
   /** 저장이 막혀 있으면 던진다. 구체 문서의 save가 쓰기 전에 부른다 */
   assertCanSave(): void {
     if (this.reloadError !== null) {
-      throw new Error(`${this.title}: 디스크에서 다시 읽기 실패로 저장 차단 (다시 읽기나 편집 내용으로 덮어쓰기 선택 필요): ${this.reloadError}`);
+      throw new Error(`${this.title}: 디스크에서 다시 읽지 못해 저장할 수 없습니다. 다시 읽기나 편집 내용으로 덮어쓰기를 선택하세요 (${this.reloadError}).`);
     }
   }
 
@@ -300,7 +300,7 @@ export abstract class Document {
       if (e instanceof BackendError && e.code === "not_found") {
         return this.diskText !== null || this.externallyChanged ? { kind: "missing" } : null;
       }
-      throw new Error(`디스크의 파일 확인 실패로 저장 중단: ${(e as Error).message}`);
+      throw new Error(`디스크의 파일을 확인하지 못해 저장을 중단했습니다: ${(e as Error).message}`);
     }
     if (this.diskText !== null) return disk === this.diskText ? null : { kind: "changed" };
     return this.externallyChanged ? { kind: "changed" } : null;

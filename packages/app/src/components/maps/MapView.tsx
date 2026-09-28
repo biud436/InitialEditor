@@ -183,11 +183,11 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
             );
           })}
         </span>
-        <span className="map-view-target" title="칠하기와 선택의 대상 레이어 (레이어 패널에서 변경)">
+        <span className="map-view-target" title="칠하고 선택할 대상 레이어입니다 (레이어 패널에서 변경할 수 있습니다)">
           대상 <b data-testid="map-target">{targetLabel(doc, (id) => support.layer(id)?.label)}</b>
         </span>
         {paintsHidden ? (
-          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title={doc.tool === "ext" ? "레이어 패널에서 보이기를 켜면 편집 가능" : "레이어 패널에서 보이기를 켜면 칠하기 가능"}>
+          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title={doc.tool === "ext" ? "레이어 패널에서 보이기를 켜면 편집할 수 있습니다" : "레이어 패널에서 보이기를 켜면 칠할 수 있습니다"}>
             {doc.tool === "ext" ? "숨김 상태, 편집 불가" : "숨김 상태, 칠하기 불가"}
           </span>
         ) : null}

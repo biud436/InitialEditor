@@ -53,7 +53,7 @@ describe("열기", () => {
     const { store, m } = await opened(files);
     expect(store.schemaPresent).toBe(true);
     expect(store.schema).toBeNull();
-    expect(store.schemaProblem).toBe("지원하지 않는 event-commands.json 버전: 2 (이 에디터는 버전 1 만 편집 가능)");
+    expect(store.schemaProblem).toBe("지원하지 않는 event-commands.json 버전: 2 (이 에디터에서는 버전 1만 편집할 수 있습니다)");
     expect(m.logs.some(([level, text]) => level === "warn" && text === store.schemaProblem)).toBe(true);
   });
 

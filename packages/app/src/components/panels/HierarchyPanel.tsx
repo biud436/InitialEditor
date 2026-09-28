@@ -163,7 +163,7 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
         <span className="hierarchy-title" title={doc.path ?? undefined}>
           {doc.title}
         </span>
-        <span className="muted hierarchy-order">그리기 순서: 위가 먼저</span>
+        <span className="muted hierarchy-order">그리기 순서 (위 항목부터)</span>
         <span className="muted hierarchy-count" data-testid="hierarchy-count">
           {objects.length}개
         </span>
@@ -244,7 +244,7 @@ export const HierarchyPanel = observer(function HierarchyPanel() {
             </div>
           );
         })}
-        {objects.length === 0 && <div className="panel-hint">오브젝트 없음. 씬 메뉴의 오브젝트 추가(Ctrl+Shift+A)로 추가</div>}
+        {objects.length === 0 && <div className="panel-hint">오브젝트 없음. 씬 메뉴의 오브젝트 추가(Ctrl+Shift+A)로 추가할 수 있습니다.</div>}
       </div>
       {menu && <ContextMenu state={menu} onClose={() => setMenu(null)} />}
     </div>

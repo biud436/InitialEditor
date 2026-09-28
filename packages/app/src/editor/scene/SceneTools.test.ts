@@ -257,7 +257,7 @@ describe("SceneTools", () => {
     const doc = (await h.tools.openScene("resources/scenes/p.json"))!;
     await h.tools.declarations.resolve("components/mover");
     await h.tools.declarations.resolve("components/free");
-    expect(doc.problems.map((p) => p.message)).toEqual(["a: components/mover.dx: 10 이하여야 함", "a: components/mover.target: 씬에 없는 오브젝트: ghost"]);
+    expect(doc.problems.map((p) => p.message)).toEqual(["a: components/mover.dx: 10 이하여야 합니다", "a: components/mover.target: 씬에 없는 오브젝트: ghost"]);
     // 고치면 문제가 사라진다 (되돌리기 스택의 변경이 다시 검사한다)
     h.tools.setParam("a", "components/mover", "dx", 5);
     h.tools.setParam("a", "components/mover", "target", "b");
@@ -266,7 +266,7 @@ describe("SceneTools", () => {
     await h.be.writeText("scripts/components/mover.json", decl([{ key: "dx", type: "integer", max: 3 }]));
     h.tools.declarations.fileChanged("scripts/components/mover.json");
     await h.tools.declarations.resolve("components/mover");
-    expect(doc.problems.map((p) => p.message)).toEqual(["a: components/mover.dx: 3 이하여야 함", "a: components/mover에 선언되지 않은 매개변수: target"]);
+    expect(doc.problems.map((p) => p.message)).toEqual(["a: components/mover.dx: 3 이하여야 합니다", "a: components/mover에 선언되지 않은 매개변수: target"]);
     // 깨진 선언은 씬 검사에 오른다
     await h.be.writeText("scripts/components/mover.json", "{");
     h.tools.declarations.fileChanged("scripts/components/mover.json");
@@ -325,7 +325,7 @@ describe("SceneTools", () => {
     await h.tools.declarations.resolve("components/free");
     expect(h.tools.loader.state).toBe("old");
     expect(doc.problems.map((p) => `${p.severity} ${p.location}`)).toEqual(["warning objects[0].params"]);
-    expect(doc.problems[0].message).toContain("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 넘기지 않아");
+    expect(doc.problems[0].message).toContain("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 전달하지 않아");
     await h.tools.loader.upgrade({ text: () => 'SceneLoader.DECLARATION_ROOT = "scripts/"\n', binary: async () => new Uint8Array() });
     expect(h.tools.loader.state).toBe("params");
     expect(doc.problems).toEqual([]);

@@ -12,7 +12,7 @@ import { GRID_SIZES, readSceneTheme, SceneRenderer } from "../../editor/sceneVie
 import "./SceneView.css";
 
 const APPROX_NOTE =
-  "씬 뷰는 근사 표시. 텍스트는 시스템 폰트로 렌더링(게임은 BMFont), 스프라이트는 시작 프레임만 표시, 회전과 배율 기준점은 엔진과 같은 왼쪽 위. 정확한 결과는 게임 탭에서 확인";
+  "씬 뷰는 화면을 근사해서 표시합니다. 텍스트는 시스템 폰트로 렌더링하고 게임에서는 BMFont를 사용합니다. 스프라이트는 시작 프레임만 표시하며, 회전과 배율의 기준점은 엔진과 같이 왼쪽 위입니다. 정확한 결과는 게임 탭에서 확인하세요.";
 
 export const SceneView = observer(function SceneView({ document: doc }: { document: SceneDocument }) {
   const editor = useEditor();
@@ -103,7 +103,7 @@ export const SceneView = observer(function SceneView({ document: doc }: { docume
         <button type="button" className="btn" onClick={() => view.zoomIn()} aria-label="줌 확대">
           +
         </button>
-        <button type="button" className="btn" onClick={() => renderer?.fitCamera()} disabled={!status?.ready} title="카메라 영역 전체가 보이도록 줌과 팬 조정">
+        <button type="button" className="btn" onClick={() => renderer?.fitCamera()} disabled={!status?.ready} title="카메라 영역 전체가 보이도록 줌과 팬을 조정합니다">
           카메라에 맞추기
         </button>
         <span className="scene-view-note" title={APPROX_NOTE}>

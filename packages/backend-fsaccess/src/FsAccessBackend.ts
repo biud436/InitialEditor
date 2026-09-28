@@ -102,7 +102,7 @@ export class FsAccessBackend implements ProjectBackend {
     this.rootKey = null;
     const { handle, name, remembered } = await this.resolveRoot(root);
     if (!(await requestReadWrite(handle, true))) {
-      throw new BackendError(`폴더 접근 권한 없음: ${name}. 시작 화면에서 다시 열기를 클릭하면 권한 요청`, "io");
+      throw new BackendError(`폴더 접근 권한이 없습니다: ${name}. 시작 화면에서 다시 열기를 클릭하면 권한을 요청합니다.`, "io");
     }
     let entries: StampedEntry[];
     try {
@@ -265,11 +265,11 @@ export class FsAccessBackend implements ProjectBackend {
   }
 
   async hmrPush(_files: HmrFile[], _target?: HmrTarget): Promise<{ count: number }> {
-    throw new BackendError("브라우저 폴더 모드는 핫 리로드 서버 미지원. 저장하면 게임 탭의 웹 엔진이 자동으로 다시 시작", "unsupported");
+    throw new BackendError("브라우저 폴더 모드에서는 핫 리로드 서버를 지원하지 않습니다. 저장하면 게임 탭의 웹 엔진이 자동으로 다시 시작됩니다.", "unsupported");
   }
 
   async run(_spec: RunSpec): Promise<RunHandle> {
-    throw new BackendError("브라우저 폴더 모드는 엔진 프로세스 실행 미지원. 게임은 게임 탭(WASM)에서 실행", "unsupported");
+    throw new BackendError("브라우저 폴더 모드에서는 엔진 프로세스를 실행할 수 없습니다. 게임은 게임 탭(WASM)에서 실행됩니다.", "unsupported");
   }
 
   /** 폴더를 고르고 기억한다. 돌려주는 키를 open() 에 넘긴다. 취소면 null */
@@ -317,9 +317,9 @@ export class FsAccessBackend implements ProjectBackend {
       return { handle, name: sub === "" ? OPFS_NAME : basename(sub), remembered: false };
     }
     const record = await this.handles.get(key);
-    if (!record) throw new BackendError(`최근 폴더 기록 없음 (${key}). 폴더 열기로 다시 선택`, "not_found");
+    if (!record) throw new BackendError(`최근 폴더 기록이 없습니다 (${key}). 폴더 열기에서 다시 선택하세요.`, "not_found");
     const handle = this.handles.opened(key);
-    if (!handle) throw new BackendError(`${record.name} 폴더는 시작 화면의 다시 열기로 열어야 함 (이 페이지에서 아직 불러오지 않음)`, "io");
+    if (!handle) throw new BackendError(`시작 화면의 다시 열기에서 폴더를 열어야 합니다: ${record.name} (이 페이지에서 아직 불러오지 않았습니다)`, "io");
     return { handle, name: record.name || handle.name, remembered: true };
   }
 

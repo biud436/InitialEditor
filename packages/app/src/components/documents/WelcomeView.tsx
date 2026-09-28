@@ -14,14 +14,14 @@ import { ExternalLink } from "../ExternalLink";
 import "./WelcomeView.css";
 
 const MODE_DESCRIPTION: Record<BackendMode, string> = {
-  memory: "브라우저 메모리의 샘플 프로젝트. 서버 불필요, 새로 고침 시 초기 상태로 복원",
+  memory: "브라우저 메모리의 샘플 프로젝트입니다. 서버가 필요 없으며, 페이지를 다시 열면 초기 상태로 복원됩니다.",
   bridge: "엔진 저장소의 브리지 서버(node tools/bridge/server.js --project <폴더>)로 프로젝트 폴더 읽기와 쓰기. 게임은 게임 탭의 웹 엔진으로 실행, 엔진 프로세스 실행은 데스크톱 앱 전용",
   tauri: "폴더 직접 열기, 파일 변경 감시, 엔진 프로세스 실행",
   browser: "로컬 프로젝트 폴더를 브라우저에서 직접 열어 읽기와 쓰기. 게임은 게임 탭의 웹 엔진(WASM)으로 실행. 외부에서 변경한 파일은 1.5초 이내 반영",
 };
 
-const FALLBACK_NOTICE = "폴더 열기 미지원 브라우저, 샘플 프로젝트로 시작됨. 로컬 폴더는 크롬이나 엣지에서 열기 가능";
-const NO_PICKER = "폴더 열기 미지원 브라우저 (크롬, 엣지에서 지원)";
+const FALLBACK_NOTICE = "이 브라우저는 폴더 열기를 지원하지 않아 샘플 프로젝트로 시작했습니다. 로컬 폴더는 크롬이나 엣지에서 열 수 있습니다.";
+const NO_PICKER = "이 브라우저는 폴더 열기를 지원하지 않습니다 (크롬과 엣지에서 지원합니다)";
 
 const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }: { editor: Editor }) {
   const folders = browserFolders(editor);
@@ -54,7 +54,7 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
       <section className="welcome-section">
         <h2>최근 폴더</h2>
         {folders.records.length === 0 ? (
-          <p className="muted">{folders.loaded ? "최근 폴더 없음" : "읽는 중"}</p>
+          <p className="muted">{folders.loaded ? "최근 폴더 없음" : "불러오는 중"}</p>
         ) : (
           <ul className="welcome-recent" data-testid="welcome-recent-folders">
             {folders.records.map((record) => (

@@ -175,7 +175,7 @@ describe("고르기와 폼", () => {
     expect(stack.depth).toBe(3);
     fireEvent.click(screen.getByTestId("rpg-arg-options-1-remove"));
     await flush();
-    expect(confirm).toHaveBeenCalledWith("2번 항목의 분기에 커맨드 1개 있음. 분기와 함께 삭제할까요?");
+    expect(confirm).toHaveBeenCalledWith("2번 항목의 분기에 커맨드가 1개 있습니다. 분기와 함께 삭제할까요?");
     expect(stack.depth).toBe(3);
     confirm.mockReturnValue(true);
     fireEvent.click(screen.getByTestId("rpg-arg-options-1-remove"));
@@ -442,7 +442,7 @@ describe("복사와 붙여넣기", () => {
     const { clipboard, stack, refused } = setup();
     click("c.commands[1]");
     press("v", { ctrlKey: true });
-    expect(screen.getByTestId("rpg-cmd-notice").textContent).toContain("붙여넣을 커맨드 없음 (클립보드 내용이 커맨드 JSON 이 아님)");
+    expect(screen.getByTestId("rpg-cmd-notice").textContent).toContain("붙여넣을 커맨드가 없습니다 (클립보드 내용이 커맨드 JSON이 아닙니다)");
     clipboard.write([{ code: "wait", ms: -5 }]);
     press("v", { ctrlKey: true });
     expect(screen.getByTestId("rpg-cmd-notice").getAttribute("role")).toBe("alert");
@@ -501,12 +501,12 @@ describe("잠김과 틀린 모양", () => {
     expect(screen.getByTestId("rpg-cmd-unknown-command").textContent).toContain('{"code":"dance","speed":2}');
     press("Delete");
     expect(commandsNow()).toEqual([7]);
-    expect(screen.getByTestId("rpg-cmd-unknown-command").textContent).toContain("객체가 아닌 커맨드: 삭제만 가능: 7");
+    expect(screen.getByTestId("rpg-cmd-unknown-command").textContent).toContain("객체가 아닌 커맨드라 삭제만 가능합니다: 7");
   });
 
   it("commands 가 배열이 아니면 트리 대신 알림", () => {
     setup(undefined as unknown as unknown[], {}, { commands: "oops" });
-    expect(screen.getByTestId("rpg-cmd-broken").textContent).toContain('events[1].commands 편집 불가 (배열이 아님): "oops"');
+    expect(screen.getByTestId("rpg-cmd-broken").textContent).toContain('events[1].commands를 편집할 수 없습니다 (배열이 아닙니다): "oops"');
     expect(screen.queryByTestId("rpg-cmd-tree")).toBeNull();
   });
 

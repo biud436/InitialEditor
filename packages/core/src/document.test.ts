@@ -244,7 +244,7 @@ describe("다시 읽기 실패", () => {
     expect(d.reloadError).toBe("JSON 이 아니다");
     expect(d.saveBlocked).toBe(true);
     expect(d.dirty).toBe(false); // 다음 외부 변경에도 다시 읽기를 시도한다
-    await expect(d.save()).rejects.toThrow(/다시 읽기 실패로 저장 차단/);
+    await expect(d.save()).rejects.toThrow(/디스크에서 다시 읽지 못해 저장할 수 없습니다/);
     expect(d.saved).toBe(0);
     d.allowOverwrite();
     expect(d.saveBlocked).toBe(false);
@@ -276,7 +276,7 @@ describe("다시 읽기 실패", () => {
     await expect(doc.reloadFromDisk()).rejects.toThrow();
     expect(doc.saveBlocked).toBe(true);
     doc.apply(doc.scene.addObject(makeObject("node", "mine", {})));
-    await expect(doc.save()).rejects.toThrow(/다시 읽기 실패로 저장 차단/);
+    await expect(doc.save()).rejects.toThrow(/디스크에서 다시 읽지 못해 저장할 수 없습니다/);
     expect(await be.readText("resources/scenes/x.json")).toBe(broken);
   });
 });
@@ -529,7 +529,7 @@ describe("저장 충돌", () => {
       askConflict: async () => "overwrite",
       confirmDiscard: async () => true,
     };
-    await expect(doc.saveChecked(guard)).rejects.toThrow("디스크의 파일 확인 실패로 저장 중단: 연결이 끊겼다");
+    await expect(doc.saveChecked(guard)).rejects.toThrow("디스크의 파일을 확인하지 못해 저장을 중단했습니다: 연결이 끊겼다");
     expect(await be.readText(PATH)).toBe(DISK);
     expect(doc.dirty).toBe(true);
   });

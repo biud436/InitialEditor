@@ -26,13 +26,13 @@ export interface ToolSpec {
 }
 
 export const MAP_TOOLS: readonly ToolSpec[] = [
-  { tool: "pen", label: "펜", key: "B", title: "브러시 찍기. 드래그하면 지나간 타일마다 찍기" },
-  { tool: "rect", label: "사각형", key: "R", title: "드래그한 사각형 영역을 브러시로 반복해 채우기" },
-  { tool: "fill", label: "채우기", key: "G", title: "클릭한 타일과 같은 값으로 상하좌우 연결된 영역을 브러시로 반복해 채우기" },
-  { tool: "erase", label: "지우개", key: "E", title: "타일 지우기 (gid 0). 대상이 통행이면 통행 가능(0)으로 설정" },
-  { tool: "pick", label: "스포이드", key: "I", title: "맵의 타일 1개나 드래그한 사각형 영역을 브러시로 복사" },
-  { tool: "collision", label: "통행", key: "C", title: "통행 칠하기. 왼쪽 클릭은 통행 불가(1), 오른쪽 클릭이나 Alt+클릭은 통행 가능(0)" },
-  { tool: "object", label: "오브젝트", key: "V", title: "오브젝트 선택과 이동. 범위 끝점과 band 오브젝트의 좌우 경계도 드래그 가능" },
+  { tool: "pen", label: "펜", key: "B", title: "브러시로 찍습니다. 드래그하면 지나간 타일마다 찍습니다." },
+  { tool: "rect", label: "사각형", key: "R", title: "드래그한 사각형 영역을 브러시로 반복해서 채웁니다." },
+  { tool: "fill", label: "채우기", key: "G", title: "클릭한 타일과 같은 값으로 상하좌우가 연결된 영역을 브러시로 반복해서 채웁니다." },
+  { tool: "erase", label: "지우개", key: "E", title: "타일을 지웁니다 (gid 0). 통행 레이어에서는 통행 가능(0)으로 설정합니다." },
+  { tool: "pick", label: "스포이드", key: "I", title: "맵의 타일 1개나 드래그한 사각형 영역을 브러시로 복사합니다." },
+  { tool: "collision", label: "통행", key: "C", title: "통행 여부를 칠합니다. 왼쪽 클릭은 통행 불가(1), 오른쪽 클릭이나 Alt+클릭은 통행 가능(0)입니다." },
+  { tool: "object", label: "오브젝트", key: "V", title: "오브젝트를 선택하고 이동합니다. 범위 끝점과 band 오브젝트의 좌우 경계도 드래그할 수 있습니다." },
 ];
 
 const TILE_TOOLS: ReadonlySet<MapTool> = new Set(["pen", "rect", "fill", "erase", "pick"]);

@@ -74,10 +74,10 @@ export function parseScene(text: string): SceneData {
   } catch (e) {
     throw new SceneFormatError(`JSON 구문 오류: ${(e as Error).message}`);
   }
-  if (!isRecord(raw)) throw new SceneFormatError("씬 파일 최상위 값은 객체여야 함");
+  if (!isRecord(raw)) throw new SceneFormatError("씬 파일 최상위 값은 객체여야 합니다");
   if (raw.version !== SCENE_VERSION) throw new SceneFormatError(`지원하지 않는 씬 버전: ${String(raw.version)} (지원: ${SCENE_VERSION})`, "version");
   const name = typeof raw.name === "string" ? raw.name : "";
-  if (raw.objects !== undefined && !Array.isArray(raw.objects)) throw new SceneFormatError("objects는 배열이어야 함", "objects");
+  if (raw.objects !== undefined && !Array.isArray(raw.objects)) throw new SceneFormatError("objects는 배열이어야 합니다", "objects");
   const objects = ((raw.objects as unknown[]) ?? []).map((o, i) => parseObject(o, i));
   const extra: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(raw)) if (!ROOT_KEYS.has(k)) extra[k] = v;
@@ -86,26 +86,26 @@ export function parseScene(text: string): SceneData {
 
 function parseObject(o: unknown, index: number): SceneObject {
   const where = `objects[${index}]`;
-  if (!isRecord(o)) throw new SceneFormatError(`${where}: 객체여야 함`, where);
-  if (typeof o.id !== "string" || o.id === "") throw new SceneFormatError(`${where}.id는 비어 있지 않은 문자열이어야 함`, `${where}.id`);
+  if (!isRecord(o)) throw new SceneFormatError(`${where}: 객체여야 합니다`, where);
+  if (typeof o.id !== "string" || o.id === "") throw new SceneFormatError(`${where}.id는 비어 있지 않은 문자열이어야 합니다`, `${where}.id`);
   if (typeof o.type !== "string" || o.type === "") throw new SceneFormatError(`${where}.type 없음`, `${where}.type`);
   const num = (key: "x" | "y") => {
     const v = o[key];
     if (v === undefined) return 0;
-    if (typeof v !== "number" || !Number.isFinite(v)) throw new SceneFormatError(`${where}.${key}: 숫자여야 함`, `${where}.${key}`);
+    if (typeof v !== "number" || !Number.isFinite(v)) throw new SceneFormatError(`${where}.${key}: 숫자여야 합니다`, `${where}.${key}`);
     return v;
   };
-  if (o.props !== undefined && !isRecord(o.props)) throw new SceneFormatError(`${where}.props는 객체여야 함`, `${where}.props`);
+  if (o.props !== undefined && !isRecord(o.props)) throw new SceneFormatError(`${where}.props는 객체여야 합니다`, `${where}.props`);
   if (o.scripts !== undefined && (!Array.isArray(o.scripts) || o.scripts.some((s) => typeof s !== "string"))) {
-    throw new SceneFormatError(`${where}.scripts는 문자열 배열이어야 함`, `${where}.scripts`);
+    throw new SceneFormatError(`${where}.scripts는 문자열 배열이어야 합니다`, `${where}.scripts`);
   }
   const params: Record<string, Record<string, unknown>> = {};
   if (o.params !== undefined && o.params !== null) {
     const table = engineObject(o.params);
-    if (!table) throw new SceneFormatError(`${where}.params는 객체여야 함`, `${where}.params`);
+    if (!table) throw new SceneFormatError(`${where}.params는 객체여야 합니다`, `${where}.params`);
     for (const [name, v] of Object.entries(table)) {
       const values = engineObject(v);
-      if (!values) throw new SceneFormatError(`${where}.params.${name}는 객체여야 함`, `${where}.params.${name}`);
+      if (!values) throw new SceneFormatError(`${where}.params.${name}: 객체여야 합니다`, `${where}.params.${name}`);
       params[name] = deepClone(values);
     }
   }
@@ -139,7 +139,7 @@ export function validateScene(data: SceneData, knownTypes: ReadonlySet<string> =
     }
     o.scripts.forEach((s, j) => {
       if (s.startsWith("/") || s.includes("..") || /\.(lua|rb)$/.test(s) || s.includes("\\")) {
-        problems.push({ severity: "error", message: `스크립트는 논리 이름이어야 함 (예: components/bird): ${s}`, location: `${where}.scripts[${j}]` });
+        problems.push({ severity: "error", message: `스크립트는 논리 이름이어야 합니다 (예: components/bird): ${s}`, location: `${where}.scripts[${j}]` });
       }
     });
     for (const name of Object.keys(o.params)) {

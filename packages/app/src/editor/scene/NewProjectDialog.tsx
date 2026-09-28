@@ -11,9 +11,9 @@ const LANGUAGE_LABELS: Record<ScriptBackend, string> = { lua: "Lua", mruby: "Rub
 
 /** 템플릿 목록 아래의 설명 */
 export const TEMPLATE_HELP: Record<ProjectTemplateId, string> = {
-  empty: "씬 파일 1개(resources/scenes/main.json)와 씬 로더. 진입점 스크립트가 game.json 의 startScene 씬 로드",
-  flappy: "엔진 저장소의 플래피버드를 씬(resources/scenes/flappy.json)과 컴포넌트 5개로 구성한 버전",
-  tilemap: "타일셋과 맵 1개(resources/maps/start.json), 그 맵을 여는 씬, 맵 오브젝트 스키마. 맵을 칠하고 F5 로 실행",
+  empty: "씬 파일 1개(resources/scenes/main.json)와 씬 로더를 만듭니다. 진입점 스크립트에서 game.json의 startScene에 지정된 씬을 불러옵니다.",
+  flappy: "엔진 저장소의 플래피버드를 씬(resources/scenes/flappy.json)과 컴포넌트 5개로 구성한 템플릿입니다",
+  tilemap: "타일셋과 맵 1개(resources/maps/start.json), 맵을 여는 씬, 맵 오브젝트 스키마를 만듭니다. 맵을 칠한 뒤 F5를 눌러 실행할 수 있습니다.",
 };
 
 export function NewProjectForm({
@@ -75,7 +75,7 @@ export function NewProjectForm({
               </option>
             ))}
           </select>
-          <div className="form-help" data-testid="new-project-language-help">{language === "lua" ? "scripts/lua/ 에 main.lua 와 씬 로더" : "scripts/ruby/ 에 main.rb 와 씬 로더. mruby 포함 엔진 빌드 필요"}</div>
+          <div className="form-help" data-testid="new-project-language-help">{language === "lua" ? "scripts/lua/에 main.lua와 씬 로더를 만듭니다" : "scripts/ruby/에 main.rb와 씬 로더를 만듭니다. mruby가 포함된 엔진 빌드가 필요합니다."}</div>
           {language === "mruby" && rubyNote && (
             <div className="form-help new-project-note" data-testid="new-project-ruby-note">
               {rubyNote}

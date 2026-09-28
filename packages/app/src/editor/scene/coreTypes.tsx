@@ -90,7 +90,7 @@ export const SpriteInspector = observer(function SpriteInspector({ document, obj
       </FieldRow>
       {image && (
         <div className="inspector-preview" data-testid="prop-image-preview">
-          {preview.url ? <img src={preview.url} alt={image} /> : <span className="muted">{preview.error ? `읽기 실패: ${preview.error}` : "읽는 중"}</span>}
+          {preview.url ? <img src={preview.url} alt={image} /> : <span className="muted">{preview.error ? `읽기 실패: ${preview.error}` : "불러오는 중"}</span>}
         </div>
       )}
       {numberRow("width", "프레임 너비", { min: 0, integer: true, hint: "0 이면 이미지 너비를 프레임 수로 나눈 것" })}
@@ -122,7 +122,7 @@ export const TextInspector = observer(function TextInspector({ document, object 
       <FieldRow label="텍스트" hint="줄바꿈(\n)과 한글 지원">
         <TextField value={text} onChange={(v, s) => set("text", v, s)} sessionPrefix={`prop:${object.id}:text`} multiline testId="prop-text" ariaLabel="텍스트" rows={4} />
       </FieldRow>
-      <FieldRow label="폰트" hint="resources/ 아래의 BMFont .fnt. 비우면 폰트 변경 없음 (현재 로드된 비트맵 폰트 사용)">
+      <FieldRow label="폰트" hint="resources/ 아래의 BMFont .fnt 파일입니다. 비워 두면 현재 로드된 비트맵 폰트를 사용합니다.">
         <select className="select field-select" value={font} onChange={(e) => set("font", e.target.value)} data-testid="prop-font" aria-label="폰트">
           <option value="">(게임 기본)</option>
           {optionsWith(editor.sceneTools.assets.fonts, font).map((path) => (
@@ -132,13 +132,13 @@ export const TextInspector = observer(function TextInspector({ document, object 
           ))}
         </select>
       </FieldRow>
-      <div className="inspector-note muted">색(color) 미적용: 엔진 비트맵 폰트 API 에 색 인자 없음. 값은 파일에 보존</div>
+      <div className="inspector-note muted">색상(color)은 적용되지 않습니다. 엔진의 비트맵 폰트 API에 색상 인자가 없으며, 값은 파일에 보존됩니다.</div>
     </div>
   );
 });
 
 export function NodeInspector(_props: ObjectInspectorProps) {
-  return <div className="inspector-note muted">빈 노드: 렌더링 없음. 위치와 컴포넌트(스크립트)만 가진 오브젝트</div>;
+  return <div className="inspector-note muted">빈 노드입니다. 렌더링하지 않으며 위치와 컴포넌트(스크립트)만 가집니다.</div>;
 }
 
 export const CORE_INSPECTORS: Record<(typeof CORE_OBJECT_TYPES)[number], ObjectInspector> = { node: NodeInspector, sprite: SpriteInspector, text: TextInspector };

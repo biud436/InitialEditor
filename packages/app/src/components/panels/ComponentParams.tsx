@@ -54,7 +54,7 @@ export const ComponentParams = observer(function ComponentParams({ object, name 
       <div className="inspector-params" data-testid="inspector-params" data-state="none">
         {entries.length > 0 && (
           <>
-            <div className="muted inspector-params-note">선언 파일 없음. 값 {entries.length}개를 검사 없이 전달</div>
+            <div className="muted inspector-params-note">선언 파일 없음. 값 {entries.length}개를 검사하지 않고 전달합니다.</div>
             {entries.map(([key, value]) => (
               <FieldRow key={key} label={key}>
                 <code className="inspector-param-raw" data-testid={`param-raw-${key}`}>
@@ -94,9 +94,9 @@ export const ComponentParams = observer(function ComponentParams({ object, name 
                   className="btn btn-ghost"
                   onClick={() => tools.setParam(object.id, name, f.key, undefined)}
                   data-testid={`param-${f.key}-reset`}
-                  title={`${label}: 기본값으로 (씬 파일의 params에서 이 값 삭제)`}
+                  title={`${label}: 기본값 복원 (씬 파일의 params에서 이 값 삭제)`}
                 >
-                  기본값으로
+                  기본값 복원
                 </button>
               )}
             </FieldRow>
@@ -105,7 +105,7 @@ export const ComponentParams = observer(function ComponentParams({ object, name 
       })}
       {stray.map(([key, value]) => (
         <div key={key} className="inspector-param is-stray" data-testid="inspector-param-stray" data-key={key}>
-          <FieldRow label={key} hint="선언되지 않은 매개변수 (엔진이 씬을 거부함)">
+          <FieldRow label={key} hint="선언되지 않은 매개변수입니다 (엔진에서 씬을 불러오지 못합니다)">
             <code className="inspector-param-raw">{formatValue(value)}</code>
             <button type="button" className="btn btn-ghost" onClick={() => tools.setParam(object.id, name, key, undefined)} data-testid={`param-${key}-reset`} title={`${key} 삭제`}>
               삭제
@@ -124,27 +124,27 @@ export const SceneLoaderNote = observer(function SceneLoaderNote() {
   if (loader.state !== "old") return null;
   const upgrade = async () => {
     const ok = await editor.modals.confirm({
-      title: "씬 로더 바꾸기",
-      message: `${loader.path}를 에디터에 든 템플릿의 씬 로더(매개변수 지원)로 덮어씀. 로더를 직접 고쳤다면 그 변경은 사라짐`,
+      title: "씬 로더 교체",
+      message: `씬 로더를 에디터에 포함된 템플릿 버전으로 덮어씁니다: ${loader.path}. 매개변수를 지원하는 버전이며, 로더를 직접 편집했다면 변경 내용이 사라집니다. 계속할까요?`,
       okLabel: "덮어쓰기",
       danger: true,
     });
     if (!ok) return;
     try {
       const written = await loader.upgrade(bundledTemplateSource);
-      editor.log.info("editor", `씬 로더 바꿈: ${written.join(", ")}`);
-      editor.toasts.success(`씬 로더 바꿈: ${written.join(", ")}`);
+      editor.log.info("editor", `씬 로더 교체됨: ${written.join(", ")}`);
+      editor.toasts.success(`씬 로더 교체됨: ${written.join(", ")}`);
     } catch (e) {
-      const message = `씬 로더 바꾸기 실패: ${(e as Error).message}`;
+      const message = `씬 로더 교체 실패: ${(e as Error).message}`;
       editor.log.error("editor", message);
       editor.toasts.error(message);
     }
   };
   return (
     <div className="inspector-loader-note" data-testid="inspector-loader-old">
-      <span>씬 로더({loader.path})가 매개변수를 넘기지 않음. 바꿔야 게임에 반영</span>
+      <span>씬 로더({loader.path})가 매개변수를 전달하지 않습니다. 씬 로더를 교체해야 게임에 반영됩니다.</span>
       <button type="button" className="btn btn-ghost" onClick={() => void upgrade()} data-testid="inspector-loader-upgrade">
-        씬 로더 바꾸기
+        씬 로더 교체
       </button>
     </div>
   );

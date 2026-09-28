@@ -41,7 +41,7 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
           선택할 파일 없음{spec.accept ? ` (${spec.accept.join(", ")})` : ""}
         </div>
       )}
-      {wrong && <div className="rpg-arg-note is-warning">경로 문자열이어야 함 (현재: {jsonValueText(value)})</div>}
+      {wrong && <div className="rpg-arg-note is-warning">경로 문자열이어야 합니다 (현재: {jsonValueText(value)})</div>}
     </>
   );
 }
