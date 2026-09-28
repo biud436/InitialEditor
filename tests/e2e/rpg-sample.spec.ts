@@ -36,6 +36,8 @@ test.describe("RPG 데모 샘플 (메모리 모드)", () => {
     await expect(game).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await page.waitForTimeout(3000);
     await expect(game).toHaveAttribute("data-phase", "running");
+    // 엔진이 창을 만들며 바꾼 페이지 제목은 에디터 것으로 돌아온다
+    await expect(page).toHaveTitle("InitialEditor");
     const titleLines = await engineLines(page);
     expect(titleLines.filter((l) => /error|scene: |uncaught/i.test(l)), titleLines.join("\n")).toEqual([]);
     await page.keyboard.press("Shift+F5");
@@ -50,5 +52,16 @@ test.describe("RPG 데모 샘플 (메모리 모드)", () => {
     const townLines = await engineLines(page);
     expect(townLines.filter((l) => /error|scene: |uncaught/i.test(l)), townLines.join("\n")).toEqual([]);
     await page.keyboard.press("Shift+F5");
+  });
+
+  test("웹판(브라우저 폴더 모드)에서 샘플 단추를 두 번 눌러도 한 번만 열고 오류가 없다", async ({ page }) => {
+    await page.goto("/?backend=browser");
+    const button = page.getByTestId("welcome").getByRole("button", { name: "샘플 프로젝트 열기" });
+    await button.dblclick();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible({ timeout: 30_000 });
+    const logs = await ev<string[]>(page, "(e) => e.log.entries.map((x) => x.text)");
+    expect(logs.filter((l) => l.startsWith("프로젝트 여는 중: memory://sample")), logs.join("\n")).toHaveLength(1);
+    expect(logs.filter((l) => l.includes("프로젝트 열기 실패")), logs.join("\n")).toEqual([]);
+    await expect(page.getByTestId("toasts")).not.toContainText("프로젝트 열기 실패");
   });
 });

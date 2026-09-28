@@ -187,6 +187,8 @@ export class GameViewStore {
         throw new StageAbortedError();
       }
       this.setPhase("running");
+      // 엔진이 창을 만들 때 SDL 이 창 이름("test")으로 document.title 을 바꾼다. 페이지 제목은 에디터 것으로 둔다
+      restorePageTitle();
       this.startMeters();
       const seconds = ((Date.now() - started) / 1000).toFixed(1);
       log.info(LOG, `웹 엔진: 파일 ${Object.keys(read.files).length}개 ${formatBytes(read.bytes)} 복사됨, ${seconds} 초`);
@@ -467,4 +469,11 @@ export class GameViewStore {
     if (this.meterFrame !== null && typeof cancelAnimationFrame === "function") cancelAnimationFrame(this.meterFrame);
     this.meterFrame = null;
   }
+}
+
+/** 에디터 페이지의 제목 (index.html 의 <title>) */
+export const PAGE_TITLE = "InitialEditor";
+
+function restorePageTitle(): void {
+  if (typeof document !== "undefined" && document.title !== PAGE_TITLE) document.title = PAGE_TITLE;
 }
