@@ -1,4 +1,4 @@
-import type { Entry, ProjectBackend } from "@initial-editor/core";
+import { IgnoreRules, ProjectScope, type Entry, type ProjectBackend } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
 import { describe, expect, it } from "vitest";
 import { formatBytes, isStageDir, isStagePath, listStageFiles, MAX_STAGE_BYTES, readStageFiles } from "./staging";
@@ -116,6 +116,20 @@ describe("listStageFiles", () => {
       "scripts/lua/main.lua",
       "scripts/ruby/main.rb",
     ]);
+  });
+});
+
+describe("listStageFiles 와 무시 파일", () => {
+  it("프로젝트의 무시 파일(ProjectScope)이 빼는 파일과 폴더는 올리지 않는다", async () => {
+    const mem = sampleBackend();
+    await mem.open("/p");
+    const all = (await listStageFiles(mem)).files.map((f) => f.path);
+    expect(all).toContain("resources/maps/forest.json");
+    const scope = new ProjectScope(IgnoreRules.parse("forest.json\n/scripts/ruby/\n"));
+    const some = (await listStageFiles(mem, undefined, scope)).files.map((f) => f.path);
+    expect(some).not.toContain("resources/maps/forest.json");
+    expect(some.some((p) => p.startsWith("scripts/ruby/"))).toBe(false);
+    expect(some).toEqual(all.filter((p) => p !== "resources/maps/forest.json" && !p.startsWith("scripts/ruby/")));
   });
 });
 

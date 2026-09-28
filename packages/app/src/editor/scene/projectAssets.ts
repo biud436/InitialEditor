@@ -1,7 +1,8 @@
 // 인스펙터가 고르는 프로젝트 파일 목록: resources/ 아래의 그림과 BMFont, scripts/<언어>/components/ 아래의 컴포넌트.
-// 백엔드로 폴더를 재귀로 훑는다 (프로젝트를 열 때와 파일이 바뀔 때, 잠깐 모아서). DOM 을 모르므로 Node 로 테스트한다.
+// 백엔드로 폴더를 재귀로 훑는다 (프로젝트를 열 때와 파일이 바뀔 때, 잠깐 모아서). 무시 파일(코어의 ProjectScope)이 빼는 것은 뺀다.
+// DOM 을 모르므로 Node 로 테스트한다.
 
-import { extname, type ProjectBackend, type ScriptBackend } from "@initial-editor/core";
+import { extname, IGNORE_FILE, ProjectScope, type ProjectBackend, type ScriptBackend } from "@initial-editor/core";
 import { makeObservable, observable, runInAction } from "mobx";
 
 export const IMAGE_EXTS = new Set(["png", "jpg", "jpeg", "gif"]);
@@ -15,10 +16,12 @@ const DEBOUNCE_MS = 150;
 export interface ProjectAssetsHost {
   backend(): ProjectBackend;
   isOpen(): boolean;
+  /** 프로젝트 파일의 범위. 없으면 기본 범위 */
+  scope?(): ProjectScope | undefined;
 }
 
 /** 폴더 아래의 파일 경로 전부 (없는 폴더면 빈 목록) */
-export async function walkFiles(backend: ProjectBackend, root: string, depth = MAX_DEPTH): Promise<string[]> {
+export async function walkFiles(backend: ProjectBackend, root: string, depth = MAX_DEPTH, scope: ProjectScope = new ProjectScope()): Promise<string[]> {
   const out: string[] = [];
   const visit = async (dir: string, left: number) => {
     let entries;
@@ -28,6 +31,7 @@ export async function walkFiles(backend: ProjectBackend, root: string, depth = M
       return;
     }
     for (const e of entries) {
+      if (!scope.includes(e.path, e.kind)) continue;
       if (e.kind === "dir") {
         if (left > 0 && !SKIP_DIRS.has(e.name)) await visit(e.path, left - 1);
       } else out.push(e.path);
@@ -65,7 +69,7 @@ export class ProjectAssets {
 
   /** 바뀐 경로가 목록에 영향을 주면 잠깐 뒤에 다시 훑는다 */
   changed(path: string): void {
-    if (!path.startsWith(RESOURCES_DIR) && !path.startsWith("scripts/")) return;
+    if (path !== IGNORE_FILE && !path.startsWith(RESOURCES_DIR) && !path.startsWith("scripts/")) return;
     this.schedule();
   }
 
@@ -86,7 +90,12 @@ export class ProjectAssets {
     runInAction(() => (this.loading = true));
     const backend = this.host.backend();
     try {
-      const [resources, lua, ruby] = await Promise.all([walkFiles(backend, RESOURCES_DIR), walkFiles(backend, COMPONENT_DIRS.lua), walkFiles(backend, COMPONENT_DIRS.ruby)]);
+      const scope = this.host.scope?.() ?? new ProjectScope();
+      const [resources, lua, ruby] = await Promise.all([
+        walkFiles(backend, RESOURCES_DIR, MAX_DEPTH, scope),
+        walkFiles(backend, COMPONENT_DIRS.lua, MAX_DEPTH, scope),
+        walkFiles(backend, COMPONENT_DIRS.ruby, MAX_DEPTH, scope),
+      ]);
       if (run !== this.run) return;
       runInAction(() => {
         this.images = resources.filter((p) => IMAGE_EXTS.has(extname(p)));
