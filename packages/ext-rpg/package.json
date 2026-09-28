@@ -1,6 +1,6 @@
 {
   "name": "@initial-editor/ext-rpg",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "private": true,
   "description": "RPG 확장: 맵 파일의 events 를 이벤트 스키마(event-commands.json)로 읽고, 맵 뷰의 이벤트 레이어와 커맨드 편집기로 고친다",
   "type": "module",
@@ -11,9 +11,9 @@
     "test:engine-events": "vitest run --root . --config ./vitest.engine.config.ts"
   },
   "dependencies": {
-    "@initial-editor/core": "2.0.0-alpha.1",
-    "@initial-editor/ext-tilemap": "2.0.0-alpha.1",
-    "@initial-editor/ui": "2.0.0-alpha.1",
+    "@initial-editor/core": "2.0.0-alpha.2",
+    "@initial-editor/ext-tilemap": "2.0.0-alpha.2",
+    "@initial-editor/ui": "2.0.0-alpha.2",
     "mobx": "^6.13.0"
   },
   "peerDependencies": {
