@@ -44,7 +44,7 @@ export const FindPanel = observer(function FindPanel() {
   };
 
   let summary = "";
-  if (find.running) summary = `찾는 중 (${find.scanned}개 파일)`;
+  if (find.running) summary = `검색 중 (파일 ${find.scanned}개)`;
   else if (find.lastQuery) summary = `파일 ${find.results.length}개, 일치 ${find.matchCount}개`;
 
   return (
