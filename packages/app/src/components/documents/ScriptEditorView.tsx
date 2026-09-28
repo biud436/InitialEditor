@@ -1,13 +1,15 @@
 // 스크립트 문서 뷰 (E1). 문서의 Monaco 모델에 편집기를 붙인다. 옵션(글꼴 크기, 탭 크기, 자동 줄바꿈, 미니맵)은
 // 설정에서 오고 바뀌면 바로 반영한다. 탭을 오갈 때 커서와 스크롤은 문서(viewState)에 남긴다. 테마는 전역
 // (scripting/themes.ts) 이라 여기서는 고르지 않는다. Monaco 안에서 누르는 단축키는 Monaco 가 먼저 받으므로
-// 저장과 프로젝트 찾기와 새 스크립트를 편집기 액션으로도 건다.
+// 저장과 프로젝트 찾기와 새 스크립트를 편집기 액션으로도 건다. 탭이 가려져 떨어진 편집기에 남은 초점 상태는
+// 초점이 다른 곳으로 옮겨 갈 때 푼다 (scripting/editorFocus.ts).
 
 import type { EditorSettings } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import type { ScriptDocument } from "../../editor/documents/ScriptDocument";
 import { useEditor } from "../../editor/EditorContext";
+import { releaseStaleFocus } from "../../editor/scripting/editorFocus";
 import { languageLabel, monaco } from "../../editor/scripting/monaco";
 import "./ScriptEditorView.css";
 
@@ -62,6 +64,7 @@ export const ScriptEditorView = observer(function ScriptEditorView({ doc }: { do
       void editor.commands.execute(id);
     };
     const subscriptions: monaco.IDisposable[] = [
+      releaseStaleFocus(code),
       code.onDidChangeCursorPosition((e) => setCursor({ line: e.position.lineNumber, column: e.position.column })),
       code.addAction({ id: "initial.save", label: "저장", keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS], run: run("file.save") }),
       code.addAction({

@@ -367,7 +367,8 @@ docs/plans/               계획과 진행 상황
 | `yarn selftest:app <앱>` | 빌드한 앱의 자가 검사 (창 없음). `--forest <엔진 저장소>`, `--embedded`, `--plan <계획> --no-check` |
 | `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)와 제3자 고지(`THIRD-PARTY.md`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`). 먼저 엔진 저장소에서 `tools/build_web.sh` |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
-| `yarn test:e2e` | Playwright (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
+| `yarn test:e2e` | Playwright, Chromium 으로 모든 스펙 (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
+| `yarn test:e2e:webkit` | 같은 Playwright 를 WebKit(macOS 앱의 웹뷰 WKWebView 와 같은 엔진)으로. 브라우저 엔진에 따라 동작이 갈리는 스펙(`playwright.config.ts` 의 `WEBKIT_SPECS`: 스크립트 편집, 스크립트 탭 여럿)만 돕니다. 처음 한 번 `npx playwright install --with-deps webkit`, 스펙 하나만은 `yarn test:e2e:webkit tests/e2e/script-tabs.spec.ts` |
 | `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
 | `node scripts/check-web-dist.mjs` | 빌드한 `dist/` 검사 (`_headers`, 웹 엔진과 MANIFEST, 고지, Pages 한도). `--desktop` 은 소스맵이 없는지도 (위 "웹판 배포") |
 | `yarn tauri <cmd>` | Tauri CLI |
