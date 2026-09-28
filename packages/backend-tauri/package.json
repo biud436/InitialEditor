@@ -1,6 +1,6 @@
 {
   "name": "@initial-editor/backend-tauri",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "private": true,
   "description": "ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/",
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@initial-editor/core": "2.0.0-alpha.1",
+    "@initial-editor/core": "2.0.0-alpha.2",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0"
   }

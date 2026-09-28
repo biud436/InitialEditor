@@ -1,6 +1,6 @@
 {
   "name": "@initial-editor/ui",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "private": true,
   "description": "React 입력 부품: 인스펙터의 숫자, 글, 범위, 스키마 칸 입력. 앱과 확장이 함께 쓴다",
   "type": "module",
