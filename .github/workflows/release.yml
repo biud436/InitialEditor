@@ -342,6 +342,21 @@ jobs:
             exit 1
           fi
 
+      # 맵 편집의 엔진 교차 검사 (e3 문서의 완료 기준): 통행, 새 맵 골든, 항구 마을 인수 시나리오. 엔진 테스트 러너가 Pillow 를 쓴다
+      - name: 맵 편집 엔진 교차 검사 (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 15
+        env:
+          INITIAL2D_DIR: ${{ github.workspace }}/Initial2D
+          INITIAL2D_EXE: /usr/bin/Initial2D
+        run: |
+          python3 -m pip install --user --quiet pillow
+          yarn test:engine-map 2>&1 | tee "$RUNNER_TEMP/engine-map.log"
+          if grep -q 'SKIP:' "$RUNNER_TEMP/engine-map.log"; then
+            echo "건너뛴 판이 있어 검사하지 않았다 (엔진, mruby, 엔진 체크아웃 확인)"
+            exit 1
+          fi
+
       # ---- 자가 검사 (5절). 판정은 다음 단계가 로그와 스크린샷으로 한다 ----
 
       - name: 자가 검사 (macOS, dmg 안의 앱)
