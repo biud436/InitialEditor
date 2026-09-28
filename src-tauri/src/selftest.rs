@@ -442,7 +442,7 @@ mod tests {
                 &plan_json(&work, json!({ "showWindow": "yes" })),
                 "showWindow",
             ),
-            (&plan_json(&work, json!({ "projects": [] })), "비어 있음"),
+            (&plan_json(&work, json!({ "projects": [] })), "배열이 비어 있습니다"),
             (
                 &plan_json(&work, json!({ "projects": [{ "id": "../x" }] })),
                 "id",
