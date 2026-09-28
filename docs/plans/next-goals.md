@@ -83,7 +83,39 @@
 - **A. 순서 바꾸기 (에디터만, 됨)**: 인스펙터의 스크립트 목록이 엔진이 부르는 순서(번호)를 보이고, 줄마다 위로 이동, 아래로 이동 단추가 있다.
   코어의 `moveScript` 명령이라 되돌리기 한 단계이고, 끝을 넘는 옮기기는 바꾸는 것이 없어 단계를 남기지 않는다 (`unchanged`). 저장하면 씬 파일의
   `scripts` 순서가 바뀐다. 시험: `scene.test.ts` 의 순서 옮기기, `scene-tools.spec.ts` 의 붙이기 흐름에 순서, 되돌리기, 저장한 파일.
-- **B. 매개변수 (엔진과 함께, 다음)**: 위의 정할 것을 정한 뒤 엔진의 씬 로더 둘과 `r1-scene-loader.md` 부터 고친다.
+- **B. 매개변수 (엔진과 함께, 됨)**: 정할 것은 권한 쪽으로 정했다.
+  1. 선언은 언어와 무관한 JSON 파일 `scripts/<논리 이름>.json` 이다 (`components/mover` 면 `scripts/components/mover.json`).
+     Lua와 Ruby가 한 파일을 쓰고, 에디터는 소스를 해석하지 않는다. 필드 형식은 string, text, number, integer, boolean, enum,
+     object(씬 오브젝트 id)이고 key, type, label, default, values, min, max 를 쓴다.
+  2. 오브젝트의 값은 새 키 `params` 에 둔다 (`{"components/mover": {"speed": 90}}`). 씬 포맷은 v1 그대로다.
+  3. 같은 컴포넌트를 두 번 붙이는 것은 에디터가 막는다 (예전대로). 엔진은 바꾸지 않았다.
+  4. 기존 `props` 는 그대로 읽힌다. 플래피 템플릿의 `kind`, `after` 는 옮기지 않았다.
+  5. 실행 중인 값 보기는 하지 않는다. 엔진에서 값을 받아 오는 길이 새로 필요해서 뒤로 미룬다.
+
+  엔진 (Initial2D PR #62): 정본은 `r1-scene-loader.md` 5.4절이다. 두 로더가 선언의 기본값에 오브젝트의 값을 덮어 컴포넌트마다
+  따로 넘긴다. Lua는 훅의 마지막 인자(`init(obj, scene, params)`, `update(obj, scene, elapsed, params)`), Ruby는 `initialize` 가
+  인자를 받으면 `new(params)` 다. Ruby 클래스는 전체 경로(`Components::Flappy::Bird`)를 먼저 찾고 없으면 마지막 조각이다.
+  선언 파일이 없는 컴포넌트의 값은 검사 없이 넘기고, 선언이 있으면 모르는 키, 형식, 범위, 없는 오브젝트를 거부한다.
+  JSON 의 `null` 은 없는 것, 빈 배열은 빈 객체로 본다 (엔진의 Lua JSON 읽기가 둘을 가리지 못한다). 핫 리로드와 웹 스테이징도
+  선언 파일을 싣는다.
+
+  에디터:
+  - 코어: `componentParams.ts` 가 선언 파일을 읽고(엔진과 같은 규칙) 씬의 `params` 를 검사한다. `SceneObject.params` 와
+    `setParam` 명령(타이핑은 합쳐져 되돌리기 한 단계, `undefined` 는 값을 지워 기본값으로)이 있고, 스크립트를 떼면 그 컴포넌트의
+    값도 지운다 (되돌리면 돌아온다). `params` 가 비어 있으면 파일에 쓰지 않는다.
+  - 선언 읽기: `ComponentDeclarations` 가 처음 물을 때 읽고 파일이 바뀌면 다시 읽는다. 답이 바뀌면 그 컴포넌트를 쓰는 열린 씬을
+    다시 검사한다. 씬 검사에 선언 오류, 선언되지 않은 키, 형식과 범위, 씬에 없는 오브젝트가 오른다.
+  - 인스펙터: 컴포넌트마다 제목 줄(접기, 순서, 이름, 열기, 위아래, 떼기) 아래에 선언된 필드의 폼이 있다. 값이 없는 필드는 기본값을
+    보이고, 고친 값은 굵게 보이며 "기본값으로" 단추가 지운다. object 필드는 씬의 오브젝트 id 를 고른다. 선언 파일이 없으면
+    값을 검사 없이 넘긴다는 안내와 "매개변수 선언 만들기"(오브젝트에 이미 있는 값의 형식으로 필드를 적어 만들고 연다)가 있다.
+  - 붙이기 대화상자는 선언이 있는 컴포넌트를 먼저, "매개변수" 표시와 함께 보이고 이미 붙은 것은 뺀다. 도우미 모듈은 선언이 없으면
+    여전히 목록에 섞인다 (선언이 있는 것만 올리면 기존 프로젝트의 컴포넌트가 모두 빠진다).
+  - 편집기: 선언 파일(`scripts/components/**/*.json`)에 JSON 스키마를 붙여 자동 완성과 오류 표시가 된다.
+  - 새 컴포넌트 템플릿: Lua 훅에 `params` 인자, Ruby 에 `initialize(params = {})` (params 를 모르는 예전 엔진도 인자 없이 만든다).
+  - 핫 리로드 묶음(`hmrCollect.ts`)이 `scripts/` 아래의 `.json` 도 싣는다. 게임 탭 스테이징은 원래 `scripts/` 전부를 싣는다.
+  - 시험: `componentParams.test.ts`, `scene.test.ts` 의 매개변수, `componentDeclarations.test.ts`, `SceneTools.test.ts` 의 검사와
+    선언 만들기, `hmrCollect.test.ts`, `templates.test.ts`, e2e `scene-tools.spec.ts` 의 매개변수 흐름(선언 만들기, 편집기의
+    스키마 표시, 폼, 기본값으로, 저장한 파일, 떼기와 되돌리기, 붙이기 제안).
 
 ## 3. 비주얼 스크립팅 검토
 
