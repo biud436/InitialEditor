@@ -116,6 +116,12 @@
   - 시험: `componentParams.test.ts`, `scene.test.ts` 의 매개변수, `componentDeclarations.test.ts`, `SceneTools.test.ts` 의 검사와
     선언 만들기, `hmrCollect.test.ts`, `templates.test.ts`, e2e `scene-tools.spec.ts` 의 매개변수 흐름(선언 만들기, 편집기의
     스키마 표시, 폼, 기본값으로, 저장한 파일, 떼기와 되돌리기, 붙이기 제안).
+  - 엔진 핀: 엔진 `v2.0.0-alpha.2`(`dcf0aec`, 공개 프리릴리스)로 올렸다. 템플릿, 웹 엔진, RPG 픽스처를 그 커밋에서 다시 맞췄다.
+    씬 로더는 새 프로젝트를 만들 때 템플릿에서 복사되므로 그 전에 만든 프로젝트의 로더는 params 를 넘기지 않는다. 그래서 인스펙터가
+    프로젝트의 로더 사본(`game.json` 의 언어의 것)에 선언 파일 위치(`DECLARATION_ROOT`)가 없으면 알리고, "씬 로더 바꾸기"가 확인 뒤
+    번들 템플릿의 로더로 덮어쓴다. params 가 있는 씬의 검사에도 경고가 오른다.
+  - 진짜 엔진과의 교차 검사: `yarn test:engine-scene` 의 빈 프로젝트 판이 선언 파일을 쓰고 코어의 `setParam` 으로 값 둘을 정해
+    저장한 뒤, 컴포넌트가 받은 params 가 선언의 기본값에 씬의 값을 덮은 것인지 Lua와 Ruby 에서 본다 (릴리스 엔진으로 46 PASS).
 
 ## 3. 비주얼 스크립팅 검토
 

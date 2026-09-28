@@ -3,6 +3,7 @@
 //   - clipboard: 복사한 오브젝트 (앱 안의 클립보드)
 //   - assets: 인스펙터가 고르는 프로젝트 파일 목록 (그림, 폰트, 컴포넌트)
 //   - declarations: 컴포넌트 매개변수 선언 (인스펙터의 매개변수 폼과 씬 검사 paramsValidator 가 읽는다)
+//   - loader: 프로젝트의 씬 로더 사본이 매개변수를 아는지 (모르면 인스펙터가 알리고 바꾸기를 권한다)
 //   - 오브젝트 추가, 삭제, 복제, 복사, 붙여넣기, 이름 바꾸기, 순서, 스크립트 붙이기. 전부 document.apply(명령) 으로 간다
 //     (docs/plans/e2-scene.md 마일스톤 5). 여러 오브젝트를 다루는 것은 compoundCommand 로 되돌리기 한 단계다.
 // Editor 전체가 아니라 SceneToolsHost 만 보므로 Node 로 테스트한다 (SceneTools.test.ts).
@@ -39,6 +40,7 @@ import { computed, makeObservable, observable, reaction, runInAction } from "mob
 import { compoundCommand } from "./commands";
 import { ComponentDeclarations } from "./componentDeclarations";
 import { ProjectAssets } from "./projectAssets";
+import { SceneLoaderStatus } from "./sceneLoaderStatus";
 
 export const PASTE_OFFSET = 16;
 const LOG = "editor";
@@ -83,6 +85,7 @@ export class SceneTools {
   clipboard: SceneObject[] = [];
   readonly assets: ProjectAssets;
   readonly declarations: ComponentDeclarations;
+  readonly loader: SceneLoaderStatus;
   private pasteCount = 0;
   private disposers: Array<() => void> = [];
   private validateDisposer: (() => void) | null = null;
@@ -90,6 +93,7 @@ export class SceneTools {
   constructor(private readonly host: SceneToolsHost) {
     this.assets = new ProjectAssets({ backend: () => host.backend, isOpen: () => host.project.isOpen, scope: () => host.tree.filter?.scope });
     this.declarations = new ComponentDeclarations(() => host.backend);
+    this.loader = new SceneLoaderStatus(() => host.backend, () => host.project.gameJson.script);
     makeObservable(this, { clipboard: observable.ref, activeScene: computed, selectedObjects: computed });
   }
 
@@ -98,13 +102,22 @@ export class SceneTools {
     this.disposers.push(
       host.events.on("projectOpened", () => {
         void this.assets.refresh();
+        void this.loader.refresh();
         this.watchProject();
       }),
       host.events.on("projectClosed", () => {
         this.assets.clear();
         this.declarations.clear();
+        this.loader.clear();
         this.unwatchProject();
       }),
+      // 씬 로더가 매개변수를 아는지가 바뀌면 열린 씬을 다시 검사한다 (모르면 params 가 있는 씬에 경고)
+      reaction(
+        () => this.loader.state,
+        () => {
+          for (const doc of host.documents.documents) if (doc instanceof SceneDocument) doc.revalidate();
+        },
+      ),
       // 선언의 답이 바뀌면 그 컴포넌트를 쓰는 열린 씬을 다시 검사한다
       this.declarations.events.on("changed", (name) => {
         for (const doc of host.documents.documents) {
@@ -130,6 +143,7 @@ export class SceneTools {
     );
     if (host.project.isOpen) {
       void this.assets.refresh();
+      void this.loader.refresh();
       this.watchProject();
     }
   }
@@ -141,6 +155,7 @@ export class SceneTools {
     this.projectUnwatch = this.host.project.events.on("change", (e) => {
       this.assets.changed(e.path);
       this.declarations.fileChanged(e.path);
+      this.loader.changed(e.path);
     });
   }
 
@@ -427,8 +442,19 @@ export class SceneTools {
     }
   }
 
-  /** 씬 검사기: 선언으로 params 를 검사한다 (아직 읽지 않은 선언은 읽기 시작하고, 답이 오면 다시 검사된다) */
-  readonly paramsValidator: Validator = (data) => validateComponentParams(data as SceneData, (name) => this.declarations.lookup(name));
+  /**
+   * 씬 검사기: 선언으로 params 를 검사한다 (아직 읽지 않은 선언은 읽기 시작하고, 답이 오면 다시 검사된다).
+   * 프로젝트의 씬 로더가 매개변수를 모르는데 params 가 있으면 경고한다
+   */
+  readonly paramsValidator: Validator = (data) => {
+    const scene = data as SceneData;
+    const problems = validateComponentParams(scene, (name) => this.declarations.lookup(name));
+    const i = scene.objects.findIndex((o) => Object.keys(o.params).length > 0);
+    if (this.loader.state === "old" && i >= 0) {
+      problems.push({ severity: "warning", message: `씬 로더(${this.loader.path})가 매개변수를 넘기지 않아 params 가 게임에 반영되지 않음. 인스펙터의 "씬 로더 바꾸기"로 교체`, location: `objects[${i}].params` });
+    }
+    return problems;
+  };
 
   /** 논리 이름의 스크립트 파일 경로 (game.json 의 언어로) */
   scriptPath(logicalName: string): string {

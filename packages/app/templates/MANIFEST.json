@@ -2,7 +2,7 @@
   "comment": "scripts/sync-engine-templates.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 경로, to 는 새 프로젝트 안의 경로",
   "source": "checkout",
   "syncCommand": "yarn sync:templates",
-  "engineCommit": "f04eba227b3013721c62dc99ec80fb7f670a815b",
+  "engineCommit": "dcf0aeccf4da3e9f75a6c75c57096ecbbad66acc",
   "syncedAt": "2026-09-28",
   "files": [
     {
@@ -13,8 +13,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 22671,
-      "sha256": "7c05603bd140e21f092e9f18e1e083680139cb6805812fdb4cf5290585e713a6",
+      "size": 32195,
+      "sha256": "a6200e9af4fe86eb88a70b4448b3bafd6b5359cadc85d499191156a4cea962d7",
       "generated": false
     },
     {
@@ -37,8 +37,8 @@
       ],
       "language": "ruby",
       "kind": "text",
-      "size": 24745,
-      "sha256": "1e575370a78913ad8ea565897ae09f880042c74e17130504b0973713926535d4",
+      "size": 35493,
+      "sha256": "2897e708a6a1a5f0cb48a0801a35ea590061ce9f3ac7b5623fcae64abb63bdeb",
       "generated": false
     },
     {

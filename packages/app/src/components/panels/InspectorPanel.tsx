@@ -16,7 +16,7 @@ import { inspectorFor } from "../../editor/scene/coreTypes";
 import { FieldRow, NumberField } from "@initial-editor/ui";
 import { TypeIcon } from "../../editor/scene/typeIcons";
 import { MapObjectInspector } from "../maps/MapObjectInspector";
-import { ComponentParams } from "./ComponentParams";
+import { ComponentParams, SceneLoaderNote } from "./ComponentParams";
 import "./InspectorPanel.css";
 
 export const INSPECTOR_EMPTY = "활성 씬 탭 없음. 씬 탭에서 오브젝트를 선택하면 속성 표시";
@@ -155,6 +155,7 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
         스크립트 <span className="muted">({language === "mruby" ? "scripts/ruby" : "scripts/lua"} 기준 논리 이름)</span>
       </div>
       {object.scripts.length === 0 && <div className="muted inspector-note">추가된 스크립트 없음</div>}
+      {object.scripts.length > 0 && <SceneLoaderNote />}
       {object.scripts.map((name, i) => (
         <div key={name} className="inspector-component" data-testid="inspector-component" data-name={name}>
           <div className="inspector-script" data-testid="inspector-script-row" data-name={name}>

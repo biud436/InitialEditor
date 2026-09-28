@@ -290,6 +290,22 @@ describe("SceneTools", () => {
     expect(await h.be.readText("scripts/components/free.json")).toBe(decl([]));
   });
 
+  it("씬 로더가 매개변수를 모르면 params 가 있는 씬에 경고하고, 로더를 바꾸면 사라진다", async () => {
+    const h = await make({
+      "scripts/lua/scene_loader.lua": "-- 예전 로더\n",
+      "resources/scenes/p.json": JSON.stringify({ version: 1, name: "p", objects: [{ id: "a", type: "node", scripts: ["components/free"], params: { "components/free": { n: 1 } } }] }),
+    });
+    const doc = (await h.tools.openScene("resources/scenes/p.json"))!;
+    await h.tools.loader.refresh();
+    await h.tools.declarations.resolve("components/free");
+    expect(h.tools.loader.state).toBe("old");
+    expect(doc.problems.map((p) => `${p.severity} ${p.location}`)).toEqual(["warning objects[0].params"]);
+    expect(doc.problems[0].message).toContain("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 넘기지 않아");
+    await h.tools.loader.upgrade({ text: () => 'SceneLoader.DECLARATION_ROOT = "scripts/"\n', binary: async () => new Uint8Array() });
+    expect(h.tools.loader.state).toBe("params");
+    expect(doc.problems).toEqual([]);
+  });
+
   it("setStartScene: 활성 씬 이름을 game.json 에 쓴다", async () => {
     const h = await make();
     h.promptAnswer = "title";
