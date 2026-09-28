@@ -4,7 +4,7 @@
 // 바깥 링크는 openExternal 을 거친다 (ExternalLink).
 
 import { observer } from "mobx-react-lite";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { editionLink, PLANS_INDEX, webLimits } from "../../editor/about";
 import { isFolderFallback, MODE_LABELS, SAMPLE_ROOT, type BackendMode } from "../../editor/backends";
 import { browserFolders, openSampleMap } from "../../editor/browserFolders";
@@ -46,7 +46,7 @@ const BrowserFoldersSection = observer(function BrowserFoldersSection({ editor }
         >
           새 프로젝트
         </button>
-        <button type="button" className="btn" onClick={() => void folders.openSample()}>
+        <button type="button" className="btn" onClick={() => void folders.openSample()} disabled={folders.openingSample}>
           샘플 프로젝트 열기
         </button>
       </div>
@@ -110,9 +110,17 @@ export const WelcomeView = observer(function WelcomeView() {
   const recent = editor.settings.settings.recentProjects;
   const run = (id: string) => void editor.commands.execute(id);
   const fallback = isFolderFallback(editor.mode);
+  const [openingSample, setOpeningSample] = useState(false);
   const openMemorySample = async () => {
-    // 배포된 웹판이 폴더 열기가 없어 메모리로 시작했으면 "샘플로 해 보기" 처럼 샘플 맵을 연다
-    if ((await editor.openProject(SAMPLE_ROOT)) && fallback) await openSampleMap(editor);
+    // RPG 데모는 그림을 받아 푸는 데 1초쯤 걸린다. 그동안 누른 클릭은 무시한다
+    if (openingSample) return;
+    setOpeningSample(true);
+    try {
+      // 배포된 웹판이 폴더 열기가 없어 메모리로 시작했으면 "샘플로 해 보기" 처럼 샘플 맵을 연다
+      if ((await editor.openProject(SAMPLE_ROOT)) && fallback) await openSampleMap(editor);
+    } finally {
+      setOpeningSample(false);
+    }
   };
   return (
     <div className="welcome" data-testid="welcome">
@@ -126,7 +134,7 @@ export const WelcomeView = observer(function WelcomeView() {
       ) : (
         <div className="welcome-actions">
           {editor.mode === "memory" ? (
-            <button type="button" className="btn btn-primary" onClick={() => void openMemorySample()}>
+            <button type="button" className="btn btn-primary" onClick={() => void openMemorySample()} disabled={openingSample}>
               샘플 프로젝트 열기
             </button>
           ) : (

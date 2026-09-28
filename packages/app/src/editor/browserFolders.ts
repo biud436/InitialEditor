@@ -21,6 +21,8 @@ export class BrowserFolders {
   loaded = false;
   /** 다시 열기가 폴더 고르기로 도는 이유 (시작 화면의 안내). 기억한 핸들을 바로 꺼내면 null */
   restoreNotice: string | null = null;
+  /** 샘플을 여는 중 (RPG 데모는 그림을 받아 푸는 데 1초쯤 걸린다. 그동안 누른 클릭은 무시한다) */
+  openingSample = false;
   readonly supported = supportsFolderPicker();
   readonly backend: FsAccessBackend;
 
@@ -29,7 +31,7 @@ export class BrowserFolders {
     backend?: FsAccessBackend,
   ) {
     this.backend = backend ?? (editor.backend instanceof FsAccessBackend ? editor.backend : new FsAccessBackend());
-    makeObservable(this, { records: observable.ref, loaded: observable, restoreNotice: observable });
+    makeObservable(this, { records: observable.ref, loaded: observable, restoreNotice: observable, openingSample: observable });
     editor.events.on("projectOpened", () => {
       // 브라우저 폴더의 최근 목록은 IndexedDB 가 들고 있다. 설정 쪽 목록(브리지와 같은 저장소)에 키를 남기지 않는다
       const key = this.backend.openedRoot;
@@ -116,10 +118,16 @@ export class BrowserFolders {
 
   /** 메모리의 샘플 프로젝트로 바꿔 연다. 폴더를 다시 열면 브라우저 폴더 백엔드로 돌아온다 */
   async openSample(): Promise<boolean> {
-    if (!(await this.editor.replaceBackend(createMemoryBackend(pageSampleQuery())))) return false;
-    if (!(await this.editor.openProject(SAMPLE_ROOT))) return false;
-    await openSampleMap(this.editor);
-    return true;
+    if (this.openingSample) return false;
+    runInAction(() => (this.openingSample = true));
+    try {
+      if (!(await this.editor.replaceBackend(createMemoryBackend(pageSampleQuery())))) return false;
+      if (!(await this.editor.openProject(SAMPLE_ROOT))) return false;
+      await openSampleMap(this.editor);
+      return true;
+    } finally {
+      runInAction(() => (this.openingSample = false));
+    }
   }
 
   /**
