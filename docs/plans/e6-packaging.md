@@ -1073,9 +1073,9 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 - [x] `src-tauri/licenses/` (`THIRD-PARTY-editor.md` 커밋, `engine/` 은 gitignore), `scripts/gen-licenses.mjs` 와 `--check` (`yarn licenses`. npm 은 앱의 런타임 의존, Cargo 는 `cargo metadata` 의 일반 의존으로 모든 OS 의 합, 고를 수 있으면 MIT 원문, 같은 원문은 한 번. 시험 `tests/scripts/licenses.unit.ts`). 루트 `LICENSE`(MIT)를 더했다 (2026-09-27 저자 위임 뒤, 결정 기록)
 - [x] `yarn build:desktop` (`VITE_SOURCEMAP=0`, `vite.config.ts` 가 읽는다. `emptyOutDir` 는 이미 한 번뿐이다), `src-tauri/tauri.dist.conf.json` (`beforeBuildCommand` 와 `licenses/` 리소스)
 - [x] `scripts/version.mjs` (`yarn version:set`, `yarn version:check`: package.json 일곱과 워크스페이스끼리의 의존, `Cargo.toml`, `Cargo.lock`, `tauri.conf.json` 의 경로 칸, `--tag`, `--bundles`) 와 `ci.yml` 의 대조. 시험 `tests/scripts/version.unit.ts` (이 저장소 자신이 맞는지도)
-- [ ] `ci.yml` 의 `rust` 잡을 세 OS 로 (워크플로는 됐다. Windows 에서 크레이트가 빌드되고 안드로이드의 Windows 시험이 도는지는 첫 CI 실행이 본다). Windows 전용 시험 (엔진 후보의 역슬래시 경로는 Vitest, 동봉 실행 파일 이름)
-- [ ] `release.yml` 의 `bundle` 잡을 `dry_run` 으로 세 OS 에서 돌려 dmg, AppImage, deb, NSIS 가 나온다. NSIS 가 프리릴리스 판 문자열을 받는지 여기서 확인한다 (워크플로는 됐다. 사이드카는 핀의 커밋에서 빌드해 싣는다. 이 맥에서는 사이드카를 실은 `.app` 과 dmg 가 나왔다. 세 OS 는 첫 CI 실행)
-- [ ] Linux 와 Windows 에서 앱이 뜨는 것까지 확인 (자가 검사 전체를 구현했고 CI 에서 돈다. 첫 CI 실행)
+- [x] `ci.yml` 의 `rust` 잡을 세 OS 로 (워크플로는 됐다. Windows 에서 크레이트가 빌드되고 안드로이드의 Windows 시험이 도는지는 첫 CI 실행이 본다). Windows 전용 시험 (엔진 후보의 역슬래시 경로는 Vitest, 동봉 실행 파일 이름). 2026-09-28 확인: PR #52 부터 매 PR 에서 `cargo test` 가 macOS, Ubuntu, Windows 셋 다 통과한다. 역슬래시 경로와 `.exe` 는 `RunnerStore.test.ts` 의 "Windows 는 역슬래시와 .exe", 동봉 실행 파일 이름은 `bundled.rs` 의 `Initial2D.exe`
+- [x] `release.yml` 의 `bundle` 잡을 `dry_run` 으로 세 OS 에서 돌려 dmg, AppImage, deb, NSIS 가 나온다 (2026-09-28, PR #57 의 `release.yml` 실행 36371725594: 산출물 `bundle-aarch64-apple-darwin`(dmg), `bundle-x86_64-unknown-linux-gnu`(AppImage 와 deb), `bundle-x86_64-pc-windows-msvc`(NSIS), 모은 `InitialEditor-<커밋>` 과 `SHA256SUMS.txt`. 프리릴리스 판 문자열은 첫 태그의 실행이 본다). NSIS 가 프리릴리스 판 문자열을 받는지 여기서 확인한다 (워크플로는 됐다. 사이드카는 핀의 커밋에서 빌드해 싣는다. 이 맥에서는 사이드카를 실은 `.app` 과 dmg 가 나왔다. 세 OS 는 첫 CI 실행)
+- [x] Linux 와 Windows 에서 앱이 뜨는 것까지 확인 (자가 검사 전체를 구현했고 CI 에서 돈다. 첫 CI 실행). 2026-09-28, PR #57 의 `release.yml` 실행 36371725594: Linux 의 AppImage(xvfb, 보이는 창) 88 PASS / 0 FAIL(경고 하나는 선택 실행인 에디터 안 플래피), Windows 의 무인 설치본 12 PASS / 0 FAIL (엔진을 못 찾아 에디터 안으로 넘어가 플래피가 돈다)
 
 ### 마일스톤 2: 엔진 R4, 배포용 엔진 빌드와 템플릿 묶음 (엔진 저장소)
 
@@ -1090,9 +1090,9 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 - [x] 타일맵 템플릿 `resources/templates/tilemap/` (결정 기록대로 새로 그리지 않고 커밋된 `resources/tiles/tileset16-8x13.png` 를 쓴다. 표식 칸은 타일 44, gid 45, `#d8c880`. `mapfile.py` 형식의 맵, 씬, 스키마)와 `tests/tools/templates_test.py`
 - [x] `tools/templates_list.txt`, `tools/pack_templates.py` (`generated` 표시, 빠진 파일이면 실패)
 - [x] macOS: 배포용 실행 파일로 전체 씬 검수 통과 (`python3 tests/run_engine_tests.py dist/Initial2D-aarch64-apple-darwin`, 575 PASS)
-- [ ] Linux: 배포용 실행 파일로 플래피 씬 셋 (`dist.yml` 의 첫 CI 실행)
+- [x] Linux: 배포용 실행 파일로 플래피 씬 셋 (`dist.yml` 의 첫 CI 실행. 엔진 PR #53, #55 의 실행에서 통과, 엔진 R4 문서)
 - [x] `.github/workflows/dist.yml` (native 둘, templates, collect. 결정 기록대로 산출물만 올리고 릴리스는 없다)
-- [ ] `dist.yml` 의 첫 CI 실행 (macOS 와 Linux. 엔진 저장소에서 `workflow_dispatch`)
+- [x] `dist.yml` 의 첫 CI 실행 (macOS 와 Linux. 엔진 저장소에서 `workflow_dispatch`). 엔진 PR #53(36281586493)과 #55(36297974450)에서 네 잡이 모두 통과했다
 - [ ] 첫 태그 `v2.0.0-alpha.1` (결정 기록: 저자)
 - [x] 기존 `tests.yml` 과 전체 검수가 무변경으로 통과한다 (Homebrew 빌드 경로는 그대로)
 - [x] 엔진 문서 `docs/plans/r4-dist-build.md`, index 의 R4 행, README 의 "배포용 빌드"
@@ -1128,13 +1128,13 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 - [x] 앱 격리: 자가 검사면 `MemorySettingsStorage`, 메모리 레이아웃, 모달이 뜨면 실패. 단위 시험 (`selftest/csp.test.ts`: 평소 설정 저장소를 만들지도 읽지도 쓰지도 않는다, 최근 프로젝트는 메모리에만. `runSelftest.test.ts`: 모달은 적고 닫고 실패)
 - [x] 앱: `packages/app/src/editor/selftest/` (대화상자 없는 새 프로젝트, 열기, 진입 스크립트 열기, `edit` 을 맵 문서의 명령과 저장으로, 실행 목록과 `mode` 넘기기, 시간 제한, 실행별 전체 로그, 보고서, `securitypolicyviolation` 수집, 맵 뷰의 타일 뽑기). 단위 시험은 가짜 백엔드와 가짜 러너로 (`runSelftest.test.ts` 15건, `plan.test.ts`), 뽑기는 브라우저 e2e `map-capture.spec.ts`
 - [x] CSP (2.5): `tauri.conf.json` 의 `csp` 와 `devCsp`, `dangerousDisableAssetCspModification: ["style-src"]`, `pixi.js/unsafe-eval` 들여오기. 로컬 숨은 창 자가 검사의 위반(`connect-src data`)을 고쳤다
-- [ ] 첫 CI 실행(보이는 창, 에디터 안 실행, WebKitGTK, WebView2)의 위반 목록으로 정책을 고치고 2.5 절에 적는다
+- [x] 첫 CI 실행(보이는 창, 에디터 안 실행, WebKitGTK, WebView2)의 위반 목록으로 정책을 고치고 2.5 절에 적는다. 2026-09-28, PR #57 의 `release.yml` 실행 36371725594: 세 OS(WKWebView, WebKitGTK, WebView2) 모두 "웹뷰 보안 정책 위반 없음" 이라 고칠 것이 없었다
 - [x] `scripts/selftest-plan.mjs` (macOS, Linux, Windows, 로컬, `--embedded`, `--forest`), `scripts/selftest-check.mjs` (`--plan`, `--report`, 전체 로그와 BMP 를 읽는다, 보고서가 없으면 1), `scripts/lib/flappyChecks.mjs` 와 `scripts/lib/frameChecks.mjs` (`e2e-engine-scene.mjs` 와 공용. BMP 는 `scripts/lib/bmp.mjs` 대신 `tests/e2e/support/bmp.ts` 를 Vite SSR 로). 판정 스크립트의 단위 시험 `tests/scripts/selftest.unit.ts` (초반 줄이 로그에만 있는 경우 통과, 로그가 없으면 실패, 넘어감 기대가 어긋나면 실패, 숲의 픽셀 견주기)
 - [x] `release.yml` 의 자가 검사 단계 (macOS 는 dmg 안의 앱, Linux 는 xvfb 와 AppImage, Windows 는 무인 설치본), `timeout-minutes`, `if: always()` 판정, 자가 검사 폴더를 산출물로 (actionlint 통과, 첫 CI 실행 전)
 - [x] `release.yml` 의 `check` 잡 (판, 고지, `check-engine-pin.mjs`, 템플릿 묶음에 대한 `templates.test.ts`. 생성물 PNG 는 픽셀로 견준다, 4.1)과 `collect` 잡(`SHA256SUMS.txt`)과 `release` 잡 (태그를 민 실행만, 초안, 프리릴리스 판정), `docs/releases/first-open.md` (본문 머리의 처음 열기)
 - [x] 로컬에서 같은 검사: `yarn selftest:app <빌드한 앱 경로> [--embedded] [--forest <엔진 저장소>]` (저자가 CI 없이 돌린다. 기본은 창이 뜨지 않는다). 2026-09-27 이 맥: 33 PASS, `--forest` 46 PASS. 숲이 칠한 칸과 레이어마다의 기준 대조를 더한 뒤 `--forest` 55 PASS (5절)
 - [x] 항구 마을 (E5 완료 기준 첫째와 셋째, 2026-09-28): `--rpg <엔진 저장소>`, 계획의 `probe`(확장의 탐침, `ext-tilemap` 의 `MapSelftestProbe`)와 실행의 `play`(확장의 실행 요청을 앱의 맵 실행 길로), 판정의 `eventFront` 와 `eventProbe`. 이 맥의 릴리스 `.app` 59 PASS, 음성 대조(선 자리를 한 칸 옮긴 감싸개 엔진) 3 FAIL. 설계와 결과는 e5 문서의 구현 노트 "설치본 자가 검사의 항구 마을"
-- [ ] E3 완료 기준 1 (Tauri 창의 숲이 게임과 같다): 자가 검사의 숲 단계가 CI 의 보이는 창에서 통과하면 E3 문서에 체크한다 (이 맥의 숨은 창에서는 통과. 2026-09-27 부터 숲 단계는 deco 의 한 칸을 칠해 저장하고, 판정이 저장한 맵으로 그린 기준과 레이어마다, 칠한 칸까지 견준다. 5절)
+- [x] E3 완료 기준 1 (Tauri 창의 숲이 게임과 같다): 자가 검사의 숲 단계가 CI 의 보이는 창에서 통과하면 E3 문서에 체크한다. 2026-09-28, PR #57 의 `release.yml` 실행 36371725594: 맵 뷰의 타일 픽셀이 게임 화면과 macOS 99.88%, Linux 99.95% 같고 레이어마다와 칠한 칸의 검사도 통과했다 (E3 문서는 이미 체크되어 있다) (이 맥의 숨은 창에서는 통과. 2026-09-27 부터 숲 단계는 deco 의 한 칸을 칠해 저장하고, 판정이 저장한 맵으로 그린 기준과 레이어마다, 칠한 칸까지 견준다. 5절)
 - [ ] 첫 초안 릴리스 `v2.0.0-alpha.1` (결정 기록: 태그는 저자가 민다. 워크플로는 태그를 받으면 초안을 만들게 되어 있다)
 
 ### 마일스톤 5: 안드로이드 스테이징 (엔진 짝과 에디터)
@@ -1208,6 +1208,9 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
 
 엔진 쪽 `dist.yml` 의 첫 실행(엔진 저장소에서 `workflow_dispatch`)은 R4 의 남은 항목이고 이 표와 따로 돌린다. 안드로이드는 엔진 브랜치
 `feat/android-stage-project` 가 엔진 master(PR #54, `0010ea5`)에 들어갔으므로, 핀을 그 뒤로 올리는 PR 에서 `ci.yml` 에 `yarn test:android-stage` 를 더한다.
+(2026-09-28) 핀이 `ef00946` 으로 올라 `--project` 를 아는 엔진이 CI 에 온다. 교차 검사는 빌드한 엔진이 필요한데 `ci.yml` 의 웹 잡은 엔진을
+빌드하지 않으므로, `release.yml` 의 Linux 번들 잡에서 설치한 deb 의 엔진(`INITIAL2D_EXE=/usr/bin/Initial2D`)과 핀의 엔진 체크아웃으로 돌린다.
+`SKIP:` 줄이 나오면 실패로 친다. 이 맥에서 같은 명령을 `ef00946` 의 배포용 엔진으로 돌려 33 PASS.
 
 ## 의존 관계
 
