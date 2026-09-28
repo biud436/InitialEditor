@@ -1,6 +1,6 @@
 [package]
 name = "initial-editor"
-version = "2.0.0-alpha.2"
+version = "2.0.0-alpha.3"
 description = "InitialEditor 데스크톱 셸 (Tauri 2). 명령 표는 docs/plans/01-tech-stack.md 6절"
 authors = ["biud436 <biud436@gmail.com>"]
 license = "MIT"

@@ -811,13 +811,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@initial-editor/app@workspace:packages/app"
   dependencies:
-    "@initial-editor/backend-bridge": "npm:2.0.0-alpha.2"
-    "@initial-editor/backend-fsaccess": "npm:2.0.0-alpha.2"
-    "@initial-editor/backend-tauri": "npm:2.0.0-alpha.2"
-    "@initial-editor/core": "npm:2.0.0-alpha.2"
-    "@initial-editor/ext-rpg": "npm:2.0.0-alpha.2"
-    "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.2"
-    "@initial-editor/ui": "npm:2.0.0-alpha.2"
+    "@initial-editor/backend-bridge": "npm:2.0.0-alpha.3"
+    "@initial-editor/backend-fsaccess": "npm:2.0.0-alpha.3"
+    "@initial-editor/backend-tauri": "npm:2.0.0-alpha.3"
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
+    "@initial-editor/ext-rpg": "npm:2.0.0-alpha.3"
+    "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.3"
+    "@initial-editor/ui": "npm:2.0.0-alpha.3"
     "@tauri-apps/api": "npm:^2.0.0"
     "@tauri-apps/plugin-dialog": "npm:^2.0.0"
     "@testing-library/dom": "npm:^10.0.0"
@@ -836,33 +836,33 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@initial-editor/backend-bridge@npm:2.0.0-alpha.2, @initial-editor/backend-bridge@workspace:packages/backend-bridge":
+"@initial-editor/backend-bridge@npm:2.0.0-alpha.3, @initial-editor/backend-bridge@workspace:packages/backend-bridge":
   version: 0.0.0-use.local
   resolution: "@initial-editor/backend-bridge@workspace:packages/backend-bridge"
   dependencies:
-    "@initial-editor/core": "npm:2.0.0-alpha.2"
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
   languageName: unknown
   linkType: soft
 
-"@initial-editor/backend-fsaccess@npm:2.0.0-alpha.2, @initial-editor/backend-fsaccess@workspace:packages/backend-fsaccess":
+"@initial-editor/backend-fsaccess@npm:2.0.0-alpha.3, @initial-editor/backend-fsaccess@workspace:packages/backend-fsaccess":
   version: 0.0.0-use.local
   resolution: "@initial-editor/backend-fsaccess@workspace:packages/backend-fsaccess"
   dependencies:
-    "@initial-editor/core": "npm:2.0.0-alpha.2"
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
   languageName: unknown
   linkType: soft
 
-"@initial-editor/backend-tauri@npm:2.0.0-alpha.2, @initial-editor/backend-tauri@workspace:packages/backend-tauri":
+"@initial-editor/backend-tauri@npm:2.0.0-alpha.3, @initial-editor/backend-tauri@workspace:packages/backend-tauri":
   version: 0.0.0-use.local
   resolution: "@initial-editor/backend-tauri@workspace:packages/backend-tauri"
   dependencies:
-    "@initial-editor/core": "npm:2.0.0-alpha.2"
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
     "@tauri-apps/api": "npm:^2.0.0"
     "@tauri-apps/plugin-dialog": "npm:^2.0.0"
   languageName: unknown
   linkType: soft
 
-"@initial-editor/core@npm:2.0.0-alpha.2, @initial-editor/core@workspace:packages/core":
+"@initial-editor/core@npm:2.0.0-alpha.3, @initial-editor/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@initial-editor/core@workspace:packages/core"
   dependencies:
@@ -870,13 +870,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@initial-editor/ext-rpg@npm:2.0.0-alpha.2, @initial-editor/ext-rpg@workspace:packages/ext-rpg":
+"@initial-editor/ext-rpg@npm:2.0.0-alpha.3, @initial-editor/ext-rpg@workspace:packages/ext-rpg":
   version: 0.0.0-use.local
   resolution: "@initial-editor/ext-rpg@workspace:packages/ext-rpg"
   dependencies:
-    "@initial-editor/core": "npm:2.0.0-alpha.2"
-    "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.2"
-    "@initial-editor/ui": "npm:2.0.0-alpha.2"
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
+    "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.3"
+    "@initial-editor/ui": "npm:2.0.0-alpha.3"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"
     "@types/react": "npm:^18.3.0"
@@ -892,16 +892,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@initial-editor/ext-tilemap@npm:2.0.0-alpha.2, @initial-editor/ext-tilemap@workspace:packages/ext-tilemap":
+"@initial-editor/ext-tilemap@npm:2.0.0-alpha.3, @initial-editor/ext-tilemap@workspace:packages/ext-tilemap":
   version: 0.0.0-use.local
   resolution: "@initial-editor/ext-tilemap@workspace:packages/ext-tilemap"
   dependencies:
-    "@initial-editor/core": "npm:2.0.0-alpha.2"
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
     mobx: "npm:^6.13.0"
   languageName: unknown
   linkType: soft
 
-"@initial-editor/ui@npm:2.0.0-alpha.2, @initial-editor/ui@workspace:packages/ui":
+"@initial-editor/ui@npm:2.0.0-alpha.3, @initial-editor/ui@workspace:packages/ui":
   version: 0.0.0-use.local
   resolution: "@initial-editor/ui@workspace:packages/ui"
   dependencies:
