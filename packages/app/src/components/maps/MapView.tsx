@@ -143,7 +143,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
         <button type="button" className="btn" onClick={run("map.fit")} disabled={!status?.ready} data-testid="map-fit" title="맵 전체가 보이도록 줌과 팬 조정">
           맵 전체 보기
         </button>
-        <span>{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
+        <span className="doc-header-save-state">{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
       </div>
       <div className="doc-header map-view-tools" role="toolbar" aria-label="맵 도구">
         <span className="map-view-group">

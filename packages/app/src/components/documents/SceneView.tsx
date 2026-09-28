@@ -109,7 +109,7 @@ export const SceneView = observer(function SceneView({ document: doc }: { docume
         <span className="scene-view-note" title={APPROX_NOTE}>
           근사
         </span>
-        <span>{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
+        <span className="doc-header-save-state">{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
       </div>
       {status?.error ? (
         <div className="panel-hint scene-view-error" data-testid="scene-view-error">
