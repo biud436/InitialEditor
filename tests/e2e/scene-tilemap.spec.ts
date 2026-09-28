@@ -138,7 +138,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await expect(page.getByTestId("tilemap-open-map")).toBeDisabled();
     const problems = page.getByTestId("inspector-problems");
     await expect(problems).toHaveAttribute("data-count", "1");
-    await expect(problems).toContainText("맵 파일(props.map)이 없다");
+    await expect(problems).toContainText("맵 파일(props.map) 비어 있음");
 
     // 자리 (64,64). 맵을 고르기 전에는 그 자리가 풀색이 아니다
     await placeSelected(page, ORIGIN);
@@ -149,7 +149,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     const mapSelect = page.getByTestId("prop-map");
     await expect(mapSelect.locator(`option[value="${MEADOW}"]`)).toHaveCount(1);
     await mapSelect.selectOption(MEADOW);
-    await expect(page.getByTestId("tilemap-map-info")).toHaveText("20x12 칸, 타일 16x16, 레이어 2");
+    await expect(page.getByTestId("tilemap-map-info")).toHaveText("크기 20x12 타일, 타일 16x16px, 레이어 2개");
     await expect(problems).toHaveAttribute("data-count", "0");
     expect(await ev(page, "(e) => e.documents.active.scene.find('tilemap').props.map")).toBe(MEADOW);
 
@@ -191,7 +191,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await modify("{ not json");
     await expect(problems).toHaveAttribute("data-count", "1");
     await expect(problems).toContainText(`${unreadable}JSON 구문 오류: `);
-    await expect(problems).toContainText("엔진이 씬을 거부한다");
+    await expect(problems).toContainText("실행하면 엔진에서 씬 로드 실패");
     await modify('{ "version": 9 }');
     await expect(problems).toContainText(`${unreadable}지원하지 않는 맵 버전: 9 (지원: 1, 2)). 실행하면 엔진에서 씬 로드 실패`);
     await expect(problems).toHaveAttribute("data-count", "1");
@@ -255,7 +255,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     const mapSelect = page.getByTestId("prop-map");
     await expect(mapSelect.locator(`option[value="${MEADOW}"]`)).toHaveCount(1);
     await mapSelect.selectOption(MEADOW);
-    await expect(page.getByTestId("tilemap-map-info")).toHaveText("20x12 칸, 타일 16x16, 레이어 2");
+    await expect(page.getByTestId("tilemap-map-info")).toHaveText("크기 20x12 타일, 타일 16x16px, 레이어 2개");
     const afterMap = await addObject(page, "sprite");
     await imageOf(at(16, 0));
     expect(await ev(page, "(e) => e.documents.active.scene.objects.map((o) => o.id)")).toEqual([beforeMap, "tilemap", afterMap]);
@@ -297,7 +297,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     const mapSelect = page.getByTestId("prop-map");
     await expect(mapSelect.locator(`option[value="${MEADOW}"]`)).toHaveCount(1);
     await mapSelect.selectOption(MEADOW);
-    await expect(page.getByTestId("tilemap-map-info")).toHaveText("20x12 칸, 타일 16x16, 레이어 2");
+    await expect(page.getByTestId("tilemap-map-info")).toHaveText("크기 20x12 타일, 타일 16x16px, 레이어 2개");
     await expect.poll(async () => isGrass(await pixel(page, view, { x: 88, y: 24 }))).toBe(true);
     const node = await addObject(page, "node");
     await placeSelected(page, { x: 100, y: 100 });

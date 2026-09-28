@@ -153,7 +153,7 @@ test.describe("알데바란 숲 (브리지 모드, 엔진의 실제 맵)", () =>
 
     // ---- 열기 ----
     const view = await openForest(page, bridge!.url);
-    await expect(view).toContainText(`${original.width}x${original.height} 칸`);
+    await expect(view).toContainText(`${original.width}x${original.height} 타일`);
     await expect(view).toHaveAttribute("data-tool", "pen");
     await expect(view).toHaveAttribute("data-target", `layer:${GROUND}`);
     expect(await activeDoc(page, "(d) => d.model.objects.length")).toBe(original.objects.length);

@@ -107,7 +107,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(page.getByTestId("modal")).toHaveCount(0);
     await expect(docTab(page, "stage1.json")).toBeVisible();
     expect(await ev<string>(page, "(e) => e.documents.active?.kind")).toBe("map");
-    await expect(page.getByTestId("map-view")).toContainText("6x5 칸 (96x80 px)");
+    await expect(page.getByTestId("map-view")).toContainText("6x5 타일 (96x80 px)");
     await expect(tree.locator('[data-path="resources/maps/stage1.json"]')).toBeVisible();
 
     // 파일: v2, 빈 레이어 셋과 통행, 타일셋 하나, id는 있는 맵보다 크다, 고정 형식(맵 한 줄이 한 줄)
@@ -145,7 +145,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 머리 띠의 크기를 누르면 대화상자. 크기가 같으면 확인이 꺼져 있다
     await page.getByTestId("map-size").click();
-    await expect(page.getByTestId("resize-current")).toHaveText("20x12 칸 (320x192 px)");
+    await expect(page.getByTestId("resize-current")).toHaveText("20x12 타일 (320x192 px)");
     await expect(page.getByTestId("resize-ok")).toBeDisabled();
 
     // 24x14, 오른쪽 아래 기준: 내용이 x +4칸, y +2칸 옮겨진다
@@ -159,7 +159,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(summary).toHaveAttribute("data-dy", "2");
     await expect(summary).toHaveText("내용 이동 x +4, y +2 (타일)");
     await page.getByTestId("resize-ok").click();
-    await expect(view).toContainText("24x14 칸 (384x224 px)");
+    await expect(view).toContainText("24x14 타일 (384x224 px)");
     await expect(view).toHaveAttribute("data-ready", "true");
     expect(await ev<number>(page, "(e) => e.documents.active.model.layers[0].data[2 * 24 + 4]")).toBe(ground0);
     expect(await obj(page, "start")).toMatchObject({ x: 88, y: 168 });
@@ -170,11 +170,11 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 되돌리기 한 단계로 원래 크기와 자리, 저장 상태까지
     await openMenu(page, "편집", "되돌리기");
-    await expect(view).toContainText("20x12 칸");
+    await expect(view).toContainText("20x12 타일");
     expect(await obj(page, "start")).toMatchObject({ x: 24, y: 136 });
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
     await openMenu(page, "편집", "다시 실행");
-    await expect(view).toContainText("24x14 칸");
+    await expect(view).toContainText("24x14 타일");
 
     // 저장한 파일의 레이어와 통행 길이가 새 크기다
     await view.locator(".map-view-host").focus();
@@ -186,7 +186,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 20x12로 되돌린 뒤 줄이기. 폭 13: bat_1이 밖이고 slime_1은 순찰 범위만 밖까지 간다
     await openMenu(page, "편집", "되돌리기");
-    await expect(view).toContainText("20x12 칸");
+    await expect(view).toContainText("20x12 타일");
     await openMenu(page, "맵", "크기 바꾸기");
     await page.getByTestId("resize-width").fill("13");
     await expect(page.getByTestId("resize-outside")).toHaveAttribute("data-count", "1");
@@ -201,7 +201,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(page.getByTestId("resize-partly")).toHaveCount(0);
     await page.getByTestId("resize-ok").click();
     await expect(page.getByTestId("toasts")).toContainText("맵 밖으로 나간 오브젝트 2개: slime_1, bat_1");
-    await expect(view).toContainText("10x12 칸");
+    await expect(view).toContainText("10x12 타일");
     await expect(page.getByTestId("map-objects-count")).toHaveText("4개");
   });
 

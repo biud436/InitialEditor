@@ -238,11 +238,11 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await page.keyboard.press("n");
     await expect(view).toHaveAttribute("data-target", "ext:rpg.events");
     await page.getByTestId("layers").locator('[data-target="ext:rpg.events"]').getByTestId("layer-eye").click();
-    await expect(page.getByTestId("map-target-hidden")).toHaveText("숨김, 고치지 않는다");
+    await expect(page.getByTestId("map-target-hidden")).toHaveText("숨김 상태, 편집 불가");
     const d0 = await depth(page);
     const empty = await cellPoint(view, 2, 44);
     await page.mouse.dblclick(empty.x, empty.y);
-    await expect(page.getByTestId("toasts")).toContainText("숨긴 레이어는 고치지 않는다");
+    await expect(page.getByTestId("toasts")).toContainText("숨긴 레이어는 편집 불가");
     const captain = await cellPoint(view, 16, 44);
     await page.mouse.click(captain.x, captain.y);
     await host.focus();
@@ -267,7 +267,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     const rows = page.getByTestId("rpg-events-panel").getByTestId("rpg-events-row");
     await expect(rows).toHaveCount(19);
     await expect(rows.nth(17)).toHaveText("!events[18]객체가 아님 (null)");
-    await expect(rows.nth(18)).toHaveText('!events[19]객체가 아니다 ("oops")');
+    await expect(rows.nth(18)).toHaveText('!events[19]객체가 아님 ("oops")');
     await expect(page.getByTestId("rpg-events-panel")).not.toContainText("undefined");
 
     // 다른 이벤트를 옮겨 저장해도 crates 의 seed 는 숫자 글 그대로다

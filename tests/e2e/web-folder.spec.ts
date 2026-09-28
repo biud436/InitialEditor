@@ -438,7 +438,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     await setPick("b/game");
     await page.keyboard.press("ControlOrMeta+o");
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("저장하지 않은 문서가 1개 있다");
+    await expect(dialog).toContainText("저장 안 된 문서 1개");
     await dialog.getByRole("button", { name: "취소" }).click();
     await expect(dialog).toHaveCount(0);
     expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS, PICKER_OPTIONS]);
@@ -545,7 +545,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
 });
 
 const SAMPLE_MAP_HINT = "샘플 게임이 렌더링하는 맵. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5 로 실행";
-const WEB_NO_RUBY = "웹판에서는 실행하지 못한다 (데스크톱 앱에서 돈다)";
+const WEB_NO_RUBY = "브라우저 모드에서 실행 불가 (데스크톱 앱에서 실행)";
 
 /** engine/MANIFEST.json 을 가로채 기능에서 mruby 를 뺀다 (mruby 없는 웹 엔진 빌드 흉내) */
 async function withoutMruby(page: Page) {
@@ -565,7 +565,7 @@ test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
     await expect(footer.getByTestId("welcome-edition")).toHaveAttribute("href", "https://github.com/biud436/InitialEditor/releases");
     await expect(footer.getByTestId("welcome-edition")).not.toHaveAttribute("target", /.+/);
     // 이 웹 엔진 빌드에는 mruby 가 있어 Ruby 실행은 안 되는 것에 없다
-    await expect(page.getByTestId("welcome-web-limits")).toHaveText("웹판에서 안 되는 것: 엔진 프로세스 실행, 안드로이드 스테이징. 데스크톱 앱에서 된다.");
+    await expect(page.getByTestId("welcome-web-limits")).toHaveText("브라우저 모드 미지원: 엔진 프로세스 실행, 안드로이드 스테이징 (데스크톱 앱에서 지원)");
 
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
@@ -590,7 +590,7 @@ test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
     await withoutMruby(page);
     await page.goto("/?backend=browser");
     await expectBrowserWelcome(page);
-    await expect(page.getByTestId("welcome-web-limits")).toHaveText("웹판에서 안 되는 것: 엔진 프로세스 실행, 안드로이드 스테이징, Ruby 게임 실행. 데스크톱 앱에서 된다.");
+    await expect(page.getByTestId("welcome-web-limits")).toHaveText("브라우저 모드 미지원: 엔진 프로세스 실행, 안드로이드 스테이징, Ruby 게임 실행 (데스크톱 앱에서 지원)");
   });
 });
 
@@ -648,7 +648,7 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "mine"));
     await openMenu(page, "파일", "새 프로젝트");
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("폴더가 비어 있지 않다 (2개 항목)");
+    await expect(dialog).toContainText("폴더가 비어 있지 않음 (항목 2개)");
     await dialog.getByRole("button", { name: "만들기" }).click();
     await expect(page.getByTestId("new-project-dialog")).toBeVisible();
     await page.getByTestId("new-project-ok").click();
@@ -710,7 +710,7 @@ test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라
     await page.goto(deployed.href);
     const welcome = page.getByTestId("welcome");
     await expect(welcome).toContainText("메모리 모드.");
-    await expect(welcome).toContainText("이 브라우저에는 폴더 열기가 없어 샘플 프로젝트로 시작했다");
+    await expect(welcome).toContainText("폴더 열기 미지원 브라우저, 샘플 프로젝트로 시작됨");
     await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();

@@ -259,7 +259,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await modal(page).getByRole("button", { name: "버리고 다시 읽기" }).click();
     await expect(modal(page)).toHaveCount(0);
     const toasts = page.getByTestId("toasts");
-    await expect(toasts).toContainText("다시 읽지 못했다: JSON 이 아니다: ");
+    await expect(toasts).toContainText("다시 읽기 실패: JSON 구문 오류: ");
     await expect(toasts).not.toContainText("저장 실패");
     // 콘솔에도 남는다
     await expect

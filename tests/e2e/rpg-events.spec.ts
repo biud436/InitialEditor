@@ -323,7 +323,7 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     expect(logs.some((l) => l.startsWith("이 이벤트 자동 재생: 항구 마을 x 14, y 21 (이벤트 kid 앞에서 결정 키 입력, 시작 상태 arrived,heardAltar)")), logs.join("\n")).toBe(true);
     expect(logs.some((l) => l.includes(WANDER_NOTE))).toBe(false);
     // 이벤트가 돌았으니 지켜보는 것이 실패를 알리지 않는다
-    expect(logs.some((l) => l.includes("돌지 않았다")), logs.join("\n")).toBe(false);
+    expect(logs.some((l) => l.includes("실행되지 않음")), logs.join("\n")).toBe(false);
     const shot = process.env.RPG_EVENTS_SCREENSHOT;
     if (shot) await page.screenshot({ path: shot });
   });

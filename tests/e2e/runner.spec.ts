@@ -33,12 +33,12 @@ test.describe("실행기 (메모리 모드)", () => {
   test("상태 바의 엔진 칸은 에디터 안 대기이고 웹 엔진이 툴팁에 있다", async ({ page }) => {
     await page.goto("/?backend=memory");
     const engine = page.getByTestId("status-engine");
-    await expect(engine).toHaveText("엔진 (에디터 안): 대기");
+    await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     await expect(engine).toHaveAttribute("title", /게임 탭에서 실행 \(웹 엔진\)/);
     // 프로젝트를 열면 웹 엔진의 MANIFEST 를 읽어 기능과 커밋을 툴팁에 더한다
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
-    await expect(engine).toHaveText("엔진 (에디터 안): 대기");
+    await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     const manifest = JSON.parse(readFileSync(path.resolve("packages/app/public/engine/MANIFEST.json"), "utf8")) as { features: string[]; engineCommit: string };
     await expect(engine).toHaveAttribute("title", new RegExp(`기능 ${manifest.features.join(" ")}, 엔진 커밋 ${manifest.engineCommit.slice(0, 7)}`));
     await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 게임 탭의 웹 엔진 사용");

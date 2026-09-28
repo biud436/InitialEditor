@@ -138,7 +138,7 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     const files = page.getByTestId("find-file");
     await expect(files.filter({ hasText: "scripts/lua/main.lua" })).toHaveCount(1);
     await expect(files.filter({ hasText: "scripts/ruby/main.rb" })).toHaveCount(1);
-    await expect(page.getByTestId("find-summary")).toContainText("2개 파일");
+    await expect(page.getByTestId("find-summary")).toContainText("파일 2개");
 
     const rubyMatch = files.filter({ hasText: "scripts/ruby/main.rb" }).getByTestId("find-match").first();
     const line = await rubyMatch.getAttribute("data-line");
@@ -151,8 +151,8 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await page.getByTestId("find-case").check();
     await input.fill("\\bINIT\\b");
     await input.press("Enter");
-    await expect(page.getByTestId("find-summary")).toContainText("0개 파일");
-    await expect(page.getByTestId("find-results")).toContainText("찾지 못했다");
+    await expect(page.getByTestId("find-summary")).toContainText("파일 0개");
+    await expect(page.getByTestId("find-results")).toContainText("검색 결과 없음");
   });
 
   test("자동완성: Inpu 를 치면 Input 이 뜨고, Input. 뒤에는 멤버가 뜬다", async ({ page }) => {

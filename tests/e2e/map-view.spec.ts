@@ -103,7 +103,7 @@ async function openMeadow(page: Page) {
 test.describe("맵 뷰 (메모리 모드)", () => {
   test("팔레트, 붓질과 되돌리기, 채우기, 통행, 오브젝트 끌기, 저장", async ({ page }) => {
     const view = await openMeadow(page);
-    await expect(view).toContainText("20x12 칸 (320x192 px)");
+    await expect(view).toContainText("20x12 타일 (320x192 px)");
     await expect(view).toHaveAttribute("data-tool", "pen");
     await expect(view).toHaveAttribute("data-target", "layer:0");
     // 샘플 스키마의 타입이라 경고가 없고, 타일셋 밖의 gid도 없다
