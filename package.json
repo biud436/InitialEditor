@@ -27,6 +27,7 @@
     "test:e2e:webkit": "playwright test --project=webkit",
     "test:engine": "node scripts/e2e-engine-hotreload.mjs",
     "test:engine-scene": "node scripts/e2e-engine-scene.mjs",
+    "test:engine-map": "node scripts/e2e-engine-map.mjs",
     "test:android-stage": "node scripts/e2e-android-stage.mjs",
     "test:engine-events": "yarn workspace @initial-editor/ext-rpg test:engine-events",
     "sync:templates": "node scripts/sync-engine-templates.mjs",

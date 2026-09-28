@@ -163,6 +163,27 @@ KEEP_WORKDIR=1 INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/aldebaran-map.
 `알데바란: 시작 x <x> (y <y>)`를 찍고(엔진 PR #47 이후), `INITIAL2D_ALDEBARAN_TRACE=1`이면 맵과 몬스터 검수 줄을 찍는
 판(엔진 PR #48 이후)이어야 합니다. 검수 줄이 없는 엔진이면 테스트가 실패합니다.
 
+교차 검사 `yarn test:engine-map`은 맵 편집이 엔진과 맞는지 세 가지로 봅니다. 편집은 맵 뷰의 도구와 맵 문서, 씬 문서로 하고
+저장도 앱과 같은 함수로 합니다.
+
+- 통행: 타일맵 템플릿의 맵에서 통행을 막고 풀어 저장합니다. 씬에 탐침 컴포넌트를 붙여 엔진의 `IsPassable`(Ruby는 `passable?`)을
+  칸마다 찍게 하고, 저장한 파일과 에디터 모델과 칸마다 같은지 봅니다. Lua와 Ruby 둘 다 돌립니다.
+- 새 맵 골든: 새 맵 대화상자와 같은 함수로 맵을 만들고 두 레이어를 칠해 씬의 타일맵 오브젝트에 겁니다. 엔진의 프레임 30을
+  저장한 맵과 타일셋으로 그린 기준과 견줍니다. 규칙은 숲과 같습니다 (채널마다 ±8, 레이어마다, 칠한 칸마다). Lua와 Ruby 둘 다 돌립니다.
+- 항구 마을: 엔진 저장소 추적 파일의 사본에서 `port_town.json`을 이벤트 레이어가 붙은 채로 열고, 골든 화면 밖의 한 칸을 칠해
+  저장합니다. 파일은 그 칸만 달라야 하고, 엔진의 인수 시나리오(`run_engine_tests.py --only=rpgdemo_scene`)가 칠하기 전과 같은
+  결과로 통과해야 합니다. 짐 상자 대사가 저장한 이벤트의 글인지, 러너가 보는 맵 화면 셋(town, bag, wall)이 칠하기 전과 픽셀까지
+  같은지도 봅니다. 러너의 골든 검사는 다른 픽셀 2%까지 받아서 한 칸 차이는 보지 못하기 때문입니다.
+
+판마다 대조가 있습니다. 엔진에게만 고치기 전 맵, 칠하기 전 맵, deco를 비운 맵을 주면 판정이 떨어지는지 보고, 마을 첫 화면 안의
+칸을 칠하면 그 화면이 그 칸 자리에서만 달라지는지 봅니다. 엔진 실행 파일이 없으면 `SKIP:` 한 줄을 찍고 통과합니다.
+`INITIAL2D_DIR`이 git 저장소가 아니면 항구 마을만 건너뜁니다. 엔진 저장소는 고치지 않습니다.
+
+```sh
+INITIAL2D_DIR=../Initial2D yarn test:engine-map   # 엔진 빌드(build/Initial2D)와 python3, Pillow가 있어야 한다
+KEEP_WORKDIR=1 yarn test:engine-map               # 임시 프로젝트와 엔진 사본을 남긴다
+```
+
 ## 앱에 싣는 엔진
 
 설치본은 엔진 실행 파일 하나를 앱 안에 싣습니다. 엔진 저장소의 `tools/build_dist.sh` 로 만든 배포용 빌드이고, 에디터가 묶이는 엔진 커밋은
@@ -362,6 +383,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn test:conformance` | 브리지 백엔드 적합성 (엔진 저장소의 브리지 서버를 임시 프로젝트로 띄운다. 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D`) |
 | `yarn test:rust` | `cargo test` (src-tauri) |
 | `yarn test:engine-scene` | 에디터 템플릿으로 만든 프로젝트(빈, 플래피, 타일맵 x Lua, Ruby)를 진짜 엔진이 돌리는 교차 검사 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
+| `yarn test:engine-map` | 맵 편집의 엔진 교차 검사 (위 "맵 편집 (E3)"): 통행 편집과 엔진의 막힘, 새 맵과 엔진 화면의 골든(Lua, Ruby), 항구 마을 한 칸을 칠한 뒤의 엔진 인수 시나리오 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
 | `yarn test:android-stage` | 안드로이드 스테이징 교차 검사 (에디터와 같은 인자로 스테이징한 폴더만으로 데스크톱 엔진이 플래피를 돌린다, 스탬프, `config.setting` 과 RTP 가 빠지는지). 엔진 저장소는 `INITIAL2D_DIR` |
 | `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 생성물 표시)를 갱신 (`INITIAL2D_DIR`). `--from-zip <zip 이나 dist 폴더>` 는 엔진의 템플릿 묶음에서 |
