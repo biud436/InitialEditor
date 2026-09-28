@@ -94,7 +94,7 @@ export class LocationPicker {
     const index = eventKey === undefined ? -1 : state.section.indexOfKey(eventKey);
     const now = index < 0 ? null : commandAt(state, index, path);
     if (!now || now.code !== cmd.code || field(now, found.args.map) !== field(cmd, found.args.map)) {
-      if (cell) this.deps.notify?.("선택 중 이벤트나 커맨드가 변경되어 x, y 입력 안 함");
+      if (cell) this.deps.notify?.("선택하는 동안 이벤트나 커맨드가 변경되어 x, y를 입력하지 않았습니다");
       return "changed";
     }
     state.select([index]);

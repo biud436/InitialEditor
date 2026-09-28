@@ -119,17 +119,17 @@ pub fn fs_write_binary(state: State<'_, AppState>, request: Request<'_>) -> Resu
     let InvokeBody::Raw(data) = request.body() else {
         return Err(BackendError::new(
             ErrorCode::Io,
-            "fs_write_binary: raw body 필요",
+            "fs_write_binary: raw body가 필요합니다",
         ));
     };
     let encoded = request
         .headers()
         .get(HEADER_REL)
         .and_then(|v| v.to_str().ok())
-        .ok_or_else(|| BackendError::new(ErrorCode::Io, "fs_write_binary: x-rel 헤더 없음"))?;
+        .ok_or_else(|| BackendError::new(ErrorCode::Io, "fs_write_binary: x-rel 헤더가 없습니다"))?;
     let rel = percent_decode_str(encoded)
         .decode_utf8()
-        .map_err(|_| BackendError::new(ErrorCode::Io, "x-rel 헤더가 UTF-8이 아님"))?;
+        .map_err(|_| BackendError::new(ErrorCode::Io, "x-rel 헤더가 UTF-8이 아닙니다"))?;
     with_fs(&state, |fs| fs.write(&rel, data))
 }
 

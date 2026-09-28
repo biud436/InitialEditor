@@ -69,7 +69,7 @@ export interface EngineRuntime {
 }
 
 export const ENGINE_DIR = "engine/";
-export const ENGINE_MISSING = "웹 엔진 파일 없음 (engine/MANIFEST.json). 엔진 저장소에서 tools/build_web.sh 실행 후 yarn sync:engine-web 필요";
+export const ENGINE_MISSING = "웹 엔진 파일이 없습니다 (engine/MANIFEST.json). 엔진 저장소에서 tools/build_web.sh를 실행한 후 yarn sync:engine-web을 실행하세요.";
 
 /** 앱이 놓인 곳 기준 engine/ 의 절대 URL */
 export function engineBaseUrl(): string {

@@ -313,8 +313,8 @@ describe("RunnerStore 실행", () => {
     expect(runner.exitCode).toBe(134);
     expect(runner.pid).toBeNull();
     expect(runner.statusText).toBe("엔진: 종료 코드 134");
-    expect(h.toasts).toContainEqual("error: 엔진 종료됨 (종료 코드 134). 콘솔 확인 필요");
-    expect(logTexts(h.log).some((l) => l.startsWith("error/runner: 엔진 종료 코드 134"))).toBe(true);
+    expect(h.toasts).toContainEqual("error: 엔진이 종료되었습니다 (종료 코드 134). 콘솔을 확인하세요.");
+    expect(logTexts(h.log).some((l) => l.startsWith("error/runner: 엔진이 종료되었습니다 (종료 코드 134"))).toBe(true);
     runner.dispose();
   });
 
@@ -501,7 +501,7 @@ describe("RunnerStore 핫 리로드", () => {
     expect(result).toEqual({ count: 3 });
     expect(h.mem.pushed[0].map((f) => f.path)).toEqual(["resources/scenes/title.json", "scripts/lua/main.lua", "scripts/ruby/main.rb"]);
     expect(runner.lastReload?.count).toBe(3);
-    expect(logTexts(h.log).some((l) => l.startsWith("info/runner: 핫 리로드: 파일 3개 전송됨"))).toBe(true);
+    expect(logTexts(h.log).some((l) => l.startsWith("info/runner: 핫 리로드: 파일 3개를 전송했습니다"))).toBe(true);
   });
 
   it("브리지는 빈 목록을 보낸다 (서버가 모은다)", async () => {
@@ -518,7 +518,7 @@ describe("RunnerStore 핫 리로드", () => {
     };
     const runner = new RunnerStore(h.host);
     expect(await runner.reload()).toBeNull();
-    expect(h.toasts).toContainEqual("error: 핫 리로드 실패: 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인 (connection refused)");
+    expect(h.toasts).toContainEqual("error: 핫 리로드 실패: 게임이 INITIAL2D_HMR=1로 실행 중인지 확인하세요 (connection refused)");
   });
 
   it("메모리 백엔드(메모리 모드, 웹판의 샘플)는 kind가 브리지와 같아도 밖으로 보내지 않고 수동 리로드를 꺼 둔다", async () => {
@@ -541,7 +541,7 @@ describe("RunnerStore 핫 리로드", () => {
     const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     expect(await runner.reload()).toBeNull();
     expect(h.mem.pushed).toEqual([]);
-    expect(logTexts(h.log)).toContainEqual("warn/runner: 전송할 스크립트 없음 (scripts/ 아래의 .lua, .rb, .json)");
+    expect(logTexts(h.log)).toContainEqual("warn/runner: 전송할 스크립트가 없습니다 (scripts/ 아래의 .lua, .rb, .json)");
   });
 });
 

@@ -63,7 +63,7 @@ export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, pro
           {location}
         </span>
       </div>
-      {spec.ends && <div className="rpg-arg-note muted">이 커맨드 뒤의 커맨드는 실행되지 않음</div>}
+      {spec.ends && <div className="rpg-arg-note muted">이 커맨드 뒤의 커맨드는 실행되지 않습니다</div>}
       {own.map((p, i) => (
         <div key={i} className={`rpg-arg-problem is-${p.severity}`} data-testid="rpg-cmd-form-problem">
           {p.message}

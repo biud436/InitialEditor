@@ -194,7 +194,7 @@ describe("새 프로젝트 (웹판, 브라우저 폴더)", () => {
     declined.disk.writeFile("notes.txt", "메모\n");
     declined.picks.push(declined.disk.root());
     expect(await createNewProject(declined.e, declined.deps({ template: "empty", language: "lua", name: "x" }))).toBe(false);
-    expect(declined.state.confirms).toEqual(["폴더가 비어 있지 않음 (항목 1개). 그래도 이 폴더에 프로젝트를 만들까요? 기존 파일은 유지, 없는 파일만 생성"]);
+    expect(declined.state.confirms).toEqual(["폴더가 비어 있지 않습니다 (항목 1개). 기존 파일은 그대로 두고 없는 파일만 만듭니다. 이 폴더에 프로젝트를 만들까요?"]);
     expect(declined.disk.readFile("game.json")).toBeNull();
     expect(declined.dialogs).toEqual([]);
     expect(await declined.handles.list()).toEqual([]);

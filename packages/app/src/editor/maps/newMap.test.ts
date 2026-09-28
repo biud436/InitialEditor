@@ -74,19 +74,19 @@ describe("입력 검사", () => {
   it("크기와 타일 크기: 정수이고 범위 안", () => {
     expect(validateMapTiles("20", "너비")).toBeNull();
     expect(validateMapTiles("1024", "너비")).toBeNull();
-    expect(validateMapTiles("0", "너비")).toBe("너비: 1 이상 1024 이하여야 함");
-    expect(validateMapTiles("1025", "높이")).toBe("높이: 1 이상 1024 이하여야 함");
-    expect(validateMapTiles("2.5", "너비")).toBe("너비: 정수여야 함");
-    expect(validateMapTiles("", "너비")).toBe("너비: 정수여야 함");
-    expect(validateMapTiles("-3", "너비")).toBe("너비: 정수여야 함");
+    expect(validateMapTiles("0", "너비")).toBe("너비: 1 이상 1024 이하여야 합니다");
+    expect(validateMapTiles("1025", "높이")).toBe("높이: 1 이상 1024 이하여야 합니다");
+    expect(validateMapTiles("2.5", "너비")).toBe("너비: 정수여야 합니다");
+    expect(validateMapTiles("", "너비")).toBe("너비: 정수여야 합니다");
+    expect(validateMapTiles("-3", "너비")).toBe("너비: 정수여야 합니다");
     expect(validateTileSize("16")).toBeNull();
-    expect(validateTileSize("x")).toBe("타일 크기: 정수여야 함");
-    expect(validateTileSize("300")).toBe("타일 크기: 1 이상 256 이하여야 함");
+    expect(validateTileSize("x")).toBe("타일 크기: 정수여야 합니다");
+    expect(validateTileSize("300")).toBe("타일 크기: 1 이상 256 이하여야 합니다");
   });
 
   it("레이어 이름: 쉼표로 가르고 빈 것은 버린다, 하나 이상, 겹치지 않게", () => {
     expect(parseLayerNames(" ground, deco ,,over ")).toEqual({ names: ["ground", "deco", "over"], error: null });
-    expect(parseLayerNames(" , ").error).toBe("레이어 이름 1개 이상 필요");
+    expect(parseLayerNames(" , ").error).toBe("레이어 이름이 1개 이상 필요합니다");
     expect(parseLayerNames("a, b, a").error).toBe("레이어 이름 중복: a");
   });
 

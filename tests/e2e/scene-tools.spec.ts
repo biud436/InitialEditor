@@ -70,7 +70,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(page.getByTestId("hierarchy")).toContainText("활성 씬 탭 없음");
     await newScene(page, "stage1");
     const hierarchy = page.getByTestId("hierarchy");
-    await expect(hierarchy).toContainText("그리기 순서: 위가 먼저");
+    await expect(hierarchy).toContainText("그리기 순서 (위 항목부터)");
     await expect(page.getByTestId("inspector")).toContainText("오브젝트 0개");
 
     // 씬 > 오브젝트 추가 > 스프라이트: 계층에 보이고 선택되어 있다
@@ -243,12 +243,17 @@ test.describe("씬 도구 (메모리 모드)", () => {
     const writeFile = (path: string, text: string) =>
       page.evaluate(([p, t]) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText(p, t), [path, text] as const);
     const writeDeclaration = (text: string) => writeFile("scripts/components/mover.json", text);
-    await page.locator(".monaco-editor .view-lines").click();
-    await page.keyboard.press(`${await primaryKey(page)}+a`);
-    await page.keyboard.insertText('{ "version": 1, "fields": [{ "key": "speed", "type": "vector" }] }');
+    // 외부에서 바뀐 선언 파일은 열린 탭이 다시 읽고, 모르는 type 에 오류 표시가 뜬다. 되돌리면 사라진다
+    const changeOnDisk = (text: string) =>
+      page.evaluate(([p, t]) => (window as unknown as { initialEditor: { backend: { simulateExternalChange(p: string, k: string, t: string): Promise<void> } } }).initialEditor.backend.simulateExternalChange(p, "modify", t), [
+        "scripts/components/mover.json",
+        text,
+      ] as const);
+    await changeOnDisk('{ "version": 1, "fields": [{ "key": "speed", "type": "vector" }] }\n');
     await expect(page.locator(".monaco-editor .view-lines")).toContainText("vector");
     await expect(page.locator(".monaco-editor .squiggly-error").first()).toBeAttached();
-    await page.keyboard.press(`${await primaryKey(page)}+z`);
+    await changeOnDisk('{ "version": 1, "fields": [] }\n');
+    await expect(page.locator(".monaco-editor .view-lines")).not.toContainText("vector");
     await expect(page.locator(".monaco-editor .squiggly-error")).toHaveCount(0);
     await expect(page.getByTestId("doc-tab").filter({ hasText: "mover.json" }).locator(".doc-tab-dirty")).toHaveCount(0);
     await page.getByTestId("doc-tab").filter({ hasText: "stage3.json" }).click();
@@ -300,7 +305,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await writeFile("scripts/lua/scene_loader.lua", "-- 예전 씬 로더\nreturn {}\n");
     const note = page.getByTestId("inspector-loader-old");
     await expect(note).toBeVisible();
-    await expect(page.getByTestId("inspector-problems")).toContainText("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 넘기지 않아");
+    await expect(page.getByTestId("inspector-problems")).toContainText("씬 로더(scripts/lua/scene_loader.lua)가 매개변수를 전달하지 않아");
     await note.getByTestId("inspector-loader-upgrade").click();
     await page.getByRole("dialog").getByRole("button", { name: "덮어쓰기" }).click();
     await expect(note).toHaveCount(0);

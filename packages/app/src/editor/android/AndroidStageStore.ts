@@ -24,7 +24,7 @@ export const ANDROID_LOG_SOURCE = "android";
 export const DESKTOP_ONLY = "데스크톱 앱 전용";
 export const NEED_PROJECT = "열린 프로젝트 없음";
 export const STAGING_BUSY = "스테이징 중";
-export const UNTRUSTED = "스크립트 실행 허용 안 함";
+export const UNTRUSTED = "스크립트 실행 허용 필요";
 
 export interface RepoProbeResult extends RepoState {
   /** android/prepare_assets.sh 가 있다 */
@@ -183,7 +183,7 @@ export class AndroidStageStore {
     const project = this.host.project.root;
     this.setState("staging");
     try {
-      log.info(ANDROID_LOG_SOURCE, `안드로이드 스테이징: ${project} 를 ${stageDestPath(repo.repo)} 로 (RTP 변환물 ${withRtp ? "포함" : "제외"})`);
+      log.info(ANDROID_LOG_SOURCE, `안드로이드 스테이징, 프로젝트: ${project}, 대상: ${stageDestPath(repo.repo)} (RTP 변환 파일 ${withRtp ? "포함" : "제외"})`);
       let run: ToolRun;
       try {
         run = await this.runTool({ repo: repo.repo, project, withRtp, dryRun: false }, (line, stream) => {

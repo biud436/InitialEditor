@@ -68,13 +68,13 @@ describe("새 맵 대화상자", () => {
     expect(ok.disabled).toBe(true);
     type("new-map-name", "stage1");
     type("new-map-width", "0");
-    expect(screen.getByTestId("new-map-problem").textContent).toBe("너비: 1 이상 1024 이하여야 함");
+    expect(screen.getByTestId("new-map-problem").textContent).toBe("너비: 1 이상 1024 이하여야 합니다");
     type("new-map-width", "30");
     type("new-map-layers", "a, a");
     expect(screen.getByTestId("new-map-problem").textContent).toBe("레이어 이름 중복: a");
     type("new-map-layers", "a, b");
     type("new-map-tile", "x");
-    expect(screen.getByTestId("new-map-problem").textContent).toBe("타일 크기: 정수여야 함");
+    expect(screen.getByTestId("new-map-problem").textContent).toBe("타일 크기: 정수여야 합니다");
     expect(ok.disabled).toBe(true);
   });
 
@@ -85,7 +85,7 @@ describe("새 맵 대화상자", () => {
     type("new-map-tile", "32");
     expect(screen.getByTestId("new-map-columns").getAttribute("data-columns")).toBe("4");
     fireEvent.change(screen.getByTestId("new-map-tileset"), { target: { value: "resources/images/checker.png" } });
-    await waitFor(() => expect(screen.getByTestId("new-map-problem").textContent).toBe("이미지(8x8)가 타일 크기보다 작음"));
+    await waitFor(() => expect(screen.getByTestId("new-map-problem").textContent).toBe("이미지가 타일 크기보다 작습니다 (이미지: 8x8)"));
     expect(ok.disabled).toBe(true);
     type("new-map-tile", "8");
     expect(ok.disabled).toBe(false);

@@ -96,7 +96,7 @@ describe("맵 파일", () => {
       expect(text).toContain('\n  "events": [],\n');
       expect(parseMap(text).events).toEqual([]);
     }
-    for (const v of [{ a: 1 }, { "0": null, "1": {} }, "x", 0, false]) expect(() => parseMap(withEvents(v))).toThrow(/events는 배열이어야 함/);
+    for (const v of [{ a: 1 }, { "0": null, "1": {} }, "x", 0, false]) expect(() => parseMap(withEvents(v))).toThrow(/events는 배열이어야 합니다/);
   });
 
   it("2^53 을 넘는 정수는 읽고 다시 써도 숫자 글이 그대로다 (글 안의 숫자와 안전한 수는 그대로 수)", () => {
@@ -124,7 +124,7 @@ describe("맵 파일", () => {
     const base = JSON.parse(serializeMap(tiny())) as Record<string, unknown>;
     const withRaw = (key: string, raw: string) => JSON.stringify({ ...base, [key]: "@@" }).replace('"@@"', raw);
     const big = "12345678901234567890";
-    expect(() => parseMap(withRaw("objects", `[{"id":${big},"type":"spawn","x":1}]`))).toThrow(/objects\[0\]\.id는 비어 있지 않은 문자열이어야 함/);
+    expect(() => parseMap(withRaw("objects", `[{"id":${big},"type":"spawn","x":1}]`))).toThrow(/objects\[0\]\.id는 비어 있지 않은 문자열이어야 합니다/);
     expect(() => parseMap(withRaw("objects", `[{"id":"a","type":${big},"x":1}]`))).toThrow(/objects\[0\]\.type 없음/);
     const layers = parseMap(withRaw("layers", `[{"name":${big},"data":${JSON.stringify(new Array(12).fill(1))}}]`)).layers;
     expect(layers[0].name).toBe("layer1");
@@ -155,7 +155,7 @@ describe("맵 파일", () => {
 
   it("잘못된 파일은 자리를 말한다", () => {
     expect(() => parseMap('{"version": 3}')).toThrow(/지원하지 않는 맵 버전: 3/);
-    expect(() => parseMap(JSON.stringify({ version: 1, width: 2, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "a", data: [1] }] }))).toThrow(/길이는 2여야 함 \(현재: 1\)/);
+    expect(() => parseMap(JSON.stringify({ version: 1, width: 2, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "a", data: [1] }] }))).toThrow(/길이는 2여야 합니다 \(현재: 1\)/);
     expect(() => parseMap(JSON.stringify({ version: 1, width: 1, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "a", data: [-1] }] }))).toThrow(MapFormatError);
     expect(() => parseMap(JSON.stringify({ version: 2, width: 1, height: 1, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [], objects: [{ id: "", type: "x", x: 0 }] }))).toThrow(/objects\[0\]\.id/);
   });
@@ -374,8 +374,8 @@ describe("오브젝트 스키마", () => {
     const big = bigIntValue("12345678901234567890");
     const problems = validateObjects([{ id: "b", type: "box", x: 0, y: 0, props: { seed: big, weight: big, name: big }, extra: {} }], s);
     expect(problems.map((p) => [p.location, p.message])).toEqual([
-      ["objects[0].props.weight", "b: weight 값은 10 이하여야 함"],
-      ["objects[0].props.name", "b: name 값은 문자열이어야 함"],
+      ["objects[0].props.weight", "b: weight 값은 10 이하여야 합니다"],
+      ["objects[0].props.name", "b: name 값은 문자열이어야 합니다"],
     ]);
   });
 
@@ -410,10 +410,10 @@ describe("오브젝트 스키마", () => {
       s,
     );
     expect(problems.map((p) => [p.location, p.message])).toEqual([
-      ["objects[0].props.title", "fresh: 필수 속성 제목 비어 있음"],
-      ["objects[0].props.text", "fresh: 필수 속성 글 비어 있음"],
-      ["objects[1].props.title", "spaces: 필수 속성 제목 비어 있음"],
-      ["objects[1].props.text", "spaces: 필수 속성 글 비어 있음"],
+      ["objects[0].props.title", "fresh: 필수 속성 제목 값이 비어 있습니다"],
+      ["objects[0].props.text", "fresh: 필수 속성 글 값이 비어 있습니다"],
+      ["objects[1].props.title", "spaces: 필수 속성 제목 값이 비어 있습니다"],
+      ["objects[1].props.text", "spaces: 필수 속성 글 값이 비어 있습니다"],
     ]);
     expect(problems.every((p) => p.severity === "error")).toBe(true);
   });
@@ -498,7 +498,7 @@ describe("MapDocument", () => {
     expect(doc.externallyChanged).toBe(true);
     expect(doc.reloadError).toContain("지원하지 않는 맵 버전: 3 (지원: 1, 2)");
     doc.apply(doc.model.paintCells(0, [{ index: 0, value: 5 }]));
-    await expect(doc.save()).rejects.toThrow(/다시 읽기 실패로 저장 차단/);
+    await expect(doc.save()).rejects.toThrow(/디스크에서 다시 읽지 못해 저장할 수 없습니다/);
     expect(await be.readText(path)).toBe(newer);
 
     // 쓰다 만 파일이 다시 온전해지면 다시 읽기가 막힘을 푼다

@@ -52,7 +52,7 @@ function drawnMarkers(page: Page): Promise<Drawn[]> {
 
 const SIGN_TEXT = '어서 오세요.\n"항구 마을" 입니다.';
 /** 배회하는 이벤트의 자동 재생 설명. 엔진의 play.probe 가 INITIAL2D_RPG_HOLD 로 그 이벤트를 세우면 붙지 않는다 */
-const WANDER_NOTE = "배회하는 이벤트: 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있음";
+const WANDER_NOTE = "배회하는 이벤트라 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있습니다";
 
 test.describe("RPG 이벤트 (메모리 모드)", () => {
   test("힌트, 표식 17개, 놓기와 끌기와 인스펙터, 커맨드 넣기와 되돌리기, 맵 뷰의 Ctrl+C, 저장 글과 키 순서", async ({ page }) => {
@@ -354,7 +354,7 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     await expect(page.getByTestId("rpg-inspector-id")).toHaveText("ship");
     await page.getByTestId("rpg-inspector-probe").click();
 
-    const stopped = "자동 재생 중단: 이벤트 ship 실행 뒤 게임이 새 게임으로 재시작됨";
+    const stopped = "자동 재생을 중단했습니다. 이벤트 ship 실행 뒤 씬 전환 커맨드로 게임이 새 게임으로 다시 시작되었습니다";
     await expect.poll(async () => (await editorLogTexts(page)).some((l) => l.startsWith(stopped)), { timeout: 90_000 }).toBe(true);
     await expect.poll(() => ev<string>(page, "(e) => e.runner.state"), { timeout: 15_000 }).toBe("idle");
     await expect(page.getByTestId("toasts")).toContainText(stopped);

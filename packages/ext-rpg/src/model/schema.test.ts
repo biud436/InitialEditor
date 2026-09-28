@@ -103,7 +103,7 @@ describe("event-commands.json 읽기", () => {
     const e = errorOf(withPatch((s) => (s.version = 2)));
     expect(e).toBeInstanceOf(EventSchemaVersionError);
     expect(e.location).toBe("version");
-    expect(schemaLockReason(e)).toContain("지원하지 않는 event-commands.json 버전: 2 (이 에디터는 버전 1 만 편집 가능)");
+    expect(schemaLockReason(e)).toContain("지원하지 않는 event-commands.json 버전: 2 (이 에디터에서는 버전 1만 편집할 수 있습니다)");
     expect(errorOf(withPatch((s) => delete s.version))).toBeInstanceOf(EventSchemaVersionError);
     expect(schemaLockReason(new Error("x"))).toBeNull();
     expect(schemaLockReason(errorOf("[]"))).toBeNull();

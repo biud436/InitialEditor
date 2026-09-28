@@ -45,7 +45,7 @@ export function ArgField(props: ArgWidgetProps) {
     case "json":
       return <JsonArg {...props} />;
     case "list":
-      return <span className="muted">커맨드 목록 편집기에서 편집</span>;
+      return <span className="muted">커맨드 목록 에디터에서 편집</span>;
   }
 }
 

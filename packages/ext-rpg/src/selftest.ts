@@ -41,9 +41,9 @@ export function rpgSelftestProbe(store: RpgProjectStore, layer: MapLayerSpec, vi
     },
     playRequest(doc, args) {
       const id = args.event;
-      if (typeof id !== "string" || id === "") return "args.event 값은 이벤트 id 여야 함";
+      if (typeof id !== "string" || id === "") return "args.event 값은 이벤트 id 여야 합니다";
       const mode = args.mode ?? "play";
-      if (mode !== "play" && mode !== "probe") return `args.mode 값은 play 나 probe 여야 함 (현재: ${String(mode)})`;
+      if (mode !== "play" && mode !== "probe") return `args.mode 값은 play 나 probe 여야 합니다 (현재: ${String(mode)})`;
       const state = eventsStateOf(doc);
       if (!state) return `이벤트 레이어 없음: ${doc.path}`;
       const index = state.section.list.findIndex((ev) => field(ev, "id") === id);

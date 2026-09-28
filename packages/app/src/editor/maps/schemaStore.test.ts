@@ -114,7 +114,7 @@ describe("MapSchemaStore", () => {
     await waitFor(() => store.error !== null);
     expect(store.current).toBeNull();
     expect(store.source).toBe("none");
-    expect(store.error).toMatch(/spawn\.shape는 point, band, rect 중 하나여야 함/);
+    expect(store.error).toMatch(/spawn\.shape는 point, band, rect 중 하나여야 합니다/);
     expect(texts(h.log).some((l) => l.startsWith("error/maps: 맵 오브젝트 스키마 오류") && l.includes("spawn.shape"))).toBe(true);
 
     h.mem.simulateExternalChange(SCHEMA_PATH, "modify", "{ not json");

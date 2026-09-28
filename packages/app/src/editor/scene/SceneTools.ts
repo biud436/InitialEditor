@@ -75,8 +75,8 @@ export function validateLogicalScriptName(value: string): string | null {
   if (!v) return "이름 비어 있음";
   if (/\\/.test(v)) return "폴더 구분자는 / 만 허용 (\\ 불가)";
   if (/\.(lua|rb)$/i.test(v)) return "확장자 불필요 (언어에 따라 .lua 또는 .rb 자동 추가)";
-  if (v.startsWith("/") || v.includes("..")) return "루트 기준 상대 경로여야 함 (/ 로 시작하거나 .. 포함 불가)";
-  if (v.split("/").some((seg) => seg === "" || seg === ".")) return "비어 있거나 . 인 경로 구성 요소 포함";
+  if (v.startsWith("/") || v.includes("..")) return "루트 기준 상대 경로여야 합니다 (/ 로 시작하거나 .. 포함 불가)";
+  if (v.split("/").some((seg) => seg === "" || seg === ".")) return "비어 있거나 점(.)인 경로 구성 요소가 있습니다";
   if (!/^[A-Za-z0-9_\-./]+$/.test(v)) return "영문, 숫자, _, -, / 만 허용";
   return null;
 }
@@ -467,7 +467,7 @@ export class SceneTools {
     const problems = validateComponentParams(scene, (name) => this.declarations.lookup(name));
     const i = scene.objects.findIndex((o) => Object.keys(o.params).length > 0);
     if (this.loader.state === "old" && i >= 0) {
-      problems.push({ severity: "warning", message: `씬 로더(${this.loader.path})가 매개변수를 넘기지 않아 params 가 게임에 반영되지 않음. 인스펙터의 "씬 로더 바꾸기"로 교체`, location: `objects[${i}].params` });
+      problems.push({ severity: "warning", message: `씬 로더(${this.loader.path})가 매개변수를 전달하지 않아 params가 게임에 반영되지 않습니다. 인스펙터에서 "씬 로더 교체"를 선택하세요.`, location: `objects[${i}].params` });
     }
     return problems;
   };

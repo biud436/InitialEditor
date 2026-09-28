@@ -41,7 +41,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     const manifest = JSON.parse(readFileSync(path.resolve("packages/app/public/engine/MANIFEST.json"), "utf8")) as { features: string[]; engineCommit: string };
     await expect(engine).toHaveAttribute("title", new RegExp(`기능 ${manifest.features.join(" ")}, 엔진 커밋 ${manifest.engineCommit.slice(0, 7)}`));
-    await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 게임 탭의 웹 엔진 사용");
+    await expect(page.getByTestId("console-list")).toContainText("실행(F5)에 게임 탭의 웹 엔진을 사용합니다");
     // 실행 전이라 정지는 꺼져 있고 실행 표시도 없다
     const toolbar = page.getByTestId("toolbar");
     await expect(toolbar.locator('[data-command="run.stop"]')).toBeDisabled();
@@ -94,7 +94,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     await expect(reload).toBeEnabled();
     await reload.click();
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개 다시 복사됨/);
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개를 다시 복사했습니다/);
     await expect(page.getByTestId("console-list")).not.toContainText("개 전송됨");
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
@@ -137,7 +137,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await page.getByTestId("doc-tab").filter({ hasText: "main.lua" }).click();
     await page.locator(".monaco-editor .view-lines").click();
     await page.keyboard.press("ControlOrMeta+Shift+R");
-    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개 다시 복사됨/);
+    await expect(page.getByTestId("console-list")).toContainText(/핫 리로드: 웹 엔진에 파일 \d+개를 다시 복사했습니다/);
     await expect.poll(reloadKeys).toEqual([true, true, true]);
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });

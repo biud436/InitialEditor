@@ -195,7 +195,7 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
       </div>
       <div className="inspector-body">
         <div className="inspector-section" data-testid="map-inspector-common">
-          <FieldRow label="id" hint="맵 안에서 고유해야 함">
+          <FieldRow label="id" hint="맵 안에서 고유해야 합니다">
             <IdField doc={doc} object={object} />
           </FieldRow>
           <FieldRow label="타입" hint={object.type}>
@@ -222,7 +222,7 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
           <SchemaFields doc={doc} object={object} spec={spec} />
         ) : (
           <div className="inspector-section">
-            <div className="muted inspector-note">스키마에 없는 타입, 속성 폼 없음. props는 파일에 그대로 유지</div>
+            <div className="muted inspector-note">스키마에 없는 타입입니다. 속성 폼을 표시할 수 없지만 props는 파일에 그대로 유지됩니다.</div>
             {Object.keys(object.props).length > 0 && <pre className="map-raw-props">{stringifyJsonLossless(object.props, 2)}</pre>}
           </div>
         )}
@@ -248,7 +248,7 @@ const ManyObjects = observer(function ManyObjects({ doc, objects }: { doc: MapDo
       </div>
       <div className="inspector-body">
         <div className="inspector-section" data-testid="map-inspector-fields">
-          {types.size > 1 && <div className="muted inspector-note">타입이 서로 다름. 같은 타입만 선택하면 일괄 편집 가능한 속성 표시</div>}
+          {types.size > 1 && <div className="muted inspector-note">선택한 오브젝트의 타입이 서로 다릅니다. 같은 타입만 선택하면 일괄 편집할 수 있는 속성이 표시됩니다.</div>}
           {spec && fields.length === 0 && <div className="muted inspector-note">일괄 편집 가능한 속성(enum, boolean) 없음</div>}
           {fields.map((f) => (
             <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
@@ -301,12 +301,12 @@ const MapSummary = observer(function MapSummary({ doc }: { doc: MapDocument }) {
               ) : schema ? (
                 `${store?.path ?? "프로젝트"}, 타입 ${schema.types.length}개, play 설정 ${schema.play ? "있음" : "없음"}`
               ) : (
-                `없음 (${store?.path ?? "resources/schema/map-objects.json"} 파일 생성 시 타입별 속성 폼 사용 가능)`
+                `없음 (${store?.path ?? "resources/schema/map-objects.json"} 파일을 만들면 타입별 속성 폼을 사용할 수 있습니다)`
               )}
             </span>
           </FieldRow>
         </div>
-        <div className="panel-hint">선택한 오브젝트 없음. 맵 오브젝트 목록이나 맵 뷰에서 선택하면 속성 표시</div>
+        <div className="panel-hint">선택한 오브젝트 없음. 맵 오브젝트 목록이나 맵 뷰에서 선택하면 속성이 표시됩니다.</div>
         <ProblemList doc={doc} problems={doc.objectProblems} testId="map-inspector-problems" />
       </div>
     </div>

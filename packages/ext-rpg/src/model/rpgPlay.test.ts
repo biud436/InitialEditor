@@ -171,7 +171,7 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const { h, sources } = setup();
     const doc = h.open(PORT_TOWN);
     const i = indexOf(doc, "kid");
-    const WANDER = "배회하는 이벤트: 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있음";
+    const WANDER = "배회하는 이벤트라 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있습니다";
     const failure = (plan: PlayPlan) => {
       const w = plan.watch!();
       w.line("rpg:map:port_town events:17 skipped:0");
@@ -185,12 +185,12 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const loose = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(loose.env).not.toHaveProperty("INITIAL2D_RPG_HOLD");
     expect(loose.note).toBe(`이벤트 kid 앞에서 결정 키 입력, ${WANDER}`);
-    expect(failure(loose)).toContain("배회하는 이벤트라 앞의 auto 이벤트 실행 중 원래 위치를 벗어났을 수 있음");
+    expect(failure(loose)).toContain("배회하는 이벤트라 앞의 auto 이벤트를 실행하는 동안 원래 위치를 벗어났을 수 있습니다");
     sources.set({ game });
     const held = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(held.env.INITIAL2D_RPG_HOLD).toBe("kid");
     expect(held.note).toBe("이벤트 kid 앞에서 결정 키 입력");
-    expect(failure(held)).toBe("자동 재생 종료, 이벤트 kid 실행되지 않음 (rpg:event:kid 줄 없음).");
+    expect(failure(held)).toBe("자동 재생이 종료되었지만 이벤트 kid 실행을 확인하지 못했습니다 (rpg:event:kid 줄이 없습니다).");
     // 다른 값으로 세우면(다른 이벤트) 이 이벤트는 여전히 배회한다
     sources.set({ game: { ...game, play: { ...game.play!, probe: { ...game.play!.probe, INITIAL2D_RPG_HOLD: "captain" } } } });
     expect((eventPlay(sources, doc, i, "probe") as PlayPlan).note).toContain(WANDER);
@@ -263,10 +263,10 @@ describe("자동 재생 지켜보기 (probeWatch)", () => {
   it("transfer 없이 맵을 다시 열면(새 게임) 그 줄에서 멈출 이유를 준다", () => {
     const stop = feed(probeWatch("ship"), SHIP_RUN);
     expect(stop?.at).toBe(7);
-    expect(stop?.reason).toBe("자동 재생 중단: 이벤트 ship 실행 뒤 게임이 새 게임으로 재시작됨 (씬 전환 커맨드). 자동 재생 결과는 위 줄까지");
+    expect(stop?.reason).toBe("자동 재생을 중단했습니다. 이벤트 ship 실행 뒤 씬 전환 커맨드로 게임이 새 게임으로 다시 시작되었습니다. 자동 재생 결과는 위 줄까지입니다.");
     // 이벤트가 돌기 전이면 그렇게 말한다
     const early = feed(probeWatch("kid"), SHIP_RUN);
-    expect(early?.reason).toBe("자동 재생 중단: 이벤트 kid 실행 전에 게임이 새 게임으로 재시작됨");
+    expect(early?.reason).toBe("자동 재생을 중단했습니다. 이벤트 kid 실행 전에 게임이 새 게임으로 다시 시작되었습니다.");
   });
 
   it("transfer 로 다른 맵을 여는 것은 다시 시작이 아니다. 핫 리로드 뒤의 첫 맵도 아니다", () => {
@@ -282,13 +282,13 @@ describe("자동 재생 지켜보기 (probeWatch)", () => {
     const kid = probeWatch("kid", { wanders: true });
     feed(kid, ["rpg:map:port_town events:17 skipped:0", "rpg:player:port_town,14,21,up", "rpg:event:arrival", "rpg:route:done"]);
     const failure = kid.exit?.(0) ?? "";
-    expect(failure.startsWith("자동 재생 종료, 이벤트 kid 실행되지 않음 (rpg:event:kid 줄 없음).")).toBe(true);
-    expect(failure).toContain("배회하는 이벤트라 앞의 auto 이벤트 실행 중 원래 위치를 벗어났을 수 있음");
+    expect(failure.startsWith("자동 재생이 종료되었지만 이벤트 kid 실행을 확인하지 못했습니다 (rpg:event:kid 줄이 없습니다).")).toBe(true);
+    expect(failure).toContain("배회하는 이벤트라 앞의 auto 이벤트를 실행하는 동안 원래 위치를 벗어났을 수 있습니다");
     expect(kid.exit?.(null)).toBeUndefined();
     expect(kid.exit?.(1)).toBeUndefined();
     const plain = probeWatch("crates");
     feed(plain, ["rpg:map:port_town events:17 skipped:0", "rpg:route:done"]);
-    expect(plain.exit?.(0)).toBe("자동 재생 종료, 이벤트 crates 실행되지 않음 (rpg:event:crates 줄 없음).");
+    expect(plain.exit?.(0)).toBe("자동 재생이 종료되었지만 이벤트 crates 실행을 확인하지 못했습니다 (rpg:event:crates 줄이 없습니다).");
     const ran = probeWatch("kid", { wanders: true });
     feed(ran, ["rpg:map:port_town events:17 skipped:0", "rpg:event:kid", "rpg:route:done"]);
     expect(ran.exit?.(0)).toBeUndefined();

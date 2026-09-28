@@ -92,7 +92,7 @@ export const TilemapInspector = observer(function TilemapInspector({ document, o
           ))}
         </select>
       </FieldRow>
-      <FieldRow label="오브젝트 아래 레이어 수" hint="모든 씬 오브젝트 아래에 그리는 맵 레이어 수 (첫 레이어부터). 나머지 레이어는 오브젝트 위에 그림">
+      <FieldRow label="오브젝트 아래 레이어 수" hint="모든 씬 오브젝트 아래에 그릴 맵 레이어 수입니다 (첫 레이어부터). 나머지 레이어는 오브젝트 위에 그립니다.">
         <NumberField
           value={p.groundLayers}
           onChange={(v, s) => set("groundLayers", v, s)}
@@ -110,12 +110,12 @@ export const TilemapInspector = observer(function TilemapInspector({ document, o
       </FieldRow>
       {p.map && (
         <div className="inspector-note muted" data-testid="tilemap-map-info">
-          {info === null ? "읽는 중" : info.map ? mapSummary(info.map) : `읽기 실패: ${info.error}`}
+          {info === null ? "불러오는 중" : info.map ? mapSummary(info.map) : `읽기 실패: ${info.error}`}
         </div>
       )}
       {layers !== null && p.groundLayers > layers && (
         <div className="inspector-note muted" data-testid="tilemap-ground-note">
-          오브젝트 아래 레이어 수가 맵의 레이어 수({layers})보다 큼. 게임에서는 모든 레이어를 오브젝트 아래에 그림
+          오브젝트 아래 레이어 수가 맵의 레이어 수({layers})보다 큽니다. 게임에서는 모든 레이어를 오브젝트 아래에 그립니다.
         </div>
       )}
     </div>

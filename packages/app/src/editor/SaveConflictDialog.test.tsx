@@ -56,13 +56,13 @@ describe("저장 충돌 모달", () => {
     void askSaveConflict(modals, doc, { kind: "missing" });
     expect(renderTop(modals).title).toBe("삭제된 파일");
     expect(screen.queryByRole("button", { name: "다시 읽기" })).toBeNull();
-    expect(screen.getByTestId("save-conflict").textContent).toContain("main.json: 디스크에서 삭제됨. 덮어쓰기: 편집 내용으로 파일 다시 생성");
+    expect(screen.getByTestId("save-conflict").textContent).toContain("main.json: 디스크에서 삭제되었습니다. 덮어쓰면 편집 내용으로 파일을 다시 만듭니다.");
     cleanup();
 
     const unreadable: SaveConflict = { kind: "unreadable", reason: "JSON이 아니다" };
     void askSaveConflict(modals, doc, unreadable);
     expect(renderTop(modals).title).toBe("다시 읽기 실패한 파일");
-    expect(screen.getByTestId("save-conflict").textContent).toContain("main.json 다시 읽기 실패: JSON이 아니다");
+    expect(screen.getByTestId("save-conflict").textContent).toContain("main.json: 다시 읽지 못했습니다 (JSON이 아니다)");
     expect(screen.getByRole("button", { name: "다시 읽기" })).toBeTruthy();
   });
 

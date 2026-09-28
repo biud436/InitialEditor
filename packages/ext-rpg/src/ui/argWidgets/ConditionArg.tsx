@@ -11,7 +11,7 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
   if (value !== undefined && !isObjectPlace(value)) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        조건은 객체여야 함 (현재: {stringifyJsonLossless(value)}){" "}
+        조건은 객체여야 합니다 (현재: {stringifyJsonLossless(value)}){" "}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} onClick={() => onChange(schema.conditions[0] ? { [schema.conditions[0].kind]: "" } : {})}>
           새 조건
         </button>
@@ -56,12 +56,12 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
       </select>
       {!kind && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-empty`}>
-          빈 조건: 항상 참이라 '아니면' 분기 실행 안 됨
+          빈 조건은 항상 참이므로 '아니면' 분기가 실행되지 않습니다
         </div>
       )}
       {present.length > 1 && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-many`}>
-          조건 종류가 2개 이상 ({present.map((c) => c.kind).join(", ")}): 엔진은 첫 번째 {present[0].kind} 만 사용. 종류를 다시 선택하면 1개만 유지
+          조건 종류가 2개 이상입니다 ({present.map((c) => c.kind).join(", ")}). 엔진은 첫 번째 {present[0].kind} 조건만 사용합니다. 종류를 다시 선택하면 1개만 유지됩니다.
         </div>
       )}
       {kind &&

@@ -88,15 +88,15 @@ export function ResizeMapForm({ width, height, tileWidth, tileHeight, preview, o
         <div className="form-row">
           <label>기준점</label>
           <AnchorPicker value={anchor} onChange={setAnchor} />
-          <div className="form-help">기준점: 기존 맵 내용을 고정할 위치. 반대쪽이 늘어나거나 잘림</div>
+          <div className="form-help">기존 맵 내용을 고정할 위치입니다. 반대쪽이 늘어나거나 잘립니다.</div>
         </div>
         {summary ? (
           <div className="map-dialog-summary" data-testid="resize-summary" data-dx={summary.offset.dx} data-dy={summary.offset.dy}>
             {describeOffset(summary)}
-            {summary.clips ? ", 줄어드는 쪽의 타일은 잘림" : ""}
+            {summary.clips ? ", 줄어드는 쪽의 타일이 잘립니다" : ""}
             {summary.objectsOutside.length > 0 ? (
               <div className="map-dialog-warning" data-testid="resize-outside" data-count={summary.objectsOutside.length}>
-                맵 밖으로 나가는 오브젝트 {summary.objectsOutside.length}개 (삭제 안 함): {summary.objectsOutside.join(", ")}
+                맵 밖으로 나가는 오브젝트 {summary.objectsOutside.length}개 (삭제하지 않습니다): {summary.objectsOutside.join(", ")}
               </div>
             ) : null}
             {summary.objectsPartlyOutside.length > 0 ? (

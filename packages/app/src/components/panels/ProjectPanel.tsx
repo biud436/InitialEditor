@@ -101,7 +101,7 @@ export const ProjectPanel = observer(function ProjectPanel() {
           className={"btn btn-ghost project-filter" + (tree.filter.enabled ? " is-on" : "")}
           aria-pressed={tree.filter.enabled}
           aria-label="프로젝트 파일만 표시"
-          title={tree.filter.enabled ? `프로젝트 파일만 표시 중 (숨김 ${tree.hiddenCount}개). 클릭하면 전체 표시` : "전체 표시 중. 클릭하면 프로젝트 파일(game.json, scripts, resources)만 표시"}
+          title={tree.filter.enabled ? `프로젝트 파일만 표시 중 (숨김 ${tree.hiddenCount}개). 클릭하면 모든 파일을 표시합니다.` : "모든 파일 표시 중. 클릭하면 프로젝트 파일(game.json, scripts, resources)만 표시합니다."}
           data-testid="project-filter"
           data-hidden={tree.hiddenCount}
           onClick={() => tree.filter.toggle()}
@@ -119,7 +119,7 @@ export const ProjectPanel = observer(function ProjectPanel() {
         ))}
         {tree.rows.length === 0 && (
           <div className="panel-hint" data-testid="project-empty">
-            {tree.hiddenCount > 0 ? `표시할 프로젝트 파일 없음 (숨김 ${tree.hiddenCount}개). 필터를 끄면 전체 표시` : "빈 프로젝트. 오른쪽 클릭 메뉴로 파일 생성"}
+            {tree.hiddenCount > 0 ? `표시할 프로젝트 파일 없음 (숨김 ${tree.hiddenCount}개). 필터를 끄면 모든 파일이 표시됩니다.` : "빈 프로젝트. 오른쪽 클릭 메뉴에서 파일을 만들 수 있습니다."}
           </div>
         )}
       </div>

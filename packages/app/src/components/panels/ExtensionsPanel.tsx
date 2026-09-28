@@ -13,14 +13,14 @@ export const ExtensionsPanel = observer(function ExtensionsPanel() {
     return (
       <div className="panel-body">
         <div className="panel-hint" data-testid="extensions-empty">
-          registerPanel로 등록된 확장 패널 목록. 활성 확장에 등록된 패널 없음. 맵의 팔레트, 레이어, 맵 오브젝트 패널은 맵 탭을 열면 별도 탭으로 열림 (창 메뉴)
+          registerPanel로 등록된 확장 패널 목록입니다. 활성 확장에 등록된 패널이 없습니다. 맵 탭을 열면 팔레트, 레이어, 맵 오브젝트 패널이 별도 탭으로 열립니다 (창 메뉴).
         </div>
       </div>
     );
   }
   return (
     <div className="panel-body">
-      <div className="panel-hint">확장 패널마다 별도 탭. 클릭하면 해당 탭 열기 (창 메뉴에도 있음)</div>
+      <div className="panel-hint">확장 패널마다 별도 탭이 있습니다. 클릭하면 해당 탭이 열립니다 (창 메뉴에도 있습니다).</div>
       {panels.map((p) => {
         const dockId = extPanelId(p.id);
         const open = editor.layout?.isPanelOpen(dockId) ?? false;

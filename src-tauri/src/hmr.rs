@@ -89,7 +89,7 @@ pub fn decode_bundle(bytes: &[u8]) -> std::result::Result<Vec<HmrFile>, String> 
 fn unreachable(host: &str, port: u16, detail: impl std::fmt::Display) -> BackendError {
     BackendError::new(
         ErrorCode::HmrUnreachable,
-        format!("엔진 핫 리로드 서버({host}:{port}) 연결 실패: {detail}. 게임이 INITIAL2D_HMR=1로 실행 중인지 확인"),
+        format!("엔진 핫 리로드 서버({host}:{port})에 연결하지 못했습니다: {detail}. 게임이 INITIAL2D_HMR=1로 실행 중인지 확인하세요."),
     )
 }
 
@@ -108,7 +108,7 @@ fn socket_error(host: &str, port: u16, err: io::Error) -> BackendError {
 /// 번들을 보내고 응답을 기다린다. OK 면 보낸 파일 수를 돌려준다.
 pub fn push(host: &str, port: u16, files: &[HmrFile]) -> Result<PushResult> {
     if files.is_empty() {
-        return Err(BackendError::new(ErrorCode::Io, "전송할 파일 없음"));
+        return Err(BackendError::new(ErrorCode::Io, "전송할 파일이 없습니다"));
     }
     let payload = encode_bundle(files);
     let addrs: Vec<_> = (host, port)

@@ -272,8 +272,8 @@ test.describe("맵 이동의 대상 고르기 (메모리 모드)", () => {
     // 2^53을 넘는 정수는 JSON 글에 숫자 그대로 넣는다 (맵 문서가 표식 글로 읽는다)
     const cases: Array<[Cmd, string]> = [
       [{ code: "transfer", map: "inn", x: "BIG_X", y: 3 }, "x 값이 맵 범위 밖 (현재: 12345678901234567890, 너비 20)"],
-      [{ code: "transfer", map: "inn", x: 2, y: -1 }, "y 값은 0 이상이어야 함 (현재: -1)"],
-      [{ code: "transfer", map: "inn", x: 1.5, y: 3 }, "x 값은 정수여야 함 (현재: 1.5)"],
+      [{ code: "transfer", map: "inn", x: 2, y: -1 }, "y 값은 0 이상이어야 합니다 (현재: -1)"],
+      [{ code: "transfer", map: "inn", x: 1.5, y: 3 }, "x 값은 정수여야 합니다 (현재: 1.5)"],
       [{ code: "transfer", map: "inn", x: 20, y: 3 }, "x 값이 맵 범위 밖 (현재: 20, 너비 20)"],
       [{ code: "transfer", map: "inn", x: 3, y: 14 }, "y 값이 맵 범위 밖 (현재: 14, 높이 14)"],
       [{ code: "transfer", map: "inn", y: 3 }, "x 미지정"],

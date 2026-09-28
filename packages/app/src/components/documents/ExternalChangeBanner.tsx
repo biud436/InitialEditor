@@ -37,9 +37,9 @@ export const ExternalChangeBanner = observer(function ExternalChangeBanner({ doc
   return (
     <div className="doc-banner" role="status" data-testid="external-change-banner" data-error={error !== null || undefined}>
       {error !== null ? (
-        <span>디스크에서 다시 읽기 실패로 저장 차단: {error}</span>
+        <span>디스크에서 다시 읽지 못해 저장할 수 없습니다: {error}</span>
       ) : (
-        <span>외부에서 변경된 파일. 편집 내용이 디스크와 다름</span>
+        <span>외부에서 변경된 파일입니다. 편집 내용이 디스크와 다릅니다.</span>
       )}
       <button type="button" className="btn btn-primary" onClick={() => void reload()}>
         다시 읽기

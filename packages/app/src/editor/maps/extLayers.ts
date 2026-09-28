@@ -92,7 +92,7 @@ export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapS
 export function layerErrorsMessage(title: string, errors: readonly ObjectProblem[], max = 8): string {
   const lines = errors.slice(0, max).map((p) => `- ${p.location}: ${p.message}`);
   if (errors.length > max) lines.push(`- 그 밖에 ${errors.length - max}개`);
-  return `${title}: 오류 ${errors.length}개. 엔진이 오류 항목을 건너뛰거나 실행을 멈출 수 있음. 그래도 저장할까요?\n${lines.join("\n")}`;
+  return `${title}: 오류가 ${errors.length}개 있습니다. 엔진이 오류 항목을 건너뛰거나 실행을 멈출 수 있습니다. 그래도 저장할까요?\n${lines.join("\n")}`;
 }
 
 /**

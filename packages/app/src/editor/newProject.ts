@@ -12,9 +12,9 @@ import { openNewProjectDialog } from "./scene/NewProjectDialog";
 import { writeProjectTemplate, type ProjectTemplateOptions } from "./scene/projectTemplates";
 import { TEMPLATE_LABELS } from "./scene/templateManifest";
 
-export const NEW_PROJECT_NO_PICKER = "폴더 열기 미지원 브라우저, 새 프로젝트 생성 불가 (크롬, 엣지에서 지원)";
-export const NEW_PROJECT_BRIDGE = "브리지 모드: 새 프로젝트 생성 미지원 (데스크톱 앱이나 브라우저 폴더 모드에서 폴더 선택)";
-export const NEW_PROJECT_MEMORY = "메모리 모드: 새 프로젝트 생성 미지원 (데스크톱 앱이나 폴더 열기를 지원하는 브라우저에서 가능)";
+export const NEW_PROJECT_NO_PICKER = "이 브라우저는 폴더 열기를 지원하지 않아 새 프로젝트를 만들 수 없습니다 (크롬과 엣지에서 지원합니다)";
+export const NEW_PROJECT_BRIDGE = "브리지 모드에서는 새 프로젝트를 만들 수 없습니다. 데스크톱 앱이나 브라우저 폴더 모드에서 폴더를 선택하세요.";
+export const NEW_PROJECT_MEMORY = "메모리 모드에서는 새 프로젝트를 만들 수 없습니다. 데스크톱 앱이나 폴더 열기를 지원하는 브라우저에서 만들 수 있습니다.";
 
 /** 새 프로젝트를 못 만드는 이유. 만들 수 있으면 null */
 export function newProjectBlocker(editor: Editor): string | null {
@@ -55,7 +55,7 @@ async function confirmFolder(editor: Editor, count: number): Promise<boolean> {
   if (count === 0) return true;
   return editor.modals.confirm({
     title: "새 프로젝트",
-    message: `폴더가 비어 있지 않음 (항목 ${count}개). 그래도 이 폴더에 프로젝트를 만들까요? 기존 파일은 유지, 없는 파일만 생성`,
+    message: `폴더가 비어 있지 않습니다 (항목 ${count}개). 기존 파일은 그대로 두고 없는 파일만 만듭니다. 이 폴더에 프로젝트를 만들까요?`,
     okLabel: "만들기",
   });
 }

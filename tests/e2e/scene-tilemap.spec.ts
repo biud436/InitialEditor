@@ -143,7 +143,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     await expect(page.getByTestId("tilemap-open-map")).toBeDisabled();
     const problems = page.getByTestId("inspector-problems");
     await expect(problems).toHaveAttribute("data-count", "1");
-    await expect(problems).toContainText("맵 파일(props.map) 비어 있음");
+    await expect(problems).toContainText("맵 파일(props.map)이 비어 있습니다");
 
     // 자리 (64,64). 맵을 고르기 전에는 그 자리가 풀색이 아니다
     await placeSelected(page, ORIGIN);
@@ -176,7 +176,7 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
     const changedText = JSON.stringify(data, null, 2);
     const external = (path: string, kind: "create" | "delete", body?: string) =>
       ev(page, "(e, a) => e.backend.simulateExternalChange(a.path, a.kind, a.body ?? undefined)", { path, kind, body: body ?? null });
-    const missingText = `타일맵 tilemap의 맵 파일 없음: ${MEADOW}. 실행하면 엔진에서 씬 로드 실패`;
+    const missingText = `타일맵 tilemap: 맵 파일이 없습니다 (${MEADOW}). 실행하면 엔진에서 씬을 불러오지 못합니다.`;
     await external(MEADOW, "delete");
     await expect(problems).toHaveAttribute("data-count", "1");
     await expect(problems).toContainText(missingText);
@@ -192,13 +192,13 @@ test.describe("씬의 타일맵 오브젝트 (메모리 모드)", () => {
 
     // 파일이 있어도 JSON이 아니거나 맵 형식이 아니면 검사 오류다 (엔진이 씬을 거부한다). 고치면 사라진다
     const modify = (body: string) => ev(page, "(e, a) => e.backend.simulateExternalChange(a.path, 'modify', a.body)", { path: MEADOW, body });
-    const unreadable = `타일맵 tilemap의 맵 파일 형식 오류: ${MEADOW} (`;
+    const unreadable = `타일맵 tilemap: 맵 파일 형식이 올바르지 않습니다 (${MEADOW}, `;
     await modify("{ not json");
     await expect(problems).toHaveAttribute("data-count", "1");
     await expect(problems).toContainText(`${unreadable}JSON 구문 오류: `);
-    await expect(problems).toContainText("실행하면 엔진에서 씬 로드 실패");
+    await expect(problems).toContainText("실행하면 엔진에서 씬을 불러오지 못합니다.");
     await modify('{ "version": 9 }');
-    await expect(problems).toContainText(`${unreadable}지원하지 않는 맵 버전: 9 (지원: 1, 2)). 실행하면 엔진에서 씬 로드 실패`);
+    await expect(problems).toContainText(`${unreadable}지원하지 않는 맵 버전: 9 (지원: 1, 2)). 실행하면 엔진에서 씬을 불러오지 못합니다.`);
     await expect(problems).toHaveAttribute("data-count", "1");
     await modify(changedText);
     await expect(problems).toHaveAttribute("data-count", "0");

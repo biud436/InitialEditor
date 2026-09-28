@@ -81,10 +81,10 @@ export function parseComponentDeclaration(text: string): ComponentDeclaration {
     throw new ComponentDeclarationError(`JSON 구문 오류: ${(e as Error).message}`);
   }
   const root = engineObject(raw);
-  if (!root) throw new ComponentDeclarationError("최상위 값은 객체여야 함");
+  if (!root) throw new ComponentDeclarationError("최상위 값은 객체여야 합니다");
   if (root.version !== COMPONENT_DECLARATION_VERSION) throw new ComponentDeclarationError(`지원하지 않는 선언 버전: ${String(root.version)} (지원: ${COMPONENT_DECLARATION_VERSION})`);
   const list = root.fields === undefined ? [] : engineArray(root.fields);
-  if (!list) throw new ComponentDeclarationError("fields는 배열이어야 함");
+  if (!list) throw new ComponentDeclarationError("fields는 배열이어야 합니다");
   const seen = new Set<string>();
   const fields = list.map((f, i) => {
     const field = parseField(f, i);
@@ -98,34 +98,34 @@ export function parseComponentDeclaration(text: string): ComponentDeclaration {
 function parseField(raw: unknown, index: number): ComponentField {
   const where = `fields[${index}]`;
   const f = engineObject(raw);
-  if (!f) throw new ComponentDeclarationError(`${where}: 객체여야 함`);
-  if (typeof f.key !== "string" || !KEY_PATTERN.test(f.key)) throw new ComponentDeclarationError(`${where}.key는 영문자나 _로 시작하는 영문, 숫자, _ 이름이어야 함`);
+  if (!f) throw new ComponentDeclarationError(`${where}: 객체여야 합니다`);
+  if (typeof f.key !== "string" || !KEY_PATTERN.test(f.key)) throw new ComponentDeclarationError(`${where}.key는 영문자나 _로 시작하고 영문자, 숫자, _로만 구성되어야 합니다`);
   if (typeof f.type !== "string" || !(COMPONENT_FIELD_TYPES as readonly string[]).includes(f.type)) {
-    throw new ComponentDeclarationError(`${where}.type은 ${COMPONENT_FIELD_TYPES.join(", ")} 중 하나여야 함`);
+    throw new ComponentDeclarationError(`${where}.type은 ${COMPONENT_FIELD_TYPES.join(", ")} 중 하나여야 합니다`);
   }
   const field: ComponentField = {
     key: f.key,
     type: f.type as ComponentFieldType,
   };
   if (f.label !== undefined) {
-    if (typeof f.label !== "string") throw new ComponentDeclarationError(`${where}.label은 문자열이어야 함`);
+    if (typeof f.label !== "string") throw new ComponentDeclarationError(`${where}.label은 문자열이어야 합니다`);
     field.label = f.label;
   }
   if (f.values !== undefined || field.type === "enum") {
-    if (field.type !== "enum") throw new ComponentDeclarationError(`${where}.values는 enum에만 씀`);
+    if (field.type !== "enum") throw new ComponentDeclarationError(`${where}.values는 enum 타입에만 사용할 수 있습니다`);
     const values = engineArray(f.values);
     if (!values || values.length === 0 || values.some((v) => typeof v !== "string" || v === "")) {
-      throw new ComponentDeclarationError(`${where}.values는 빈 문자열이 아닌 문자열 1개 이상의 배열이어야 함`);
+      throw new ComponentDeclarationError(`${where}.values는 비어 있지 않은 문자열이 1개 이상 있는 배열이어야 합니다`);
     }
     field.values = [...(values as string[])];
   }
   for (const bound of ["min", "max"] as const) {
     if (f[bound] === undefined) continue;
-    if (field.type !== "number" && field.type !== "integer") throw new ComponentDeclarationError(`${where}.${bound}는 number, integer에만 씀`);
-    if (typeof f[bound] !== "number" || !Number.isFinite(f[bound])) throw new ComponentDeclarationError(`${where}.${bound}는 숫자여야 함`);
+    if (field.type !== "number" && field.type !== "integer") throw new ComponentDeclarationError(`${where}.${bound}: number와 integer 타입에만 사용할 수 있습니다`);
+    if (typeof f[bound] !== "number" || !Number.isFinite(f[bound])) throw new ComponentDeclarationError(`${where}.${bound}: 숫자여야 합니다`);
     field[bound] = f[bound];
   }
-  if (field.min !== undefined && field.max !== undefined && field.min > field.max) throw new ComponentDeclarationError(`${where}: min이 max보다 큼`);
+  if (field.min !== undefined && field.max !== undefined && field.min > field.max) throw new ComponentDeclarationError(`${where}: min이 max보다 큽니다`);
   if (f.default !== undefined) {
     const problem = fieldValueProblem(field, f.default);
     if (problem) throw new ComponentDeclarationError(`${where}.default: ${problem}`);
@@ -142,21 +142,21 @@ export function fieldValueProblem(field: ComponentField, value: unknown, objectI
   switch (field.type) {
     case "string":
     case "text":
-      return typeof value === "string" ? null : "문자열이어야 함";
+      return typeof value === "string" ? null : "문자열이어야 합니다";
     case "boolean":
-      return typeof value === "boolean" ? null : "true나 false여야 함";
+      return typeof value === "boolean" ? null : "true나 false여야 합니다";
     case "number":
     case "integer": {
-      if (typeof value !== "number" || !Number.isFinite(value)) return "숫자여야 함";
-      if (field.type === "integer" && !Number.isInteger(value)) return "정수여야 함";
-      if (field.min !== undefined && value < field.min) return `${field.min} 이상이어야 함`;
-      if (field.max !== undefined && value > field.max) return `${field.max} 이하여야 함`;
+      if (typeof value !== "number" || !Number.isFinite(value)) return "숫자여야 합니다";
+      if (field.type === "integer" && !Number.isInteger(value)) return "정수여야 합니다";
+      if (field.min !== undefined && value < field.min) return `${field.min} 이상이어야 합니다`;
+      if (field.max !== undefined && value > field.max) return `${field.max} 이하여야 합니다`;
       return null;
     }
     case "enum":
-      return typeof value === "string" && (field.values ?? []).includes(value) ? null : `${(field.values ?? []).join(", ")} 중 하나여야 함`;
+      return typeof value === "string" && (field.values ?? []).includes(value) ? null : `${(field.values ?? []).join(", ")} 중 하나여야 합니다`;
     case "object":
-      if (typeof value !== "string" || value === "") return "오브젝트 id 문자열이어야 함";
+      if (typeof value !== "string" || value === "") return "오브젝트 id 문자열이어야 합니다";
       if (objectIds && !objectIds.has(value)) return `씬에 없는 오브젝트: ${value}`;
       return null;
   }

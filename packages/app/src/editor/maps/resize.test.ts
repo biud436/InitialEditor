@@ -112,7 +112,7 @@ describe("맵 크기 바꾸기 (앱)", () => {
     const { doc, host, toasts } = await setup();
     expect(applyResize(host, doc, { width: 4, height: 3, anchor: "center" })).toBe(false);
     expect(applyResize(host, doc, { width: 0, height: 3, anchor: "center" })).toBe(false);
-    expect(toasts).toEqual(["너비와 높이는 1 이상 1024 이하의 정수여야 함"]);
+    expect(toasts).toEqual(["너비와 높이는 1 이상 1024 이하의 정수여야 합니다"]);
     expect(doc.undo.depth).toBe(0);
   });
 });

@@ -191,7 +191,7 @@ export class BridgeBackend implements ProjectBackend {
 
   whenWatching(timeoutMs = 5000): Promise<void> {
     if (typeof WebSocket === "undefined") {
-      return Promise.reject(new BackendError("이 실행 환경은 WebSocket 미지원이라 변경 알림 수신 불가 (브라우저나 Node 22 이상 필요)", "unsupported"));
+      return Promise.reject(new BackendError("이 실행 환경은 WebSocket을 지원하지 않아 변경 알림을 받을 수 없습니다 (브라우저나 Node 22 이상이 필요합니다)", "unsupported"));
     }
     if (this.socketReady || this.watchers.size === 0) return Promise.resolve();
     return new Promise((resolve, reject) => {
@@ -230,11 +230,11 @@ export class BridgeBackend implements ProjectBackend {
   }
 
   async run(_spec: RunSpec): Promise<RunHandle> {
-    throw new BackendError("브라우저 모드는 엔진 프로세스 실행 미지원. 데스크톱 앱이나 터미널에서 실행", "unsupported");
+    throw new BackendError("브라우저 모드에서는 엔진 프로세스를 실행할 수 없습니다. 데스크톱 앱이나 터미널에서 실행하세요.", "unsupported");
   }
 
   async pickFolder(): Promise<string | null> {
-    throw new BackendError("브라우저 모드는 폴더 선택 미지원. 브리지 서버가 서빙하는 프로젝트만 사용 가능", "unsupported");
+    throw new BackendError("브라우저 모드에서는 폴더를 선택할 수 없습니다. 브리지 서버에서 제공하는 프로젝트만 사용할 수 있습니다.", "unsupported");
   }
 
   async close(): Promise<void> {
@@ -262,7 +262,7 @@ export class BridgeBackend implements ProjectBackend {
 
   private unreachable(): BackendError {
     return new BackendError(
-      `브리지 서버(${this.baseUrl}) 연결 실패. Initial2D 저장소에서 node tools/bridge/server.js 실행 여부 확인`,
+      `브리지 서버(${this.baseUrl})에 연결하지 못했습니다. Initial2D 저장소에서 node tools/bridge/server.js가 실행 중인지 확인하세요.`,
       "network",
     );
   }

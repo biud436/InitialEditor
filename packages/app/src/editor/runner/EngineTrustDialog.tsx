@@ -33,7 +33,7 @@ export function EngineTrustBody({ question, onAnswer }: { question: TrustQuestio
           ))}
         </ul>
         <p className="form-help">
-          허용하면 엔진 탐색과 실행에 이 파일을 사용. 다른 사람에게 받은 프로젝트면 허용 비권장. 선택은 앱 설정에 저장되고 설정에서 취소 가능
+          허용하면 엔진 탐색과 실행에 이 파일을 사용합니다. 다른 사람에게 받은 프로젝트라면 허용하지 않는 것이 좋습니다. 선택은 앱 설정에 저장되며 설정에서 취소할 수 있습니다.
         </p>
         <p className="form-help">프로젝트: {question.root}</p>
       </div>

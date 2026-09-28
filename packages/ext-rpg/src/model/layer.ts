@@ -194,10 +194,10 @@ export class EventsLayerState implements MapLayerState {
   lockReason(): string | null {
     const s = this.sources;
     if (s.schemaProblem) return s.schemaProblem;
-    if (!s.schemaPresent || !this.schema) return "event-commands.json 없음: 이벤트 편집 불가 (파일을 복원하면 해제)";
-    if (s.gameProblem) return `rpg-game.json 읽기 실패: 이벤트 편집 불가 (${s.gameProblem})`;
+    if (!s.schemaPresent || !this.schema) return "event-commands.json이 없어 이벤트를 편집할 수 없습니다 (파일을 복원하면 해제됩니다)";
+    if (s.gameProblem) return `rpg-game.json 읽기 실패: 이벤트를 편집할 수 없습니다 (${s.gameProblem})`;
     const match = this.match;
-    if (!match) return "rpg-game.json 에 이 맵의 등록 없음: 이벤트 편집 불가 (등록을 복원하면 해제)";
+    if (!match) return "rpg-game.json에 이 맵이 등록되지 않아 이벤트를 편집할 수 없습니다 (등록을 복원하면 해제됩니다)";
     const readOnly = mapReadOnlyReason(match);
     if (readOnly) return readOnly;
     return this.section.shapeError;

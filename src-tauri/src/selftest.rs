@@ -63,7 +63,7 @@ fn absolute(value: &Value, key: &str) -> std::result::Result<PathBuf, String> {
         .ok_or_else(|| format!("{key} 없음 (절대 경로 문자열)"))?;
     let p = PathBuf::from(s);
     if !p.is_absolute() {
-        return Err(format!("{key}: 절대 경로여야 함 (현재: {s})"));
+        return Err(format!("{key}: 절대 경로여야 합니다 (현재: {s})"));
     }
     Ok(p)
 }
@@ -71,10 +71,10 @@ fn absolute(value: &Value, key: &str) -> std::result::Result<PathBuf, String> {
 pub fn parse_plan(text: &str) -> std::result::Result<Plan, String> {
     let raw: Value = serde_json::from_str(text).map_err(|e| format!("JSON 구문 오류: {e}"))?;
     if !raw.is_object() {
-        return Err("계획은 JSON 객체여야 함".into());
+        return Err("계획은 JSON 객체여야 합니다".into());
     }
     if raw.get("version").and_then(Value::as_u64) != Some(1) {
-        return Err("version: 1 이어야 함".into());
+        return Err("version: 1이어야 합니다".into());
     }
     let work_dir = absolute(&raw, "workDir")?;
     let report = absolute(&raw, "report")?;
@@ -84,20 +84,20 @@ pub fn parse_plan(text: &str) -> std::result::Result<Plan, String> {
         .ok_or("totalTimeoutMs 없음")?;
     if !(MIN_TOTAL_TIMEOUT_MS..=MAX_TOTAL_TIMEOUT_MS).contains(&timeout_ms) {
         return Err(format!(
-            "totalTimeoutMs: {MIN_TOTAL_TIMEOUT_MS}..{MAX_TOTAL_TIMEOUT_MS} 범위여야 함 (현재: {timeout_ms})"
+            "totalTimeoutMs: {MIN_TOTAL_TIMEOUT_MS}..{MAX_TOTAL_TIMEOUT_MS} 범위여야 합니다 (현재: {timeout_ms})"
         ));
     }
     let show_window = match raw.get("showWindow") {
         None | Some(Value::Null) => false,
         Some(Value::Bool(b)) => *b,
-        Some(_) => return Err("showWindow: 불리언이어야 함".into()),
+        Some(_) => return Err("showWindow: 불리언이어야 합니다".into()),
     };
     let projects = raw
         .get("projects")
         .and_then(Value::as_array)
         .ok_or("projects 없음 (배열)")?;
     if projects.is_empty() {
-        return Err("projects 비어 있음".into());
+        return Err("projects 배열이 비어 있습니다".into());
     }
     let mut ids: Vec<String> = Vec::new();
     let mut project_dirs = Vec::new();
@@ -108,11 +108,11 @@ pub fn parse_plan(text: &str) -> std::result::Result<Plan, String> {
             .ok_or("프로젝트에 id 없음")?;
         if !valid_name(id) {
             return Err(format!(
-                "프로젝트 id 는 영문자, 숫자, 점, 밑줄, 하이픈만 허용: {id}"
+                "프로젝트 id에는 영문자, 숫자, 점, 밑줄, 하이픈만 사용할 수 있습니다: {id}"
             ));
         }
         if id == LOGS_DIR {
-            return Err(format!("프로젝트 id 로 {LOGS_DIR} 사용 불가"));
+            return Err(format!("프로젝트 id로 {LOGS_DIR} 값을 사용할 수 없습니다"));
         }
         if ids.iter().any(|x| x == id) {
             return Err(format!("프로젝트 id 중복: {id}"));
@@ -442,7 +442,7 @@ mod tests {
                 &plan_json(&work, json!({ "showWindow": "yes" })),
                 "showWindow",
             ),
-            (&plan_json(&work, json!({ "projects": [] })), "비어 있음"),
+            (&plan_json(&work, json!({ "projects": [] })), "배열이 비어 있습니다"),
             (
                 &plan_json(&work, json!({ "projects": [{ "id": "../x" }] })),
                 "id",

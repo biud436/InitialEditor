@@ -241,8 +241,8 @@ async function pickerCalls(page: Page): Promise<unknown[]> {
 }
 
 const PICKER_OPTIONS = { mode: "readwrite", id: "initial-editor" };
-const PRIVATE_NOTICE = "시크릿 창일 수 있어 최근 폴더 목록을 불러오지 않음";
-const CRASH_NOTICE = "지난번 최근 폴더 목록 로드 중 브라우저 종료됨";
+const PRIVATE_NOTICE = "시크릿 창일 수 있어 최근 폴더 목록을 불러오지 않았습니다";
+const CRASH_NOTICE = "지난번에 최근 폴더 목록을 불러오는 중 브라우저가 종료되었습니다";
 
 async function expectBrowserWelcome(page: Page) {
   const welcome = page.getByTestId("welcome");
@@ -372,8 +372,8 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     await expect(reload).toBeDisabled();
     await expect(toolbar.locator('span.toolbar-tip:has([data-command="run.reload"])')).toHaveAttribute("title", /게임 탭에서 실행 중인 게임 없음/);
     const list = page.getByTestId("console-list");
-    await expect(list).toContainText("외부 엔진으로 전송 안 함. 저장한 파일은 게임 탭에서 실행 중일 때만 반영");
-    await expect(list).not.toContainText("수동 리로드(Ctrl+Shift+R) 전송 가능");
+    await expect(list).toContainText("외부 엔진에는 전송하지 않습니다. 저장한 파일은 게임 탭에서 실행 중일 때만 반영됩니다.");
+    await expect(list).not.toContainText("수동 리로드(Ctrl+Shift+R)를 전송할 수 있습니다");
 
     const tree = page.getByTestId("project-tree");
     await tree.locator('[data-path="scripts"]').click();
@@ -444,7 +444,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     await setPick("b/game");
     await page.keyboard.press("ControlOrMeta+o");
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("저장 안 된 문서 1개");
+    await expect(dialog).toContainText("저장하지 않은 문서가 1개 있습니다");
     await dialog.getByRole("button", { name: "취소" }).click();
     await expect(dialog).toHaveCount(0);
     expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS, PICKER_OPTIONS]);
@@ -550,7 +550,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
   });
 });
 
-const SAMPLE_MAP_HINT = "샘플 게임이 렌더링하는 맵. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5 로 실행";
+const SAMPLE_MAP_HINT = "샘플 게임에서 렌더링하는 맵입니다. 팔레트에서 타일을 선택해 칠하고 저장한 뒤 F5를 눌러 실행하세요.";
 const WEB_NO_RUBY = "브라우저 모드에서 실행 불가 (데스크톱 앱에서 실행)";
 
 /** engine/MANIFEST.json 을 가로채 기능에서 mruby 를 뺀다 (mruby 없는 웹 엔진 빌드 흉내) */
@@ -654,7 +654,7 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "mine"));
     await openMenu(page, "파일", "새 프로젝트");
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("폴더가 비어 있지 않음 (항목 2개)");
+    await expect(dialog).toContainText("폴더가 비어 있지 않습니다 (항목 2개)");
     await dialog.getByRole("button", { name: "만들기" }).click();
     await expect(page.getByTestId("new-project-dialog")).toBeVisible();
     await page.getByTestId("new-project-ok").click();
@@ -700,7 +700,7 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     const welcome = await expectBrowserWelcome(page);
     const button = welcome.getByRole("button", { name: "새 프로젝트", exact: true });
     await expect(button).toBeDisabled();
-    await expect(button).toHaveAttribute("title", "폴더 열기 미지원 브라우저 (크롬, 엣지에서 지원)");
+    await expect(button).toHaveAttribute("title", "이 브라우저는 폴더 열기를 지원하지 않습니다 (크롬과 엣지에서 지원합니다)");
     expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
   });
 });
@@ -716,7 +716,7 @@ test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라
     await page.goto(deployed.href);
     const welcome = page.getByTestId("welcome");
     await expect(welcome).toContainText("메모리 모드.");
-    await expect(welcome).toContainText("폴더 열기 미지원 브라우저, 샘플 프로젝트로 시작됨");
+    await expect(welcome).toContainText("이 브라우저는 폴더 열기를 지원하지 않아 샘플 프로젝트로 시작했습니다");
     await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "meadow.json" })).toBeVisible();

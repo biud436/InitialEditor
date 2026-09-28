@@ -19,7 +19,7 @@ import { MapObjectInspector } from "../maps/MapObjectInspector";
 import { ComponentParams, SceneLoaderNote } from "./ComponentParams";
 import "./InspectorPanel.css";
 
-export const INSPECTOR_EMPTY = "활성 씬 탭 없음. 씬 탭에서 오브젝트를 선택하면 속성 표시";
+export const INSPECTOR_EMPTY = "활성 씬 탭 없음. 씬 탭에서 오브젝트를 선택하면 속성이 표시됩니다.";
 
 function sameValue<T>(values: T[]): T | null {
   return values.length > 0 && values.every((v) => v === values[0]) ? values[0] : null;
@@ -113,7 +113,7 @@ const CommonFields = observer(function CommonFields({ doc, objects }: { doc: Sce
   return (
     <div className="inspector-section" data-testid="inspector-common">
       {objects.length === 1 && (
-        <FieldRow label="id" hint="씬 안에서 고유해야 함">
+        <FieldRow label="id" hint="씬 안에서 고유해야 합니다">
           <IdField object={objects[0]} />
         </FieldRow>
       )}
@@ -123,7 +123,7 @@ const CommonFields = observer(function CommonFields({ doc, objects }: { doc: Sce
       <FieldRow label="y">
         <NumberField value={sameValue(objects.map((o) => o.y))} onChange={(v, s) => setAxis("y", v, s)} sessionPrefix={`common:${key}:y`} step={1} testId="inspector-y" ariaLabel="y" />
       </FieldRow>
-      <FieldRow label="표시" hint="끄면 렌더링 생략, 컴포넌트 render 호출 안 함 (update는 호출)">
+      <FieldRow label="표시" hint="끄면 렌더링을 생략하고 컴포넌트의 render를 호출하지 않습니다 (update는 호출합니다)">
         <input ref={visibleRef} type="checkbox" checked={visible === true} onChange={(e) => setVisible(e.target.checked)} data-testid="inspector-visible" aria-label="표시" />
         {visible === null && <span className="muted field-mixed">여러 값</span>}
       </FieldRow>
@@ -251,7 +251,7 @@ export const InspectorPanel = observer(function InspectorPanel() {
           <span className="inspector-title">{doc.scene.name || doc.title}</span>
           <span className="muted">씬, 오브젝트 {doc.scene.objects.length}개</span>
         </div>
-        <div className="panel-hint">선택한 오브젝트 없음. 계층이나 씬 뷰에서 선택하면 속성 표시</div>
+        <div className="panel-hint">선택한 오브젝트 없음. 계층이나 씬 뷰에서 선택하면 속성이 표시됩니다.</div>
         <ProblemsSection doc={doc} />
       </div>
     );
@@ -279,7 +279,7 @@ export const InspectorPanel = observer(function InspectorPanel() {
         {single && Inspector && <Inspector document={doc} object={single} />}
         {single && !Inspector && <div className="muted inspector-note">타입별 인스펙터 없음: {single.type}</div>}
         {single && <ScriptsSection object={single} />}
-        {!single && <div className="muted inspector-note">여러 개 선택됨. 타입별 속성과 스크립트는 1개만 선택 시 표시</div>}
+        {!single && <div className="muted inspector-note">여러 오브젝트 선택됨. 타입별 속성과 스크립트는 1개만 선택하면 표시됩니다.</div>}
         <ProblemsSection doc={doc} />
       </div>
     </div>

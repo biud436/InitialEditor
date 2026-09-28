@@ -113,7 +113,7 @@ describe("옮기기와 합치기", () => {
     expect(() => ed.moveEvents([2], -5, -5)).not.toThrow();
     // 여럿을 함께 옮기면 옮긴 뒤의 자리로 본다 (a 와 b 가 같이 오른쪽으로)
     expect(() => ed.moveEvents([0, 1], 2, 0)).not.toThrow();
-    expect(() => ed.moveEvents([0], 0.5, 0)).toThrow(/타일 단위로만 이동 가능/);
+    expect(() => ed.moveEvents([0], 0.5, 0)).toThrow(/타일 단위로만 이동할 수 있습니다/);
     expect(section.ids()).toHaveLength(6);
   });
 });
@@ -146,7 +146,7 @@ describe("칸 바꾸기, 이름 바꾸기", () => {
     expect(() => ed.setField(0, "speed", 0)).toThrow(/0보다 큰 숫자여야 함/);
     expect(() => ed.setField(0, "through", "yes")).toThrow(/불리언이어야 함/);
     expect(() => ed.setField(0, "x", undefined)).toThrow(/x/);
-    expect(() => ed.setField(0, "commands", [])).toThrow(/커맨드 목록 편집기에서만 편집 가능/);
+    expect(() => ed.setField(0, "commands", [])).toThrow(/커맨드 목록 에디터에서만 편집할 수 있습니다/);
     expect(() => ed.setField(0, "zzz", 1)).toThrow(/스키마에 없는/);
     expect(() => ed.setField(0, "wander", { minWait: 50, maxWait: 10 })).toThrow(/maxWait/);
     // 칸 옮기기로 같은 칸의 touch 가 되는 것도 막는다
@@ -269,7 +269,7 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
 
   it("모르는 커맨드의 인자는 고칠 수 없다. code 가 2^53을 넘는 정수(표식 글)면 숫자 그대로 알린다", () => {
     const { ed } = setup([ev("a", 0, 0, { commands: [{ code: bigIntValue("12345678901234567890"), text: "x" }] })]);
-    expect(() => ed.setArg(0, P(0), "text", "y")).toThrow("커맨드 12345678901234567890 편집 불가 (스키마에 없음)");
+    expect(() => ed.setArg(0, P(0), "text", "y")).toThrow("커맨드를 편집할 수 없습니다: 12345678901234567890 (스키마에 없습니다)");
     expect(() => ed.setArgs(0, P(0), { text: "y" })).toThrow("스키마에 없는 커맨드: 12345678901234567890");
   });
 
@@ -277,7 +277,7 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     const { section, ed, stack } = setup([ev("a", 0, 0, { commands: [{ code: "message", text: "1" }, { code: "if", cond: { flag: "f" }, thenDo: [] }, { code: "message", text: "3" }] })]);
     stack.push(ed.moveCommands(0, P(0), 1, { list: [{ at: 1, list: "thenDo" }], index: 0 }));
     expect(at(section, 0).commands).toEqual([{ code: "if", cond: { flag: "f" }, thenDo: [{ code: "message", text: "1" }] }, { code: "message", text: "3" }]);
-    expect(() => ed.moveCommands(0, P(0), 1, { list: [{ at: 0, list: "thenDo" }], index: 0 })).toThrow(/자신의 하위 목록으로 이동 불가/);
+    expect(() => ed.moveCommands(0, P(0), 1, { list: [{ at: 0, list: "thenDo" }], index: 0 })).toThrow(/커맨드를 자신의 하위 목록으로 이동할 수 없습니다/);
     stack.push(ed.removeCommands(0, [{ at: 0, list: "thenDo" }], 0));
     expect(ed.commandsOf(0, [{ at: 0, list: "thenDo" }])).toEqual([]);
     stack.undo();
@@ -299,7 +299,7 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect(() => ed.setArg(0, P(0), "name", 3)).toThrow(/name/);
     expect(() => ed.setArg(0, P(0), "text", undefined)).toThrow(/text: 값 없음 \(문자열 필요\)/);
     expect(() => ed.setArg(0, P(0), "zzz", 1)).toThrow(/zzz 인자 없음/);
-    expect(() => ed.setArg(0, P(1), "options", ["b"])).toThrow(/항목\(options\)은 항목 편집기에서만 편집 가능/);
+    expect(() => ed.setArg(0, P(1), "options", ["b"])).toThrow(/항목\(options\)은 항목 에디터에서만 편집할 수 있습니다/);
     expect(() => ed.setArg(0, P(1), "cancel", 0)).toThrow(/1 이상/);
     stack.push(ed.setArg(0, P(0), "name", undefined));
     expect(Object.keys((at(section, 0).commands as Array<Record<string, unknown>>)[0])).toEqual(["code", "text", "face"]);
@@ -360,7 +360,7 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect(() => ed.setArgs(0, P(0), { x: 1.5, y: 2 })).toThrow(/^x: /);
     expect(() => ed.setArgs(0, P(0), { x: 1, zzz: 2 })).toThrow("인자 없음: 맵 이동.zzz");
     expect(() => ed.setArgs(0, P(0), { map: undefined, x: 1 })).toThrow(/map: 값 없음 \(id 문자열 필요\)/);
-    expect(() => ed.setArgs(0, P(1), { options: ["b"] })).toThrow("항목 인자는 항목 편집으로 수정해야 함: 선택지.options");
+    expect(() => ed.setArgs(0, P(1), { options: ["b"] })).toThrow("항목 인자는 항목 편집으로 수정해야 합니다: 선택지.options");
     expect(() => ed.setArgs(0, P(0), {})).toThrow("변경할 인자 없음");
     expect(() => ed.setArgs(0, P(5), { x: 1 })).toThrow(EditRefused);
     expect((at(section, 0).commands as unknown[])[0]).toEqual(transfer);
@@ -404,7 +404,7 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect(cmd(0).cancel).toBe(2);
     stack.push(ed.removeOption(0, P(0), 3));
     expect(cmd(0).cancel).toBe(2);
-    expect(() => ed.removeOption(0, P(1), 0)).toThrow(/항목 1개 이상 필요/);
+    expect(() => ed.removeOption(0, P(1), 0)).toThrow(/항목이 1개 이상 필요합니다/);
     expect(() => ed.addOption(0, P(1), 5, "x")).toThrow(/항목 인덱스가 범위 밖/);
     expect(() => ed.addOption(0, { list: [], index: 9 }, 0, "x")).toThrow(EditRefused);
   });
@@ -430,7 +430,7 @@ describe("잠금", () => {
 
   it("객체가 아닌 이벤트는 고칠 수 없다", () => {
     const { ed } = setup([null, ev("a", 0, 0)]);
-    expect(() => ed.setField(0, "speed", 2)).toThrow(/편집 불가 \(객체가 아님\)/);
+    expect(() => ed.setField(0, "speed", 2)).toThrow(/편집할 수 없습니다 \(객체가 아닙니다\)/);
     expect(() => ed.setField(5, "speed", 2)).toThrow(/이벤트 없음/);
   });
 });

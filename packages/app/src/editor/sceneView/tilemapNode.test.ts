@@ -167,7 +167,7 @@ describe("타일맵 노드", () => {
 
   it("맵의 레이어를 타일셋으로 그리고 맵 크기를 배경 대상의 경계로 알린다", async () => {
     const { root, below, above, labels, bounds, backgrounds, loads } = await setup();
-    expect(labels.at(-1)?.label).toBe("tilemap: tilemap1 (읽는 중)");
+    expect(labels.at(-1)?.label).toBe("tilemap: tilemap1 (불러오는 중)");
     await tick();
     expect(loads).toEqual([SHEET]);
     // groundLayers 1: ground(8칸)는 아래 자리에, deco(1칸)는 위 자리에. 노드 자신에는 타일이 없다

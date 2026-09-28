@@ -462,7 +462,7 @@ describe("options", () => {
     const confirm = vi.fn(() => false);
     const ops = renderOptions(["a", "b"], { branchSizes: [0, 2], confirm });
     await act(async () => fireEvent.click(screen.getByTestId("opt-1-remove")));
-    expect(confirm).toHaveBeenCalledWith("2번 항목의 분기에 커맨드 2개 있음. 분기와 함께 삭제할까요?");
+    expect(confirm).toHaveBeenCalledWith("2번 항목의 분기에 커맨드가 2개 있습니다. 분기와 함께 삭제할까요?");
     expect(ops.remove).not.toHaveBeenCalled();
     await act(async () => fireEvent.click(screen.getByTestId("opt-0-remove")));
     expect(ops.remove).toHaveBeenCalledWith(0);
@@ -545,7 +545,7 @@ describe("condition", () => {
     cleanup();
     renderArg(argOf("if", "cond"), { flag: "a", item: "b" });
     expect(select("arg-kind").value).toBe("item");
-    expect(screen.getByTestId("arg-many").textContent).toContain("조건 종류가 2개 이상 (item, flag): 엔진은 첫 번째 item 만 사용. 종류를 다시 선택하면 1개만 유지");
+    expect(screen.getByTestId("arg-many").textContent).toContain("조건 종류가 2개 이상입니다 (item, flag). 엔진은 첫 번째 item 조건만 사용합니다. 종류를 다시 선택하면 1개만 유지됩니다.");
   });
 });
 
@@ -607,7 +607,7 @@ describe("ArgRow", () => {
         ctx={{ schema, refs, files: TEST_FILES, confirm: () => true }}
         sessionPrefix="p"
         testId="arg"
-        problems={[{ severity: "error", message: "0 이상이어야 함 (현재: -1)", location: "events[1].commands[1].ms", source: "engine" }]}
+        problems={[{ severity: "error", message: "0 이상이어야 합니다 (현재: -1)", location: "events[1].commands[1].ms", source: "engine" }]}
       />,
     );
     expect(screen.getByTitle("필수")).toBeTruthy();

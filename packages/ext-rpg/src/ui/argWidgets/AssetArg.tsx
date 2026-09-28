@@ -213,7 +213,7 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
           프로젝트에 없는 이미지 파일: {resolved}
         </div>
       )}
-      {present && !isPlainObject(value) && <div className="rpg-arg-note is-warning">객체여야 함 (현재: {stringifyJsonLossless(value)})</div>}
+      {present && !isPlainObject(value) && <div className="rpg-arg-note is-warning">객체여야 합니다 (현재: {stringifyJsonLossless(value)})</div>}
     </div>
   );
 }

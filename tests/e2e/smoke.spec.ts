@@ -197,7 +197,7 @@ test.describe("game.json 없는 프로젝트 등록", () => {
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
 
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("game.json 생성");
+    await expect(dialog).toContainText("game.json을 만들고 프로젝트로 등록할까요?");
     const tree = page.getByTestId("project-tree");
     await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
     await expect(tree.locator('[data-path="game.json"]')).toHaveCount(0);

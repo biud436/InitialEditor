@@ -20,12 +20,12 @@ describe("찾는 것", () => {
   it("문자열 리터럴 안의 쓰지 않는 말과 한다체 끝맺음", () => {
     expect(words("a.ts", 'const a = "이 타입은 칸이 없다";')).toEqual([
       "1 word 쓰지 않는 말 '칸' (쓰는 말: 타일, 속성, 요소)",
-      "1 ending 한다체 끝맺음 '없다' (명사형으로)",
+      "1 ending 한다체 끝맺음 '없다' (합니다체로)",
     ]);
   });
 
   it("템플릿 조각, JSX 텍스트와 속성, 여러 줄 템플릿의 줄 번호", () => {
-    expect(words("a.ts", "const m = `${path} 을(를) 읽지 못했다: ${e}`;")).toEqual(["1 ending 한다체 끝맺음 '못했다' (명사형으로)"]);
+    expect(words("a.ts", "const m = `${path} 을(를) 읽지 못했다: ${e}`;")).toEqual(["1 ending 한다체 끝맺음 '못했다' (합니다체로)"]);
     expect(words("a.tsx", 'const v = <div title="붓 고르기">\n  여기서 실행\n</div>;')).toEqual([
       "1 word 쓰지 않는 말 '붓' (쓰는 말: 브러시)",
       "1 word 쓰지 않는 말 '고르' (쓰는 말: 선택)",
@@ -33,13 +33,21 @@ describe("찾는 것", () => {
     ]);
     expect(words("a.ts", "const t = `첫 줄\n둘째 줄은 폭이다`;")).toEqual([
       "2 word 쓰지 않는 말 '폭' (쓰는 말: 너비)",
-      "2 ending 한다체 끝맺음 '폭이다' (명사형으로)",
+      "2 ending 한다체 끝맺음 '폭이다' (합니다체로)",
     ]);
   });
 
   it("Rust 의 문자열 (테스트 모듈 앞까지)", () => {
     const rs = 'fn f() -> String {\n    format!("엔진 저장소가 없다: {repo}")\n}\n\n#[cfg(test)]\nmod tests {\n    const A: &str = "칸이 없다";\n}\n';
-    expect(words("a.rs", rs)).toEqual(["2 ending 한다체 끝맺음 '없다' (명사형으로)"]);
+    expect(words("a.rs", rs)).toEqual(["2 ending 한다체 끝맺음 '없다' (합니다체로)"]);
+  });
+
+  it("레이블은 허용하고 조건형과 둘째 문장의 전보체는 찾는다", () => {
+    expect(words("a.ts", 'const a = "열린 프로젝트 없음";')).toEqual([]);
+    expect(words("a.ts", 'const a = "speed: 0 이상이어야 함";')).toEqual([expect.stringContaining("telegraph")]);
+    expect(words("a.ts", 'const a = "시트 너비가 높이보다 커야 함";')).toEqual([expect.stringContaining("telegraph")]);
+    expect(words("a.ts", 'const a = "저장하지 않은 변경이 있습니다. 실행에는 반영되지 않음";')).toEqual([expect.stringContaining("telegraph")]);
+    expect(words("packages/ext-rpg/src/model/validate.ts", 'const a = "speed: 0 이상이어야 함";')).toEqual([]);
   });
 });
 
@@ -48,7 +56,7 @@ describe("건너뛰는 것", () => {
     const ts = [
       "// 칸이 없다",
       "/* 붓을 고른다 */",
-      'const a = "0보다 큰 숫자여야 함";',
+      'const a = "0보다 큰 숫자여야 합니다";',
       'const b = "프레임마다 호출";',
       'const c = "나중에 그림";',
       'const d = "불리언, 숫자, 문자열 중 하나";',
@@ -99,6 +107,6 @@ describe("main", () => {
     fs.rmSync(path.join(tmp, "src-tauri"), { recursive: true });
     out.length = 0;
     expect(terms.main([], tmp, log)).toBe(0);
-    expect(out).toEqual(["UI 문구 검사 통과 (쓰지 않는 말, 한다체 끝맺음 없음)"]);
+    expect(out).toEqual(["UI 문구 검사 통과 (쓰지 않는 말과 어색한 끝맺음 없음)"]);
   });
 });

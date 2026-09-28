@@ -85,16 +85,16 @@ function extraOf(o: Record<string, unknown>, known: readonly string[]): Record<s
 
 function int(o: Record<string, unknown>, key: string, where: string, min = 0): number {
   const v = o[key];
-  if (typeof v !== "number" || !Number.isInteger(v) || v < min) throw new MapFormatError(`${where}.${key}: ${min} 이상의 정수여야 함`, `${where}.${key}`);
+  if (typeof v !== "number" || !Number.isInteger(v) || v < min) throw new MapFormatError(`${where}.${key}: ${min} 이상의 정수여야 합니다`, `${where}.${key}`);
   return v;
 }
 
 function numberArray(v: unknown, length: number, where: string): number[] {
-  if (!Array.isArray(v)) throw new MapFormatError(`${where}: 배열이어야 함`, where);
-  if (v.length !== length) throw new MapFormatError(`${where} 길이는 ${length}여야 함 (현재: ${v.length})`, where);
+  if (!Array.isArray(v)) throw new MapFormatError(`${where}: 배열이어야 합니다`, where);
+  if (v.length !== length) throw new MapFormatError(`${where} 길이는 ${length}여야 합니다 (현재: ${v.length})`, where);
   for (let i = 0; i < v.length; i++) {
     const n = v[i];
-    if (typeof n !== "number" || !Number.isInteger(n) || n < 0) throw new MapFormatError(`${where}[${i}]: 0 이상의 정수여야 함`, `${where}[${i}]`);
+    if (typeof n !== "number" || !Number.isInteger(n) || n < 0) throw new MapFormatError(`${where}[${i}]: 0 이상의 정수여야 합니다`, `${where}[${i}]`);
   }
   return v as number[];
 }
@@ -221,7 +221,7 @@ export function parseMap(text: string): MapData {
   } catch (e) {
     throw new MapFormatError(`JSON 구문 오류: ${(e as Error).message}`);
   }
-  if (!isRecord(raw)) throw new MapFormatError("맵 파일 최상위 값은 객체여야 함");
+  if (!isRecord(raw)) throw new MapFormatError("맵 파일 최상위 값은 객체여야 합니다");
   const version = raw.version;
   if (!SUPPORTED_MAP_VERSIONS.includes(version as 1 | 2)) throw new MapFormatError(`지원하지 않는 맵 버전: ${String(version)} (지원: 1, 2)`, "version");
   const width = int(raw, "width", "map", 1);
@@ -229,24 +229,24 @@ export function parseMap(text: string): MapData {
   const tileWidth = int(raw, "tileWidth", "map", 1);
   const tileHeight = int(raw, "tileHeight", "map", 1);
   const cells = width * height;
-  if (!Array.isArray(raw.tilesets)) throw new MapFormatError("tilesets는 배열이어야 함", "tilesets");
+  if (!Array.isArray(raw.tilesets)) throw new MapFormatError("tilesets는 배열이어야 합니다", "tilesets");
   const tilesets = raw.tilesets.map((t, i) => {
     const where = `tilesets[${i}]`;
-    if (!isRecord(t)) throw new MapFormatError(`${where}: 객체여야 함`, where);
+    if (!isRecord(t)) throw new MapFormatError(`${where}: 객체여야 합니다`, where);
     if (!isJsonText(t.image) || t.image === "") throw new MapFormatError(`${where}.image 없음`, `${where}.image`);
     return { image: t.image, firstGid: int(t, "firstGid", where, 1), columns: int(t, "columns", where, 1), extra: extraOf(t, TILESET_KEYS) };
   });
-  if (!Array.isArray(raw.layers)) throw new MapFormatError("layers는 배열이어야 함", "layers");
+  if (!Array.isArray(raw.layers)) throw new MapFormatError("layers는 배열이어야 합니다", "layers");
   const layers = raw.layers.map((l, i) => {
     const where = `layers[${i}]`;
-    if (!isRecord(l)) throw new MapFormatError(`${where}: 객체여야 함`, where);
+    if (!isRecord(l)) throw new MapFormatError(`${where}: 객체여야 합니다`, where);
     return { name: isJsonText(l.name) ? l.name : `layer${i + 1}`, data: [...numberArray(l.data, cells, `${where}.data`)], extra: extraOf(l, LAYER_KEYS) };
   });
   const collision = raw.collision === undefined || raw.collision === null ? null : [...numberArray(raw.collision, cells, "collision")];
   const events = eventsOf(raw.events);
   let objects: MapObject[] = [];
   if (raw.objects !== undefined) {
-    if (!Array.isArray(raw.objects)) throw new MapFormatError("objects는 배열이어야 함", "objects");
+    if (!Array.isArray(raw.objects)) throw new MapFormatError("objects는 배열이어야 합니다", "objects");
     objects = raw.objects.map((o, i) => parseObject(o, i));
   }
   return {
@@ -275,14 +275,14 @@ function eventsOf(v: unknown): unknown[] | null {
   if (v === undefined || v === null) return null;
   if (Array.isArray(v)) return v;
   if (isRecord(v) && Object.values(v).every((x) => x === null)) return [];
-  throw new MapFormatError("events는 배열이어야 함", "events");
+  throw new MapFormatError("events는 배열이어야 합니다", "events");
 }
 
 function parseObject(o: unknown, i: number): MapObject {
   const where = `objects[${i}]`;
-  if (!isRecord(o)) throw new MapFormatError(`${where}: 객체여야 함`, where);
+  if (!isRecord(o)) throw new MapFormatError(`${where}: 객체여야 합니다`, where);
   // 표식 글로 실은 큰 정수는 파일에서 수라 글 자리(id, type)에 올 수 없다
-  if (!isJsonText(o.id) || o.id === "") throw new MapFormatError(`${where}.id는 비어 있지 않은 문자열이어야 함`, `${where}.id`);
+  if (!isJsonText(o.id) || o.id === "") throw new MapFormatError(`${where}.id는 비어 있지 않은 문자열이어야 합니다`, `${where}.id`);
   if (!isJsonText(o.type) || o.type === "") throw new MapFormatError(`${where}.type 없음`, `${where}.type`);
   const num = (key: string, required: boolean): number | undefined => {
     const v = o[key];
@@ -290,10 +290,10 @@ function parseObject(o: unknown, i: number): MapObject {
       if (required) throw new MapFormatError(`${where}.${key} 없음`, `${where}.${key}`);
       return undefined;
     }
-    if (typeof v !== "number" || !Number.isFinite(v)) throw new MapFormatError(`${where}.${key}: 숫자여야 함`, `${where}.${key}`);
+    if (typeof v !== "number" || !Number.isFinite(v)) throw new MapFormatError(`${where}.${key}: 숫자여야 합니다`, `${where}.${key}`);
     return v;
   };
-  if (o.props !== undefined && !isRecord(o.props)) throw new MapFormatError(`${where}.props는 객체여야 함`, `${where}.props`);
+  if (o.props !== undefined && !isRecord(o.props)) throw new MapFormatError(`${where}.props는 객체여야 합니다`, `${where}.props`);
   const obj: MapObject = {
     id: o.id,
     type: o.type,

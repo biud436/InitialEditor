@@ -274,7 +274,7 @@ describe("이 맵에서 실행", () => {
     expect(await playHere(f.host)).toBe(false);
     expect(f.starts).toEqual([]);
     expect(f.toasts).toHaveLength(1);
-    expect(f.toasts[0]).toMatch(/^error: aldebaran_forest\.json 다시 읽기 실패, 실행 안 함: /);
+    expect(f.toasts[0]).toMatch(/^error: aldebaran_forest\.json: 다시 읽지 못해 실행하지 않습니다 \(/);
     expect(f.toasts[0]).not.toContain("저장 실패");
     expect(f.doc.reloadError).not.toBeNull();
     expect(f.doc.dirty).toBe(true);

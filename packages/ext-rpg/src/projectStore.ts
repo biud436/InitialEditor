@@ -197,7 +197,7 @@ export class RpgProjectStore implements RpgSources {
     runInAction(() => (this.loaded = true));
     if (this.schemaPresent) {
       const s = this.schema;
-      this.deps.workspace.log.info(LOG, s ? `이벤트 스키마: 커맨드 ${s.commands.length}종, 등록된 맵 ${this.game?.maps.length ?? 0}개` : `이벤트 스키마 사용 불가: ${this.schemaProblem}`);
+      this.deps.workspace.log.info(LOG, s ? `이벤트 스키마: 커맨드 ${s.commands.length}종, 등록된 맵 ${this.game?.maps.length ?? 0}개` : `이벤트 스키마를 사용할 수 없습니다: ${this.schemaProblem}`);
     }
     this.deps.onChange?.();
   }
@@ -302,7 +302,7 @@ export class RpgProjectStore implements RpgSources {
           else out.add(bareProjectPath(e.path));
         }
       }
-      if (out.size >= MAX_FILES) this.deps.workspace.log.warn(LOG, `resources/ 파일이 ${MAX_FILES}개 초과, 목록은 ${MAX_FILES}개까지만 표시`);
+      if (out.size >= MAX_FILES) this.deps.workspace.log.warn(LOG, `resources/ 파일이 ${MAX_FILES}개를 초과하여 목록에는 ${MAX_FILES}개까지만 표시합니다`);
     } catch (e) {
       this.deps.workspace.log.warn(LOG, `resources/ 파일 목록 읽기 실패: ${(e as Error).message}`);
     }

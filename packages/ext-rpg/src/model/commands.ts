@@ -171,7 +171,7 @@ export class EventEditor {
   private ctx(): EditContext {
     const c = this.context();
     if (c.locked) throw new EditRefused(c.locked);
-    if (!this.section.usable) throw new EditRefused(this.section.shapeError ?? "events 편집 불가");
+    if (!this.section.usable) throw new EditRefused(this.section.shapeError ?? "events를 편집할 수 없습니다");
     return c;
   }
 
@@ -193,7 +193,7 @@ export class EventEditor {
   private eventAt(index: number): JsonObject {
     const ev = this.section.list[index];
     if (ev === undefined) throw new EditRefused(`이벤트 없음 (${index + 1}번째)`);
-    if (!isPlainObject(ev)) throw new EditRefused(`events[${index + 1}] 편집 불가 (객체가 아님)`);
+    if (!isPlainObject(ev)) throw new EditRefused(`events[${index + 1}] 값을 편집할 수 없습니다 (객체가 아닙니다)`);
     return ev;
   }
 
@@ -266,12 +266,12 @@ export class EventEditor {
   /** 칸 단위로 옮긴다. 배회 구역도 같은 만큼 옮기고, keepArea 면 구역은 둔다 */
   moveEvents(indices: readonly number[], dx: number, dy: number, opts: EditOptions & { keepArea?: boolean } = {}): EventListCommand {
     const ctx = this.ctx();
-    if (!Number.isInteger(dx) || !Number.isInteger(dy)) throw new EditRefused("타일 단위로만 이동 가능");
+    if (!Number.isInteger(dx) || !Number.isInteger(dy)) throw new EditRefused("타일 단위로만 이동할 수 있습니다");
     const list = this.section.list;
     const out = [...list];
     for (const i of indices) {
       const ev = this.eventAt(i);
-      if (!isNonNegInt(ev.x) || !isNonNegInt(ev.y)) throw new EditRefused(`events[${i + 1}] 이동 불가 (좌표가 잘못됨)`);
+      if (!isNonNegInt(ev.x) || !isNonNegInt(ev.y)) throw new EditRefused(`events[${i + 1}] 값을 이동할 수 없습니다 (좌표가 잘못되었습니다)`);
       out[i] = shifted(ev, dx, dy, opts.keepArea === true);
     }
     this.guard(list, out, ctx);
@@ -285,7 +285,7 @@ export class EventEditor {
     const ctx = this.ctx();
     const spec = fieldSpec(ctx.schema, name);
     if (!spec) throw new EditRefused(`스키마에 없는 이벤트 속성: ${name}`);
-    if (spec.type === "list") throw new EditRefused("commands 속성은 커맨드 목록 편집기에서만 편집 가능");
+    if (spec.type === "list") throw new EditRefused("commands 속성은 커맨드 목록 에디터에서만 편집할 수 있습니다");
     const ev = this.eventAt(index);
     const next: JsonObject = { ...ev };
     if (value === undefined) delete next[name];
@@ -300,7 +300,7 @@ export class EventEditor {
   renameEvent(index: number, id: string, opts: EditOptions = {}): EventListCommand {
     const ctx = this.ctx();
     const ev = this.eventAt(index);
-    if (typeof id !== "string") throw new EditRefused("id 는 문자열이어야 함");
+    if (typeof id !== "string") throw new EditRefused("id 는 문자열이어야 합니다");
     const old = field(ev, "id");
     const list = this.section.list;
     let after = this.withEvent(index, orderEvent({ ...ev, id }, ctx.schema));
@@ -336,7 +336,7 @@ export class EventEditor {
     const ctx = this.ctx();
     const ev = this.eventAt(index);
     const commands = field(ev, "commands");
-    if (commands !== undefined && !isArrayPlace(commands)) throw new EditRefused(`events[${index + 1}].commands 편집 불가 (배열이 아님)`);
+    if (commands !== undefined && !isArrayPlace(commands)) throw new EditRefused(`events[${index + 1}].commands를 편집할 수 없습니다 (배열이 아닙니다)`);
     const next = this.tree(() => fn(commands ?? []));
     const nextEv = commands !== undefined ? { ...ev, commands: next } : orderEvent({ ...ev, commands: next }, ctx.schema);
     return this.withEvent(index, nextEv);
@@ -376,13 +376,13 @@ export class EventEditor {
   commandsOf(index: number, list: ListPath = []): readonly unknown[] {
     const ev = this.eventAt(index);
     const items = getList(field(ev, "commands"), list, this.context().schema);
-    if (!items) throw new EditRefused("목록은 배열이어야 함");
+    if (!items) throw new EditRefused("목록은 배열이어야 합니다");
     return items;
   }
 
   private commandAt(index: number, path: CommandPath, schema: EventSchema): JsonObject {
     const cmd = getCommand(field(this.eventAt(index), "commands"), path, schema);
-    if (!isPlainObject(cmd)) throw new EditRefused("커맨드 편집 불가 (객체가 아님)");
+    if (!isPlainObject(cmd)) throw new EditRefused("커맨드를 편집할 수 없습니다 (객체가 아닙니다)");
     return cmd;
   }
 
@@ -395,10 +395,10 @@ export class EventEditor {
     const ctx = this.ctx();
     const cmd = this.commandAt(index, path, ctx.schema);
     const spec = commandSpec(ctx.schema, cmd.code);
-    if (!spec) throw new EditRefused(`커맨드 ${jsonValueText(cmd.code)} 편집 불가 (스키마에 없음)`);
+    if (!spec) throw new EditRefused(`커맨드를 편집할 수 없습니다: ${jsonValueText(cmd.code)} (스키마에 없습니다)`);
     const arg = spec.args.find((a) => a.name === name);
     if (!arg) throw new EditRefused(`${spec.label}: ${name} 인자 없음`);
-    if (arg.type === "options") throw new EditRefused("항목(options)은 항목 편집기에서만 편집 가능 (분기와 취소 번호를 함께 갱신)");
+    if (arg.type === "options") throw new EditRefused("항목(options)은 항목 에디터에서만 편집할 수 있습니다 (분기와 취소 번호를 함께 갱신합니다)");
     const next: JsonObject = { ...cmd };
     if (value === undefined) delete next[name];
     else next[name] = (canonicalCommand({ code: cmd.code, [name]: cloneJson(value) }, ctx.schema) as JsonObject)[name];
@@ -424,7 +424,7 @@ export class EventEditor {
     for (const name of names) {
       const arg = spec.args.find((a) => a.name === name);
       if (!arg) throw new EditRefused(`인자 없음: ${spec.label}.${name}`);
-      if (arg.type === "options") throw new EditRefused(`항목 인자는 항목 편집으로 수정해야 함: ${spec.label}.${name}`);
+      if (arg.type === "options") throw new EditRefused(`항목 인자는 항목 편집으로 수정해야 합니다: ${spec.label}.${name}`);
       const value = values[name];
       if (value === undefined) delete next[name];
       else next[name] = (canonicalCommand({ code: cmd.code, [name]: cloneJson(value) }, ctx.schema) as JsonObject)[name];
@@ -454,9 +454,9 @@ export class EventEditor {
     const list = spec?.lists.find((l) => l.perOption);
     if (!spec || !list) throw new EditRefused("항목(options)이 없는 커맨드");
     const options = asList(field(cmd, list.perOption!));
-    if (!options) throw new EditRefused("항목 목록 편집 불가 (배열이 아님)");
+    if (!options) throw new EditRefused("항목 목록을 편집할 수 없습니다 (배열이 아닙니다)");
     const branches = field(cmd, list.name);
-    if (branches !== undefined && !isArrayPlace(branches)) throw new EditRefused("분기 목록 편집 불가 (배열이 아님)");
+    if (branches !== undefined && !isArrayPlace(branches)) throw new EditRefused("분기 목록을 편집할 수 없습니다 (배열이 아닙니다)");
     return { cmd, options: [...options], branchesName: list.name };
   }
 
@@ -483,7 +483,7 @@ export class EventEditor {
   }
 
   addOption(index: number, path: CommandPath, at: number, text: string): EventListCommand {
-    if (typeof text !== "string") throw new EditRefused("항목은 문자열이어야 함");
+    if (typeof text !== "string") throw new EditRefused("항목은 문자열이어야 합니다");
     return this.optionsCommand(index, path, "항목 추가", (s) => {
       if (!Number.isInteger(at) || at < 0 || at > s.options.length) throw new EditRefused("항목 인덱스가 범위 밖");
       s.options.splice(at, 0, text);
@@ -499,7 +499,7 @@ export class EventEditor {
   removeOption(index: number, path: CommandPath, k: number): EventListCommand {
     return this.optionsCommand(index, path, "항목 삭제", (s) => {
       if (!Number.isInteger(k) || k < 0 || k >= s.options.length) throw new EditRefused("항목 인덱스가 범위 밖");
-      if (s.options.length <= 1) throw new EditRefused("항목 1개 이상 필요");
+      if (s.options.length <= 1) throw new EditRefused("항목이 1개 이상 필요합니다");
       s.options.splice(k, 1);
       if (s.branches && s.branches.length > k) s.branches.splice(k, 1);
       if (s.cancel !== undefined) {
@@ -531,7 +531,7 @@ export class EventEditor {
   }
 
   setOption(index: number, path: CommandPath, k: number, text: string, opts: EditOptions = {}): EventListCommand {
-    if (typeof text !== "string") throw new EditRefused("항목은 문자열이어야 함");
+    if (typeof text !== "string") throw new EditRefused("항목은 문자열이어야 합니다");
     const key = opts.mergeKey === undefined ? undefined : `rpg:option:${index}:${JSON.stringify(path)}:${k}:${opts.mergeKey}`;
     return this.optionsCommand(
       index,

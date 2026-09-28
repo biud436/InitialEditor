@@ -162,8 +162,8 @@ describe("맵 오브젝트 목록의 검사", () => {
     expect(doc.model.findObject(added)?.props).toEqual({ title: "", text: "" });
     expect(problems().getAttribute("data-count")).toBe("3");
     const texts = screen.getAllByTestId("map-objects-problem").map((p) => p.textContent ?? "");
-    expect(texts.filter((t) => t.includes(`${added}: 필수 속성 제목 비어 있음`))).toHaveLength(1);
-    expect(texts.filter((t) => t.includes(`${added}: 필수 속성 글 비어 있음`))).toHaveLength(1);
+    expect(texts.filter((t) => t.includes(`${added}: 필수 속성 제목 값이 비어 있습니다`))).toHaveLength(1);
+    expect(texts.filter((t) => t.includes(`${added}: 필수 속성 글 값이 비어 있습니다`))).toHaveLength(1);
   });
 });
 

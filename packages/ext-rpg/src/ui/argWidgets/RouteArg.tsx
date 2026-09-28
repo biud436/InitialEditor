@@ -46,7 +46,7 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
   if (!list) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        루트 단계 목록은 배열이어야 함 (현재: {stringifyJsonLossless(value)}){" "}
+        루트 단계 목록은 배열이어야 합니다 (현재: {stringifyJsonLossless(value)}){" "}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} onClick={() => onChange([])}>
           빈 배열로 교체
         </button>
@@ -130,7 +130,7 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
                 )}
               </>
             ) : (
-              <span className="rpg-arg-note is-warning">{jsonValueText(raw)} (문자열이어야 함)</span>
+              <span className="rpg-arg-note is-warning">{jsonValueText(raw)} (문자열이어야 합니다)</span>
             )}
             <span className="rpg-option-tools">
               <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 루트 단계 위로`} data-testid={`${testId}-${k}-up`} onClick={() => move(k, k - 1)}>

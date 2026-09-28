@@ -63,7 +63,7 @@ describe("문구", () => {
 
   it("실패 이유는 마지막 오류 줄에서 머리를 뗀 것, 없으면 종료 코드", () => {
     expect(failureText(2, ["WARN aapt-ignored: x", "prepare_assets: game.json 이 없다: /p", ""])).toBe("game.json 이 없다: /p");
-    expect(failureText(1, [])).toBe("스크립트 종료 (종료 코드 1)");
-    expect(failureText(null, [])).toBe("스크립트가 시그널로 종료됨");
+    expect(failureText(1, [])).toBe("스크립트가 종료되었습니다 (종료 코드 1)");
+    expect(failureText(null, [])).toBe("스크립트가 시그널로 종료되었습니다");
   });
 });

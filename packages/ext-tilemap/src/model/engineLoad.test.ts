@@ -46,8 +46,8 @@ describe("엔진이 맵 파일을 여는 규칙 (Tilemap::load)", () => {
     expect(reason({ version: 3 })).toBe("지원하지 않는 맵 버전: 3 (지원: 1, 2)");
     expect(reason({ version: "2" })).toBe('지원하지 않는 맵 버전: "2" (지원: 1, 2)');
     expect(checkEngineMap("{}")).toEqual({ ok: false, reason: "지원하지 않는 맵 버전: 없음 (지원: 1, 2)" });
-    expect(reason({ width: 0 })).toBe("맵 크기나 타일 크기가 0 이하");
-    expect(reason({ tileHeight: -16 })).toBe("맵 크기나 타일 크기가 0 이하");
+    expect(reason({ width: 0 })).toBe("맵 크기나 타일 크기가 0 이하입니다");
+    expect(reason({ tileHeight: -16 })).toBe("맵 크기나 타일 크기가 0 이하입니다");
     expect(reason({ layers: [] })).toBe("레이어 없음");
     expect(reason({ layers: {} })).toBe("레이어 없음");
     expect(reason({ layers: [{ name: "g", data: [0] }] })).toMatch(/^레이어 "g"의 data 길이가 너비 x 높이와 다르거나/);

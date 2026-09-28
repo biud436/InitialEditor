@@ -216,7 +216,7 @@ describe("저장 전 질문", () => {
     f.doc.apply(state.add({ id: "out", x: -2, y: 0 }));
     expect(await confirmLayerErrors(ok.modals, f.doc)).toBe(true);
     expect(ok.asked).toEqual([
-      { title: "오류가 있는 맵 저장", message: "town.json: 오류 1개. 엔진이 오류 항목을 건너뛰거나 실행을 멈출 수 있음. 그래도 저장할까요?\n- marks[2]: out 이(가) 맵 밖이다", okLabel: "그래도 저장", cancelLabel: "취소" },
+      { title: "오류가 있는 맵 저장", message: "town.json: 오류가 1개 있습니다. 엔진이 오류 항목을 건너뛰거나 실행을 멈출 수 있습니다. 그래도 저장할까요?\n- marks[2]: out 이(가) 맵 밖이다", okLabel: "그래도 저장", cancelLabel: "취소" },
     ]);
     const no = asker(false);
     expect(await confirmLayerErrors(no.modals, f.doc)).toBe(false);

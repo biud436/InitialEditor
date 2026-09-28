@@ -174,7 +174,7 @@ describe("맵 오브젝트 조작", () => {
 
     setObjectsProp(doc, ["slime_1"], "minX", 300);
     const problem = doc.problems.find((p) => p.objectId === "slime_1");
-    expect(problem).toMatchObject({ severity: "error", message: "slime_1: 순찰 왼끝 값은 순찰 오른끝 값 이하여야 함", location: "objects[1].props.minX" });
+    expect(problem).toMatchObject({ severity: "error", message: "slime_1: 순찰 왼끝 값은 순찰 오른끝 값 이하여야 합니다", location: "objects[1].props.minX" });
     selectProblem(host, doc, problem!);
     expect(doc.selectedIds).toEqual(["slime_1"]);
     expect(focused).toEqual(["slime_1"]);

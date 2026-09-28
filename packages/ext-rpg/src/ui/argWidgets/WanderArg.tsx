@@ -13,7 +13,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
   if (on && !isObjectPlace(value)) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        배회는 객체여야 함 (현재: {stringifyJsonLossless(value)})
+        배회는 객체여야 합니다 (현재: {stringifyJsonLossless(value)})
       </div>
     );
   }

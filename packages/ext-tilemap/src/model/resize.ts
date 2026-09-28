@@ -57,7 +57,7 @@ export function anchorOffset(anchor: ResizeAnchor, from: GridSize, to: GridSize)
 /** 폭과 높이 검사. 쓸 수 없으면 이유 */
 export function validateMapSize(width: number, height: number): string | null {
   const ok = (n: number) => Number.isInteger(n) && n >= 1 && n <= MAX_MAP_TILES;
-  if (!ok(width) || !ok(height)) return `너비와 높이는 1 이상 ${MAX_MAP_TILES} 이하의 정수여야 함`;
+  if (!ok(width) || !ok(height)) return `너비와 높이는 1 이상 ${MAX_MAP_TILES} 이하의 정수여야 합니다`;
   return null;
 }
 

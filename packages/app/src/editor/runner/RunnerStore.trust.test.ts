@@ -171,7 +171,7 @@ describe("신뢰하지 않은 프로젝트", () => {
     // 답은 앱 설정에 남는다 (프로젝트 폴더에는 쓰지 않는다)
     expect(t.settings.settings.engineTrust).toEqual({ [ROOT]: { allow: false, exes: [PROJECT_FILE, BUILD] } });
     expect((await t.host.backend.list(".initial-editor")).map((e) => e.name)).toEqual(["engine"]);
-    expect(texts(t.log)).toContainEqual(`info/runner: 프로젝트가 가리키는 엔진을 신뢰하지 않아 실행 안 함: ${PROJECT_FILE}, ${BUILD}. 설정에서 다시 확인 가능`);
+    expect(texts(t.log)).toContainEqual(`info/runner: 프로젝트가 가리키는 엔진을 신뢰하지 않아 실행하지 않습니다: ${PROJECT_FILE}, ${BUILD}. 설정에서 다시 확인할 수 있습니다.`);
   });
 
   it("앱에 든 엔진이 답하면 형제 폴더의 엔진은 묻지도 보지도 않는다 (build/ 도 .initial-editor/engine 도 없는 프로젝트)", async () => {
@@ -524,7 +524,7 @@ describe("엔진을 못 찾으면 에디터 안으로", () => {
     expect(t.runner.statusText).toBe("엔진 (게임 탭): 실행 중 00:00");
     const line = texts(t.log).find((l) => l.startsWith(`info/runner: ${FALLBACK_NOTICE}`));
     expect(line).toContain(`탐색한 경로: ${SIBLING}`);
-    expect(line).toContain("설정의 실행 방식은 변경 안 함");
+    expect(line).toContain("설정의 실행 방식은 변경하지 않습니다");
     await t.runner.stop();
   });
 
