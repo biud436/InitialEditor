@@ -26,7 +26,7 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
       >
         {(!spec.required || current === "") && (
           <option value="" disabled={spec.required}>
-            {spec.required ? "파일 고르기" : emptyText(spec)}
+            {spec.required ? "파일 선택" : emptyText(spec)}
           </option>
         )}
         {missing && <option value={current}>{shown}</option>}
@@ -38,10 +38,10 @@ export function FileArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
       </select>
       {files.length === 0 && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-none`}>
-          고를 파일이 없다{spec.accept ? ` (${spec.accept.join(", ")})` : ""}
+          선택할 파일 없음{spec.accept ? ` (${spec.accept.join(", ")})` : ""}
         </div>
       )}
-      {wrong && <div className="rpg-arg-note is-warning">지금 값 {jsonValueText(value)} 는 경로 글이 아니다</div>}
+      {wrong && <div className="rpg-arg-note is-warning">경로 문자열이어야 함 (현재: {jsonValueText(value)})</div>}
     </>
   );
 }

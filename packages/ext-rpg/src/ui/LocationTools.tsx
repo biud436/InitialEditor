@@ -16,7 +16,7 @@ export interface CommandLocationActions {
   reveal(path: CommandPath): void;
 }
 
-const PICK_LABEL = "맵에서 고르기";
+const PICK_LABEL = "맵에서 선택";
 const REVEAL_LABEL = "대상 보기";
 
 /** 보일 이유 줄 */

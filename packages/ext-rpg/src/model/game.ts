@@ -9,7 +9,7 @@ import { engineLength, field, isArrayPlace, isObjectPlace, isInteger, isPlainObj
 
 export const GAME_CONFIG_PATH = "resources/data/rpg-game.json";
 /** 저장소가 rpg-game.json 이 없을 때 남기는 이유 (RPG 프로젝트가 아니다) */
-export const GAME_CONFIG_MISSING = "파일이 없다";
+export const GAME_CONFIG_MISSING = "파일 없음";
 
 export interface MapEntry {
   name: string;
@@ -67,7 +67,7 @@ function parseJson(text: string, what: string): unknown {
   try {
     return JSON.parse(text);
   } catch (e) {
-    throw new GameConfigError(`${what}: JSON 이 아니다: ${(e as Error).message}`);
+    throw new GameConfigError(`${what}: JSON 구문 오류: ${(e as Error).message}`);
   }
 }
 
@@ -75,12 +75,12 @@ function stringRecord(raw: unknown, where: string, problems: DataProblem[]): Rec
   const out: Record<string, string> = {};
   if (raw === undefined || raw === null) return out;
   if (!isPlainObject(raw)) {
-    problems.push({ path: where, message: "객체가 아니다" });
+    problems.push({ path: where, message: "객체여야 함" });
     return out;
   }
   for (const [k, v] of Object.entries(raw)) {
     if (typeof v === "string") out[k] = v;
-    else problems.push({ path: `${where}.${k}`, message: "글이 아니다" });
+    else problems.push({ path: `${where}.${k}`, message: "문자열이어야 함" });
   }
   return out;
 }
@@ -88,11 +88,11 @@ function stringRecord(raw: unknown, where: string, problems: DataProblem[]): Rec
 /** rpg-game.json 을 읽는다 (config.lua 의 load 와 같은 규칙) */
 export function parseGameConfig(text: string): GameConfig {
   const data = parseJson(text, "rpg-game.json");
-  if (!isObjectPlace(data)) throw new GameConfigError("설정이 객체가 아니다");
+  if (!isObjectPlace(data)) throw new GameConfigError("설정은 객체여야 함");
   const version = field(data, "version");
-  if (version !== 1) throw new GameConfigError(`모르는 버전 ${String(version)}`, "version");
+  if (version !== 1) throw new GameConfigError(`지원하지 않는 버전: ${String(version)}`, "version");
   const rawMaps = field(data, "maps");
-  if (!isArrayPlace(rawMaps)) throw new GameConfigError("맵 목록이 배열이 아니다", "maps");
+  if (!isArrayPlace(rawMaps)) throw new GameConfigError("맵 목록은 배열이어야 함", "maps");
 
   const problems: DataProblem[] = [];
   const maps: MapEntry[] = [];
@@ -104,24 +104,24 @@ export function parseGameConfig(text: string): GameConfig {
     const before = problems.length;
     const add = (path: string, message: string) => problems.push({ path, message });
     if (!isObjectPlace(entry)) {
-      add(here, "맵 항목이 객체가 아니다");
+      add(here, "맵 항목은 객체여야 함");
       continue;
     }
     const name = field(entry, "name");
-    if (!nonEmptyString(name)) add(`${here}.name`, "이름이 비었거나 글이 아니다");
-    else if (seen.has(name)) add(`${here}.name`, `이름 ${name} 가 maps[${seen.get(name)}] 와 겹친다`);
+    if (!nonEmptyString(name)) add(`${here}.name`, "이름은 비어 있지 않은 문자열이어야 함");
+    else if (seen.has(name)) add(`${here}.name`, `이름 ${name} 중복 (maps[${seen.get(name)}])`);
     for (const key of ["file", "def"]) {
-      if (!nonEmptyString(field(entry, key))) add(`${here}.${key}`, "경로가 비었거나 글이 아니다");
+      if (!nonEmptyString(field(entry, key))) add(`${here}.${key}`, "경로는 비어 있지 않은 문자열이어야 함");
     }
     const alt = field(entry, "alt");
     const alts: string[] = [];
     if (alt !== undefined) {
-      if (!isArrayPlace(alt)) add(`${here}.alt`, "alt 가 배열이 아니다");
+      if (!isArrayPlace(alt)) add(`${here}.alt`, "alt 는 배열이어야 함");
       else {
         const altList = asList(alt)!;
         for (let k = 0; k < engineLength(altList); k++) {
           const a = altList[k];
-          if (!nonEmptyString(a)) add(`${here}.alt[${k + 1}]`, "경로가 비었거나 글이 아니다");
+          if (!nonEmptyString(a)) add(`${here}.alt[${k + 1}]`, "경로는 비어 있지 않은 문자열이어야 함");
           else alts.push(bareProjectPath(a));
         }
       }
@@ -134,14 +134,14 @@ export function parseGameConfig(text: string): GameConfig {
 
   let items: string | null = null;
   const rawItems = field(data, "items");
-  if (rawItems === undefined) problems.push({ path: "items", message: "아이템 표 경로가 없다" });
-  else if (!nonEmptyString(rawItems)) problems.push({ path: "items", message: "아이템 표 경로가 비었거나 글이 아니다" });
+  if (rawItems === undefined) problems.push({ path: "items", message: "아이템 표 경로 없음" });
+  else if (!nonEmptyString(rawItems)) problems.push({ path: "items", message: "아이템 표 경로는 비어 있지 않은 문자열이어야 함" });
   else items = bareProjectPath(rawItems);
 
   let play: PlaySection | null = null;
   const rawPlay = field(data, "play");
   if (rawPlay !== undefined) {
-    if (!isPlainObject(rawPlay)) problems.push({ path: "play", message: "객체가 아니다" });
+    if (!isPlainObject(rawPlay)) problems.push({ path: "play", message: "객체여야 함" });
     else play = { env: stringRecord(rawPlay.env, "play.env", problems), probe: stringRecord(rawPlay.probe, "play.probe", problems) };
   }
   return { version: 1, maps, items, play, problems };
@@ -171,7 +171,7 @@ export function mapByName(config: GameConfig | null | undefined, name: string): 
 /** 등록된 맵이 읽기 전용인 이유. alt 가 있는 항목은 두 파일에 이벤트를 두 벌 둬야 한다 */
 export function mapReadOnlyReason(match: MapMatch | null): string | null {
   if (!match || match.entry.alt.length === 0) return null;
-  return "RTP 판과 기본 판 두 파일이라 이벤트를 두 벌 둬야 한다. 이전 전에는 Lua 정의 파일에서 고친다";
+  return "alt 로 등록된 맵 (RTP 버전과 기본 버전 두 파일): 이벤트를 두 파일에 따로 저장해야 하므로 편집 불가. Lua 정의 파일에서 편집";
 }
 
 // ---- 아이템 표 ----
@@ -201,11 +201,11 @@ export function parseItemTable(text: string): ItemTable {
   try {
     data = JSON.parse(text);
   } catch (e) {
-    throw new ItemTableError(`JSON 이 아니다: ${(e as Error).message}`);
+    throw new ItemTableError(`JSON 구문 오류: ${(e as Error).message}`);
   }
-  if (!isObjectPlace(data)) throw new ItemTableError("아이템 표가 객체가 아니다");
+  if (!isObjectPlace(data)) throw new ItemTableError("아이템 표는 객체여야 함");
   const raw = field(data, "items");
-  if (!isArrayPlace(raw)) throw new ItemTableError("아이템 목록이 배열이 아니다", "items");
+  if (!isArrayPlace(raw)) throw new ItemTableError("아이템 목록은 배열이어야 함", "items");
   const problems: DataProblem[] = [];
   const items: ItemEntry[] = [];
   const seen = new Map<string, number>();
@@ -216,18 +216,18 @@ export function parseItemTable(text: string): ItemTable {
     const before = problems.length;
     const add = (path: string, message: string) => problems.push({ path, message });
     if (!isObjectPlace(item)) {
-      add(here, "아이템이 객체가 아니다");
+      add(here, "아이템은 객체여야 함");
       continue;
     }
     const id = field(item, "id");
-    if (!nonEmptyString(id)) add(`${here}.id`, "id 가 비었거나 글이 아니다");
-    else if (seen.has(id)) add(`${here}.id`, `id ${id} 가 items[${seen.get(id)}] 와 겹친다`);
+    if (!nonEmptyString(id)) add(`${here}.id`, "id 는 비어 있지 않은 문자열이어야 함");
+    else if (seen.has(id)) add(`${here}.id`, `id ${id} 중복 (items[${seen.get(id)}])`);
     for (const key of ["name", "desc"]) {
       const v = field(item, key);
-      if (v !== undefined && typeof v !== "string") add(`${here}.${key}`, `글이 아니다 (지금은 ${typeof v})`);
+      if (v !== undefined && typeof v !== "string") add(`${here}.${key}`, `문자열이어야 함 (현재 타입: ${typeof v})`);
     }
     const order = field(item, "order");
-    if (order !== undefined && !isInteger(order)) add(`${here}.order`, `정수가 아니다 (지금은 ${String(order)})`);
+    if (order !== undefined && !isInteger(order)) add(`${here}.order`, `정수여야 함 (현재: ${String(order)})`);
     if (problems.length === before) {
       const entry: ItemEntry = { id: id as string };
       const name = field(item, "name");

@@ -34,8 +34,8 @@ export interface ArgWidgetProps {
 
 /** 비어 있을 때 보일 글: 기본값이 있으면 그 값 */
 export function emptyText(spec: ArgSpec): string {
-  if (spec.default === undefined) return "비움";
-  return `비움 (기본 ${defaultText(spec.default)})`;
+  if (spec.default === undefined) return "지정 안 함";
+  return `지정 안 함 (기본값 ${defaultText(spec.default)})`;
 }
 
 export function defaultText(v: unknown): string {

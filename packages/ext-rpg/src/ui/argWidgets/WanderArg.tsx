@@ -13,7 +13,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
   if (on && !isObjectPlace(value)) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        배회가 객체가 아니다 ({stringifyJsonLossless(value)})
+        배회는 객체여야 함 (현재: {stringifyJsonLossless(value)})
       </div>
     );
   }
@@ -30,7 +30,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
     <div className="rpg-wander" data-testid={testId}>
       <label className="rpg-arg-inline">
         <input type="checkbox" checked={on} disabled={ctx.disabled} data-testid={`${testId}-on`} onChange={(e) => onChange(e.target.checked ? {} : undefined)} aria-label={spec.label} />
-        배회한다
+        배회 사용
       </label>
       {on &&
         Object.keys(WAIT_DEFAULTS).map((k) => (
@@ -41,7 +41,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
               exact
               integer
               min={0}
-              placeholder={`기본 ${WAIT_DEFAULTS[k]}`}
+              placeholder={`기본값 ${WAIT_DEFAULTS[k]}`}
               onChange={(v, s) => put(k, v, s)}
               sessionPrefix={`${sessionPrefix}.${k}`}
               disabled={ctx.disabled}
@@ -52,7 +52,7 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
         ))}
       {on && isPlainObject(area) && (
         <div className="rpg-arg-inline" data-testid={`${testId}-area`}>
-          <span className="muted">구역</span>
+          <span className="muted">영역</span>
           {(["x", "y", "w", "h"] as const).map((k) => (
             <NumberInput
               key={k}
@@ -64,11 +64,11 @@ export function WanderArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
               sessionPrefix={`${sessionPrefix}.area.${k}`}
               disabled={ctx.disabled}
               testId={`${testId}-area-${k}`}
-              ariaLabel={`구역 ${AREA_LABELS[k]}`}
+              ariaLabel={`영역 ${AREA_LABELS[k]}`}
             />
           ))}
           <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled} data-testid={`${testId}-area-clear`} onClick={() => put("area", undefined)}>
-            구역 지우기
+            영역 지우기
           </button>
         </div>
       )}

@@ -1,6 +1,6 @@
 // 이벤트 표식의 자리 (e5 문서 3절 "그리기"). 뷰가 그리고 도구가 맞히는 사각형이 같도록 한 곳에서 정한다.
 //   외형이 있으면 CharSet 의 서 있는 프레임 (dir 이 있으면 그 방향 행, 없으면 정면). 가로는 칸 가운데, 발이 칸 아래 변
-//   외형이 없으면 칸 크기의 표식과 트리거 글자 (말, 밟, 자, 병)
+//   외형이 없으면 칸 크기의 표식과 트리거 글자 (결, 접, 자, 병)
 // DOM 도 PIXI 도 모른다.
 
 import { assetIndex, characterDrawPos, charsetFrame, resolveAssetFile, type Rect } from "../model/assets";
@@ -17,13 +17,13 @@ export interface TriggerBadge {
 }
 
 export const TRIGGER_BADGES: Readonly<Record<string, TriggerBadge>> = {
-  action: { letter: "말", token: "accent", label: "말 걸기" },
-  touch: { letter: "밟", token: "warning", label: "밟기" },
-  auto: { letter: "자", token: "success", label: "자동" },
-  parallel: { letter: "병", token: "fg-muted", label: "병렬" },
+  action: { letter: "결", token: "accent", label: "결정 키" },
+  touch: { letter: "접", token: "warning", label: "플레이어 접촉" },
+  auto: { letter: "자", token: "success", label: "자동 실행" },
+  parallel: { letter: "병", token: "fg-muted", label: "병렬 처리" },
 };
 
-const UNKNOWN_BADGE: TriggerBadge = { letter: "?", token: "danger", label: "모르는 트리거" };
+const UNKNOWN_BADGE: TriggerBadge = { letter: "?", token: "danger", label: "지원하지 않는 트리거" };
 
 /** 트리거의 표식 (없으면 action, 모르는 값은 ?) */
 export function triggerBadge(trigger: unknown): TriggerBadge {

@@ -58,7 +58,7 @@ export function mapFileProblem(path: string, check: MapFileCheck | undefined, fi
   if (check.kind === "error") return `맵 파일 읽기 실패: ${check.message}`;
   if (check.kind === "invalid") return `엔진이 열 수 없는 맵: ${check.reason}`;
   const missing = fileExists ? check.images.find((img) => !fileExists(img)) : undefined;
-  return missing === undefined ? null : `엔진이 열 수 없는 맵: 타일셋 그림 없음 (${missing})`;
+  return missing === undefined ? null : `엔진이 열 수 없는 맵: 타일셋 이미지 없음 (${missing})`;
 }
 
 export interface LocationSources {
@@ -90,11 +90,11 @@ export type LocationTarget =
  */
 function cellCoord(name: string, v: unknown, size: number | undefined, sizeLabel: string): number | string {
   const shown = stringifyJsonLossless(v) ?? String(v);
-  if (!isJsonNumber(v)) return `${name} 값이 수가 아님: ${shown}`;
-  if (!isJsonInteger(v)) return `${name} 값이 정수가 아님: ${shown}`;
+  if (!isJsonNumber(v)) return `${name} 값은 숫자여야 함 (현재: ${shown})`;
+  if (!isJsonInteger(v)) return `${name} 값은 정수여야 함 (현재: ${shown})`;
   const n = jsonNumber(v)!;
-  if (n < 0) return `${name} 값이 음수: ${shown}`;
-  if (bigIntText(v) !== null || (size !== undefined && n >= size)) return `${name} 값이 맵 범위 밖: ${shown}${size !== undefined ? ` (${sizeLabel} ${size})` : ""}`;
+  if (n < 0) return `${name} 값은 0 이상이어야 함 (현재: ${shown})`;
+  if (bigIntText(v) !== null || (size !== undefined && n >= size)) return `${name} 값이 맵 범위 밖 (현재: ${shown}${size !== undefined ? `, ${sizeLabel} ${size}` : ""})`;
   return n;
 }
 

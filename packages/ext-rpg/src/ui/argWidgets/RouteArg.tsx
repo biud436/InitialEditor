@@ -46,9 +46,9 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
   if (!list) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        걸음 목록이 배열이 아니다 ({stringifyJsonLossless(value)}){" "}
+        루트 단계 목록은 배열이어야 함 (현재: {stringifyJsonLossless(value)}){" "}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} onClick={() => onChange([])}>
-          비우고 새로
+          빈 배열로 교체
         </button>
       </div>
     );
@@ -81,21 +81,21 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
                   className="input field-select rpg-arg-kind"
                   value={step.kind}
                   disabled={ctx.disabled}
-                  aria-label={`${k + 1}번 걸음 종류`}
+                  aria-label={`${k + 1}번 루트 단계 종류`}
                   data-testid={`${testId}-${k}-kind`}
                   onChange={(e) => replaceAt(k, stepText(schema, convert(schema, step, e.target.value as RouteStep["kind"])))}
                 >
                   <option value="move">이동</option>
-                  <option value="turn">돌기</option>
+                  <option value="turn">방향 전환</option>
                   <option value="wait">기다리기</option>
-                  <option value="raw">그대로</option>
+                  <option value="raw">직접 입력</option>
                 </select>
                 {(step.kind === "move" || step.kind === "turn") && (
                   <select
                     className="input field-select"
                     value={step.dir}
                     disabled={ctx.disabled}
-                    aria-label={`${k + 1}번 걸음 방향`}
+                    aria-label={`${k + 1}번 루트 단계 방향`}
                     data-testid={`${testId}-${k}-dir`}
                     onChange={(e) => replaceAt(k, stepText(schema, { kind: step.kind, dir: e.target.value }))}
                   >
@@ -115,7 +115,7 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
                     sessionPrefix={`${sessionPrefix}:${k}`}
                     disabled={ctx.disabled}
                     testId={`${testId}-${k}-ms`}
-                    ariaLabel={`${k + 1}번 걸음 ms`}
+                    ariaLabel={`${k + 1}번 루트 단계 ms`}
                   />
                 )}
                 {step.kind === "raw" && (
@@ -125,21 +125,21 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
                     sessionPrefix={`${sessionPrefix}:${k}`}
                     disabled={ctx.disabled}
                     testId={`${testId}-${k}-text`}
-                    ariaLabel={`${k + 1}번 걸음`}
+                    ariaLabel={`${k + 1}번 루트 단계`}
                   />
                 )}
               </>
             ) : (
-              <span className="rpg-arg-note is-warning">{jsonValueText(raw)} (글이 아니다)</span>
+              <span className="rpg-arg-note is-warning">{jsonValueText(raw)} (문자열이어야 함)</span>
             )}
             <span className="rpg-option-tools">
-              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 걸음 위로`} data-testid={`${testId}-${k}-up`} onClick={() => move(k, k - 1)}>
+              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k === 0} aria-label={`${k + 1}번 루트 단계 위로`} data-testid={`${testId}-${k}-up`} onClick={() => move(k, k - 1)}>
                 ↑
               </button>
-              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 걸음 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => move(k, k + 1)}>
+              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 루트 단계 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => move(k, k + 1)}>
                 ↓
               </button>
-              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled} aria-label={`${k + 1}번 걸음 빼기`} data-testid={`${testId}-${k}-remove`} onClick={() => remove(k)}>
+              <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled} aria-label={`${k + 1}번 루트 단계 삭제`} data-testid={`${testId}-${k}-remove`} onClick={() => remove(k)}>
                 ✕
               </button>
             </span>
@@ -148,12 +148,12 @@ export function RouteArg({ spec, value, onChange, ctx, sessionPrefix, testId }: 
       })}
       <div className="rpg-route-add">
         {schema.route.moves.map((m) => (
-          <button key={m} type="button" className="btn rpg-mini" disabled={ctx.disabled} aria-label={`${m} 이동 더하기`} data-testid={`${testId}-add-${m}`} onClick={() => add(m)}>
+          <button key={m} type="button" className="btn rpg-mini" disabled={ctx.disabled} aria-label={`${m} 이동 추가`} data-testid={`${testId}-add-${m}`} onClick={() => add(m)}>
             {ARROWS[m] ?? m}
           </button>
         ))}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} data-testid={`${testId}-add-turn`} onClick={() => add(`${schema.route.turnPrefix}${schema.route.moves[0]}`)}>
-          돌기
+          방향 전환
         </button>
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} data-testid={`${testId}-add-wait`} onClick={() => add(`${schema.route.waitPrefix}${DEFAULT_WAIT}`)}>
           기다리기

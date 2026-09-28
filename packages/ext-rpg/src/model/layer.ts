@@ -194,10 +194,10 @@ export class EventsLayerState implements MapLayerState {
   lockReason(): string | null {
     const s = this.sources;
     if (s.schemaProblem) return s.schemaProblem;
-    if (!s.schemaPresent || !this.schema) return "event-commands.json 이 없어 이벤트를 고칠 수 없다 (파일을 되살리면 풀린다)";
-    if (s.gameProblem) return `rpg-game.json 을 읽지 못해 이벤트를 고칠 수 없다 (${s.gameProblem})`;
+    if (!s.schemaPresent || !this.schema) return "event-commands.json 없음: 이벤트 편집 불가 (파일을 복원하면 해제)";
+    if (s.gameProblem) return `rpg-game.json 읽기 실패: 이벤트 편집 불가 (${s.gameProblem})`;
     const match = this.match;
-    if (!match) return "rpg-game.json 에서 이 맵이 빠져 이벤트를 고칠 수 없다 (등록을 되살리면 풀린다)";
+    if (!match) return "rpg-game.json 에 이 맵의 등록 없음: 이벤트 편집 불가 (등록을 복원하면 해제)";
     const readOnly = mapReadOnlyReason(match);
     if (readOnly) return readOnly;
     return this.section.shapeError;
@@ -212,7 +212,7 @@ export class EventsLayerState implements MapLayerState {
     const before = this.section.list;
     const after = shiftEvents(before, offset);
     if (after.every((e, i) => e === before[i])) return null;
-    const moved = new EventListCommand("이벤트 옮기기 (맵 크기)", this.section, before, after, []);
+    const moved = new EventListCommand("이벤트 이동 (맵 크기 변경)", this.section, before, after, []);
     if (this.schema) return moved;
     const rawBefore = this.raw;
     const rawAfter = Array.isArray(rawBefore) ? after : rawBefore;
@@ -323,8 +323,8 @@ export function attachEventsLayer(doc: MapDocument, sources: RpgSources): Events
 /** 붙지 않은 맵의 레이어 패널 한 줄. 스키마가 없는 프로젝트는 아무것도 보이지 않는다 */
 export function eventsLayerHint(_doc: MapDocument, sources: RpgSources): string | undefined {
   if (!sources.schemaPresent) return undefined;
-  if (sources.gameProblem) return `rpg-game.json 을 읽지 못해 이벤트 레이어가 없다 (${sources.gameProblem})`;
-  return "이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다";
+  if (sources.gameProblem) return `rpg-game.json 읽기 실패: 이벤트 레이어 없음 (${sources.gameProblem})`;
+  return "이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)";
 }
 
 /** 이벤트 레이어의 DOM 없는 부분 (id, 섹션, 붙이기, 힌트). src/ui 가 뷰와 도구와 인스펙터를 더한다 */

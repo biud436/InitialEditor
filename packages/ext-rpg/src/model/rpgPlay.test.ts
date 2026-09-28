@@ -28,7 +28,7 @@ describe("rpgPlay 제공자 (여기서 실행)", () => {
     expect(provider.applies(h.open(INN))).toBe(true);
     const meadow = h.open(MEADOW);
     expect(provider.applies(meadow)).toBe(false);
-    expect(provider.hint?.(meadow)).toBe("이 맵은 rpg-game.json 에 등록되지 않아 RPG 로 실행하지 않는다");
+    expect(provider.hint?.(meadow)).toBe("rpg-game.json 에 등록되지 않은 맵: RPG 실행 불가");
     expect(provider.plan(meadow, NO_CTX)).toBeNull();
     // alt 로 등록된 맵(RTP 판)도 받고 맵 이름은 항목의 이름이다 (레이어는 읽기 전용이어도 실행은 된다)
     const village = h.open("resources/maps/village_rtp.json");
@@ -54,15 +54,15 @@ describe("rpgPlay 제공자 (여기서 실행)", () => {
     expect(provider.plan(doc, { cursor: { x: 14 * 16 + 3, y: 40 * 16 + 15 }, viewCenter: { x: 16 * 16, y: 24 * 16 } })).toEqual({
       env: { ...BASE, INITIAL2D_MAP: "port_town", INITIAL2D_RPG_AT: "15,40,down" },
       at: { x: 15, y: 40 },
-      note: "커서 14,40 → 15,40 (막힌 칸이라 옮겼다)",
+      note: "커서 14,40 → 15,40 (통행 불가 타일이라 가장 가까운 통행 가능 타일로 이동)",
     });
     expect(provider.plan(doc, { cursor: null, viewCenter: { x: 16 * 16 + 8, y: 24 * 16 + 8 } })).toMatchObject({ at: { x: 16, y: 24 }, note: "뷰 가운데 16,24" });
     // 맵 밖의 커서는 쓰지 않는다
     expect(provider.plan(doc, { cursor: { x: -5, y: 40 }, viewCenter: { x: 16 * 16 + 8, y: 24 * 16 + 8 } })?.note).toBe("뷰 가운데 16,24");
-    expect(provider.plan(doc, NO_CTX)).toEqual({ env: { ...BASE, INITIAL2D_MAP: "port_town" }, at: null, note: "정의 파일의 시작" });
+    expect(provider.plan(doc, NO_CTX)).toEqual({ env: { ...BASE, INITIAL2D_MAP: "port_town" }, at: null, note: "정의 파일의 시작 위치" });
     // 둘 이상 고르면 이벤트 앞이 아니다
     stateOf(doc).select([0, 2]);
-    expect(provider.plan(doc, NO_CTX)?.note).toBe("정의 파일의 시작");
+    expect(provider.plan(doc, NO_CTX)?.note).toBe("정의 파일의 시작 위치");
   });
 
   it("고른 이벤트의 칸이 틀렸으면(밖에서 고친 파일) 이유를 적고 커서로 넘어간다", () => {
@@ -75,7 +75,7 @@ describe("rpgPlay 제공자 (여기서 실행)", () => {
     st.select([i]);
     const plan = provider.plan(doc, { cursor: { x: 16 * 16, y: 24 * 16 }, viewCenter: null })!;
     expect(plan.at).toEqual({ x: 16, y: 24 });
-    expect(plan.note).toBe("bench 의 칸이 틀렸거나 설 수 있는 칸이 없다. 커서 16,24");
+    expect(plan.note).toBe("bench: 좌표가 잘못되었거나 통행 가능한 타일 없음. 커서 16,24");
   });
 
   it("맵마다 기억한 시작 상태를 INITIAL2D_RPG_STATE 로 넘기고, 틀린 항목이 있으면 설명에 적는다", () => {
@@ -85,10 +85,10 @@ describe("rpgPlay 제공자 (여기서 실행)", () => {
     expect(provider.plan(doc, NO_CTX)).toEqual({
       env: { ...BASE, INITIAL2D_MAP: "port_town", INITIAL2D_RPG_STATE: "arrived,item:shell=2" },
       at: null,
-      note: "정의 파일의 시작, 시작 상태 arrived,item:shell=2",
+      note: "정의 파일의 시작 위치, 시작 상태 arrived,item:shell=2",
     });
     sources.memory.set(PORT_TOWN, "arrived,item:nothing,items=1");
-    expect(provider.plan(doc, NO_CTX)?.note).toBe("정의 파일의 시작, 시작 상태 arrived,item:nothing,items=1, 틀린 항목 2개는 엔진이 건너뛴다");
+    expect(provider.plan(doc, NO_CTX)?.note).toBe("정의 파일의 시작 위치, 시작 상태 arrived,item:nothing,items=1, 잘못된 항목 2개는 엔진이 건너뜀");
     // 다른 맵의 시작 상태는 넘기지 않는다
     sources.memory.set(PORT_TOWN, "  ");
     sources.memory.set(INN, "booked");
@@ -110,11 +110,11 @@ describe("rpgPlay 제공자 (여기서 실행)", () => {
     noPlay.sources.set({ game: { ...noPlay.sources.game!, play: null } });
     const doc = noPlay.h.open(PORT_TOWN);
     expect(noPlay.provider.applies(doc)).toBe(false);
-    expect(noPlay.provider.hint?.(doc)).toBe("rpg-game.json 에 play 가 없어 RPG 로 실행하지 않는다");
-    const broken = setup({ game: null, gameProblem: "모르는 버전 2" });
-    expect(broken.provider.hint?.(broken.h.open(PORT_TOWN))).toBe("rpg-game.json 을 읽지 못해 RPG 로 실행하지 않는다 (모르는 버전 2)");
+    expect(noPlay.provider.hint?.(doc)).toBe("rpg-game.json 에 play 없음: RPG 실행 불가");
+    const broken = setup({ game: null, gameProblem: "지원하지 않는 버전: 2" });
+    expect(broken.provider.hint?.(broken.h.open(PORT_TOWN))).toBe("rpg-game.json 읽기 실패: RPG 실행 불가 (지원하지 않는 버전: 2)");
     const missing = setup({ game: null, gameProblem: GAME_CONFIG_MISSING });
-    expect(missing.provider.hint?.(missing.h.open(PORT_TOWN))).toBe("rpg-game.json 이 없어 RPG 로 실행하지 않는다");
+    expect(missing.provider.hint?.(missing.h.open(PORT_TOWN))).toBe("rpg-game.json 없음: RPG 실행 불가");
     const flappy = setup({ game: null, gameProblem: GAME_CONFIG_MISSING, schema: null, schemaPresent: false });
     expect(flappy.provider.hint?.(flappy.h.open(PORT_TOWN))).toBeUndefined();
   });
@@ -132,7 +132,7 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect(probe).toEqual({
       env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" },
       at: { x: 14, y: 21 },
-      note: "이벤트 kid 앞에서 말 걸기, 시작 상태 arrived",
+      note: "이벤트 kid 앞에서 결정 키 입력, 시작 상태 arrived",
     });
     // 자동 재생은 러너가 지켜본다 (실행마다 새로 만든다)
     expect(typeof watch).toBe("function");
@@ -145,12 +145,12 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const door = eventPlay(sources, doc, indexOf(doc, "inn_door"), "probe") as PlayPlan;
     expect(door.env).toMatchObject({ INITIAL2D_RPG_AT: "13,30,up", INITIAL2D_RPG_ROUTE: "up" });
     const { watch, ...arrival } = eventPlay(sources, doc, indexOf(doc, "arrival"), "probe") as PlayPlan;
-    expect(arrival).toEqual({ env: { ...BASE, INITIAL2D_MAP: "port_town", INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "", INITIAL2D_RPG_HOLD: "arrival" }, at: null, note: "auto 이벤트 arrival: 맵에 들어올 때 돈다" });
+    expect(arrival).toEqual({ env: { ...BASE, INITIAL2D_MAP: "port_town", INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "", INITIAL2D_RPG_HOLD: "arrival" }, at: null, note: "auto 이벤트 arrival: 맵 진입 시 실행" });
     expect(typeof watch).toBe("function");
     const st = stateOf(doc);
     const i = indexOf(doc, "bench");
     st.run((ed) => ed.setField(i, "trigger", "parallel"));
-    expect(eventPlayBlocked(sources, doc, i, "probe")).toBe("parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)");
+    expect(eventPlayBlocked(sources, doc, i, "probe")).toBe("parallel 이벤트는 종료되지 않음 (자동 재생 불가)");
     expect(eventPlayBlocked(sources, doc, i, "play")).toBeUndefined();
   });
 
@@ -171,7 +171,7 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const { h, sources } = setup();
     const doc = h.open(PORT_TOWN);
     const i = indexOf(doc, "kid");
-    const WANDER = "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다";
+    const WANDER = "배회하는 이벤트: 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있음";
     const failure = (plan: PlayPlan) => {
       const w = plan.watch!();
       w.line("rpg:map:port_town events:17 skipped:0");
@@ -184,13 +184,13 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     sources.set({ game: { ...game, play: { ...game.play!, probe: unheld } } });
     const loose = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(loose.env).not.toHaveProperty("INITIAL2D_RPG_HOLD");
-    expect(loose.note).toBe(`이벤트 kid 앞에서 말 걸기, ${WANDER}`);
-    expect(failure(loose)).toContain("배회하는 이벤트라");
+    expect(loose.note).toBe(`이벤트 kid 앞에서 결정 키 입력, ${WANDER}`);
+    expect(failure(loose)).toContain("배회하는 이벤트라 앞의 auto 이벤트 실행 중 원래 위치를 벗어났을 수 있음");
     sources.set({ game });
     const held = eventPlay(sources, doc, i, "probe") as PlayPlan;
     expect(held.env.INITIAL2D_RPG_HOLD).toBe("kid");
-    expect(held.note).toBe("이벤트 kid 앞에서 말 걸기");
-    expect(failure(held)).toBe("자동 재생이 끝났지만 이벤트 kid 이(가) 돌지 않았다 (rpg:event:kid 줄이 없다).");
+    expect(held.note).toBe("이벤트 kid 앞에서 결정 키 입력");
+    expect(failure(held)).toBe("자동 재생 종료, 이벤트 kid 실행되지 않음 (rpg:event:kid 줄 없음).");
     // 다른 값으로 세우면(다른 이벤트) 이 이벤트는 여전히 배회한다
     sources.set({ game: { ...game, play: { ...game.play!, probe: { ...game.play!.probe, INITIAL2D_RPG_HOLD: "captain" } } } });
     expect((eventPlay(sources, doc, i, "probe") as PlayPlan).note).toContain(WANDER);
@@ -203,7 +203,7 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const text = JSON.stringify(data).replace('"id":"captain"', '"id":12345678901234567890');
     const doc = h.open(PORT_TOWN, text);
     const plan = eventPlay(sources, doc, k, "probe") as PlayPlan;
-    expect(plan.note).toBe(`이벤트 events[${k + 1}] 앞에서 말 걸기`);
+    expect(plan.note).toBe(`이벤트 events[${k + 1}] 앞에서 결정 키 입력`);
     expect(JSON.stringify(plan)).not.toContain("INT:");
     const req = eventPlayRequest(sources, doc, k, "play");
     expect((req.plan(doc) as PlayPlan).note).toBe(`이벤트 events[${k + 1}] 앞`);
@@ -217,9 +217,9 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     const inn = h.open(INN);
     expect(eventPlayBlocked(sources, inn, 0, "play")).toBeUndefined();
     sources.set({ game: { ...sources.game!, play: null } });
-    expect(eventPlayBlocked(sources, inn, 0, "play")).toBe("rpg-game.json 에 play 가 없어 RPG 로 실행하지 않는다");
+    expect(eventPlayBlocked(sources, inn, 0, "play")).toBe("rpg-game.json 에 play 없음: RPG 실행 불가");
     const flappy = setup({ game: null, gameProblem: GAME_CONFIG_MISSING, schemaPresent: false });
-    expect(eventPlay(flappy.sources, flappy.h.open(PORT_TOWN), 0, "play")).toBe("rpg-game.json 이 없어 RPG 로 실행하지 않는다");
+    expect(eventPlay(flappy.sources, flappy.h.open(PORT_TOWN), 0, "play")).toBe("rpg-game.json 없음: RPG 실행 불가");
   });
 
   it("요청은 이름을 들고, 계획을 저장한 뒤의 목록에서 id 로 다시 찾는다 (사라졌으면 이유)", () => {
@@ -232,9 +232,9 @@ describe("이 이벤트 앞에서 실행, 이 이벤트 자동 재생", () => {
     expect(EVENT_PLAY_LABELS).toEqual({ play: "이 이벤트 앞에서 실행", probe: "이 이벤트 자동 재생" });
     // 앞의 이벤트를 지우면 번호가 바뀌어도 kid 를 찾는다
     st.run((ed) => ed.removeEvents([0]));
-    expect((req.plan(doc) as PlayPlan).note).toBe("이벤트 kid 앞에서 말 걸기");
+    expect((req.plan(doc) as PlayPlan).note).toBe("이벤트 kid 앞에서 결정 키 입력");
     st.run((ed) => ed.removeEvents([st.section.indexOfId("kid")]));
-    expect(req.plan(doc)).toBe("이벤트 kid 이(가) 이 맵에 없다");
+    expect(req.plan(doc)).toBe("이 맵에 없는 이벤트: kid");
   });
 });
 
@@ -263,10 +263,10 @@ describe("자동 재생 지켜보기 (probeWatch)", () => {
   it("transfer 없이 맵을 다시 열면(새 게임) 그 줄에서 멈출 이유를 준다", () => {
     const stop = feed(probeWatch("ship"), SHIP_RUN);
     expect(stop?.at).toBe(7);
-    expect(stop?.reason).toBe("자동 재생을 멈췄다: 이벤트 ship 뒤에 게임이 새 게임으로 처음부터 다시 시작했다 (씬을 바꾸는 커맨드). 자동 재생은 위의 줄까지다");
+    expect(stop?.reason).toBe("자동 재생 중단: 이벤트 ship 실행 뒤 게임이 새 게임으로 재시작됨 (씬 전환 커맨드). 자동 재생 결과는 위 줄까지");
     // 이벤트가 돌기 전이면 그렇게 말한다
     const early = feed(probeWatch("kid"), SHIP_RUN);
-    expect(early?.reason).toBe("자동 재생을 멈췄다: 이벤트 kid 이(가) 돌기 전에 게임이 새 게임으로 처음부터 다시 시작했다");
+    expect(early?.reason).toBe("자동 재생 중단: 이벤트 kid 실행 전에 게임이 새 게임으로 재시작됨");
   });
 
   it("transfer 로 다른 맵을 여는 것은 다시 시작이 아니다. 핫 리로드 뒤의 첫 맵도 아니다", () => {
@@ -282,13 +282,13 @@ describe("자동 재생 지켜보기 (probeWatch)", () => {
     const kid = probeWatch("kid", { wanders: true });
     feed(kid, ["rpg:map:port_town events:17 skipped:0", "rpg:player:port_town,14,21,up", "rpg:event:arrival", "rpg:route:done"]);
     const failure = kid.exit?.(0) ?? "";
-    expect(failure.startsWith("자동 재생이 끝났지만 이벤트 kid 이(가) 돌지 않았다 (rpg:event:kid 줄이 없다).")).toBe(true);
-    expect(failure).toContain("배회하는 이벤트라");
+    expect(failure.startsWith("자동 재생 종료, 이벤트 kid 실행되지 않음 (rpg:event:kid 줄 없음).")).toBe(true);
+    expect(failure).toContain("배회하는 이벤트라 앞의 auto 이벤트 실행 중 원래 위치를 벗어났을 수 있음");
     expect(kid.exit?.(null)).toBeUndefined();
     expect(kid.exit?.(1)).toBeUndefined();
     const plain = probeWatch("crates");
     feed(plain, ["rpg:map:port_town events:17 skipped:0", "rpg:route:done"]);
-    expect(plain.exit?.(0)).toBe("자동 재생이 끝났지만 이벤트 crates 이(가) 돌지 않았다 (rpg:event:crates 줄이 없다).");
+    expect(plain.exit?.(0)).toBe("자동 재생 종료, 이벤트 crates 실행되지 않음 (rpg:event:crates 줄 없음).");
     const ran = probeWatch("kid", { wanders: true });
     feed(ran, ["rpg:map:port_town events:17 skipped:0", "rpg:event:kid", "rpg:route:done"]);
     expect(ran.exit?.(0)).toBeUndefined();

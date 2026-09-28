@@ -185,26 +185,26 @@ export function walkCommands(commands: unknown, schema: EventSchema, visit: (cmd
 /** 목록 경로의 목록을 fn 으로 바꾼 새 commands. 없는 하위 목록은 만든다 (가지는 항목 수까지 빈 가지로 채운다) */
 export function updateList(commands: unknown, list: ListPath, schema: EventSchema, fn: (items: unknown[]) => unknown[]): unknown[] {
   const items = commands === undefined || commands === null ? [] : asList(commands);
-  if (!items) throw new TreeError("커맨드 목록이 배열이 아니다");
+  if (!items) throw new TreeError("커맨드 목록은 배열이어야 함");
   if (list.length === 0) return fn([...items]);
   const [step, ...rest] = list;
   const cmd = items[step.at];
-  if (!isPlainObject(cmd)) throw new TreeError(`${step.at + 1} 번째 커맨드가 객체가 아니다`);
+  if (!isPlainObject(cmd)) throw new TreeError(`${step.at + 1}번째 커맨드는 객체여야 함`);
   const spec = listSpecOf(cmd, step.list, schema);
-  if (!spec) throw new TreeError(`${jsonValueText(cmd.code)} 에는 ${step.list} 목록이 없다`);
+  if (!spec) throw new TreeError(`${jsonValueText(cmd.code)}: ${step.list} 목록 없음`);
   const had = Object.prototype.hasOwnProperty.call(cmd, step.list) && cmd[step.list] !== null && cmd[step.list] !== undefined;
   let nextValue: unknown;
   if (spec.perOption) {
-    if (step.branch === undefined || step.branch < 0) throw new TreeError(`${step.list} 는 가지 번호가 필요하다`);
+    if (step.branch === undefined || step.branch < 0) throw new TreeError(`${step.list}: 분기 번호 필요`);
     const lists = had ? asList(cmd[step.list]) : [];
-    if (!lists) throw new TreeError(`${step.list} 가 배열이 아니다`);
+    if (!lists) throw new TreeError(`${step.list}: 배열이어야 함`);
     const options = asList(cmd[spec.perOption]) ?? [];
     const size = Math.max(lists.length, step.branch + 1, had ? 0 : engineLength(options));
     const nextLists: unknown[] = [];
     for (let b = 0; b < size; b++) {
       const branch = lists[b];
       if (b === step.branch) {
-        if (branch !== undefined && branch !== null && !asList(branch)) throw new TreeError(`${step.list}[${b + 1}] 가 배열이 아니다`);
+        if (branch !== undefined && branch !== null && !asList(branch)) throw new TreeError(`${step.list}[${b + 1}]: 배열이어야 함`);
         nextLists.push(updateList(branch, rest, schema, fn));
       } else {
         nextLists.push(branch === undefined || branch === null ? [] : branch);
@@ -212,7 +212,7 @@ export function updateList(commands: unknown, list: ListPath, schema: EventSchem
     }
     nextValue = nextLists;
   } else {
-    if (had && !asList(cmd[step.list])) throw new TreeError(`${step.list} 가 배열이 아니다`);
+    if (had && !asList(cmd[step.list])) throw new TreeError(`${step.list}: 배열이어야 함`);
     nextValue = updateList(had ? cmd[step.list] : [], rest, schema, fn);
   }
   // 있던 키는 자리를 지키고, 새로 생긴 키는 정해진 순서에 끼운다
@@ -223,13 +223,13 @@ export function updateList(commands: unknown, list: ListPath, schema: EventSchem
 }
 
 function checkIndex(n: number, max: number, what: string): void {
-  if (!Number.isInteger(n) || n < 0 || n > max) throw new TreeError(`${what} 가 목록 밖이다 (${n})`);
+  if (!Number.isInteger(n) || n < 0 || n > max) throw new TreeError(`${what}: 목록 범위 밖 (${n})`);
 }
 
 /** index 자리에 커맨드들을 넣는다 */
 export function insertCommands(commands: unknown, list: ListPath, index: number, added: readonly unknown[], schema: EventSchema): unknown[] {
   return updateList(commands, list, schema, (items) => {
-    checkIndex(index, items.length, "넣을 자리");
+    checkIndex(index, items.length, "삽입 인덱스");
     items.splice(index, 0, ...added);
     return items;
   });
@@ -238,8 +238,8 @@ export function insertCommands(commands: unknown, list: ListPath, index: number,
 /** index 부터 count 개를 뺀다 */
 export function removeCommands(commands: unknown, list: ListPath, index: number, count: number, schema: EventSchema): unknown[] {
   return updateList(commands, list, schema, (items) => {
-    checkIndex(index, items.length - 1, "뺄 자리");
-    if (!Number.isInteger(count) || count < 1 || index + count > items.length) throw new TreeError(`뺄 개수가 틀렸다 (${count})`);
+    checkIndex(index, items.length - 1, "삭제 인덱스");
+    if (!Number.isInteger(count) || count < 1 || index + count > items.length) throw new TreeError(`잘못된 삭제 개수 (${count})`);
     items.splice(index, count);
     return items;
   });
@@ -248,7 +248,7 @@ export function removeCommands(commands: unknown, list: ListPath, index: number,
 /** 커맨드 하나를 바꾼다 */
 export function replaceCommand(commands: unknown, path: CommandPath, next: unknown, schema: EventSchema): unknown[] {
   return updateList(commands, path.list, schema, (items) => {
-    checkIndex(path.index, items.length - 1, "바꿀 자리");
+    checkIndex(path.index, items.length - 1, "교체 인덱스");
     items[path.index] = next;
     return items;
   });
@@ -266,20 +266,20 @@ export function isInside(a: ListPath, b: ListPath): boolean {
  */
 export function moveCommands(commands: unknown, from: CommandPath, count: number, to: { list: ListPath; index: number }, schema: EventSchema): unknown[] {
   const source = getList(commands, from.list, schema);
-  if (!source) throw new TreeError("옮길 목록이 없다");
-  checkIndex(from.index, source.length - 1, "옮길 자리");
-  if (!Number.isInteger(count) || count < 1 || from.index + count > source.length) throw new TreeError(`옮길 개수가 틀렸다 (${count})`);
+  if (!source) throw new TreeError("이동할 목록 없음");
+  checkIndex(from.index, source.length - 1, "이동 시작 인덱스");
+  if (!Number.isInteger(count) || count < 1 || from.index + count > source.length) throw new TreeError(`잘못된 이동 개수 (${count})`);
   // 옮기는 커맨드의 하위 목록 안으로 가려 하면 거절한다
   const depth = from.list.length;
   if (to.list.length > depth && isInside(to.list.slice(0, depth), from.list)) {
     const at = to.list[depth].at;
-    if (at >= from.index && at < from.index + count) throw new TreeError("커맨드를 제 안으로 옮길 수 없다");
+    if (at >= from.index && at < from.index + count) throw new TreeError("커맨드를 자신의 하위 목록으로 이동 불가");
   }
   const moving = source.slice(from.index, from.index + count);
   const sameList = to.list.length === from.list.length && isInside(to.list, from.list);
   if (sameList) {
     return updateList(commands, from.list, schema, (items) => {
-      checkIndex(to.index, items.length, "옮길 곳");
+      checkIndex(to.index, items.length, "이동 대상 인덱스");
       items.splice(from.index, count);
       const at = to.index > from.index ? Math.max(from.index, to.index - count) : to.index;
       items.splice(at, 0, ...moving);
@@ -299,8 +299,8 @@ export function moveCommands(commands: unknown, from: CommandPath, count: number
 /** 복사 (클립보드용 깊은 사본) */
 export function copyCommands(commands: unknown, list: ListPath, index: number, count: number, schema: EventSchema): unknown[] {
   const items = getList(commands, list, schema);
-  if (!items) throw new TreeError("복사할 목록이 없다");
-  checkIndex(index, items.length - 1, "복사할 자리");
+  if (!items) throw new TreeError("복사할 목록 없음");
+  checkIndex(index, items.length - 1, "복사 인덱스");
   return cloneJson(items.slice(index, index + count));
 }
 

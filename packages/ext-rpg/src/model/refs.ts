@@ -93,7 +93,7 @@ export function refSuggestions(kind: RefKind, src: RefSources): Suggestion[] {
 export function startStateSuggestions(src: RefSources): Suggestion[] {
   const names = usedStateNames(src.schema, src.projectEvents ?? (src.events ? [src.events] : []));
   return [
-    ...names.flags.map((f) => ({ value: f, detail: "깃발" })),
+    ...names.flags.map((f) => ({ value: f, detail: "플래그" })),
     ...names.vars.map((v) => ({ value: `${v}=`, detail: "변수" })),
     ...(src.items?.items ?? []).map((i) => ({ value: `item:${i.id}=1`, detail: i.name ?? "아이템" })),
   ];

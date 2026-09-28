@@ -79,7 +79,7 @@ describe("rpgExtension", () => {
     await vi.waitFor(() => expect(b.rpg.store.loaded).toBe(true));
     const meadow = await b.openMap("resources/maps/meadow.json");
     expect(eventsStateOf(meadow)).toBeNull();
-    expect(b.rpg.layer.hint?.(meadow)).toBe("이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다");
+    expect(b.rpg.layer.hint?.(meadow)).toBe("이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)");
     const inn = await b.openMap("resources/maps/inn.json");
     expect(eventsStateOf(inn)?.section.list).toHaveLength(6);
   });
@@ -136,7 +136,7 @@ describe("rpgExtension", () => {
     const st = eventsStateOf(doc)!;
     const text = rpgProjectFiles()[EVENT_SCHEMA_PATH] as string;
     b.m.backend.simulateExternalChange(EVENT_SCHEMA_PATH, "modify", JSON.stringify({ ...JSON.parse(text), version: 2 }));
-    await vi.waitFor(() => expect(st.locked).toMatch(/버전 2 을 모른다/));
+    await vi.waitFor(() => expect(st.locked).toMatch(/지원하지 않는 event-commands.json 버전: 2/));
     expect(eventsStateOf(doc)).toBe(st);
     b.m.backend.simulateExternalChange(EVENT_SCHEMA_PATH, "modify", text);
     await vi.waitFor(() => expect(st.locked).toBeNull());
@@ -190,7 +190,7 @@ describe("rpgExtension 의 실행", () => {
     expect(b.rpg.services.play!.blocked(doc, st.primary!, "play")).toBe(NO_MAP_PLAYER);
     const p = fakePlayer(b);
     expect(on()).toEqual([true, true]);
-    p.block("엔진을 찾지 못했다");
+    p.block("엔진 탐색 실패");
     expect(on()).toEqual([false, false]);
     p.block(undefined);
     st.select([0, 1]);
@@ -222,7 +222,7 @@ describe("rpgExtension 의 실행", () => {
     expect([probe, play]).toEqual([
       {
         label: "이 이벤트 자동 재생",
-        plan: { env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞에서 말 걸기, 시작 상태 arrived" },
+        plan: { env: { ...BASE, ...at, INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "talk", INITIAL2D_RPG_HOLD: "kid" }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞에서 결정 키 입력, 시작 상태 arrived" },
         watch: "function",
       },
       { label: "이 이벤트 앞에서 실행", plan: { env: { ...BASE, ...at }, at: { x: 14, y: 21 }, note: "이벤트 kid 앞, 시작 상태 arrived" }, watch: "undefined" },
@@ -240,6 +240,6 @@ describe("rpgExtension 의 실행", () => {
     st.run((ed) => ed.setField(bench, "trigger", "parallel"));
     expect(await b.rpg.services.play!.run(doc, bench, "probe")).toBe(false);
     expect(p.played).toEqual([]);
-    expect(b.m.toasts).toEqual(["parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)"]);
+    expect(b.m.toasts).toEqual(["parallel 이벤트는 종료되지 않음 (자동 재생 불가)"]);
   });
 });

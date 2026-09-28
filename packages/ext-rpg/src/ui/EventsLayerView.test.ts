@@ -105,12 +105,12 @@ describe("표식", () => {
     expect(t.loads).toEqual(["resources/rtp/CharSet/People1.png"]);
   });
 
-  it("트리거 글자: 말 걸기, 밟기, 자동", () => {
+  it("트리거 글자: 결정 키, 플레이어 접촉, 자동 실행", () => {
     const t = setup();
     const texts = (t.container.getChildByLabel("rpg-events-markers") as Container).children.filter((c): c is Text => c instanceof Text);
     const letter = (id: string) => texts.find((x) => x.label === `event:${t.st.section.indexOfId(id)}`)?.text;
-    expect(letter("crates")).toBe("말");
-    expect(letter("inn_door")).toBe("밟");
+    expect(letter("crates")).toBe("결");
+    expect(letter("inn_door")).toBe("접");
     expect(letter("arrival")).toBe("자");
   });
 

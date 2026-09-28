@@ -163,15 +163,15 @@ export function parseStartState(text: string, opts: { items?: ReadonlySet<string
     if (key.startsWith(ITEM_PREFIX)) {
       const id = key.slice(ITEM_PREFIX.length);
       const count = value === undefined ? 1 : /^\d+$/.test(value) ? Number(value) : null;
-      if (id === "") bad(entry, "아이템 id 가 비었다");
-      else if (count === null) bad(entry, "개수가 0 이상의 정수가 아니다");
-      else if (opts.items && !opts.items.has(id)) bad(entry, `아이템 표에 없는 id ${id}`);
+      if (id === "") bad(entry, "아이템 id 비어 있음");
+      else if (count === null) bad(entry, "개수는 0 이상의 정수여야 함");
+      else if (opts.items && !opts.items.has(id)) bad(entry, `아이템 표에 없는 id: ${id}`);
       else out.items[id] = (out.items[id] ?? 0) + count;
-    } else if (key === "") bad(entry, "이름이 비었다");
-    else if (key.includes(":")) bad(entry, "모르는 접두사 (아이템은 item:<id>)");
-    else if (reserved.includes(key)) bad(entry, `${key} 는 소지품 자리라 쓸 수 없다`);
+    } else if (key === "") bad(entry, "이름 비어 있음");
+    else if (key.includes(":")) bad(entry, "지원하지 않는 접두사 (아이템은 item:<id>)");
+    else if (reserved.includes(key)) bad(entry, `${key}: 예약된 상태 키(소지품)라 사용 불가`);
     else if (value === undefined) out.state[key] = true;
-    else if (value === "") bad(entry, "값이 비었다");
+    else if (value === "") bad(entry, "값 비어 있음");
     else out.state[key] = scalar(value);
   }
   return out;
@@ -266,26 +266,26 @@ function eventName(ev: unknown, index: number): string {
  */
 export function eventPlayPlan(map: MapGeometry, events: readonly unknown[], index: number, mode: "play" | "probe"): PlayPlanResult {
   const ev = events[index];
-  if (!isPlainObject(ev)) return { ok: false, reason: `events[${index + 1}] 는 객체가 아니다` };
+  if (!isPlainObject(ev)) return { ok: false, reason: `events[${index + 1}]: 객체여야 함` };
   const name = eventName(ev, index);
   const trigger = field(ev, "trigger") ?? "action";
   if (mode === "probe") {
-    if (trigger === "parallel") return { ok: false, reason: "parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)" };
-    if (trigger === "auto") return { ok: true, plan: { at: null, route: "", note: `auto 이벤트 ${name}: 맵에 들어올 때 돈다` } };
+    if (trigger === "parallel") return { ok: false, reason: "parallel 이벤트는 종료되지 않음 (자동 재생 불가)" };
+    if (trigger === "auto") return { ok: true, plan: { at: null, route: "", note: `auto 이벤트 ${name}: 맵 진입 시 실행` } };
   }
   const front = frontCell(map, events, index);
-  if (!front) return { ok: false, reason: `${name} 의 칸이 틀렸거나 설 수 있는 칸이 없다` };
+  if (!front) return { ok: false, reason: `${name}: 좌표가 잘못되었거나 통행 가능한 타일 없음` };
   const at: PlayAt = { x: front.x, y: front.y, dir: front.dir };
-  const where = front.adjacent ? `이벤트 ${name} 앞` : `이벤트 ${name} 근처 (옆 칸이 다 막혀 옮겼다)`;
+  const where = front.adjacent ? `이벤트 ${name} 앞` : `이벤트 ${name} 근처 (인접 타일이 모두 통행 불가라 가장 가까운 타일로 이동)`;
   if (mode === "play") return { ok: true, plan: { at, route: null, note: where } };
-  if (!front.adjacent) return { ok: false, reason: `${name} 옆에 설 칸이 없어 자동 재생이 닿지 못한다` };
+  if (!front.adjacent) return { ok: false, reason: `${name}: 인접한 통행 가능 타일 없음 (자동 재생 불가)` };
   if (trigger === "touch") {
     const cell = eventCell(ev)!;
-    if (isBlockingEvent(ev)) return { ok: false, reason: `${name} 은 통행을 막아 밟을 수 없다 (touch 가 돌지 않는다)` };
-    if (map.collision && (map.collision[cell.y * map.width + cell.x] ?? 0) !== 0) return { ok: false, reason: `${name} 이 막힌 칸에 있어 밟을 수 없다` };
-    return { ok: true, plan: { at, route: front.dir, note: `${where}에서 한 걸음` } };
+    if (isBlockingEvent(ev)) return { ok: false, reason: `${name}: 통행을 막는 이벤트라 플레이어 접촉 불가 (touch 실행 안 됨)` };
+    if (map.collision && (map.collision[cell.y * map.width + cell.x] ?? 0) !== 0) return { ok: false, reason: `${name}: 통행 불가 타일에 있어 플레이어 접촉 불가` };
+    return { ok: true, plan: { at, route: front.dir, note: `${where}에서 1타일 이동` } };
   }
-  return { ok: true, plan: { at, route: "talk", note: `${where}에서 말 걸기` } };
+  return { ok: true, plan: { at, route: "talk", note: `${where}에서 결정 키 입력` } };
 }
 
 /** 커서 칸이나 뷰 가운데에서 실행: 가장 가까운 설 수 있는 칸으로 옮기고 아래를 본다 */
@@ -293,9 +293,9 @@ export function herePlayPlan(map: MapGeometry, events: readonly unknown[], start
   const sx = Math.round(start.x);
   const sy = Math.round(start.y);
   const c = nearestStandable(map, events, { x: sx, y: sy });
-  if (!c) return { ok: false, reason: "설 수 있는 칸이 없다" };
+  if (!c) return { ok: false, reason: "통행 가능한 타일 없음" };
   const moved = c.x !== sx || c.y !== sy;
-  return { ok: true, plan: { at: { ...c, dir: "down" }, route: null, note: moved ? `${sx},${sy} → ${c.x},${c.y} (막힌 칸이라 옮겼다)` : `${c.x},${c.y}` } };
+  return { ok: true, plan: { at: { ...c, dir: "down" }, route: null, note: moved ? `${sx},${sy} → ${c.x},${c.y} (통행 불가 타일이라 가장 가까운 통행 가능 타일로 이동)` : `${c.x},${c.y}` } };
 }
 
 // ---- 맵마다 기억하는 시작 상태 (.initial-editor/rpg-play.json) ----

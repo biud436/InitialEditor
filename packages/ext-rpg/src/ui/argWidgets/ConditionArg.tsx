@@ -11,7 +11,7 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
   if (value !== undefined && !isObjectPlace(value)) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        조건이 객체가 아니다 ({stringifyJsonLossless(value)}){" "}
+        조건은 객체여야 함 (현재: {stringifyJsonLossless(value)}){" "}
         <button type="button" className="btn rpg-mini" disabled={ctx.disabled} onClick={() => onChange(schema.conditions[0] ? { [schema.conditions[0].kind]: "" } : {})}>
           새 조건
         </button>
@@ -42,12 +42,12 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
         className="input field-select"
         value={kind?.kind ?? ""}
         disabled={ctx.disabled}
-        aria-label={`${spec.label} 꼴`}
-        title={kind?.label ?? "빈 조건 (늘 참)"}
+        aria-label={`${spec.label} 종류`}
+        title={kind?.label ?? "빈 조건 (항상 참)"}
         data-testid={`${testId}-kind`}
         onChange={(e) => setKind(e.target.value)}
       >
-        {!kind && <option value="">빈 조건 (늘 참)</option>}
+        {!kind && <option value="">빈 조건 (항상 참)</option>}
         {schema.conditions.map((c) => (
           <option key={c.kind} value={c.kind}>
             {c.label}
@@ -56,12 +56,12 @@ export function ConditionArg({ spec, value, onChange, ctx, sessionPrefix, testId
       </select>
       {!kind && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-empty`}>
-          비어 있는 조건은 늘 참이라 아니면 가지가 돌지 않는다
+          빈 조건: 항상 참이라 '아니면' 분기 실행 안 됨
         </div>
       )}
       {present.length > 1 && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-many`}>
-          꼴이 둘 이상이다 ({present.map((c) => c.kind).join(", ")}). 엔진은 앞의 {present[0].kind} 만 본다. 꼴을 다시 고르면 하나만 남는다
+          조건 종류가 2개 이상 ({present.map((c) => c.kind).join(", ")}): 엔진은 첫 번째 {present[0].kind} 만 사용. 종류를 다시 선택하면 1개만 유지
         </div>
       )}
       {kind &&

@@ -40,10 +40,10 @@ describe("rpg-game.json", () => {
     expect(mapReadOnlyReason(port)).toBeNull();
     const villageFile = mapEntryFor(g, "resources/maps/village.json");
     expect(villageFile).toMatchObject({ role: "file", entry: { name: "village" } });
-    expect(mapReadOnlyReason(villageFile)).toContain("두 벌");
+    expect(mapReadOnlyReason(villageFile)).toContain("alt 로 등록된 맵 (RTP 버전과 기본 버전 두 파일): 이벤트를 두 파일에 따로 저장해야 하므로 편집 불가. Lua 정의 파일에서 편집");
     const roomAlt = mapEntryFor(g, "resources/maps/room_rtp.json");
     expect(roomAlt).toMatchObject({ role: "alt", entry: { name: "room" } });
-    expect(mapReadOnlyReason(roomAlt)).toContain("RTP 판과 기본 판");
+    expect(mapReadOnlyReason(roomAlt)).toContain("alt 로 등록된 맵 (RTP 버전과 기본 버전 두 파일): 이벤트를 두 파일에 따로 저장해야 하므로 편집 불가. Lua 정의 파일에서 편집");
     expect(mapEntryFor(g, "resources/maps/aldebaran_forest.json")).toBeNull();
     expect(mapEntryFor(g, "resources/maps/sample.json")).toBeNull();
     expect(mapEntryFor(null, "resources/maps/port_town.json")).toBeNull();
@@ -55,8 +55,8 @@ describe("rpg-game.json", () => {
   });
 
   it("파일 전체를 쓸 수 없는 경우는 위치와 함께 던진다", () => {
-    expect(fatal("{").message).toContain("JSON 이 아니다");
-    expect(fatal('"a"').message).toContain("객체가 아니다");
+    expect(fatal("{").message).toContain("rpg-game.json: JSON 구문 오류");
+    expect(fatal('"a"').message).toContain("객체여야 함");
     expect(fatal(config({ version: 2 })).location).toBe("version");
     expect(fatal(JSON.stringify({ maps: [] })).location).toBe("version");
     expect(fatal(config({ maps: { a: 1 } })).location).toBe("maps");
@@ -88,7 +88,7 @@ describe("rpg-game.json", () => {
   it("items 경로가 없거나 틀리면 알리고 null, play 의 글이 아닌 값은 뺀다", () => {
     const noItems = parseGameConfig(JSON.stringify({ version: 1, maps: [] }));
     expect(noItems.items).toBeNull();
-    expect(noItems.problems).toEqual([{ path: "items", message: "아이템 표 경로가 없다" }]);
+    expect(noItems.problems).toEqual([{ path: "items", message: "아이템 표 경로 없음" }]);
     expect(parseGameConfig(config({ items: 3 })).problems[0].path).toBe("items");
     const play = parseGameConfig(config({ play: { env: { A: "1", B: 2 }, probe: "x" } }));
     expect(play.play).toEqual({ env: { A: "1" }, probe: {} });
@@ -112,7 +112,7 @@ describe("items.json", () => {
     expect(t.items.map((i) => i.id)).toEqual(["a", "c"]);
     expect(t.problems.map((p) => p.path)).toEqual(["items[2]", "items[3].id", "items[4].name", "items[4].order"]);
     expect(() => parseItemTable("[1]")).toThrow(ItemTableError);
-    expect(() => parseItemTable(JSON.stringify({ items: { a: 1 } }))).toThrow(/배열이 아니다/);
+    expect(() => parseItemTable(JSON.stringify({ items: { a: 1 } }))).toThrow(/아이템 목록은 배열이어야 함/);
     expect(() => parseItemTable("{")).toThrow(ItemTableError);
   });
 });

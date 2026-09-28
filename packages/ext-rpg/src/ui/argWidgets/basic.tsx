@@ -9,7 +9,7 @@ import { emptyText, textValue, type ArgWidgetProps } from "./context";
 
 /** 파일의 값이 이 위젯의 타입이 아닐 때의 알림 */
 function WrongValue({ value }: { value: unknown }) {
-  return <div className="rpg-arg-note is-warning">지금 값 {jsonValueText(value)} 는 이 칸의 타입이 아니다</div>;
+  return <div className="rpg-arg-note is-warning">타입 불일치 (현재: {jsonValueText(value)})</div>;
 }
 
 /** string: 한 줄 입력. suggest 가 있으면 제안 목록 */
@@ -136,7 +136,7 @@ export function EnumArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps) 
     >
       {(!spec.required || value === undefined) && (
         <option value="" disabled={spec.required}>
-          {spec.required ? "고르기" : emptyText(spec)}
+          {spec.required ? "선택" : emptyText(spec)}
         </option>
       )}
       {outside && <option value={current}>{shown}</option>}
@@ -183,12 +183,12 @@ export function ScalarArg({ spec, value, onChange, ctx, sessionPrefix, testId }:
       >
         {(!spec.required || kind === "") && (
           <option value="" disabled={spec.required}>
-            {spec.required ? "고르기" : emptyText(spec)}
+            {spec.required ? "선택" : emptyText(spec)}
           </option>
         )}
-        <option value="boolean">참거짓</option>
-        <option value="number">수</option>
-        <option value="string">글</option>
+        <option value="boolean">불리언</option>
+        <option value="number">숫자</option>
+        <option value="string">문자열</option>
       </select>
       {kind === "boolean" && (
         <select className="input field-select" value={String(value)} disabled={ctx.disabled} data-testid={testId} aria-label={spec.label} onChange={(e) => onChange(e.target.value === "true")}>
@@ -217,11 +217,11 @@ function sameJson(a: unknown, b: unknown): boolean {
 /** 해석 결과 한 줄 */
 export function jsonKind(v: unknown): string {
   if (v === null) return "null";
-  if (Array.isArray(v)) return `배열 (${v.length}칸)`;
+  if (Array.isArray(v)) return `배열 (요소 ${v.length}개)`;
   if (typeof v === "object") return `객체 (키 ${Object.keys(v as object).length}개)`;
-  if (bigIntText(v) !== null || typeof v === "number") return "수";
-  if (typeof v === "string") return "글";
-  if (typeof v === "boolean") return "참거짓";
+  if (bigIntText(v) !== null || typeof v === "number") return "숫자";
+  if (typeof v === "string") return "문자열";
+  if (typeof v === "boolean") return "불리언";
   return typeof v;
 }
 
@@ -243,7 +243,7 @@ export function JsonArg({ spec, value, onChange, ctx, sessionPrefix, testId }: A
   const commit = (raw: string) => {
     field.setText(raw);
     if (raw.trim() === "") {
-      setError(spec.required ? "값이 필요하다" : null);
+      setError(spec.required ? "값 필요" : null);
       if (!spec.required) onChange(undefined, field.send(undefined));
       return;
     }
@@ -251,7 +251,7 @@ export function JsonArg({ spec, value, onChange, ctx, sessionPrefix, testId }: A
     try {
       parsed = parseJsonLossless(raw);
     } catch (e) {
-      setError(`JSON 이 아니다: ${(e as Error).message}`);
+      setError(`JSON 구문 오류: ${(e as Error).message}`);
       return;
     }
     setError(null);

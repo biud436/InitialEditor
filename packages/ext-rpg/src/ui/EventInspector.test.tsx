@@ -197,7 +197,7 @@ describe("이벤트 하나", () => {
     fireEvent.change(select, { target: { value: "touch" } });
     expect(field(t.st.section.list[t.idx("bench")], "trigger")).toBe("touch");
     expect(t.doc.undo.depth).toBe(1);
-    expect(screen.getByTestId("rpg-inspector").querySelector(".rpg-badge")?.textContent).toBe("밟");
+    expect(screen.getByTestId("rpg-inspector").querySelector(".rpg-badge")?.textContent).toBe("접");
   });
 
   it("머리의 위치는 타일 좌표이고, 2^53을 넘는 정수(표식 글)는 숫자 그대로, 없으면 ? 다", () => {
@@ -219,7 +219,7 @@ describe("이벤트 하나", () => {
     const t = setup({ text: JSON.stringify(data) });
     act(() => t.st.select([0]));
     const problems = within(screen.getByTestId("rpg-field-x-row")).getAllByTestId("rpg-field-x-problem");
-    expect(problems[0].textContent).toMatch(/맵 밖/);
+    expect(problems[0].textContent).toMatch(/맵 범위 밖/);
   });
 
   it("지우기 버튼은 이벤트를 지우고 요약으로 돌아간다 (한 단계)", () => {
@@ -319,11 +319,11 @@ describe("실행 단추", () => {
     act(() => void t.st.run((ed) => ed.setField(i, "trigger", "parallel")));
     expect(button("play").disabled).toBe(false);
     expect(button("probe").disabled).toBe(true);
-    expect(button("probe").title).toBe("parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)");
-    expect(screen.getAllByTestId("rpg-inspector-run-note").map((n) => n.textContent)).toEqual(["parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)"]);
-    act(() => runInAction(() => void (t.play.runnerReason = "엔진을 찾지 못했다")));
+    expect(button("probe").title).toBe("parallel 이벤트는 종료되지 않음 (자동 재생 불가)");
+    expect(screen.getAllByTestId("rpg-inspector-run-note").map((n) => n.textContent)).toEqual(["parallel 이벤트는 종료되지 않음 (자동 재생 불가)"]);
+    act(() => runInAction(() => void (t.play.runnerReason = "엔진 탐색 실패")));
     expect(button("play").disabled).toBe(true);
-    expect(screen.getAllByTestId("rpg-inspector-run-note").map((n) => n.textContent)).toEqual(["엔진을 찾지 못했다"]);
+    expect(screen.getAllByTestId("rpg-inspector-run-note").map((n) => n.textContent)).toEqual(["엔진 탐색 실패"]);
     expect(t.play.runs).toEqual([]);
   });
 
@@ -353,7 +353,7 @@ describe("여럿과 잠금", () => {
 
   it("잠긴 레이어는 이유를 보이고 칸과 지우기가 꺼진다", () => {
     const t = setup({ lockPort: true });
-    expect(screen.getByTestId("rpg-inspector-locked").textContent).toMatch(/읽기 전용: .*두 벌/);
+    expect(screen.getByTestId("rpg-inspector-locked").textContent).toMatch(/읽기 전용: .*두 파일/);
     act(() => t.st.select([t.idx("bench")]));
     expect(input("rpg-field-id").disabled).toBe(true);
     expect((screen.getByTestId("rpg-inspector-remove") as HTMLButtonElement).disabled).toBe(true);
@@ -390,7 +390,7 @@ describe("맵 이동의 대상 (맵에서 고르기, 대상 보기)", () => {
     fireEvent.click(tree.querySelector('[data-row-key="c.commands[1]"]')!);
     expect(screen.queryByTestId("rpg-location")).toBeNull();
     fireEvent.click(tree.querySelector('[data-row-key="c.commands[2]"]')!);
-    expect(button("rpg-location-pick").textContent).toBe("맵에서 고르기");
+    expect(button("rpg-location-pick").textContent).toBe("맵에서 선택");
     expect(button("rpg-location-reveal").textContent).toBe("대상 보기");
     expect(button("rpg-location-pick").disabled).toBe(false);
     expect(button("rpg-location-reveal").disabled).toBe(false);
@@ -422,8 +422,8 @@ describe("맵 이동의 대상 (맵에서 고르기, 대상 보기)", () => {
     expect(notes()).toEqual(["대상 보기: x 미지정"]);
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { x: 30 })));
     expect(button("rpg-location-reveal").disabled).toBe(true);
-    expect(button("rpg-location-reveal").title).toBe("x 값이 맵 범위 밖: 30 (너비 20)");
-    expect(notes()).toEqual(["대상 보기: x 값이 맵 범위 밖: 30 (너비 20)"]);
+    expect(button("rpg-location-reveal").title).toBe("x 값이 맵 범위 밖 (현재: 30, 너비 20)");
+    expect(notes()).toEqual(["대상 보기: x 값이 맵 범위 밖 (현재: 30, 너비 20)"]);
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "" })));
     expect(notes()).toEqual(["맵 미지정"]);
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "forest", x: 1 })));
@@ -431,8 +431,8 @@ describe("맵 이동의 대상 (맵에서 고르기, 대상 보기)", () => {
     // 맵 파일의 판정이 바뀌면 따라간다
     act(() => void t.st.run((ed) => ed.setArgs(i, P, { map: "inn" })));
     expect(notes()).toEqual([]);
-    act(() => t.sources.mapChecks.set(INN, { kind: "invalid", reason: "레이어가 없다" }));
-    expect(notes()).toEqual(["엔진이 열 수 없는 맵: 레이어가 없다"]);
+    act(() => t.sources.mapChecks.set(INN, { kind: "invalid", reason: "레이어 없음" }));
+    expect(notes()).toEqual(["엔진이 열 수 없는 맵: 레이어 없음"]);
     act(() => runInAction(() => (t.views.blocked = "맵 뷰 없음")));
     expect(notes()).toEqual(["맵 뷰 없음"]);
   });
@@ -442,7 +442,7 @@ describe("맵 이동의 대상 (맵에서 고르기, 대상 보기)", () => {
     openTransfer(t);
     expect(button("rpg-location-pick").disabled).toBe(true);
     expect(button("rpg-location-reveal").disabled).toBe(false);
-    expect(notes()[0]).toMatch(/^맵에서 고르기: 읽기 전용: RTP 판과 기본 판/);
+    expect(notes()[0]).toMatch(/^맵에서 선택: 읽기 전용: alt 로 등록된 맵 \(RTP 버전과 기본 버전/);
   });
 
   it("다른 맵에서 고르고 돌아와 인스펙터를 새로 그리면 그 커맨드의 폼이 열려 있고 트리에 초점이 있다 (초점 요청)", async () => {
