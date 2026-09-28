@@ -7,6 +7,7 @@
 
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
+import { askDirtyChoice, type DirtyChoice } from "../dirtyChoice";
 import type { ModalStore } from "../modals";
 import type { AndroidStageStore, FoundRepo } from "./AndroidStageStore";
 import { REPO_SOURCE_LABELS, stageDestPath, type RepoCandidate } from "./engineRepo";
@@ -200,39 +201,9 @@ export function askMissingRepo(modals: ModalStore, searched: readonly RepoCandid
     .then(() => openSettings);
 }
 
-export type DirtyChoice = "save" | "keep" | "cancel";
+export type { DirtyChoice } from "../dirtyChoice";
 
 /** 저장하지 않은 문서가 있을 때. Escape 나 가림막은 취소 */
 export function askDirtyBeforeStage(modals: ModalStore, count: number): Promise<DirtyChoice> {
-  let choice: DirtyChoice = "cancel";
-  return modals
-    .custom({
-      title: DIRTY_TITLE,
-      width: 480,
-      render: (close) => {
-        const pick = (c: DirtyChoice) => () => {
-          choice = c;
-          close();
-        };
-        return (
-          <>
-            <div className="modal-body" data-testid="android-stage-dirty">
-              {dirtyMessage(count)}
-            </div>
-            <div className="modal-actions">
-              <button type="button" className="btn" onClick={pick("cancel")} data-autofocus>
-                취소
-              </button>
-              <button type="button" className="btn" onClick={pick("keep")}>
-                {DIRTY_KEEP}
-              </button>
-              <button type="button" className="btn btn-primary" onClick={pick("save")}>
-                {DIRTY_SAVE}
-              </button>
-            </div>
-          </>
-        );
-      },
-    })
-    .then(() => choice);
+  return askDirtyChoice(modals, { title: DIRTY_TITLE, message: dirtyMessage(count), keepLabel: DIRTY_KEEP, saveLabel: DIRTY_SAVE, testId: "android-stage-dirty", focus: "cancel" });
 }
