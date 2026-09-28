@@ -77,6 +77,23 @@ fn check_exe(exe: &str) -> Result<()> {
     Ok(())
 }
 
+/// ETXTBSY (Linux, macOS 모두 26): 방금 쓴 실행 파일의 쓰기 핸들을 다른 스레드가 fork 한 자식이 exec 전까지 잠깐 쥐고 있다
+const TEXT_FILE_BUSY: i32 = 26;
+
+/// 프로세스를 띄운다. 실행 파일이 잠깐 쓰기 중(ETXTBSY)이면 조금 기다려 다시 해 본다
+fn spawn_child(cmd: &mut Command) -> std::io::Result<Child> {
+    let mut tries = 0;
+    loop {
+        match cmd.spawn() {
+            Err(e) if e.raw_os_error() == Some(TEXT_FILE_BUSY) && tries < 10 => {
+                tries += 1;
+                thread::sleep(Duration::from_millis(20));
+            }
+            other => return other,
+        }
+    }
+}
+
 fn spawn_error(exe: &str, err: std::io::Error) -> BackendError {
     match err.kind() {
         std::io::ErrorKind::NotFound => BackendError::with_path(
@@ -129,15 +146,16 @@ impl EngineState {
                 cwd,
             ));
         }
-        let mut child = Command::new(exe)
-            .args(args)
-            .envs(env)
-            .current_dir(cwd)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| spawn_error(exe, e))?;
+        let mut child = spawn_child(
+            Command::new(exe)
+                .args(args)
+                .envs(env)
+                .current_dir(cwd)
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped()),
+        )
+        .map_err(|e| spawn_error(exe, e))?;
 
         let id = self.next_id.fetch_add(1, Ordering::Relaxed) + 1;
         let pid = child.id();
@@ -248,16 +266,17 @@ pub fn features(exe: &str, timeout: Duration) -> Result<Vec<String>> {
         .prefix("initial-editor-probe-")
         .tempdir()
         .map_err(|e| BackendError::io(&e, None))?;
-    let mut child = Command::new(exe)
-        .arg("--features")
-        .current_dir(work.path())
-        .env("SDL_VIDEODRIVER", "dummy")
-        .env("SDL_AUDIODRIVER", "dummy")
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|e| spawn_error(exe, e))?;
+    let mut child = spawn_child(
+        Command::new(exe)
+            .arg("--features")
+            .current_dir(work.path())
+            .env("SDL_VIDEODRIVER", "dummy")
+            .env("SDL_AUDIODRIVER", "dummy")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null()),
+    )
+    .map_err(|e| spawn_error(exe, e))?;
     let stdout = child.stdout.take();
     let reader = thread::spawn(move || {
         let mut bytes = Vec::new();
