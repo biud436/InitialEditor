@@ -325,8 +325,10 @@ export class SceneRenderer {
     const app = this.app;
     const host = this.host;
     if (!app || !host) return;
-    const w = Math.max(1, host.clientWidth);
-    const h = Math.max(1, host.clientHeight);
+    // 탭이 가려져 크기가 0 인 동안은 줄이지 않는다 (다시 보일 때 크기 알림이 오지 않아도 캔버스가 1px 로 남지 않게)
+    if (host.clientWidth === 0 || host.clientHeight === 0) return;
+    const w = host.clientWidth;
+    const h = host.clientHeight;
     if (app.renderer.width !== w || app.renderer.height !== h) app.renderer.resize(w, h);
     this.redrawGrid();
   }
