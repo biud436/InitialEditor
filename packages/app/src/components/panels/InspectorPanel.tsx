@@ -13,7 +13,7 @@ import { asMapDocument } from "../../editor/maps/schemaStore";
 import { openAttachScriptDialog } from "../../editor/scene/AttachScriptDialog";
 import { compoundCommand } from "../../editor/scene/commands";
 import { inspectorFor } from "../../editor/scene/coreTypes";
-import { FieldRow, NumberField } from "../../editor/scene/fields";
+import { FieldRow, NumberField } from "@initial-editor/ui";
 import { TypeIcon } from "../../editor/scene/typeIcons";
 import { MapObjectInspector } from "../maps/MapObjectInspector";
 import "./InspectorPanel.css";

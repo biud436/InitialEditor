@@ -4,6 +4,7 @@ import { fixtureMap, fixtureSchema } from "../testing/fixtures";
 import { EditRefused, EventEditor, EventListCommand, newCommand, uniqueEventId, type EditContext } from "./commands";
 import { EventsSection } from "./events";
 import { getList, type CommandPath } from "./tree";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { field } from "./json";
 import type { MapGeometry } from "./validate";
 
@@ -63,6 +64,14 @@ describe("이벤트 추가, 지우기, 붙여넣기", () => {
     // 맵 밖에 붙이거나 구역이 음수가 되면 거절한다
     expect(() => ed.pasteEvents([ev("s", 0, 0)], { x: 10, y: 0 })).toThrow(/맵 밖/);
     expect(() => ed.pasteEvents(copied, { x: 9, y: 0 })).toThrow(/wander\.area\.y/);
+  });
+
+  it("붙여넣기: 2^53을 넘는 정수 id(표식 글)는 글이 아니라 새 event_N 이 된다 (표식 글에 _2 를 붙이지 않는다)", () => {
+    const big = bigIntValue("12345678901234567890");
+    const { section, ed, stack } = setup([ev("event_1", 0, 0), { id: big, x: 1, y: 0 }]);
+    stack.push(ed.pasteEvents([{ id: big, x: 1, y: 0 }], { x: 3, y: 3 }));
+    expect(section.ids()).toEqual(["event_1", "event_2"]);
+    expect(JSON.stringify(section.list)).not.toMatch(/INT:[^"]*_/);
   });
 });
 
@@ -188,6 +197,14 @@ describe("칸 바꾸기, 이름 바꾸기", () => {
     expect(() => ed.renameEvent(0, "b")).toThrow(/겹친다/);
   });
 
+  it("옛 id 가 2^53을 넘는 정수(표식 글)면 글이 아니라 참조를 바꾸지 않는다", () => {
+    const big = bigIntValue("12345678901234567890");
+    const { section, ed, stack } = setup([{ id: big, x: 0, y: 0 }, ev("c", 2, 0, { commands: [{ code: "turn", target: big, dir: "up" }] })]);
+    stack.push(ed.renameEvent(0, "kid"));
+    expect(section.ids()).toEqual(["kid", "c"]);
+    expect((at(section, 1).commands as Array<Record<string, unknown>>)[0].target).toBe(big);
+  });
+
   it("옛 id 를 쓰는 다른 이벤트가 남아 있으면 참조는 두다", () => {
     const { section, ed, stack } = setup([ev("dup", 0, 0), ev("dup", 1, 0), ev("c", 2, 0, { commands: [{ code: "turn", target: "dup", dir: "up" }] })]);
     stack.push(ed.renameEvent(1, "other"));
@@ -250,6 +267,12 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     expect(at(section, 0).commands).toEqual([{ code: "script", name: "boss2" }]);
   });
 
+  it("모르는 커맨드의 인자는 고칠 수 없다. code 가 2^53을 넘는 정수(표식 글)면 숫자 그대로 알린다", () => {
+    const { ed } = setup([ev("a", 0, 0, { commands: [{ code: bigIntValue("12345678901234567890"), text: "x" }] })]);
+    expect(() => ed.setArg(0, P(0), "text", "y")).toThrow("모르는 커맨드 12345678901234567890 는 고칠 수 없다");
+    expect(() => ed.setArgs(0, P(0), { text: "y" })).toThrow("스키마에 없는 커맨드: 12345678901234567890");
+  });
+
   it("빼기와 옮기기", () => {
     const { section, ed, stack } = setup([ev("a", 0, 0, { commands: [{ code: "message", text: "1" }, { code: "if", cond: { flag: "f" }, thenDo: [] }, { code: "message", text: "3" }] })]);
     stack.push(ed.moveCommands(0, P(0), 1, { list: [{ at: 1, list: "thenDo" }], index: 0 }));
@@ -284,6 +307,65 @@ describe("커맨드 넣기, 빼기, 옮기기, 인자", () => {
     const broken = setup([ev("b", 0, 0, { commands: [{ code: "if", cond: { flag: "x" }, thenDo: [{ code: "message" }] }] })]);
     broken.stack.push(broken.ed.setArg(0, P(0), "cond", { flag: "y" }));
     expect((broken.section.list[0] as { commands: Array<Record<string, unknown>> }).commands[0].cond).toEqual({ flag: "y" });
+  });
+
+  it("인자 여럿(setArgs): x 와 y 가 한 명령, 되돌리기 한 단계이고 다시 실행하면 둘 다 돌아온다. 키 순서는 스키마 순서", () => {
+    const transfer = { code: "transfer", map: "inn", dir: "up" };
+    const { section, ed, stack } = setup([ev("door", 0, 0, { commands: [{ code: "playSe", file: "./a.wav" }, transfer] })]);
+    const cmd = () => (at(section, 0).commands as Array<Record<string, unknown>>)[1];
+    const made = ed.setArgs(0, P(1), { x: 4, y: 7 });
+    expect(made.unchanged).toBe(false);
+    expect(made.label).toBe("인자 바꾸기: x, y");
+    expect(made.focus).toEqual([0]);
+    stack.push(made);
+    expect(stack.depth).toBe(1);
+    expect(cmd()).toEqual({ code: "transfer", map: "inn", x: 4, y: 7, dir: "up" });
+    expect(Object.keys(cmd())).toEqual(["code", "map", "x", "y", "dir"]);
+    stack.push(ed.setArgs(0, P(1), { y: 2, x: 9 }));
+    expect(stack.depth).toBe(2);
+    expect(cmd()).toMatchObject({ x: 9, y: 2 });
+    stack.undo();
+    expect(cmd()).toMatchObject({ x: 4, y: 7 });
+    stack.undo();
+    expect(cmd()).toEqual(transfer);
+    stack.redo();
+    expect(cmd()).toEqual({ code: "transfer", map: "inn", x: 4, y: 7, dir: "up" });
+    stack.redo();
+    expect(cmd()).toMatchObject({ x: 9, y: 2 });
+    // undefined 는 지운다 (선택 인자)
+    stack.push(ed.setArgs(0, P(1), { x: undefined, y: undefined }));
+    expect(cmd()).toEqual(transfer);
+  });
+
+  it("인자 여럿(setArgs): 값이 모두 그대로면 unchanged 라 스택이 쌓지 않는다. 합치기 키가 같으면 하나로 합친다", () => {
+    const { section, ed, stack } = setup([ev("door", 0, 0, { commands: [{ code: "transfer", map: "inn", x: 3, y: 4 }] })]);
+    const same = ed.setArgs(0, P(0), { x: 3, y: 4 });
+    expect(same.unchanged).toBe(true);
+    const state = stack.stateId;
+    stack.push(same);
+    expect(stack.depth).toBe(0);
+    expect(stack.stateId).toBe(state);
+    stack.push(ed.setArgs(0, P(0), { x: 5, y: 6 }, { mergeKey: "k" }));
+    stack.push(ed.setArgs(0, P(0), { x: 7, y: 8 }, { mergeKey: "k" }));
+    expect(stack.depth).toBe(1);
+    expect((at(section, 0).commands as Array<Record<string, unknown>>)[0]).toMatchObject({ x: 7, y: 8 });
+    stack.undo();
+    expect((at(section, 0).commands as Array<Record<string, unknown>>)[0]).toMatchObject({ x: 3, y: 4 });
+  });
+
+  it("인자 여럿(setArgs): 하나라도 틀리면 전부 거절하고 목록은 그대로다", () => {
+    const transfer = { code: "transfer", map: "inn", x: 3, y: 4 };
+    const { section, ed } = setup([ev("door", 0, 0, { commands: [transfer, { code: "choice", options: ["a"] }] })]);
+    expect(() => ed.setArgs(0, P(0), { x: 5, y: -1 })).toThrow(/^y: /);
+    expect(() => ed.setArgs(0, P(0), { x: 1.5, y: 2 })).toThrow(/^x: /);
+    expect(() => ed.setArgs(0, P(0), { x: 1, zzz: 2 })).toThrow("인자 없음: 맵 이동.zzz");
+    expect(() => ed.setArgs(0, P(0), { map: undefined, x: 1 })).toThrow(/필요하다/);
+    expect(() => ed.setArgs(0, P(1), { options: ["b"] })).toThrow("항목 인자는 항목 명령으로 수정해야 함: 선택지.options");
+    expect(() => ed.setArgs(0, P(0), {})).toThrow("바꿀 인자 없음");
+    expect(() => ed.setArgs(0, P(5), { x: 1 })).toThrow(EditRefused);
+    expect((at(section, 0).commands as unknown[])[0]).toEqual(transfer);
+    const locked = setup([ev("door", 0, 0, { commands: [transfer] })], { locked: "읽기 전용 맵" });
+    expect(() => locked.ed.setArgs(0, P(0), { x: 1, y: 1 })).toThrow("읽기 전용 맵");
   });
 
   it("선택지 항목: 가지와 취소 번호가 함께 간다", () => {

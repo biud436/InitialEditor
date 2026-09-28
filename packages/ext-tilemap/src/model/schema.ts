@@ -24,7 +24,7 @@
 // play.maps는 여기서 실행을 켤 맵 이름의 글롭 목록이다 (*는 아무 글자열, ?는 한 글자). 맵 이름은 {map.name}에 들어가는 값이다.
 // 없으면 모든 맵에서 켜진다.
 
-import type { MapObject } from "./format";
+import { isJsonInteger, isJsonNumber, isJsonText, jsonNumber, jsonValueText, stringifyJsonLossless, type MapObject } from "./format";
 
 export const SCHEMA_PATH = "resources/schema/map-objects.json";
 
@@ -172,9 +172,11 @@ export function defaultProps(spec: ObjectTypeSchema): Record<string, unknown> {
 export interface ObjectProblem {
   severity: "error" | "warning";
   message: string;
-  /** objects[3].props.species 꼴 */
+  /** objects[3].props.species 꼴. 확장 레이어의 문제는 그 레이어의 표기 */
   location: string;
   objectId?: string;
+  /** 확장 레이어의 문제면 그 레이어 id (MapDocument.problems 가 채운다) */
+  layer?: string;
 }
 
 /** 오브젝트를 스키마에 대어 본다. 스키마가 없으면 id 겹침만 본다 */
@@ -203,7 +205,7 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
       const v = o.props[f.name];
       const loc = `${where}.props.${f.name}`;
       // 글 칸은 비었거나 공백뿐이어도 빈 것이다 (새 오브젝트의 필수 글 칸은 ""로 시작한다)
-      const blankText = (f.type === "string" || f.type === "text") && typeof v === "string" && v.trim() === "";
+      const blankText = (f.type === "string" || f.type === "text") && isJsonText(v) && v.trim() === "";
       if (v === undefined || blankText) {
         if (f.required) problems.push({ severity: "error", message: `${o.id}: ${f.label}이(가) 비어 있다`, location: loc, objectId: o.id });
         continue;
@@ -212,33 +214,36 @@ export function validateObjects(objects: readonly MapObject[], schema: MapObject
       switch (f.type) {
         case "string":
         case "text":
-          if (typeof v !== "string") bad("은(는) 글이어야 한다");
+          if (!isJsonText(v)) bad("은(는) 글이어야 한다");
           break;
         case "number":
-          if (typeof v !== "number" || !Number.isFinite(v)) bad("은(는) 숫자여야 한다");
+          if (!isJsonNumber(v)) bad("은(는) 숫자여야 한다");
           break;
         case "integer":
-          if (typeof v !== "number" || !Number.isInteger(v)) bad("은(는) 정수여야 한다");
+          if (!isJsonInteger(v)) bad("은(는) 정수여야 한다");
           break;
         case "boolean":
           if (typeof v !== "boolean") bad("은(는) 참이나 거짓이어야 한다");
           break;
         case "enum":
-          if (typeof v !== "string" || !f.values!.includes(v)) bad(`의 값 ${JSON.stringify(v)} 은(는) 목록에 없다 (${f.values!.join(", ")})`);
+          if (!isJsonText(v) || !f.values!.includes(v)) bad(`의 값 ${stringifyJsonLossless(v)} 은(는) 목록에 없다 (${f.values!.join(", ")})`);
           break;
       }
-      if (typeof v === "number") {
-        if (f.min !== undefined && v < f.min) bad(`은(는) ${f.min} 이상이어야 한다`);
-        if (f.max !== undefined && v > f.max) bad(`은(는) ${f.max} 이하여야 한다`);
+      // 2^53을 넘는 정수(표식 글)도 수라 범위를 본다 (견주기는 가까운 수로)
+      const n = jsonNumber(v);
+      if (n !== undefined) {
+        if (f.min !== undefined && n < f.min) bad(`은(는) ${f.min} 이상이어야 한다`);
+        if (f.max !== undefined && n > f.max) bad(`은(는) ${f.max} 이하여야 한다`);
       }
     }
     const lo = spec.fields.find((f) => f.role === "rangeMin");
     const hi = spec.fields.find((f) => f.role === "rangeMax");
-    if (lo && hi && typeof o.props[lo.name] === "number" && typeof o.props[hi.name] === "number") {
-      const a = o.props[lo.name] as number;
-      const b = o.props[hi.name] as number;
+    const a = lo ? jsonNumber(o.props[lo.name]) : undefined;
+    const b = hi ? jsonNumber(o.props[hi.name]) : undefined;
+    if (lo && hi && a !== undefined && b !== undefined) {
+      const range = `${jsonValueText(o.props[lo.name])}..${jsonValueText(o.props[hi.name])}`;
       if (a > b) problems.push({ severity: "error", message: `${o.id}: ${lo.label} 이(가) ${hi.label} 보다 크다`, location: `${where}.props.${lo.name}`, objectId: o.id });
-      else if (o.x < a || o.x > b) problems.push({ severity: "warning", message: `${o.id}: 위치 ${o.x} 가 범위 ${a}..${b} 밖이다`, location: `${where}.x`, objectId: o.id });
+      else if (o.x < a || o.x > b) problems.push({ severity: "warning", message: `${o.id}: 위치 ${o.x} 가 범위 ${range} 밖이다`, location: `${where}.x`, objectId: o.id });
     }
   });
   if (schema) {

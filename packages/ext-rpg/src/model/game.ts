@@ -8,6 +8,8 @@
 import { engineLength, field, isArrayPlace, isObjectPlace, isInteger, isPlainObject, asList } from "./json";
 
 export const GAME_CONFIG_PATH = "resources/data/rpg-game.json";
+/** 저장소가 rpg-game.json 이 없을 때 남기는 이유 (RPG 프로젝트가 아니다) */
+export const GAME_CONFIG_MISSING = "파일이 없다";
 
 export interface MapEntry {
   name: string;

@@ -3,8 +3,11 @@ import { MemoryBackend } from "@initial-editor/core/testing";
 import { MapDocument, parseObjectSchema, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import type { ConfirmOptions } from "../../modals";
+import type { PlayProviderSpec } from "@initial-editor/ext-tilemap";
+import { NO_MRUBY } from "../../runner/RunnerStore";
 import { NO_PLAY_HINT, PLAY_POSITION_RULE } from "./rules";
-import { NEED_MAP_TAB, playHere, playHereDisabledReason, playHereHint, playHereRefusal, type PlayHost } from "./playHere";
+import { NEED_MAP_TAB, playHere, playHereDisabledReason, playHereHint, playHereRefusal, playRequest, runnerBlocked, type PlayHost } from "./playHere";
+import { OBJECTS_PLAY_PROVIDER_ID, objectsPlayProvider } from "./playProvider";
 
 const MAP_PATH = "resources/maps/aldebaran_forest.json";
 const MAP = JSON.stringify({
@@ -283,5 +286,181 @@ describe("여기서 실행", () => {
     expect(playHereHint(host)).toBeUndefined();
     await playHere(host);
     expect(f.starts[0].env?.INITIAL2D_ALDEBARAN_STAGE).toBe("forest");
+  });
+});
+
+describe("여기서 실행: 실행 제공자", () => {
+  const plan = (env: Record<string, string>, at: { x: number; y: number } | null, note?: string) => ({ env, at, note });
+
+  it("priority 가 높은 제공자가 이 맵을 받으면 그 plan 으로 띄우고, 기본 제공자는 묻지 않는다", async () => {
+    const f = await fake();
+    const seen: Array<{ cursor: unknown; viewCenter: unknown }> = [];
+    f.support.cursor = { x: 30, y: 20 };
+    f.support.center = { x: 64, y: 32 };
+    const rpg: PlayProviderSpec = {
+      id: "rpg",
+      priority: 10,
+      applies: (doc) => doc.path === MAP_PATH,
+      plan: (_doc, ctx) => {
+        seen.push(ctx);
+        return plan({ INITIAL2D_SCENE: "rpg", INITIAL2D_RPG_AT: "3,4,up" }, { x: 3, y: 4 }, "이벤트 captain 앞");
+      },
+    };
+    const host: PlayHost = { ...f.host, tilemap: { playProviders: [rpg, objectsPlayProvider(() => SCHEMA)] } };
+    expect(playHereHint(host)).toBeUndefined();
+    expect(await playHere(host)).toBe(true);
+    expect(f.starts).toEqual([{ env: { INITIAL2D_SCENE: "rpg", INITIAL2D_RPG_AT: "3,4,up" } }]);
+    expect(seen).toEqual([{ cursor: { x: 30, y: 20 }, viewCenter: { x: 64, y: 32 } }]);
+    expect(host.log.entries.some((e) => e.text === "여기서 실행: forest x 3, y 4 (이벤트 captain 앞) INITIAL2D_SCENE=rpg INITIAL2D_RPG_AT=3,4,up")).toBe(true);
+  });
+
+  it("높은 제공자가 받지 않는 맵은 다음 제공자(기본)로 띄운다. 위치 없는 plan 은 위치를 적지 않는다", async () => {
+    const f = await fake();
+    f.doc.select(["wolf_1"]);
+    const other: PlayProviderSpec = { id: "rpg", priority: 10, applies: () => false, hint: () => "rpg-game.json 에 없는 맵이다", plan: () => null };
+    const host: PlayHost = { ...f.host, tilemap: { playProviders: [other, objectsPlayProvider(() => SCHEMA)] } };
+    expect(playHereRefusal(host)).toBeNull();
+    await playHere(host);
+    expect(f.starts[0].env?.INITIAL2D_ALDEBARAN_AT).toBe("700");
+    const bare: PlayProviderSpec = { id: "bare", priority: 5, applies: () => true, plan: () => plan({ A: "1" }, null) };
+    const host2: PlayHost = { ...f.host, tilemap: { playProviders: [bare] } };
+    await playHere(host2);
+    expect(f.host.log.entries.some((e) => e.text === "여기서 실행: forest A=1")).toBe(true);
+  });
+
+  it("받는 제공자가 없으면 이유를 말한 제공자들의 이유를 priority 순으로 이어 알리고, 아무도 말하지 않으면 끈다", async () => {
+    const f = await fake({ schema: { ...SCHEMA, play: { ...SCHEMA.play!, maps: ["aldebaran_*"] } } });
+    const rpg: PlayProviderSpec = { id: "rpg", priority: 10, applies: () => false, hint: () => "이 맵은 rpg-game.json 에 없다", plan: () => null };
+    const host: PlayHost = { ...f.host, tilemap: { playProviders: [rpg, objectsPlayProvider((d) => d.schema)] } };
+    const reason = "이 맵은 rpg-game.json 에 없다. 맵 forest은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*";
+    expect(playHereDisabledReason(host)).toBeUndefined();
+    expect(playHereRefusal(host)).toBe(reason);
+    expect(await playHere(host)).toBe(false);
+    expect(f.toasts).toEqual([`warn: ${reason}`]);
+
+    const silent: PlayProviderSpec = { id: "rpg", priority: 10, applies: () => false, hint: () => undefined, plan: () => null };
+    const none = await fake({ schema: null });
+    const host2: PlayHost = { ...none.host, tilemap: { playProviders: [silent, objectsPlayProvider((d) => d.schema)] } };
+    expect(playHereDisabledReason(host2)).toBe(NO_PLAY_HINT);
+    expect(playHereRefusal(host2)).toBeNull();
+    expect(await playHere(host2)).toBe(false);
+    expect(none.toasts).toEqual([`warn: ${NO_PLAY_HINT}`]);
+  });
+
+  it("제공자가 plan 을 못 정하면 띄우지 않고 이유를 알린다", async () => {
+    const f = await fake();
+    const empty: PlayProviderSpec = { id: "e", priority: 1, applies: () => true, plan: () => null };
+    const host: PlayHost = { ...f.host, tilemap: { playProviders: [empty] } };
+    expect(await playHere(host)).toBe(false);
+    expect(f.starts).toEqual([]);
+    expect(f.toasts).toEqual([`warn: ${NO_PLAY_HINT}`]);
+  });
+});
+
+describe("확장의 실행 길 (playRequest: 타일맵의 play 가 부른다)", () => {
+  it("요청의 plan 을 저장한 뒤에 부르고, 요청의 이름으로 콘솔에 한 줄을 남기고 러너에 넘긴다", async () => {
+    const f = await fake();
+    f.doc.apply(f.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
+    const seen: Array<{ dirty: boolean; x: number | undefined }> = [];
+    const ok = await playRequest(f.host, f.doc, {
+      label: "이 표식 앞에서 실행",
+      plan: (doc) => {
+        seen.push({ dirty: doc.dirty, x: doc.model.findObject("wolf_1")?.x });
+        return { env: { INITIAL2D_SCENE: "rpg", INITIAL2D_RPG_AT: "3,4,up" }, at: { x: 3, y: 4 }, note: "표식 wolf_1 앞" };
+      },
+    });
+    expect(ok).toBe(true);
+    expect(f.confirms.map((c) => [c.title, c.okLabel])).toEqual([["이 표식 앞에서 실행", "저장하고 실행"]]);
+    expect(seen).toEqual([{ dirty: false, x: 900 }]);
+    expect(f.starts).toEqual([{ env: { INITIAL2D_SCENE: "rpg", INITIAL2D_RPG_AT: "3,4,up" } }]);
+    expect(f.host.log.entries.some((e) => e.text === "이 표식 앞에서 실행: forest x 3, y 4 (표식 wolf_1 앞) INITIAL2D_SCENE=rpg INITIAL2D_RPG_AT=3,4,up")).toBe(true);
+  });
+
+  it("계획에 watch 가 있으면 러너에 실행마다 새로 만드는 watch 를 넘긴다", async () => {
+    const f = await fake();
+    let made = 0;
+    const watch = () => {
+      made++;
+      return { line: () => undefined };
+    };
+    expect(await playRequest(f.host, f.doc, { label: "이 표식 자동 재생", plan: () => ({ env: { A: "1" }, at: null, watch }) })).toBe(true);
+    expect(f.starts).toHaveLength(1);
+    const start = f.starts[0] as { env?: Record<string, string>; watch?: () => unknown };
+    expect(start.env).toEqual({ A: "1" });
+    expect(typeof start.watch).toBe("function");
+    start.watch!();
+    start.watch!();
+    expect(made).toBe(2);
+  });
+
+  it("plan 이 이유를 주면 띄우지 않고 그 이유를 토스트와 콘솔로 알린다", async () => {
+    const f = await fake();
+    expect(await playRequest(f.host, f.doc, { label: "이 표식 자동 재생", plan: () => "parallel 은 끝나지 않는다" })).toBe(false);
+    expect(f.starts).toEqual([]);
+    expect(f.toasts).toEqual(["warn: parallel 은 끝나지 않는다"]);
+    expect(f.host.log.entries.map((e) => [e.level, e.text])).toContainEqual(["warn", "이 표식 자동 재생: 띄우지 않았다 (parallel 은 끝나지 않는다)"]);
+  });
+
+  it("러너가 못 띄우면 저장도 묻지 않고 plan 도 부르지 않는다. 취소하면 plan 을 부르지 않는다", async () => {
+    const browser = await fake({ reason: "브라우저 모드에서는 엔진을 띄울 수 없다" });
+    const noEngine = await fake({ hint: "엔진을 찾지 못했다" });
+    expect(runnerBlocked(browser.host)).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    expect(runnerBlocked(noEngine.host)).toBe("엔진을 찾지 못했다");
+    const plans: string[] = [];
+    const request = { label: "이 표식 앞에서 실행", plan: () => (plans.push("plan"), { env: {}, at: null }) };
+    browser.doc.apply(browser.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
+    expect(await playRequest(browser.host, browser.doc, request)).toBe(false);
+    expect(browser.confirms).toEqual([]);
+    expect(browser.toasts).toEqual(["warn: 브라우저 모드에서는 엔진을 띄울 수 없다"]);
+    const cancel = await fake({ confirm: false });
+    expect(runnerBlocked(cancel.host)).toBeUndefined();
+    cancel.doc.apply(cancel.doc.model.moveObjects([{ id: "wolf_1", x: 900, y: 48 }]));
+    expect(await playRequest(cancel.host, cancel.doc, request)).toBe(false);
+    expect(cancel.saved).toEqual([]);
+    expect(plans).toEqual([]);
+    expect([...browser.starts, ...cancel.starts]).toEqual([]);
+  });
+
+  it("게임 설정의 언어만 막는 이유(NO_MRUBY)면 켜 둔다: 맵의 실행 변수가 INITIAL2D_SCRIPT 를 덮고, 러너가 띄울 때 다시 본다", async () => {
+    const f = await fake({ hint: NO_MRUBY });
+    expect(runnerBlocked(f.host)).toBeUndefined();
+    expect(playHereDisabledReason(f.host)).toBeUndefined();
+    expect(await playRequest(f.host, f.doc, { label: "이 표식 앞에서 실행", plan: () => ({ env: { INITIAL2D_SCRIPT: "lua" }, at: null }) })).toBe(true);
+    expect(await playHere(f.host)).toBe(true);
+    expect(f.starts.map((s) => s.env?.INITIAL2D_SCRIPT ?? "(game.json)")).toEqual(["lua", "(game.json)"]);
+  });
+});
+
+describe("기본 실행 제공자 (map-objects.json 의 play)", () => {
+  it("priority 0 이고, play 가 있고 play.maps 가 받으면 applies 다. hint 는 play.maps 의 거절 이유뿐이다", async () => {
+    const f = await fake();
+    let schema: MapObjectSchema | null = SCHEMA;
+    const p = objectsPlayProvider(() => schema);
+    expect([p.id, p.priority]).toEqual([OBJECTS_PLAY_PROVIDER_ID, 0]);
+    expect(p.applies(f.doc)).toBe(true);
+    expect(p.hint!(f.doc)).toBeUndefined();
+    schema = { ...SCHEMA, play: { ...SCHEMA.play!, maps: ["aldebaran_*"] } };
+    expect(p.applies(f.doc)).toBe(false);
+    expect(p.hint!(f.doc)).toBe("맵 forest은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: aldebaran_*");
+    schema = { ...SCHEMA, play: null };
+    expect(p.applies(f.doc)).toBe(false);
+    expect(p.hint!(f.doc)).toBeUndefined();
+    schema = null;
+    expect(p.applies(f.doc)).toBe(false);
+    expect(p.plan(f.doc, { cursor: null, viewCenter: null })).toBeNull();
+  });
+
+  it("plan 은 위치 규칙과 play.env 를 쓰고 설명은 로그의 괄호 안 글이다", async () => {
+    const f = await fake({ schema: RANGE_SCHEMA });
+    f.doc.apply(f.doc.model.setObjectProp("wolf_1", "minX", 640));
+    f.doc.select(["wolf_1"]);
+    const p = objectsPlayProvider((d) => d.schema);
+    expect(p.plan(f.doc, { cursor: { x: 1, y: 1 }, viewCenter: null })).toEqual({
+      env: { INITIAL2D_ALDEBARAN_STAGE: "forest", INITIAL2D_ALDEBARAN_AT: "592" },
+      at: { x: 592, y: 48 },
+      note: "선택한 오브젝트 wolf_1, 순찰 범위 왼끝 640에서 48px 왼쪽",
+    });
+    f.doc.clearSelection();
+    expect(p.plan(f.doc, { cursor: { x: 100.4, y: 10 }, viewCenter: null })).toMatchObject({ at: { x: 100, y: 10 }, note: "커서" });
   });
 });

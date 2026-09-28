@@ -26,8 +26,9 @@ function reason(patch: Record<string, unknown>): string | null {
 }
 
 describe("엔진이 맵 파일을 여는 규칙 (Tilemap::load)", () => {
-  it("받아들이면 타일셋 그림을 프로젝트 기준 경로로 돌려준다", () => {
-    expect(check({})).toEqual({ ok: true, images: ["resources/tiles/t.png"] });
+  it("받아들이면 타일셋 그림을 프로젝트 기준 경로로, 맵 크기를 칸으로 돌려준다", () => {
+    expect(check({})).toEqual({ ok: true, images: ["resources/tiles/t.png"], width: 2, height: 1 });
+    expect(check({ width: 2.9, height: true })).toEqual({ ok: true, images: ["resources/tiles/t.png"], width: 2, height: 1 });
     expect(projectPathOf(".\\resources\\tiles//a.png")).toBe("resources/tiles/a.png");
   });
 

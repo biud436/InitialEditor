@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { DocumentRegistry, LogStore } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
-import { MapDocument, parseObjectSchema } from "@initial-editor/ext-tilemap/model";
+import { bigIntValue, MapDocument, parseObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { Editor } from "../../editor/Editor";
@@ -35,6 +35,7 @@ const SCHEMA = parseObjectSchema(
           { name: "species", type: "enum", values: ["slime", "bat"], label: "종" },
           { name: "minX", type: "number", role: "rangeMin", label: "순찰 왼끝" },
           { name: "maxX", type: "number", role: "rangeMax", label: "순찰 오른끝" },
+          { name: "seed", type: "integer", label: "시드" },
         ],
       },
       { type: "start", label: "시작 지점", unique: true },
@@ -42,8 +43,8 @@ const SCHEMA = parseObjectSchema(
   }),
 );
 
-async function setup() {
-  const mem = new MemoryBackend({ [MAP_PATH]: MAP });
+async function setup(map = MAP) {
+  const mem = new MemoryBackend({ [MAP_PATH]: map });
   await mem.open("/p");
   const doc = await MapDocument.open(mem, MAP_PATH, SCHEMA);
   const documents = new DocumentRegistry();
@@ -106,5 +107,41 @@ describe("맵 오브젝트 인스펙터의 id 칸", () => {
     act(() => idInput().blur());
     expect(doc.model.objectIds()).toEqual(["start", "slime_boss"]);
     expect(doc.undo.depth).toBe(1);
+  });
+});
+
+describe("맵 오브젝트 인스펙터의 큰 정수", () => {
+  it("2^53을 넘는 정수는 숫자 그대로 보이고 검사도 수로 본다. 같은 값을 다시 적으면 명령이 없다", async () => {
+    const map = MAP.replace('"minX":80', '"minX":-12345678901234567890').replace('"maxX":200', '"maxX":12345678901234567890');
+    const { doc } = await setup(map);
+    expect((screen.getByTestId("map-field-minX") as HTMLInputElement).value).toBe("-12345678901234567890");
+    expect((screen.getByTestId("map-field-maxX") as HTMLInputElement).value).toBe("12345678901234567890");
+    expect(document.body.textContent).not.toContain("INT:");
+    expect(doc.problems.filter((p) => p.objectId === "slime_1")).toEqual([]);
+    type(screen.getByTestId("map-inspector-x") as HTMLInputElement, "120");
+    expect([doc.undo.depth, doc.dirty]).toEqual([0, false]);
+  });
+
+  it("숫자 속성에 적은 2^53을 넘는 정수는 자릿수를 잃지 않고 저장 글에 숫자 그대로다 (범위 칸과 스키마 칸, 한 초점이 한 단계)", async () => {
+    const { doc } = await setup();
+    const seed = screen.getByTestId("map-field-seed") as HTMLInputElement;
+    type(seed, "1234567890123456789");
+    fireEvent.change(seed, { target: { value: "12345678901234567890" } });
+    expect(doc.model.findObject("slime_1")!.props.seed).toBe(bigIntValue("12345678901234567890"));
+    expect(seed.value).toBe("12345678901234567890");
+    expect(doc.undo.depth).toBe(1);
+    act(() => seed.blur());
+    expect(seed.value).toBe("12345678901234567890");
+    const maxX = screen.getByTestId("map-field-maxX") as HTMLInputElement;
+    type(maxX, "-00098765432109876543210");
+    expect(doc.model.findObject("slime_1")!.props.maxX).toBe(bigIntValue("-98765432109876543210"));
+    act(() => maxX.blur());
+    const text = doc.text();
+    expect(text).toContain('"seed": 12345678901234567890');
+    expect(text).toContain('"maxX": -98765432109876543210');
+    expect(text).not.toContain("INT:");
+    // 안전한 정수와 소수는 그대로 수다
+    type(seed, "42");
+    expect(doc.model.findObject("slime_1")!.props.seed).toBe(42);
   });
 });

@@ -57,4 +57,17 @@ describe("CommandRegistry", () => {
     expect(r.get("file.save")).toBeUndefined();
     expect(() => r.register({ id: "edit.undo", label: "x", run: () => {} })).toThrow();
   });
+
+  it("visible 이 거짓이면 보이지 않고 비활성이다 (단축키도 찾지 않는다). 생략하면 늘 보인다", async () => {
+    const r = new CommandRegistry({ platform: "mac" });
+    let shown = false;
+    r.register({ id: "map.layer.x", label: "이벤트 도구", shortcut: "N", visible: () => shown, run: () => {} });
+    r.register({ id: "file.save", label: "저장", run: () => {} });
+    expect([r.isVisible("map.layer.x"), r.isEnabled("map.layer.x"), r.findByKey(key("n"))]).toEqual([false, false, null]);
+    expect(await r.execute("map.layer.x")).toBe(false);
+    shown = true;
+    expect([r.isVisible("map.layer.x"), r.isEnabled("map.layer.x"), r.findByKey(key("n"))]).toEqual([true, true, "map.layer.x"]);
+    expect(r.isVisible("file.save")).toBe(true);
+    expect(r.isVisible("nope")).toBe(false);
+  });
 });

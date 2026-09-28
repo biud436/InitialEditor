@@ -1,10 +1,13 @@
 // 자가 검사 모드의 앱 쪽 입구 (docs/plans/e6-packaging.md 5절). main.tsx 가 셸의 selftest_plan 으로 계획을 받으면
 // 격리된 저장소(isolatedStorage)로 에디터를 만들고, 그린 뒤 startSelftest 를 부른다.
 
-import { MemorySettingsStorage, type SettingsStorage } from "@initial-editor/core";
+import { MemorySettingsStorage, type RunMode, type SettingsStorage } from "@initial-editor/core";
+import type { MapSelftestProbe } from "@initial-editor/ext-tilemap";
+import { when } from "mobx";
 import { APP_COMMIT } from "../about";
 import type { Editor } from "../Editor";
 import type { KeyValueStorage } from "../LocalStorageSettingsStorage";
+import { playRequest, type PlayHost } from "../maps/objectTools/playHere";
 import { writeProjectTemplate } from "../scene/projectTemplates";
 import type { CspCollector } from "./csp";
 import { parsePlan } from "./plan";
@@ -62,6 +65,50 @@ export function editorSelftestHost(editor: Editor, csp: Pick<CspCollector, "list
     },
     captureMapTiles: async (doc, rect) => editor.mapSupport.rendererFor(doc)?.captureTiles(rect) ?? null,
     cspViolations: () => csp.list,
+    extensionProbe: (id) => editor.extensions.exportsOf<{ selftest?: MapSelftestProbe }>(id)?.selftest ?? null,
+    playMap: async (doc, request, opts) => {
+      // 프로젝트를 연 뒤의 엔진 탐색이 끝나기를 기다린다. 그동안 앱의 실행 길은 "엔진을 찾는 중" 으로 막힌다
+      await when(() => !editor.runner.resolving, { timeout: 60_000 }).catch(() => {});
+      return playRequest(selftestPlayHost(editor, opts), doc, request);
+    },
+  };
+}
+
+/** 에디터 그대로이되 러너의 시작에 계획의 mode 와 env 를 더한다 (요청의 변수가 이긴다) */
+function selftestPlayHost(editor: Editor, opts: { mode: RunMode; env: Record<string, string> }): PlayHost {
+  const runner = editor.runner;
+  return {
+    get documents() {
+      return editor.documents;
+    },
+    get toasts() {
+      return editor.toasts;
+    },
+    get log() {
+      return editor.log;
+    },
+    get mapSupport() {
+      return editor.mapSupport;
+    },
+    get modals() {
+      return editor.modals;
+    },
+    get mapSchema() {
+      return editor.mapSchema;
+    },
+    get tilemap() {
+      return editor.tilemap;
+    },
+    saveDocument: (doc) => editor.saveDocument(doc),
+    runner: {
+      get unavailableReason() {
+        return runner.unavailableReason;
+      },
+      get startHint() {
+        return runner.startHint;
+      },
+      start: (o) => runner.start({ ...o, mode: opts.mode, env: { ...opts.env, ...o.env } }),
+    },
   };
 }
 

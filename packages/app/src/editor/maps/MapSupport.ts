@@ -5,12 +5,17 @@
 //   - 맵 커맨드와 메뉴 (mapCommands.ts), 맵 오브젝트 클립보드 (mapClipboard.ts, 편집 메뉴가 쓴다)
 //   - 붙은 렌더러의 도구 경고(한도에 닿은 채우기)를 콘솔에 남긴다
 //   - 맵 탭이 활성이 되면 레이아웃에 없는 맵 패널(팔레트, 레이어, 맵 오브젝트)을 더한다 (LayoutStore.ensureMapPanels)
+//   - 확장 레이어 목록(layers, 타일맵 확장의 editor.tilemap): 맵 뷰와 레이어 패널과 인스펙터가 본다
+//   - 타일맵 확장의 맵 뷰 길: 맵 탭을 열고 타일 하나 고르기(pickCell, cellPick.ts), 타일을 뷰 가운데에 두기(revealCell)
 
+import type { CellPickRequest, MapLayerSpec, Point } from "@initial-editor/ext-tilemap";
 import { MapDocument, MapFormatError, isMapPath, typeOf, type MapObjectSchema } from "@initial-editor/ext-tilemap/model";
 import { action, computed, makeObservable, observable, reaction, runInAction } from "mobx";
 import type { Editor } from "../Editor";
 import { TextureCache } from "../sceneView/textures";
 import { isEditableTarget } from "../shortcuts";
+import { CellPicker } from "./cellPick";
+import { mapLayerSpecs } from "./extLayers";
 import { registerMapCommands } from "./mapCommands";
 import { shapeBounds, shapeOf } from "./mapGeometry";
 import { MapClipboard } from "./mapClipboard";
@@ -36,10 +41,14 @@ export class MapSupport {
   cursor: WorldPoint | null = null;
   /** 초점이 입력 칸에 있다. 도구 단축키(한 글자)를 끈다 */
   editableFocus = false;
+  /** 맵 뷰의 타일 고르기 (확장의 pickCell) */
+  readonly picker: CellPicker;
   private readonly renderers = new Map<MapDocument, Set<MapRenderer>>();
   private readonly rendererWarnings = new Map<MapRenderer, () => void>();
   private readonly lastLayers = new WeakMap<MapDocument, number>();
   private readonly docDisposers = new Map<MapDocument, () => void>();
+  /** 뷰가 아직 없는 문서에 둘 가운데 (revealCell 뒤 렌더러가 붙으면 옮긴다) */
+  private readonly pendingReveal = new WeakMap<MapDocument, Point>();
   private disposers: Array<() => void> = [];
   private projectDisposer: (() => void) | null = null;
   private renderersVersion = 0;
@@ -47,14 +56,21 @@ export class MapSupport {
   constructor(private readonly editor: Editor) {
     this.textures = new TextureCache(() => editor.backend);
     this.view = new MapViewState(safeLocalStorage());
+    this.picker = new CellPicker({ documents: editor.documents, window: typeof window === "undefined" ? null : window });
     makeObservable<MapSupport, "renderersVersion">(this, {
       cursor: observable.ref,
       editableFocus: observable,
       renderersVersion: observable,
       activeMap: computed,
+      toolKeysOff: computed,
       openCount: computed,
       setCursor: action,
     });
+  }
+
+  /** 도구 단축키(한 글자)를 끈다: 초점이 입력 칸에 있거나 맵 뷰에서 타일을 고르는 중이다 */
+  get toolKeysOff(): boolean {
+    return this.editableFocus || this.picker.active !== null;
   }
 
   /** 활성 탭의 맵 문서. 다른 종류의 탭이면 null */
@@ -66,6 +82,16 @@ export class MapSupport {
   /** 열린 맵 문서 수 */
   get openCount(): number {
     return this.editor.documents.documents.filter((d) => d instanceof MapDocument).length;
+  }
+
+  /** 등록된 확장 레이어 (아래부터 그리는 순서). 관찰 가능: 등록과 해제를 따라간다 */
+  layers(): MapLayerSpec[] {
+    return mapLayerSpecs(this.editor.tilemap);
+  }
+
+  /** id 의 확장 레이어 */
+  layer(id: string): MapLayerSpec | undefined {
+    return this.editor.tilemap?.layers.get(id);
   }
 
   /** 지금 스키마 (editor.mapSchema가 있으면 그것의 current) */
@@ -154,6 +180,28 @@ export class MapSupport {
     return doc;
   }
 
+  /**
+   * 맵 파일을 탭으로 열고(열려 있으면 그 탭으로) 그 뷰에서 타일 하나를 고른다 (타일맵 확장의 pickCell).
+   * 고른 타일, 취소했거나 열지 못했으면 null. 앞의 고르기는 돌아가지 않고 끝난다 (탭이 바뀌거나 새 요청에 밀린다)
+   */
+  async pickCell(request: CellPickRequest): Promise<Point | null> {
+    const doc = await this.openMap(request.path);
+    if (!doc) return null;
+    return this.picker.start(doc, { prompt: request.prompt, returnTo: request.returnTo ?? null });
+  }
+
+  /** 맵 파일을 탭으로 열고 타일을 뷰 가운데에 둔다 (줌은 그대로). 뷰가 아직 없으면 붙을 때 옮긴다. 열었으면 true */
+  async revealCell(path: string, cell: Point): Promise<boolean> {
+    const doc = await this.openMap(path);
+    if (!doc) return false;
+    const m = doc.model;
+    const world = { x: cell.x * m.tileWidth + m.tileWidth / 2, y: cell.y * m.tileHeight + m.tileHeight / 2 };
+    const r = this.rendererFor(doc);
+    if (r) r.reveal(world);
+    else this.pendingReveal.set(doc, world);
+    return true;
+  }
+
   /** 레이아웃에 없는 맵 패널을 더한다. 이 세션에서 사용자가 닫은 것은 다시 열지 않는다 */
   private showMapPanels(): void {
     try {
@@ -198,6 +246,11 @@ export class MapSupport {
     let set = this.renderers.get(doc);
     if (!set) this.renderers.set(doc, (set = new Set()));
     set.add(renderer);
+    const reveal = this.pendingReveal.get(doc);
+    if (reveal) {
+      this.pendingReveal.delete(doc);
+      renderer.reveal(reveal);
+    }
     // 도구의 경고(한도에 닿은 채우기)는 콘솔에도 남긴다
     this.rendererWarnings.get(renderer)?.();
     this.rendererWarnings.set(
@@ -267,6 +320,7 @@ export class MapSupport {
   }
 
   dispose(): void {
+    this.picker.dispose();
     this.unwatchProject();
     for (const d of this.docDisposers.values()) d();
     this.docDisposers.clear();

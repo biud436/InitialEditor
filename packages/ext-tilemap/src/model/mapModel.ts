@@ -2,10 +2,11 @@
 // 평범한 배열을 고친 뒤 바뀐 칸을 이벤트로 알린다 (렌더러는 그 칸만 다시 그린다). 오브젝트는
 // 수가 적고 인스펙터가 반응해야 하므로 관찰 가능한 배열이다.
 // 고치는 길은 명령 객체뿐이다 (document.apply(cmd)). 명령은 아래 팩토리로 만든다.
+// 오브젝트의 칸과 옮기기 명령은 이미 그 값이면 unchanged다 (스택이 쌓지 않는다: 같은 값을 다시 넣어도 되돌리기 단계와 수정됨이 없다).
 
 /* eslint-disable @typescript-eslint/no-this-alias -- 명령 객체의 execute/undo/merge 가 모델을 닫아 들고 있다 */
 import { action, makeObservable, observable, runInAction } from "mobx";
-import { Emitter, type Command } from "@initial-editor/core";
+import { Emitter, sameJson, type Command } from "@initial-editor/core";
 import { cloneMap, cloneObject, structuredCloneJson, type MapData, type MapObject, type TileLayer } from "./format";
 import { anchorOffset, resizeGrid, shiftEvents, shiftObject, validateMapSize, type ResizeAnchor } from "./resize";
 import { typeOf, type MapObjectSchema } from "./schema";
@@ -61,6 +62,27 @@ export class MapModel {
   /** RPG 이벤트 (보존만 한다. 크기 바꾸기가 칸 좌표를 옮긴다) */
   get rpgEvents(): readonly unknown[] | null {
     return this.data.events;
+  }
+
+  /**
+   * 확장이 맡는 최상위 섹션의 원본 (읽기 전용 사본): events 나 모르는 키. 없으면 undefined.
+   * 레이어 상태가 붙은 섹션은 상태가 진실이고, 이 값은 붙기 전의 원본이다 (크기 바꾸기는 events 의 칸을 옮긴다)
+   */
+  rawSection(key: string): unknown {
+    const v = key === "events" ? (this.data.events ?? undefined) : Object.prototype.hasOwnProperty.call(this.data.extra, key) ? this.data.extra[key] : undefined;
+    return v === undefined ? undefined : structuredCloneJson(v);
+  }
+
+  /** 섹션 원본을 바꾼다 (되돌리기 밖). 레이어 상태를 뗄 때 그 값을 남기는 데만 쓴다. undefined 면 키를 뺀다 */
+  setRawSection(key: string, value: unknown): void {
+    if (key === "events") {
+      this.data.events = value === undefined || value === null ? null : (structuredCloneJson(value) as unknown[]);
+    } else if (value === undefined) {
+      delete this.data.extra[key];
+    } else {
+      this.data.extra[key] = structuredCloneJson(value);
+    }
+    this.bump();
   }
   /** 픽셀 크기 */
   get pixelWidth(): number {
@@ -337,6 +359,10 @@ export class MapModel {
     const cmd: Command & { target: typeof moves } = {
       label: moves.length === 1 ? `오브젝트 이동: ${moves[0].id}` : `오브젝트 ${moves.length}개 이동`,
       coalesceKey,
+      unchanged: moves.every((m) => {
+        const o = model.findObject(m.id);
+        return !o || (o.x === m.x && o.y === m.y);
+      }),
       target: moves.map((m) => ({ ...m })),
       execute: action(() => apply(cmd.target)),
       undo: action(() => apply([...before].map(([id, p]) => ({ id, ...p })))),
@@ -363,6 +389,7 @@ export class MapModel {
     const cmd: Command & { value: number | undefined } = {
       label: `속성 변경: ${id}.${field}`,
       coalesceKey,
+      unchanged: before === value,
       value,
       execute: action(() => set(cmd.value)),
       undo: action(() => set(before)),
@@ -383,6 +410,7 @@ export class MapModel {
     const cmd: Command & { value: unknown } = {
       label: `속성 변경: ${id}.${key}`,
       coalesceKey,
+      unchanged: sameJson(Object.prototype.hasOwnProperty.call(o.props, key) ? o.props[key] : undefined, value),
       value,
       execute: action(() => {
         const cur = model.findObject(id)!;
@@ -436,10 +464,11 @@ export function uniqueMapObjectId(base: string, taken: Iterable<string>): string
   }
 }
 
-/** 여러 명령을 되돌리기 한 단계로 */
+/** 여러 명령을 되돌리기 한 단계로. 바꾸는 것이 없는 명령뿐이면 묶음도 그렇다 (unchanged) */
 export function compound(label: string, cmds: Command[]): Command {
   return {
     label,
+    unchanged: cmds.every((c) => c.unchanged === true),
     execute: () => cmds.forEach((c) => c.execute()),
     undo: () => [...cmds].reverse().forEach((c) => c.undo()),
   };

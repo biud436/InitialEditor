@@ -19,6 +19,11 @@ export interface Command {
    */
   readonly coalesceKey?: string;
   merge?(next: Command): boolean;
+  /**
+   * 참이면 문서를 바꾸지 않는 명령이다 (칸에 이미 있는 값을 다시 넣기, 이미 고른 것을 다시 고르기). 스택은 실행하지도 쌓지도 않아
+   * 되돌리기 단계가 늘지 않고 문서가 수정됨이 되지 않는다. 명령을 만들 때의 문서와 견준 값이다
+   */
+  readonly unchanged?: boolean;
 }
 
 /** 되돌리기 목록의 한 칸. id는 이 명령을 실행한 뒤의 상태를 가리킨다 */
@@ -81,8 +86,9 @@ export class UndoStack {
     return top ? top.id : this.baseId;
   }
 
-  /** 명령을 실행하고 스택에 넣는다. 합쳐지면 스택 길이는 그대로지만 상태 id는 새로 받는다 */
+  /** 명령을 실행하고 스택에 넣는다. 합쳐지면 스택 길이는 그대로지만 상태 id는 새로 받는다. 바꾸는 것이 없는 명령(unchanged)은 버린다 */
   push(cmd: Command): void {
+    if (cmd.unchanged) return;
     cmd.execute();
     const last = this.undoList.length - 1;
     const top = this.undoList[last];

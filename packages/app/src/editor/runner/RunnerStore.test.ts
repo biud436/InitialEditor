@@ -337,6 +337,67 @@ describe("RunnerStore 실행", () => {
     runner.dispose();
   });
 
+  it("watch 를 주면 줄마다 넘기고, 멈출 이유가 오면 콘솔과 알림에 남기고 멈춘다 (한 번만). 그 실행의 exit 는 부르지 않는다", async () => {
+    const h = await harness();
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const seen: string[] = [];
+    const exits: Array<number | null> = [];
+    let made = 0;
+    const watch = () => {
+      made++;
+      return {
+        line: (text: string) => {
+          seen.push(text);
+          return text === "again" ? "게임이 처음부터 다시 시작해서 멈췄다" : undefined;
+        },
+        exit: (code: number | null) => {
+          exits.push(code);
+          return "불리면 안 된다";
+        },
+      };
+    };
+    await runner.start({ env: { A: "1" }, watch });
+    const handle = h.handles[0];
+    handle.emit("rpg:map:port_town");
+    handle.emit("again");
+    handle.emit("again");
+    await flush();
+    await flush();
+    expect(seen).toEqual(["rpg:map:port_town", "again"]);
+    expect(handle.stopped).toBe(1);
+    expect(runner.state).toBe("idle");
+    expect(logTexts(h.log)).toContainEqual("warn/runner: 게임이 처음부터 다시 시작해서 멈췄다");
+    expect(h.toasts).toContainEqual("warn: 게임이 처음부터 다시 시작해서 멈췄다");
+    expect(exits).toEqual([]);
+    // 다시 시작하면 새로 만든다
+    await runner.restart();
+    expect(made).toBe(2);
+    runner.dispose();
+  });
+
+  it("스스로 끝난 실행은 watch 의 exit 가 알린 실패를 오류 줄과 알림으로 남긴다. 핫 리로드는 restarted 를 먼저 부른다", async () => {
+    const h = await harness();
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    const calls: string[] = [];
+    await runner.start({
+      watch: () => ({
+        line: () => undefined,
+        exit: (code) => (code === 0 ? "이벤트 kid 가 돌지 않았다" : undefined),
+        restarted: () => void calls.push("restarted"),
+      }),
+    });
+    await runner.reload();
+    expect(calls).toEqual(["restarted"]);
+    h.handles[0].exit(0);
+    expect(logTexts(h.log)).toContainEqual("error/runner: 이벤트 kid 가 돌지 않았다");
+    expect(h.toasts).toContainEqual("warn: 이벤트 kid 가 돌지 않았다");
+    // watch 없는 실행은 그대로다
+    await runner.start();
+    h.handles[1].exit(0);
+    expect(logTexts(h.log).filter((l) => l.includes("돌지 않았다"))).toHaveLength(1);
+    runner.dispose();
+  });
+
   it("mruby 프로젝트인데 빌드에 mruby 가 없으면 띄우지 않고 알린다", async () => {
     const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
     const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
@@ -348,6 +409,27 @@ describe("RunnerStore 실행", () => {
     expect(runner.state).toBe("idle");
     expect(h.toasts).toContainEqual(`error: ${NO_MRUBY}`);
     expect(logTexts(h.log).some((l) => l.startsWith(`error/runner: ${NO_MRUBY}`))).toBe(true);
+  });
+
+  it("언어 검사는 덧씌운 INITIAL2D_SCRIPT 로 한다: mruby 프로젝트라도 lua 로 덮은 실행은 mruby 없는 빌드로 띄운다", async () => {
+    const h = await harness({ files: { "game.json": '{ "script": "mruby" }' } });
+    const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, { [ENGINE]: ["lua"] }) });
+    await runner.start({ env: { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" } });
+    expect(h.toasts).toEqual([]);
+    expect(h.handles).toHaveLength(1);
+    expect(h.handles[0].spec.env).toEqual({ INITIAL2D_HMR: "1", INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" });
+    expect(logTexts(h.log)).toContainEqual(`info/runner: 엔진 시작: PID 4321, ${ENGINE}, 언어 lua (INITIAL2D_HMR=1, INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg)`);
+    await runner.stop();
+    // 덮지 않은 실행은 여전히 막고, lua 프로젝트를 mruby 로 덮은 실행도 막는다
+    await runner.start();
+    await runner.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
+    const lua = await harness();
+    const other = new RunnerStore(lua.host, { ...trusting, probe: probeFor(lua, { [ENGINE]: ["lua"] }) });
+    await other.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
+    expect(h.handles).toHaveLength(1);
+    expect(lua.handles).toHaveLength(0);
+    expect(h.toasts.filter((t) => t.startsWith(`error: ${NO_MRUBY}`))).toHaveLength(2);
+    expect(lua.toasts).toEqual([`error: ${NO_MRUBY}`]);
   });
 
   it("실행 중에 다시 start 하면 먼저 것을 정지하고 새로 띄운다", async () => {

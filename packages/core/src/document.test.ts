@@ -111,6 +111,19 @@ describe("Document dirty", () => {
     expect(d.dirty).toBe(true); // 저장 지점보다 뒤로 갔다
   });
 
+  it("바꾸는 것이 없는 명령(unchanged)은 실행하지도 쌓지도 않아 dirty가 되지 않는다", () => {
+    const d = new TestDoc();
+    const t = { v: 0 };
+    let ran = 0;
+    d.apply({ label: "그대로", unchanged: true, execute: () => void ran++, undo: () => {} });
+    expect([ran, d.undo.depth, d.dirty, d.undo.canRedo]).toEqual([0, 0, false, false]);
+    d.apply(setValue(t, 1, "typing"));
+    const id = d.undo.stateId;
+    // 같은 키의 합치기 자리에서도 버린다 (상태 id가 그대로다)
+    d.apply({ ...setValue(t, 1, "typing"), unchanged: true });
+    expect([t.v, d.undo.depth, d.undo.stateId]).toEqual([1, 1, id]);
+  });
+
   it("저장, 되돌리기, 다른 편집을 하면 깊이가 같아도 dirty", async () => {
     const d = new TestDoc();
     const t = { v: 0 };

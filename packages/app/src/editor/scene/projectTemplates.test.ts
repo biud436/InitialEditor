@@ -124,7 +124,7 @@ describe("writeProjectTemplate", () => {
       // 맵은 엔진이 여는 모양이고 에디터의 맵 모델이 바이트 그대로 다시 쓴다. 타일셋 그림도 프로젝트 안에 있다
       const mapText = await be.readText(mapPath);
       const check = checkEngineMap(mapText);
-      expect(check).toEqual({ ok: true, images: ["resources/tiles/tileset16-8x13.png"] });
+      expect(check).toEqual({ ok: true, images: ["resources/tiles/tileset16-8x13.png"], width: 48, height: 56 });
       const map = parseMap(mapText);
       expect(serializeMap(map)).toBe(mapText);
       expect(map).toMatchObject({ width: 48, height: 56, tileWidth: 16, tileHeight: 16 });

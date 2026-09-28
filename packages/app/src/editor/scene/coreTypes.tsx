@@ -9,7 +9,7 @@ import { runInAction } from "mobx";
 import { useEffect, useState, type ComponentType } from "react";
 import { useEditor } from "../EditorContext";
 import { attachObjectTypeParts } from "../sceneView/objectTypeParts";
-import { FieldRow, NumberField, RangeField, TextField } from "./fields";
+import { FieldRow, NumberField, RangeField, TextField } from "@initial-editor/ui";
 import { TilemapInspector } from "./tilemapInspector";
 
 export type ObjectInspectorProps = { document: SceneDocument; object: SceneObject };

@@ -251,6 +251,10 @@ export class SceneModel {
     const model = this;
     const before = new Map(moves.map((m) => [m.id, { x: model.find(m.id)?.x ?? 0, y: model.find(m.id)?.y ?? 0 }]));
     let target = moves.map((m) => ({ ...m }));
+    const unchanged = moves.every((m) => {
+      const o = model.find(m.id);
+      return !o || (o.x === m.x && o.y === m.y);
+    });
     const apply = (list: Array<{ id: string; x: number; y: number }>) => {
       for (const m of list) {
         const o = model.find(m.id);
@@ -260,6 +264,7 @@ export class SceneModel {
     const cmd: Command & { target: typeof target } = {
       label: moves.length === 1 ? `오브젝트 이동: ${moves[0].id}` : `오브젝트 ${moves.length}개 이동`,
       coalesceKey,
+      unchanged,
       target,
       execute: action(() => apply(cmd.target)),
       undo: action(() => apply([...before].map(([id, p]) => ({ id, x: p.x, y: p.y })))),
@@ -282,6 +287,7 @@ export class SceneModel {
     const cmd: Command & { value: unknown } = {
       label: `속성 변경: ${id}.${key}`,
       coalesceKey,
+      unchanged: sameJson(getPath(o.props, key), value),
       value,
       execute: action(() => {
         const cur = model.find(id)!;
@@ -309,6 +315,7 @@ export class SceneModel {
     const cmd: Command & { value: number | boolean } = {
       label: `속성 변경: ${id}.${field}`,
       coalesceKey,
+      unchanged: before === value,
       value,
       execute: action(() => {
         const cur = model.find(id)!;
@@ -414,6 +421,23 @@ export function deepClone<T>(value: T): T {
     return out as T;
   }
   return value;
+}
+
+/** 같은 JSON 값인가 (키 순서까지. undefined는 undefined와만 같다) */
+export function sameJson(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a === undefined || b === undefined) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** 점으로 이은 키의 값 ("anim.fps"). 없으면 undefined */
+function getPath(obj: Record<string, unknown>, key: string): unknown {
+  let cur: unknown = obj;
+  for (const part of key.split(".")) {
+    if (!isRecord(cur) || !Object.prototype.hasOwnProperty.call(cur, part)) return undefined;
+    cur = cur[part];
+  }
+  return cur;
 }
 
 function setPath(obj: Record<string, unknown>, key: string, value: unknown): Record<string, unknown> {

@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { encodeBmp32 } from "../../packages/app/src/editor/selftest/bmp";
 import { parsePlan } from "../../packages/app/src/editor/selftest/plan";
+import { eventPlayPlan } from "../../packages/ext-rpg/src/model/play";
 import { readBmp } from "../e2e/support/bmp";
 
 const REPO = fileURLToPath(new URL("../../", import.meta.url));
@@ -23,15 +24,18 @@ interface Plan {
 }
 
 const planMod = await load<{
-  buildPlan(o: { os: string; workDir: string; embedded?: boolean; forestRoot?: string | null; totalTimeoutMs?: number | null }): Plan;
-  prepareForest(engineDir: string, dest: string): number;
+  buildPlan(o: { os: string; workDir: string; embedded?: boolean; forestRoot?: string | null; rpgRoot?: string | null; totalTimeoutMs?: number | null }): Plan;
+  prepareForest(engineDir: string, dest: string, required?: string): number;
+  writePlan(args: Record<string, unknown>): Plan;
+  RPG_MAP: string;
+  RPG_EVENT: string;
   main(argv: string[], deps?: Record<string, unknown>): number;
   FOREST_PLACEMENT: string;
   FOREST_COPY: string[];
   FOREST_EDIT: { kind: string; map: string; layer: number; x: number; y: number; gid: number };
 }>("scripts/selftest-plan.mjs");
 type Judged = { failures: string[]; warnings: string[]; lines: string[] };
-const checkMod = await load<{ judge(plan: Plan, report: unknown, deps: { readBmp: typeof readBmp }): Judged; main(argv: string[], deps?: Record<string, unknown>): Promise<number> }>("scripts/selftest-check.mjs");
+const checkMod = await load<{ judge(plan: Plan, report: unknown, deps: { readBmp: typeof readBmp; eventPlayPlan?: typeof eventPlayPlan }): Judged; main(argv: string[], deps?: Record<string, unknown>): Promise<number> }>("scripts/selftest-check.mjs");
 const appMod = await load<{ resolveApp(target: string): string; parseArgs(argv: string[]): Record<string, unknown>; main(argv: string[], deps?: Record<string, unknown>): Promise<number> }>("scripts/selftest-app.mjs");
 type Rect = { x: number; y: number; width: number; height: number };
 const frame = await load<{
@@ -285,7 +289,7 @@ describe("자가 검사 판정 (selftest-check.mjs)", () => {
     const plan = localPlan();
     const planFile = path.join(tmp, "plan.json");
     write(planFile, JSON.stringify(plan));
-    const quiet = { log: () => {}, error: () => {}, readBmp };
+    const quiet = { log: () => {}, error: () => {}, readBmp, eventPlayPlan };
     expect(await checkMod.main(["--plan", planFile], quiet)).toBe(1);
     const { report, logs } = happy(plan);
     setup(plan, report, logs);
@@ -562,5 +566,154 @@ describe("앱 띄우기 (selftest-app.mjs)", () => {
     const plan = JSON.parse(fs.readFileSync(calls[0].plan, "utf8"));
     expect(plan).toMatchObject({ workDir: path.join(tmp, "work", "run"), showWindow: false });
     expect(checks).toEqual([["--plan", calls[0].plan]]);
+  });
+});
+
+describe("RPG 이벤트 (probe, eventFront, eventProbe)", () => {
+  const FIXTURES = path.join(REPO, "packages/ext-rpg/test/fixtures");
+  type Ev = { id: string; x: number; y: number; charset?: unknown };
+
+  /** ext-rpg 픽스처(엔진 파일의 사본)로 엔진 저장소 모양의 폴더를 만든다 */
+  function engineRepo(): string {
+    const dir = path.join(tmp, "engine");
+    fs.cpSync(path.join(FIXTURES, "resources"), path.join(dir, "resources"), { recursive: true });
+    write(path.join(dir, "scripts/lua/main.lua"), "-- main\n");
+    return dir;
+  }
+
+  function rpgPlan() {
+    const root = path.join(tmp, "run-rpg");
+    planMod.prepareForest(engineRepo(), root, planMod.RPG_MAP);
+    const plan = planMod.buildPlan({ os: "local", workDir: path.join(tmp, "run"), rpgRoot: root });
+    plan.projects = plan.projects.filter((p) => p.id === "rpg-port");
+    return { plan, root };
+  }
+
+  function disk(root: string) {
+    const map = JSON.parse(fs.readFileSync(path.join(root, planMod.RPG_MAP), "utf8")) as { width: number; height: number; tileWidth: number; tileHeight: number; collision: number[]; events: Ev[] };
+    return map;
+  }
+
+  /** 게임의 그리기 규칙대로 그린 표식 (맞는 뷰) */
+  function goodProbe(root: string) {
+    const map = disk(root);
+    const events = map.events.map((e, index) => ({ index, id: e.id, x: e.x, y: e.y, charset: e.charset !== undefined }));
+    const drawn = events.map((e) =>
+      e.charset
+        ? { index: e.index, kind: "sprite", x: e.x * 16 - 4, y: (e.y + 1) * 16 - 32, sheet: "resources/charsets/placeholder.png", frame: { x: 24, y: 64, w: 24, h: 32 } }
+        : { index: e.index, kind: "badge", x: e.x * 16, y: e.y * 16 },
+    );
+    return { extension: "rpg", map: planMod.RPG_MAP, ready: true, waitedMs: 120, result: { ready: true, loaded: true, attached: true, locked: null, errors: 0, tileWidth: 16, tileHeight: 16, events, view: { drawn, failedSheets: [] as string[] } } };
+  }
+
+  function playerLine(root: string, mode: "play" | "probe") {
+    const map = disk(root);
+    const i = map.events.findIndex((e) => e.id === planMod.RPG_EVENT);
+    const r = eventPlayPlan({ width: map.width, height: map.height, collision: map.collision }, map.events, i, mode);
+    if (!r.ok || !r.plan.at) throw new Error(r.ok ? "자리 없음" : r.reason);
+    return `rpg:player:port_town,${r.plan.at.x},${r.plan.at.y},${r.plan.at.dir}`;
+  }
+
+  function goodRun(label: string, over: Record<string, unknown> = {}) {
+    return runReport({ play: { extension: "rpg", map: planMod.RPG_MAP, args: {}, label, refused: null }, ...over });
+  }
+
+  function happyRpg(root: string, probe = goodProbe(root)) {
+    const n = disk(root).events.length;
+    return {
+      report: { version: 1, ok: true, cspViolations: [], dialogs: [], projects: [projectReport("rpg-port", [goodRun("이 이벤트 앞에서 실행"), goodRun("이 이벤트 자동 재생")], { probe, mapView: { path: planMod.RPG_MAP, ready: true } })] },
+      logs: {
+        "rpg-port-1.log": `rpg:map:port_town events:${n} skipped:0\n${playerLine(root, "play")}\n`,
+        "rpg-port-2.log": `rpg:map:port_town events:${n} skipped:0\n${playerLine(root, "probe")}\nrpg:hold:${planMod.RPG_EVENT}\nrpg:event:${planMod.RPG_EVENT}\nrpg:route:done\n`,
+      } as Record<string, string>,
+    };
+  }
+
+  const judgeRpg = (plan: Plan) => checkMod.judge(plan, JSON.parse(fs.readFileSync(plan.report, "utf8")), { readBmp, eventPlayPlan });
+
+  it("계획: 항구 마을을 탐침으로 보고, 물고기 장수 앞에서 실행과 자동 재생을 앱에 든 엔진으로. 앱의 parsePlan 이 받는다", () => {
+    const { plan, root } = rpgPlan();
+    const p = plan.projects[0] as Plan["projects"][number] & { probe: unknown; openMap: string };
+    expect(p).toMatchObject({ id: "rpg-port", root, openMap: planMod.RPG_MAP, probe: { extension: "rpg", map: planMod.RPG_MAP } });
+    expect(p.runs.map((r) => [r.check, (r.play as { args: unknown }).args])).toEqual([
+      ["eventFront", { event: "fishmonger", mode: "play" }],
+      ["eventProbe", { event: "fishmonger", mode: "probe" }],
+    ]);
+    expect(p.runs.every((r) => r.expectEngineSource === "bundled" && r.env?.INITIAL2D_NO_RTP === "1")).toBe(true);
+    expect(parsePlan(plan).projects[0].runs[1].play).toEqual({ extension: "rpg", map: planMod.RPG_MAP, args: { event: "fishmonger", mode: "probe" } });
+    expect(fs.existsSync(path.join(root, "resources/charsets/placeholder.png"))).toBe(true);
+    expect(fs.existsSync(path.join(root, "resources/data/rpg-game.json"))).toBe(true);
+  });
+
+  it("--forest 와 --rpg 가 같은 저장소면 사본 하나를 함께 쓴다", () => {
+    const engine = engineRepo();
+    write(path.join(engine, "resources/maps/aldebaran_forest.json"), "{}");
+    const work = path.join(tmp, "w");
+    const plan = planMod.writePlan({ os: "local", work, out: path.join(tmp, "p.json"), embedded: false, forest: engine, rpg: engine, totalTimeout: null });
+    const roots = plan.projects.filter((p) => p.root).map((p) => [p.id, p.root]);
+    expect(roots).toEqual([["forest", `${work}-forest`], ["rpg-port", `${work}-forest`]]);
+    expect(fs.existsSync(`${work}-rpg`)).toBe(false);
+  });
+
+  it("통과: 탐침의 표식이 게임의 그리기 자리에 있고, 선 자리가 판정이 셈한 자리이며, 자동 재생이 이벤트를 돌렸다", () => {
+    const { plan, root } = rpgPlan();
+    const { report, logs } = happyRpg(root);
+    setup(plan, report, logs);
+    const r = judgeRpg(plan);
+    expect(r.failures).toEqual([]);
+    expect(r.lines.join("\n")).toContain("뷰가 표식 17개를 그렸다");
+    expect(r.lines.join("\n")).toContain("외형 그림 1장이 프로젝트에 있다");
+  });
+
+  it("실패: 표식 하나가 한 픽셀 어긋나거나, 하나를 그리지 않았거나, 외형 그림을 읽지 못했거나, 레이어가 잠겼다", () => {
+    const cases: Array<[(p: ReturnType<typeof goodProbe>) => void, string]> = [
+      [(p) => (p.result.view.drawn[2].y += 1), "표식이 게임의 그리기 규칙 자리에 있다"],
+      [(p) => p.result.view.drawn.pop(), "뷰가 표식 17개를 그렸다"],
+      [(p) => p.result.view.failedSheets.push("resources/charsets/placeholder.png"), "읽지 못한 외형 그림이 없다"],
+      [(p) => ((p.result as Record<string, unknown>).locked = "스키마 버전 2"), "이벤트 레이어가 붙었고"],
+      [(p) => (p.result.events[0].x = 99), "탐침의 이벤트가 맵 파일의 이벤트 17개와 같다"],
+      [(p) => (p.result.ready = false), "탐침이 ready 다"],
+    ];
+    for (const [mutate, expected] of cases) {
+      fs.rmSync(path.join(tmp, "run"), { recursive: true, force: true });
+      fs.rmSync(path.join(tmp, "run-rpg"), { recursive: true, force: true });
+      fs.rmSync(path.join(tmp, "engine"), { recursive: true, force: true });
+      const { plan, root } = rpgPlan();
+      const probe = goodProbe(root);
+      mutate(probe);
+      const { report, logs } = happyRpg(root, probe);
+      setup(plan, report, logs);
+      expect(judgeRpg(plan).failures.join("\n"), expected).toContain(expected);
+    }
+  });
+
+  it("보이는 창이면 맵 뷰가 그릴 준비가 돼야 한다", () => {
+    const { plan, root } = rpgPlan();
+    plan.showWindow = true;
+    const { report, logs } = happyRpg(root);
+    setup(plan, report, logs);
+    expect(judgeRpg(plan).failures).toEqual([]);
+    (report.projects[0] as Record<string, unknown>).mapView = { path: planMod.RPG_MAP, ready: false };
+    setup(plan, report, logs);
+    expect(judgeRpg(plan).failures).toEqual(["rpg-port: 맵 뷰가 그릴 준비가 됐다 (WebGL)"]);
+  });
+
+  it("실패: 다른 자리에 섰거나, 게임이 이벤트를 덜 읽었거나, 자동 재생이 이벤트를 돌리지 않았거나, 탐침이 요청을 거절했다", () => {
+    const { plan, root } = rpgPlan();
+    const { report, logs } = happyRpg(root);
+    const n = disk(root).events.length;
+    logs["rpg-port-1.log"] = `rpg:map:port_town events:${n - 1} skipped:1\nrpg:player:port_town,1,1,down\n`;
+    logs["rpg-port-2.log"] = logs["rpg-port-2.log"].replace(`rpg:event:${planMod.RPG_EVENT}\n`, "");
+    report.projects[0].runs[1] = goodRun("이 이벤트 자동 재생", { play: { extension: "rpg", map: planMod.RPG_MAP, args: {}, label: null, refused: "이 맵에 없는 이벤트: fishmonger" } });
+    setup(plan, report, logs);
+    const f = judgeRpg(plan).failures;
+    expect(f).toEqual(
+      expect.arrayContaining([
+        `rpg-port 실행 1 (process, eventFront): 게임이 맵의 이벤트 ${n}개를 다 읽었다`,
+        `rpg-port 실행 1 (process, eventFront): 플레이어가 이벤트 앞에 섰다 (${playerLine(root, "play")})`,
+        "rpg-port 실행 2 (process, eventProbe): 탐침이 실행 요청을 만들었다",
+        `rpg-port 실행 2 (process, eventProbe): 자동 재생이 이벤트를 돌렸다 (rpg:event:${planMod.RPG_EVENT})`,
+      ]),
+    );
   });
 });

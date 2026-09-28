@@ -49,7 +49,7 @@
   font-size: 12px;
 }
 
-/* 공통 입력 칸 (scene/fields.tsx) */
+/* 공통 입력 칸 (packages/ui 의 fields.tsx, schemaField.tsx) */
 .field-row {
   display: grid;
   grid-template-columns: 92px 1fr;
@@ -87,7 +87,10 @@ textarea.field-text {
   font-family: var(--font-ui);
 }
 
+/* 고른 값의 글은 select 상자 안에서 자른다 (WebKit 은 넘친 글을 조상의 가로 스크롤 폭에 넣는다) */
 .field-select {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: var(--font-ui);
 }
 

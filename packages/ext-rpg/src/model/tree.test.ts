@@ -18,6 +18,7 @@ import {
   walkCommands,
   type CommandPath,
 } from "./tree";
+import { bigIntValue } from "@initial-editor/ext-tilemap/model";
 import { field } from "./json";
 
 const schema = fixtureSchema();
@@ -125,6 +126,9 @@ describe("고치기 (원본은 그대로)", () => {
     expect(() => removeCommands(c, [], 3, 1, schema)).toThrow(TreeError);
     expect(() => removeCommands(c, [], 1, 5, schema)).toThrow(TreeError);
     expect(() => insertCommands("x", [], 0, [], schema)).toThrow(TreeError);
+    // code 가 2^53을 넘는 정수(표식 글)면 숫자 그대로 알린다
+    const big = [{ code: bigIntValue("12345678901234567890") }];
+    expect(() => insertCommands(big, [{ at: 0, list: "thenDo" }], 0, [msg("x")], schema)).toThrow("12345678901234567890 에는 thenDo 목록이 없다");
   });
 
   it("빼기와 바꾸기와 복사", () => {

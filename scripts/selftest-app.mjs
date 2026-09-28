@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // 빌드한 앱의 자가 검사를 로컬에서 (docs/plans/e6-packaging.md 5절). CI 의 release.yml 도 같은 스크립트로 앱을 띄운다.
 //
-//   yarn selftest:app <InitialEditor.app | 실행 파일 | AppImage> [--embedded] [--forest <엔진 저장소>] [--os <mac|linux|windows|local>]
+//   yarn selftest:app <InitialEditor.app | 실행 파일 | AppImage> [--embedded] [--forest <엔진 저장소>] [--rpg <엔진 저장소>] [--os <mac|linux|windows|local>]
 //                     [--work <workDir>] [--total-timeout <ms>]
 //   yarn selftest:app <앱> --plan <plan.json> [--no-check]      이미 만든 계획으로 띄우기만 (CI 가 판정을 따로 돈다)
 //
 // 기본 계획은 local 이다: 플래피 Lua 와 Ruby, 타일맵을 앱에 든 엔진으로 프로세스 방식으로만 돌리고 창을 숨긴다 (창도 게임 창도
 // 뜨지 않는다. 엔진은 SDL_VIDEODRIVER=dummy). --embedded 는 에디터 안 실행을 더해 창이 뜬다. --forest 는 엔진 저장소의 숲을
-// 맵 뷰로 열어 게임 화면과 견준다.
+// 맵 뷰로 열어 게임 화면과 견준다. --rpg 는 엔진 저장소의 항구 마을에서 이벤트 레이어를 보고 이벤트 앞에서 실행과 자동 재생을 돌린다.
 // 작업 폴더는 매번 새 임시 폴더(<tmp>/i2d-selftest-<시각>)이고 지우지 않는다. 앱이 끝나면(또는 전체 시간 + 60초 뒤 끊으면)
 // scripts/selftest-check.mjs 로 판정한다. 종료 코드는 판정의 것 (--no-check 면 앱의 것).
 
@@ -38,7 +38,7 @@ export function resolveApp(target) {
 }
 
 export function parseArgs(argv) {
-  const out = { app: null, plan: null, check: true, os: null, embedded: false, forest: null, work: null, totalTimeout: null };
+  const out = { app: null, plan: null, check: true, os: null, embedded: false, forest: null, rpg: null, work: null, totalTimeout: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const value = () => {
@@ -51,6 +51,7 @@ export function parseArgs(argv) {
     else if (a === "--os") out.os = value();
     else if (a === "--embedded") out.embedded = true;
     else if (a === "--forest") out.forest = path.resolve(value());
+    else if (a === "--rpg") out.rpg = path.resolve(value());
     else if (a === "--work") out.work = path.resolve(value());
     else if (a === "--total-timeout") out.totalTimeout = Number(value());
     else if (a.startsWith("--")) throw new Error(`모르는 인자: ${a}`);
@@ -59,7 +60,7 @@ export function parseArgs(argv) {
   }
   if (!out.app) throw new Error("앱 경로가 없다");
   if (out.os && !OSES.includes(out.os)) throw new Error(`--os 는 ${OSES.join(", ")} 중 하나다`);
-  if (out.plan && (out.os || out.embedded || out.forest || out.work || out.totalTimeout)) throw new Error("--plan 과 계획 인자(--os, --embedded, --forest, --work, --total-timeout)는 같이 주지 않는다");
+  if (out.plan && (out.os || out.embedded || out.forest || out.rpg || out.work || out.totalTimeout)) throw new Error("--plan 과 계획 인자(--os, --embedded, --forest, --rpg, --work, --total-timeout)는 같이 주지 않는다");
   if (out.totalTimeout !== null && !(Number.isInteger(out.totalTimeout) && out.totalTimeout > 0)) throw new Error("--total-timeout 은 양의 정수다");
   return out;
 }
@@ -97,7 +98,7 @@ export async function main(argv, deps = {}) {
     exe = resolveApp(args.app);
   } catch (e) {
     err(`selftest-app: ${e.message}`);
-    err("사용법: selftest-app.mjs <앱> [--embedded] [--forest <엔진 저장소>] [--os <mac|linux|windows|local>] | <앱> --plan <plan.json> [--no-check]");
+    err("사용법: selftest-app.mjs <앱> [--embedded] [--forest <엔진 저장소>] [--rpg <엔진 저장소>] [--os <mac|linux|windows|local>] | <앱> --plan <plan.json> [--no-check]");
     return 2;
   }
   let planPath = args.plan;
@@ -106,7 +107,7 @@ export async function main(argv, deps = {}) {
     if (!planPath) {
       const base = fs.mkdtempSync(path.join(os.tmpdir(), `i2d-selftest-${new Date().toISOString().replace(/[:.]/g, "-")}-`));
       planPath = path.join(base, "plan.json");
-      plan = writePlan({ os: args.os ?? "local", work: args.work ?? path.join(base, "run"), out: planPath, embedded: args.embedded, forest: args.forest, totalTimeout: args.totalTimeout });
+      plan = writePlan({ os: args.os ?? "local", work: args.work ?? path.join(base, "run"), out: planPath, embedded: args.embedded, forest: args.forest, rpg: args.rpg, totalTimeout: args.totalTimeout });
     } else plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
   } catch (e) {
     err(`selftest-app: ${e.message}`);

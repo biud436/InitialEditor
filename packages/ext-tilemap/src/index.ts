@@ -4,10 +4,16 @@
 // Tilemap.load로 열고, 앞의 groundLayers 개 레이어를 씬의 모든 오브젝트 아래에(drawBelow), 나머지를 모든 오브젝트
 // 위에(drawAbove) 그린다. 오브젝트 순서 자리에는 그리지 않는다.
 // 씬 뷰 노드와 인스펙터는 앱이 붙인다 (확장 API에 UI 등록이 아직 없다).
+// activate 는 다른 확장이 맵에 레이어와 실행 제공자를 붙이는 자리(TilemapApi, contrib.ts)를 내보낸다.
 // 검사기는 엔진 런타임 짝의 validate와 같은 규칙으로 씬의 타일맵 오브젝트를 검사한다. 맵 파일이 있고 맵으로 읽히는지는
 // 파일을 보는 앱이 validateTilemapMapFiles로 따로 검사한다 (엔진은 맵 파일을 열지 못하면 씬을 거부한다).
 
 import type { Extension, ExtensionApi, ObjectTypeSpec, ValidationProblem } from "@initial-editor/core";
+import { TilemapContrib, type TilemapApi } from "./contrib";
+
+export * from "./contrib";
+
+export const TILEMAP_EXTENSION_ID = "tilemap";
 
 export const TILEMAP_TYPE = "tilemap";
 
@@ -117,11 +123,14 @@ export function validateTilemapObjects(scene: unknown): ValidationProblem[] {
 }
 
 export const tilemapExtension: Extension = {
-  id: "tilemap",
+  id: TILEMAP_EXTENSION_ID,
   name: "타일맵",
-  activate(api: ExtensionApi) {
+  activate(api: ExtensionApi): TilemapApi {
     api.registerObjectType(tilemapObjectType());
     api.registerValidator(validateTilemapObjects);
+    const contrib = new TilemapContrib({ documents: api.workspace.documents, warn: (m) => api.workspace.log.warn("maps", m) });
+    api.onDeactivate(() => contrib.dispose());
+    return contrib;
   },
 };
 

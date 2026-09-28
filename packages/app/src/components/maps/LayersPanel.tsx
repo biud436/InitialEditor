@@ -1,7 +1,10 @@
-// 레이어 패널. 위에서부터 오브젝트, 통행, 타일 레이어(목록 위가 나중에 그려진다) 줄이다.
+// 레이어 패널. 위에서부터 확장 레이어(order 큰 것이 위), 오브젝트, 통행, 타일 레이어(목록 위가 나중에 그려진다) 줄이다.
 // 줄 클릭은 편집 대상(doc.setTarget), 눈은 보이기, 타일 레이어 이름은 더블클릭으로 바꾼다.
+// 확장 레이어(docs/plans/e5-rpg.md 2.3)는 이 맵에 상태가 붙었을 때만 줄이 있고, 잠겨 있으면 자물쇠와 이유를 보인다.
+// 상태가 없는 레이어는 줄 대신 그 레이어의 hint 한 줄을 목록 아래에 옅게 둔다 (hint 가 없으면 아무것도 없다).
 // 아래 단추: 추가(대상 위에), 삭제, 위로, 아래로. 전부 모델의 레이어 명령이라 되돌릴 수 있다.
 
+import type { MapLayerSpec } from "@initial-editor/ext-tilemap";
 import type { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
@@ -63,7 +66,40 @@ function Row({ keyName, active, children, onSelect, onDoubleClick }: { keyName: 
   );
 }
 
+/** 확장 레이어의 줄. 잠겼으면 자물쇠와 이유가 이름 아래에 있다 */
+const ExtLayerRow = observer(function ExtLayerRow({ doc, spec, active }: { doc: MapDocument; spec: MapLayerSpec; active: boolean }) {
+  const state = doc.layerState(spec.id);
+  if (!state) return null;
+  const locked = state.locked;
+  const errors = doc.layerProblems().filter((p) => p.layer === spec.id && p.severity === "error").length;
+  return (
+    <>
+      <Row keyName={`ext:${spec.id}`} active={active} onSelect={() => doc.setTarget({ kind: "ext", id: spec.id })}>
+        <Eye visible={!doc.hiddenExtLayers.has(spec.id)} label={spec.label} onToggle={() => doc.toggleExtLayer(spec.id)} />
+        <span className="layers-name">{spec.label}</span>
+        {locked !== null && (
+          <span className="layers-lock" data-testid="layer-lock" title={locked}>
+            잠김
+          </span>
+        )}
+        {errors > 0 && (
+          <span className="layers-errors" data-testid="layer-errors" title="이 레이어의 오류 (인스펙터에 목록이 있다)">
+            오류 {errors}
+          </span>
+        )}
+        {spec.toolKey ? <span className="layers-meta">{spec.toolKey}</span> : null}
+      </Row>
+      {locked !== null && (
+        <div className="layers-lock-reason" data-testid="layer-lock-reason">
+          {locked}
+        </div>
+      )}
+    </>
+  );
+});
+
 const LayersBody = observer(function LayersBody({ doc }: { doc: MapDocument }) {
+  const editor = useEditor();
   useMapStructure(doc);
   const [renaming, setRenaming] = useState<number | null>(null);
   const [text, setText] = useState("");
@@ -88,10 +124,20 @@ const LayersBody = observer(function LayersBody({ doc }: { doc: MapDocument }) {
 
   const collisionCells = m.collision ? m.collision.reduce((n, v) => (v !== 0 ? n + 1 : n), 0) : 0;
   void m.revision;
+  const extLayers = editor.mapSupport.layers();
+  const attached = extLayers.filter((spec) => doc.layerState(spec.id) !== null).reverse();
+  const hints = extLayers.flatMap((spec) => {
+    if (doc.layerState(spec.id) !== null) return [];
+    const hint = spec.hint?.(doc);
+    return hint ? [{ id: spec.id, hint }] : [];
+  });
 
   return (
     <div className="layers" data-testid="layers">
       <div className="layers-list" role="listbox" aria-label="레이어">
+        {attached.map((spec) => (
+          <ExtLayerRow key={spec.id} doc={doc} spec={spec} active={current === `ext:${spec.id}`} />
+        ))}
         <Row keyName="objects" active={current === "objects"} onSelect={() => doc.setTarget({ kind: "objects" })}>
           <Eye visible={doc.showObjects} label="오브젝트" onToggle={() => runInAction(() => (doc.showObjects = !doc.showObjects))} />
           <span className="layers-name">오브젝트</span>
@@ -138,6 +184,11 @@ const LayersBody = observer(function LayersBody({ doc }: { doc: MapDocument }) {
               <span className="layers-meta">{i}</span>
             </Row>
           ))}
+        {hints.map((h) => (
+          <div key={h.id} className="layers-hint" data-testid="layer-hint" data-layer={h.id}>
+            {h.hint}
+          </div>
+        ))}
       </div>
       <div className="layers-actions">
         <button type="button" className="btn" data-testid="layer-add" onClick={() => addLayer(doc)} title="대상 레이어 위에 새 레이어">

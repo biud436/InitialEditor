@@ -86,6 +86,41 @@
   color: var(--danger);
 }
 
+/* 캔버스 자리와 그 위에 겹치는 띠 (타일 고르기) */
+.map-view-stage {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 고르기 띠는 캔버스 위에 겹친다. 누름은 띠를 지나 아래 타일로 가고, 취소 단추만 누름을 받는다 */
+.map-view-pick {
+  pointer-events: none;
+  position: absolute;
+  top: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: calc(100% - 2 * var(--space-2));
+  padding: 2px 4px 2px var(--space-3);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg-selection);
+  color: var(--fg);
+  font-size: 12px;
+}
+
+.map-view-pick .btn {
+  pointer-events: auto;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
 .map-view-warning {
   flex: none;
   padding: 2px var(--space-3);

@@ -11,7 +11,7 @@
 // 다시 판단해 execCommand로 복사와 잘라내기만 해 본다.
 // 단축키(Cmd+C 등)는 웹뷰가 먼저 받는다. shortcuts.ts가 처리하면 기본 동작을 막아 메뉴 가속기가 두 번 돌지 않는다.
 
-import { SCENE_KIND, parseShortcut, type MenuNode } from "@initial-editor/core";
+import { SCENE_KIND, parseShortcut, visibleMenu, type MenuNode } from "@initial-editor/core";
 import { isTauri } from "@initial-editor/backend-tauri";
 import { MAP_KIND } from "@initial-editor/ext-tilemap/model";
 import { observable, reaction, runInAction } from "mobx";
@@ -232,7 +232,7 @@ async function buildMenu(api: MenuApi, editor: Editor, ctx: BuildContext) {
       }),
     );
   }
-  items.push(...(await buildItems(api, editor, editor.menus.tree(), ctx)));
+  items.push(...(await buildItems(api, editor, visibleMenu(editor.menus.tree(), (id) => editor.commands.isVisible(id)), ctx)));
   if (editor.commands.context.platform !== "mac") {
     const file = items.find((i) => i.kind === "Submenu") as Awaited<ReturnType<MenuApi["Submenu"]["new"]>> | undefined;
     if (file) {
@@ -278,7 +278,11 @@ export async function installNativeMenu(editor: Editor): Promise<() => void> {
     editor.menus.events.on("change", () => schedule()),
     editor.commands.events.on("change", () => schedule()),
     reaction(
-      () => editor.commands.list().map((c) => `${c.id}:${editor.commands.isEnabled(c.id) ? 1 : 0}:${editor.commandChecked(c.id) ? 1 : 0}:${editor.commandLabel(c.id)}`).join("|"),
+      () =>
+        editor.commands
+          .list()
+          .map((c) => `${c.id}:${editor.commands.isVisible(c.id) ? 1 : 0}:${editor.commands.isEnabled(c.id) ? 1 : 0}:${editor.commandChecked(c.id) ? 1 : 0}:${editor.commandLabel(c.id)}`)
+          .join("|"),
       () => schedule(),
     ),
     // 편집 항목의 종류가 바뀌면 곧바로 (입력 칸에 들어가자마자 붙여넣기를 누를 수 있다)

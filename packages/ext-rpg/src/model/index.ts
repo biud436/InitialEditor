@@ -9,3 +9,6 @@ export * from "./commands";
 export * from "./assets";
 export * from "./refs";
 export * from "./play";
+export * from "./layer";
+export * from "./rpgPlay";
+export * from "./location";

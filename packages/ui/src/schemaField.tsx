@@ -1,21 +1,37 @@
-// 맵 오브젝트 인스펙터의 입력 칸. 스키마 칸 하나를 입력 하나로 그린다.
+// 스키마 칸의 입력. 스키마 칸 하나를 입력 하나로 그린다 (맵 오브젝트 스키마의 칸 꼴).
 //   string: 한 줄 입력, text: 여러 줄 입력, number/integer: 숫자 입력 (integer는 반올림),
 //   boolean: 체크 상자, enum: 고르기
 // 값이 없으면(undefined) "비어 있음"으로 보이고, 여러 오브젝트의 값이 다르면(null) "여러 값"이다.
-// 타이핑은 초점 하나가 한 세션이고 같은 합치기 키로 들어가 되돌리기 한 번에 돌아간다 (scene/fields.tsx와 같은 방식).
+// 숫자 칸은 bigint도 숫자 그대로 보인다 (수로 바꾸면 자릿수를 잃는 큰 정수). exact 면 적은 큰 정수를 bigint로 돌려주고,
+// 아니면 수로 돌려준다.
+// 타이핑은 초점 하나가 한 세션이고 같은 합치기 키로 들어가 되돌리기 한 번에 돌아간다 (fields.tsx와 같은 방식).
 
-import type { FieldSpec } from "@initial-editor/ext-tilemap/model";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { MIXED_LABEL, newSession, TextField } from "../../scene/fields";
+import { useEffect, useRef, type KeyboardEvent } from "react";
+import { MIXED_LABEL, TextField, useFieldText } from "./fields";
+
+export type SchemaFieldType = "string" | "text" | "number" | "integer" | "boolean" | "enum";
+
+/** 입력 하나가 보는 칸의 꼴 (타일맵의 FieldSpec 이 이 모양을 채운다) */
+export interface SchemaFieldSpec {
+  name: string;
+  type: SchemaFieldType;
+  label: string;
+  values?: string[];
+  min?: number;
+  max?: number;
+}
 
 export const EMPTY_LABEL = "비어 있음";
 
 /** 칸의 값: undefined는 비어 있음, null은 여러 값 */
 export type FieldValue = unknown;
 
-interface OptionalNumberProps {
-  value: number | undefined | null;
-  onChange: (value: number, session: string) => void;
+interface OptionalNumberProps<Exact extends boolean = false> {
+  /** undefined는 비어 있음, null은 여러 값. bigint는 숫자 그대로 보인다 */
+  value: number | bigint | undefined | null;
+  /** 참이면 수로 바꾸면 자릿수를 잃는 정수(16자리 이상)를 min, max 안일 때 bigint로 보낸다 */
+  exact?: Exact;
+  onChange: (value: Exact extends true ? number | bigint : number, session: string) => void;
   sessionPrefix: string;
   integer?: boolean;
   min?: number;
@@ -25,40 +41,47 @@ interface OptionalNumberProps {
   className?: string;
 }
 
-function numberText(value: number | undefined | null): string {
-  return typeof value === "number" ? String(value) : "";
+function numberText(value: number | bigint | undefined | null): string {
+  return typeof value === "number" || typeof value === "bigint" ? String(value) : "";
+}
+
+/** 적은 글이 수로 바꾸면 자릿수를 잃는 정수면 그 bigint (앞의 0은 뗀다). 아니면 null */
+export function exactBigInt(text: string): bigint | null {
+  const t = text.trim();
+  if (!/^-?\d+$/.test(t)) return null;
+  const digits = t.replace(/^(-?)0+(?=\d)/, "$1");
+  return String(Number(digits)) === digits ? null : BigInt(digits);
 }
 
 /** 비어 있을 수 있는 숫자 칸. 비운 채 두면 값을 바꾸지 않는다 (지우기는 따로) */
-export function OptionalNumberField({ value, onChange, sessionPrefix, integer, min, max, testId, ariaLabel, className }: OptionalNumberProps) {
-  const [text, setText] = useState(numberText(value));
-  const [focused, setFocused] = useState(false);
-  const session = useRef("");
-
-  useEffect(() => {
-    if (!focused) setText(numberText(value));
-  }, [value, focused]);
+export function OptionalNumberField<Exact extends boolean = false>({ value, exact, onChange, sessionPrefix, integer, min, max, testId, ariaLabel, className }: OptionalNumberProps<Exact>) {
+  const field = useFieldText(value, numberText, sessionPrefix);
+  const send = onChange as (value: number | bigint, session: string) => void;
 
   const commit = (raw: string) => {
-    setText(raw);
+    field.setText(raw);
     if (raw.trim() === "") return;
     let n = Number(raw);
     if (!Number.isFinite(n)) return;
+    const big = exact ? exactBigInt(raw) : null;
+    if (big !== null && (min === undefined || n >= min) && (max === undefined || n <= max)) {
+      send(big, field.send(big));
+      return;
+    }
     if (integer) n = Math.round(n);
     if (min !== undefined) n = Math.max(min, n);
     if (max !== undefined) n = Math.min(max, n);
-    if (!session.current) session.current = newSession(sessionPrefix);
-    onChange(n, session.current);
+    send(n, field.send(n));
   };
 
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      session.current = "";
+      field.endSession();
       e.currentTarget.blur();
     } else if (e.key === "Escape") {
       e.preventDefault();
-      setText(numberText(value));
+      field.revert();
       e.currentTarget.blur();
     }
   };
@@ -67,21 +90,15 @@ export function OptionalNumberField({ value, onChange, sessionPrefix, integer, m
     <input
       type="number"
       className={"input field-number" + (className ? ` ${className}` : "")}
-      value={text}
+      value={field.text}
       placeholder={value === null ? MIXED_LABEL : EMPTY_LABEL}
       step={integer ? 1 : "any"}
       min={min}
       max={max}
       aria-label={ariaLabel}
       data-testid={testId}
-      onFocus={() => {
-        setFocused(true);
-        session.current = newSession(sessionPrefix);
-      }}
-      onBlur={() => {
-        setFocused(false);
-        session.current = "";
-      }}
+      onFocus={field.focus}
+      onBlur={field.blur}
       onChange={(e) => commit(e.target.value)}
       onKeyDown={onKey}
     />
@@ -89,8 +106,10 @@ export function OptionalNumberField({ value, onChange, sessionPrefix, integer, m
 }
 
 interface SchemaFieldInputProps {
-  field: FieldSpec;
+  field: SchemaFieldSpec;
   value: FieldValue;
+  /** 숫자 칸: 참이면 수로 바꾸면 자릿수를 잃는 정수를 bigint로 보낸다 (OptionalNumberField 의 exact) */
+  exact?: boolean;
   /** session은 타이핑 세션의 합치기 키. 고르기와 체크 상자는 undefined (한 번이 한 단계) */
   onChange: (value: unknown, session?: string) => void;
   sessionPrefix: string;
@@ -98,7 +117,7 @@ interface SchemaFieldInputProps {
 }
 
 /** 스키마 칸 하나의 입력 */
-export function SchemaFieldInput({ field, value, onChange, sessionPrefix, testId }: SchemaFieldInputProps) {
+export function SchemaFieldInput({ field, value, exact, onChange, sessionPrefix, testId }: SchemaFieldInputProps) {
   const checkRef = useRef<HTMLInputElement>(null);
   const mixed = value === null;
   useEffect(() => {
@@ -124,7 +143,8 @@ export function SchemaFieldInput({ field, value, onChange, sessionPrefix, testId
     case "integer":
       return (
         <OptionalNumberField
-          value={typeof value === "number" ? value : mixed ? null : undefined}
+          value={typeof value === "number" || typeof value === "bigint" ? value : mixed ? null : undefined}
+          exact={exact}
           onChange={(v, s) => onChange(v, s)}
           sessionPrefix={sessionPrefix}
           integer={field.type === "integer"}

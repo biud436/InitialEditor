@@ -228,6 +228,20 @@ describe("RunnerStore 실행 방식", () => {
     expect(embedded.launches).toEqual([{ INITIAL2D_SCRIPT: "mruby" }]);
   });
 
+  it("언어 검사는 덧씌운 INITIAL2D_SCRIPT 로 한다: game.json 이 mruby 여도 lua 로 덮으면 mruby 없는 웹 엔진으로 띄운다", async () => {
+    const { runner, embedded, toasts, log } = await setup({ script: "mruby" });
+    await runner.start({ env: { INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" } });
+    expect(toasts).toEqual([]);
+    expect(embedded.launches).toEqual([{ INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg" }]);
+    expect(texts(log)).toContainEqual("info/runner: 엔진 시작: 에디터 안 (웹 엔진, lua wasm), 언어 lua (INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg)");
+    await runner.stop();
+    // 거꾸로 lua 프로젝트를 mruby 로 덮으면 거절한다
+    const lua = await setup();
+    await lua.runner.start({ env: { INITIAL2D_SCRIPT: "mruby" } });
+    expect(lua.embedded.launches).toEqual([]);
+    expect(lua.toasts[0]).toBe(`error: ${WASM_NO_MRUBY} (프로세스 실행은 데스크톱 앱에서)`);
+  });
+
   it("Tauri 에서 mruby 를 거부할 때는 프로세스 실행을 권한다", async () => {
     const { runner, toasts } = await setup({ tauri: true, runMode: "embedded", script: "mruby" });
     await runner.start();

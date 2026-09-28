@@ -101,11 +101,20 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-/** RPG 이벤트의 칸 좌표(x, y)를 옮긴 사본. 좌표가 숫자가 아닌 것은 그대로 둔다 */
+/**
+ * RPG 이벤트의 칸 좌표(x, y)와 배회 구역(wander.area 의 x, y)을 옮긴 사본. 좌표가 숫자가 아닌 것은 그대로 둔다.
+ * 이벤트 레이어가 붙은 맵의 크기 바꾸기도 이 함수로 옮긴다 (붙기 전과 뒤가 같은 결과라 되돌리기가 정확하다)
+ */
 export function shiftEvents(events: readonly unknown[], offset: CellOffset): unknown[] {
   return events.map((e) => {
     if (!isRecord(e) || typeof e.x !== "number" || typeof e.y !== "number") return e;
-    return { ...e, x: e.x + offset.dx, y: e.y + offset.dy };
+    const next: Record<string, unknown> = { ...e, x: e.x + offset.dx, y: e.y + offset.dy };
+    const wander = e.wander;
+    const area = isRecord(wander) ? wander.area : undefined;
+    if (isRecord(wander) && isRecord(area) && typeof area.x === "number" && typeof area.y === "number") {
+      next.wander = { ...wander, area: { ...area, x: area.x + offset.dx, y: area.y + offset.dy } };
+    }
+    return next;
   });
 }
 

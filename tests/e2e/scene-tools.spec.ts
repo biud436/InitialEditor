@@ -201,6 +201,19 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(page.getByTestId("inspector-scripts")).toContainText("붙은 스크립트가 없다");
   });
 
+  test("하위 메뉴: 마우스를 올려 열린 뒤 부모 항목을 눌러도 닫히지 않는다", async ({ page }) => {
+    await openSample(page);
+    await page.getByRole("menubar").getByRole("menuitem", { name: "씬", exact: true }).click();
+    const parent = page.locator(".menu-item", { hasText: "오브젝트 추가" }).first();
+    const sub = page.locator(".menu .menu .menu-item", { hasText: "스프라이트" });
+    await parent.hover();
+    await expect(sub).toBeVisible();
+    await parent.click();
+    await expect(sub).toBeVisible();
+    await parent.click();
+    await expect(sub).toBeVisible();
+  });
+
   test("여러 개를 고르면 공통 칸만 보이고 값이 다르면 여러 값이다", async ({ page }) => {
     await openSample(page);
     await newScene(page, "stage3");

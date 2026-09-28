@@ -1,0 +1,469 @@
+/* 커맨드 목록 편집기와 인자 위젯. 색은 테마 토큰만 쓴다. 공통 모양(btn, input, field-*)은 앱의 base.css 와 InspectorPanel.css */
+
+.rpg-cmd-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 0;
+  font-size: 12px;
+}
+
+.rpg-cmd-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rpg-cmd-toolbar-gap {
+  flex: 1;
+}
+
+.rpg-mini {
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+.rpg-problem-count.is-error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.rpg-problem-count.is-warning {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.rpg-problem-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 120px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.rpg-problem {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 2px var(--space-1);
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rpg-problem:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.rpg-problem.is-error .rpg-path {
+  color: var(--danger);
+}
+
+.rpg-problem.is-warning .rpg-path {
+  color: var(--warning);
+}
+
+.rpg-path {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+
+/* 트리는 줄 수만큼 자라고 세로 스크롤은 바깥(인스펙터 자리)이 맡는다. 휠을 가로채지 않고, 깊은 줄과 폼이 넓으면 옆으로만 민다 */
+.rpg-cmd-tree {
+  flex: none;
+  min-height: 80px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  outline: none;
+}
+
+.rpg-cmd-tree:focus-visible {
+  border-color: var(--focus-ring);
+}
+
+.rpg-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 20px;
+  padding-right: var(--space-1);
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+
+.rpg-row:hover {
+  background: var(--bg-hover);
+}
+
+.rpg-row.is-selected {
+  background: var(--bg-selection);
+}
+
+.rpg-cmd-tree:focus .rpg-row.is-cursor {
+  box-shadow: inset 0 0 0 1px var(--focus-ring);
+}
+
+.rpg-row-label {
+  flex: none;
+  color: var(--accent);
+}
+
+.rpg-row-label.is-unknown {
+  color: var(--danger);
+}
+
+.rpg-row-summary {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rpg-row-head {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+
+.rpg-row-end {
+  font-size: 10px;
+}
+
+.rpg-fold {
+  flex: none;
+  width: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.rpg-marker {
+  flex: none;
+  margin-left: auto;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  color: var(--fg-on-accent);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+
+.rpg-marker.is-error {
+  background: var(--danger);
+}
+
+.rpg-marker.is-warning {
+  background: var(--warning);
+}
+
+.rpg-marker.is-info {
+  background: var(--fg-muted);
+}
+
+.rpg-cmd-form-wrap {
+  margin: 2px var(--space-1) var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-left: 2px solid var(--accent);
+  background: var(--bg-panel);
+  white-space: normal;
+}
+
+.rpg-cmd-form-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+/* 이름은 한 덩어리로 두고 긴 경로가 줄을 바꾼다 */
+.rpg-cmd-form-title {
+  flex: none;
+  font-weight: 600;
+}
+
+.rpg-cmd-form-head .rpg-path {
+  min-width: 0;
+}
+
+/* 값 열은 폼의 남은 폭이다 (내용이 넓어도 열이 늘어 폼 밖으로 나가지 않는다). 긴 경로와 id 는 아무 데서나 줄을 바꾼다 */
+.rpg-arg {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  overflow-wrap: anywhere;
+  column-gap: var(--space-2);
+  row-gap: 2px;
+  margin-bottom: var(--space-1);
+}
+
+.rpg-arg-label {
+  padding-top: 3px;
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
+}
+
+.rpg-arg-required {
+  margin-left: 2px;
+  color: var(--danger);
+}
+
+.rpg-arg-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.rpg-arg-control > .field-text,
+.rpg-arg-control > .field-select,
+.rpg-arg-control > textarea {
+  flex: 1;
+  min-width: 80px;
+}
+
+.rpg-arg.is-wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rpg-arg-problem,
+.rpg-arg-note {
+  grid-column: 2;
+  font-size: 11px;
+}
+
+.rpg-arg.is-wide .rpg-arg-problem,
+.rpg-arg.is-wide .rpg-arg-note {
+  grid-column: 1;
+}
+
+.rpg-arg-problem.is-error,
+.rpg-arg-note.is-error {
+  color: var(--danger);
+}
+
+.rpg-arg-problem.is-warning,
+.rpg-arg-note.is-warning {
+  color: var(--warning);
+}
+
+.rpg-arg-problem.is-info {
+  color: var(--fg-muted);
+}
+
+.rpg-arg-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rpg-arg-kind {
+  flex: none;
+}
+
+.rpg-arg-range {
+  font-size: 11px;
+}
+
+.rpg-arg-json {
+  font-family: var(--font-mono);
+}
+
+.rpg-options,
+.rpg-route,
+.rpg-condition,
+.rpg-wander,
+.rpg-asset {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* 좁으면 글 칸이 한 줄을 차지하고 고르기와 단추(rpg-option-tools)가 다음 줄 오른쪽으로 내려간다 */
+.rpg-option,
+.rpg-route-step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rpg-option .field-text,
+.rpg-route-step .field-text {
+  flex: 1 1 140px;
+  min-width: 120px;
+}
+
+.rpg-route-step .field-select,
+.rpg-route-step .field-number {
+  flex: 1 1 72px;
+  min-width: 64px;
+}
+
+.rpg-option-tools {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.rpg-option-no {
+  flex: none;
+  min-width: 18px;
+  text-align: right;
+}
+
+.rpg-option-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--fg-muted);
+}
+
+.rpg-options-foot,
+.rpg-route-add,
+.rpg-palette-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 격자는 폼의 폭을 다 받고(시트 격자의 배율을 이 폭으로 정한다), 칸은 왼쪽부터 놓는다. gap 은 AssetArg.tsx 의 CELL_GAP */
+.rpg-sheet-grid {
+  display: grid;
+  justify-content: start;
+  min-width: 0;
+}
+
+.rpg-sheet-cell {
+  padding: 1px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-input);
+  cursor: pointer;
+}
+
+.rpg-sheet-cell.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* 칸 안의 그림 자리 (배율을 곱한 크기). 그림은 원래 크기로 그리고 왼쪽 위를 기준으로 줄인다 */
+.rpg-sheet-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-size: 10px;
+}
+
+.rpg-sheet-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transform-origin: 0 0;
+}
+
+/* 맵 위치 단추와 막는 이유 줄 (LocationTools). 좁으면 단추가 다음 줄로 가고, 긴 맵 이름과 경로는 아무 데서나 줄을 바꾼다 */
+.rpg-location {
+  margin-bottom: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.rpg-location-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.rpg-unknown {
+  margin-top: var(--space-1);
+  font-size: 11px;
+}
+
+.rpg-unknown-row code {
+  font-family: var(--font-mono);
+}
+
+.rpg-palette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+}
+
+.rpg-palette-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rpg-palette-head > button {
+  margin-left: auto;
+}
+
+.rpg-palette-list {
+  max-height: 220px;
+  overflow: auto;
+}
+
+.rpg-palette-group-name {
+  padding: 2px var(--space-1);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rpg-palette-item {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2px var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rpg-palette-item.is-active {
+  background: var(--bg-selection);
+}
+
+.rpg-palette-code {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.rpg-palette-empty {
+  padding: var(--space-1);
+}

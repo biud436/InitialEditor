@@ -6,7 +6,7 @@
 //   flag, var  이 프로젝트의 맵 파일들에서 이미 쓰인 이름 (이름표는 나중 후보)
 // 시작 상태 칸(INITIAL2D_RPG_STATE)의 제안도 여기서 만든다: 깃발, 변수, item:<id>.
 
-import { asList, field, isPlainObject } from "./json";
+import { asList, field, isJsonText, isPlainObject } from "./json";
 import { commandSpec, judgedCondition, type EventSchema, type RefKind } from "./schema";
 import { walkCommands } from "./tree";
 import type { GameConfig, ItemTable } from "./game";
@@ -32,12 +32,12 @@ export interface StateNames {
   vars: string[];
 }
 
-/** 이벤트 목록들에서 쓰인 깃발과 변수 이름 (setFlag.key, setVar.key, 조건의 flag 와 var). 처음 나온 순서 */
+/** 이벤트 목록들에서 쓰인 깃발과 변수 이름 (setFlag.key, setVar.key, 조건의 flag 와 var). 처음 나온 순서, 글인 키만 */
 export function usedStateNames(schema: EventSchema, eventLists: ReadonlyArray<readonly unknown[]>): StateNames {
   const flags = new Set<string>();
   const vars = new Set<string>();
   const note = (kind: RefKind | undefined, value: unknown) => {
-    if (typeof value !== "string" || value === "") return;
+    if (!isJsonText(value) || value === "") return;
     if (kind === "flag") flags.add(value);
     else if (kind === "var") vars.add(value);
   };
@@ -73,7 +73,7 @@ export function refSuggestions(kind: RefKind, src: RefSources): Suggestion[] {
       const seen = new Set<string>();
       for (const ev of src.events ?? []) {
         const id = field(ev, "id");
-        if (typeof id === "string" && id !== "" && !seen.has(id)) {
+        if (isJsonText(id) && id !== "" && !seen.has(id)) {
           seen.add(id);
           out.push(field(ev, "charset") === undefined ? { value: id, detail: "외형 없음" } : { value: id });
         }

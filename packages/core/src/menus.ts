@@ -85,3 +85,24 @@ export class MenuRegistry {
     return root.children;
   }
 }
+
+/**
+ * 보이는 항목만 남긴 트리. 커맨드가 보이지 않는 항목(isVisible 거짓)을 빼고, 그래서 비는 하위 메뉴도 뺀다.
+ * 커맨드 레지스트리의 isVisible 을 넘긴다 (HTML 메뉴 바와 네이티브 메뉴가 같은 트리를 그린다).
+ * 커맨드가 없는 잎은 그대로 둔다 (그리는 쪽이 비활성으로 보인다)
+ */
+export function visibleMenu(nodes: readonly MenuNode[], isVisible: (commandId: string) => boolean): MenuNode[] {
+  const out: MenuNode[] = [];
+  for (const node of nodes) {
+    if (node.children.length > 0) {
+      const children = visibleMenu(node.children, isVisible);
+      if (children.length > 0) out.push({ ...node, children });
+      continue;
+    }
+    if (node.commandId && !isVisible(node.commandId)) continue;
+    out.push(node);
+  }
+  // 앞의 항목이 빠져 맨 앞이 된 구분선은 긋지 않는다
+  if (out[0]?.separatorBefore) out[0] = { ...out[0], separatorBefore: false };
+  return out;
+}

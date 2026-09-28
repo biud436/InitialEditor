@@ -3,23 +3,40 @@
 //             그다음 스키마 칸마다 입력 하나. rangeMin/rangeMax 칸은 "순찰 범위" 한 줄로 묶는다
 //   같은 타입 여럿: 함께 고쳐도 뜻이 있는 칸(enum, boolean)만, 묶음 명령 하나로
 //   아무것도 안 고름: 맵 요약 (크기, 레이어, 타입별 수)과 스키마 출처
+//   대상이 확장 레이어: 그 레이어의 Inspector 자리 (docs/plans/e5-rpg.md 2.3). Inspector 가 없거나 상태가 없으면 위의 규칙대로
 // 변경은 전부 objectTools/actions.ts를 거쳐 명령이 된다.
 
-import { typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
+import type { MapLayerInspectorProps } from "@initial-editor/ext-tilemap";
+import { bigIntText, numberFromText, stringifyJsonLossless, typeOf, type FieldSpec, type MapDocument, type MapObject, type ObjectProblem, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { clearObjectProps, renameMapObject, selectProblem, setObjectGeometry, setObjectsProp, setRangeAround } from "../../editor/maps/objectTools/actions";
-import { OptionalNumberField, SchemaFieldInput } from "../../editor/maps/objectTools/fieldInputs";
 import { bulkEditableFields, groupObjects, PATROL_RADIUS, rangeFields } from "../../editor/maps/objectTools/rules";
 import { asMapDocument } from "../../editor/maps/schemaStore";
-import { FieldRow, NumberField } from "../../editor/scene/fields";
+import { FieldRow, NumberField, OptionalNumberField, SchemaFieldInput } from "@initial-editor/ui";
 import "./MapObjectInspector.css";
 
 export const RANGE_LABEL = "순찰 범위";
 
 function sameValue(values: unknown[]): unknown {
   return values.length > 0 && values.every((v) => v === values[0]) ? values[0] : null;
+}
+
+/** 칸에 보일 값: 2^53을 넘는 정수(맵 파일의 표식 글)는 bigint로 넘겨 숫자 그대로 보인다 */
+function shownValue(v: unknown): unknown {
+  const digits = bigIntText(v);
+  return digits === null ? v : BigInt(digits);
+}
+
+function shownNumber(v: unknown): number | bigint | undefined {
+  const shown = shownValue(v);
+  return typeof shown === "number" || typeof shown === "bigint" ? shown : undefined;
+}
+
+/** 칸이 보낸 값을 파일의 값으로: 적은 큰 정수(bigint)는 표식 글로 실어 저장할 때 숫자 그대로 쓴다 */
+function storedValue(v: unknown): unknown {
+  return typeof v === "bigint" ? numberFromText(v.toString()) : v;
 }
 
 function prefix(doc: MapDocument, id: string, key: string): string {
@@ -84,13 +101,14 @@ function ClearButton({ onClick, testId, label }: { onClick: () => void; testId: 
 const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: MapDocument; object: MapObject; min: FieldSpec; max: FieldSpec }) {
   const lo = object.props[min.name];
   const hi = object.props[max.name];
-  const set = (field: FieldSpec, v: number, session: string) => setObjectsProp(doc, [object.id], field.name, v, session);
+  const set = (field: FieldSpec, v: number | bigint, session: string) => setObjectsProp(doc, [object.id], field.name, storedValue(v), session);
   const clear = () => clearObjectProps(doc, object.id, [min.name, max.name]);
   return (
     <div className="map-range" data-testid="map-range">
       <FieldRow label={RANGE_LABEL} hint={`${min.label} (${min.name}) ~ ${max.label} (${max.name})`}>
         <OptionalNumberField
-          value={typeof lo === "number" ? lo : undefined}
+          value={shownNumber(lo)}
+          exact
           onChange={(v, s) => set(min, v, s)}
           sessionPrefix={prefix(doc, object.id, min.name)}
           integer={min.type === "integer"}
@@ -101,7 +119,8 @@ const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: Ma
         />
         <span className="muted map-range-sep">~</span>
         <OptionalNumberField
-          value={typeof hi === "number" ? hi : undefined}
+          value={shownNumber(hi)}
+          exact
           onChange={(v, s) => set(max, v, s)}
           sessionPrefix={prefix(doc, object.id, max.name)}
           integer={max.type === "integer"}
@@ -134,7 +153,7 @@ const SchemaFields = observer(function SchemaFields({ doc, object, spec }: { doc
         return (
           <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
             <FieldRow label={f.label} hint={`${f.name} (${f.type}${f.required ? ", 필수" : ""})`}>
-              <SchemaFieldInput field={f} value={value} onChange={(v, s) => setObjectsProp(doc, [object.id], f.name, v, s)} sessionPrefix={prefix(doc, object.id, f.name)} testId={`map-field-${f.name}`} />
+              <SchemaFieldInput field={f} value={shownValue(value)} exact onChange={(v, s) => setObjectsProp(doc, [object.id], f.name, storedValue(v), s)} sessionPrefix={prefix(doc, object.id, f.name)} testId={`map-field-${f.name}`} />
               {!f.required && value !== undefined && <ClearButton onClick={() => setObjectsProp(doc, [object.id], f.name, undefined)} testId={`map-field-${f.name}-clear`} label={f.label} />}
             </FieldRow>
           </div>
@@ -204,7 +223,7 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
         ) : (
           <div className="inspector-section">
             <div className="muted inspector-note">스키마에 없는 타입이라 속성 폼이 없다. props 는 파일에 그대로 남는다</div>
-            {Object.keys(object.props).length > 0 && <pre className="map-raw-props">{JSON.stringify(object.props, null, 2)}</pre>}
+            {Object.keys(object.props).length > 0 && <pre className="map-raw-props">{stringifyJsonLossless(object.props, 2)}</pre>}
           </div>
         )}
         <ProblemList doc={doc} problems={problems} testId="map-inspector-problems" />
@@ -234,7 +253,7 @@ const ManyObjects = observer(function ManyObjects({ doc, objects }: { doc: MapDo
           {fields.map((f) => (
             <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
               <FieldRow label={f.label} hint={`${f.name}: 고른 ${objects.length}개를 한 번에 바꾼다`}>
-                <SchemaFieldInput field={f} value={sameValue(objects.map((o) => o.props[f.name]))} onChange={(v) => setObjectsProp(doc, ids, f.name, v)} sessionPrefix={`map:${ids.join(",")}:${f.name}`} testId={`map-field-${f.name}`} />
+                <SchemaFieldInput field={f} value={shownValue(sameValue(objects.map((o) => o.props[f.name])))} onChange={(v) => setObjectsProp(doc, ids, f.name, v)} sessionPrefix={`map:${ids.join(",")}:${f.name}`} testId={`map-field-${f.name}`} />
               </FieldRow>
             </div>
           ))}
@@ -288,16 +307,32 @@ const MapSummary = observer(function MapSummary({ doc }: { doc: MapDocument }) {
           </FieldRow>
         </div>
         <div className="panel-hint">맵 오브젝트 목록이나 맵 뷰에서 오브젝트를 고르면 속성이 보인다</div>
-        <ProblemList doc={doc} problems={doc.problems} testId="map-inspector-problems" />
+        <ProblemList doc={doc} problems={doc.objectProblems} testId="map-inspector-problems" />
       </div>
     </div>
   );
 });
 
+/** 대상 확장 레이어의 인스펙터. 그릴 것이 없으면 null */
+function layerInspectorFor(editor: ReturnType<typeof useEditor>, doc: MapDocument) {
+  if (doc.target.kind !== "ext") return null;
+  const spec = editor.tilemap?.layers.get(doc.target.id);
+  const state = doc.layerState(doc.target.id);
+  const Inspector = spec?.Inspector as ComponentType<MapLayerInspectorProps> | undefined;
+  if (!spec || !state || !Inspector) return null;
+  return (
+    <div className="map-layer-inspector" data-testid="map-layer-inspector" data-layer={spec.id}>
+      <Inspector document={doc} state={state} />
+    </div>
+  );
+}
+
 export const MapObjectInspector = observer(function MapObjectInspector() {
   const editor = useEditor();
   const doc = asMapDocument(editor.documents.active);
   if (!doc) return null;
+  const layer = layerInspectorFor(editor, doc);
+  if (layer) return layer;
   const objects = doc.selectedIds.map((id) => doc.model.findObject(id)).filter((o): o is MapObject => !!o);
   if (objects.length === 0) return <MapSummary doc={doc} />;
   if (objects.length === 1) return <SingleObject key={objects[0].id} doc={doc} object={objects[0]} />;

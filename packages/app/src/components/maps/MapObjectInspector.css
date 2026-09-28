@@ -90,3 +90,11 @@
 .inspector-problem.is-link:hover {
   background: var(--bg-hover);
 }
+
+/* 확장 레이어의 인스펙터 자리: 레이어의 컴포넌트가 채운다.
+   세로 스크롤은 이 자리 하나가 맡는다. 컴포넌트는 제 내용 높이대로 자라고, 패널보다 길면 여기서 끝까지 내린다 */
+.map-layer-inspector {
+  height: 100%;
+  overflow: auto;
+  background: var(--bg-panel);
+}

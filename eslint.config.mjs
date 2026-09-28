@@ -16,7 +16,7 @@ export default tseslint.config(
   },
   // 훅은 조건이나 이른 return 뒤에서 부르지 않는다 (어기면 React 오류 310 으로 화면 전체가 빈다)
   {
-    files: ["packages/app/src/**/*.{ts,tsx}"],
+    files: ["packages/app/src/**/*.{ts,tsx}", "packages/ui/src/**/*.{ts,tsx}", "packages/ext-rpg/src/ui/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks },
     rules: { "react-hooks/rules-of-hooks": "error" },
   },

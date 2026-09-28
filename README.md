@@ -213,6 +213,7 @@ yarn engine:fetch --from ../Initial2D/dist
 yarn tauri build --bundles app --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json
 yarn selftest:app src-tauri/target/release/bundle/macos/InitialEditor.app
 yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲에 한 칸을 칠해 게임 화면과 견주는 것까지
+yarn selftest:app <앱> --rpg ../Initial2D        # 항구 마을의 이벤트 레이어와 이벤트 앞에서 실행, 자동 재생까지
 ```
 
 - `yarn selftest:app` 은 창을 띄우지 않습니다. 앱을 자가 검사 모드(`INITIAL_EDITOR_SELFTEST=<계획 파일>`)로 띄우면, 앱에 든 템플릿으로
@@ -220,6 +221,7 @@ yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲에 한 칸�
   끝나면 `scripts/selftest-check.mjs` 가 실행마다 남은 전체 로그와 스크린샷으로 판정합니다. 작업 폴더(보고서, 로그, 스크린샷)는 지우지 않고 경로를 찍습니다.
 - 자가 검사는 설정, 최근 프로젝트, 레이아웃, 창 위치, 웹뷰 저장소를 읽지도 쓰지도 않습니다. 확인 창이 뜨거나 웹뷰 보안 정책(CSP) 위반이 있으면 실패입니다.
 - `--forest <엔진 저장소>` 는 숲 맵의 사본을 맵 뷰로 열어 deco 레이어의 빈 칸 하나를 칠해 저장하고 앱에 든 엔진으로 돌린 뒤, 게임 화면을 맵 뷰와 견주고 저장한 맵과 타일셋으로 직접 그린 기준과도 견줍니다. 레이어마다, 칠한 칸까지 게임 화면에 있어야 통과합니다 (게임이 레이어 하나를 빼고 그리거나 칠하기 전 맵을 돌리면 실패).
+- `--rpg <엔진 저장소>` 는 항구 마을(`port_town.json`)의 사본을 맵 뷰로 열어 RPG 확장이 붙인 이벤트 레이어와 뷰가 그린 표식을 보고서에 적고, 맵 메뉴의 "이 이벤트 앞에서 실행"과 "이 이벤트 자동 재생"을 물고기 장수에게 앱에 든 엔진으로 돌립니다. 판정은 표식 17개가 맵 파일의 자리에 게임의 그리기 규칙대로 있는지, 게임이 이벤트를 다 읽었는지, 플레이어가 판정이 맵 파일로 셈한 자리에 섰는지(`rpg:player:`), 자동 재생이 이벤트를 돌렸는지(`rpg:event:`) 봅니다. `--forest` 와 같은 저장소면 사본 하나를 함께 씁니다.
 - `--embedded` 는 에디터 안 실행을 더하는데 창이 뜹니다. `--total-timeout <ms>` 로 전체 시간을 줄일 수 있습니다.
 - 로컬에서 dmg 까지 만들면(`--bundles app,dmg`) Finder 창이 잠깐 뜹니다. CI 에서는 뜨지 않습니다.
 - CSP 는 `src-tauri/tauri.conf.json` 의 `app.security.csp` 입니다. 새 기능이 막히면 자가 검사 보고서의 `cspViolations` 에 무엇이 막혔는지 나옵니다.
@@ -241,18 +243,65 @@ APK 빌드와 설치는 하지 않고, 끝나면 콘솔에 칠 명령을 적어 
 
 ## RPG 이벤트 (E5, 진행 중)
 
-맵 파일의 `events`를 에디터에서 고치는 RPG 확장입니다. 지금은 `packages/ext-rpg`에 DOM 없는 모델만 있습니다.
-엔진의 이벤트 스키마(`resources/schema/event-commands.json`)와 게임 설정(`resources/data/rpg-game.json`)을 읽고,
-엔진과 같은 검사를 같은 경로(`events[3].commands[2].text`)로 내고, 되돌릴 수 있는 명령으로 이벤트와 커맨드를 고칩니다.
-맵 뷰의 이벤트 레이어와 커맨드 편집기는 다음 마일스톤입니다. 계약의 정본은 엔진의 `docs/plans/m2-rpg-events.md`입니다.
+맵 파일의 `events`를 맵 위에서 고치는 RPG 확장(`packages/ext-rpg`)입니다. 엔진의 이벤트 스키마(`resources/schema/event-commands.json`)와
+게임 설정(`resources/data/rpg-game.json`)을 읽고, 엔진과 같은 검사를 같은 경로(`events[3].commands[2].text`)로 내고,
+되돌릴 수 있는 명령으로 이벤트와 커맨드를 고칩니다. 고친 이벤트는 그 앞에서 바로 띄워 봅니다.
+계약의 정본은 엔진의 `docs/plans/m2-rpg-events.md`입니다.
+
+- 이벤트 레이어: `rpg-game.json`에 등록된 맵(항구 마을, 여관)을 열면 레이어 패널에 "이벤트" 줄이 오브젝트 위에 생깁니다.
+  외형이 있는 이벤트는 CharSet의 서 있는 프레임이 게임과 같은 자리(발이 칸 아래 변)에, 나머지는 칸에 트리거 글자(말, 밟, 자, 병)로 보입니다.
+  외형은 스키마의 후보 중 프로젝트에 있는 첫 그림이라 RTP가 있으면 RTP 그림입니다. 등록되지 않은 맵(알데바란, 샘플)에는 줄 대신
+  한 줄 안내가 있고, 스키마가 없는 프로젝트에는 레이어 줄도, 맵 메뉴의 이벤트 항목도, 창 메뉴의 이벤트도 없습니다. RTP 판과 기본 판이
+  따로 있는 맵(마을, 오두막)과 스키마 버전을 모르는 경우는 읽기 전용이고 이유가 자물쇠 옆에 보입니다. 읽기 전용이어도 맵 크기를 바꾸면
+  이벤트는 타일과 함께 옮겨집니다. 레이어의 눈을 끄면 타일 레이어처럼 맵 뷰에서 고치지 않고 알립니다.
+- 이벤트 도구(N): 클릭으로 고르기(Shift, Ctrl은 더하고 빼기), 빈 곳을 끌면 상자 선택, 끌어서 칸 단위로 옮기기(놓을 수 없는 칸이면
+  빨간 미리보기로 알려 주고 제자리에 둡니다. 배회 구역도 같이 옮기고 Alt를 누르면 구역은 둡니다), 고른 이벤트의 배회 구역 가장자리 끌기,
+  빈 칸 더블클릭으로 새 이벤트, 방향키로 한 칸, Delete로 지우기, Enter로 커맨드 편집기. Ctrl+C, Ctrl+V(커서 칸에), Ctrl+D는
+  이벤트 전용 클립보드라 맵 오브젝트나 씬과 섞이지 않습니다. 끌기 한 번, 입력 칸의 타이핑 한 번이 되돌리기 한 단계입니다.
+- 인스펙터: 스키마의 이벤트 칸(id, 칸, 방향, 트리거, 외형과 8명 격자, 지나가기, 막기, 속도, 배회)과 그 아래 커맨드 목록 편집기입니다.
+  id를 바꾸면 이 맵의 `moveRoute`와 `turn`의 대상도 함께 바뀝니다. 커맨드 트리는 위아래로 줄, Enter로 인자 폼, Insert로 팔레트,
+  Ctrl+위아래로 옮기기, Ctrl+C와 Ctrl+V로 여러 줄 복사와 붙여넣기, Delete로 빼기입니다 (macOS는 도구 줄의 넣기 단추나 끝 줄의 Enter).
+  트리에서 누른 글자 키는 맵 도구를 바꾸지 않습니다. 인자 폼의 한 줄 칸은 Enter로 값을 넣고 폼에 남고, Escape로 트리에 돌아갑니다.
+  입력 칸 안의 Ctrl+Z는 문서를 되돌리고 칸도 되돌린 글을 보입니다 (씬 인스펙터와 같습니다). 고른 이벤트는 번호가 아니라 이벤트라서
+  앞의 이벤트를 지우고 되돌려도 같은 이벤트가 골라져 있습니다.
+- 맵 이동의 대상 고르기: `transfer`(맵 인자와 x, y가 있는 커맨드)의 인자 폼 아래에 "맵에서 고르기"와 "대상 보기" 단추가 있고
+  Tab으로 갈 수 있습니다. "맵에서 고르기"는 대상 맵(`rpg-game.json`의 `file`)을 탭으로 열고 뷰 위에 "타일을 클릭해 이동 위치 지정 (Esc: 취소)"
+  띠를 띄웁니다. 타일을 누르면 원래 맵의 탭으로 돌아와 x, y가 한 번에 바뀌고(원래 맵의 되돌리기 한 단계) 그 커맨드의 폼이 열려 있습니다.
+  Esc, 맵 밖이나 뷰 밖의 누름, 띠의 취소는 바꾸지 않고 돌아오고, 고르는 동안 원래 탭을 닫으면 바꾸지 않고 끝납니다. 같은 맵으로 가는
+  이동이면 그 맵의 뷰에서 고릅니다. 고르는 동안 맵 도구는 누름과 키를 받지 않고, 휠과 오른쪽 끌기와 Space+끌기는 그대로 뷰를 옮깁니다.
+  "대상 보기"는 대상 맵을 열고 x, y 타일을 뷰 가운데에 둡니다. 맵이 비었거나, `rpg-game.json`에 없거나, 파일이 없거나, 엔진이 열 수 없는
+  맵(모르는 버전, 타일셋 그림 없음 등)이면 두 단추가 꺼지고 이유가 한 줄 보입니다. 읽기 전용 레이어는 고르기만, x, y가 없으면 대상 보기만 꺼집니다.
+- 이벤트 패널(창 > 이벤트, 타일맵 레이아웃에 들어 있음): 이 맵의 이벤트 목록과 찾기(id, 트리거, 대사), 오류와 경고 수, 그리고 시작 상태
+  한 줄(`arrived,item:warehouse_key=1` 꼴, `INITIAL2D_RPG_STATE`와 같은 규칙)입니다. 시작 상태는 맵마다 `.initial-editor/rpg-play.json`에 남습니다.
+- 저장: 엔진이 건너뛸 오류가 있는 맵은 저장하기 전에 목록을 보이고 묻습니다. 에디터의 편집은 그런 값을 만들지 않으므로 밖에서 고친 파일에서만 나옵니다.
+  객체가 아닌 이벤트 칸은 이벤트 패널에 `events[n]`과 함께 틀린 줄로 보입니다. 2^53을 넘는 정수(엔진은 64비트 정수로 읽습니다)는 글 그대로 저장합니다.
+- 여기서 실행(Ctrl+F5): 등록된 맵에서는 `rpg-game.json`의 `play`로 띄웁니다. 이벤트 하나를 골랐으면 그 앞 칸에서 이벤트 쪽을 보고,
+  아니면 커서 칸, 그다음 뷰 가운데에서 가장 가까운 설 수 있는 칸에 아래를 보고 섭니다. 셋 다 없으면 정의 파일의 시작입니다.
+  등록되지 않은 맵(알데바란)은 지금처럼 `map-objects.json`의 `play`(`maps`가 받는 맵만)로 띄웁니다.
+- 이 이벤트 앞에서 실행, 이 이벤트 자동 재생: 인스펙터의 "앞에서 실행"과 "자동 재생" 단추, 맵 메뉴, 이벤트 패널 줄의 우클릭(또는 Shift+F10)에
+  있습니다. 앞 칸은 외형과 방향이 있으면 이벤트가 바라보는 칸, 아니면 아래, 왼쪽, 오른쪽, 위 순서입니다. 자동 재생은 말 걸기(action),
+  이벤트 쪽으로 한 걸음(touch), 위치 없이 맵에 들어서기(auto)를 한 번 하고 대화를 알아서 넘기며(선택지는 첫 항목), 끝나면 게임이 스스로
+  닫힙니다. parallel은 끝나지 않아 단추가 꺼지고 이유가 보입니다. 저장하지 않은 맵은 먼저 저장할지 묻습니다.
+  에디터는 자동 재생의 줄을 지켜봅니다. 씬을 바꾸는 커맨드(데모의 배)로 게임이 새 게임으로 처음부터 다시 시작하면 그 자리에서 멈추고
+  이유를 콘솔과 알림에 남깁니다. 게임이 끝났는데 그 이벤트의 `rpg:event:<id>` 줄이 없었으면 성공이 아니라 오류 줄로 알립니다.
+  배회하는 NPC는 앞의 auto 이벤트가 도는 동안 자리를 떠날 수 있으니, 시작 상태로 그 auto를 건너뛰거나 앞에서 실행으로 손수 말을 겁니다.
+- 시작 상태: 이벤트 패널의 시작 상태 칸에 적은 값이 세 실행에 `INITIAL2D_RPG_STATE`로 실립니다. 비우면 새 게임 그대로입니다.
+  데모의 대사는 대부분 깃발과 아이템으로 갈리므로(`arrived,heardAltar`면 아이가 조개 목걸이를 줍니다) 여기에 적어 두고 봅니다.
+- 실행의 변수와 콘솔: `play.env`의 `INITIAL2D_SCRIPT=lua`, `INITIAL2D_SCENE=rpg`, `INITIAL2D_MAP`, `INITIAL2D_RPG_AT`, `INITIAL2D_RPG_STATE`,
+  `INITIAL2D_RPG_TRACE=1`에 자동 재생은 `play.probe`의 `INITIAL2D_AUTOPLAY=1`, `INITIAL2D_RPG_ROUTE`를 더합니다. 자동 재생은 에디터가
+  게임의 줄을 지켜보므로 `play`에 없어도 `INITIAL2D_RPG_TRACE=1`을 늘 넣고, `play.probe`의 `{event}`는 그 이벤트의 id로 채웁니다.
+  프로세스 실행과 게임 탭(웹 엔진) 모두 같은 변수이고, 콘솔에 `rpg:player:`(선 칸과 방향), `rpg:event:`, `rpg:message:이름|대사`, `rpg:route:done` 줄이 남습니다.
+  `game.json`이 mruby여도 RPG 실행은 `INITIAL2D_SCRIPT=lua`로 덮으므로 언어 검사는 덮은 값으로 합니다.
 
 - 픽스처: 모델 테스트는 엔진 파일의 사본(`packages/ext-rpg/test/fixtures/`)으로 돕니다. 이벤트 스키마, 게임 설정, 아이템 표,
   항구 마을과 여관 맵, 경로 대조 픽스처, 플레이스홀더 그림입니다. 엔진 쪽 파일이 바뀌면 `yarn sync:rpg`로 다시 맞춥니다.
   `MANIFEST.json`에 엔진 커밋(40자)과 sha256이 남고, 엔진 저장소가 옆에 있으면 사본이 엔진 파일과 같은지 테스트가 봅니다.
   `resources/rtp/`는 복사하지 않습니다. 엔진 작업 트리가 커밋과 다르면 멈추고, 그래도 복사하려면 `--allow-dirty`를 줍니다.
-- 교차 검사: `yarn test:engine-events`는 엔진 저장소의 사본 프로젝트에서 항구 마을을 열어 모델의 명령만으로 이벤트를 만들고
-  저장한 뒤, 진짜 엔진을 헤드리스로 띄워 trace 줄(`rpg:player:`, `rpg:message:`, `rpg:route:done`)을 봅니다. 판은 넷입니다:
-  말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기, 되돌린 맵을 시작 상태 `arrived`로 다시 띄우기. 여관으로 옮기는 판은
+- 교차 검사: `yarn test:engine-events`는 엔진 저장소의 사본 프로젝트에서 항구 마을을 앱과 같은 길(맵 문서에 이벤트 레이어가 붙는다)로 열어
+  모델의 명령만으로 이벤트를 만들고 저장한 뒤, 에디터의 실행 명령과 같은 함수로 만든 변수로 진짜 엔진을 헤드리스 프로세스로 띄워
+  trace 줄(`rpg:player:`, `rpg:message:`, `rpg:route:done`)을 봅니다. 판은 다섯입니다: 말 걸기, 밟아서 여관으로 옮기기, auto 둘이 차례로 돌기,
+  되돌린 맵을 시작 상태 `arrived`로 다시 띄우기, 여기서 실행(고른 이벤트 앞에 서기만). 그리고 러너처럼 줄을 지켜보는 자동 재생 둘이
+  있습니다: 배(ship)는 새 게임으로 다시 시작하는 자리에서 멈추고, 배회하는 아이(kid)는 이벤트가 돌지 않았으면 실패로 알립니다. 여관으로 옮기는 판은
   대조 판 셋이 뒤따릅니다. `transfer`의 x, y, dir을 하나씩 빼고 띄워 도착 검사가 실제로 실패하는지 봅니다. 엔진 실행 파일이 없거나
   M2 계약 전의 엔진(Initial2D `74febb4` 이전)이면 `SKIP:` 한 줄을 찍고 통과합니다. 엔진 저장소는 고치지 않습니다.
 
@@ -260,7 +309,17 @@ APK 빌드와 설치는 하지 않고, 끝나면 콘솔에 칠 명령을 적어 
 INITIAL2D_DIR=../Initial2D yarn sync:rpg              # 엔진 파일을 픽스처로 복사하고 MANIFEST 갱신
 INITIAL2D_DIR=../Initial2D yarn test:engine-events    # 엔진 빌드(build/Initial2D)가 있어야 한다
 KEEP_WORKDIR=1 yarn test:engine-events                # 사본 프로젝트를 남긴다 (경로를 마지막에 찍는다)
+yarn build && yarn test:e2e tests/e2e/rpg-layer.spec.ts  # 메모리 모드에 픽스처를 써 넣고 이벤트 레이어를 브라우저로 본다
+RPG_LAYER_SCREENSHOT=/tmp/shots yarn test:e2e tests/e2e/rpg-layer.spec.ts  # 맵 뷰를 찍어 남긴다
+INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/rpg-events.spec.ts     # 놓기부터 저장까지, 실행 명령의 변수, 브리지 모드의 자동 재생
+yarn build && yarn test:e2e tests/e2e/rpg-editor.spec.ts  # 좁은 인스펙터, 입력 칸의 Ctrl+Z, 숨긴 레이어, RPG 아닌 프로젝트의 메뉴
+INITIAL2D_DIR=../Initial2D yarn test:e2e tests/e2e/rpg-transfer-pick.spec.ts  # 맵 이동의 대상 고르기와 대상 보기, 브리지 모드의 저장
+E2E_BRIDGE_PORT=6561 RPG_EVENTS_SCREENSHOT=/tmp/rpg.png yarn test:e2e tests/e2e/rpg-events.spec.ts  # 포트를 바꾸고 끝난 화면을 찍는다
 ```
+
+`rpg-events.spec.ts`의 브리지 모드는 엔진 저장소의 `resources`(RTP 빼고)와 `scripts`를 임시 폴더에 복사해 열고, 아이를 고른 뒤 자동 재생을 눌러
+게임 탭의 웹 엔진이 콘솔에 남긴 줄을 봅니다. 배의 자동 재생은 새 게임으로 다시 시작하는 자리에서 멈추는지 봅니다. 프로세스 실행은 브라우저로 볼 수 없어 `yarn test:engine-events`와 러너의 단위 테스트
+(`RunnerStore.play.test.ts`, 실행 제공자의 변수가 `RunSpec.env`에 그대로 실린다)가 맡습니다.
 
 ## 프로젝트
 
@@ -276,8 +335,11 @@ packages/backend-bridge/  ProjectBackend 의 브리지(HTTP + WebSocket) 구현
 packages/backend-fsaccess/ ProjectBackend 의 브라우저 폴더(File System Access API) 구현. 웹판이 쓴다
 packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
 packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
-packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입
-packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 여기서 실행 변수)과 엔진 교차 검사
+packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입,
+                          다른 확장이 맵에 레이어와 여기서 실행 제공자를 붙이고, 맵을 띄우고, 맵 뷰에서 타일을 고르는 자리(contrib.ts)
+packages/ui/              React 입력 부품: 인스펙터의 숫자, 글, 스키마 칸 입력. 앱과 확장이 함께 쓴다
+packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 실행 제공자와 실행 변수), 맵 뷰의 이벤트 레이어
+                          (뷰, 도구, 인스펙터, 목록 패널), 커맨드 목록 편집기, 이벤트 실행 명령, 엔진 교차 검사
 src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push, 앱에 든 엔진 찾기
 tests/e2e/                Playwright (브라우저 모드)와 알데바란 인수 테스트, 도우미는 tests/e2e/support/
 tests/scripts/            scripts/*.mjs 의 단위 테스트 (판 번호, 고지, 자가 검사 계획과 판정)
@@ -304,7 +366,7 @@ docs/plans/               계획과 진행 상황
 | `yarn version:set <판>`, `yarn version:check` | 판 번호를 한꺼번에 바꾸거나 한 가지인지 본다 (위 "설치 파일과 자가 검사") |
 | `yarn licenses` | 에디터의 제3자 고지 `src-tauri/licenses/THIRD-PARTY-editor.md` 를 다시 쓴다 (`scripts/gen-licenses.mjs`). `--check` 는 다르면 실패 |
 | `yarn build:desktop` | 소스맵 없는 빌드 (데스크톱 번들용, `src-tauri/tauri.dist.conf.json` 이 부른다) |
-| `yarn selftest:app <앱>` | 빌드한 앱의 자가 검사 (창 없음). `--forest <엔진 저장소>`, `--embedded`, `--plan <계획> --no-check` |
+| `yarn selftest:app <앱>` | 빌드한 앱의 자가 검사 (창 없음). `--forest <엔진 저장소>`, `--rpg <엔진 저장소>`, `--embedded`, `--plan <계획> --no-check` |
 | `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)와 제3자 고지(`THIRD-PARTY.md`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`). 먼저 엔진 저장소에서 `tools/build_web.sh` |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright, Chromium 으로 모든 스펙 (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |

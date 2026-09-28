@@ -1,4 +1,5 @@
 // dockview 로 패널 자리 여섯을 놓는다: 계층, 프로젝트, 문서 탭(가운데), 인스펙터, 확장 패널, 콘솔.
+// 확장이 등록한 패널은 제 탭이고 컴포넌트 하나(EXT_PANEL_COMPONENT)가 params 로 그 패널을 찾는다.
 // 레이아웃의 저장과 복원과 프리셋은 editor/layout.ts, 문서 탭 동기화는 editor/documentDock.ts.
 
 import { DockviewReact, type DockviewReadyEvent, type DockviewTheme, type IDockviewPanelHeaderProps, type IDockviewPanelProps } from "dockview";
@@ -8,6 +9,8 @@ import type { FunctionComponent } from "react";
 import { useCallback } from "react";
 import { DOCUMENT_COMPONENT, DOCUMENT_TAB } from "../editor/documentDock";
 import { useEditor } from "../editor/EditorContext";
+import { EXT_PANEL_COMPONENT } from "../editor/layoutPresets";
+import { ExtensionPanelHost } from "./panels/ExtensionPanelHost";
 import { DocumentPanel } from "./panels/DocumentPanel";
 import { DocumentTab } from "./DocumentTab";
 import { ConsolePanel } from "./panels/ConsolePanel";
@@ -35,6 +38,7 @@ const components: Record<string, FunctionComponent<IDockviewPanelProps>> = {
   mapPalette: PalettePanel,
   mapLayers: LayersPanel,
   [DOCUMENT_COMPONENT]: DocumentPanel,
+  [EXT_PANEL_COMPONENT]: ExtensionPanelHost,
 };
 
 const tabComponents: Record<string, FunctionComponent<IDockviewPanelHeaderProps>> = {

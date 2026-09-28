@@ -21,7 +21,7 @@ describe("자가 검사 계획", () => {
     const plan = parsePlan(base);
     expect(plan.showWindow).toBe(false);
     const p = plan.projects[0];
-    expect(p).toMatchObject({ id: "flappy-lua", template: "flappy", language: "lua", root: null, entry: "scripts/lua/main.lua", edit: null, openMap: null });
+    expect(p).toMatchObject({ id: "flappy-lua", template: "flappy", language: "lua", root: null, entry: "scripts/lua/main.lua", edit: null, openMap: null, probe: null });
     expect(p.runs[0]).toEqual({
       mode: "process",
       optional: false,
@@ -32,6 +32,7 @@ describe("자가 검사 계획", () => {
       scene: null,
       timeoutMs: 90000,
       mapCapture: null,
+      play: null,
     });
     expect(projectRoot(plan, p)).toBe("/tmp/i2d-selftest/flappy-lua");
   });
@@ -57,6 +58,28 @@ describe("자가 검사 계획", () => {
     expect(plan.projects[1].runs[0].mapCapture).toMatchObject({ width: 384, height: 448 });
   });
 
+  it("확장의 탐침(probe)과 확장의 실행 요청(play)", () => {
+    const map = "resources/maps/port_town.json";
+    const plan = parsePlan({
+      ...base,
+      projects: [
+        {
+          id: "rpg-port",
+          root: "/tmp/fixtures/engine",
+          probe: { extension: "rpg", map },
+          runs: [
+            { mode: "process", check: "eventFront", timeoutMs: 60000, play: { extension: "rpg", map, args: { event: "fishmonger" } } },
+            { mode: "process", check: "eventProbe", timeoutMs: 60000, play: { extension: "rpg", map } },
+          ],
+        },
+      ],
+    });
+    const p = plan.projects[0];
+    expect(p.probe).toEqual({ extension: "rpg", map });
+    expect(p.runs[0].play).toEqual({ extension: "rpg", map, args: { event: "fishmonger" } });
+    expect(p.runs[1].play).toEqual({ extension: "rpg", map, args: {} });
+  });
+
   it("틀린 계획은 이유와 함께 거절한다", () => {
     const run = base.projects[0].runs[0];
     const cases: Array<[unknown, RegExp]> = [
@@ -73,6 +96,10 @@ describe("자가 검사 계획", () => {
       [{ ...base, projects: [{ ...base.projects[0], runs: [{ ...run, env: { A: 1 } }] }] }, /env\.A/],
       [{ ...base, projects: [{ ...base.projects[0], runs: [{ ...run, timeoutMs: 5 }] }] }, /timeoutMs/],
       [{ ...base, projects: [{ ...base.projects[0], edit: { kind: "fill" } }] }, /paintTile/],
+      [{ ...base, projects: [{ ...base.projects[0], runs: [{ ...run, check: "eventFront" }] }] }, /play/],
+      [{ ...base, projects: [{ ...base.projects[0], runs: [{ ...run, check: "eventProbe", play: { extension: "rpg" } }] }] }, /play\.map/],
+      [{ ...base, projects: [{ ...base.projects[0], runs: [{ ...run, play: { extension: "rpg", map: "m.json", args: [] } }] }] }, /play\.args/],
+      [{ ...base, projects: [{ ...base.projects[0], probe: { map: "m.json" } }] }, /probe\.extension/],
     ];
     for (const [raw, pattern] of cases) expect(() => parsePlan(raw), String(pattern)).toThrow(pattern);
   });

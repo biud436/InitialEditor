@@ -50,7 +50,8 @@ const ObjectsList = observer(function ObjectsList({ doc }: { doc: MapDocument })
   const groups = groupObjects(doc.model.objects, schema);
   const flat = groups.flatMap((g) => g.objects.map((o) => o.id));
   const selectedIds = doc.selectedIds;
-  const problems = doc.problems;
+  // 확장 레이어의 문제는 그 레이어가 보인다 (레이어 패널의 오류 수, 레이어의 패널과 인스펙터)
+  const problems = doc.objectProblems;
   const schemaError = editor.mapSchema?.error ?? null;
 
   const focusRow = (id: string) => {

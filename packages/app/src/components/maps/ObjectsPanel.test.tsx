@@ -6,6 +6,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, describe, expect, it } from "vitest";
 import type { Editor } from "../../editor/Editor";
 import { EditorProvider } from "../../editor/EditorContext";
+import { FakeMarksState } from "../../editor/maps/__fixtures__/fakeLayer";
 import { ObjectsPanel } from "./ObjectsPanel";
 
 const MAP_PATH = "resources/maps/sample.json";
@@ -163,5 +164,15 @@ describe("맵 오브젝트 목록의 검사", () => {
     const texts = screen.getAllByTestId("map-objects-problem").map((p) => p.textContent ?? "");
     expect(texts.filter((t) => t.includes(`${added}: 제목이(가) 비어 있다`))).toHaveLength(1);
     expect(texts.filter((t) => t.includes(`${added}: 글이(가) 비어 있다`))).toHaveLength(1);
+  });
+});
+
+describe("맵 오브젝트 패널의 검사와 확장 레이어", () => {
+  it("확장 레이어의 문제는 오브젝트 검사 목록에 넣지 않는다 (그 레이어가 보인다)", async () => {
+    const { doc } = await setup();
+    const state = new FakeMarksState([{ id: "out", x: -1, y: 0 }]);
+    act(() => void doc.refreshLayer({ id: "test.marks", section: "marks", attach: () => state }));
+    expect(doc.problems).toHaveLength(1);
+    expect(screen.getByTestId("map-objects-problems").getAttribute("data-count")).toBe("0");
   });
 });

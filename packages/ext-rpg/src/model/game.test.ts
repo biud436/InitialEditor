@@ -28,7 +28,7 @@ describe("rpg-game.json", () => {
     ]);
     expect(g.items).toBe("resources/data/items.json");
     expect(g.play!.env).toMatchObject({ INITIAL2D_SCRIPT: "lua", INITIAL2D_SCENE: "rpg", INITIAL2D_MAP: "{rpg.map}", INITIAL2D_RPG_AT: "{cx},{cy},{dir}" });
-    expect(g.play!.probe).toEqual({ INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "{route}" });
+    expect(g.play!.probe).toEqual({ INITIAL2D_AUTOPLAY: "1", INITIAL2D_RPG_ROUTE: "{route}", INITIAL2D_RPG_HOLD: "{event}", INITIAL2D_RPG_TRACE: "1" });
     expect(mapByName(g, "inn")!.file).toBe("resources/maps/inn.json");
     expect(mapByName(g, "forest")).toBeUndefined();
   });

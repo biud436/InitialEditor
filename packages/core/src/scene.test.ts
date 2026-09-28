@@ -111,6 +111,19 @@ describe("SceneModel commands", () => {
     expect(model.find("bg")).toMatchObject({ x: 3, y: 3 });
   });
 
+  it("이미 그 값인 속성과 필드, 제자리 옮기기는 바꾸는 것이 없는 명령이라 스택이 쌓지 않는다", () => {
+    const { model, undo } = setup();
+    undo.push(model.setProp("bg", "anim.fps", 12));
+    const id = undo.stateId;
+    const bg = model.find("bg")!;
+    const same = [model.setProp("bg", "anim.fps", 12), model.setProp("bg", "missing", undefined), model.setField("bg", "x", bg.x), model.setField("bg", "visible", bg.visible), model.moveObjects([{ id: "bg", x: bg.x, y: bg.y }])];
+    expect(same.map((c) => c.unchanged)).toEqual([true, true, true, true, true]);
+    for (const cmd of same) undo.push(cmd);
+    expect([undo.depth, undo.stateId]).toEqual([1, id]);
+    expect(model.setProp("bg", "anim.fps", 24).unchanged).toBe(false);
+    expect(model.setProp("bg", "anim", { fps: 12 }).unchanged).toBe(true);
+  });
+
   it("속성과 필드와 이름과 순서와 스크립트", () => {
     const { model, undo } = setup();
     undo.push(model.setProp("bg", "image", "resources/images/x.png"));

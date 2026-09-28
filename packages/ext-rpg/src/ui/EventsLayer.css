@@ -1,0 +1,214 @@
+/* 이벤트 인스펙터와 이벤트 목록 패널. 색은 테마 토큰만 쓴다. 문제 표식과 인자 줄의 모양은 CommandListEditor.css 와 같다 */
+.rpg-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  font-size: 12px;
+  min-height: 0;
+}
+
+.rpg-inspector-head,
+.rpg-events-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.rpg-inspector-head strong,
+.rpg-events-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rpg-toolbar-gap {
+  flex: 1;
+}
+
+.rpg-lock {
+  grid-column: auto;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+}
+
+.rpg-inspector-fields {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-1);
+}
+
+.rpg-inspector-subhead {
+  margin: var(--space-1) 0;
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+
+.rpg-inspector-ids {
+  overflow-wrap: anywhere;
+}
+
+.rpg-inspector-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.rpg-inspector-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rpg-inspector-run-note {
+  font-size: 11px;
+}
+
+.rpg-row-menu {
+  position: absolute;
+  z-index: 20;
+  min-width: 160px;
+  padding: var(--space-1) 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.rpg-row-menu-item {
+  display: block;
+  width: 100%;
+  padding: 4px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.rpg-row-menu-item:hover:not(:disabled),
+.rpg-row-menu-item:focus-visible {
+  background: var(--bg-selection);
+  outline: none;
+}
+
+.rpg-row-menu-item:disabled {
+  color: var(--fg-disabled);
+}
+
+.rpg-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rpg-badge.is-accent {
+  color: var(--accent);
+}
+
+.rpg-badge.is-warning {
+  color: var(--warning);
+}
+
+.rpg-badge.is-success {
+  color: var(--success);
+}
+
+.rpg-badge.is-fg-muted {
+  color: var(--fg-muted);
+}
+
+.rpg-badge.is-danger {
+  color: var(--danger);
+}
+
+.rpg-events-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: 100%;
+  min-height: 0;
+  padding: var(--space-2);
+  font-size: 12px;
+}
+
+.rpg-start-state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: var(--space-2);
+  row-gap: 2px;
+}
+
+.rpg-start-state .rpg-arg-problem {
+  grid-column: 1 / -1;
+}
+
+.rpg-start-state-label {
+  color: var(--fg-muted);
+}
+
+.rpg-events-search {
+  width: 100%;
+}
+
+/* 패널이 머리(시작 상태, 찾기)보다 낮아도 목록이 0 으로 사라지지 않게 한 줄은 남긴다. 그때는 패널 자리(panel-body)가 통째로 스크롤한다 */
+.rpg-events-list {
+  flex: 1;
+  min-height: 24px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.rpg-events-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+  cursor: default;
+  outline: none;
+}
+
+.rpg-events-row:hover {
+  background: var(--bg-hover);
+}
+
+.rpg-events-row.is-selected {
+  background: var(--bg-selection);
+}
+
+.rpg-events-row:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--focus-ring);
+}
+
+.rpg-events-id {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rpg-events-cell {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.rpg-events-row.is-broken .rpg-events-cell {
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--danger);
+}

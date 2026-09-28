@@ -2,6 +2,10 @@
 // 렌더러(MapRenderer)는 뷰마다 하나이고 내릴 때 버린다. 테마가 바뀌면 토큰을 다시 읽어 렌더러에 준다.
 // data-zoom, data-pan-x, data-pan-y는 월드 → 화면 변환(screen = world * zoom + pan)이다. e2e가 칸과 오브젝트를
 // 캔버스 픽셀로 옮길 때 쓴다. data-tool, data-target은 문서의 편집 상태, data-ready는 타일셋까지 그린 뒤 true.
+// 확장이 이 맵에서 타일을 고르는 동안(MapSupport.picker) 캔버스 위 가운데에 요청의 글과 취소 단추를 띄우고(캔버스가 밀리지
+// 않게 겹쳐 그린다. 띠 위의 누름은 취소 단추 말고는 아래 타일로 간다), 캔버스 자리에 data-pick-surface를 달아 그 밖의 누름이
+// 고르기를 취소하게 하고, 캔버스 자리에 초점을 준다.
+// data-picking은 고르는 중이면 true.
 
 import type { MapDocument, MapTarget } from "@initial-editor/ext-tilemap/model";
 import { reaction } from "mobx";
@@ -9,19 +13,23 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { MapRenderer, readMapTheme } from "../../editor/maps";
+import { layerCommandId } from "../../editor/maps/extLayers";
 import { MAP_TOOLS } from "../../editor/maps/mapCommands";
 import { targetHidden } from "../../editor/maps/mapTools";
 import { MapSizeButton } from "./MapSizeButton";
 import "./MapView.css";
 
 export function targetKey(target: MapTarget): string {
-  return target.kind === "layer" ? `layer:${target.index}` : target.kind;
+  if (target.kind === "layer") return `layer:${target.index}`;
+  if (target.kind === "ext") return `ext:${target.id}`;
+  return target.kind;
 }
 
-function targetLabel(doc: MapDocument): string {
+function targetLabel(doc: MapDocument, extLabel: (id: string) => string | undefined): string {
   const t = doc.target;
   if (t.kind === "collision") return "통행";
   if (t.kind === "objects") return "오브젝트";
+  if (t.kind === "ext") return extLabel(t.id) ?? t.id;
   return doc.model.layers[t.index]?.name ?? `레이어 ${t.index}`;
 }
 
@@ -53,6 +61,8 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       onNotice: (message) => {
         if (!editor.toasts.toasts.some((t) => t.text === message)) editor.toasts.warn(message);
       },
+      layers: () => support.layers(),
+      pick: { active: () => support.picker.isPicking(doc), choose: (cell) => support.picker.choose(doc, cell) },
     });
     setRenderer(r);
     support.attachRenderer(doc, r);
@@ -70,6 +80,12 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
     };
   }, [doc, editor, support]);
 
+  const pick = support.picker.active?.doc === doc ? support.picker.active : null;
+  const picking = pick !== null;
+  useEffect(() => {
+    if (picking) hostRef.current?.focus({ preventScroll: true });
+  }, [picking]);
+
   const m = doc.model;
   void m.revision;
   const t = renderer?.transform;
@@ -80,6 +96,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
     void editor.commands.execute(id);
   };
   const paintsHidden = doc.tool !== "object" && doc.tool !== "pick" && targetHidden(doc);
+  const extTools = support.layers().filter((spec) => doc.layerState(spec.id) !== null);
 
   return (
     <div
@@ -91,6 +108,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       data-tool={doc.tool}
       data-target={targetKey(doc.target)}
       data-ready={status?.ready ? "true" : "false"}
+      data-picking={picking ? "true" : "false"}
       data-chunk-renders={renderer?.stats.chunkRenders ?? 0}
       data-chunk-textures={renderer?.stats.chunkTextures ?? 0}
     >
@@ -146,13 +164,30 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
               </button>
             );
           })}
+          {extTools.map((spec) => {
+            const on = doc.target.kind === "ext" && doc.target.id === spec.id;
+            return (
+              <button
+                key={spec.id}
+                type="button"
+                className={"btn map-view-tool" + (on ? " is-on" : "")}
+                aria-pressed={on}
+                data-testid={`map-tool-ext-${spec.id}`}
+                title={spec.toolKey ? `${spec.label} (${spec.toolKey})` : spec.label}
+                onClick={run(layerCommandId(spec.id))}
+              >
+                {spec.label}
+                {spec.toolKey ? <kbd className="map-view-key">{spec.toolKey}</kbd> : null}
+              </button>
+            );
+          })}
         </span>
         <span className="map-view-target" title="칠하거나 고르는 대상 (레이어 패널에서 바꾼다)">
-          대상 <b data-testid="map-target">{targetLabel(doc)}</b>
+          대상 <b data-testid="map-target">{targetLabel(doc, (id) => support.layer(id)?.label)}</b>
         </span>
         {paintsHidden ? (
-          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title="레이어 패널에서 눈을 켜면 칠할 수 있다">
-            숨김, 칠하지 않는다
+          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title={doc.tool === "ext" ? "레이어 패널에서 눈을 켜면 고칠 수 있다" : "레이어 패널에서 눈을 켜면 칠할 수 있다"}>
+            {doc.tool === "ext" ? "숨김, 고치지 않는다" : "숨김, 칠하지 않는다"}
           </span>
         ) : null}
         <span className="doc-header-spacer" />
@@ -192,7 +227,24 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
           {status.warning}
         </div>
       ) : null}
-      <div className="map-view-host" ref={hostRef} tabIndex={0} role="application" aria-label={`맵 뷰: ${m.name || doc.title}`} />
+      <div className="map-view-stage">
+        <div
+          className="map-view-host"
+          ref={hostRef}
+          tabIndex={0}
+          role="application"
+          aria-label={`맵 뷰: ${m.name || doc.title}`}
+          data-pick-surface={picking ? "true" : undefined}
+        />
+        {pick ? (
+          <div className="map-view-pick" role="status" data-testid="map-pick-banner">
+            <span data-testid="map-pick-prompt">{pick.prompt}</span>
+            <button type="button" className="btn" data-testid="map-pick-cancel" onClick={() => support.picker.cancel()}>
+              취소
+            </button>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 });

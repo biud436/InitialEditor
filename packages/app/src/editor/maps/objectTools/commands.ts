@@ -6,11 +6,11 @@
 
 import type { MenuItemSpec } from "@initial-editor/core";
 import type { Editor } from "../../Editor";
-import { playHere, playHereDisabledReason, playHereHint, playHereRefusal } from "./playHere";
+import { PLAY_HERE_LABEL, playHere, playHereDisabledReason, playHereHint, playHereRefusal } from "./playHere";
 import { PLAY_POSITION_RULE } from "./rules";
 
 export const PLAY_HERE_ID = "map.playHere";
-export const PLAY_HERE_LABEL = "여기서 실행";
+export { PLAY_HERE_LABEL };
 const MAP_BRANCH = "맵";
 
 /** 메뉴 항목 자리: 맵 갈래가 있으면 그 아래, 없으면 실행 갈래 */

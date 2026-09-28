@@ -7,3 +7,4 @@ export * from "./resize";
 export * from "./autotile";
 export * from "./engineLoad";
 export * from "./mapDocument";
+export * from "./layers";

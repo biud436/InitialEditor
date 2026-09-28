@@ -1,11 +1,13 @@
 // 파일 > 저장과 모두 저장. 저장은 Editor.saveDocument로 하고(밖에서 바뀐 파일은 거기서 모달로 묻는다), 결과를 토스트로 알린다.
-// Editor.saveDocument는 createDocumentSaver가 만든다: 디스크 확인, 같은 문서의 저장 합치기와 줄 세우기, 결과 알림.
+// Editor.saveDocument는 createDocumentSaver가 만든다: 저장 전 질문(beforeSave), 디스크 확인, 같은 문서의 저장 합치기와 줄 세우기, 결과 알림.
 
 import { ReloadFailedError, type Document, type SaveGuard, type SaveOutcome } from "@initial-editor/core";
 
 export interface DocumentSaverDeps {
   /** 저장 직전 디스크 확인과 충돌 모달 */
   guard: SaveGuard;
+  /** 디스크를 보기 전에 묻는다 (오류가 있는 맵 레이어 같은 것). false 면 저장하지 않고 취소다 */
+  beforeSave?(doc: Document): Promise<boolean>;
   /** 저장했을 때 (documentSaved를 알린다) */
   onSaved(doc: Document): void;
   log: { info(source: "editor", text: string): unknown; error(source: "editor", text: string): unknown };
@@ -29,6 +31,10 @@ export function createDocumentSaver(deps: DocumentSaverDeps): (doc: Document) =>
 
   const run = async (doc: Document, phase: RunningSave["phase"]): Promise<SaveOutcome> => {
     const name = doc.path ?? doc.title;
+    if (deps.beforeSave && !(await deps.beforeSave(doc))) {
+      deps.log.info("editor", `저장을 취소했다: ${name}`);
+      return "cancelled";
+    }
     let outcome: SaveOutcome;
     try {
       outcome = await doc.saveChecked(deps.guard, {

@@ -3,8 +3,27 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { UndoStack } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
-import { parseMap, serializeMap, MapFormatError, type MapData } from "./format";
-import { MapModel, uniqueMapObjectId } from "./mapModel";
+import {
+  bigIntText,
+  bigIntValue,
+  isJsonInteger,
+  isJsonNumber,
+  isJsonText,
+  jsonNumber,
+  jsonValueText,
+  numberFromText,
+  parseJsonLossless,
+  parseMap,
+  serializeMap,
+  stringifyJsonLossless,
+  MapFormatError,
+  type MapData,
+} from "./format";
+
+function field(o: unknown, key: string): unknown {
+  return typeof o === "object" && o !== null ? (o as Record<string, unknown>)[key] : undefined;
+}
+import { compound, MapModel, uniqueMapObjectId } from "./mapModel";
 import { MapDocument, isMapPath } from "./mapDocument";
 import { floodFill, lineCells, paletteBrush, pickBrush, rectFill, singleBrush, stamp, tileSource } from "./tiles";
 import { defaultProps, parseObjectSchema, playEnv, validateObjects } from "./schema";
@@ -78,6 +97,60 @@ describe("맵 파일", () => {
       expect(parseMap(text).events).toEqual([]);
     }
     for (const v of [{ a: 1 }, { "0": null, "1": {} }, "x", 0, false]) expect(() => parseMap(withEvents(v))).toThrow(/events 는 배열이어야 한다/);
+  });
+
+  it("2^53 을 넘는 정수는 읽고 다시 써도 숫자 글이 그대로다 (글 안의 숫자와 안전한 수는 그대로 수)", () => {
+    const base = JSON.parse(serializeMap(tiny())) as Record<string, unknown>;
+    const events = '[{"id":"a","x":1,"y":2,"data":{"seed":12345678901234567890,"neg":-98765432109876543210,"ok":9007199254740991,"text":"12345678901234567890"}}]';
+    const text = JSON.stringify({ ...base, events: "@@" }, null, 2).replace('"@@"', events) + "\n";
+    const m = parseMap(text);
+    const data = field(m.events?.[0], "data") as Record<string, unknown>;
+    expect(bigIntText(data.seed)).toBe("12345678901234567890");
+    expect(bigIntText(data.neg)).toBe("-98765432109876543210");
+    expect(data.ok).toBe(9007199254740991);
+    expect(data.text).toBe("12345678901234567890");
+    const out = serializeMap(m);
+    expect(out).toContain('"seed": 12345678901234567890,');
+    expect(out).toContain('"neg": -98765432109876543210,');
+    expect(out).toContain('"text": "12345678901234567890"');
+    // 사본(JSON 왕복)을 지나도 그대로다
+    expect(serializeMap(parseMap(out))).toBe(out);
+    expect(stringifyJsonLossless(JSON.parse(JSON.stringify(data)))).toBe('{"seed":12345678901234567890,"neg":-98765432109876543210,"ok":9007199254740991,"text":"12345678901234567890"}');
+    expect(parseJsonLossless("[12345678901234567890]")).toEqual([bigIntValue("12345678901234567890")]);
+    expect(parseJsonLossless('{"a":1e30,"b":1.5,"c":10000000000000000}')).toEqual({ a: 1e30, b: 1.5, c: 10000000000000000 });
+  });
+
+  it("2^53 을 넘는 정수는 글 자리(오브젝트 id 와 type, 레이어와 맵의 이름, 타일셋 그림)의 글이 아니다 (표식 글이 이름으로 새지 않는다)", () => {
+    const base = JSON.parse(serializeMap(tiny())) as Record<string, unknown>;
+    const withRaw = (key: string, raw: string) => JSON.stringify({ ...base, [key]: "@@" }).replace('"@@"', raw);
+    const big = "12345678901234567890";
+    expect(() => parseMap(withRaw("objects", `[{"id":${big},"type":"spawn","x":1}]`))).toThrow(/objects\[0\]\.id 는 비어 있지 않은 문자열이어야 한다/);
+    expect(() => parseMap(withRaw("objects", `[{"id":"a","type":${big},"x":1}]`))).toThrow(/objects\[0\]\.type 이 없다/);
+    const layers = parseMap(withRaw("layers", `[{"name":${big},"data":${JSON.stringify(new Array(12).fill(1))}}]`)).layers;
+    expect(layers[0].name).toBe("layer1");
+    expect(parseMap(withRaw("name", big)).name).toBe("");
+    expect(() => parseMap(withRaw("tilesets", `[{"image":${big},"firstGid":1,"columns":8}]`))).toThrow(/image 가 없다/);
+  });
+
+  it("표식 글은 수다: 수와 정수 판정, 글 판정, 보일 글, 적은 글을 값으로", () => {
+    const big = bigIntValue("12345678901234567890");
+    expect([isJsonNumber(big), isJsonInteger(big), isJsonText(big)]).toEqual([true, true, false]);
+    expect([isJsonNumber(1.5), isJsonInteger(1.5), isJsonNumber(Infinity), isJsonNumber("12"), isJsonText("12")]).toEqual([true, false, false, false, true]);
+    expect(jsonNumber(big)).toBe(Number("12345678901234567890"));
+    expect(jsonNumber("x")).toBeUndefined();
+    expect(jsonValueText(big)).toBe("12345678901234567890");
+    expect(jsonValueText({ seed: big, s: "t" })).toBe('{"seed":12345678901234567890,"s":"t"}');
+    expect(jsonValueText("글")).toBe("글");
+    expect(numberFromText("12345678901234567890")).toBe(big);
+    expect(numberFromText("-0012345678901234567890")).toBe(bigIntValue("-12345678901234567890"));
+    expect([numberFromText("9007199254740991"), numberFromText("10000000000000000"), numberFromText("1.5"), numberFromText(" 7 "), numberFromText(""), numberFromText("abc")]).toEqual([
+      9007199254740991,
+      10000000000000000,
+      1.5,
+      7,
+      null,
+      null,
+    ]);
   });
 
   it("잘못된 파일은 자리를 말한다", () => {
@@ -207,6 +280,28 @@ describe("MapModel 명령", () => {
     expect(model.objectIds()).toEqual(["spawn_2", "첫거미"]);
     expect(uniqueMapObjectId("spawn", ["spawn_1", "spawn_2"])).toBe("spawn_3");
   });
+
+  it("이미 그 값인 칸과 제자리 옮기기는 바꾸는 것이 없는 명령이라 되돌리기 단계가 늘지 않는다", () => {
+    const model = new MapModel(tiny());
+    const undo = new UndoStack();
+    undo.push(model.addObject({ id: "s", type: "spawn", x: 10, y: 20, props: { species: "wolf", seed: bigIntValue("12345678901234567890") }, extra: {} }));
+    const id = undo.stateId;
+    const same = [
+      model.setObjectProp("s", "species", "wolf"),
+      model.setObjectProp("s", "seed", bigIntValue("12345678901234567890")),
+      model.setObjectProp("s", "boss", undefined),
+      model.setObjectField("s", "x", 10),
+      model.setObjectField("s", "width", undefined),
+      model.moveObjects([{ id: "s", x: 10, y: 20 }]),
+    ];
+    for (const cmd of [...same, compound("묶음", same)]) {
+      expect(cmd.unchanged).toBe(true);
+      undo.push(cmd);
+    }
+    expect([undo.depth, undo.stateId]).toEqual([1, id]);
+    expect(model.setObjectProp("s", "species", "spider").unchanged).toBe(false);
+    expect(compound("섞임", [same[0], model.setObjectField("s", "x", 11)]).unchanged).toBe(false);
+  });
 });
 
 const SCHEMA = JSON.stringify({
@@ -267,6 +362,21 @@ describe("오브젝트 스키마", () => {
     expect(msgs).toContain("warning:objects[5].type");
     expect(msgs).toContain("error:objects[6].id");
     expect(msgs).toContain("error:objects");
+  });
+
+  it("검사: 2^53을 넘는 정수(표식 글)는 숫자와 정수 칸을 채우고, 글 칸은 채우지 못한다", () => {
+    const s = parseObjectSchema(
+      JSON.stringify({
+        version: 1,
+        types: [{ type: "box", label: "상자", fields: [{ name: "seed", type: "integer" }, { name: "weight", type: "number", max: 10 }, { name: "name", type: "string" }] }],
+      }),
+    );
+    const big = bigIntValue("12345678901234567890");
+    const problems = validateObjects([{ id: "b", type: "box", x: 0, y: 0, props: { seed: big, weight: big, name: big }, extra: {} }], s);
+    expect(problems.map((p) => [p.location, p.message])).toEqual([
+      ["objects[0].props.weight", "b: weight 은(는) 10 이하여야 한다"],
+      ["objects[0].props.name", "b: name 은(는) 글이어야 한다"],
+    ]);
   });
 
   it("검사: 필수 글 칸이 비었거나 공백뿐이면 비어 있다고 알린다. 필수가 아닌 빈 글과 필수 숫자 0은 괜찮다", () => {

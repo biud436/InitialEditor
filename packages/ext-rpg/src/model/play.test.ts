@@ -167,6 +167,19 @@ describe("실행 변수 (rpg-game.json 의 play)", () => {
     expect(probeEnv(undefined, { map: "x", route: "" })).toEqual({});
   });
 
+  it("자동 재생은 늘 trace를 켜고 {event}는 이벤트 id다 (id가 없으면 그 변수를 넣지 않는다)", () => {
+    const bare = { env: { INITIAL2D_MAP: "{rpg.map}" }, probe: { INITIAL2D_RPG_ROUTE: "{route}", INITIAL2D_RPG_HOLD: "{event}" } };
+    expect(probeEnv(bare, { map: "port_town", route: "talk", event: "kid" })).toEqual({
+      INITIAL2D_MAP: "port_town",
+      INITIAL2D_RPG_ROUTE: "talk",
+      INITIAL2D_RPG_HOLD: "kid",
+      INITIAL2D_RPG_TRACE: "1",
+    });
+    expect(probeEnv(bare, { map: "port_town", route: "", event: null })).toEqual({ INITIAL2D_MAP: "port_town", INITIAL2D_RPG_ROUTE: "", INITIAL2D_RPG_TRACE: "1" });
+    expect(probeEnv({ ...bare, probe: { INITIAL2D_RPG_TRACE: "0" } }, { map: "a", route: "" }).INITIAL2D_RPG_TRACE).toBe("1");
+    expect(planEnv(bare, { map: "port_town" })).toEqual({ INITIAL2D_MAP: "port_town" });
+  });
+
   it("자리표시자 채우기: 모르는 이름이 든 변수는 뺀다", () => {
     expect(fillPlayEnv({ A: "{a}-{b}", B: "{c}", C: "plain" }, { a: "1", b: "2" })).toEqual({ A: "1-2", C: "plain" });
   });

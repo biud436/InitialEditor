@@ -11,7 +11,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 import { useEditor } from "../EditorContext";
 import type { ObjectInspectorProps } from "./coreTypes";
-import { FieldRow, NumberField } from "./fields";
+import { FieldRow, NumberField } from "@initial-editor/ui";
 
 /** resources/maps 아래의 맵 파일 경로 (프로젝트의 폴더 캐시. 관찰 가능) */
 function useMapFiles(): string[] {

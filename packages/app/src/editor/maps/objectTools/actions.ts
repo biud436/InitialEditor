@@ -179,6 +179,7 @@ function sessionCompound(label: string, cmds: Command[], key?: string): Command 
   const cmd: Command & { cmds: Command[] } = {
     label,
     coalesceKey: key,
+    unchanged: cmds.every((c) => c.unchanged === true),
     cmds,
     execute: () => latest.forEach((c) => c.execute()),
     undo: () => [...first].reverse().forEach((c) => c.undo()),
