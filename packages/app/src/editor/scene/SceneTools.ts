@@ -361,6 +361,16 @@ export class SceneTools {
     this.apply(doc, doc.scene.detachScript(id, logicalName));
   }
 
+  /** 스크립트를 한 칸 위(-1)나 아래(1)로 옮긴다. 끝이면 아무것도 안 한다 */
+  moveScript(id: string, logicalName: string, delta: -1 | 1): void {
+    const doc = this.activeScene;
+    const o = doc?.scene.find(id);
+    if (!doc || !o) return;
+    const i = o.scripts.indexOf(logicalName);
+    if (i < 0 || i + delta < 0 || i + delta >= o.scripts.length) return;
+    this.apply(doc, doc.scene.moveScript(id, logicalName, delta));
+  }
+
   /** 논리 이름의 스크립트 파일 경로 (game.json 의 언어로) */
   scriptPath(logicalName: string): string {
     return scriptPathFor(logicalName, this.host.project.gameJson.script);
