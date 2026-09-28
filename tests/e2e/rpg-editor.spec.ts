@@ -109,7 +109,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
   });
 
   test("입력 칸 안의 Ctrl+Z: 씬 인스펙터의 칸도 같은 규칙이다 (packages/ui 의 같은 부품)", async ({ page }) => {
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
@@ -364,7 +364,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
 
 test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
   test("맵 메뉴에 이벤트 항목이 없고 창 메뉴에 이벤트가 없다", async ({ page }) => {
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
@@ -410,7 +410,7 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     // 새 메모리 백엔드(스키마 없는 샘플, layout.json 없음)로 연다. 프로젝트를 열기 전(모름)에는 탭을 둔다
     // 레이아웃은 바뀐 뒤 PERSIST_DELAY_MS(400ms) 뒤에 저장된다
     await expect.poll(() => page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).not.toContain("ext:rpg.events");
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate(([key, layout]) => localStorage.setItem(key, layout), [LAYOUT_KEY, withEvents] as const);
     await page.reload();
     await expect.poll(eventsOpen).toBe(true);

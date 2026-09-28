@@ -15,13 +15,14 @@ function setup(initialName = "mygame") {
 const select = (id: string) => screen.getByTestId(id) as HTMLSelectElement;
 
 describe("새 프로젝트 대화상자", () => {
-  it("템플릿은 빈 프로젝트, 플래피버드, 타일맵 셋이고 처음은 빈 프로젝트", () => {
+  it("템플릿은 빈 프로젝트, 플래피버드, 타일맵, RPG 데모 넷이고 처음은 빈 프로젝트", () => {
     setup();
     const options = [...select("new-project-template").options].map((o) => [o.value, o.textContent]);
     expect(options).toEqual([
       ["empty", "빈 프로젝트 (씬 1개)"],
       ["flappy", "플래피버드 (씬과 컴포넌트)"],
       ["tilemap", "타일맵"],
+      ["rpg", "RPG 데모 (항구 마을)"],
     ]);
     expect(select("new-project-template").value).toBe("empty");
     expect(screen.getByTestId("new-project-template-help").textContent).toBe(TEMPLATE_HELP.empty);
@@ -36,6 +37,21 @@ describe("새 프로젝트 대화상자", () => {
     expect(screen.getByTestId("new-project-language-help").textContent).toContain("mruby");
     fireEvent.click(screen.getByTestId("new-project-ok"));
     expect(submitted).toEqual([{ template: "tilemap", language: "mruby", name: "mygame" }]);
+  });
+
+  it("RPG 데모를 고르면 언어가 Lua로 고정되고, 다른 템플릿으로 돌아가면 고른 언어가 돌아온다", () => {
+    const { submitted } = setup();
+    fireEvent.change(select("new-project-language"), { target: { value: "mruby" } });
+    fireEvent.change(select("new-project-template"), { target: { value: "rpg" } });
+    expect(select("new-project-language").value).toBe("lua");
+    expect(select("new-project-language").disabled).toBe(true);
+    expect(screen.getByTestId("new-project-language-help").textContent).toContain("Lua로만");
+    expect(screen.getByTestId("new-project-template-help").textContent).toBe(TEMPLATE_HELP.rpg);
+    fireEvent.click(screen.getByTestId("new-project-ok"));
+    expect(submitted).toEqual([{ template: "rpg", language: "lua", name: "mygame" }]);
+    fireEvent.change(select("new-project-template"), { target: { value: "flappy" } });
+    expect(select("new-project-language").value).toBe("mruby");
+    expect(select("new-project-language").disabled).toBe(false);
   });
 
   it("이름이 비면 만들 수 없다", () => {

@@ -2,7 +2,7 @@
   "comment": "scripts/sync-engine-templates.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 경로, to 는 새 프로젝트 안의 경로",
   "source": "checkout",
   "syncCommand": "yarn sync:templates",
-  "engineCommit": "dcf0aeccf4da3e9f75a6c75c57096ecbbad66acc",
+  "engineCommit": "352d61915004fe507a5fe4a1e72a30d9e136e927",
   "syncedAt": "2026-09-28",
   "files": [
     {
@@ -391,6 +391,631 @@
       "kind": "binary",
       "size": 11024,
       "sha256": "df9e0ba6b1e39b3b1d338a6dabc8d64e8d59d91dfd647ac4ff41f7410d901a59",
+      "generated": false
+    },
+    {
+      "path": "resources/tiles/tile1.png",
+      "to": "resources/tiles/tile1.png",
+      "groups": [
+        "tilemap",
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 180,
+      "sha256": "949d186243261027401531cf766727627e4dde9a879568f52d7c313e9a618e3b",
+      "generated": false
+    },
+    {
+      "path": "resources/templates/rpg/main.lua",
+      "to": "scripts/lua/main.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1783,
+      "sha256": "36c69034f1c0c60f05cdd89c739c87291d6fa6e29b801f338cf55cc27e7b7815",
+      "generated": false
+    },
+    {
+      "path": "resources/templates/rpg/rpg-game.json",
+      "to": "resources/data/rpg-game.json",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 745,
+      "sha256": "73f9cecfd6957cb6685e92734cffc6443ed6b06106902e329e8c7b76b383a721",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/games/rpgdemo/config.lua",
+      "to": "scripts/lua/games/rpgdemo/config.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 6707,
+      "sha256": "54f751ca7679b7bf7bc358d3f0e21bb5798df1ac17a4f6f5803e61123beec8d8",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/games/rpgdemo/game.lua",
+      "to": "scripts/lua/games/rpgdemo/game.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 27719,
+      "sha256": "734fc8e5e9cdd2ce843723b5c86a211bb87dc9a3dc2074d5216bd34aec67f20b",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/games/rpgdemo/items.lua",
+      "to": "scripts/lua/games/rpgdemo/items.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1181,
+      "sha256": "296e788a66bdaff23b82f2cc3e277d41c7d333b6a9095fe43ffa58f66c3df92a",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/games/rpgdemo/playenv.lua",
+      "to": "scripts/lua/games/rpgdemo/playenv.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 6169,
+      "sha256": "e4a6b3029521d6448df8cf9aa1726ae8a1f870ebbfebe71dd7954446a919d9fe",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/games/rpgdemo/title.lua",
+      "to": "scripts/lua/games/rpgdemo/title.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 6251,
+      "sha256": "83f19a2e0275d348df1621f56c625491a54b46e5af09451904c283ad5ea09a13",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/assets.lua",
+      "to": "scripts/lua/rpg/assets.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 6204,
+      "sha256": "8185a9c107384b43d3ada7b7268ce3113d63e7765e30b0797a169c983725801f",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/camera.lua",
+      "to": "scripts/lua/rpg/camera.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 2320,
+      "sha256": "15c2045eedbdf74bfcf81de2a9ee9982b86c8fdf58e7349f05821778524aac8b",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/character.lua",
+      "to": "scripts/lua/rpg/character.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 13200,
+      "sha256": "4899dd3b571b5d6b173a80b1245ec7b85b60e73ce49ce15f135dcf5901af51e5",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/choice.lua",
+      "to": "scripts/lua/rpg/choice.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 7674,
+      "sha256": "809da3aaa295c025f13a305974c5ad0f4413746cec9f810d057470b228f0ad67",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/commands.lua",
+      "to": "scripts/lua/rpg/commands.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 21470,
+      "sha256": "480ba0be4781cf7487bef034ee0e198697e0b2552f84899fae148fcce83a4a15",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/event.lua",
+      "to": "scripts/lua/rpg/event.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 9544,
+      "sha256": "ad2fa82d6e359b4959b567fd51f2422ee4a4a290d602d244c11d5ae7b78ab629",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/interpreter.lua",
+      "to": "scripts/lua/rpg/interpreter.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 12353,
+      "sha256": "9b533c5e6fd6a26b9cea38c8be132221841591a9632a411f7e2e416677cbbd9b",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/inventory.lua",
+      "to": "scripts/lua/rpg/inventory.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 3212,
+      "sha256": "4fd7eef534d45bf94ff7f3b0b431867084c020ec8ca5d4c668ed7d58a113b225",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/jsonshape.lua",
+      "to": "scripts/lua/rpg/jsonshape.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1570,
+      "sha256": "0bbbbeefdc4c1c219c534a53d6b086c3a81ea9c6920103b9d10dc13ed99d63e7",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/map_scene.lua",
+      "to": "scripts/lua/rpg/map_scene.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 7000,
+      "sha256": "0b1ba9ac60c03773c2c7ce96d14014720e8df098b27feca9571f33f454a73418",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/mapdata.lua",
+      "to": "scripts/lua/rpg/mapdata.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 10313,
+      "sha256": "9cb772059d280ecb3d52cbd36af52f6e478a9dea1ebd76ee937efc7e96079765",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/menu.lua",
+      "to": "scripts/lua/rpg/menu.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 7227,
+      "sha256": "37b06659943517a769ecddff236aafe1eba197e2fee10ca718a030008c6bae1d",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/message.lua",
+      "to": "scripts/lua/rpg/message.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 12818,
+      "sha256": "884a074b22a9e0a3bb0acdc46569c247d9b1cdf037b62e3e3034a786fa94acd9",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/player.lua",
+      "to": "scripts/lua/rpg/player.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 4092,
+      "sha256": "a2da0eb5cd1f97c94a97969eda7a0b0b01df7a4ed96cd5561e22584efd811c05",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/rng.lua",
+      "to": "scripts/lua/rpg/rng.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 2309,
+      "sha256": "a5f53aa705ca3433f6335a84a57cf52f9506c34024f5369fdd0c976f84d3d744",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/specs.lua",
+      "to": "scripts/lua/rpg/specs.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 6530,
+      "sha256": "1861a85a5d4206e1b7e1662baa4d109c84d95ec0dbb9c8d00299d53bd36d99a3",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/text.lua",
+      "to": "scripts/lua/rpg/text.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 4073,
+      "sha256": "2311d622611e38487eff6d1670fad904232ae8ae9709327cf00d52c78e2accba",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/rpg/window.lua",
+      "to": "scripts/lua/rpg/window.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 11302,
+      "sha256": "7c27187c361c242fb24a14a1e7103daf92a3e2397a44cf3a3e077cd12cd94feb",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/bgm.lua",
+      "to": "scripts/lua/bgm.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 3013,
+      "sha256": "5b465e61de8360252f74db60eeb479fa5b1c6b7ce60e247f3e9d22de977403c3",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/image.lua",
+      "to": "scripts/lua/image.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 4196,
+      "sha256": "0186fc3d8a462b2bf9ae471114d5536dc2b994a825bb8c74fda5195ffbb3f0ed",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/ui/buttons.lua",
+      "to": "scripts/lua/ui/buttons.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 5556,
+      "sha256": "576e09f3894b3e42ed8e18e4e0ed2cd79f61eee8c520249b74237affc17403a0",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/ui/touch.lua",
+      "to": "scripts/lua/ui/touch.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1720,
+      "sha256": "a69fc8007c87c863fe2a8f066a2f4725e0c2509ed437d19485f2a97b521bdac8",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/ui/vpad.lua",
+      "to": "scripts/lua/ui/vpad.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 5237,
+      "sha256": "9fff5b5d813d4bbddbe453738b91d782ff8a4a6b09eafcd8e9e069d27c2f6a68",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/maps/port_town.lua",
+      "to": "scripts/lua/maps/port_town.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 1080,
+      "sha256": "9125721581396e52c218daafa440ace0f4356f29412a597474ca3c5fe7f429e7",
+      "generated": false
+    },
+    {
+      "path": "scripts/lua/maps/inn.lua",
+      "to": "scripts/lua/maps/inn.lua",
+      "groups": [
+        "rpg"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 959,
+      "sha256": "09c4cc9793e4b7e198c3f359ac0bf7d8131665f1a3248bf0f4e869f9549d1558",
+      "generated": false
+    },
+    {
+      "path": "resources/maps/port_town.json",
+      "to": "resources/maps/port_town.json",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 40499,
+      "sha256": "a9c0d91d504794eb37bf8c5ebf5461e4869a2a70e7b0f4c5d1636c31956a0954",
+      "generated": false
+    },
+    {
+      "path": "resources/maps/inn.json",
+      "to": "resources/maps/inn.json",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 13455,
+      "sha256": "1edf7fded395942e9b788a78965926ed2c80c9e9ce2e53566505181c0849853f",
+      "generated": false
+    },
+    {
+      "path": "resources/data/items.json",
+      "to": "resources/data/items.json",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 703,
+      "sha256": "693621237409da0bc650ad923f57a0f15339ba2acfe94c031a257af32657c790",
+      "generated": false
+    },
+    {
+      "path": "resources/schema/event-commands.json",
+      "to": "resources/schema/event-commands.json",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "text",
+      "size": 12753,
+      "sha256": "38185908aad73c73e65b356e33969c842ba06c0244ed533a7e5d9e93c5b8d4aa",
+      "generated": false
+    },
+    {
+      "path": "resources/tiles/port16.png",
+      "to": "resources/tiles/port16.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 11292,
+      "sha256": "18f549c99fd60665088bd2d660531ed8e8e1e2dcc7d2e221fee9479955c1d047",
+      "generated": false
+    },
+    {
+      "path": "resources/titles/port_title.png",
+      "to": "resources/titles/port_title.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 109929,
+      "sha256": "b558faccb8cd67b4dd9c4cb9fa8bbcf7d1592584f412905b8aeb65a29ab26858",
+      "generated": false
+    },
+    {
+      "path": "resources/ui/window.png",
+      "to": "resources/ui/window.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 758,
+      "sha256": "70e3cfb8d90e5821c73a2b95ee2750ef7d8acd9ad248d5d7f1880595d0e5f892",
+      "generated": false
+    },
+    {
+      "path": "resources/ui/fade.png",
+      "to": "resources/ui/fade.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 86,
+      "sha256": "789cc3d7c8416b40a4f20155ece071c362f85d610e71b32b328bfc12b4cf2ead",
+      "generated": false
+    },
+    {
+      "path": "resources/ui/dpad.png",
+      "to": "resources/ui/dpad.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 5676,
+      "sha256": "13f4bd04276115a418c2399c91c74be45d1b70482ab56fbd6bd2eff2428bdeeb",
+      "generated": false
+    },
+    {
+      "path": "resources/ui/actionbtn.png",
+      "to": "resources/ui/actionbtn.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 1703,
+      "sha256": "aea3254ab08a133548374ee2b3c4bf91fde727a2cc020d0f7d976a0d310063c7",
+      "generated": false
+    },
+    {
+      "path": "resources/charsets/placeholder.png",
+      "to": "resources/charsets/placeholder.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 10122,
+      "sha256": "b226aae41451ac413a27339cacf4820e6352e2840dab5fcee43db1c27ccba448",
+      "generated": false
+    },
+    {
+      "path": "resources/faces/placeholder.png",
+      "to": "resources/faces/placeholder.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 5559,
+      "sha256": "9d33de50ad94304b3e96ed15e158c2907a4797c4816dd1c063ade3e25b4d7fea",
+      "generated": false
+    },
+    {
+      "path": "resources/fonts/hangul16.fnt",
+      "to": "resources/fonts/hangul16.fnt",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 293577,
+      "sha256": "61f6a5e95f6a93de8bb1bdf94a41cd2faa87b7bddcc8561c0779f75ac3bd784c",
+      "generated": false
+    },
+    {
+      "path": "resources/fonts/hangul16_0.png",
+      "to": "resources/fonts/hangul16_0.png",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 276417,
+      "sha256": "89f2ae34239aebefee166a6d70460c66bc21939c85d30d4fc3487de730045a3f",
+      "generated": false
+    },
+    {
+      "path": "resources/audio/bless.ogg",
+      "to": "resources/audio/bless.ogg",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 2484381,
+      "sha256": "c8492f6cb316446f8a8005a905334dbb6d49acf1cfd751621c7cdf621d5c25f9",
+      "generated": false
+    },
+    {
+      "path": "resources/audio/door.wav",
+      "to": "resources/audio/door.wav",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 9746,
+      "sha256": "cc48761d77d1558822c03592355e3dcbb9560f2817b6001d4c76dd232ef29e89",
+      "generated": false
+    },
+    {
+      "path": "resources/audio/ui_cursor.wav",
+      "to": "resources/audio/ui_cursor.wav",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 2028,
+      "sha256": "82e1c8bad96234162dc80eda37f40571100326b55303738c172bef43834b1f60",
+      "generated": false
+    },
+    {
+      "path": "resources/audio/ui_decision.wav",
+      "to": "resources/audio/ui_decision.wav",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 5334,
+      "sha256": "6712f014412713b77d571b4b7f6efb9a22257b6c06b24bbb48f7e51dacf1055f",
+      "generated": false
+    },
+    {
+      "path": "resources/audio/ui_text.wav",
+      "to": "resources/audio/ui_text.wav",
+      "groups": [
+        "rpg"
+      ],
+      "language": null,
+      "kind": "binary",
+      "size": 748,
+      "sha256": "d376cb4858a1db1eadff8b30ee33bc85584180b613b7eec28ce651ef7b871008",
       "generated": false
     }
   ]

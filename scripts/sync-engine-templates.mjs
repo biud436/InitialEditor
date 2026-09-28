@@ -7,7 +7,7 @@
 //   yarn sync:templates --allow-dirty                       체크아웃의 추적 파일이 커밋과 달라도 복사한다 (MANIFEST 에 dirty)
 //   yarn sync:templates --out <폴더>                        다른 폴더에 쓴다 (테스트용)
 //
-// 복사 목록은 SOURCES 다: 엔진 안 경로(from), 새 프로젝트 안 경로(to), 그룹(common 은 늘, empty, flappy, tilemap 은 그 템플릿일 때),
+// 복사 목록은 SOURCES 다: 엔진 안 경로(from), 새 프로젝트 안 경로(to), 그룹(common 은 늘, empty, flappy, tilemap, rpg 는 그 템플릿일 때),
 // 언어(lua, ruby, null 은 둘 다), 텍스트와 바이너리. 엔진의 tools/templates_list.txt 가 같은 from 목록이다.
 // MANIFEST.json 의 source 는 "checkout"(엔진 체크아웃) 또는 "release"(템플릿 묶음), engineCommit 은 40자,
 // files[].generated 는 git 이 추적하지 않는 생성물이다 (체크아웃이면 git ls-files, 묶음이면 묶음의 MANIFEST 가 정한다).
@@ -83,6 +83,48 @@ export const SOURCES = [
   { from: "resources/templates/tilemap/map.json", to: "resources/maps/start.json", groups: ["tilemap"], language: null, kind: TEXT },
   { from: "resources/templates/tilemap/map-objects.json", to: "resources/schema/map-objects.json", groups: ["tilemap"], language: null, kind: TEXT },
   { from: "resources/tiles/tileset16-8x13.png", to: "resources/tiles/tileset16-8x13.png", groups: ["tilemap"], language: null, kind: BINARY },
+  // 타일맵과 RPG 템플릿에 함께 싣는 타일셋 (새 맵에서 고를 수 있다)
+  { from: "resources/tiles/tile1.png", to: "resources/tiles/tile1.png", groups: ["tilemap", "rpg"], language: null, kind: BINARY },
+  // RPG: 데모 「떠나기 전에」의 항구 마을과 여관 (Lua 만). 진입 파일과 게임 설정만 자리가 다르고 나머지는 엔진 경로 그대로
+  { from: "resources/templates/rpg/main.lua", to: "scripts/lua/main.lua", groups: ["rpg"], language: "lua", kind: TEXT },
+  { from: "resources/templates/rpg/rpg-game.json", to: "resources/data/rpg-game.json", groups: ["rpg"], language: null, kind: TEXT },
+  ...[
+    ...["config", "game", "items", "playenv", "title"].map((n) => `scripts/lua/games/rpgdemo/${n}.lua`),
+    ...["assets", "camera", "character", "choice", "commands", "event", "interpreter", "inventory", "jsonshape", "map_scene", "mapdata", "menu", "message", "player", "rng", "specs", "text", "window"].map(
+      (n) => `scripts/lua/rpg/${n}.lua`,
+    ),
+    "scripts/lua/bgm.lua",
+    "scripts/lua/image.lua",
+    "scripts/lua/ui/buttons.lua",
+    "scripts/lua/ui/touch.lua",
+    "scripts/lua/ui/vpad.lua",
+    "scripts/lua/maps/port_town.lua",
+    "scripts/lua/maps/inn.lua",
+  ].map((path) => ({ from: path, to: path, groups: ["rpg"], language: "lua", kind: TEXT })),
+  ...["resources/maps/port_town.json", "resources/maps/inn.json", "resources/data/items.json", "resources/schema/event-commands.json"].map((path) => ({
+    from: path,
+    to: path,
+    groups: ["rpg"],
+    language: null,
+    kind: TEXT,
+  })),
+  ...[
+    "resources/tiles/port16.png",
+    "resources/titles/port_title.png",
+    "resources/ui/window.png",
+    "resources/ui/fade.png",
+    "resources/ui/dpad.png",
+    "resources/ui/actionbtn.png",
+    "resources/charsets/placeholder.png",
+    "resources/faces/placeholder.png",
+    "resources/fonts/hangul16.fnt",
+    "resources/fonts/hangul16_0.png",
+    "resources/audio/bless.ogg",
+    "resources/audio/door.wav",
+    "resources/audio/ui_cursor.wav",
+    "resources/audio/ui_decision.wav",
+    "resources/audio/ui_text.wav",
+  ].map((path) => ({ from: path, to: path, groups: ["rpg"], language: null, kind: BINARY })),
 ];
 
 export class SyncError extends Error {}

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { GITIGNORE_PATH, GITIGNORE_TEXT, writeProjectTemplate, type ProjectTemplateOptions } from "./projectTemplates";
 import type { TemplateSource } from "./templateFiles";
-import { TEMPLATE_LABELS, TEMPLATE_START_SCENE, templatePlan, type ProjectTemplateId, type TemplateManifest } from "./templateManifest";
+import { TEMPLATE_LABELS, TEMPLATE_LANGUAGE, TEMPLATE_START_SCENE, templatePlan, type ProjectTemplateId, type TemplateManifest } from "./templateManifest";
 
 const TEMPLATES_DIR = fileURLToPath(new URL("../../../templates/", import.meta.url));
 const manifest = JSON.parse(fs.readFileSync(TEMPLATES_DIR + "MANIFEST.json", "utf8")) as TemplateManifest;
@@ -141,17 +141,29 @@ describe("writeProjectTemplate", () => {
 
   it("템플릿마다 라벨과 시작 씬이 있고, 한 템플릿 안에서 새 프로젝트 경로가 겹치지 않는다", () => {
     const ids = Object.keys(TEMPLATE_LABELS) as ProjectTemplateId[];
-    expect(ids).toEqual(["empty", "flappy", "tilemap"]);
+    expect(ids).toEqual(["empty", "flappy", "tilemap", "rpg"]);
     expect(TEMPLATE_LABELS.tilemap).toBe("타일맵");
-    expect(TEMPLATE_START_SCENE).toEqual({ empty: "main", flappy: "flappy", tilemap: "main" });
+    expect(TEMPLATE_LABELS.rpg).toBe("RPG 데모 (항구 마을)");
+    expect(TEMPLATE_START_SCENE).toEqual({ empty: "main", flappy: "flappy", tilemap: "main", rpg: undefined });
+    expect(TEMPLATE_LANGUAGE).toEqual({ rpg: "lua" });
     for (const id of ids) {
-      for (const language of ["lua", "ruby"] as const) {
+      const languages = TEMPLATE_LANGUAGE[id] ? [TEMPLATE_LANGUAGE[id]!] : (["lua", "ruby"] as const);
+      for (const language of languages) {
         const tos = templatePlan(manifest, id, language).map((f) => f.to);
         expect(new Set(tos).size, `${id}/${language}`).toBe(tos.length);
-        // 시작 씬 파일이 그 템플릿에 든다
-        expect(tos, `${id}/${language}`).toContain(`resources/scenes/${TEMPLATE_START_SCENE[id]}.json`);
+        // 시작 씬 파일이 그 템플릿에 든다 (RPG 데모는 씬 파일 없이 진입점이 타이틀을 연다)
+        const start = TEMPLATE_START_SCENE[id];
+        if (start) expect(tos, `${id}/${language}`).toContain(`resources/scenes/${start}.json`);
       }
     }
+    // RPG 데모: 진입 파일과 게임 설정은 자리가 다르고, 맵과 RPG 레이어와 타일셋이 든다
+    const rpg = templatePlan(manifest, "rpg", "lua");
+    expect(rpg.find((f) => f.path === "resources/templates/rpg/main.lua")?.to).toBe("scripts/lua/main.lua");
+    expect(rpg.find((f) => f.path === "resources/templates/rpg/rpg-game.json")?.to).toBe("resources/data/rpg-game.json");
+    for (const to of ["resources/maps/port_town.json", "resources/maps/inn.json", "resources/tiles/port16.png", "scripts/lua/rpg/interpreter.lua", "resources/schema/event-commands.json", "resources/tiles/tile1.png"]) {
+      expect(rpg.map((f) => f.to), to).toContain(to);
+    }
+    expect(rpg.some((f) => f.to.startsWith("scripts/ruby/"))).toBe(false);
   });
 
   it("있는 파일은 두고 없는 것만 만든다", async () => {

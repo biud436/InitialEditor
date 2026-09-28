@@ -1,6 +1,7 @@
 // 시작할 때 백엔드를 고른다 (docs/plans/03-project-and-runtime.md 2절, e4-embedded-play.md 웹판).
 //   Tauri 웹뷰 안이면 TauriBackend.
 //   브라우저에서는 URL 질의로 고른다: ?backend=memory (샘플 프로젝트, 의존성 없음), ?backend=bridge,
+//   메모리 샘플은 ?sample= 로 고른다: 기본은 RPG 데모, meadow 는 초원 샘플(e2e 가 쓴다), nogame 은 game.json 없는 초원.
 //   ?backend=browser (폴더 열기), ?backend=opfs (브라우저 전용 저장소를 바로 연다. 테스트용).
 //   질의가 없으면 로컬 페이지는 브리지, 배포된 페이지(웹판)는 폴더 열기가 있으면 브라우저 폴더, 없으면 메모리.
 //   브리지 URL 은 ?url= > 설정의 bridgeUrl > DEFAULT_BRIDGE_URL.
@@ -11,6 +12,7 @@ import { BridgeBackend, DEFAULT_BRIDGE_URL } from "@initial-editor/backend-bridg
 import { FsAccessBackend, OPFS_ROOT, supportsFolderPicker } from "@initial-editor/backend-fsaccess";
 import { isTauri, TauriBackend, TauriSettingsStorage } from "@initial-editor/backend-tauri";
 import { LocalStorageSettingsStorage } from "./LocalStorageSettingsStorage";
+import { RpgSampleBackend } from "./rpgSample";
 import { SAMPLE_ROOT, sampleProjectFiles } from "./sampleProject";
 
 export type BackendMode = "tauri" | "bridge" | "memory" | "browser";
@@ -101,9 +103,18 @@ export function createBackend(mode: BackendMode, query: StartupQuery, settingsUr
   }
 }
 
-export function createMemoryBackend(sample?: string): MemoryBackend {
+export type SampleKind = "rpg" | "meadow" | "nogame";
+
+/** ?sample= 값의 샘플 (모르는 값과 없음은 RPG 데모) */
+export function sampleKind(query?: string | null): SampleKind {
+  return query === "meadow" || query === "nogame" ? query : "rpg";
+}
+
+export function createMemoryBackend(sample?: string | null): MemoryBackend {
+  const kind = sampleKind(sample);
+  if (kind === "rpg") return new RpgSampleBackend();
   const files = sampleProjectFiles();
-  if (sample === "nogame") delete files["game.json"];
+  if (kind === "nogame") delete files["game.json"];
   return new MemoryBackend(files);
 }
 

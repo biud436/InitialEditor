@@ -77,7 +77,7 @@ async function drag(page: Page, from: { x: number; y: number }, to: { x: number;
 }
 
 async function openMeadow(page: Page) {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((keys) => keys.forEach((k) => localStorage.removeItem(k)), [LAYOUT_KEY, MAP_VIEW_KEY]);
   await page.reload();
   await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
@@ -265,7 +265,7 @@ test.describe("맵 뷰: 밖에서 바뀐 파일", () => {
   test("타일셋 이미지가 바뀌면 다시 그리고, 맵 파일이 바뀌면 미수정은 다시 읽고 수정 중이면 배너, 맵이 아닌 파일은 텍스트로", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((keys) => keys.forEach((k) => localStorage.removeItem(k)), [LAYOUT_KEY, MAP_VIEW_KEY]);
     await page.reload();
     await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();

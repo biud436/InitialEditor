@@ -15,7 +15,7 @@ async function openMenu(page: Page, branch: string, item: string | RegExp) {
 
 test.describe("메모리 모드 스모크", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     // 이전 실행의 레이아웃이 남아 있으면 지우고 다시 연다
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();

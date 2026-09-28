@@ -15,7 +15,7 @@ interface DebugWindow {
 }
 
 async function openSample(page: Page) {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
   await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
@@ -31,7 +31,7 @@ async function appendLog(page: Page, level: string, source: string, text: string
 
 test.describe("실행기 (메모리 모드)", () => {
   test("상태 바의 엔진 칸은 에디터 안 대기이고 웹 엔진이 툴팁에 있다", async ({ page }) => {
-    await page.goto("/?backend=memory");
+    await page.goto("/?backend=memory&sample=meadow");
     const engine = page.getByTestId("status-engine");
     await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     await expect(engine).toHaveAttribute("title", /게임 탭에서 실행 \(웹 엔진\)/);

@@ -40,7 +40,7 @@ async function openMenu(page: Page, branch: string, item: string | RegExp) {
 
 /** 샘플 프로젝트를 열고 빈 씬(resources/scenes/<name>.json)을 만든다 */
 async function newSceneInSample(page: Page, name: string): Promise<Locator> {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((keys) => keys.forEach((k) => localStorage.removeItem(k)), [LAYOUT_KEY, VIEW_KEY]);
   await page.reload();
   await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();

@@ -82,7 +82,7 @@ async function activateFakeExtension(page: Page): Promise<void> {
 }
 
 async function openSample(page: Page) {
-  await page.goto("/?backend=memory");
+  await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
   await activateFakeExtension(page);
