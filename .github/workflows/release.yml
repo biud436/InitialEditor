@@ -487,7 +487,7 @@ jobs:
               cat "docs/releases/$version.md"
             else
               prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
-              echo "## 바뀐 것"
+              echo "## Changes"
               echo
               git log --no-merges --format='- %s' ${prev:+"$prev.."}"$GITHUB_REF_NAME"
             fi
