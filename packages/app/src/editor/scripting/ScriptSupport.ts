@@ -26,7 +26,7 @@ export class ScriptSupport {
   private specRun = 0;
 
   constructor(private readonly editor: Editor) {
-    this.find = new FindStore({ backend: () => editor.backend, isOpen: () => editor.project.isOpen });
+    this.find = new FindStore({ backend: () => editor.backend, isOpen: () => editor.project.isOpen, scope: () => editor.tree?.filter.scope });
     makeObservable(this, { spec: observable.ref, specSource: observable, openCount: computed, activeScript: computed });
   }
 

@@ -3,9 +3,9 @@
 //
 // 올리는 것: game.json, scripts/ 아래 전부, resources/ 아래 전부.
 // 빼는 것: resources/rtp/, resources/aldebaran/src/, .initial-editor/, .git/, 점으로 시작하는 이름, *.zip, *.psd,
-// 그리고 32 MB 를 넘는 파일(경고를 남긴다).
+// 그리고 32 MB 를 넘는 파일(경고를 남긴다). 프로젝트의 무시 파일(.initial-editorignore, 코어의 ProjectScope)이 빼는 것도 뺀다.
 
-import { isInside, normalizeRel, type Entry, type ProjectBackend } from "@initial-editor/core";
+import { isInside, normalizeRel, ProjectScope, type Entry, type ProjectBackend } from "@initial-editor/core";
 
 export const STAGE_ROOTS: readonly string[] = ["scripts", "resources"];
 export const STAGE_ROOT_FILES: readonly string[] = ["game.json"];
@@ -71,11 +71,11 @@ export interface StageListResult {
  * 올릴 파일 목록. roots 를 주면 그 폴더들만 본다 (핫 리로드가 scripts 와 씬과 맵만 다시 올릴 때).
  * 없는 폴더는 조용히 건너뛴다.
  */
-export async function listStageFiles(backend: ProjectBackend, roots?: readonly string[]): Promise<StageListResult> {
+export async function listStageFiles(backend: ProjectBackend, roots?: readonly string[], scope: ProjectScope = new ProjectScope()): Promise<StageListResult> {
   const files: StageEntry[] = [];
   const tooLarge: StageEntry[] = [];
   const take = (e: Entry) => {
-    if (!isStagePath(e.path)) return;
+    if (!isStagePath(e.path) || !scope.includes(e.path, "file")) return;
     const entry: StageEntry = { path: normalizeRel(e.path), size: e.size };
     if (e.size !== undefined && e.size > MAX_STAGE_BYTES) tooLarge.push(entry);
     else files.push(entry);
@@ -90,7 +90,7 @@ export async function listStageFiles(backend: ProjectBackend, roots?: readonly s
     const subdirs: string[] = [];
     for (const e of entries) {
       if (e.kind === "dir") {
-        if (isStageDir(e.path)) subdirs.push(e.path);
+        if (isStageDir(e.path) && scope.includes(e.path, "dir")) subdirs.push(e.path);
       } else take(e);
     }
     await Promise.all(subdirs.map((d) => walk(d)));

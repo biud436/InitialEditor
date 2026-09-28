@@ -1,4 +1,4 @@
-import { MemoryBackend } from "@initial-editor/core";
+import { IgnoreRules, MemoryBackend, ProjectScope } from "@initial-editor/core";
 import { describe, expect, it } from "vitest";
 import { compileQuery, escapeRegExp, FindStore, isSearchableEntry, looksBinary, matchLines } from "./find";
 
@@ -81,6 +81,16 @@ describe("FindStore", () => {
     expect(find.results[1].matches[0]).toEqual({ line: 2, column: 10, length: 4, text: "function init()" });
     expect(find.lastQuery).toBe("init");
     expect(find.scanned).toBe(4);
+  });
+
+  it("프로젝트 파일의 범위(무시 파일)를 따른다: 뺀 파일과 폴더, 점으로 시작하는 폴더는 찾지 않는다", async () => {
+    const { backend } = await store();
+    await backend.writeText("scripts/.cache/init.lua", "init");
+    const scope = new ProjectScope(IgnoreRules.parse("/scripts/ruby/\nsample.json\n"));
+    const find = new FindStore({ backend: () => backend, isOpen: () => true, scope: () => scope });
+    find.setQuery("init");
+    await find.search();
+    expect(find.results.map((f) => f.path)).toEqual(["scripts/lua/games/flappy.lua", "scripts/lua/main.lua"]);
   });
 
   it("빈 질의는 아무것도 하지 않고, 잘못된 정규식은 오류를 남긴다", async () => {
