@@ -340,7 +340,10 @@ export class SceneTools {
       return false;
     }
     const selected = doc.selection.has(id);
-    this.apply(doc, doc.scene.renameObject(id, next));
+    // 선언의 object 필드가 이 id 를 가리키는 매개변수도 새 id 로 (이름 바꾸기와 한 단계)
+    const refs = this.objectParamRefs(doc, id).map((r) => doc.scene.setParam(r.objectId, r.component, r.key, next));
+    const rename = doc.scene.renameObject(id, next);
+    this.apply(doc, refs.length ? compoundCommand(rename.label, [...refs, rename]) : rename);
     if (selected) {
       runInAction(() => {
         doc.selection.delete(id);
@@ -404,6 +407,19 @@ export class SceneTools {
     const i = o.scripts.indexOf(logicalName);
     if (i < 0 || i + delta < 0 || i + delta >= o.scripts.length) return;
     this.apply(doc, doc.scene.moveScript(id, logicalName, delta));
+  }
+
+  /** 씬에서 선언의 object 필드 값이 target 인 매개변수 (선언을 아직 읽지 않은 컴포넌트는 빠진다) */
+  objectParamRefs(doc: SceneDocument, target: string): Array<{ objectId: string; component: string; key: string }> {
+    const refs: Array<{ objectId: string; component: string; key: string }> = [];
+    for (const o of doc.scene.objects) {
+      for (const [component, values] of Object.entries(o.params)) {
+        const state = this.declarations.lookup(component);
+        if (state?.kind !== "declared") continue;
+        for (const f of state.declaration.fields) if (f.type === "object" && values[f.key] === target) refs.push({ objectId: o.id, component, key: f.key });
+      }
+    }
+    return refs;
   }
 
   /** 컴포넌트 매개변수 값 하나. undefined 면 값을 지워 선언의 기본값으로 돌아간다 */
