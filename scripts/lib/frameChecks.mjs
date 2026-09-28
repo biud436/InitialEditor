@@ -1,5 +1,6 @@
 // 화면 검사 (docs/plans/e6-packaging.md 5절). BMP 는 tests/e2e/support/bmp.ts 의 readBmp 로 읽은 것을 받는다
-// ({ width, height, pixel(x, y) → { r, g, b, a } }). scripts/e2e-engine-scene.mjs 와 scripts/selftest-check.mjs 가 같이 쓴다.
+// ({ width, height, pixel(x, y) → { r, g, b, a } }). scripts/e2e-engine-scene.mjs, scripts/e2e-engine-map.mjs, scripts/selftest-check.mjs 가
+// 같이 쓴다.
 //
 // 타일맵 템플릿의 표식 (엔진 docs/plans/r4-dist-build.md 6절): 타일 44(gid 45)는 256 픽셀 가운데 251 개가 #d8c880 이고
 // 템플릿 맵에는 없다. 칠해 보는 칸은 (24, 28), 이웃 (25, 28) 은 잔디 #40b080 이다.
@@ -128,6 +129,14 @@ export function rgbaImage(width, height, rgba) {
   };
 }
 
+/** 화면(pixel(x, y) 가 있는 것)의 한 사각형을 같은 꼴로 (복사하지 않고 자리만 옮긴다) */
+export function cropImage(img, x0, y0, width, height) {
+  if (x0 < 0 || y0 < 0 || x0 + width > img.width || y0 + height > img.height) {
+    throw new Error(`자를 사각형 ${x0},${y0} ${width}x${height} 이 화면 ${img.width}x${img.height} 밖이다`);
+  }
+  return { width, height, pixel: (x, y) => img.pixel(x0 + x, y0 + y) };
+}
+
 /** gid 가 속한 타일셋 (firstGid 가 gid 이하인 것 가운데 가장 큰 것). 없으면 null */
 function tilesetFor(tilesets, gid) {
   let best = null;
@@ -197,12 +206,19 @@ function sameRgb(p, q, tol) {
   return Math.abs(p.r - q.r) <= tol && Math.abs(p.g - q.g) <= tol && Math.abs(p.b - q.b) <= tol;
 }
 
-/** ref 의 불투명한 픽셀 가운데 pick(x, y) 가 고른 것이 게임 화면(배율 scale)의 같은 자리와 같은 수 */
-function matchFrame(ref, frame, scale, pick, tol) {
+/**
+ * ref 의 불투명한 픽셀 가운데 pick(x, y) 가 고른 것이 게임 화면(배율 scale)의 같은 자리와 같은 수.
+ * area({ x0, y0, x1, y1 }, 끝은 포함하지 않는다)를 주면 그 안만 본다
+ */
+function matchFrame(ref, frame, scale, pick, tol, area = null) {
   let count = 0;
   let match = 0;
-  for (let y = 0; y < ref.height; y++) {
-    for (let x = 0; x < ref.width; x++) {
+  const x0 = Math.max(0, area?.x0 ?? 0);
+  const y0 = Math.max(0, area?.y0 ?? 0);
+  const x1 = Math.min(ref.width, area?.x1 ?? ref.width);
+  const y1 = Math.min(ref.height, area?.y1 ?? ref.height);
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
       const p = ref.pixel(x, y);
       if (p.a < 255 || !pick(x, y, p)) continue;
       count++;
@@ -263,7 +279,7 @@ export function referenceChecks({ map, images, rect, frame, capture = null, edit
     for (let cx = Math.ceil(rect.x / tw); (cx + 1) * tw <= rect.x + rect.width; cx++) {
       const x0 = cx * tw - rect.x;
       const y0 = cy * th - rect.y;
-      const m = matchFrame(ref, frame, scale, (x, y) => x >= x0 && x < x0 + tw && y >= y0 && y < y0 + th, tol);
+      const m = matchFrame(ref, frame, scale, () => true, tol, { x0, y0, x1: x0 + tw, y1: y0 + th });
       if (m.count < (tw * th) / 4) continue;
       cells++;
       if (m.ratio < CELL_MIN_RATIO) bad.push(`${cx},${cy}`);
@@ -306,4 +322,57 @@ export function referenceChecks({ map, images, rect, frame, capture = null, edit
     }
   }
   return checks;
+}
+
+/**
+ * 칠한 칸마다 게임 화면에 있는가 (새 맵 골든). 칸마다 그 칸만 before 로 그리면 달라지는 픽셀이 LAYER_MIN_PIXELS 개 이상이고
+ * 그 픽셀이 게임 화면에서 LAYER_MIN_RATIO 이상 기준과 같아야 한다. 칸 하나라도 어긋나면 실패다.
+ * cells: [{ layer, x, y, before }], rect: 게임 화면이 비추는 월드 픽셀 사각형. 돌려주는 것은 { name, ok, detail } 하나
+ */
+export function paintedCellsCheck({ map, images, rect, frame, cells, tol = CHANNEL_TOLERANCE }) {
+  const name = `칠한 칸이 하나하나 게임 화면에 있다 (칸마다 칠하기 전과 다른 픽셀 ${LAYER_MIN_PIXELS} 개 이상, ${LAYER_MIN_RATIO * 100}% 이상)`;
+  const scale = frame.width / rect.width;
+  if (!Number.isInteger(scale) || scale < 1 || frame.height !== rect.height * scale) {
+    return { name, ok: false, detail: `게임 화면 ${frame.width}x${frame.height} 이 사각형 ${rect.width}x${rect.height} 의 정수배가 아니다` };
+  }
+  const tw = map.tileWidth;
+  const th = map.tileHeight;
+  const bad = [];
+  let count = 0;
+  let match = 0;
+  let lowest = 1;
+  for (const c of cells) {
+    const cell = { x: c.x * tw, y: c.y * th, width: tw, height: th };
+    if (cell.x < rect.x || cell.y < rect.y || cell.x + tw > rect.x + rect.width || cell.y + th > rect.y + rect.height) {
+      bad.push(`${c.layer}:${c.x},${c.y} 화면 밖`);
+      continue;
+    }
+    const ref = renderMapRect(map, images, cell);
+    const before = renderMapRect(map, images, cell, { cell: { layer: c.layer, x: c.x, y: c.y, gid: c.before } });
+    const ox = cell.x - rect.x;
+    const oy = cell.y - rect.y;
+    let n = 0;
+    let m = 0;
+    for (let y = 0; y < th; y++) {
+      for (let x = 0; x < tw; x++) {
+        const p = ref.pixel(x, y);
+        if (p.a < 255) continue;
+        const q = before.pixel(x, y);
+        if (q.a === 255 && sameRgb(p, q, tol)) continue;
+        n++;
+        if (sameRgb(p, frame.pixel((ox + x) * scale, (oy + y) * scale), tol)) m++;
+      }
+    }
+    count += n;
+    match += m;
+    const ratio = n ? m / n : 0;
+    lowest = Math.min(lowest, ratio);
+    if (n < LAYER_MIN_PIXELS || ratio < LAYER_MIN_RATIO) bad.push(`${c.layer}:${c.x},${c.y} ${m}/${n}`);
+  }
+  const total = count ? `${match}/${count} (${((match / count) * 100).toFixed(2)}%)` : "0/0";
+  return {
+    name,
+    ok: cells.length > 0 && bad.length === 0,
+    detail: `${cells.length} 칸, 픽셀 ${total}, 가장 낮은 칸 ${(lowest * 100).toFixed(2)}%, 어긋난 칸 ${bad.length}${bad.length ? `: ${bad.slice(0, 12).join(" ")}` : ""}`,
+  };
 }

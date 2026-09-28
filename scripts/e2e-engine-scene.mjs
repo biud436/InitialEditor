@@ -15,105 +15,35 @@
 // 엔진은 헤드리스다 (SDL_VIDEODRIVER=dummy, SDL_AUDIODRIVER=dummy, INITIAL2D_EXIT_AFTER). <INITIAL2D_DIR>/build/Initial2D 가
 // 없으면 건너뛰고 0 으로 끝난다. INITIAL2D_EXE 로 준 파일이 없으면 실패다. mruby 가 없는 빌드면 Ruby 판만 건너뛴다.
 
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createServer } from "vite";
 import { errorLines, exitChecks, flappyChecks } from "./lib/flappyChecks.mjs";
 import { MARKER, tilemapPixelChecks } from "./lib/frameChecks.mjs";
+import { caseDir as tempDir, checkList, engineTarget, fsBackend, loadEditorModules, requireEngine, runEngine as runEngineIn, tail } from "./lib/engineRun.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "..");
 const templatesDir = path.join(repo, "packages", "app", "templates");
 const manifest = JSON.parse(fs.readFileSync(path.join(templatesDir, "MANIFEST.json"), "utf8"));
-const engineDir = path.resolve(process.env.INITIAL2D_DIR ?? path.join(repo, "..", "Initial2D"));
-const explicitExe = process.env.INITIAL2D_EXE ? path.resolve(process.env.INITIAL2D_EXE) : null;
-const exe = explicitExe ?? path.join(engineDir, "build", process.platform === "win32" ? "Initial2D.exe" : "Initial2D");
+const target = engineTarget(repo);
+const exe = target.exe;
 const KEEP = process.env.KEEP_WORKDIR === "1";
 
 // 타일맵 템플릿의 표식 칸과 색, 화면 검사는 scripts/lib/frameChecks.mjs (자가 검사의 판정과 같은 셈)
 const MAP_PATH = "resources/maps/start.json";
 
-function skip(reason) {
-  console.log(`SKIP: ${reason}`);
-  process.exit(0);
-}
-
-function die(reason) {
-  console.error(`FAIL: ${reason}`);
-  process.exit(1);
-}
-
-if (!fs.existsSync(exe)) {
-  if (explicitExe) die(`INITIAL2D_EXE 의 파일이 없다: ${exe}`);
-  skip(`엔진 실행 파일 없음: ${exe} (INITIAL2D_DIR로 저장소 위치 지정 또는 cmake로 빌드, INITIAL2D_EXE로 직접 지정 가능)`);
-}
-
 function caseDir(name) {
-  return fs.mkdtempSync(path.join(os.tmpdir(), `initial-editor-scene-${name}-`));
+  return tempDir("initial-editor-scene", name);
 }
 
-// --features 는 버리는 작업 폴더에서 (인자를 모르는 옛 엔진이 게임을 띄워도 저장소에 config.setting 을 쓰지 않게)
-const probeDir = caseDir("probe");
-const probe = spawnSync(exe, ["--features"], {
-  cwd: probeDir,
-  encoding: "utf8",
-  timeout: 30_000,
-  env: { ...process.env, SDL_VIDEODRIVER: "dummy", SDL_AUDIODRIVER: "dummy", INITIAL2D_EXIT_AFTER: "1" },
-});
-fs.rmSync(probeDir, { recursive: true, force: true });
-const features = new Set((probe.stdout ?? "").split(/\s+/).filter(Boolean));
-if (probe.status !== 0 || !features.has("lua")) {
-  const why = `엔진 --features 확인 실패 (lua 없음 또는 오류): ${(probe.stderr ?? "").trim() || probe.status}`;
-  if (explicitExe) die(why);
-  skip(why);
-}
+const features = requireEngine(target, "initial-editor-scene");
 const hasMruby = features.has("mruby");
 console.log(`엔진: ${exe} (기능: ${[...features].join(" ")})`);
 
 // ---- 에디터 모듈 (TypeScript) ----
 
-const vite = await createServer({
-  configFile: false,
-  root: repo,
-  logLevel: "error",
-  appType: "custom",
-  server: { middlewareMode: true, hmr: false, watch: null, ws: false },
-  optimizeDeps: { noDiscovery: true, include: [] },
-  resolve: { dedupe: ["mobx"] },
-});
-let editor;
-try {
-  const templates = await vite.ssrLoadModule("/packages/app/src/editor/scene/projectTemplates.ts");
-  const tilemap = await vite.ssrLoadModule("/packages/ext-tilemap/src/model/index.ts");
-  const bmp = await vite.ssrLoadModule("/tests/e2e/support/bmp.ts");
-  editor = { ...templates, ...tilemap, readBmp: bmp.readBmp };
-} finally {
-  await vite.close();
-}
-
-/** 프로젝트 폴더 하나를 보는 ProjectBackend (새 프로젝트 쓰기와 맵 문서가 부르는 것만) */
-function fsBackend(root) {
-  const abs = (rel) => {
-    const p = path.resolve(root, rel);
-    if (p !== root && !p.startsWith(root + path.sep)) throw new Error(`루트 밖의 경로다: ${rel}`);
-    return p;
-  };
-  const write = (rel, data) => {
-    fs.mkdirSync(path.dirname(abs(rel)), { recursive: true });
-    fs.writeFileSync(abs(rel), data);
-  };
-  return {
-    exists: async (rel) => fs.existsSync(abs(rel)),
-    readText: async (rel) => fs.readFileSync(abs(rel), "utf8"),
-    readBinary: async (rel) => new Uint8Array(fs.readFileSync(abs(rel))),
-    writeText: async (rel, text) => write(rel, text),
-    writeBinary: async (rel, data) => write(rel, data),
-    mkdir: async (rel) => void fs.mkdirSync(abs(rel), { recursive: true }),
-  };
-}
+const editor = Object.assign({}, ...(await loadEditorModules(repo, ["/packages/app/src/editor/scene/projectTemplates.ts", "/packages/ext-tilemap/src/model/index.ts", "/tests/e2e/support/bmp.ts"])));
 
 /** 번들 대신 packages/app/templates/ 를 읽는 템플릿 소스 */
 const fsSource = {
@@ -224,42 +154,12 @@ function mapDiff(a, b) {
 
 // ---- 엔진 실행 ----
 
-function runEngine(dir, { scene, script, exitAfter, shotFrame, extraEnv }) {
-  const env = {
-    ...process.env,
-    SDL_VIDEODRIVER: "dummy",
-    SDL_AUDIODRIVER: "dummy",
-    INITIAL2D_SCRIPT: script,
-    INITIAL2D_EXIT_AFTER: String(exitAfter),
-    INITIAL2D_SCREENSHOT: path.join(dir, "shot_%04ld.bmp"),
-    INITIAL2D_SCREENSHOT_FRAME: String(shotFrame),
-    ...extraEnv,
-  };
-  delete env.INITIAL2D_HMR;
-  // scene 이 null 이면 진입 파일이 game.json 의 startScene 을 연다
-  if (scene) env.INITIAL2D_SCENE = scene;
-  else delete env.INITIAL2D_SCENE;
-  const result = spawnSync(exe, [], { cwd: dir, env, encoding: "utf8", timeout: 180_000, maxBuffer: 64 * 1024 * 1024 });
-  const log = (result.stdout ?? "") + (result.stderr ?? "");
-  const shot = path.join(dir, `shot_${String(shotFrame).padStart(4, "0")}.bmp`);
-  return { result, log, shot };
+function runEngine(dir, opts) {
+  return runEngineIn(exe, dir, opts);
 }
 
-const failures = [];
-let passes = 0;
-function check(name, cond, detail = "") {
-  if (cond) {
-    passes += 1;
-    console.log(`  PASS  ${name}`);
-  } else {
-    failures.push(name);
-    console.log(`  FAIL  ${name}  ${detail}`);
-  }
-}
-
-function tail(log, n = 400) {
-  return log.slice(-n).replace(/\n/g, " | ");
-}
+const report = checkList();
+const check = report.check;
 
 function cleanup(dir) {
   if (KEEP) console.log(`  작업 폴더 유지: ${dir}`);
@@ -335,8 +235,4 @@ for (const language of ["lua", "ruby"]) {
   }
 }
 
-console.log(`\n결과: ${passes} PASS / ${failures.length} FAIL`);
-if (failures.length) {
-  for (const f of failures) console.log(`  - ${f}`);
-  process.exit(1);
-}
+report.finish();
