@@ -25,7 +25,8 @@ export default defineConfig({
     // 워크스페이스 패키지(core)가 제 node_modules 의 mobx 를 들지 않게 한 벌로 묶는다.
     dedupe: ["mobx", "mobx-react-lite", "react", "react-dom"],
   },
-  server: { port: 5173, strictPort: true },
+  // devUrl(tauri.conf.json)과 CSP 가 127.0.0.1 이다. localhost 는 IPv6(::1)로만 열릴 수 있어 주소를 고정한다
+  server: { host: "127.0.0.1", port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },
   build: {
     // 저장소 루트의 dist/ 로 낸다. Cloudflare Pages 가 옛 에디터 때부터 `yarn build` 뒤 dist/ 를 배포한다
