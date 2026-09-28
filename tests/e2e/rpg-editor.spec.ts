@@ -283,8 +283,26 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     expect(saved).toContain('"seed": 12345678901234567890');
   });
 
-  test("2^53을 넘는 정수는 수 인자에서 수다: 폼은 숫자 그대로, 트리 줄과 저장에 오류가 없고, 복사한 글은 JSON의 수다", async ({ page, context }) => {
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  test("2^53을 넘는 정수는 수 인자에서 수다: 폼은 숫자 그대로, 트리 줄과 저장에 오류가 없고, 복사한 글은 JSON의 수다", async ({ page, context, browserName }) => {
+    // WebKit 은 클립보드 권한을 줄 수 없고 페이지의 readText 도 막는다. 그래서 앱이 부른 writeText 의 글과
+    // 그 쓰기가 성공했는지를 기록해 읽는다 (쓰기가 거절되면 기록하지 않아 단언이 실패한다)
+    if (browserName === "chromium") await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    else {
+      await page.addInitScript(() => {
+        const clip = navigator.clipboard;
+        const write = clip.writeText.bind(clip);
+        const w = window as unknown as { __written: string };
+        w.__written = "";
+        clip.writeText = (text: string) =>
+          write(text).then(() => {
+            w.__written = text;
+          });
+      });
+    }
+    const clipboardText = () =>
+      browserName === "chromium"
+        ? page.evaluate(() => navigator.clipboard.readText())
+        : page.evaluate(() => (window as unknown as { __written: string }).__written);
     await openRpgProject(page);
     const mod = await primaryKey(page);
     const data = JSON.parse(await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT)) as { events: Array<Record<string, unknown>> };
@@ -306,13 +324,13 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     // 커맨드 복사 (트리의 Ctrl+C)와 이벤트 복사 (맵 뷰의 Ctrl+C)는 시스템 클립보드에 수로 간다
     await expect(tree).toBeFocused();
     await page.keyboard.press(`${mod}+c`);
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"value": 12345678901234567890');
+    await expect.poll(clipboardText).toContain('"value": 12345678901234567890');
     expect(await ev<string>(page, "(e) => e.extensions.exportsOf('rpg').services.commandClipboard.json")).not.toContain("INT:");
     const host = page.getByTestId("map-view").locator(".map-view-host");
     await host.focus();
     await page.keyboard.press(`${mod}+c`);
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"seed": 12345678901234567890');
-    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    await expect.poll(clipboardText).toContain('"seed": 12345678901234567890');
+    const copied = await clipboardText();
     expect(copied).toContain('"value": 12345678901234567890');
     expect(copied).not.toContain("INT:");
 
@@ -390,7 +408,8 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
 
     // 브라우저 저장소 길: 저장소에는 이제 이벤트 탭이 없는 레이아웃이 있다. 타일맵 레이아웃을 지은 때의 것(이벤트 탭)으로 되돌려 두고,
     // 새 메모리 백엔드(스키마 없는 샘플, layout.json 없음)로 연다. 프로젝트를 열기 전(모름)에는 탭을 둔다
-    expect(await page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).not.toContain("ext:rpg.events");
+    // 레이아웃은 바뀐 뒤 PERSIST_DELAY_MS(400ms) 뒤에 저장된다
+    await expect.poll(() => page.evaluate((key) => localStorage.getItem(key) ?? "", LAYOUT_KEY)).not.toContain("ext:rpg.events");
     await page.goto("/?backend=memory");
     await page.evaluate(([key, layout]) => localStorage.setItem(key, layout), [LAYOUT_KEY, withEvents] as const);
     await page.reload();

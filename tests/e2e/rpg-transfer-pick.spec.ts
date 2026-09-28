@@ -152,17 +152,19 @@ test.describe("맵 이동의 대상 고르기 (메모리 모드)", () => {
     expect(await depth(page)).toBe(d0 + 1);
   });
 
-  test("키보드: Tab 으로 단추에 가고 Enter 로 시작, Esc 는 바꾸지 않고 돌아온다. 맵 밖 누름도 취소다", async ({ page }) => {
+  test("키보드: Tab 으로 단추에 가고 Enter 로 시작, Esc 는 바꾸지 않고 돌아온다. 맵 밖 누름도 취소다", async ({ page, browserName }) => {
+    // WebKit(Safari, macOS 앱의 WKWebView)의 Tab 은 입력 칸만 돌고 단추까지는 Option+Tab 이다
+    const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
     await openWithInn(page);
     await selectEvent(page, "inn_door");
     await openCommand(page, 2);
     const d0 = await depth(page);
     await page.getByTestId("rpg-arg-dir").focus();
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(tab);
     await expect(page.getByTestId("rpg-location-pick")).toBeFocused();
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(tab);
     await expect(page.getByTestId("rpg-location-reveal")).toBeFocused();
-    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press(`Shift+${tab}`);
     await page.keyboard.press("Enter");
     const view = page.getByTestId("map-view");
     await expect.poll(() => activePath(page)).toBe(INN);
