@@ -951,7 +951,7 @@ export class RunnerStore {
         return null;
       }
       if (files.length === 0) {
-        log.warn(LOG_SOURCE, "전송할 스크립트 없음 (scripts/ 아래의 .lua 와 .rb)");
+        log.warn(LOG_SOURCE, "전송할 스크립트 없음 (scripts/ 아래의 .lua, .rb, .json)");
         return null;
       }
     }

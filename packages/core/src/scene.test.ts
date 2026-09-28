@@ -168,4 +168,68 @@ describe("SceneModel commands", () => {
     undo.undo();
     expect(model.find("world")?.scripts).toEqual(["components/a", "components/b", "components/c"]);
   });
+
+  it("매개변수: 값 쓰기와 지우기, 타이핑 합치기, 떼면 같이 지워지고 되돌리면 돌아온다", () => {
+    const { model, undo } = setup();
+    undo.push(model.attachScript("world", "components/mover"));
+    undo.push(model.setParam("world", "components/mover", "dx", 2));
+    undo.push(model.setParam("world", "components/mover", "target", "bg"));
+    expect(model.find("world")?.params).toEqual({ "components/mover": { dx: 2, target: "bg" } });
+    const depth = undo.depth;
+    undo.push(model.setParam("world", "components/mover", "dx", 3, "typing"));
+    undo.push(model.setParam("world", "components/mover", "dx", 34, "typing"));
+    expect(undo.depth).toBe(depth + 1);
+    expect(model.find("world")?.params["components/mover"].dx).toBe(34);
+    const same = model.setParam("world", "components/mover", "dx", 34);
+    expect(same.unchanged).toBe(true);
+    undo.push(model.setParam("world", "components/mover", "dx", undefined));
+    undo.push(model.setParam("world", "components/mover", "target", undefined));
+    expect(model.find("world")?.params).toEqual({});
+    undo.undo();
+    undo.undo();
+    expect(model.find("world")?.params).toEqual({ "components/mover": { dx: 34, target: "bg" } });
+    undo.push(model.detachScript("world", "components/mover"));
+    expect(model.find("world")).toMatchObject({ scripts: [], params: {} });
+    undo.undo();
+    expect(model.find("world")).toMatchObject({ scripts: ["components/mover"], params: { "components/mover": { dx: 34, target: "bg" } } });
+  });
+});
+
+describe("scene params", () => {
+  const WITH_PARAMS = `{
+  "version": 1,
+  "name": "p",
+  "objects": [
+    { "id": "a", "type": "node", "scripts": ["components/mover"], "params": { "components/mover": { "dx": 2 } } },
+    { "id": "b", "type": "node" }
+  ]
+}`;
+
+  it("읽고 저장한다. 비어 있으면 파일에 쓰지 않고, 복제는 깊은 복사다", () => {
+    const s = parseScene(WITH_PARAMS);
+    expect(s.objects[0].params).toEqual({ "components/mover": { dx: 2 } });
+    expect(s.objects[0].extra).toEqual({});
+    const saved = JSON.parse(serializeScene(s));
+    expect(Object.keys(saved.objects[0])).toEqual(["id", "type", "x", "y", "props", "scripts", "params"]);
+    expect(saved.objects[1].params).toBeUndefined();
+    const model = new SceneModel(s);
+    const copy = model.toData().objects[0];
+    copy.params["components/mover"].dx = 9;
+    expect(model.find("a")?.params["components/mover"].dx).toBe(2);
+  });
+
+  it("구조 오류와 스크립트에 없는 컴포넌트의 매개변수", () => {
+    expect(() => parseScene(WITH_PARAMS.replace(`"params": { "components/mover": { "dx": 2 } }`, `"params": [1]`))).toThrow(/objects\[0\]\.params는 객체/);
+    expect(() => parseScene(WITH_PARAMS.replace(`{ "dx": 2 }`, `3`))).toThrow(/objects\[0\]\.params\.components\/mover는 객체/);
+    // 엔진처럼 null 은 없는 것, 빈 배열은 빈 객체다
+    const loose = (params: string) => parseScene(WITH_PARAMS.replace(`{ "components/mover": { "dx": 2 } }`, params)).objects[0].params;
+    expect(loose(`null`)).toEqual({});
+    expect(loose(`[]`)).toEqual({});
+    expect(loose(`{ "components/mover": [], "components/x": null }`)).toEqual({ "components/mover": {} });
+    expect(loose(`{ "components/mover": { "dx": null, "dy": 1 } }`)).toEqual({ "components/mover": { dy: 1 } });
+    const s = parseScene(WITH_PARAMS.replace(`"scripts": ["components/mover"], `, ""));
+    expect(validateScene(s)).toEqual([
+      { severity: "error", message: "a: 매개변수의 컴포넌트가 스크립트 목록에 없음: components/mover", location: "objects[0].params.components/mover" },
+    ]);
+  });
 });

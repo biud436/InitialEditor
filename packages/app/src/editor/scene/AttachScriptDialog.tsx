@@ -1,5 +1,5 @@
 // 스크립트 붙이기 대화상자 (인스펙터의 "스크립트 붙이기"). 논리 이름(components/bird)을 받고, 프로젝트에 있는
-// 컴포넌트 파일을 제안한다. 파일이 없으면 컴포넌트 템플릿(scripting/templates.ts)으로 만들고 트리에 드러낸 뒤 붙인다.
+// 컴포넌트 파일을 제안한다 (매개변수 선언이 있는 것 먼저, 이미 붙은 것은 빼고). 파일이 없으면 컴포넌트 템플릿(scripting/templates.ts)으로 만들고 트리에 드러낸 뒤 붙인다.
 // 언어는 game.json 의 script 다 (Lua 면 scripts/lua/<이름>.lua, Ruby 면 scripts/ruby/<이름>.rb).
 
 import { dirname } from "@initial-editor/core";
@@ -53,7 +53,11 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
   const [name, setName] = useState("");
   const [create, setCreate] = useState(true);
   const [busy, setBusy] = useState(false);
-  const suggestions = tools.assets.components(language);
+  const declared = new Set(tools.assets.declaredComponents);
+  const attached = new Set(tools.activeScene?.scene.find(objectId)?.scripts ?? []);
+  const files = tools.assets.components(language).filter((s) => !attached.has(s));
+  const suggestions = [...files.filter((s) => declared.has(s)), ...files.filter((s) => !declared.has(s))];
+  const declaredCount = suggestions.filter((s) => declared.has(s)).length;
   const error = validateLogicalScriptName(name);
   const path = error ? "" : tools.scriptPath(name.trim());
 
@@ -79,7 +83,7 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
               <option key={s} value={s} />
             ))}
           </datalist>
-          <div className="form-help">{path ? `파일: ${path}` : name ? error : `기존 컴포넌트 ${suggestions.length}개. scripts/${language === "mruby" ? "ruby" : "lua"}/ 기준 상대 경로, 확장자 제외`}</div>
+          <div className="form-help">{path ? `파일: ${path}` : name ? error : `기존 컴포넌트 ${suggestions.length}개 (매개변수 선언 ${declaredCount}개). scripts/${language === "mruby" ? "ruby" : "lua"}/ 기준 상대 경로, 확장자 제외`}</div>
         </div>
         <div className="form-row">
           <label htmlFor="attach-script-create">파일이 없으면 생성</label>
@@ -90,8 +94,9 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
         {suggestions.length > 0 && (
           <div className="attach-script-suggestions" data-testid="attach-script-suggestions">
             {suggestions.map((s) => (
-              <button key={s} type="button" className="btn btn-ghost attach-script-suggestion" onClick={() => setName(s)}>
+              <button key={s} type="button" className="btn btn-ghost attach-script-suggestion" onClick={() => setName(s)} data-declared={declared.has(s) || undefined} title={declared.has(s) ? `매개변수 선언: scripts/${s}.json` : undefined}>
                 {s}
+                {declared.has(s) && <span className="attach-script-tag">매개변수</span>}
               </button>
             ))}
           </div>

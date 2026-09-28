@@ -541,7 +541,7 @@ describe("RunnerStore 핫 리로드", () => {
     const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     expect(await runner.reload()).toBeNull();
     expect(h.mem.pushed).toEqual([]);
-    expect(logTexts(h.log)).toContainEqual("warn/runner: 전송할 스크립트 없음 (scripts/ 아래의 .lua 와 .rb)");
+    expect(logTexts(h.log)).toContainEqual("warn/runner: 전송할 스크립트 없음 (scripts/ 아래의 .lua, .rb, .json)");
   });
 });
 

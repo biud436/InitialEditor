@@ -1,14 +1,16 @@
-// 인스펙터가 고르는 프로젝트 파일 목록: resources/ 아래의 그림과 BMFont, scripts/<언어>/components/ 아래의 컴포넌트.
+// 인스펙터가 고르는 프로젝트 파일 목록: resources/ 아래의 그림과 BMFont, scripts/<언어>/components/ 아래의 컴포넌트,
+// scripts/components/ 아래의 컴포넌트 매개변수 선언 파일.
 // 백엔드로 폴더를 재귀로 훑는다 (프로젝트를 열 때와 파일이 바뀔 때, 잠깐 모아서). 무시 파일(코어의 ProjectScope)이 빼는 것은 뺀다.
 // DOM 을 모르므로 Node 로 테스트한다.
 
-import { extname, IGNORE_FILE, ProjectScope, type ProjectBackend, type ScriptBackend } from "@initial-editor/core";
+import { componentNameFromDeclarationPath, extname, IGNORE_FILE, ProjectScope, type ProjectBackend, type ScriptBackend } from "@initial-editor/core";
 import { makeObservable, observable, runInAction } from "mobx";
 
 export const IMAGE_EXTS = new Set(["png", "jpg", "jpeg", "gif"]);
 export const FONT_EXT = "fnt";
 export const RESOURCES_DIR = "resources";
 export const COMPONENT_DIRS: Record<"lua" | "ruby", string> = { lua: "scripts/lua/components", ruby: "scripts/ruby/components" };
+export const DECLARATION_DIR = "scripts/components";
 const SKIP_DIRS = new Set([".initial-editor", ".git", "node_modules"]);
 const MAX_DEPTH = 8;
 const DEBOUNCE_MS = 150;
@@ -55,12 +57,14 @@ export class ProjectAssets {
   fonts: string[] = [];
   luaComponents: string[] = [];
   rubyComponents: string[] = [];
+  /** 매개변수 선언 파일이 있는 컴포넌트의 논리 이름 */
+  declaredComponents: string[] = [];
   loading = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private run = 0;
 
   constructor(private readonly host: ProjectAssetsHost) {
-    makeObservable(this, { images: observable.ref, fonts: observable.ref, luaComponents: observable.ref, rubyComponents: observable.ref, loading: observable });
+    makeObservable(this, { images: observable.ref, fonts: observable.ref, luaComponents: observable.ref, rubyComponents: observable.ref, declaredComponents: observable.ref, loading: observable });
   }
 
   components(language: ScriptBackend): string[] {
@@ -91,10 +95,11 @@ export class ProjectAssets {
     const backend = this.host.backend();
     try {
       const scope = this.host.scope?.() ?? new ProjectScope();
-      const [resources, lua, ruby] = await Promise.all([
+      const [resources, lua, ruby, declarations] = await Promise.all([
         walkFiles(backend, RESOURCES_DIR, MAX_DEPTH, scope),
         walkFiles(backend, COMPONENT_DIRS.lua, MAX_DEPTH, scope),
         walkFiles(backend, COMPONENT_DIRS.ruby, MAX_DEPTH, scope),
+        walkFiles(backend, DECLARATION_DIR, MAX_DEPTH, scope),
       ]);
       if (run !== this.run) return;
       runInAction(() => {
@@ -102,6 +107,7 @@ export class ProjectAssets {
         this.fonts = resources.filter((p) => extname(p) === FONT_EXT);
         this.luaComponents = lua.map((p) => logicalComponentName(p, "lua")).filter((n): n is string => n !== null);
         this.rubyComponents = ruby.map((p) => logicalComponentName(p, "ruby")).filter((n): n is string => n !== null);
+        this.declaredComponents = declarations.map(componentNameFromDeclarationPath).filter((n): n is string => n !== null);
       });
     } finally {
       if (run === this.run) runInAction(() => (this.loading = false));
@@ -114,6 +120,7 @@ export class ProjectAssets {
       this.fonts = [];
       this.luaComponents = [];
       this.rubyComponents = [];
+      this.declaredComponents = [];
       this.loading = false;
     });
   }

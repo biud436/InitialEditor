@@ -178,7 +178,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(tree.locator('[data-path="scripts/lua/components/mover.lua"]')).toBeVisible();
     expect(await withEditor(page, (e) => e.documents.active!.scene.find("node")!.scripts)).toEqual(["components/mover"]);
     const source = await withEditor(page, (e) => e.backend.readText("scripts/lua/components/mover.lua"));
-    expect(source).toContain("function Mover.init(obj, scene)");
+    expect(source).toContain("function Mover.init(obj, scene, params)");
     expect(source).toContain("return Mover");
     await expect(page.getByTestId("console-list")).toContainText("컴포넌트 생성됨: scripts/lua/components/mover.lua");
 
@@ -218,6 +218,88 @@ test.describe("씬 도구 (메모리 모드)", () => {
 
     for (let i = 0; i < 2; i++) await page.getByTestId("inspector-script-remove").first().click();
     await expect(page.getByTestId("inspector-scripts")).toContainText("추가된 스크립트 없음");
+  });
+
+  test("컴포넌트 매개변수: 선언 파일을 만들고, 폼으로 고치고, 기본값으로 되돌리고, 저장하고, 떼면 값도 지워진다", async ({ page }) => {
+    const tree = await openSample(page);
+    await newScene(page, "stage3");
+    await addObjectViaMenu(page, "빈 노드");
+    await addObjectViaMenu(page, "빈 노드");
+    const node = page.getByTestId("hierarchy").locator('[data-testid="hierarchy-row"][data-id="node"]');
+    await node.click();
+    await page.getByTestId("inspector-attach").click();
+    await page.getByTestId("attach-script-name").fill("components/mover");
+    await page.getByTestId("attach-script-ok").click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    // 선언 파일이 없으면 만들기 단추. 누르면 scripts/components/mover.json 을 만들고 연다
+    const params = page.getByTestId("inspector-component").filter({ has: page.locator('[data-name="components/mover"]') }).getByTestId("inspector-params");
+    await expect(params).toHaveAttribute("data-state", "none");
+    await params.getByTestId("inspector-params-open").click();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "mover.json" })).toBeVisible();
+    await expect(tree.locator('[data-path="scripts/components/mover.json"]')).toBeVisible();
+    expect(JSON.parse(await withEditor(page, (e) => e.backend.readText("scripts/components/mover.json")))).toEqual({ version: 1, fields: [] });
+    // 편집기는 선언 파일의 스키마로 틀린 곳을 표시한다 (모르는 type)
+    const writeDeclaration = (text: string) =>
+      page.evaluate((t) => (window as unknown as { initialEditor: { backend: { writeText(p: string, t: string): Promise<void> } } }).initialEditor.backend.writeText("scripts/components/mover.json", t), text);
+    await page.locator(".monaco-editor .view-lines").click();
+    await page.keyboard.press(`${await primaryKey(page)}+a`);
+    await page.keyboard.insertText('{ "version": 1, "fields": [{ "key": "speed", "type": "vector" }] }');
+    await expect(page.locator(".monaco-editor .view-lines")).toContainText("vector");
+    await expect(page.locator(".monaco-editor .squiggly-error").first()).toBeAttached();
+    await page.keyboard.press(`${await primaryKey(page)}+z`);
+    await expect(page.locator(".monaco-editor .squiggly-error")).toHaveCount(0);
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "mover.json" }).locator(".doc-tab-dirty")).toHaveCount(0);
+    await page.getByTestId("doc-tab").filter({ hasText: "stage3.json" }).click();
+    await node.click();
+    await expect(params).toHaveAttribute("data-state", "declared");
+    await expect(params).toContainText("선언된 매개변수 없음");
+
+    // 선언을 고치면 폼이 따라온다
+    const declaration = {
+      version: 1,
+      fields: [
+        { key: "speed", type: "number", label: "속도", default: 60, min: 0 },
+        { key: "kind", type: "enum", values: ["ground", "pipes"], default: "ground" },
+        { key: "target", type: "object", label: "대상" },
+      ],
+    };
+    await writeDeclaration(JSON.stringify(declaration, null, 2));
+    await expect(params.getByTestId("inspector-param")).toHaveCount(3);
+    await expect(params.getByTestId("param-speed")).toHaveValue("60");
+    await expect(params.getByTestId("param-kind")).toHaveValue("ground");
+
+    // 폼으로 고친다. 고친 값은 표시되고 기본값으로 되돌릴 수 있다
+    await params.getByTestId("param-speed").fill("90");
+    await params.getByTestId("param-speed").press("Enter");
+    await params.getByTestId("param-kind").selectOption("pipes");
+    await params.getByTestId("param-target").selectOption("node_2");
+    await expect(params.locator('[data-testid="inspector-param"][data-key="speed"]')).toHaveAttribute("data-set", "true");
+    const sceneParams = () => withEditor(page, (e) => (e.documents.active!.scene.find("node") as unknown as { params: unknown }).params);
+    expect(await sceneParams()).toEqual({ "components/mover": { speed: 90, kind: "pipes", target: "node_2" } });
+    await expect(page.getByTestId("inspector-problems")).toHaveAttribute("data-count", "0");
+    await params.getByTestId("param-speed-reset").click();
+    await expect(params.getByTestId("param-speed")).toHaveValue("60");
+    expect(await sceneParams()).toEqual({ "components/mover": { kind: "pipes", target: "node_2" } });
+
+    // 저장하면 씬 파일의 params 에 고친 값만 있다
+    await page.keyboard.press(`${await primaryKey(page)}+s`);
+    await expect
+      .poll(async () => JSON.parse(await withEditor(page, (e) => e.backend.readText("resources/scenes/stage3.json"))).objects.find((o: { id: string }) => o.id === "node").params)
+      .toEqual({ "components/mover": { kind: "pipes", target: "node_2" } });
+
+    // 붙이기 대화상자는 선언이 있는 컴포넌트를 표시하고, 이미 붙은 것은 빼고 제안한다
+    await page.getByTestId("hierarchy").locator('[data-testid="hierarchy-row"][data-id="node_2"]').click();
+    await page.getByTestId("inspector-attach").click();
+    await expect(page.getByTestId("attach-script-suggestions").locator(".attach-script-suggestion").first()).toHaveAttribute("data-declared", "true");
+    await page.getByTestId("attach-script-dialog").getByRole("button", { name: "취소" }).click();
+
+    // 떼면 그 컴포넌트의 값도 지워지고, 되돌리면 돌아온다
+    await node.click();
+    await page.getByTestId("inspector-script-remove").click();
+    expect(await sceneParams()).toEqual({});
+    await page.keyboard.press(`${await primaryKey(page)}+z`);
+    expect(await sceneParams()).toEqual({ "components/mover": { kind: "pipes", target: "node_2" } });
   });
 
   test("하위 메뉴: 마우스를 올려 열린 뒤 부모 항목을 눌러도 닫히지 않는다", async ({ page }) => {

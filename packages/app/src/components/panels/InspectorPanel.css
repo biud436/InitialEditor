@@ -260,3 +260,62 @@ textarea.field-text {
   font-family: var(--font-mono);
   font-size: 12px;
 }
+
+.attach-script-tag {
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+  color: var(--fg-muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+/* 컴포넌트 하나: 제목 줄(스크립트 줄)과 매개변수 폼 (ComponentParams.tsx) */
+.inspector-component + .inspector-component {
+  border-top: 1px solid var(--border);
+}
+
+.inspector-script .btn.inspector-script-fold {
+  padding: 1px 2px;
+  color: var(--fg-muted);
+}
+
+.inspector-params {
+  padding: 0 0 var(--space-1) calc(1.2em + 16px);
+}
+
+.inspector-params:empty {
+  display: none;
+}
+
+.inspector-params-note,
+.inspector-params-error {
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.inspector-params-error,
+.inspector-param.is-stray .field-label {
+  color: var(--danger);
+}
+
+.inspector-param.is-set .field-label {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.inspector-param-raw {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.btn.inspector-params-open {
+  padding: 1px 4px;
+  font-size: 12px;
+}

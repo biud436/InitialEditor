@@ -1,7 +1,7 @@
 // Monaco 의 진입점. 전체(editor.main)가 아니라 쓰는 기능만 골라 담아 번들을 줄인다:
 //   편집기 코어 + 찾기와 바꾸기, 자동완성(suggest), 시그니처 도움말, 호버, 스니펫, 접기, 주석 토글, 다중 커서,
 //   괄호 짝, 들여쓰기, 줄 조작, 단어 강조, 오른쪽 클릭 메뉴, 클립보드.
-//   언어는 Lua, Ruby, Markdown (basic-languages) 과 JSON (진단 워커 포함).
+//   언어는 Lua, Ruby, Markdown (basic-languages) 과 JSON (진단 워커 포함, 컴포넌트 매개변수 선언 파일의 스키마).
 // 워커는 Vite 의 ?worker 로 (vite.config.ts 는 손대지 않아도 된다). 다른 모듈은 monaco 를 여기서만 가져온다.
 
 import "monaco-editor/esm/vs/editor/browser/coreCommands.js";
@@ -37,6 +37,7 @@ import "monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution";
 import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
+import { DECLARATION_FILE_MATCH, DECLARATION_SCHEMA, DECLARATION_SCHEMA_URI } from "./declarationSchema";
 
 declare global {
   interface Window {
@@ -52,6 +53,13 @@ if (typeof window !== "undefined" && !window.MonacoEnvironment) {
     },
   };
 }
+
+// 컴포넌트 매개변수 선언 파일의 스키마 (진단과 자동 완성)
+monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+  validate: true,
+  enableSchemaRequest: false,
+  schemas: [{ uri: DECLARATION_SCHEMA_URI, fileMatch: DECLARATION_FILE_MATCH, schema: DECLARATION_SCHEMA }],
+});
 
 /** 확장자로 Monaco 언어 id 를 고른다. 모르는 것은 plaintext */
 export function languageForExtension(ext: string): string {

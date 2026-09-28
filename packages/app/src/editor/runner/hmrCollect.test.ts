@@ -10,6 +10,7 @@ function project(extra: Record<string, string | Uint8Array> = {}): MemoryBackend
     "scripts/lua/main.lua": "print('main')",
     "scripts/lua/games/flappy.lua": "print('flappy')",
     "scripts/ruby/main.rb": "puts 'main'",
+    "scripts/components/mover.json": '{"version":1,"fields":[]}',
     "scripts/lua/.hidden/skip.lua": "print('hidden')",
     "scripts/lua/notes.txt": "메모",
     "resources/images/checker.png": new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
@@ -21,12 +22,13 @@ function project(extra: Record<string, string | Uint8Array> = {}): MemoryBackend
 }
 
 describe("collectHmrPaths", () => {
-  it("scripts 의 .lua 와 .rb, resources/scenes 와 resources/maps 의 .json 만 (정렬, 숨김 폴더 제외)", async () => {
+  it("scripts 의 .lua 와 .rb 와 .json(컴포넌트 선언), resources/scenes 와 resources/maps 의 .json 만 (정렬, 숨김 폴더 제외)", async () => {
     const backend = project();
     await backend.open("/proj");
     expect(await collectHmrPaths(backend)).toEqual([
       "resources/maps/village/inn.json",
       "resources/scenes/title.json",
+      "scripts/components/mover.json",
       "scripts/lua/games/flappy.lua",
       "scripts/lua/main.lua",
       "scripts/ruby/main.rb",
@@ -76,7 +78,7 @@ describe("collectHmrFiles", () => {
       return data;
     };
     const files = await collectHmrFiles(backend, { concurrency: 2 });
-    expect(files).toHaveLength(5);
+    expect(files).toHaveLength(6);
     expect(peak).toBeLessThanOrEqual(2);
   });
 });

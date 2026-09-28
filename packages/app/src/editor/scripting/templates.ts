@@ -1,6 +1,7 @@
 // 새 스크립트 템플릿 (docs/plans/e1-scripting.md 마일스톤 1). 엔진이 부르는 씬 계약 함수(Lua Initialize, Update,
 // Render, Destroy, Ruby init, update, render, destroy)를 가진 진입점과, 씬이 오브젝트에 붙여 (obj, scene) 을 넘기는
-// 컴포넌트(함수 이름은 언어 중립 이름 init, update, render, destroy) 두 가지. 순수 함수라 Node 로 테스트한다.
+// 컴포넌트(함수 이름은 언어 중립 이름 init, update, render, destroy) 두 가지. 컴포넌트는 매개변수(params)도 받는다:
+// Lua 는 훅의 마지막 인자, Ruby 는 initialize 의 인자. 순수 함수라 Node 로 테스트한다.
 
 import type { SceneHook } from "./apiSpec";
 import { EMPTY_SPEC, hookName } from "./apiSpec";
@@ -63,14 +64,17 @@ function luaScene(name: string, hooks: SceneHook[]): string {
   return `-- ${name}: 엔진이 호출하는 씬 계약 전역 함수 (${list.map((h) => h.name).join(", ")}).${rule}\n\n${body}`;
 }
 
+/** 생성하는 컴포넌트의 머리 주석 둘째 줄: params 가 무엇인가 */
+const PARAMS_NOTE = (comment: string) => `${comment} params 는 매개변수 선언(scripts/<논리 이름>.json)의 기본값에 씬 오브젝트의 값을 덮은 것이다.`; // terms-ok: 생성하는 스크립트의 주석은 문장형
+
 function luaComponent(table: string, hooks: SceneHook[]): string {
   const body = hooks
     .map((h) => {
-      const params = ["obj", "scene", ...h.params.map((p) => p.name)].join(", ");
+      const params = ["obj", "scene", ...h.params.map((p) => p.name), "params"].join(", ");
       return `function ${table}.${h.name}(${params})\nend\n`;
     })
     .join("\n");
-  return `-- ${table} 컴포넌트. 씬이 이 컴포넌트가 추가된 오브젝트(obj)마다 계약 함수를 호출한다.\n\nlocal ${table} = {}\n\n${body}\nreturn ${table}\n`; // terms-ok: 생성하는 스크립트의 주석은 문장형
+  return `-- ${table} 컴포넌트. 씬이 이 컴포넌트가 추가된 오브젝트(obj)마다 계약 함수를 호출한다.\n${PARAMS_NOTE("--")}\n\nlocal ${table} = {}\n\n${body}\nreturn ${table}\n`; // terms-ok: 생성하는 스크립트의 주석은 문장형
 }
 
 function rubyScene(name: string, hooks: SceneHook[]): string {
@@ -91,7 +95,8 @@ function rubyComponent(klass: string, hooks: SceneHook[]): string {
       return `  def ${h.name}(${params})\n  end\n`;
     })
     .join("\n");
-  return `# ${klass} 컴포넌트. 씬이 이 컴포넌트가 추가된 오브젝트(obj)마다 계약 메서드를 호출한다.\n\nclass ${klass}\n${body}end\n`; // terms-ok: 생성하는 스크립트의 주석은 문장형
+  const init = `  def initialize(params = {})\n    @params = params\n  end\n`;
+  return `# ${klass} 컴포넌트. 씬이 이 컴포넌트가 추가된 오브젝트(obj)마다 계약 메서드를 호출한다.\n${PARAMS_NOTE("#")}\n\nclass ${klass}\n${init}\n${body}end\n`; // terms-ok: 생성하는 스크립트의 주석은 문장형
 }
 
 /** 파일 이름 검사: 비어 있지 않고, 확장자 없이, `..` 없이, 하위 폴더는 허용 */

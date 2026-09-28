@@ -58,10 +58,11 @@ export class SceneSupport {
   /** 검증이 아는 타입: 코어 셋과 확장이 등록한 것 */
   readonly knownTypes = (): ReadonlySet<string> => new Set<string>([...CORE_OBJECT_TYPES, ...this.editor.registries.objectTypes.keys()]);
 
-  /** 확장이 등록한 검사기와, 타일맵 타입이 있으면 맵 파일이 없거나 깨진 타일맵 검사 */
+  /** 확장이 등록한 검사기, 컴포넌트 매개변수 검사, 타일맵 타입이 있으면 맵 파일이 없거나 깨진 타일맵 검사 */
   readonly validators = (): Validator[] => {
     const registries = this.editor.registries;
     const list = [...registries.validators];
+    if (this.editor.sceneTools) list.push(this.editor.sceneTools.paramsValidator);
     if (registries.objectTypes.has(TILEMAP_TYPE)) list.push(this.checkMapFiles);
     return list;
   };
