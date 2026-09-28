@@ -403,7 +403,7 @@ export class Editor {
     this.tree?.dispose();
     runInAction(() => {
       this.project = project;
-      this.tree = new ProjectTreeModel(project);
+      this.tree = new ProjectTreeModel(project, { warn: (message) => this.log.warn("editor", message) });
     });
     this.projectDisposers.push(
       project.events.on("change", (e) => {

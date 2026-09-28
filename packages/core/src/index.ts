@@ -10,6 +10,7 @@ export * from "./commands";
 export * from "./menus";
 export * from "./extensions";
 export * from "./project";
+export * from "./projectScope";
 export * from "./scene";
 export * from "./sceneDocument";
 export * from "./log";

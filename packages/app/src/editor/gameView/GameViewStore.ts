@@ -13,7 +13,7 @@
 // reload 가 false 를 돌려주면 스크립트 오류다. 오류 줄은 이미 콘솔에 있고 엔진은 네이티브처럼 계속 돈다.
 // 세션이 끝났거나 끝나는 중(reload 밖의 스크립트 오류, GameSession.ending)이면 reload 하지 않고 dropped 로 답한다.
 
-import type { DocumentRegistry, LogStore, Project, ProjectBackend, RunHandle } from "@initial-editor/core";
+import type { DocumentRegistry, LogStore, Project, ProjectBackend, ProjectScope, RunHandle } from "@initial-editor/core";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { RELOAD_ON_SAVE_DIRS } from "../runner/reloadOnSave";
 import type { EmbeddedReload } from "../runner/RunnerStore";
@@ -31,6 +31,8 @@ export interface GameViewHost {
   readonly project: Project;
   readonly documents: DocumentRegistry;
   readonly log: LogStore;
+  /** 프로젝트 뷰의 트리. 무시 파일이 빼는 것은 올리지 않는다 */
+  readonly tree?: { readonly filter: { readonly scope: ProjectScope } };
 }
 
 export interface GameViewOptions {
@@ -142,7 +144,7 @@ export class GameViewStore {
     try {
       const runtimePromise = this.loadRuntime();
       runtimePromise.catch(() => {}); // 기다리는 쪽에서 받는다
-      const listed = await listStageFiles(backend);
+      const listed = await listStageFiles(backend, undefined, this.editor.tree?.filter.scope);
       for (const f of listed.tooLarge) log.warn(LOG, `${f.path} (${formatBytes(f.size ?? 0)}): 32 MB 초과, 복사 제외`);
       const read = await readStageFiles(backend, listed.files, {
         concurrency: this.concurrency,
@@ -230,7 +232,7 @@ export class GameViewStore {
         if (await backend.exists(p).catch(() => false)) entries.push({ path: p });
       }
     } else {
-      entries = (await listStageFiles(backend, RELOAD_ON_SAVE_DIRS)).files;
+      entries = (await listStageFiles(backend, RELOAD_ON_SAVE_DIRS, this.editor.tree?.filter.scope)).files;
     }
     const read = await readStageFiles(backend, entries, { concurrency: this.concurrency });
     if (this.session !== session || session.game !== game || session.ending) return DROPPED_RELOAD;

@@ -266,7 +266,7 @@ APK 빌드와 설치는 하지 않고, 끝나면 콘솔에 칠 명령을 적어 
 - 교차 검사: `INITIAL2D_DIR=../Initial2D yarn test:android-stage` 가 템플릿으로 만든 플래피 프로젝트를 에디터와 같은 인자로 임시 폴더에
   스테이징하고, 기기처럼 풀어 데스크톱 엔진으로 돌립니다. `--project` 를 모르는 엔진이나 빌드한 엔진이 없으면 건너뜁니다.
 
-## RPG 이벤트 (E5, 진행 중)
+## RPG 이벤트 (E5)
 
 맵 파일의 `events`를 맵 위에서 고치는 RPG 확장(`packages/ext-rpg`)입니다. 엔진의 이벤트 스키마(`resources/schema/event-commands.json`)와
 게임 설정(`resources/data/rpg-game.json`)을 읽고, 엔진과 같은 검사를 같은 경로(`events[3].commands[2].text`)로 내고,
@@ -351,6 +351,19 @@ E2E_BRIDGE_PORT=6561 RPG_EVENTS_SCREENSHOT=/tmp/rpg.png yarn test:e2e tests/e2e/
 프로젝트는 `game.json`이 있는 폴더입니다. 엔진이 작업 폴더의 `./game.json`을 읽으므로 새 개념이 아닙니다.
 `game.json`이 없는 폴더(예: Initial2D 저장소 자체)를 열면 에디터가 만들 것인지 묻습니다. 에디터만 쓰는 상태
 (레이아웃 등)는 `.initial-editor/`에 두므로 gitignore 하는 것을 권합니다.
+
+프로젝트 패널은 처음에 프로젝트 파일(`game.json`, `scripts/`, `resources/`)만 보여 줍니다. 점으로 시작하는 이름도 빠집니다.
+머리의 깔때기 단추 옆 숫자가 숨긴 항목 수이고, 누르면 전부 보입니다. 켜고 끈 상태는 `.initial-editor/project-view.json`에 남습니다.
+프로젝트 최상위에 `.initial-editorignore`(`.gitignore` 문법)를 두면 더 뺄 수 있습니다.
+
+```gitignore
+# 작업 파일
+*.psd
+/resources/aldebaran/src/
+```
+
+프로젝트 전체 찾기, 게임 탭이 올리는 파일, 인스펙터의 이미지와 컴포넌트 목록도 이 파일을 따릅니다. `.gitignore`는 따르지 않습니다
+(게임이 읽는 `resources/rtp`까지 숨기게 됩니다). 브리지 모드는 브리지가 이 파일을 넘겨주지 않아 기본 규칙만 씁니다.
 
 ## 저장소 구성
 

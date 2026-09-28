@@ -23,8 +23,26 @@
   font-weight: 600;
 }
 
-.project-refresh {
+.project-refresh,
+.project-filter {
   padding: 2px 4px;
+}
+
+.project-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.project-filter.is-on {
+  background: var(--bg-selection);
+  color: var(--fg);
+}
+
+.project-filter-count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
 }
 
 .project-tree {

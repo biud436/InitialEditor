@@ -13,6 +13,11 @@ function validateName(value: string): string | null {
   return null;
 }
 
+/** 필터가 켜진 프로젝트 뷰에서 만든 항목이 숨으면 알린다 */
+function noteHidden(editor: Editor, path: string, kind: Entry["kind"]): void {
+  if (editor.tree.isHidden(path, kind)) editor.toasts.info(`프로젝트 뷰 필터로 숨김: ${path}. 필터를 끄면 표시`);
+}
+
 function fail(editor: Editor, what: string, e: unknown): void {
   const message = `${what}: ${(e as Error).message}`;
   editor.log.error("editor", message);
@@ -32,6 +37,7 @@ export async function newFile(editor: Editor, dir: string): Promise<void> {
     await editor.project.refresh(dir);
     await editor.tree.reveal(path);
     editor.log.info("editor", `파일 생성됨: ${path}`);
+    noteHidden(editor, path, "file");
   } catch (e) {
     fail(editor, "파일 생성 실패", e);
   }
@@ -46,6 +52,7 @@ export async function newFolder(editor: Editor, dir: string): Promise<void> {
     await editor.project.refresh(dir);
     await editor.tree.reveal(path);
     editor.log.info("editor", `폴더 생성됨: ${path}`);
+    noteHidden(editor, path, "dir");
   } catch (e) {
     fail(editor, "폴더 생성 실패", e);
   }

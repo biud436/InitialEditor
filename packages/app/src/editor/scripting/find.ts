@@ -2,7 +2,7 @@
 // 읽어 줄 단위로 맞춘다. 맞추기(matchLines)는 순수 함수라 Node 로 테스트하고, FindStore 는 결과와 진행 상태를
 // 들고 FindPanel 이 그린다. 파일은 몇 개마다 이벤트 루프에 양보해 UI 가 굳지 않게 한다.
 
-import { extname, sortEntries, type Entry, type ProjectBackend } from "@initial-editor/core";
+import { extname, ProjectScope, sortEntries, type Entry, type ProjectBackend } from "@initial-editor/core";
 import { action, makeObservable, observable, runInAction } from "mobx";
 
 export interface FindOptions {
@@ -82,6 +82,8 @@ export function looksBinary(text: string): boolean {
 export interface FindDeps {
   backend(): ProjectBackend;
   isOpen(): boolean;
+  /** 프로젝트 파일의 범위 (무시 파일 포함, 코어의 ProjectScope). 없으면 기본 범위 */
+  scope?(): ProjectScope | undefined;
 }
 
 export class FindStore {
@@ -182,7 +184,8 @@ export class FindStore {
     const alive = () => this.run === id;
     try {
       let sinceYield = 0;
-      for await (const entry of walk(backend, SEARCH_ROOTS, alive)) {
+      const scope = this.deps.scope?.() ?? new ProjectScope();
+      for await (const entry of walk(backend, SEARCH_ROOTS, alive, scope)) {
         if (!alive()) return;
         if (!isSearchableEntry(entry)) continue;
         let text: string;
@@ -210,14 +213,14 @@ export class FindStore {
 }
 
 /** 루트들 아래를 깊이 우선으로 돈다. 순서는 프로젝트 패널과 같다 (sortEntries: 폴더 먼저, 이름순). 없는 루트는 건너뛴다 */
-async function* walk(backend: ProjectBackend, roots: string[], alive: () => boolean): AsyncGenerator<Entry> {
+async function* walk(backend: ProjectBackend, roots: string[], alive: () => boolean, scope: ProjectScope): AsyncGenerator<Entry> {
   for (const root of roots) {
     if (!alive()) return;
-    if (await backend.exists(root).catch(() => false)) yield* walkDir(backend, root, alive);
+    if (scope.includes(root, "dir") && (await backend.exists(root).catch(() => false))) yield* walkDir(backend, root, alive, scope);
   }
 }
 
-async function* walkDir(backend: ProjectBackend, dir: string, alive: () => boolean): AsyncGenerator<Entry> {
+async function* walkDir(backend: ProjectBackend, dir: string, alive: () => boolean, scope: ProjectScope): AsyncGenerator<Entry> {
   let entries: Entry[];
   try {
     entries = sortEntries(await backend.list(dir));
@@ -226,7 +229,8 @@ async function* walkDir(backend: ProjectBackend, dir: string, alive: () => boole
   }
   for (const entry of entries) {
     if (!alive()) return;
-    if (entry.kind === "dir") yield* walkDir(backend, entry.path, alive);
+    if (!scope.includes(entry.path, entry.kind)) continue;
+    if (entry.kind === "dir") yield* walkDir(backend, entry.path, alive, scope);
     else yield entry;
   }
 }

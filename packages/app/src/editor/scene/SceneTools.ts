@@ -25,6 +25,7 @@ import {
   type ObjectTypeSpec,
   type Project,
   type ProjectBackend,
+  type ProjectScope,
   type SceneObject,
 } from "@initial-editor/core";
 import { computed, makeObservable, observable, reaction, runInAction } from "mobx";
@@ -42,7 +43,7 @@ export interface SceneToolsHost {
   readonly log: LogStore;
   readonly toasts: { info(text: string): unknown; success(text: string): unknown; warn(text: string): unknown; error(text: string): unknown };
   readonly modals: { prompt(options: { title: string; label?: string; placeholder?: string; okLabel?: string; validate?: (v: string) => string | null }): Promise<string | null> };
-  readonly tree: { reveal(path: string): Promise<void> };
+  readonly tree: { reveal(path: string): Promise<void>; readonly filter?: { readonly scope: ProjectScope } };
   readonly events: { on(event: "projectOpened" | "projectClosed", listener: () => void): () => void };
   openPath(path: string): Promise<void>;
   /** 씬 뷰가 있으면 카메라 중심을 준다 (없으면 0, 0). 모양은 씬 뷰가 정하므로 느슨하게 본다 */
@@ -78,7 +79,7 @@ export class SceneTools {
   private validateDisposer: (() => void) | null = null;
 
   constructor(private readonly host: SceneToolsHost) {
-    this.assets = new ProjectAssets({ backend: () => host.backend, isOpen: () => host.project.isOpen });
+    this.assets = new ProjectAssets({ backend: () => host.backend, isOpen: () => host.project.isOpen, scope: () => host.tree.filter?.scope });
     makeObservable(this, { clipboard: observable.ref, activeScene: computed, selectedObjects: computed });
   }
 
@@ -93,6 +94,13 @@ export class SceneTools {
         this.assets.clear();
         this.unwatchProject();
       }),
+      // 무시 파일을 다시 읽어 범위가 바뀌면 자산 목록도 다시 훑는다
+      reaction(
+        () => host.tree.filter?.scope,
+        () => {
+          if (host.project.isOpen) this.assets.schedule();
+        },
+      ),
       // 되돌리기와 다시 실행과 씬 뷰의 변경도 검사 결과에 반영되게 활성 씬의 되돌리기 스택을 따라간다
       reaction(
         () => this.activeScene,

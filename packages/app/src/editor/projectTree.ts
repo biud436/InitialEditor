@@ -1,8 +1,10 @@
 // 프로젝트 패널의 뷰 모델. 폴더는 펼칠 때 읽고(project.entries), 캐시(project.folders)가 갱신되면 따라간다.
+// 필터(projectFilter.ts)가 켜져 있으면 프로젝트 파일만 줄에 넣고 숨긴 항목을 센다 (펼친 폴더 안에서).
 // DOM 을 모르므로 Node 로 테스트한다 (projectTree.test.ts).
 
-import { dirname, type Entry, type Project } from "@initial-editor/core";
+import { dirname, IGNORE_FILE, type Entry, type Project } from "@initial-editor/core";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
+import { ProjectFilter } from "./projectFilter";
 
 export interface TreeRow {
   entry: Entry;
@@ -15,33 +17,61 @@ export class ProjectTreeModel {
   readonly expanded = observable.set<string>();
   readonly loading = observable.set<string>();
   selected: string | null = null;
+  readonly filter: ProjectFilter;
   private readonly disposers: Array<() => void> = [];
 
-  constructor(readonly project: Project) {
-    makeObservable(this, { selected: observable, rows: computed, select: action, collapse: action, reset: action });
+  constructor(
+    readonly project: Project,
+    deps: { warn?: (message: string) => void } = {},
+  ) {
+    this.filter = new ProjectFilter(project, deps.warn);
+    makeObservable<ProjectTreeModel, "view">(this, { selected: observable, view: computed, select: action, collapse: action, reset: action });
     this.disposers.push(
+      project.events.on("opened", () => void this.filter.load()),
       project.events.on("closed", () => this.reset()),
       project.events.on("change", (e) => {
         if (e.kind === "delete") this.forget(e.path);
+        if (e.path === IGNORE_FILE) void this.filter.reloadIgnore();
       }),
     );
+    if (project.isOpen) void this.filter.load();
   }
 
   /** 펼쳐진 상태를 평평한 줄 목록으로. 캐시에 없는 폴더는 자식이 없는 것처럼 보인다 */
   get rows(): TreeRow[] {
-    if (!this.project.isOpen) return [];
+    return this.view.rows;
+  }
+
+  /** 필터가 숨긴 항목 수 (펼친 폴더 안에서). 필터가 꺼져 있으면 0 */
+  get hiddenCount(): number {
+    return this.view.hidden;
+  }
+
+  private get view(): { rows: TreeRow[]; hidden: number } {
+    if (!this.project.isOpen) return { rows: [], hidden: 0 };
     const out: TreeRow[] = [];
+    let hidden = 0;
+    const { enabled, scope } = this.filter;
     const walk = (dir: string, depth: number) => {
       const entries = this.project.folders.get(dir);
       if (!entries) return;
       for (const entry of entries) {
+        if (enabled && !scope.includes(entry.path, entry.kind)) {
+          hidden++;
+          continue;
+        }
         const expanded = entry.kind === "dir" && this.expanded.has(entry.path);
         out.push({ entry, depth, expanded, loading: this.loading.has(entry.path) });
         if (expanded) walk(entry.path, depth + 1);
       }
     };
     walk("", 0);
-    return out;
+    return { rows: out, hidden };
+  }
+
+  /** 필터에 숨는 경로인가 */
+  isHidden(path: string, kind: Entry["kind"]): boolean {
+    return this.filter.enabled && !this.filter.scope.includes(path, kind);
   }
 
   isExpanded(path: string): boolean {
@@ -103,6 +133,7 @@ export class ProjectTreeModel {
     this.expanded.clear();
     this.loading.clear();
     this.selected = null;
+    this.filter.reset();
   }
 
   dispose(): void {

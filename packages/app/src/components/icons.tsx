@@ -114,6 +114,15 @@ export function RefreshIcon(props: IconProps) {
   return <ReloadIcon {...props} />;
 }
 
+/** 깔때기 (필터) */
+export function FilterIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M2.5 3h11l-4.2 5v4.2l-2.6 1.3V8z" />
+    </Svg>
+  );
+}
+
 export function CloseIcon(props: IconProps) {
   return (
     <Svg {...props}>

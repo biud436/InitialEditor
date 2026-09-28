@@ -111,9 +111,15 @@ test.describe("웹판 브라우저 폴더 (OPFS)", () => {
     await tree.locator('[data-path="scripts/lua/main.lua"]').dblclick();
     await expect(page.locator(CODE)).toContainText("웹판 e2e 진입점");
 
+    // 최상위의 notes.txt 는 프로젝트 파일이 아니라 필터가 숨긴다. 필터를 끈 채로 밖에서 쓰면 3초 안에 보이고, 켜면 숨는다
+    const filter = page.getByTestId("project-filter");
+    await filter.click();
+    await expect(filter).toHaveAttribute("aria-pressed", "false");
     await writeOpfs(page, { "scripts/lua/outside.lua": "-- 밖에서 만듦\n", "notes.txt": "메모\n" });
     await expect(tree.locator('[data-path="scripts/lua/outside.lua"]')).toBeVisible({ timeout: 3000 });
     await expect(tree.locator('[data-path="notes.txt"]')).toBeVisible({ timeout: 3000 });
+    await filter.click();
+    await expect(tree.locator('[data-path="notes.txt"]')).toHaveCount(0);
 
     await writeOpfs(page, { "scripts/lua/main.lua": "-- 밖에서 바꿈\nfunction init()\nend\n" });
     await expect(page.locator(CODE)).toContainText("밖에서 바꿈", { timeout: 3000 });
