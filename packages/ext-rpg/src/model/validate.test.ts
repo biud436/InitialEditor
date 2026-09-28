@@ -227,7 +227,7 @@ describe("에디터만의 검사 (픽스처 밖)", () => {
     has("warning events[3].commands[4].target sign 는 외형이 없어");
     has("warning events[3].commands[7].cond 비어 있는 조건이다");
     has("warning events[3].commands[8].cond 조건의 꼴이 둘 이상이다 (item, flag)");
-    has("warning events[3].commands[9].cond.flag 깃발이 비었다");
+    has("warning events[3].commands[9].cond.flag 플래그가 비었다");
     has("info events[3].commands[10] 스크립트 이름은 엔진만");
     has("warning events[3].commands[11].map rpg-game.json 에 등록되지 않은 맵 forest");
     has("warning events[3].commands[11] x 와 y 중 하나만 있다");

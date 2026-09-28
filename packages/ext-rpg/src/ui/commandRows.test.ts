@@ -161,9 +161,9 @@ describe("요약", () => {
     expect(branchLabel("{n}. {option}", 1, big)).toBe("1. 12345678901234567890");
   });
 
-  it("조건 한 줄: 깃발의 값은 = 로, 빈 조건은 늘 참", () => {
-    expect(conditionSummary(schema, { flag: "arrived" })).toBe("깃발 arrived");
-    expect(conditionSummary(schema, { flag: "arrived", equals: false })).toBe("깃발 arrived = false");
+  it("조건 한 줄: 플래그의 값은 = 로, 빈 조건은 늘 참", () => {
+    expect(conditionSummary(schema, { flag: "arrived" })).toBe("플래그 arrived");
+    expect(conditionSummary(schema, { flag: "arrived", equals: false })).toBe("플래그 arrived = false");
     expect(conditionSummary(schema, { var: "coins", op: "<", value: 3 })).toBe("변수 coins < 3");
     expect(conditionSummary(schema, {})).toBe("빈 조건 (늘 참)");
   });

@@ -2,13 +2,13 @@
   "comment": "scripts/sync-engine-rpg.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 같은 경로",
   "source": "checkout",
   "syncCommand": "yarn sync:rpg",
-  "engineCommit": "ef00946666e35f48bc522aaa48828180aab5224b",
-  "syncedAt": "2026-09-27",
+  "engineCommit": "f04eba227b3013721c62dc99ec80fb7f670a815b",
+  "syncedAt": "2026-09-28",
   "files": [
     {
       "path": "resources/schema/event-commands.json",
-      "size": 12640,
-      "sha256": "4644ed0a752b01a1a00d1f1eb80635799a5352474ddba1696ea9624cd56e35a0"
+      "size": 12753,
+      "sha256": "38185908aad73c73e65b356e33969c842ba06c0244ed533a7e5d9e93c5b8d4aa"
     },
     {
       "path": "resources/data/rpg-game.json",

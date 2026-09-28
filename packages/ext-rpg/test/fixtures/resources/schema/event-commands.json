@@ -13,14 +13,14 @@
         "type": "integer",
         "required": true,
         "min": 0,
-        "label": "x (칸)"
+        "label": "x (타일)"
       },
       {
         "name": "y",
         "type": "integer",
         "required": true,
         "min": 0,
-        "label": "y (칸)"
+        "label": "y (타일)"
       },
       {
         "name": "dir",
@@ -53,18 +53,18 @@
       {
         "name": "through",
         "type": "boolean",
-        "label": "외형이 있어도 지나간다"
+        "label": "외형이 있어도 통행 가능"
       },
       {
         "name": "solid",
         "type": "boolean",
-        "label": "막는다 (비우면 외형 유무로)"
+        "label": "통행 막기 (지정 안 하면 외형 유무로 결정)"
       },
       {
         "name": "speed",
         "type": "number",
         "min": 1,
-        "label": "속도 (칸/초, 기본 3)"
+        "label": "속도 (타일/초, 기본 3)"
       },
       {
         "name": "wander",
@@ -122,7 +122,7 @@
           "name": "cancel",
           "type": "integer",
           "min": 1,
-          "label": "취소키가 고르는 항목"
+          "label": "취소 키로 선택되는 항목"
         }
       ],
       "lists": [
@@ -164,13 +164,13 @@
           "name": "x",
           "type": "integer",
           "min": 0,
-          "label": "x (비우면 정의 파일의 시작)"
+          "label": "x (지정 안 하면 정의 파일의 시작 좌표)"
         },
         {
           "name": "y",
           "type": "integer",
           "min": 0,
-          "label": "y (비우면 정의 파일의 시작)"
+          "label": "y (지정 안 하면 정의 파일의 시작 좌표)"
         },
         {
           "name": "dir",
@@ -181,7 +181,7 @@
             "right",
             "up"
           ],
-          "label": "방향 (비우면 정의 파일의 시작)"
+          "label": "방향 (지정 안 하면 정의 파일의 시작 방향)"
         }
       ]
     },
@@ -201,24 +201,24 @@
           "name": "route",
           "type": "route",
           "required": true,
-          "label": "걸음"
+          "label": "루트 단계"
         },
         {
           "name": "wait",
           "type": "boolean",
           "default": true,
-          "label": "끝날 때까지 기다린다"
+          "label": "종료까지 대기"
         },
         {
           "name": "loop",
           "type": "boolean",
-          "label": "되풀이한다"
+          "label": "반복"
         }
       ]
     },
     {
       "code": "turn",
-      "label": "방향 바꾸기",
+      "label": "방향 전환",
       "group": "이동",
       "args": [
         {
@@ -244,7 +244,7 @@
     },
     {
       "code": "setFlag",
-      "label": "깃발",
+      "label": "플래그",
       "group": "상태",
       "args": [
         {
@@ -252,13 +252,13 @@
           "type": "ref",
           "ref": "flag",
           "required": true,
-          "label": "깃발"
+          "label": "플래그"
         },
         {
           "name": "value",
           "type": "scalar",
           "default": true,
-          "label": "값 (비우면 참)"
+          "label": "값 (지정 안 하면 true)"
         }
       ]
     },
@@ -316,7 +316,7 @@
     },
     {
       "code": "takeItem",
-      "label": "아이템 잃기 (모자라면 아무것도 안 한다)",
+      "label": "아이템 잃기 (부족하면 실행 안 함)",
       "group": "상태",
       "args": [
         {
@@ -402,13 +402,13 @@
           "type": "integer",
           "min": 0,
           "max": 128,
-          "label": "음량 (0~128)"
+          "label": "볼륨 (0~128)"
         },
         {
           "name": "fade",
           "type": "integer",
           "min": 0,
-          "label": "페이드 (ms, 지금 데모는 쓰지 않는다)"
+          "label": "페이드 (ms, 현재 데모는 미사용)"
         }
       ]
     },
@@ -433,7 +433,7 @@
     },
     {
       "code": "scene",
-      "label": "씬 바꾸기",
+      "label": "씬 전환",
       "group": "화면",
       "ends": true,
       "args": [
@@ -449,12 +449,12 @@
         {
           "name": "fade",
           "type": "boolean",
-          "label": "어두워진 뒤에 바꾼다"
+          "label": "페이드 아웃 후 전환"
         },
         {
           "name": "text",
           "type": "string",
-          "label": "바꾸기 전에 띄울 글"
+          "label": "전환 전 표시할 텍스트"
         }
       ]
     },
@@ -512,31 +512,31 @@
             ">",
             ">="
           ],
-          "label": "비교 (비우면 값이 있을 때 >=, 값도 없으면 하나 이상)"
+          "label": "비교 (지정 안 하면 값이 있을 때 >=, 값도 없으면 1개 이상)"
         },
         {
           "name": "value",
           "type": "integer",
           "min": 0,
-          "label": "개수 (비교만 있고 비우면 1)"
+          "label": "개수 (비교만 지정하고 개수를 지정 안 하면 1)"
         }
       ]
     },
     {
       "kind": "flag",
-      "label": "깃발",
+      "label": "플래그",
       "args": [
         {
           "name": "flag",
           "type": "ref",
           "ref": "flag",
           "required": true,
-          "label": "깃발"
+          "label": "플래그"
         },
         {
           "name": "equals",
           "type": "scalar",
-          "label": "값 (비우면 참인가)"
+          "label": "값 (지정 안 하면 true 인지 검사)"
         }
       ]
     },
