@@ -22,7 +22,7 @@ export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPan
   const editor = useEditor();
   const doc = editor.documentDock.findDocument(props.api.id);
   if (!doc) {
-    return <div className="panel-hint">문서를 여는 중이다: {props.params?.path ?? props.api.id}</div>;
+    return <div className="panel-hint">문서 여는 중: {props.params?.path ?? props.api.id}</div>;
   }
   let view;
   if (doc instanceof WelcomeDocument) view = <WelcomeView />;
@@ -31,7 +31,7 @@ export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPan
   else if (doc instanceof SceneDocument) view = <SceneView document={doc} />;
   else if (doc instanceof MapDocument) view = <MapView document={doc} />;
   else if (doc instanceof GameDocument) view = <GameView doc={doc} />;
-  else view = <div className="panel-hint">이 문서 종류를 그릴 수 없다: {doc.kind}</div>;
+  else view = <div className="panel-hint">지원하지 않는 문서 종류: {doc.kind}</div>;
   return (
     <div className="document" data-testid="document" data-kind={doc.kind}>
       {doc.externallyChanged && <ExternalChangeBanner doc={doc} />}

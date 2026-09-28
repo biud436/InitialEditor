@@ -44,7 +44,7 @@ export const EventsPanel = observer(function EventsPanel({ services, hint }: Eve
   if (!doc) {
     return (
       <div className="rpg-events-panel" data-testid="rpg-events-panel">
-        <div className="panel-hint">맵을 열면 이 맵의 이벤트가 보인다</div>
+        <div className="panel-hint">활성 맵 탭 없음</div>
       </div>
     );
   }
@@ -53,7 +53,7 @@ export const EventsPanel = observer(function EventsPanel({ services, hint }: Eve
     return (
       <div className="rpg-events-panel" data-testid="rpg-events-panel">
         <div className="panel-hint" data-testid="rpg-events-hint">
-          {hint?.(doc) ?? "이 맵에는 이벤트 레이어가 없다"}
+          {hint?.(doc) ?? "이 맵에 이벤트 레이어 없음"}
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ function searchText(ev: unknown): string {
 }
 
 /** 객체가 아닌 칸의 표식 (엔진이 건너뛰는 이벤트) */
-const BROKEN_BADGE = { letter: "!", token: "danger", label: "객체가 아니라 엔진이 건너뛴다" } as const;
+const BROKEN_BADGE = { letter: "!", token: "danger", label: "객체가 아님 (엔진이 건너뜀)" } as const;
 
 /** 줄에 보일 짧은 JSON (40자에서 자른다) */
 function shortJson(v: unknown): string {
@@ -186,21 +186,21 @@ const EventsList = observer(function EventsList({ doc, state, services }: { doc:
       <input
         type="search"
         className="input field-text rpg-events-search"
-        placeholder="찾기 (id, 트리거, 대사)"
+        placeholder="찾기 (id, 트리거, 커맨드 내용)"
         aria-label="이벤트 찾기"
         value={query}
         data-testid="rpg-events-search"
         onChange={(e) => setQuery(e.target.value)}
       />
       <div className="rpg-events-list" role="listbox" aria-multiselectable="true" aria-label="이벤트" data-testid="rpg-events-list" ref={listRef} onKeyDown={onKey}>
-        {rows.length === 0 && <div className="panel-hint">{list.length === 0 ? "이벤트가 없다. 맵 빈 칸을 두 번 누르면 놓는다" : "찾는 이벤트가 없다"}</div>}
+        {rows.length === 0 && <div className="panel-hint">{list.length === 0 ? "이벤트 없음. 맵의 빈 타일을 더블클릭하면 추가" : "검색 결과 없음"}</div>}
         {rows.map(({ ev, index }) => {
           const broken = !isPlainObject(ev);
           const badge = broken ? BROKEN_BADGE : triggerBadge(field(ev, "trigger"));
           const id = field(ev, "id");
           const sev = worst(state.problemsOf(index));
           const cell = eventCell(ev);
-          const where = broken ? `객체가 아니다 (${shortJson(ev)})` : cell ? `${cell.x},${cell.y}` : "칸이 틀렸다";
+          const where = broken ? `객체가 아님 (${shortJson(ev)})` : cell ? `${cell.x},${cell.y}` : "잘못된 좌표";
           return (
             <div
               key={index}
@@ -355,7 +355,7 @@ const StartStateField = observer(function StartStateField({ doc, state, services
         className="input field-text"
         list={listId}
         value={text}
-        placeholder="비우면 새 게임 그대로 (예: arrived,item:shell=1)"
+        placeholder="비우면 새 게임 초기 상태 (예: arrived,item:shell=1)"
         data-testid="rpg-start-state-input"
         onFocus={() => setEditing(true)}
         onChange={(e) => setText(e.target.value)}

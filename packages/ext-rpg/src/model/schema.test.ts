@@ -103,7 +103,7 @@ describe("event-commands.json 읽기", () => {
     const e = errorOf(withPatch((s) => (s.version = 2)));
     expect(e).toBeInstanceOf(EventSchemaVersionError);
     expect(e.location).toBe("version");
-    expect(schemaLockReason(e)).toContain("버전 2");
+    expect(schemaLockReason(e)).toContain("지원하지 않는 event-commands.json 버전: 2 (이 에디터는 버전 1 만 편집 가능)");
     expect(errorOf(withPatch((s) => delete s.version))).toBeInstanceOf(EventSchemaVersionError);
     expect(schemaLockReason(new Error("x"))).toBeNull();
     expect(schemaLockReason(errorOf("[]"))).toBeNull();
@@ -112,21 +112,21 @@ describe("event-commands.json 읽기", () => {
   it("틀린 곳은 위치와 함께 알린다", () => {
     const commands = (s: Record<string, unknown>) => s.commands as Array<Record<string, unknown>>;
     const args = (s: Record<string, unknown>, i: number) => commands(s)[i].args as Array<Record<string, unknown>>;
-    expect(errorOf("{").message).toContain("JSON 이 아니다");
+    expect(errorOf("{").message).toContain("JSON 구문 오류: ");
     expect(errorOf("[]").message).toContain("객체여야");
     expect(errorOf(withPatch((s) => (args(s, 0)[0].type = "number2"))).location).toBe("commands[0].args[0].type");
     expect(errorOf(withPatch((s) => delete args(s, 3)[0].ref)).location).toBe("commands[3].args[0].ref");
     expect(errorOf(withPatch((s) => delete args(s, 3)[3].values)).location).toBe("commands[3].args[3].values");
     expect(errorOf(withPatch((s) => ((commands(s)[1].lists as Array<Record<string, unknown>>)[0].perOption = "cancel"))).location).toBe("commands[1].lists[0].perOption");
-    expect(errorOf(withPatch((s) => (commands(s)[2].code = "message"))).message).toContain("code message 가 겹친다");
-    expect(errorOf(withPatch((s) => args(s, 0).push({ name: "text", type: "string" }))).message).toContain("인자 text 가 겹친다");
+    expect(errorOf(withPatch((s) => (commands(s)[2].code = "message"))).message).toContain("code message 중복");
+    expect(errorOf(withPatch((s) => args(s, 0).push({ name: "text", type: "string" }))).message).toContain("commands[0].args: 인자 text 중복");
     expect(errorOf(withPatch((s) => args(s, 0).push({ name: "code", type: "string" }))).location).toBe("commands[0].args");
-    expect(errorOf(withPatch((s) => args(s, 0).push({ name: "look", type: "charset" }))).message).toContain("이벤트 칸에만");
+    expect(errorOf(withPatch((s) => args(s, 0).push({ name: "look", type: "charset" }))).message).toContain("이벤트 필드 전용");
     expect(errorOf(withPatch((s) => (args(s, 0)[0].min = "a"))).location).toBe("commands[0].args[0].min");
     expect(errorOf(withPatch((s) => ((s.conditions as Array<Record<string, unknown>>)[1].args = []))).location).toBe("conditions[1].args");
     expect(errorOf(withPatch((s) => (((s.sheets as Record<string, Record<string, unknown>>).charset.standPattern = 3)))).location).toBe("sheets.charset.standPattern");
     expect(errorOf(withPatch((s) => (((s.assets as Record<string, Record<string, unknown>>).face.npc = [])))).location).toBe("assets.face.npc");
-    expect(errorOf(withPatch((s) => ((s.event as Record<string, unknown>).fields = [{ name: "id", type: "string" }]))).message).toContain("x 칸이 없다");
+    expect(errorOf(withPatch((s) => ((s.event as Record<string, unknown>).fields = [{ name: "id", type: "string" }]))).message).toContain("x 필드 없음");
     expect(errorOf(withPatch((s) => delete s.route)).location).toBe("route");
   });
 

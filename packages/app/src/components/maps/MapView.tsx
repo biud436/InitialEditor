@@ -36,8 +36,8 @@ function targetLabel(doc: MapDocument, extLabel: (id: string) => string | undefi
 const MapCursor = observer(function MapCursor({ renderer }: { renderer: MapRenderer | null }) {
   const hover = renderer?.hover.get() ?? null;
   return (
-    <span className="map-view-cursor" data-testid="map-cursor" title="포인터 아래의 칸과 픽셀 좌표">
-      {hover ? `칸 ${hover.cell.x}, ${hover.cell.y}  픽셀 ${hover.px.x}, ${hover.px.y}` : "칸 -"}
+    <span className="map-view-cursor" data-testid="map-cursor" title="포인터 위치의 타일 좌표와 픽셀 좌표">
+      {hover ? `타일 ${hover.cell.x}, ${hover.cell.y}  픽셀 ${hover.px.x}, ${hover.px.y}` : "타일 -"}
     </span>
   );
 });
@@ -132,7 +132,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
             data-testid="map-zoom"
             onClick={run("map.zoomReset")}
             disabled={!status?.ready}
-            title="누르면 100% (Ctrl+0). 휠은 커서 기준 확대, Shift+휠과 가운데 버튼 끌기와 Space+끌기는 이동"
+            title="클릭하면 100% (Ctrl+0). 휠: 커서 기준 확대, Shift+휠, 가운데 버튼 드래그, Space+드래그: 이동"
           >
             {Math.round(zoom * 100)}%
           </button>
@@ -140,10 +140,10 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
             +
           </button>
         </span>
-        <button type="button" className="btn" onClick={run("map.fit")} disabled={!status?.ready} data-testid="map-fit" title="맵 전체가 보이게 줌과 팬을 맞춘다">
+        <button type="button" className="btn" onClick={run("map.fit")} disabled={!status?.ready} data-testid="map-fit" title="맵 전체가 보이도록 줌과 팬 조정">
           맵 전체 보기
         </button>
-        <span>{doc.dirty ? "수정됨" : "저장됨"}</span>
+        <span className="doc-header-save-state">{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
       </div>
       <div className="doc-header map-view-tools" role="toolbar" aria-label="맵 도구">
         <span className="map-view-group">
@@ -182,17 +182,17 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
             );
           })}
         </span>
-        <span className="map-view-target" title="칠하거나 고르는 대상 (레이어 패널에서 바꾼다)">
+        <span className="map-view-target" title="칠하기와 선택의 대상 레이어 (레이어 패널에서 변경)">
           대상 <b data-testid="map-target">{targetLabel(doc, (id) => support.layer(id)?.label)}</b>
         </span>
         {paintsHidden ? (
-          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title={doc.tool === "ext" ? "레이어 패널에서 눈을 켜면 고칠 수 있다" : "레이어 패널에서 눈을 켜면 칠할 수 있다"}>
-            {doc.tool === "ext" ? "숨김, 고치지 않는다" : "숨김, 칠하지 않는다"}
+          <span className="map-view-hidden-hint" data-testid="map-target-hidden" title={doc.tool === "ext" ? "레이어 패널에서 보이기를 켜면 편집 가능" : "레이어 패널에서 보이기를 켜면 칠하기 가능"}>
+            {doc.tool === "ext" ? "숨김 상태, 편집 불가" : "숨김 상태, 칠하기 불가"}
           </span>
         ) : null}
         <span className="doc-header-spacer" />
         <span className="map-view-group">
-          <button type="button" className={"btn" + (view.grid ? " is-on" : "")} aria-pressed={view.grid} onClick={run("map.toggleGrid")} data-testid="map-toggle-grid" title="타일 격자 (8칸마다 굵은 선)">
+          <button type="button" className={"btn" + (view.grid ? " is-on" : "")} aria-pressed={view.grid} onClick={run("map.toggleGrid")} data-testid="map-toggle-grid" title="타일 격자 (8타일마다 굵은 선)">
             격자
           </button>
           <button
@@ -201,7 +201,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
             aria-pressed={doc.showCollision}
             onClick={run("map.toggleCollision")}
             data-testid="map-toggle-collision"
-            title="통행 겹쳐 보기 (막힌 칸)"
+            title="통행 오버레이 (통행 불가 타일)"
           >
             통행
           </button>
@@ -211,7 +211,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
             aria-pressed={doc.showObjects}
             onClick={run("map.toggleObjects")}
             data-testid="map-toggle-objects"
-            title="오브젝트 표식 보기"
+            title="오브젝트 오버레이"
           >
             오브젝트
           </button>
@@ -219,7 +219,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       </div>
       {status?.error ? (
         <div className="panel-hint map-view-error" data-testid="map-view-error">
-          맵 뷰를 그릴 수 없다: {status.error}
+          맵 뷰 렌더링 실패: {status.error}
         </div>
       ) : null}
       {status?.warning ? (

@@ -89,7 +89,7 @@ describe("우리 항목을 눌렀을 때", () => {
   });
 
   it("편집 커맨드가 아니면 던진다", async () => {
-    await expect(runClipboardItem("file.save", deps("command").d)).rejects.toThrow(/편집 커맨드가 아니다/);
+    await expect(runClipboardItem("file.save", deps("command").d)).rejects.toThrow(/편집 커맨드 아님: file.save/);
   });
 });
 

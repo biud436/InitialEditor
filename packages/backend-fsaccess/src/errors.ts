@@ -18,18 +18,18 @@ export function toBackendError(e: unknown, rel?: string): BackendError {
   const where = rel === undefined ? "" : `: ${rel === "" ? "/" : rel}`;
   switch (errorName(e)) {
     case "NotFoundError":
-      return new BackendError(`없다${where}`, "not_found", rel);
+      return new BackendError(`파일이나 폴더 없음${where}`, "not_found", rel);
     case "TypeMismatchError":
-      return new BackendError(`파일과 폴더의 종류가 맞지 않는다${where}`, "io", rel);
+      return new BackendError(`파일과 폴더 종류 불일치${where}`, "io", rel);
     case "InvalidModificationError":
-      return new BackendError(`바꿀 수 없다${where} (${errorMessage(e)})`, "io", rel);
+      return new BackendError(`수정 불가${where} (${errorMessage(e)})`, "io", rel);
     case "NoModificationAllowedError":
-      return new BackendError(`다른 곳에서 쓰는 중이라 바꿀 수 없다${where}`, "io", rel);
+      return new BackendError(`다른 탭이나 프로그램에서 사용 중이라 수정 불가${where}`, "io", rel);
     case "NotAllowedError":
     case "SecurityError":
-      return new BackendError(`폴더 권한이 없다${where}. 시작 화면에서 다시 열기를 누른다`, "io", rel);
+      return new BackendError(`폴더 접근 권한 없음${where}. 시작 화면에서 다시 열기를 클릭하면 권한 요청`, "io", rel);
     case "QuotaExceededError":
-      return new BackendError(`브라우저 저장 공간이 모자란다${where}`, "io", rel);
+      return new BackendError(`브라우저 저장 공간 부족${where}`, "io", rel);
     default:
       return new BackendError(`${errorMessage(e)}${where}`, "io", rel);
   }

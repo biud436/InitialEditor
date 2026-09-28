@@ -82,11 +82,11 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await page.keyboard.type("-- e2e 수정\n");
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(1);
     await expect(page.locator(CODE)).toContainText("e2e 수정");
-    await expect(page.getByTestId("statusbar")).toContainText("저장 안 됨 1");
+    await expect(page.getByTestId("statusbar")).toContainText("저장 안 된 문서 1개");
 
     await openMenu(page, "파일", "저장");
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: main.lua");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: main.lua");
     const saved = await page.evaluate(() => (window as unknown as { initialEditor: { backend: { readText(p: string): Promise<string> } } }).initialEditor.backend.readText("scripts/lua/main.lua"));
     expect(saved.startsWith("-- e2e 수정\n-- 샘플 프로젝트의 Lua 진입점")).toBe(true);
     expect(saved).not.toContain("\r");
@@ -106,7 +106,7 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
       );
     await change("-- 밖에서 바꿈\nfunction init()\nend\n");
     await expect(page.locator(CODE)).toContainText("밖에서 바꿈");
-    await expect(page.getByTestId("toasts")).toContainText("밖에서 바뀌어 다시 읽었다: main.lua");
+    await expect(page.getByTestId("toasts")).toContainText("외부에서 변경되어 다시 읽음: main.lua");
     await expect(page.getByTestId("external-change-banner")).toHaveCount(0);
 
     await page.locator(CODE).click();
@@ -138,7 +138,7 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     const files = page.getByTestId("find-file");
     await expect(files.filter({ hasText: "scripts/lua/main.lua" })).toHaveCount(1);
     await expect(files.filter({ hasText: "scripts/ruby/main.rb" })).toHaveCount(1);
-    await expect(page.getByTestId("find-summary")).toContainText("2개 파일");
+    await expect(page.getByTestId("find-summary")).toContainText("파일 2개");
 
     const rubyMatch = files.filter({ hasText: "scripts/ruby/main.rb" }).getByTestId("find-match").first();
     const line = await rubyMatch.getAttribute("data-line");
@@ -151,8 +151,8 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await page.getByTestId("find-case").check();
     await input.fill("\\bINIT\\b");
     await input.press("Enter");
-    await expect(page.getByTestId("find-summary")).toContainText("0개 파일");
-    await expect(page.getByTestId("find-results")).toContainText("찾지 못했다");
+    await expect(page.getByTestId("find-summary")).toContainText("파일 0개");
+    await expect(page.getByTestId("find-results")).toContainText("검색 결과 없음");
   });
 
   test("자동완성: Inpu 를 치면 Input 이 뜨고, Input. 뒤에는 멤버가 뜬다", async ({ page }) => {
@@ -293,14 +293,14 @@ test.describe("스크립트 편집 (메모리 모드)", () => {
     await expect(tree.locator('[data-path="scripts/lua/player.lua"]')).toBeVisible();
     await expect(tabOf(page, "player.lua")).toBeVisible();
     await expect(page.locator(CODE)).toContainText("function Player.init(obj, scene)");
-    await expect(page.getByTestId("console-list")).toContainText("스크립트를 만들었다: scripts/lua/player.lua");
+    await expect(page.getByTestId("console-list")).toContainText("스크립트 생성됨: scripts/lua/player.lua");
 
     // 같은 이름은 경고
     await openMenu(page, "파일", "새 스크립트");
     await page.getByTestId("new-script-kind").selectOption("component");
     await page.getByTestId("new-script-name").fill("player");
     await page.getByTestId("new-script-dialog").getByRole("button", { name: "만들기" }).click();
-    await expect(page.getByTestId("toasts")).toContainText("이미 있다: scripts/lua/player.lua");
+    await expect(page.getByTestId("toasts")).toContainText("이미 있는 파일: scripts/lua/player.lua");
     await page.getByTestId("new-script-dialog").getByRole("button", { name: "취소" }).click();
   });
 

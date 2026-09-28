@@ -1,11 +1,11 @@
 {
   "comment": "scripts/sync-engine-web.mjs 가 만든다. 손으로 고치지 않는다. 엔진 저장소의 build-web/site/ 사본이다",
-  "engineCommit": "ef00946666e35f48bc522aaa48828180aab5224b",
+  "engineCommit": "f04eba227b3013721c62dc99ec80fb7f670a815b",
   "source": "checkout",
   "syncCommand": "yarn sync:engine-web",
   "engineDirty": false,
-  "builtAt": "2026-09-27T10:28:16.303Z",
-  "syncedAt": "2026-09-27",
+  "builtAt": "2026-09-28T02:58:51.797Z",
+  "syncedAt": "2026-09-28",
   "features": [
     "lua",
     "mruby",
@@ -20,7 +20,7 @@
     {
       "path": "Initial2D.wasm",
       "size": 2963624,
-      "sha256": "39bfc0ef04ecbbd4541a888b649272ca2508dd12dfda8dfdcdf64a87d827404b"
+      "sha256": "71206cfdb2f859ccc974b3ee53e36b729dcf22414ee8fa8402541fe54202b697"
     },
     {
       "path": "initial2d-loader.js",

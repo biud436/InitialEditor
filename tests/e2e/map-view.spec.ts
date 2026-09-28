@@ -103,7 +103,7 @@ async function openMeadow(page: Page) {
 test.describe("맵 뷰 (메모리 모드)", () => {
   test("팔레트, 붓질과 되돌리기, 채우기, 통행, 오브젝트 끌기, 저장", async ({ page }) => {
     const view = await openMeadow(page);
-    await expect(view).toContainText("20x12 칸 (320x192 px)");
+    await expect(view).toContainText("20x12 타일 (320x192 px)");
     await expect(view).toHaveAttribute("data-tool", "pen");
     await expect(view).toHaveAttribute("data-target", "layer:0");
     // 샘플 스키마의 타입이라 경고가 없고, 타일셋 밖의 gid도 없다
@@ -121,7 +121,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     await expect(palette).toHaveAttribute("data-rows", "4");
     const pz = Number(await palette.getAttribute("data-zoom"));
     await palette.click({ position: { x: 2.5 * 16 * pz, y: 0.5 * 16 * pz } });
-    await expect(page.getByTestId("palette-brush")).toHaveText("붓 gid 3");
+    await expect(page.getByTestId("palette-brush")).toHaveText("브러시 gid 3");
     expect(await active(page, "(d) => d.brush")).toEqual({ width: 1, height: 1, gids: [[3]] });
 
     // 세 칸 붓질: (2,1)에서 (4,1)까지. 되돌리기 한 단계
@@ -156,7 +156,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
     expect(await cells(page, "collision", 5 * W + 5, 1)).toEqual([0]);
     await page.mouse.click(c55.x, c55.y);
     expect(await cells(page, "collision", 5 * W + 5, 1)).toEqual([1]);
-    await expect(page.getByTestId("map-cursor")).toHaveText(/칸 5, 5/);
+    await expect(page.getByTestId("map-cursor")).toHaveText(/타일 5, 5/);
     await page.mouse.click(c55.x, c55.y, { button: "right" });
     expect(await cells(page, "collision", 5 * W + 5, 1)).toEqual([0]);
     await page.mouse.click(c55.x, c55.y);
@@ -184,7 +184,7 @@ test.describe("맵 뷰 (메모리 모드)", () => {
 
     // 저장: 고정 형식 v2, 새 값, 타일 배열은 맵 한 줄이 한 줄
     await page.keyboard.press("ControlOrMeta+s");
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: meadow.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: meadow.json");
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
     const text = await page.evaluate((p) => (window as unknown as EditorWindow).initialEditor.backend.readText(p), MAP_PATH);
     const saved = JSON.parse(text) as { version: number; layers: Array<{ data: number[] }>; collision: number[]; objects: MapObjectLike[] };
@@ -324,7 +324,7 @@ test.describe("맵 뷰: 밖에서 바뀐 파일", () => {
       await e.backend.writeText(p, '{ "version": 9 }\n');
       await e.openPath(p);
     }, "resources/maps/broken.json");
-    await expect(page.getByTestId("toasts")).toContainText("맵으로 열지 못해 텍스트로 연다");
+    await expect(page.getByTestId("toasts")).toContainText("맵 형식 아님, 텍스트 편집기로 열림");
     await expect(page.locator(".monaco-editor")).toBeVisible();
     expect(await active(page, "(d) => d.kind")).not.toBe("map");
     expect(errors).toEqual([]);

@@ -27,18 +27,18 @@ export async function attachScript(editor: Editor, options: AttachScriptOptions)
     const exists = await editor.backend.exists(path);
     if (!exists) {
       if (!options.createIfMissing) {
-        editor.toasts.warn(`파일이 없다: ${path}`);
+        editor.toasts.warn(`파일 없음: ${path}`);
         return false;
       }
       const text = scriptTemplate({ language, kind: "component", name, hooks: editor.scripting.spec.sceneContract });
       await editor.backend.writeText(path, text);
       await editor.project.refresh(dirname(path)).catch(() => {});
       await editor.tree.reveal(path);
-      editor.log.info("editor", `컴포넌트를 만들었다: ${path}`);
+      editor.log.info("editor", `컴포넌트 생성됨: ${path}`);
       tools.assets.schedule();
     }
   } catch (e) {
-    const message = `스크립트를 만들지 못했다: ${(e as Error).message}`;
+    const message = `스크립트 생성 실패: ${(e as Error).message}`;
     editor.log.error("editor", message);
     editor.toasts.error(message);
     return false;
@@ -79,12 +79,12 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
               <option key={s} value={s} />
             ))}
           </datalist>
-          <div className="form-help">{path ? `파일: ${path}` : name ? error : `있는 컴포넌트 ${suggestions.length}개. scripts/${language === "mruby" ? "ruby" : "lua"}/ 기준 이름을 확장자 없이 적는다`}</div>
+          <div className="form-help">{path ? `파일: ${path}` : name ? error : `기존 컴포넌트 ${suggestions.length}개. scripts/${language === "mruby" ? "ruby" : "lua"}/ 기준 상대 경로, 확장자 제외`}</div>
         </div>
         <div className="form-row">
-          <label htmlFor="attach-script-create">없으면 만들기</label>
+          <label htmlFor="attach-script-create">파일이 없으면 생성</label>
           <label className="attach-script-check">
-            <input id="attach-script-create" type="checkbox" checked={create} onChange={(e) => setCreate(e.target.checked)} data-testid="attach-script-create" /> 파일이 없으면 컴포넌트 템플릿으로 만든다
+            <input id="attach-script-create" type="checkbox" checked={create} onChange={(e) => setCreate(e.target.checked)} data-testid="attach-script-create" /> 파일이 없으면 컴포넌트 템플릿으로 생성
           </label>
         </div>
         {suggestions.length > 0 && (
@@ -102,7 +102,7 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
           취소
         </button>
         <button type="submit" className="btn btn-primary" disabled={!!error || busy} data-testid="attach-script-ok">
-          붙이기
+          추가
         </button>
       </div>
     </form>
@@ -110,5 +110,5 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
 });
 
 export function openAttachScriptDialog(editor: Editor, objectId: string): Promise<void> {
-  return editor.modals.custom({ title: `스크립트 붙이기: ${objectId}`, width: 480, render: (close) => <AttachScriptForm objectId={objectId} onClose={close} /> });
+  return editor.modals.custom({ title: `스크립트 추가: ${objectId}`, width: 480, render: (close) => <AttachScriptForm objectId={objectId} onClose={close} /> });
 }

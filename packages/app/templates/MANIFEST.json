@@ -2,8 +2,8 @@
   "comment": "scripts/sync-engine-templates.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 경로, to 는 새 프로젝트 안의 경로",
   "source": "checkout",
   "syncCommand": "yarn sync:templates",
-  "engineCommit": "ef00946666e35f48bc522aaa48828180aab5224b",
-  "syncedAt": "2026-09-27",
+  "engineCommit": "f04eba227b3013721c62dc99ec80fb7f670a815b",
+  "syncedAt": "2026-09-28",
   "files": [
     {
       "path": "scripts/lua/scene_loader.lua",
@@ -85,8 +85,8 @@
       ],
       "language": null,
       "kind": "text",
-      "size": 42238,
-      "sha256": "f773db340a2d5639e33a4a42387ba10008c24f7d3659feab86bedbed2e81e5a0",
+      "size": 42428,
+      "sha256": "925964ca679ec779970509653855cd85581f3574c656d10554b3b44fb4975482",
       "generated": false
     },
     {

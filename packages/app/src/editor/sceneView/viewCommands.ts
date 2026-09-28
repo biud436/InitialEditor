@@ -7,7 +7,7 @@ import type { EditorCommand } from "@initial-editor/core";
 import type { Editor } from "../Editor";
 import type { SceneSupport } from "./SceneSupport";
 
-const NEED_SCENE = "씬 탭이 활성일 때";
+const NEED_SCENE = "활성 씬 탭 없음";
 
 export function registerViewCommands(editor: Editor, support: SceneSupport): () => void {
   const c = editor.commands;

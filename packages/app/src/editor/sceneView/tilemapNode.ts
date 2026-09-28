@@ -117,7 +117,7 @@ class TilemapNode {
     const { map, groundLayers } = readTilemapProps(this.object.props);
     this.groundLayers = groundLayers;
     if (!map) {
-      this.placeholder("맵 없음", this.ctx.colors["fg-muted"]);
+      this.placeholder("맵 파일 미지정", this.ctx.colors["fg-muted"]);
       return;
     }
     this.stopWatching = this.deps.maps.events.on("changed", (path) => {
@@ -149,7 +149,7 @@ class TilemapNode {
         this.ctx.loadTexture(t.image).then(
           (loaded): LoadedTexture | null => loaded,
           (e: Error) => {
-            errors.push(`타일셋을 읽지 못했다: ${t.image} (${e.message})`);
+            errors.push(`타일셋 읽기 실패: ${t.image} (${e.message})`);
             return null;
           },
         ),
@@ -193,7 +193,7 @@ class TilemapNode {
       this.tiles.push(part);
     }
     const notes = [...errors];
-    if (plan.skipped > 0) notes.push(`타일셋 밖의 칸 ${plan.skipped}`);
+    if (plan.skipped > 0) notes.push(`타일셋에 없는 gid 타일 ${plan.skipped}개`);
     if (plan.drawn === 0 && errors.length === 0) notes.push("빈 맵");
     if (notes.length > 0) {
       const color = errors.length > 0 || plan.skipped > 0 ? this.ctx.colors.danger : this.ctx.colors["fg-muted"];

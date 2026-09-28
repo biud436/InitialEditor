@@ -133,14 +133,14 @@ export function detachedWorkspace(): Workspace {
   const quiet = { info: () => {}, success: () => {}, warn: () => {}, error: () => {} };
   return {
     backend: () => {
-      throw new Error("작업 공간에 백엔드가 없다");
+      throw new Error("작업 공간에 백엔드 없음");
     },
     project: { isOpen: false, root: "", onOpened: none, onClosed: none, onFileChange: none },
     documents: new DocumentRegistry(),
     log: quiet,
     toasts: quiet,
     openPath: async (path) => {
-      throw new Error(`작업 공간에 열 프로젝트가 없다: ${path}`);
+      throw new Error(`작업 공간에 열린 프로젝트 없음: ${path}`);
     },
   };
 }
@@ -192,7 +192,7 @@ export class ExtensionRegistries {
 }
 
 function putUnique<T>(map: Map<string, T>, key: string, value: T, what: string): () => void {
-  if (map.has(key)) throw new Error(`${what}이(가) 이미 있다: ${key}`);
+  if (map.has(key)) throw new Error(`${what} 중복 등록: ${key}`);
   runInAction(() => map.set(key, value));
   return action(() => {
     if (map.get(key) === value) map.delete(key);
@@ -232,16 +232,16 @@ export class ExtensionHost {
 
   apiFor(extensionId: string): ExtensionApi {
     const entry = this.active.get(extensionId);
-    if (!entry) throw new Error(`활성 확장이 아니다: ${extensionId}`);
+    if (!entry) throw new Error(`비활성 확장: ${extensionId}`);
     const d = entry.disposables;
     const { commands, menus, registries } = this.deps;
     const self = entry.extension;
     return {
       workspace: this.workspace,
       exportsOf: <T,>(id: string): T => {
-        if (!(self.dependsOn ?? []).includes(id)) throw new Error(`확장 ${self.id} 은(는) dependsOn 에 ${id} 을(를) 적어야 그 내보내기를 받는다`);
+        if (!(self.dependsOn ?? []).includes(id)) throw new Error(`확장 ${self.id}: dependsOn에 ${id} 없음 (내보내기 사용 불가)`);
         const dep = this.active.get(id);
-        if (!dep) throw new Error(`확장 ${id} 이(가) 활성이 아니다`);
+        if (!dep) throw new Error(`비활성 확장: ${id}`);
         return dep.exports as T;
       },
       onDeactivate: (dispose) => {
@@ -281,7 +281,7 @@ export class ExtensionHost {
   async activate(ext: Extension): Promise<void> {
     if (this.active.has(ext.id)) return;
     for (const dep of ext.dependsOn ?? []) {
-      if (!this.active.has(dep)) throw new Error(`확장 ${ext.id} 은(는) ${dep} 이(가) 먼저 있어야 한다`);
+      if (!this.active.has(dep)) throw new Error(`확장 ${ext.id}: 의존 확장 ${dep} 비활성`);
     }
     const entry: ActiveExtension = { extension: ext, disposables: new Disposables(), exports: undefined };
     action(() => this.active.set(ext.id, entry))();
@@ -315,11 +315,11 @@ export function topoSort(extensions: Extension[]): Extension[] {
   const visit = (ext: Extension, chain: string[]) => {
     const s = state.get(ext.id);
     if (s === "done") return;
-    if (s === "visiting") throw new Error(`확장 의존이 순환한다: ${[...chain, ext.id].join(" → ")}`);
+    if (s === "visiting") throw new Error(`확장 의존성 순환: ${[...chain, ext.id].join(" → ")}`);
     state.set(ext.id, "visiting");
     for (const dep of ext.dependsOn ?? []) {
       const target = byId.get(dep);
-      if (!target) throw new Error(`확장 ${ext.id} 이(가) 의존하는 ${dep} 이(가) 없다`);
+      if (!target) throw new Error(`확장 ${ext.id}: 의존 확장 ${dep} 없음`);
       visit(target, [...chain, ext.id]);
     }
     state.set(ext.id, "done");

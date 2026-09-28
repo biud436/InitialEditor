@@ -43,10 +43,10 @@ export class LayoutPersistence {
         if (await project.backend.exists(LAYOUT_FILE)) {
           const parsed = JSON.parse(await project.backend.readText(LAYOUT_FILE)) as unknown;
           if (isLayoutJson(parsed)) return parsed;
-          this.deps.warn?.(`${LAYOUT_FILE} 의 모양이 다르다. 기본 레이아웃을 쓴다`);
+          this.deps.warn?.(`${LAYOUT_FILE} 형식 불일치, 기본 레이아웃 사용`);
         }
       } catch (e) {
-        this.deps.warn?.(`${LAYOUT_FILE} 을 읽지 못했다: ${(e as Error).message}`);
+        this.deps.warn?.(`${LAYOUT_FILE} 읽기 실패: ${(e as Error).message}`);
       }
     }
     return this.loadLocal();
@@ -75,7 +75,7 @@ export class LayoutPersistence {
       // 브리지 서버가 .initial-editor/ 를 허용하지 않을 수 있다. 한 번만 알리고 localStorage 로 버틴다
       if (!this.warnedProjectWrite) {
         this.warnedProjectWrite = true;
-        this.deps.warn?.(`${LAYOUT_FILE} 에 쓰지 못했다 (브라우저 저장소에는 남는다): ${(e as Error).message}`);
+        this.deps.warn?.(`${LAYOUT_FILE} 쓰기 실패 (localStorage 에는 저장됨): ${(e as Error).message}`);
       }
     }
   }
@@ -93,7 +93,7 @@ export function restoreLayout(
       apply(persisted);
       return true;
     } catch (e) {
-      warn?.(`저장된 레이아웃을 복원하지 못했다. 기본 레이아웃으로 돌아간다: ${(e as Error).message}`);
+      warn?.(`저장된 레이아웃 복원 실패, 기본 레이아웃 적용: ${(e as Error).message}`);
     }
   }
   applyDefault();

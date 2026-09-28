@@ -126,7 +126,7 @@ export class EventSchemaError extends Error {
 /** 모르는 버전. 레이어는 붙되 읽기 전용으로 잠근다 */
 export class EventSchemaVersionError extends EventSchemaError {
   constructor(public readonly version: unknown) {
-    super(`모르는 버전 ${String(version)} (이 에디터는 ${EVENT_SCHEMA_VERSION})`, "version");
+    super(`지원하지 않는 버전: ${String(version)} (이 에디터는 ${EVENT_SCHEMA_VERSION})`, "version");
     this.name = "EventSchemaVersionError";
   }
 }
@@ -134,7 +134,7 @@ export class EventSchemaVersionError extends EventSchemaError {
 /** 스키마를 읽지 못한 이유를 레이어의 잠금 문구로. 버전 문제가 아니면 null */
 export function schemaLockReason(error: unknown): string | null {
   if (error instanceof EventSchemaVersionError) {
-    return `event-commands.json 의 버전 ${String(error.version)} 을 모른다. 이 에디터는 버전 ${EVENT_SCHEMA_VERSION} 만 고칠 수 있다`;
+    return `지원하지 않는 event-commands.json 버전: ${String(error.version)} (이 에디터는 버전 ${EVENT_SCHEMA_VERSION} 만 편집 가능)`;
   }
   return null;
 }
@@ -176,17 +176,17 @@ function fail(location: string, message: string): never {
 }
 
 function obj(v: unknown, where: string): JsonObject {
-  if (!isPlainObject(v)) fail(where, "객체여야 한다");
+  if (!isPlainObject(v)) fail(where, "객체여야 함");
   return v;
 }
 
 function arr(v: unknown, where: string): unknown[] {
-  if (!Array.isArray(v)) fail(where, "배열이어야 한다");
+  if (!Array.isArray(v)) fail(where, "배열이어야 함");
   return v;
 }
 
 function str(v: unknown, where: string): string {
-  if (typeof v !== "string" || v === "") fail(where, "비어 있지 않은 글이어야 한다");
+  if (typeof v !== "string" || v === "") fail(where, "비어 있지 않은 문자열이어야 함");
   return v;
 }
 
@@ -195,20 +195,20 @@ function strings(v: unknown, where: string): string[] {
 }
 
 function posInt(v: unknown, where: string, min = 1): number {
-  if (typeof v !== "number" || !Number.isInteger(v) || v < min) fail(where, `${min} 이상의 정수여야 한다`);
+  if (typeof v !== "number" || !Number.isInteger(v) || v < min) fail(where, `${min} 이상의 정수여야 함`);
   return v;
 }
 
 function optNumber(v: unknown, where: string): number | undefined {
   if (v === undefined) return undefined;
-  if (typeof v !== "number" || !Number.isFinite(v)) fail(where, "수여야 한다");
+  if (typeof v !== "number" || !Number.isFinite(v)) fail(where, "숫자여야 함");
   return v;
 }
 
 function unique(names: string[], where: string, what: string): void {
   const seen = new Set<string>();
   for (const n of names) {
-    if (seen.has(n)) fail(where, `${what} ${n} 가 겹친다`);
+    if (seen.has(n)) fail(where, `${what} ${n} 중복`);
     seen.add(n);
   }
 }
@@ -217,26 +217,26 @@ function parseArg(raw: unknown, where: string): ArgSpec {
   const a = obj(raw, where);
   const name = str(a.name, `${where}.name`);
   const type = a.type as ArgType;
-  if (!ARG_TYPES.includes(type)) fail(`${where}.type`, `모르는 타입 ${String(a.type)}`);
+  if (!ARG_TYPES.includes(type)) fail(`${where}.type`, `지원하지 않는 타입: ${String(a.type)}`);
   const spec: ArgSpec = {
     name,
     type,
     label: typeof a.label === "string" ? a.label : name,
     required: a.required === true,
   };
-  if (a.required !== undefined && typeof a.required !== "boolean") fail(`${where}.required`, "참거짓이어야 한다");
+  if (a.required !== undefined && typeof a.required !== "boolean") fail(`${where}.required`, "불리언이어야 함");
   if (hasOwn(a, "default")) spec.default = a.default;
   const min = optNumber(a.min, `${where}.min`);
   const max = optNumber(a.max, `${where}.max`);
   if (min !== undefined) spec.min = min;
   if (max !== undefined) spec.max = max;
-  if (min !== undefined && max !== undefined && min > max) fail(`${where}.min`, "max 보다 크다");
+  if (min !== undefined && max !== undefined && min > max) fail(`${where}.min`, "max 보다 큼");
   if (type === "enum" || a.values !== undefined) {
     spec.values = strings(a.values, `${where}.values`);
-    if (spec.values.length === 0) fail(`${where}.values`, "값이 하나 이상 있어야 한다");
+    if (spec.values.length === 0) fail(`${where}.values`, "값 1개 이상 필요");
   }
   if (type === "ref") {
-    if (!REF_KINDS.includes(a.ref as RefKind)) fail(`${where}.ref`, `ref 는 ${REF_KINDS.join(", ")} 중 하나다`);
+    if (!REF_KINDS.includes(a.ref as RefKind)) fail(`${where}.ref`, `ref 는 ${REF_KINDS.join(", ")} 중 하나여야 함`);
     spec.ref = a.ref as RefKind;
   }
   if (a.accept !== undefined) spec.accept = strings(a.accept, `${where}.accept`);
@@ -260,9 +260,9 @@ function parseCommand(raw: unknown, where: string): CommandSpec {
   const c = obj(raw, where);
   const code = str(c.code, `${where}.code`);
   const args = parseArgs(c.args, `${where}.args`);
-  if (args.some((a) => a.name === "code")) fail(`${where}.args`, "인자 이름으로 code 를 쓸 수 없다");
+  if (args.some((a) => a.name === "code")) fail(`${where}.args`, "인자 이름으로 code 사용 불가");
   for (const a of args) {
-    if (a.type === "charset" || a.type === "wander" || a.type === "list") fail(`${where}.args`, `${a.type} 는 이벤트 칸에만 쓴다 (${a.name})`);
+    if (a.type === "charset" || a.type === "wander" || a.type === "list") fail(`${where}.args`, `${a.type} 타입은 이벤트 필드 전용 (${a.name})`);
   }
   const lists: ListSpec[] = c.lists === undefined ? [] : arr(c.lists, `${where}.lists`).map((l, i) => {
     const lw = `${where}.lists[${i}]`;
@@ -270,13 +270,13 @@ function parseCommand(raw: unknown, where: string): CommandSpec {
     const spec: ListSpec = { name: str(lo.name, `${lw}.name`), label: typeof lo.label === "string" ? lo.label : String(lo.name) };
     if (lo.perOption !== undefined) {
       const target = args.find((a) => a.name === lo.perOption);
-      if (!target || target.type !== "options") fail(`${lw}.perOption`, `options 인자를 가리켜야 한다 (${String(lo.perOption)})`);
+      if (!target || target.type !== "options") fail(`${lw}.perOption`, `perOption 은 options 인자를 가리켜야 함 (${String(lo.perOption)})`);
       spec.perOption = target.name;
     }
     return spec;
   });
   unique([...args.map((a) => a.name), ...lists.map((l) => l.name)], where, "인자나 목록");
-  if (c.ends !== undefined && typeof c.ends !== "boolean") fail(`${where}.ends`, "참거짓이어야 한다");
+  if (c.ends !== undefined && typeof c.ends !== "boolean") fail(`${where}.ends`, "불리언이어야 함");
   const spec: CommandSpec = {
     code,
     label: typeof c.label === "string" ? c.label : code,
@@ -286,7 +286,7 @@ function parseCommand(raw: unknown, where: string): CommandSpec {
     lists,
   };
   if (c.summary !== undefined) {
-    if (typeof c.summary !== "string") fail(`${where}.summary`, "글이어야 한다");
+    if (typeof c.summary !== "string") fail(`${where}.summary`, "문자열이어야 함");
     spec.summary = c.summary;
   }
   return spec;
@@ -296,7 +296,7 @@ function parseCondition(raw: unknown, where: string): ConditionSpec {
   const c = obj(raw, where);
   const kind = str(c.kind, `${where}.kind`);
   const args = parseArgs(c.args, `${where}.args`);
-  if (args.length === 0 || args[0].name !== kind || !args[0].required) fail(`${where}.args`, `첫 인자는 ${kind} 이름의 필수 인자여야 한다`);
+  if (args.length === 0 || args[0].name !== kind || !args[0].required) fail(`${where}.args`, `첫 인자는 ${kind} 이름의 필수 인자여야 함`);
   return { kind, label: typeof c.label === "string" ? c.label : kind, args };
 }
 
@@ -305,7 +305,7 @@ function parseAssetSets(raw: unknown, where: string): ReadonlyMap<string, readon
   const out = new Map<string, readonly string[]>();
   for (const [name, list] of Object.entries(o)) {
     const files = strings(list, `${where}.${name}`);
-    if (files.length === 0) fail(`${where}.${name}`, "후보가 하나 이상 있어야 한다");
+    if (files.length === 0) fail(`${where}.${name}`, "후보 파일 1개 이상 필요");
     out.set(name, files);
   }
   return out;
@@ -326,7 +326,7 @@ function parseSheets(raw: unknown): EventSchema["sheets"] {
     standPattern: posInt(c.standPattern, "sheets.charset.standPattern", 0),
     dirRows: rows,
   };
-  if (charset.standPattern >= charset.patterns) fail("sheets.charset.standPattern", "patterns 보다 작아야 한다");
+  if (charset.standPattern >= charset.patterns) fail("sheets.charset.standPattern", "patterns 보다 작아야 함");
   const f = obj(s.face, "sheets.face");
   return {
     charset,
@@ -340,16 +340,16 @@ export function parseEventSchema(text: string): EventSchema {
   try {
     raw = JSON.parse(text);
   } catch (e) {
-    throw new EventSchemaError(`JSON 이 아니다: ${(e as Error).message}`);
+    throw new EventSchemaError(`JSON 구문 오류: ${(e as Error).message}`);
   }
-  if (!isPlainObject(raw)) throw new EventSchemaError("스키마는 객체여야 한다");
+  if (!isPlainObject(raw)) throw new EventSchemaError("스키마는 객체여야 함");
   if (raw.version !== EVENT_SCHEMA_VERSION) throw new EventSchemaVersionError(raw.version);
 
   const event = obj(raw.event, "event");
   const fields = parseArgs(event.fields, "event.fields");
-  if (fields.length === 0) fail("event.fields", "칸이 하나 이상 있어야 한다");
+  if (fields.length === 0) fail("event.fields", "필드 1개 이상 필요");
   for (const name of ["id", "x", "y"]) {
-    if (!fields.some((f) => f.name === name)) fail("event.fields", `${name} 칸이 없다`);
+    if (!fields.some((f) => f.name === name)) fail("event.fields", `${name} 필드 없음`);
   }
   const reserved = event.reserved === undefined ? [] : strings(event.reserved, "event.reserved");
 

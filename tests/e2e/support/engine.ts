@@ -1,5 +1,5 @@
 // 엔진 실행 파일을 헤드리스로 띄우고 결과(종료 코드, 로그, 스크린샷)를 모은다.
-// 환경 변수는 에디터의 러너처럼 INITIAL2D_SCRIPT 위에 "여기서 실행"의 변수를 덧씌우고, 그 위에 유한 실행과 덤프 변수를 둔다.
+// 환경 변수는 에디터의 러너처럼 INITIAL2D_SCRIPT 위에 "이 맵에서 실행"의 변수를 덧씌우고, 그 위에 유한 실행과 덤프 변수를 둔다.
 // 셸에 남은 INITIAL2D_* 는 지운다 (결과가 실행한 사람의 셸에 따라 달라지지 않게).
 
 import { spawn, spawnSync } from "node:child_process";
@@ -42,7 +42,7 @@ export interface EngineRunOptions {
   args?: string[];
   cwd: string;
   script: ScriptLanguage;
-  /** "여기서 실행"의 환경 변수 */
+  /** "이 맵에서 실행"의 환경 변수 */
   playEnv: Record<string, string>;
   exitAfter: number;
   shot?: { dir: string; prefix: string; frame: number };

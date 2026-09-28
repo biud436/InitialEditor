@@ -1,6 +1,6 @@
 // 맵 오브젝트 인스펙터. 활성 문서가 맵이면 인스펙터 패널이 이것을 그린다.
 //   하나 고름: id (Enter나 초점을 잃으면 이름 바꾸기, 겹치면 거부, Escape는 취소), 타입, x, y, 띠와 사각형은 폭과 높이,
-//             그다음 스키마 칸마다 입력 하나. rangeMin/rangeMax 칸은 "순찰 범위" 한 줄로 묶는다
+//             그다음 스키마 칸마다 입력 하나. rangeMin/rangeMax 속성은 "범위" 한 줄로 묶는다
 //   같은 타입 여럿: 함께 고쳐도 뜻이 있는 칸(enum, boolean)만, 묶음 명령 하나로
 //   아무것도 안 고름: 맵 요약 (크기, 레이어, 타입별 수)과 스키마 출처
 //   대상이 확장 레이어: 그 레이어의 Inspector 자리 (docs/plans/e5-rpg.md 2.3). Inspector 가 없거나 상태가 없으면 위의 규칙대로
@@ -17,7 +17,7 @@ import { asMapDocument } from "../../editor/maps/schemaStore";
 import { FieldRow, NumberField, OptionalNumberField, SchemaFieldInput } from "@initial-editor/ui";
 import "./MapObjectInspector.css";
 
-export const RANGE_LABEL = "순찰 범위";
+export const RANGE_LABEL = "범위";
 
 function sameValue(values: unknown[]): unknown {
   return values.length > 0 && values.every((v) => v === values[0]) ? values[0] : null;
@@ -92,7 +92,7 @@ const IdField = observer(function IdField({ doc, object }: { doc: MapDocument; o
 
 function ClearButton({ onClick, testId, label }: { onClick: () => void; testId: string; label: string }) {
   return (
-    <button type="button" className="btn btn-ghost map-field-clear" onClick={onClick} data-testid={testId} title={`${label} 지우기 (칸을 파일에서 뺀다)`}>
+    <button type="button" className="btn btn-ghost map-field-clear" onClick={onClick} data-testid={testId} title={`${label} 지우기 (파일의 props에서 이 속성 삭제)`}>
       지우기
     </button>
   );
@@ -131,7 +131,7 @@ const RangeRow = observer(function RangeRow({ doc, object, min, max }: { doc: Ma
         />
       </FieldRow>
       <div className="map-range-actions">
-        <button type="button" className="btn" onClick={() => setRangeAround(doc, object.id)} data-testid="map-range-around" title={`${min.label}, ${max.label} 을(를) x ${object.x} 기준으로 (맵 폭 안으로 자른다)`}>
+        <button type="button" className="btn" onClick={() => setRangeAround(doc, object.id)} data-testid="map-range-around" title={`${min.label}, ${max.label}: x ${object.x} 기준 ±${PATROL_RADIUS} 범위로 설정 (맵 너비 안으로 제한)`}>
           현재 위치 기준 ±{PATROL_RADIUS}
         </button>
         {(lo !== undefined || hi !== undefined) && !min.required && !max.required && <ClearButton onClick={clear} testId="map-range-clear" label={RANGE_LABEL} />}
@@ -145,7 +145,7 @@ const SchemaFields = observer(function SchemaFields({ doc, object, spec }: { doc
   return (
     <div className="inspector-section" data-testid="map-inspector-fields">
       <div className="inspector-subtitle">속성</div>
-      {spec.fields.length === 0 && <div className="muted inspector-note">이 타입은 칸이 없다</div>}
+      {spec.fields.length === 0 && <div className="muted inspector-note">추가 속성 없음</div>}
       {spec.fields.map((f) => {
         if (range && f === range.max) return null;
         if (range && f === range.min) return <RangeRow key="range" doc={doc} object={object} min={range.min} max={range.max} />;
@@ -195,7 +195,7 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
       </div>
       <div className="inspector-body">
         <div className="inspector-section" data-testid="map-inspector-common">
-          <FieldRow label="id" hint="맵 안에서 유일해야 한다">
+          <FieldRow label="id" hint="맵 안에서 고유해야 함">
             <IdField doc={doc} object={object} />
           </FieldRow>
           <FieldRow label="타입" hint={object.type}>
@@ -208,8 +208,8 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
             <NumberField value={object.y} onChange={(v, s) => geometry("y", v, s)} sessionPrefix={prefix(doc, object.id, "y")} step={1} testId="map-inspector-y" ariaLabel="y" />
           </FieldRow>
           {sized && (
-            <FieldRow label="폭" hint="픽셀">
-              <OptionalNumberField value={object.width} onChange={(v, s) => geometry("width", v, s)} sessionPrefix={prefix(doc, object.id, "width")} min={1} testId="map-inspector-width" ariaLabel="폭" />
+            <FieldRow label="너비" hint="픽셀">
+              <OptionalNumberField value={object.width} onChange={(v, s) => geometry("width", v, s)} sessionPrefix={prefix(doc, object.id, "width")} min={1} testId="map-inspector-width" ariaLabel="너비" />
             </FieldRow>
           )}
           {tall && (
@@ -222,7 +222,7 @@ const SingleObject = observer(function SingleObject({ doc, object }: { doc: MapD
           <SchemaFields doc={doc} object={object} spec={spec} />
         ) : (
           <div className="inspector-section">
-            <div className="muted inspector-note">스키마에 없는 타입이라 속성 폼이 없다. props 는 파일에 그대로 남는다</div>
+            <div className="muted inspector-note">스키마에 없는 타입, 속성 폼 없음. props는 파일에 그대로 유지</div>
             {Object.keys(object.props).length > 0 && <pre className="map-raw-props">{stringifyJsonLossless(object.props, 2)}</pre>}
           </div>
         )}
@@ -243,16 +243,16 @@ const ManyObjects = observer(function ManyObjects({ doc, objects }: { doc: MapDo
       <div className="inspector-head">
         <span className="inspector-title">{objects.length}개 선택</span>
         <span className="muted" data-testid="map-inspector-type">
-          {spec ? spec.label : types.size === 1 ? objects[0].type : `타입 ${types.size}가지`}
+          {spec ? spec.label : types.size === 1 ? objects[0].type : `타입 ${types.size}개`}
         </span>
       </div>
       <div className="inspector-body">
         <div className="inspector-section" data-testid="map-inspector-fields">
-          {types.size > 1 && <div className="muted inspector-note">타입이 다르다. 같은 타입만 고르면 함께 고칠 칸이 보인다</div>}
-          {spec && fields.length === 0 && <div className="muted inspector-note">함께 고칠 칸(고르기, 체크)이 없다</div>}
+          {types.size > 1 && <div className="muted inspector-note">타입이 서로 다름. 같은 타입만 선택하면 일괄 편집 가능한 속성 표시</div>}
+          {spec && fields.length === 0 && <div className="muted inspector-note">일괄 편집 가능한 속성(enum, boolean) 없음</div>}
           {fields.map((f) => (
             <div key={f.name} className="map-field" data-testid="map-field-row" data-field={f.name}>
-              <FieldRow label={f.label} hint={`${f.name}: 고른 ${objects.length}개를 한 번에 바꾼다`}>
+              <FieldRow label={f.label} hint={`${f.name}: 선택한 오브젝트 ${objects.length}개 일괄 변경`}>
                 <SchemaFieldInput field={f} value={shownValue(sameValue(objects.map((o) => o.props[f.name])))} onChange={(v) => setObjectsProp(doc, ids, f.name, v)} sessionPrefix={`map:${ids.join(",")}:${f.name}`} testId={`map-field-${f.name}`} />
               </FieldRow>
             </div>
@@ -280,7 +280,7 @@ const MapSummary = observer(function MapSummary({ doc }: { doc: MapDocument }) {
         <div className="inspector-section" data-testid="map-summary">
           <FieldRow label="크기">
             <span className="map-summary-list" data-testid="map-summary-size">
-              {m.width} x {m.height} 칸, 칸 {m.tileWidth} x {m.tileHeight} px, 전체 {m.pixelWidth} x {m.pixelHeight} px
+              {m.width} x {m.height} 타일, 타일 {m.tileWidth} x {m.tileHeight} px, 전체 {m.pixelWidth} x {m.pixelHeight} px
             </span>
           </FieldRow>
           <FieldRow label="레이어" hint={m.layers.map((l) => l.name).join(", ")}>
@@ -299,14 +299,14 @@ const MapSummary = observer(function MapSummary({ doc }: { doc: MapDocument }) {
               {store?.error ? (
                 <span className="map-schema-error">{store.error}</span>
               ) : schema ? (
-                `${store?.path ?? "프로젝트"}, 타입 ${schema.types.length}개, 여기서 실행 ${schema.play ? "있음" : "없음"}`
+                `${store?.path ?? "프로젝트"}, 타입 ${schema.types.length}개, play 설정 ${schema.play ? "있음" : "없음"}`
               ) : (
-                `없음 (${store?.path ?? "resources/schema/map-objects.json"} 을(를) 만들면 타입별 폼이 생긴다)`
+                `없음 (${store?.path ?? "resources/schema/map-objects.json"} 파일 생성 시 타입별 속성 폼 사용 가능)`
               )}
             </span>
           </FieldRow>
         </div>
-        <div className="panel-hint">맵 오브젝트 목록이나 맵 뷰에서 오브젝트를 고르면 속성이 보인다</div>
+        <div className="panel-hint">선택한 오브젝트 없음. 맵 오브젝트 목록이나 맵 뷰에서 선택하면 속성 표시</div>
         <ProblemList doc={doc} problems={doc.objectProblems} testId="map-inspector-problems" />
       </div>
     </div>

@@ -1,4 +1,4 @@
-// 맵 오브젝트 e2e (docs/plans/e3-tilemap.md "오브젝트 목록 패널과 스키마 폼 인스펙터", "여기서 실행").
+// 맵 오브젝트 e2e (docs/plans/e3-tilemap.md "오브젝트 목록 패널과 스키마 폼 인스펙터", "이 맵에서 실행").
 // 메모리 백엔드(?backend=memory)라 서버가 필요 없다. 샘플 프로젝트에는 resources/schema/map-objects.json과
 // 오브젝트 셋(start, slime_1, sign_1)이 든 resources/maps/sample.json이 있다.
 // 흐름: 맵 열기 → 묶음과 수 → 몬스터 고르기와 종 바꾸기 → 순찰 범위 → 흔적 추가 → 여러 줄 한글 글 저장 →
@@ -121,7 +121,7 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
 
     // unique 타입(시작 지점)은 둘째를 거부한다
     await group("start").getByTestId("map-objects-add").click();
-    await expect(page.getByTestId("toasts")).toContainText("시작 지점 은(는) 하나만 둘 수 있다");
+    await expect(page.getByTestId("toasts")).toContainText("시작 지점: 맵당 1개만 허용");
     await expect(group("start")).toHaveAttribute("data-count", "1");
 
     // 흔적 추가: 띠 모양이라 defaultWidth(32) 폭으로 생기고 골라진다
@@ -154,7 +154,7 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     const id = page.getByTestId("map-inspector-id");
     await id.fill("start");
     await id.press("Enter");
-    await expect(page.getByTestId("toasts")).toContainText("이미 있는 id 다: start");
+    await expect(page.getByTestId("toasts")).toContainText("이미 있는 id: start");
     await expect(id).toHaveValue("landmark_1");
     expect(await withEditor(page, (e) => e.documents.active!.model.objectIds())).toEqual(["start", "slime_1", "sign_1", "landmark_1"]);
 
@@ -190,8 +190,8 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     await maxX.fill("10");
     await maxX.press("Enter");
     const problem = page.locator('[data-testid="map-objects-problem"][data-object-id="slime_1"][data-severity="error"]');
-    await expect(problem).toContainText("순찰 왼끝 이(가) 순찰 오른끝 보다 크다");
-    await expect(page.getByTestId("map-inspector-problems")).toContainText("순찰 왼끝 이(가) 순찰 오른끝 보다 크다");
+    await expect(problem).toContainText("순찰 왼끝 값은 순찰 오른끝 값 이하여야 함");
+    await expect(page.getByTestId("map-inspector-problems")).toContainText("순찰 왼끝 값은 순찰 오른끝 값 이하여야 함");
     await row("start").click();
     await expect(inspector).toHaveAttribute("data-object", "start");
     await problem.click();
@@ -200,13 +200,13 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     // 여기서 실행: 브라우저 모드에서도 켜져 있다 (에디터 안 게임 탭에서 돈다). Ctrl+F5(run.fromScene)도 맵에서는 여기서 실행이다
     const branch = (await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).count()) > 0 ? "맵" : "실행";
     await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
-    const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
+    const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^이 맵에서 실행$/ }) });
     await expect(playHere).toBeEnabled();
     await page.keyboard.press("Escape");
     // 켜져 있으면 안내는 위치를 정하는 규칙이다 (objectTools/rules.ts 의 PLAY_POSITION_RULE)
-    const rule = "위치는 하나만 고른 오브젝트 (순찰 범위가 있으면 왼끝에서 48px 왼쪽, 16 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서로 정하고 맵 안으로 자른다";
+    const rule = "실행 위치 결정 순서: 선택한 오브젝트 1개 (범위가 있으면 최소 X에서 48px 왼쪽, 16 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데. 결과 좌표는 맵 안으로 제한";
     expect(await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commandHint("map.playHere") ?? "(없음)"])).toEqual([true, rule]);
-    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, rule, "여기서 실행 (맵)"]);
+    expect(await withEditor(page, (e) => [e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene") ?? "(없음)", e.commandLabel("run.fromScene")])).toEqual([true, rule, "이 맵에서 실행"]);
   });
 
   test("여기서 실행: 스키마의 play.maps에 맞지 않는 맵은 누르면 띄우지 않고 이유를 알리며, 맞는 맵은 그 맵으로 띄운다", async ({ page }) => {
@@ -219,21 +219,21 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
       schema.play.maps = ["meadow*"];
       await e.backend.writeText(path, JSON.stringify(schema, null, 2));
     });
-    const reason = "맵 sample은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: meadow*";
+    const reason = "'이 맵에서 실행' 대상이 아닌 맵: sample (스키마의 play.maps: meadow*)";
     await expect.poll(() => withEditor(page, (e) => e.commandHint("map.playHere"))).toBe(reason);
     expect(
       await withEditor(page, (e) => [e.commands.isEnabled("map.playHere"), e.commands.isEnabled("run.fromScene"), e.commandHint("run.fromScene"), e.commandNote("map.playHere"), e.commandNote("run.fromScene")]),
     ).toEqual([true, true, reason, reason, reason]);
 
-    // 메뉴 항목은 켜져 있고 이유가 툴팁에 있다 (실행 > 여기서 실행 (맵)도 같다)
+    // 메뉴 항목은 켜져 있고 이유가 툴팁에 있다 (실행 > 이 맵에서 실행도 같다)
     const branch = (await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).count()) > 0 ? "맵" : "실행";
     await page.getByRole("menubar").getByRole("menuitem", { name: branch, exact: true }).click();
-    const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행$/ }) });
+    const playHere = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^이 맵에서 실행$/ }) });
     await expect(playHere).toBeEnabled();
     await expect(playHere).toHaveAttribute("title", reason);
     await page.keyboard.press("Escape");
     await page.getByRole("menubar").getByRole("menuitem", { name: "실행", exact: true }).click();
-    const fromScene = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^여기서 실행 \(맵\)$/ }) });
+    const fromScene = page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^이 맵에서 실행$/ }) });
     await expect(fromScene).toBeEnabled();
     await expect(fromScene).toHaveAttribute("title", reason);
     await page.keyboard.press("Escape");
@@ -243,8 +243,8 @@ test.describe("맵 오브젝트 (메모리 모드)", () => {
     await page.keyboard.press("ControlOrMeta+F5");
     await expect(page.getByTestId("toasts")).toContainText(reason);
     await expect
-      .poll(() => withEditor(page, (e) => e.log.entries.filter((l) => l.source === "maps" && l.text.includes("여기서 실행하지 않았다")).map((l) => `${l.level}: ${l.text}`)))
-      .toEqual([`warn: 여기서 실행하지 않았다: ${reason}`]);
+      .poll(() => withEditor(page, (e) => e.log.entries.filter((l) => l.source === "maps" && l.text.includes("이 맵에서 실행 불가")).map((l) => `${l.level}: ${l.text}`)))
+      .toEqual([`warn: 이 맵에서 실행 불가: ${reason}`]);
     expect(await runStarts(page)).toEqual([]);
 
     // 맞는 맵(meadow)에서는 켜지고 그 맵의 이름으로 띄운다

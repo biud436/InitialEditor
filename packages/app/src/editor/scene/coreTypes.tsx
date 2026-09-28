@@ -90,12 +90,12 @@ export const SpriteInspector = observer(function SpriteInspector({ document, obj
       </FieldRow>
       {image && (
         <div className="inspector-preview" data-testid="prop-image-preview">
-          {preview.url ? <img src={preview.url} alt={image} /> : <span className="muted">{preview.error ? `읽지 못했다: ${preview.error}` : "읽는 중"}</span>}
+          {preview.url ? <img src={preview.url} alt={image} /> : <span className="muted">{preview.error ? `읽기 실패: ${preview.error}` : "읽는 중"}</span>}
         </div>
       )}
       {numberRow("width", "프레임 너비", { min: 0, integer: true, hint: "0 이면 이미지 너비를 프레임 수로 나눈 것" })}
       {numberRow("height", "프레임 높이", { min: 0, integer: true, hint: "0 이면 이미지 높이 전체" })}
-      {numberRow("frames", "프레임 수", { min: 1, integer: true, hint: "시트를 가로로 나눈 수" })}
+      {numberRow("frames", "프레임 수", { min: 1, integer: true, hint: "시트를 너비 방향으로 나눈 수" })}
       {numberRow("frameDelay", "프레임 지연 (ms)", { min: 0, integer: true })}
       {numberRow("startFrame", "시작 프레임", { min: 0, integer: true })}
       {numberRow("endFrame", "끝 프레임", { min: 0, integer: true, hint: "0 이면 한 프레임" })}
@@ -104,8 +104,8 @@ export const SpriteInspector = observer(function SpriteInspector({ document, obj
       </FieldRow>
       {numberRow("scale", "배율", { step: 0.1, min: 0 })}
       {numberRow("angle", "회전 (도)", { step: 1 })}
-      <FieldRow label="투명도" hint="0 (투명) .. 255 (불투명)">
-        <RangeField value={num(p.opacity, 255)} onChange={(v, s) => set("opacity", v, s)} sessionPrefix={key("opacity")} min={0} max={255} testId="prop-opacity" ariaLabel="투명도" />
+      <FieldRow label="불투명도" hint="0 (투명) .. 255 (불투명)">
+        <RangeField value={num(p.opacity, 255)} onChange={(v, s) => set("opacity", v, s)} sessionPrefix={key("opacity")} min={0} max={255} testId="prop-opacity" ariaLabel="불투명도" />
       </FieldRow>
     </div>
   );
@@ -119,10 +119,10 @@ export const TextInspector = observer(function TextInspector({ document, object 
   const text = typeof p.text === "string" ? p.text : p.text === undefined ? "" : String(p.text);
   return (
     <div className="inspector-section" data-testid="inspector-text">
-      <FieldRow label="글" hint="줄바꿈과 한글이 된다">
-        <TextField value={text} onChange={(v, s) => set("text", v, s)} sessionPrefix={`prop:${object.id}:text`} multiline testId="prop-text" ariaLabel="글" rows={4} />
+      <FieldRow label="텍스트" hint="줄바꿈(\n)과 한글 지원">
+        <TextField value={text} onChange={(v, s) => set("text", v, s)} sessionPrefix={`prop:${object.id}:text`} multiline testId="prop-text" ariaLabel="텍스트" rows={4} />
       </FieldRow>
-      <FieldRow label="폰트" hint="resources/ 아래의 BMFont .fnt. 비우면 게임이 준비해 둔 폰트">
+      <FieldRow label="폰트" hint="resources/ 아래의 BMFont .fnt. 비우면 폰트 변경 없음 (현재 로드된 비트맵 폰트 사용)">
         <select className="select field-select" value={font} onChange={(e) => set("font", e.target.value)} data-testid="prop-font" aria-label="폰트">
           <option value="">(게임 기본)</option>
           {optionsWith(editor.sceneTools.assets.fonts, font).map((path) => (
@@ -132,13 +132,13 @@ export const TextInspector = observer(function TextInspector({ document, object 
           ))}
         </select>
       </FieldRow>
-      <div className="inspector-note muted">색(color)은 엔진의 비트맵 폰트 API 에 없어 아직 적용되지 않는다. 파일에는 보존된다.</div>
+      <div className="inspector-note muted">색(color) 미적용: 엔진 비트맵 폰트 API 에 색 인자 없음. 값은 파일에 보존</div>
     </div>
   );
 });
 
 export function NodeInspector(_props: ObjectInspectorProps) {
-  return <div className="inspector-note muted">빈 노드는 아무것도 그리지 않는다. 컴포넌트(스크립트)를 붙이는 자리다.</div>;
+  return <div className="inspector-note muted">빈 노드: 렌더링 없음. 위치와 컴포넌트(스크립트)만 가진 오브젝트</div>;
 }
 
 export const CORE_INSPECTORS: Record<(typeof CORE_OBJECT_TYPES)[number], ObjectInspector> = { node: NodeInspector, sprite: SpriteInspector, text: TextInspector };

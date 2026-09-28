@@ -95,7 +95,7 @@ function errorKeys(problems: readonly EventProblem[]): Set<string> {
  */
 export function newCommand(schema: EventSchema, code: string, values: Record<string, unknown> = {}): JsonObject {
   const spec = commandSpec(schema, code);
-  if (!spec) throw new EditRefused(`모르는 커맨드 ${code}`);
+  if (!spec) throw new EditRefused(`스키마에 없는 커맨드: ${code}`);
   const cmd: JsonObject = { code };
   for (const a of spec.args) {
     if (hasOwn(values, a.name) && values[a.name] !== undefined) cmd[a.name] = values[a.name];
@@ -171,7 +171,7 @@ export class EventEditor {
   private ctx(): EditContext {
     const c = this.context();
     if (c.locked) throw new EditRefused(c.locked);
-    if (!this.section.usable) throw new EditRefused(this.section.shapeError ?? "events 를 고칠 수 없다");
+    if (!this.section.usable) throw new EditRefused(this.section.shapeError ?? "events 편집 불가");
     return c;
   }
 
@@ -192,8 +192,8 @@ export class EventEditor {
 
   private eventAt(index: number): JsonObject {
     const ev = this.section.list[index];
-    if (ev === undefined) throw new EditRefused(`이벤트가 없다 (${index + 1} 번째)`);
-    if (!isPlainObject(ev)) throw new EditRefused(`events[${index + 1}] 는 객체가 아니라 고칠 수 없다`);
+    if (ev === undefined) throw new EditRefused(`이벤트 없음 (${index + 1}번째)`);
+    if (!isPlainObject(ev)) throw new EditRefused(`events[${index + 1}] 편집 불가 (객체가 아님)`);
     return ev;
   }
 
@@ -234,9 +234,9 @@ export class EventEditor {
     const ctx = this.ctx();
     const list = this.section.list;
     const copies = events.filter(isPlainObject).map((e) => cloneJson(e));
-    if (copies.length === 0) throw new EditRefused("붙일 이벤트가 없다");
+    if (copies.length === 0) throw new EditRefused("붙여넣을 이벤트 없음");
     const first = copies[0];
-    if (!isNonNegInt(first.x) || !isNonNegInt(first.y)) throw new EditRefused("붙일 이벤트의 칸이 틀렸다");
+    if (!isNonNegInt(first.x) || !isNonNegInt(first.y)) throw new EditRefused("붙여넣을 이벤트의 좌표가 잘못됨");
     const dx = cell.x - first.x;
     const dy = cell.y - first.y;
     const taken = new Set(list.map((ev) => field(ev, "id")).filter(isJsonText));
@@ -257,26 +257,26 @@ export class EventEditor {
   removeEvents(indices: readonly number[]): EventListCommand {
     this.ctx();
     const drop = new Set(indices);
-    for (const i of drop) if (this.section.list[i] === undefined) throw new EditRefused(`이벤트가 없다 (${i + 1} 번째)`);
-    if (drop.size === 0) throw new EditRefused("지울 이벤트가 없다");
+    for (const i of drop) if (this.section.list[i] === undefined) throw new EditRefused(`이벤트 없음 (${i + 1}번째)`);
+    if (drop.size === 0) throw new EditRefused("삭제할 이벤트 없음");
     const after = this.section.list.filter((_, i) => !drop.has(i));
-    return this.commit("이벤트 지우기", after, []);
+    return this.commit("이벤트 삭제", after, []);
   }
 
   /** 칸 단위로 옮긴다. 배회 구역도 같은 만큼 옮기고, keepArea 면 구역은 둔다 */
   moveEvents(indices: readonly number[], dx: number, dy: number, opts: EditOptions & { keepArea?: boolean } = {}): EventListCommand {
     const ctx = this.ctx();
-    if (!Number.isInteger(dx) || !Number.isInteger(dy)) throw new EditRefused("칸 단위로만 옮긴다");
+    if (!Number.isInteger(dx) || !Number.isInteger(dy)) throw new EditRefused("타일 단위로만 이동 가능");
     const list = this.section.list;
     const out = [...list];
     for (const i of indices) {
       const ev = this.eventAt(i);
-      if (!isNonNegInt(ev.x) || !isNonNegInt(ev.y)) throw new EditRefused(`events[${i + 1}] 의 칸이 틀려 옮길 수 없다`);
+      if (!isNonNegInt(ev.x) || !isNonNegInt(ev.y)) throw new EditRefused(`events[${i + 1}] 이동 불가 (좌표가 잘못됨)`);
       out[i] = shifted(ev, dx, dy, opts.keepArea === true);
     }
     this.guard(list, out, ctx);
     const key = opts.mergeKey === undefined ? undefined : `rpg:move:${[...indices].sort((a, b) => a - b).join(",")}:${opts.mergeKey}`;
-    return this.commit("이벤트 옮기기", out, indices, key);
+    return this.commit("이벤트 이동", out, indices, key);
   }
 
   /** 이벤트 칸 하나. id 는 이름 바꾸기(참조 함께), commands 는 커맨드 명령으로 고친다. undefined 는 칸을 지운다 */
@@ -284,8 +284,8 @@ export class EventEditor {
     if (name === "id") return this.renameEvent(index, value as string, opts);
     const ctx = this.ctx();
     const spec = fieldSpec(ctx.schema, name);
-    if (!spec) throw new EditRefused(`스키마에 없는 이벤트 칸 ${name}`);
-    if (spec.type === "list") throw new EditRefused("커맨드는 커맨드 명령으로 고친다");
+    if (!spec) throw new EditRefused(`스키마에 없는 이벤트 속성: ${name}`);
+    if (spec.type === "list") throw new EditRefused("commands 속성은 커맨드 목록 편집기에서만 편집 가능");
     const ev = this.eventAt(index);
     const next: JsonObject = { ...ev };
     if (value === undefined) delete next[name];
@@ -293,14 +293,14 @@ export class EventEditor {
     const after = this.withEvent(index, orderEvent(next, ctx.schema));
     this.guard(this.section.list, after, ctx);
     const key = opts.mergeKey === undefined ? undefined : `rpg:field:${index}:${name}:${opts.mergeKey}`;
-    return this.commit(`이벤트 칸 바꾸기: ${spec.label}`, after, [index], key);
+    return this.commit(`이벤트 속성 변경: ${spec.label}`, after, [index], key);
   }
 
   /** id 를 바꾸고 이 맵의 moveRoute.target, turn.target 도 함께 바꾼다 (명령 하나) */
   renameEvent(index: number, id: string, opts: EditOptions = {}): EventListCommand {
     const ctx = this.ctx();
     const ev = this.eventAt(index);
-    if (typeof id !== "string") throw new EditRefused("id 는 글이다");
+    if (typeof id !== "string") throw new EditRefused("id 는 문자열이어야 함");
     const old = field(ev, "id");
     const list = this.section.list;
     let after = this.withEvent(index, orderEvent({ ...ev, id }, ctx.schema));
@@ -323,7 +323,7 @@ export class EventEditor {
   setWanderArea(index: number, area: { x: number; y: number; w: number; h: number } | undefined, opts: EditOptions = {}): EventListCommand {
     const ev = this.eventAt(index);
     const wander = field(ev, "wander");
-    if (!isObjectPlace(wander)) throw new EditRefused("배회가 꺼져 있다");
+    if (!isObjectPlace(wander)) throw new EditRefused("배회(wander) 설정 없음");
     const next: JsonObject = { ...(isPlainObject(wander) ? wander : {}) };
     if (area === undefined) delete next.area;
     else next.area = area;
@@ -336,7 +336,7 @@ export class EventEditor {
     const ctx = this.ctx();
     const ev = this.eventAt(index);
     const commands = field(ev, "commands");
-    if (commands !== undefined && !isArrayPlace(commands)) throw new EditRefused(`events[${index + 1}].commands 가 배열이 아니라 고칠 수 없다`);
+    if (commands !== undefined && !isArrayPlace(commands)) throw new EditRefused(`events[${index + 1}].commands 편집 불가 (배열이 아님)`);
     const next = this.tree(() => fn(commands ?? []));
     const nextEv = commands !== undefined ? { ...ev, commands: next } : orderEvent({ ...ev, commands: next }, ctx.schema);
     return this.withEvent(index, nextEv);
@@ -346,43 +346,43 @@ export class EventEditor {
   private checkNewCommands(commands: readonly unknown[], schema: EventSchema): void {
     const probe = [{ id: "probe", x: 0, y: 0, commands }];
     const bad = validateEvents(probe, { schema }).find((p) => p.severity === "error");
-    if (bad) throw new EditRefused(`넣을 커맨드가 틀렸다 (${relative(bad.location)}): ${bad.message}`);
+    if (bad) throw new EditRefused(`삽입할 커맨드가 잘못됨 (${relative(bad.location)}): ${bad.message}`);
   }
 
   /** list 목록의 at 자리에 넣는다. 없는 하위 목록은 만든다 */
   insertCommands(index: number, list: ListPath, at: number, commands: readonly unknown[]): EventListCommand {
     const ctx = this.ctx();
-    if (commands.length === 0) throw new EditRefused("넣을 커맨드가 없다");
+    if (commands.length === 0) throw new EditRefused("삽입할 커맨드 없음");
     const added = commands.map((c) => canonicalCommand(cloneJson(c), ctx.schema));
     this.checkNewCommands(added, ctx.schema);
     const after = this.withCommands(index, (cmds) => treeInsert(cmds, list, at, added, ctx.schema));
-    return this.commit("커맨드 넣기", after, [index]);
+    return this.commit("커맨드 삽입", after, [index]);
   }
 
   removeCommands(index: number, list: ListPath, at: number, count = 1): EventListCommand {
     const ctx = this.ctx();
     const after = this.withCommands(index, (cmds) => treeRemove(cmds, list, at, count, ctx.schema));
-    return this.commit("커맨드 빼기", after, [index]);
+    return this.commit("커맨드 삭제", after, [index]);
   }
 
   /** from 에서 count 개를 to 목록의 index 자리(떼기 전 기준)로 */
   moveCommands(index: number, from: CommandPath, count: number, to: { list: ListPath; index: number }): EventListCommand {
     const ctx = this.ctx();
     const after = this.withCommands(index, (cmds) => treeMove(cmds, from, count, to, ctx.schema));
-    return this.commit("커맨드 옮기기", after, [index]);
+    return this.commit("커맨드 이동", after, [index]);
   }
 
   /** 커맨드의 목록을 읽는다 (없으면 빈 배열) */
   commandsOf(index: number, list: ListPath = []): readonly unknown[] {
     const ev = this.eventAt(index);
     const items = getList(field(ev, "commands"), list, this.context().schema);
-    if (!items) throw new EditRefused("목록이 배열이 아니다");
+    if (!items) throw new EditRefused("목록은 배열이어야 함");
     return items;
   }
 
   private commandAt(index: number, path: CommandPath, schema: EventSchema): JsonObject {
     const cmd = getCommand(field(this.eventAt(index), "commands"), path, schema);
-    if (!isPlainObject(cmd)) throw new EditRefused("커맨드가 객체가 아니라 고칠 수 없다");
+    if (!isPlainObject(cmd)) throw new EditRefused("커맨드 편집 불가 (객체가 아님)");
     return cmd;
   }
 
@@ -395,10 +395,10 @@ export class EventEditor {
     const ctx = this.ctx();
     const cmd = this.commandAt(index, path, ctx.schema);
     const spec = commandSpec(ctx.schema, cmd.code);
-    if (!spec) throw new EditRefused(`모르는 커맨드 ${jsonValueText(cmd.code)} 는 고칠 수 없다`);
+    if (!spec) throw new EditRefused(`커맨드 ${jsonValueText(cmd.code)} 편집 불가 (스키마에 없음)`);
     const arg = spec.args.find((a) => a.name === name);
-    if (!arg) throw new EditRefused(`${spec.label} 에는 ${name} 인자가 없다`);
-    if (arg.type === "options") throw new EditRefused("항목은 항목 명령으로 고친다 (가지와 취소 번호를 함께 맞춘다)");
+    if (!arg) throw new EditRefused(`${spec.label}: ${name} 인자 없음`);
+    if (arg.type === "options") throw new EditRefused("항목(options)은 항목 편집기에서만 편집 가능 (분기와 취소 번호를 함께 갱신)");
     const next: JsonObject = { ...cmd };
     if (value === undefined) delete next[name];
     else next[name] = (canonicalCommand({ code: cmd.code, [name]: cloneJson(value) }, ctx.schema) as JsonObject)[name];
@@ -406,7 +406,7 @@ export class EventEditor {
     this.checkArgValue(ordered, name, ctx.schema);
     const after = this.replaceAt(index, path, ordered, ctx.schema);
     const key = opts.mergeKey === undefined ? undefined : `rpg:arg:${index}:${JSON.stringify(path)}:${name}:${opts.mergeKey}`;
-    return this.commit(`인자 바꾸기: ${arg.label}`, after, [index], key);
+    return this.commit(`인자 변경: ${arg.label}`, after, [index], key);
   }
 
   /**
@@ -416,7 +416,7 @@ export class EventEditor {
   setArgs(index: number, path: CommandPath, values: Readonly<Record<string, unknown>>, opts: EditOptions = {}): EventListCommand {
     const ctx = this.ctx();
     const names = Object.keys(values);
-    if (names.length === 0) throw new EditRefused("바꿀 인자 없음");
+    if (names.length === 0) throw new EditRefused("변경할 인자 없음");
     const cmd = this.commandAt(index, path, ctx.schema);
     const spec = commandSpec(ctx.schema, cmd.code);
     if (!spec) throw new EditRefused(`스키마에 없는 커맨드: ${jsonValueText(cmd.code)}`);
@@ -424,7 +424,7 @@ export class EventEditor {
     for (const name of names) {
       const arg = spec.args.find((a) => a.name === name);
       if (!arg) throw new EditRefused(`인자 없음: ${spec.label}.${name}`);
-      if (arg.type === "options") throw new EditRefused(`항목 인자는 항목 명령으로 수정해야 함: ${spec.label}.${name}`);
+      if (arg.type === "options") throw new EditRefused(`항목 인자는 항목 편집으로 수정해야 함: ${spec.label}.${name}`);
       const value = values[name];
       if (value === undefined) delete next[name];
       else next[name] = (canonicalCommand({ code: cmd.code, [name]: cloneJson(value) }, ctx.schema) as JsonObject)[name];
@@ -433,7 +433,7 @@ export class EventEditor {
     for (const name of names) this.checkArgValue(ordered, name, ctx.schema);
     const after = this.replaceAt(index, path, ordered, ctx.schema);
     const key = opts.mergeKey === undefined ? undefined : `rpg:args:${index}:${JSON.stringify(path)}:${names.join(",")}:${opts.mergeKey}`;
-    return this.commit(`인자 바꾸기: ${names.join(", ")}`, after, [index], key);
+    return this.commit(`인자 변경: ${names.join(", ")}`, after, [index], key);
   }
 
   /** 커맨드 하나를 따로 검사해 name 인자 자리의 오류만 본다 (하위 목록의 옛 오류는 막지 않는다) */
@@ -452,11 +452,11 @@ export class EventEditor {
     const cmd = this.commandAt(index, path, schema);
     const spec = commandSpec(schema, cmd.code);
     const list = spec?.lists.find((l) => l.perOption);
-    if (!spec || !list) throw new EditRefused("항목이 있는 커맨드가 아니다");
+    if (!spec || !list) throw new EditRefused("항목(options)이 없는 커맨드");
     const options = asList(field(cmd, list.perOption!));
-    if (!options) throw new EditRefused("항목 목록이 배열이 아니라 고칠 수 없다");
+    if (!options) throw new EditRefused("항목 목록 편집 불가 (배열이 아님)");
     const branches = field(cmd, list.name);
-    if (branches !== undefined && !isArrayPlace(branches)) throw new EditRefused("가지 목록이 배열이 아니라 고칠 수 없다");
+    if (branches !== undefined && !isArrayPlace(branches)) throw new EditRefused("분기 목록 편집 불가 (배열이 아님)");
     return { cmd, options: [...options], branchesName: list.name };
   }
 
@@ -483,9 +483,9 @@ export class EventEditor {
   }
 
   addOption(index: number, path: CommandPath, at: number, text: string): EventListCommand {
-    if (typeof text !== "string") throw new EditRefused("항목은 글이다");
-    return this.optionsCommand(index, path, "항목 더하기", (s) => {
-      if (!Number.isInteger(at) || at < 0 || at > s.options.length) throw new EditRefused("항목 자리가 틀렸다");
+    if (typeof text !== "string") throw new EditRefused("항목은 문자열이어야 함");
+    return this.optionsCommand(index, path, "항목 추가", (s) => {
+      if (!Number.isInteger(at) || at < 0 || at > s.options.length) throw new EditRefused("항목 인덱스가 범위 밖");
       s.options.splice(at, 0, text);
       if (s.branches) {
         while (s.branches.length < at) s.branches.push([]);
@@ -497,9 +497,9 @@ export class EventEditor {
 
   /** 항목을 빼면 그 가지도 빠진다. 취소가 그 항목이었으면 취소 번호를 지운다 */
   removeOption(index: number, path: CommandPath, k: number): EventListCommand {
-    return this.optionsCommand(index, path, "항목 빼기", (s) => {
-      if (!Number.isInteger(k) || k < 0 || k >= s.options.length) throw new EditRefused("항목 자리가 틀렸다");
-      if (s.options.length <= 1) throw new EditRefused("항목이 하나 이상 있어야 한다");
+    return this.optionsCommand(index, path, "항목 삭제", (s) => {
+      if (!Number.isInteger(k) || k < 0 || k >= s.options.length) throw new EditRefused("항목 인덱스가 범위 밖");
+      if (s.options.length <= 1) throw new EditRefused("항목 1개 이상 필요");
       s.options.splice(k, 1);
       if (s.branches && s.branches.length > k) s.branches.splice(k, 1);
       if (s.cancel !== undefined) {
@@ -511,9 +511,9 @@ export class EventEditor {
 
   /** from 번째 항목을 to 번째로 (둘 다 옮긴 뒤의 자리). 가지와 취소 번호가 따라간다 */
   moveOption(index: number, path: CommandPath, from: number, to: number): EventListCommand {
-    return this.optionsCommand(index, path, "항목 옮기기", (s) => {
+    return this.optionsCommand(index, path, "항목 이동", (s) => {
       const n = s.options.length;
-      if (![from, to].every((v) => Number.isInteger(v) && v >= 0 && v < n)) throw new EditRefused("항목 자리가 틀렸다");
+      if (![from, to].every((v) => Number.isInteger(v) && v >= 0 && v < n)) throw new EditRefused("항목 인덱스가 범위 밖");
       const [opt] = s.options.splice(from, 1);
       s.options.splice(to, 0, opt);
       if (s.branches) {
@@ -531,14 +531,14 @@ export class EventEditor {
   }
 
   setOption(index: number, path: CommandPath, k: number, text: string, opts: EditOptions = {}): EventListCommand {
-    if (typeof text !== "string") throw new EditRefused("항목은 글이다");
+    if (typeof text !== "string") throw new EditRefused("항목은 문자열이어야 함");
     const key = opts.mergeKey === undefined ? undefined : `rpg:option:${index}:${JSON.stringify(path)}:${k}:${opts.mergeKey}`;
     return this.optionsCommand(
       index,
       path,
-      "항목 고치기",
+      "항목 편집",
       (s) => {
-        if (!Number.isInteger(k) || k < 0 || k >= s.options.length) throw new EditRefused("항목 자리가 틀렸다");
+        if (!Number.isInteger(k) || k < 0 || k >= s.options.length) throw new EditRefused("항목 인덱스가 범위 밖");
         s.options[k] = text;
       },
       key,

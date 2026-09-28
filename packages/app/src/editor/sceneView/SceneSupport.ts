@@ -123,7 +123,7 @@ export class SceneSupport {
       if (errors.length) editor.log.warn("editor", `${path}: 문제 ${errors.length}건 (${errors[0].message})`);
       return doc;
     } catch (e) {
-      const message = `${path} 을(를) 읽지 못했다: ${(e as Error).message}`;
+      const message = `${path} 열기 실패: ${(e as Error).message}`;
       editor.log.error("editor", message);
       editor.toasts.error(message);
       return null;

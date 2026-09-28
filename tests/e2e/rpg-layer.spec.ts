@@ -127,7 +127,7 @@ test.describe("RPG 이벤트 레이어 (메모리 모드)", () => {
     await page.getByTestId("doc-tab").filter({ hasText: "port_town.json" }).click();
     await host.focus();
     await page.keyboard.press(`${mod}+s`);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: port_town.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: port_town.json");
     const saved = JSON.parse(await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT)) as { events: Array<Record<string, unknown>> };
     const sign = saved.events.find((e) => e.id === "sign")!;
     expect(Object.keys(sign)).toEqual(["id", "x", "y", "trigger", "commands"]);
@@ -138,7 +138,7 @@ test.describe("RPG 이벤트 레이어 (메모리 모드)", () => {
     // 등록되지 않은 맵: 줄은 없고 힌트 한 줄
     await openMap(page, MEADOW, "meadow.json");
     await expect(layers.locator('[data-target="ext:rpg.events"]')).toHaveCount(0);
-    await expect(layers.getByTestId("layer-hint")).toHaveText("이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다");
-    await expect(panel.getByTestId("rpg-events-hint")).toHaveText("이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다");
+    await expect(layers.getByTestId("layer-hint")).toHaveText("이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)");
+    await expect(panel.getByTestId("rpg-events-hint")).toHaveText("이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)");
   });
 });

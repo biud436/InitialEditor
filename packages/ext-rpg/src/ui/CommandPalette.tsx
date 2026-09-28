@@ -90,9 +90,9 @@ export function CommandPalette({ schema, where, place, ctx, onInsert, onClose }:
   const draftSpec = draft ? commandSpec(schema, draft.cmd.code) : undefined;
   const blocking = draft ? blockingArgs(schema, draft.cmd) : new Map<string, string>();
   return (
-    <div className="rpg-palette" role="dialog" aria-label="커맨드 넣기" data-testid="rpg-cmd-palette" onKeyDown={onKey}>
+    <div className="rpg-palette" role="dialog" aria-label="커맨드 삽입" data-testid="rpg-cmd-palette" onKeyDown={onKey}>
       <div className="rpg-palette-head">
-        <span>{where === "above" ? "위에 넣기" : "아래에 넣기"}</span>
+        <span>{where === "above" ? "위에 삽입" : "아래에 삽입"}</span>
         {place && <span className="rpg-path">{place}</span>}
         <button type="button" className="btn btn-ghost rpg-mini" aria-label="닫기" data-testid="rpg-cmd-palette-close" onClick={onClose}>
           ✕
@@ -100,7 +100,7 @@ export function CommandPalette({ schema, where, place, ctx, onInsert, onClose }:
       </div>
       {draft && draftSpec ? (
         <div className="rpg-palette-draft" data-testid="rpg-cmd-palette-draft" ref={draftRef}>
-          <div className="rpg-arg-note muted">{draftSpec.label}: 넣기 전에 정할 것</div>
+          <div className="rpg-arg-note muted">{draftSpec.label}: 삽입 전 입력할 인자</div>
           {draftSpec.args
             .filter((a) => draft.ask.includes(a.name))
             .map((a) => (
@@ -133,7 +133,7 @@ export function CommandPalette({ schema, where, place, ctx, onInsert, onClose }:
                 if (onInsert(draft.cmd)) onClose();
               }}
             >
-              넣기
+              삽입
             </button>
           </div>
         </div>
@@ -176,7 +176,7 @@ export function CommandPalette({ schema, where, place, ctx, onInsert, onClose }:
                 })}
               </div>
             ))}
-            {filtered.length === 0 && <div className="muted rpg-palette-empty">맞는 커맨드가 없다</div>}
+            {filtered.length === 0 && <div className="muted rpg-palette-empty">일치하는 커맨드 없음</div>}
           </div>
         </>
       )}

@@ -84,7 +84,7 @@ export function addMapObject(host: MapObjectHost, doc: MapDocument, type: string
   const obj = plan.object;
   doc.apply(doc.model.addObject(obj));
   doc.select([obj.id]);
-  host.log.info(LOG, `오브젝트 추가: ${obj.id} (${typeOf(doc.schema, type)?.label ?? type}) x ${obj.x}, y ${obj.y}${obj.width !== undefined ? `, 폭 ${obj.width}` : ""}`);
+  host.log.info(LOG, `오브젝트 추가: ${obj.id} (${typeOf(doc.schema, type)?.label ?? type}) x ${obj.x}, y ${obj.y}${obj.width !== undefined ? `, 너비 ${obj.width}` : ""}`);
   return doc.model.findObject(obj.id) ?? null;
 }
 
@@ -101,7 +101,7 @@ export function deleteMapObjects(doc: MapDocument, ids: readonly string[]): numb
 export function duplicateMapObjects(host: MapObjectHost, doc: MapDocument, ids: readonly string[]): string[] {
   const m = doc.model;
   const plan = planDuplicate(doc.schema, m.objects, ids, m.tileWidth, { pixelWidth: m.pixelWidth, pixelHeight: m.pixelHeight });
-  if (plan.skipped.length > 0) host.toasts.warn(`하나만 둘 수 있는 타입이라 복제하지 않았다: ${plan.skipped.join(", ")}`);
+  if (plan.skipped.length > 0) host.toasts.warn(`맵당 1개만 허용되는 타입이라 복제 제외: ${plan.skipped.join(", ")}`);
   if (plan.copies.length === 0) return [];
   const indexOf = (id: string) => doc.model.objects.findIndex((o) => o.id === id);
   // 뒤쪽 원본부터 끼워야 앞쪽 원본의 색인이 그대로다

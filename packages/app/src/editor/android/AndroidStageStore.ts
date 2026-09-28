@@ -21,10 +21,10 @@ import {
 } from "./stageOutput";
 
 export const ANDROID_LOG_SOURCE = "android";
-export const DESKTOP_ONLY = "데스크톱 앱에서만 된다";
-export const NEED_PROJECT = "프로젝트를 열어야 한다";
-export const STAGING_BUSY = "스테이징 중이다";
-export const UNTRUSTED = "스크립트 실행을 허용하지 않았다";
+export const DESKTOP_ONLY = "데스크톱 앱 전용";
+export const NEED_PROJECT = "열린 프로젝트 없음";
+export const STAGING_BUSY = "스테이징 중";
+export const UNTRUSTED = "스크립트 실행 허용 안 함";
 
 export interface RepoProbeResult extends RepoState {
   /** android/prepare_assets.sh 가 있다 */
@@ -183,7 +183,7 @@ export class AndroidStageStore {
     const project = this.host.project.root;
     this.setState("staging");
     try {
-      log.info(ANDROID_LOG_SOURCE, `안드로이드 스테이징: ${project} 를 ${stageDestPath(repo.repo)} 로 (RTP 변환물 ${withRtp ? "넣기" : "빼기"})`);
+      log.info(ANDROID_LOG_SOURCE, `안드로이드 스테이징: ${project} 를 ${stageDestPath(repo.repo)} 로 (RTP 변환물 ${withRtp ? "포함" : "제외"})`);
       let run: ToolRun;
       try {
         run = await this.runTool({ repo: repo.repo, project, withRtp, dryRun: false }, (line, stream) => {
@@ -191,22 +191,22 @@ export class AndroidStageStore {
         });
       } catch (e) {
         const message = (e as Error).message;
-        log.error(ANDROID_LOG_SOURCE, `스테이징을 시작하지 못했다: ${message}`);
-        toasts.error(`안드로이드 스테이징을 시작하지 못했다: ${message}`);
+        log.error(ANDROID_LOG_SOURCE, `스테이징 시작 실패: ${message}`);
+        toasts.error(`안드로이드 스테이징 시작 실패: ${message}`);
         return null;
       }
       const summary = run.code === 0 ? parseStagedLine(run.stdout[run.stdout.length - 1] ?? "") : null;
       if (!summary) {
         const reason = failureText(run.code, run.stderr);
-        log.error(ANDROID_LOG_SOURCE, `스테이징이 실패했다: ${reason}`);
-        toasts.error(`안드로이드 스테이징이 실패했다: ${reason}`);
+        log.error(ANDROID_LOG_SOURCE, `스테이징 실패: ${reason}`);
+        toasts.error(`안드로이드 스테이징 실패: ${reason}`);
         return null;
       }
       runInAction(() => {
         this.last = summary;
       });
-      log.info(ANDROID_LOG_SOURCE, `끝: ${countText(summary)}, 스탬프 ${summary.stamp}, ${summary.dest}`);
-      log.info(ANDROID_LOG_SOURCE, `다음 명령 (${repo.repo} 에서):`);
+      log.info(ANDROID_LOG_SOURCE, `완료: ${countText(summary)}, 스탬프 ${summary.stamp}, ${summary.dest}`);
+      log.info(ANDROID_LOG_SOURCE, `다음 셸 명령 (${repo.repo} 에서):`); // terms-ok: 셸 명령
       for (const cmd of nextCommands(repo.state)) log.info(ANDROID_LOG_SOURCE, `  ${cmd}`);
       toasts.success(stagedToast(summary));
       if (summary.rtp) toasts.warn(RTP_WARNING);

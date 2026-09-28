@@ -32,13 +32,13 @@ function skip(reason) {
   process.exit(0);
 }
 
-if (!fs.existsSync(exe)) skip(`엔진 실행 파일이 없다: ${exe} (INITIAL2D_DIR 로 저장소 위치를 주거나 cmake 로 빌드한다)`);
-if (!fs.existsSync(hmrLib)) skip(`엔진의 HMR 인코더가 없다: ${hmrLib}`);
+if (!fs.existsSync(exe)) skip(`엔진 실행 파일 없음: ${exe} (INITIAL2D_DIR로 저장소 위치 지정 또는 cmake로 빌드)`);
+if (!fs.existsSync(hmrLib)) skip(`엔진의 HMR 인코더 없음: ${hmrLib}`);
 
 const { pushBundle } = await import(pathToFileURL(hmrLib).href);
 
 const files = BUNDLE_PATHS.filter((p) => fs.existsSync(path.join(engineDir, p))).map((p) => ({ path: p, data: fs.readFileSync(path.join(engineDir, p)) }));
-if (files.length === 0) skip(`묶음에 넣을 스크립트가 없다: ${BUNDLE_PATHS.join(", ")}`);
+if (files.length === 0) skip(`HMR 번들에 포함할 스크립트 없음: ${BUNDLE_PATHS.join(", ")}`);
 
 const env = {
   ...process.env,
@@ -93,7 +93,7 @@ function waitFor(pattern, timeoutMs, what) {
     if (hit) return resolve(hit);
     const timer = setTimeout(() => {
       waiters.splice(waiters.findIndex((w) => w.resolve === done), 1);
-      reject(new Error(`${what} 를 ${timeoutMs}ms 안에 보지 못했다`));
+      reject(new Error(`${what} 대기 시간 초과 (${timeoutMs}ms)`));
     }, timeoutMs);
     const done = (line) => {
       clearTimeout(timer);
@@ -102,7 +102,7 @@ function waitFor(pattern, timeoutMs, what) {
     waiters.push({ pattern, resolve: done });
     exitPromise.then((e) => {
       clearTimeout(timer);
-      reject(new Error(`${what} 전에 엔진이 끝났다 (code ${e.code}, signal ${e.signal})`));
+      reject(new Error(`${what} 전에 엔진 종료 (code ${e.code}, signal ${e.signal})`));
     });
   });
 }
@@ -120,13 +120,13 @@ try {
   console.log(`엔진: ${listening.replace(/^\[\w+\] /, "")}`);
   const result = await pushBundle({ host: "127.0.0.1", port: HMR_PORT, files, timeoutMs: 10_000 });
   console.log(`push: ${files.length}개 파일 (${files.map((f) => f.path).join(", ")}) → 응답 ${result.reply}`);
-  if (!result.ok) throw new Error(`엔진이 push 를 거절했다: ${result.reply}`);
+  if (!result.ok) throw new Error(`엔진이 push 거부 (응답 ${result.reply})`);
   const reloaded = await waitFor(/HotReload: reloaded with \d+ files/, RELOAD_TIMEOUT_MS, "HotReload: reloaded");
   const count = Number(/reloaded with (\d+) files/.exec(reloaded)[1]);
   console.log(`엔진: ${reloaded.replace(/^\[\w+\] /, "")}`);
-  if (count !== files.length) throw new Error(`파일 수가 다르다: 보낸 것 ${files.length}, 엔진 ${count}`);
+  if (count !== files.length) throw new Error(`파일 수 불일치: 전송 ${files.length}, 엔진 ${count}`);
   const failed = lines.find((l) => /HotReload: reload failed|PANIC|uncaught exception/.test(l));
-  if (failed) throw new Error(`리로드 뒤 오류가 있다: ${failed}`);
+  if (failed) throw new Error(`리로드 후 오류: ${failed}`);
 } catch (e) {
   fail(e.message);
 }
@@ -135,4 +135,4 @@ child.kill("SIGTERM");
 const killTimer = setTimeout(() => child.kill("SIGKILL"), 3000);
 await exitPromise;
 clearTimeout(killTimer);
-console.log(`OK: 핫 리로드가 ${files.length}개 파일로 되었다 (엔진 종료: code ${exited.code}, signal ${exited.signal})`);
+console.log(`OK: 핫 리로드 완료, 파일 ${files.length}개 (엔진 종료: code ${exited.code}, signal ${exited.signal})`);

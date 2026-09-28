@@ -117,8 +117,8 @@ describe("편집 커맨드의 갈래", () => {
     const { commands, documents, scene, hint } = await setup();
     documents.activate(scene as Document);
     expect(commands.isEnabled("edit.delete")).toBe(false);
-    expect(hint("edit.delete")).toBe("계층이나 씬 뷰에서 오브젝트를 고른다");
-    expect(hint("edit.paste")).toBe("복사한 오브젝트가 없다");
+    expect(hint("edit.delete")).toBe("선택한 오브젝트 없음 (계층 패널이나 씬 뷰에서 선택)");
+    expect(hint("edit.paste")).toBe("복사한 오브젝트 없음");
     scene.select(["player"]);
     expect(commands.isEnabled("edit.delete")).toBe(true);
     await commands.execute("edit.delete");

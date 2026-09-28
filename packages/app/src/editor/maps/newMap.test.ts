@@ -56,38 +56,38 @@ describe("PNG 머리", () => {
     const be = new MemoryBackend({ "resources/tiles/a.png": png(96, 48), "resources/tiles/b.png": "글자" });
     await be.open("/mem");
     expect(await readImageSize(be, "resources/tiles/a.png")).toEqual({ width: 96, height: 48 });
-    await expect(readImageSize(be, "resources/tiles/b.png")).rejects.toThrow(/PNG가 아니다: resources\/tiles\/b.png/);
+    await expect(readImageSize(be, "resources/tiles/b.png")).rejects.toThrow(/PNG 파일이 아님: resources\/tiles\/b.png/);
   });
 });
 
 describe("입력 검사", () => {
   it("이름: 빈 것, 확장자, 폴더와 기호, 이미 있는 것(대소문자 무시)", () => {
     const existing = ["resources/maps/Forest.json"];
-    expect(validateMapName("", existing)).toBe("이름을 적는다");
+    expect(validateMapName("", existing)).toBe("이름 비어 있음");
     expect(validateMapName("a.json", existing)).toMatch(/확장자/);
-    expect(validateMapName("sub/a", existing)).toMatch(/폴더 없이/);
-    expect(validateMapName("a b", existing)).toMatch(/글자, 숫자/);
-    expect(validateMapName("forest", existing)).toBe("이미 있다: resources/maps/forest.json");
+    expect(validateMapName("sub/a", existing)).toMatch(/폴더 경로 불가/);
+    expect(validateMapName("a b", existing)).toMatch(/문자, 숫자, _, - 만 허용/);
+    expect(validateMapName("forest", existing)).toBe("이미 있는 맵: resources/maps/forest.json");
     expect(validateMapName(" 숲_2-a ", existing)).toBeNull();
   });
 
   it("크기와 타일 크기: 정수이고 범위 안", () => {
-    expect(validateMapTiles("20", "폭은")).toBeNull();
-    expect(validateMapTiles("1024", "폭은")).toBeNull();
-    expect(validateMapTiles("0", "폭은")).toBe("폭은 1 이상 1024 이하다");
-    expect(validateMapTiles("1025", "높이는")).toBe("높이는 1 이상 1024 이하다");
-    expect(validateMapTiles("2.5", "폭은")).toBe("폭은 정수다");
-    expect(validateMapTiles("", "폭은")).toMatch(/정수다/);
-    expect(validateMapTiles("-3", "폭은")).toMatch(/정수다/);
+    expect(validateMapTiles("20", "너비")).toBeNull();
+    expect(validateMapTiles("1024", "너비")).toBeNull();
+    expect(validateMapTiles("0", "너비")).toBe("너비: 1 이상 1024 이하여야 함");
+    expect(validateMapTiles("1025", "높이")).toBe("높이: 1 이상 1024 이하여야 함");
+    expect(validateMapTiles("2.5", "너비")).toBe("너비: 정수여야 함");
+    expect(validateMapTiles("", "너비")).toBe("너비: 정수여야 함");
+    expect(validateMapTiles("-3", "너비")).toBe("너비: 정수여야 함");
     expect(validateTileSize("16")).toBeNull();
-    expect(validateTileSize("x")).toBe("타일 크기는 정수다");
-    expect(validateTileSize("300")).toBe("타일 크기는 1 이상 256 이하다");
+    expect(validateTileSize("x")).toBe("타일 크기: 정수여야 함");
+    expect(validateTileSize("300")).toBe("타일 크기: 1 이상 256 이하여야 함");
   });
 
   it("레이어 이름: 쉼표로 가르고 빈 것은 버린다, 하나 이상, 겹치지 않게", () => {
     expect(parseLayerNames(" ground, deco ,,over ")).toEqual({ names: ["ground", "deco", "over"], error: null });
-    expect(parseLayerNames(" , ").error).toBe("레이어를 하나 이상 적는다");
-    expect(parseLayerNames("a, b, a").error).toBe("레이어 이름이 겹친다: a");
+    expect(parseLayerNames(" , ").error).toBe("레이어 이름 1개 이상 필요");
+    expect(parseLayerNames("a, b, a").error).toBe("레이어 이름 중복: a");
   });
 
   it("타일셋 열 수는 그림 폭을 타일 크기로 나눈 몫", () => {
@@ -173,14 +173,14 @@ describe("프로젝트 파일", () => {
     expect(saved).toMatchObject({ name: "stage1", id: 5, width: 4, height: 3 });
     expect(await be.readText(path!)).toBe(serializeMap(buildNewMap(SPEC, 5)));
     expect(revealed).toEqual([path]);
-    expect(log.entries.map((e) => e.text).join("\n")).toContain("새 맵을 만들었다: resources/maps/stage1.json (4x3 칸, 타일 16px, 타일셋 resources/tiles/meadow16.png (8열), 레이어 ground, deco, 통행 있음)");
+    expect(log.entries.map((e) => e.text).join("\n")).toContain("새 맵 생성됨: resources/maps/stage1.json (4x3 타일, 타일 크기 16px, 타일셋 resources/tiles/meadow16.png (8열), 레이어 ground, deco, 통행 있음)");
   });
 
   it("이미 있으면 덮어쓰지 않는다", async () => {
     const { be, host, toasts } = await project({ "resources/maps/stage1.json": "원래 것" });
     expect(await createMapFile(host, SPEC)).toBeNull();
     expect(await be.readText("resources/maps/stage1.json")).toBe("원래 것");
-    expect(toasts).toEqual(["warn: 이미 있다: resources/maps/stage1.json"]);
+    expect(toasts).toEqual(["warn: 이미 있는 맵: resources/maps/stage1.json"]);
   });
 
   it("쓰기에 실패하면 알리고 null", async () => {
@@ -189,7 +189,7 @@ describe("프로젝트 파일", () => {
       throw new Error("디스크가 찼다");
     };
     expect(await createMapFile(host, SPEC)).toBeNull();
-    expect(toasts).toEqual(["error: 맵을 만들지 못했다: 디스크가 찼다"]);
+    expect(toasts).toEqual(["error: 맵 생성 실패: 디스크가 찼다"]);
     expect(log.entries.some((e) => e.level === "error")).toBe(true);
   });
 });

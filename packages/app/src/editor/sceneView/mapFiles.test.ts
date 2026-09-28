@@ -33,7 +33,7 @@ describe("씬 뷰의 맵 파일 캐시", () => {
 
   it("읽지 못하거나 맵 형식이 아니면 거부하고 캐시에 남기지 않는다", async () => {
     const { cache, backend } = await setup({ [PATH]: "{}" });
-    await expect(cache.load(PATH)).rejects.toThrow(/모르는 맵 버전/);
+    await expect(cache.load(PATH)).rejects.toThrow(/지원하지 않는 맵 버전/);
     expect(cache.has(PATH)).toBe(false);
     await backend.writeText(PATH, MAP);
     await expect(cache.load(PATH)).resolves.toMatchObject({ width: 2 });
@@ -89,14 +89,14 @@ describe("맵 파일을 엔진이 열 수 있는지", () => {
     files.status(PATH);
     files.status("resources/maps/empty.json");
     await vi.waitFor(() => expect(changed).toHaveLength(2));
-    expect(files.problem(PATH)).toMatchObject({ kind: "invalid", reason: expect.stringMatching(/^JSON 이 아니다: /) });
-    expect(files.problem("resources/maps/empty.json")).toEqual({ kind: "invalid", reason: "모르는 맵 버전이다: 없음 (지원: 1, 2)" });
+    expect(files.problem(PATH)).toMatchObject({ kind: "invalid", reason: expect.stringMatching(/^JSON 구문 오류: /) });
+    expect(files.problem("resources/maps/empty.json")).toEqual({ kind: "invalid", reason: "지원하지 않는 맵 버전: 없음 (지원: 1, 2)" });
     // 이유가 바뀌어도 알린다
     changed.length = 0;
     await backend.writeText(PATH, mapWith({ layers: [] }));
     files.fileChanged(PATH);
     await vi.waitFor(() => expect(changed).toEqual([PATH]));
-    expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: "레이어가 없다" });
+    expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: "레이어 없음" });
     await backend.writeText(PATH, MAP);
     files.fileChanged(PATH);
     await vi.waitFor(() => expect(files.status(PATH)).toEqual(OK));
@@ -119,10 +119,10 @@ describe("맵 파일을 엔진이 열 수 있는지", () => {
     expect(files.problem("resources/maps/nox.json")).toBeNull();
     expect(files.problem("resources/maps/neg.json")).toBeNull();
     expect(files.problem("resources/maps/ev.json")).toBeNull();
-    expect(files.problem("resources/maps/nolayers.json")).toEqual({ kind: "invalid", reason: "레이어가 없다" });
-    expect(files.problem("resources/maps/notilesets.json")).toEqual({ kind: "invalid", reason: "타일셋이 없다" });
+    expect(files.problem("resources/maps/nolayers.json")).toEqual({ kind: "invalid", reason: "레이어 없음" });
+    expect(files.problem("resources/maps/notilesets.json")).toEqual({ kind: "invalid", reason: "타일셋 없음" });
     expect(files.problem("resources/maps/nullcol.json")).toMatchObject({ kind: "invalid", reason: expect.stringMatching(/^collision /) });
-    expect(files.problem("resources/maps/noimage.json")).toEqual({ kind: "invalid", reason: "타일셋 그림이 없다: resources/tiles/nope.png" });
+    expect(files.problem("resources/maps/noimage.json")).toEqual({ kind: "invalid", reason: "타일셋 이미지 파일 없음: resources/tiles/nope.png" });
   });
 
   it("타일셋 그림이 지워지거나 되살아나면 그 그림을 쓰는 맵을 다시 확인한다", async () => {
@@ -132,7 +132,7 @@ describe("맵 파일을 엔진이 열 수 있는지", () => {
     changed.length = 0;
     await backend.remove(IMAGE);
     files.fileChanged(IMAGE);
-    await vi.waitFor(() => expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: `타일셋 그림이 없다: ${IMAGE}` }));
+    await vi.waitFor(() => expect(files.problem(PATH)).toEqual({ kind: "invalid", reason: `타일셋 이미지 파일 없음: ${IMAGE}` }));
     await backend.writeText(IMAGE, "png");
     files.fileChanged("resources/tiles");
     await vi.waitFor(() => expect(files.status(PATH)).toEqual(OK));

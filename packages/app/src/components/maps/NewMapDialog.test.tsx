@@ -46,7 +46,7 @@ describe("새 맵 대화상자", () => {
     await waitFor(() => expect(screen.getByTestId("new-map-columns")).toBeTruthy());
     expect((screen.getByTestId("new-map-tileset") as HTMLSelectElement).value).toBe("resources/tiles/meadow16.png");
     expect(screen.getByTestId("new-map-columns").getAttribute("data-columns")).toBe("8");
-    expect(screen.getByTestId("new-map-columns").textContent).toBe("136x64 px, 8열 4행 (오른쪽 8px는 쓰지 않는다)");
+    expect(screen.getByTestId("new-map-columns").textContent).toBe("136x64 px, 8열 4행 (오른쪽 8px 미사용)");
     expect(input("new-map-width").value).toBe("20");
     expect(input("new-map-height").value).toBe("15");
     expect(input("new-map-tile").value).toBe("16");
@@ -57,24 +57,24 @@ describe("새 맵 대화상자", () => {
     expect(screen.queryByTestId("new-map-problem")).toBeNull();
     type("new-map-name", "stage1");
     expect(ok.disabled).toBe(false);
-    expect(screen.getByTestId("new-map-path").textContent).toBe("resources/maps/stage1.json으로 만든다");
+    expect(screen.getByTestId("new-map-path").textContent).toBe("생성 경로: resources/maps/stage1.json");
   });
 
   it("이미 있는 이름, 잘못된 크기, 겹치는 레이어는 막고 이유를 보인다", async () => {
     const { ok } = await setup();
     await waitFor(() => expect(screen.getByTestId("new-map-columns")).toBeTruthy());
     type("new-map-name", "Meadow");
-    expect(screen.getByTestId("new-map-problem").textContent).toBe("이미 있다: resources/maps/Meadow.json");
+    expect(screen.getByTestId("new-map-problem").textContent).toBe("이미 있는 맵: resources/maps/Meadow.json");
     expect(ok.disabled).toBe(true);
     type("new-map-name", "stage1");
     type("new-map-width", "0");
-    expect(screen.getByTestId("new-map-problem").textContent).toBe("폭은 1 이상 1024 이하다");
+    expect(screen.getByTestId("new-map-problem").textContent).toBe("너비: 1 이상 1024 이하여야 함");
     type("new-map-width", "30");
     type("new-map-layers", "a, a");
-    expect(screen.getByTestId("new-map-problem").textContent).toBe("레이어 이름이 겹친다: a");
+    expect(screen.getByTestId("new-map-problem").textContent).toBe("레이어 이름 중복: a");
     type("new-map-layers", "a, b");
     type("new-map-tile", "x");
-    expect(screen.getByTestId("new-map-problem").textContent).toBe("타일 크기는 정수다");
+    expect(screen.getByTestId("new-map-problem").textContent).toBe("타일 크기: 정수여야 함");
     expect(ok.disabled).toBe(true);
   });
 
@@ -85,7 +85,7 @@ describe("새 맵 대화상자", () => {
     type("new-map-tile", "32");
     expect(screen.getByTestId("new-map-columns").getAttribute("data-columns")).toBe("4");
     fireEvent.change(screen.getByTestId("new-map-tileset"), { target: { value: "resources/images/checker.png" } });
-    await waitFor(() => expect(screen.getByTestId("new-map-problem").textContent).toBe("그림(8x8)이 타일 크기보다 작다"));
+    await waitFor(() => expect(screen.getByTestId("new-map-problem").textContent).toBe("이미지(8x8)가 타일 크기보다 작음"));
     expect(ok.disabled).toBe(true);
     type("new-map-tile", "8");
     expect(ok.disabled).toBe(false);
@@ -95,7 +95,7 @@ describe("새 맵 대화상자", () => {
   it("그림을 읽지 못하면 이유를 보이고 막는다", async () => {
     const { ok } = await setup(source(["resources/tiles/broken.png"]));
     type("new-map-name", "stage1");
-    await waitFor(() => expect(screen.getByTestId("new-map-problem").textContent).toBe("그림을 읽지 못했다: 읽지 못했다"));
+    await waitFor(() => expect(screen.getByTestId("new-map-problem").textContent).toBe("이미지 읽기 실패: 읽지 못했다"));
     expect(ok.disabled).toBe(true);
   });
 
@@ -117,7 +117,7 @@ describe("새 맵 대화상자", () => {
 
   it("프로젝트에 PNG가 없으면 만들지 않고 이유를 보인다 (엔진은 타일셋 없는 맵을 읽지 않는다)", async () => {
     const { ok, submitted } = await setup(source([], []));
-    await waitFor(() => expect(screen.getByTestId("new-map-no-images").textContent).toBe("resources 아래에 PNG가 없다"));
+    await waitFor(() => expect(screen.getByTestId("new-map-no-images").textContent).toBe("resources 아래에 PNG 없음"));
     // 이름을 적기 전에도 이유가 보인다
     expect(screen.getByTestId("new-map-problem").textContent).toBe(NEW_MAP_NO_TILESET);
     type("new-map-name", "empty");

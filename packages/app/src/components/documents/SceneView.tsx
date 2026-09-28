@@ -12,7 +12,7 @@ import { GRID_SIZES, readSceneTheme, SceneRenderer } from "../../editor/sceneVie
 import "./SceneView.css";
 
 const APPROX_NOTE =
-  "씬 뷰는 근사다. 글자는 시스템 글꼴로 그리고(게임은 BMFont), 스프라이트는 시작 프레임 한 장이며, 회전과 배율은 엔진처럼 왼쪽 위 기준이다. 게임 뷰가 진실이다.";
+  "씬 뷰는 근사 표시. 텍스트는 시스템 폰트로 렌더링(게임은 BMFont), 스프라이트는 시작 프레임만 표시, 회전과 배율 기준점은 엔진과 같은 왼쪽 위. 정확한 결과는 게임 탭에서 확인";
 
 export const SceneView = observer(function SceneView({ document: doc }: { document: SceneDocument }) {
   const editor = useEditor();
@@ -103,17 +103,17 @@ export const SceneView = observer(function SceneView({ document: doc }: { docume
         <button type="button" className="btn" onClick={() => view.zoomIn()} aria-label="줌 확대">
           +
         </button>
-        <button type="button" className="btn" onClick={() => renderer?.fitCamera()} disabled={!status?.ready} title="카메라 사각형이 다 보이게 줌과 팬을 맞춘다">
-          카메라로
+        <button type="button" className="btn" onClick={() => renderer?.fitCamera()} disabled={!status?.ready} title="카메라 영역 전체가 보이도록 줌과 팬 조정">
+          카메라에 맞추기
         </button>
         <span className="scene-view-note" title={APPROX_NOTE}>
           근사
         </span>
-        <span>{doc.dirty ? "수정됨" : "저장됨"}</span>
+        <span className="doc-header-save-state">{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
       </div>
       {status?.error ? (
         <div className="panel-hint scene-view-error" data-testid="scene-view-error">
-          씬 뷰를 그릴 수 없다: {status.error}
+          씬 뷰 렌더링 실패: {status.error}
         </div>
       ) : null}
       <div className="scene-view-host" ref={hostRef} tabIndex={0} role="application" aria-label={`씬 뷰: ${doc.scene.name || doc.title}`} />

@@ -27,7 +27,7 @@ describe("저장 충돌 모달", () => {
       const modals = new ModalStore();
       const answer = askSaveConflict(modals, doc, { kind: "changed" });
       const spec = renderTop(modals);
-      expect(spec.title).toBe("밖에서 바뀐 파일");
+      expect(spec.title).toBe("외부에서 변경된 파일");
       expect(screen.getByTestId("save-conflict").getAttribute("data-kind")).toBe("changed");
       expect(screen.getByTestId("save-conflict").textContent).toBe(saveConflictMessage("main.json", { kind: "changed" }));
       fireEvent.click(screen.getByRole("button", { name: label }));
@@ -51,18 +51,18 @@ describe("저장 충돌 모달", () => {
     expect(screen.getByRole("button", { name: "덮어쓰기" }).hasAttribute("data-autofocus")).toBe(false);
   });
 
-  it("지워진 파일은 다시 읽기가 없고, 다시 읽지 못한 파일은 이유를 보인다", () => {
+  it("지워진 파일은 다시 읽기가 없고, 다시 읽기 실패한 파일은 이유를 보인다", () => {
     const modals = new ModalStore();
     void askSaveConflict(modals, doc, { kind: "missing" });
-    expect(renderTop(modals).title).toBe("지워진 파일");
+    expect(renderTop(modals).title).toBe("삭제된 파일");
     expect(screen.queryByRole("button", { name: "다시 읽기" })).toBeNull();
-    expect(screen.getByTestId("save-conflict").textContent).toContain("디스크에서 지워졌다");
+    expect(screen.getByTestId("save-conflict").textContent).toContain("main.json: 디스크에서 삭제됨. 덮어쓰기: 편집 내용으로 파일 다시 생성");
     cleanup();
 
     const unreadable: SaveConflict = { kind: "unreadable", reason: "JSON이 아니다" };
     void askSaveConflict(modals, doc, unreadable);
-    expect(renderTop(modals).title).toBe("다시 읽지 못한 파일");
-    expect(screen.getByTestId("save-conflict").textContent).toContain("다시 읽지 못했다: JSON이 아니다");
+    expect(renderTop(modals).title).toBe("다시 읽기 실패한 파일");
+    expect(screen.getByTestId("save-conflict").textContent).toContain("main.json 다시 읽기 실패: JSON이 아니다");
     expect(screen.getByRole("button", { name: "다시 읽기" })).toBeTruthy();
   });
 
@@ -81,7 +81,7 @@ describe("저장 충돌 모달", () => {
     if (top.kind !== "confirm") return;
     expect(top.danger).toBe(true);
     expect(top.okLabel).toBe("버리고 다시 읽기");
-    expect(top.message).toContain("main.json의 저장하지 않은 수정을 버리고");
+    expect(top.message).toContain("main.json: 저장하지 않은 변경을 버리고 디스크 내용으로 다시 읽을까요?");
     top.resolve(true);
     expect(await discard).toBe(true);
   });

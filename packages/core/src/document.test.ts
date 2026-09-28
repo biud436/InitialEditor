@@ -244,7 +244,7 @@ describe("다시 읽기 실패", () => {
     expect(d.reloadError).toBe("JSON 이 아니다");
     expect(d.saveBlocked).toBe(true);
     expect(d.dirty).toBe(false); // 다음 외부 변경에도 다시 읽기를 시도한다
-    await expect(d.save()).rejects.toThrow(/저장을 막았다/);
+    await expect(d.save()).rejects.toThrow(/다시 읽기 실패로 저장 차단/);
     expect(d.saved).toBe(0);
     d.allowOverwrite();
     expect(d.saveBlocked).toBe(false);
@@ -276,7 +276,7 @@ describe("다시 읽기 실패", () => {
     await expect(doc.reloadFromDisk()).rejects.toThrow();
     expect(doc.saveBlocked).toBe(true);
     doc.apply(doc.scene.addObject(makeObject("node", "mine", {})));
-    await expect(doc.save()).rejects.toThrow(/저장을 막았다/);
+    await expect(doc.save()).rejects.toThrow(/다시 읽기 실패로 저장 차단/);
     expect(await be.readText("resources/scenes/x.json")).toBe(broken);
   });
 });
@@ -454,7 +454,7 @@ describe("저장 충돌", () => {
     expect(error).toBeInstanceOf(ReloadFailedError);
     const reason = (error as ReloadFailedError).reason;
     expect(reason).toContain("JSON");
-    expect((error as Error).message).toBe(`다시 읽지 못했다: ${reason}`);
+    expect((error as Error).message).toBe(`다시 읽기 실패: ${reason}`);
     expect(doc.reloadError).toBe(reason);
     expect(doc.externallyChanged).toBe(true);
     expect(doc.saveBlocked).toBe(true);
@@ -499,7 +499,7 @@ describe("저장 충돌", () => {
     expect(steps).toEqual(["ask", "acting"]);
   });
 
-  it("배너의 내 것으로 덮어쓰기(allowOverwrite) 뒤의 저장은 묻지 않고 쓴다", async () => {
+  it("배너의 편집 내용으로 덮어쓰기(allowOverwrite) 뒤의 저장은 묻지 않고 쓴다", async () => {
     const { be, doc } = await openScene();
     be.simulateExternalChange(PATH, "modify", '{"version": 1, "objects": [');
     await expect(doc.reloadFromDisk()).rejects.toThrow();
@@ -529,7 +529,7 @@ describe("저장 충돌", () => {
       askConflict: async () => "overwrite",
       confirmDiscard: async () => true,
     };
-    await expect(doc.saveChecked(guard)).rejects.toThrow("디스크의 파일을 확인하지 못해 저장하지 않았다: 연결이 끊겼다");
+    await expect(doc.saveChecked(guard)).rejects.toThrow("디스크의 파일 확인 실패로 저장 중단: 연결이 끊겼다");
     expect(await be.readText(PATH)).toBe(DISK);
     expect(doc.dirty).toBe(true);
   });

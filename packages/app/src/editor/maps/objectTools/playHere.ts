@@ -19,8 +19,8 @@ import { objectsPlayProvider } from "./playProvider";
 import { mapNameFor, NO_PLAY_HINT, PLAY_POSITION_RULE, type Point } from "./rules";
 
 const LOG = "maps";
-export const NEED_MAP_TAB = `맵 탭이 활성일 때 그 맵에서 실행한다. ${PLAY_POSITION_RULE}`;
-export const PLAY_HERE_LABEL = "여기서 실행";
+export const NEED_MAP_TAB = `활성 맵 탭의 맵에서 게임 실행. ${PLAY_POSITION_RULE}`;
+export const PLAY_HERE_LABEL = "이 맵에서 실행";
 
 export interface PlayHost extends MapObjectHost {
   readonly documents: DocumentRegistry;
@@ -114,7 +114,7 @@ export async function playHere(host: PlayHost): Promise<boolean> {
   }
   const refusal = playHereRefusal(host);
   if (refusal) {
-    host.log.warn(LOG, `여기서 실행하지 않았다: ${refusal}`);
+    host.log.warn(LOG, `이 맵에서 실행 불가: ${refusal}`);
     host.toasts.warn(refusal);
     return false;
   }
@@ -138,7 +138,7 @@ export async function playRequest(host: PlayHost, doc: MapDocument, request: Pla
   if (doc.dirty) {
     const ok = await host.modals.confirm({
       title: request.label,
-      message: `${doc.title} 을(를) 저장하지 않았다. 엔진은 파일을 읽으므로 저장해야 고친 내용으로 실행된다.`,
+      message: `${doc.title}: 저장하지 않은 변경 있음. 엔진은 디스크의 파일을 읽으므로 저장해야 변경 내용이 반영됨. 저장하고 실행할까요?`,
       okLabel: "저장하고 실행",
       cancelLabel: "취소",
     });
@@ -148,7 +148,7 @@ export async function playRequest(host: PlayHost, doc: MapDocument, request: Pla
       if ((await host.saveDocument(doc)) === "cancelled") return false;
     } catch (e) {
       const message =
-        e instanceof ReloadFailedError ? `${doc.title} 을(를) 다시 읽지 못해 실행하지 않았다: ${e.reason}` : `${doc.title} 을(를) 저장하지 못해 실행하지 않았다: ${(e as Error).message}`;
+        e instanceof ReloadFailedError ? `${doc.title} 다시 읽기 실패, 실행 안 함: ${e.reason}` : `${doc.title} 저장 실패, 실행 안 함: ${(e as Error).message}`;
       host.log.error(LOG, message);
       host.toasts.error(message);
       return false;
@@ -156,7 +156,7 @@ export async function playRequest(host: PlayHost, doc: MapDocument, request: Pla
   }
   const plan = request.plan(doc);
   if (typeof plan === "string") {
-    host.log.warn(LOG, `${request.label}: 띄우지 않았다 (${plan})`);
+    host.log.warn(LOG, `${request.label}: 실행 불가 (${plan})`);
     host.toasts.warn(plan);
     return false;
   }

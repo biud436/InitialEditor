@@ -19,18 +19,18 @@ export async function createScript(editor: Editor, options: NewScriptOptions): P
   const path = scriptPathFor(options.language, options.name);
   try {
     if (await editor.backend.exists(path)) {
-      editor.toasts.warn(`이미 있다: ${path}`);
+      editor.toasts.warn(`이미 있는 파일: ${path}`);
       return false;
     }
     const text = scriptTemplate({ ...options, hooks: editor.scripting.spec.sceneContract });
     await editor.backend.writeText(path, text);
     await editor.project.refresh(dirname(path)).catch(() => {});
     await editor.tree.reveal(path);
-    editor.log.info("editor", `스크립트를 만들었다: ${path}`);
+    editor.log.info("editor", `스크립트 생성됨: ${path}`);
     await editor.scripting.openScript(path);
     return true;
   } catch (e) {
-    const message = `스크립트를 만들지 못했다: ${(e as Error).message}`;
+    const message = `스크립트 생성 실패: ${(e as Error).message}`;
     editor.log.error("editor", message);
     editor.toasts.error(message);
     return false;
@@ -92,7 +92,7 @@ const NewScriptForm = observer(function NewScriptForm({ onClose }: { onClose: ()
             autoFocus
             data-testid="new-script-name"
           />
-          <div className="form-help">{path ? `만들 파일: ${path}` : name ? error : `scripts/${language === "lua" ? "lua" : "ruby"}/ 아래에 만든다`}</div>
+          <div className="form-help">{path ? `만들 파일: ${path}` : name ? error : `scripts/${language === "lua" ? "lua" : "ruby"}/ 아래에 생성`}</div>
         </div>
       </div>
       <div className="modal-actions">

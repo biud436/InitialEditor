@@ -101,9 +101,9 @@ export const ScriptEditorView = observer(function ScriptEditorView({ doc }: { do
           </span>
         )}
         <span>{languageLabel(doc.language)}</span>
-        <span>{doc.dirty ? "수정됨" : "저장됨"}</span>
+        <span className="doc-header-save-state">{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
       </div>
-      {doc.error ? <div className="panel-hint">읽지 못했다: {doc.error}</div> : !doc.loaded ? <div className="panel-hint">읽는 중</div> : null}
+      {doc.error ? <div className="panel-hint">열기 실패: {doc.error}</div> : !doc.loaded ? <div className="panel-hint">읽는 중</div> : null}
       <div className="script-editor-host" ref={hostRef} />
     </div>
   );

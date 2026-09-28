@@ -72,7 +72,7 @@ pub fn project_open(
         Ok(handle) => Some(handle),
         Err(e) => {
             eprintln!(
-                "[initial-editor] 파일 감시를 켤 수 없다 ({}): {e}",
+                "[initial-editor] 파일 감시 시작 실패 ({}): {e}",
                 info.root
             );
             None
@@ -119,17 +119,17 @@ pub fn fs_write_binary(state: State<'_, AppState>, request: Request<'_>) -> Resu
     let InvokeBody::Raw(data) = request.body() else {
         return Err(BackendError::new(
             ErrorCode::Io,
-            "fs_write_binary 는 raw body 가 필요하다",
+            "fs_write_binary: raw body 필요",
         ));
     };
     let encoded = request
         .headers()
         .get(HEADER_REL)
         .and_then(|v| v.to_str().ok())
-        .ok_or_else(|| BackendError::new(ErrorCode::Io, "fs_write_binary 에 x-rel 헤더가 없다"))?;
+        .ok_or_else(|| BackendError::new(ErrorCode::Io, "fs_write_binary: x-rel 헤더 없음"))?;
     let rel = percent_decode_str(encoded)
         .decode_utf8()
-        .map_err(|_| BackendError::new(ErrorCode::Io, "x-rel 헤더가 UTF-8 이 아니다"))?;
+        .map_err(|_| BackendError::new(ErrorCode::Io, "x-rel 헤더가 UTF-8이 아님"))?;
     with_fs(&state, |fs| fs.write(&rel, data))
 }
 
@@ -244,7 +244,7 @@ pub fn engine_bundled(app: AppHandle) -> Option<BundledEngine> {
 fn config_dir(app: &AppHandle) -> Result<PathBuf> {
     app.path()
         .app_config_dir()
-        .map_err(|e| BackendError::new(ErrorCode::Io, format!("앱 설정 폴더를 찾을 수 없다: {e}")))
+        .map_err(|e| BackendError::new(ErrorCode::Io, format!("앱 설정 폴더 경로 확인 실패: {e}")))
 }
 
 #[tauri::command(async)]

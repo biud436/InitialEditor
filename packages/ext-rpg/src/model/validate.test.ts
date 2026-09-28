@@ -89,14 +89,14 @@ describe("엔진과 같은 검사의 모양 규칙", () => {
     expect(one({ code: "wait", ms: neg })).toEqual(["events[1].commands[1].ms"]);
     expect(one({ code: "message", text: big })).toEqual(["events[1].commands[1].text"]);
     expect(engineProblems([{ id: "a", x: 0, y: 0, commands: [{ code: "message", text: big }, { code: "wait", ms: neg }] }], schema).map((p) => p.message)).toEqual([
-      "글이 아니다 (지금은 12345678901234567890)",
-      "0 이상이 아니다 (지금은 -12345678901234567890)",
+      "타입 불일치: 문자열 필요 (현재: 12345678901234567890)",
+      "0 이상이어야 함 (현재: -12345678901234567890)",
     ]);
     // 이벤트 칸: id는 글이어야 한다. 칸과 속도는 수라 엔진 검사를 지나고, 에디터는 그 칸을 맵 밖으로 본다
     expect(paths([{ id: big, x: 0, y: 0 }])).toEqual(["events[1].id"]);
     expect(paths([{ id: "a", x: big, y: 0, speed: big, charset: { set: "npc", index: big } }])).toEqual(["events[1].charset.index"]);
     const errors = validateEvents([{ id: "a", x: big, y: 0 }], { schema, map: { width: 10, height: 8, collision: null } }).filter((p) => p.severity === "error");
-    expect(errors.map(({ location, message, source }) => ({ location, message, source }))).toEqual([{ location: "events[1].x", message: "맵 밖이다 (가로 10 칸)", source: "editor" }]);
+    expect(errors.map(({ location, message, source }) => ({ location, message, source }))).toEqual([{ location: "events[1].x", message: "맵 범위 밖 (너비 10 타일)", source: "editor" }]);
   });
 
   it("스크립트: 빈 이름과 없는 이름은 name 자리의 엔진 오류다 (등록된 이름일 수 없다)", () => {
@@ -170,10 +170,10 @@ describe("에디터만의 검사 (픽스처 밖)", () => {
     ];
     const warnings = editor(events).filter((p) => p.severity === "warning");
     expect(warnings.map((p) => [p.location, p.message])).toEqual([
-      ["events[1]", "touch 이벤트가 막힌 칸에 있다 (밟을 수 없다)"],
-      ["events[2].wander.area", "배회 구역이 맵 밖으로 나간다"],
-      ["events[2].wander.area", "이벤트가 제 배회 구역 밖에 있다 (구역 안의 칸으로만 걷는다)"],
-      ["events[3].wander", "외형이 없으면 배회하지 않는다"],
+      ["events[1]", "touch 이벤트가 통행 불가 타일에 있음 (플레이어 접촉 불가)"],
+      ["events[2].wander.area", "배회 영역이 맵 밖으로 나감"],
+      ["events[2].wander.area", "이벤트가 자신의 배회 영역 밖에 있음 (영역 안 타일로만 이동)"],
+      ["events[3].wander", "외형(charset) 없음: 배회 안 함"],
     ]);
   });
 
@@ -191,7 +191,7 @@ describe("에디터만의 검사 (픽스처 밖)", () => {
     ]);
   });
 
-  it("커맨드: 취소 번호, 끝난 뒤의 커맨드, 없는 참조, 외형 없는 대상, 빈 조건과 두 꼴, x 나 y 하나, 모르는 걸음, 스크립트", () => {
+  it("커맨드: 취소 번호, 맵 이동 뒤의 커맨드, 없는 참조, 외형 없는 대상, 빈 조건과 두 조건 종류, x 나 y 하나, 지원하지 않는 루트 단계, 스크립트", () => {
     const events = [
       { id: "npc", x: 0, y: 0, charset: { set: "npc", index: 1 } },
       { id: "sign", x: 1, y: 0 },
@@ -218,20 +218,20 @@ describe("에디터만의 검사 (픽스처 밖)", () => {
     ];
     const got = editor(events).map((p) => `${p.severity} ${p.location} ${p.message}`);
     const has = (needle: string) => expect(got.some((g) => g.includes(needle)), needle).toBe(true);
-    has("warning events[3].commands[1].cancel 취소키가 고르는 항목 3 이 항목 수 2 밖이다");
-    has("warning events[3].commands[2].item 아이템 표에 없는 id lamp_oill");
-    has("warning events[3].commands[3].target 이 맵에 없는 이벤트 ghost");
-    has("warning events[3].commands[3].route[4] 모르는 걸음 jump");
-    has("warning events[3].commands[3].route[5] 모르는 걸음 turn:north");
-    has("warning events[3].commands[3].route[6] 모르는 걸음 wait:x");
-    has("warning events[3].commands[4].target sign 는 외형이 없어");
-    has("warning events[3].commands[7].cond 비어 있는 조건이다");
-    has("warning events[3].commands[8].cond 조건의 꼴이 둘 이상이다 (item, flag)");
-    has("warning events[3].commands[9].cond.flag 깃발이 비었다");
-    has("info events[3].commands[10] 스크립트 이름은 엔진만");
-    has("warning events[3].commands[11].map rpg-game.json 에 등록되지 않은 맵 forest");
-    has("warning events[3].commands[11] x 와 y 중 하나만 있다");
-    has("warning events[3].commands[12] 맵 이동 뒤의 커맨드는 실행되지 않는다");
+    has("warning events[3].commands[1].cancel 취소 키 항목 번호 3: 항목 수 2 초과");
+    has("warning events[3].commands[2].item 아이템 표에 없는 id: lamp_oill");
+    has("warning events[3].commands[3].target 이 맵에 없는 이벤트: ghost");
+    has("warning events[3].commands[3].route[4] 지원하지 않는 루트 단계: jump (실행 시 건너뜀)");
+    has("warning events[3].commands[3].route[5] 지원하지 않는 루트 단계: turn:north");
+    has("warning events[3].commands[3].route[6] 지원하지 않는 루트 단계: wait:x");
+    has("warning events[3].commands[4].target sign: 외형(charset) 없음, 이동과 방향 전환 불가");
+    has("warning events[3].commands[7].cond 빈 조건 (항상 참이라 '아니면' 분기 실행 안 됨)");
+    has("warning events[3].commands[8].cond 조건 종류가 2개 이상 (item, flag): 엔진은 첫 번째 item 만 사용");
+    has("warning events[3].commands[9].cond.flag 플래그 비어 있음");
+    has("info events[3].commands[10] 스크립트 이름은 게임 실행 시에만 확인 가능");
+    has("warning events[3].commands[11].map rpg-game.json 에 등록되지 않은 맵: forest");
+    has("warning events[3].commands[11] x 와 y 중 하나만 있음");
+    has("warning events[3].commands[12] 맵 이동 뒤의 커맨드: 실행되지 않음");
     // 걸음 셋(up, turn:left, wait:300)과 npc, player 대상과 등록된 inn 은 문제가 아니다
     expect(got.filter((g) => g.includes("route[1]") || g.includes("route[2]") || g.includes("route[3]"))).toEqual([]);
     expect(got.filter((g) => g.includes("commands[5]") || g.includes("commands[6]") || g.includes("commands[13]"))).toEqual([]);
@@ -250,7 +250,7 @@ describe("에디터만의 검사 (픽스처 밖)", () => {
     expect(editor(events).filter((p) => p.message.includes("파일"))).toEqual([]);
     const exists = (p: string) => p === "resources/audio/door.wav";
     const got = editor(events, { fileExists: exists }).map((p) => `${p.location} ${p.message}`);
-    expect(got).toEqual(expect.arrayContaining(["events[1].charset.file 프로젝트에 없는 파일 ./resources/charsets/none.png", "events[1].commands[1].file 확장자가 wav, ogg 가 아니다", "events[1].commands[1].file 프로젝트에 없는 파일 ./resources/audio/door.mp3"]));
+    expect(got).toEqual(expect.arrayContaining(["events[1].charset.file 프로젝트에 없는 파일 ./resources/charsets/none.png", "events[1].commands[1].file 확장자는 wav, ogg 중 하나여야 함", "events[1].commands[1].file 프로젝트에 없는 파일 ./resources/audio/door.mp3"]));
     expect(got.filter((g) => g.startsWith("events[1].commands[2]"))).toEqual([]);
   });
 
@@ -260,7 +260,7 @@ describe("에디터만의 검사 (픽스처 밖)", () => {
       { code: "message", text: "b" },
     ];
     const events = [{ id: "a", x: 0, y: 0, commands: [{ code: "choice", options: ["x", "y"], branches: [block, block] }] }];
-    const info = editor(events).find((p) => p.message.includes("같은 커맨드 묶음"))!;
+    const info = editor(events).find((p) => p.message.includes("같은 연속 커맨드"))!;
     expect(info).toMatchObject({ severity: "info", location: "events[1].commands[1].branches[1]" });
     expect(info.message).toContain("events[1].commands[1].branches[2]");
   });

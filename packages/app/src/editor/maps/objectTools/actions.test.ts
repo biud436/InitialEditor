@@ -117,7 +117,7 @@ describe("맵 오브젝트 조작", () => {
   it("unique 타입은 둘째를 토스트로 거부한다", async () => {
     const { doc, host, toasts } = await setup();
     expect(addMapObject(host, doc, "start")).toBeNull();
-    expect(toasts).toEqual(["warn: 시작 지점 은(는) 하나만 둘 수 있다"]);
+    expect(toasts).toEqual(["warn: 시작 지점: 맵당 1개만 허용"]);
     expect(doc.model.objects.filter((o) => o.type === "start")).toHaveLength(1);
     expect(doc.undo.depth).toBe(0);
   });
@@ -126,7 +126,7 @@ describe("맵 오브젝트 조작", () => {
     const { doc, host, toasts } = await setup();
     doc.select(["slime_1"]);
     expect(renameMapObject(host, doc, "slime_1", "start")).toBe(false);
-    expect(toasts).toEqual(["warn: 이미 있는 id 다: start"]);
+    expect(toasts).toEqual(["warn: 이미 있는 id: start"]);
     expect(renameMapObject(host, doc, "slime_1", " slime_boss ")).toBe(true);
     expect(doc.selectedIds).toEqual(["slime_boss"]);
     expect(doc.model.findObject("slime_boss")?.props.species).toBe("slime");
@@ -136,7 +136,7 @@ describe("맵 오브젝트 조작", () => {
     const { doc, host, toasts } = await setup();
     const created = duplicateMapObjects(host, doc, ["slime_1", "bat_1", "start"]);
     expect(created).toEqual(["slime_2", "bat_2"]);
-    expect(toasts).toEqual(["warn: 하나만 둘 수 있는 타입이라 복제하지 않았다: start"]);
+    expect(toasts).toEqual(["warn: 맵당 1개만 허용되는 타입이라 복제 제외: start"]);
     expect(doc.model.objectIds()).toEqual(["start", "slime_1", "slime_2", "bat_1", "bat_2"]);
     expect(doc.selectedIds).toEqual(["slime_2", "bat_2"]);
     // 한 칸(16px) 오른쪽, y는 그대로
@@ -174,7 +174,7 @@ describe("맵 오브젝트 조작", () => {
 
     setObjectsProp(doc, ["slime_1"], "minX", 300);
     const problem = doc.problems.find((p) => p.objectId === "slime_1");
-    expect(problem).toMatchObject({ severity: "error", message: "slime_1: 순찰 왼끝 이(가) 순찰 오른끝 보다 크다", location: "objects[1].props.minX" });
+    expect(problem).toMatchObject({ severity: "error", message: "slime_1: 순찰 왼끝 값은 순찰 오른끝 값 이하여야 함", location: "objects[1].props.minX" });
     selectProblem(host, doc, problem!);
     expect(doc.selectedIds).toEqual(["slime_1"]);
     expect(focused).toEqual(["slime_1"]);

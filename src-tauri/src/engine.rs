@@ -70,7 +70,7 @@ fn check_exe(exe: &str) -> Result<()> {
     if exe.is_empty() || !Path::new(exe).is_file() {
         return Err(BackendError::with_path(
             ErrorCode::EngineNotFound,
-            format!("엔진 실행 파일이 없다: {exe}"),
+            format!("엔진 실행 파일 없음: {exe}"),
             exe,
         ));
     }
@@ -81,12 +81,12 @@ fn spawn_error(exe: &str, err: std::io::Error) -> BackendError {
     match err.kind() {
         std::io::ErrorKind::NotFound => BackendError::with_path(
             ErrorCode::EngineNotFound,
-            format!("엔진 실행 파일이 없다: {exe}"),
+            format!("엔진 실행 파일 없음: {exe}"),
             exe,
         ),
         _ => BackendError::with_path(
             ErrorCode::Io,
-            format!("엔진을 띄울 수 없다 ({exe}): {err}"),
+            format!("엔진 실행 실패 ({exe}): {err}"),
             exe,
         ),
     }
@@ -125,7 +125,7 @@ impl EngineState {
         if !Path::new(cwd).is_dir() {
             return Err(BackendError::with_path(
                 ErrorCode::NotFound,
-                format!("작업 폴더가 없다: {cwd}"),
+                format!("작업 폴더 없음: {cwd}"),
                 cwd,
             ));
         }
@@ -277,7 +277,7 @@ pub fn features(exe: &str, timeout: Duration) -> Result<Vec<String>> {
                 return Err(BackendError::with_path(
                     ErrorCode::Io,
                     format!(
-                        "{exe} --features 가 {}초 안에 응답하지 않는다",
+                        "{exe} --features 응답 시간 초과 ({}초)",
                         timeout.as_secs_f32()
                     ),
                     exe,
@@ -437,7 +437,7 @@ mod tests {
         let started = Instant::now();
         let err = features(&exe, features_timeout(None)).unwrap_err();
         assert_eq!(err.code, ErrorCode::Io);
-        assert!(err.message.contains("응답하지 않는다"), "{}", err.message);
+        assert!(err.message.contains("응답 시간 초과"), "{}", err.message);
         assert!(
             started.elapsed() < Duration::from_secs(7),
             "기본 시간에 끊는다"

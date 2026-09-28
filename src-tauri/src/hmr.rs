@@ -89,7 +89,7 @@ pub fn decode_bundle(bytes: &[u8]) -> std::result::Result<Vec<HmrFile>, String> 
 fn unreachable(host: &str, port: u16, detail: impl std::fmt::Display) -> BackendError {
     BackendError::new(
         ErrorCode::HmrUnreachable,
-        format!("엔진 핫 리로드 서버({host}:{port})에 닿을 수 없다: {detail}. 게임이 INITIAL2D_HMR=1 로 실행 중인지 확인"),
+        format!("엔진 핫 리로드 서버({host}:{port}) 연결 실패: {detail}. 게임이 INITIAL2D_HMR=1로 실행 중인지 확인"),
     )
 }
 
@@ -108,7 +108,7 @@ fn socket_error(host: &str, port: u16, err: io::Error) -> BackendError {
 /// 번들을 보내고 응답을 기다린다. OK 면 보낸 파일 수를 돌려준다.
 pub fn push(host: &str, port: u16, files: &[HmrFile]) -> Result<PushResult> {
     if files.is_empty() {
-        return Err(BackendError::new(ErrorCode::Io, "보낼 파일이 없다"));
+        return Err(BackendError::new(ErrorCode::Io, "전송할 파일 없음"));
     }
     let payload = encode_bundle(files);
     let addrs: Vec<_> = (host, port)
@@ -116,14 +116,14 @@ pub fn push(host: &str, port: u16, files: &[HmrFile]) -> Result<PushResult> {
         .map_err(|e| {
             BackendError::new(
                 ErrorCode::Network,
-                format!("주소를 풀 수 없다 {host}:{port}: {e}"),
+                format!("주소 해석 실패: {host}:{port}: {e}"),
             )
         })?
         .collect();
     if addrs.is_empty() {
         return Err(BackendError::new(
             ErrorCode::Network,
-            format!("주소를 풀 수 없다 {host}:{port}"),
+            format!("주소 해석 실패: {host}:{port}"),
         ));
     }
     let mut last_err: Option<io::Error> = None;
@@ -166,12 +166,12 @@ pub fn push(host: &str, port: u16, files: &[HmrFile]) -> Result<PushResult> {
         b"OK\n" => Ok(PushResult { count: files.len() }),
         b"ER\n" => Err(BackendError::new(
             ErrorCode::Io,
-            "엔진이 번들을 거부했다 (ER)",
+            "엔진이 번들 거부 (응답 ER)",
         )),
         other => Err(BackendError::new(
             ErrorCode::Io,
             format!(
-                "엔진 응답을 알 수 없다: {:?}",
+                "예상치 못한 엔진 응답: {:?}",
                 String::from_utf8_lossy(other)
             ),
         )),

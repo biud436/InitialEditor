@@ -220,7 +220,7 @@ describe("타일 도구", () => {
     expect(doc.model.layers[1].data.filter((v) => v === 9)).toHaveLength(7);
     expect(warned).toEqual([fillLimitNotice(7, 7)]);
     expect(noticed).toEqual([]);
-    expect(fillLimitNotice(1_000_000, 1_048_576)).toBe("채우기가 한도 1,048,576칸에 닿아 1,000,000칸에서 멈췄다. 남은 칸을 눌러 이어서 채운다");
+    expect(fillLimitNotice(1_000_000, 1_048_576)).toBe("채우기 한도(타일 1,048,576개) 도달: 타일 1,000,000개 채움. 남은 영역을 다시 클릭하면 이어서 채움");
 
     const onlyNotice = new MapToolController({ document: doc, zoom: () => 1, changed: () => {}, notice: (m) => noticed.push(m) });
     onlyNotice.fillLimit = 5;

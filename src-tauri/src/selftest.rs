@@ -60,44 +60,44 @@ fn absolute(value: &Value, key: &str) -> std::result::Result<PathBuf, String> {
     let s = value
         .get(key)
         .and_then(Value::as_str)
-        .ok_or_else(|| format!("{key} 가 없다 (절대 경로 문자열)"))?;
+        .ok_or_else(|| format!("{key} 없음 (절대 경로 문자열)"))?;
     let p = PathBuf::from(s);
     if !p.is_absolute() {
-        return Err(format!("{key} 는 절대 경로여야 한다: {s}"));
+        return Err(format!("{key}: 절대 경로여야 함 (현재: {s})"));
     }
     Ok(p)
 }
 
 pub fn parse_plan(text: &str) -> std::result::Result<Plan, String> {
-    let raw: Value = serde_json::from_str(text).map_err(|e| format!("JSON 이 아니다: {e}"))?;
+    let raw: Value = serde_json::from_str(text).map_err(|e| format!("JSON 구문 오류: {e}"))?;
     if !raw.is_object() {
-        return Err("계획은 JSON 객체다".into());
+        return Err("계획은 JSON 객체여야 함".into());
     }
     if raw.get("version").and_then(Value::as_u64) != Some(1) {
-        return Err("version 은 1 이다".into());
+        return Err("version: 1 이어야 함".into());
     }
     let work_dir = absolute(&raw, "workDir")?;
     let report = absolute(&raw, "report")?;
     let timeout_ms = raw
         .get("totalTimeoutMs")
         .and_then(Value::as_u64)
-        .ok_or("totalTimeoutMs 가 없다")?;
+        .ok_or("totalTimeoutMs 없음")?;
     if !(MIN_TOTAL_TIMEOUT_MS..=MAX_TOTAL_TIMEOUT_MS).contains(&timeout_ms) {
         return Err(format!(
-            "totalTimeoutMs 는 {MIN_TOTAL_TIMEOUT_MS}..{MAX_TOTAL_TIMEOUT_MS} 이다: {timeout_ms}"
+            "totalTimeoutMs: {MIN_TOTAL_TIMEOUT_MS}..{MAX_TOTAL_TIMEOUT_MS} 범위여야 함 (현재: {timeout_ms})"
         ));
     }
     let show_window = match raw.get("showWindow") {
         None | Some(Value::Null) => false,
         Some(Value::Bool(b)) => *b,
-        Some(_) => return Err("showWindow 는 참이나 거짓이다".into()),
+        Some(_) => return Err("showWindow: 불리언이어야 함".into()),
     };
     let projects = raw
         .get("projects")
         .and_then(Value::as_array)
-        .ok_or("projects 가 없다 (배열)")?;
+        .ok_or("projects 없음 (배열)")?;
     if projects.is_empty() {
-        return Err("projects 가 비었다".into());
+        return Err("projects 비어 있음".into());
     }
     let mut ids: Vec<String> = Vec::new();
     let mut project_dirs = Vec::new();
@@ -105,17 +105,17 @@ pub fn parse_plan(text: &str) -> std::result::Result<Plan, String> {
         let id = p
             .get("id")
             .and_then(Value::as_str)
-            .ok_or("프로젝트에 id 가 없다")?;
+            .ok_or("프로젝트에 id 없음")?;
         if !valid_name(id) {
             return Err(format!(
-                "프로젝트 id 는 영문자, 숫자, 점, 밑줄, 붙임표만: {id}"
+                "프로젝트 id 는 영문자, 숫자, 점, 밑줄, 하이픈만 허용: {id}"
             ));
         }
         if id == LOGS_DIR {
-            return Err(format!("프로젝트 id 로 {LOGS_DIR} 는 쓸 수 없다"));
+            return Err(format!("프로젝트 id 로 {LOGS_DIR} 사용 불가"));
         }
         if ids.iter().any(|x| x == id) {
-            return Err(format!("프로젝트 id 가 겹친다: {id}"));
+            return Err(format!("프로젝트 id 중복: {id}"));
         }
         ids.push(id.to_string());
         match p.get("root") {
@@ -145,7 +145,7 @@ pub fn load(path: &Path) -> std::result::Result<Plan, String> {
 pub fn prepare(plan: &Plan) -> std::result::Result<(), String> {
     if plan.work_dir.exists() {
         return Err(format!(
-            "workDir 이 이미 있다 (지우지 않는다): {}",
+            "workDir 이 이미 있음 (삭제하지 않음): {}",
             plan.work_dir.display()
         ));
     }
@@ -200,7 +200,7 @@ impl SelftestState {
     /// 보고서를 계획의 report 에 쓰고 끝났다고 표시한다. 두 번째부터는 쓰지 않는다
     pub fn finish(&self, report_json: &str) -> Result<()> {
         serde_json::from_str::<Value>(report_json).map_err(|e| {
-            BackendError::new(ErrorCode::Io, format!("보고서가 JSON 이 아니다: {e}"))
+            BackendError::new(ErrorCode::Io, format!("보고서 JSON 구문 오류: {e}"))
         })?;
         if self.finished.swap(true, Ordering::SeqCst) {
             return Ok(());
@@ -226,7 +226,7 @@ impl SelftestState {
         }
         let text = serde_json::to_string_pretty(&self.timeout_report()).unwrap_or_default();
         if let Err(e) = write_report(&self.plan.report, text.as_bytes()) {
-            eprintln!("[selftest] 시간 초과 보고서를 쓰지 못했다: {}", e.message);
+            eprintln!("[selftest] 시간 초과 보고서 쓰기 실패: {}", e.message);
         }
         true
     }
@@ -271,7 +271,7 @@ pub fn watch(
         }
         if state.finish_timeout() {
             eprintln!(
-                "[selftest] 전체 시간 {} ms 를 넘겼다. 보고서: {}",
+                "[selftest] 전체 시간 {} ms 초과. 보고서: {}",
                 state.plan.total_timeout.as_millis(),
                 state.plan.report.display()
             );
@@ -300,7 +300,7 @@ pub struct SelftestSlot(pub Option<Arc<SelftestState>>);
 fn active<'a>(slot: &'a State<'_, SelftestSlot>) -> Result<&'a Arc<SelftestState>> {
     slot.0
         .as_ref()
-        .ok_or_else(|| BackendError::new(ErrorCode::Unsupported, "자가 검사 모드가 아니다"))
+        .ok_or_else(|| BackendError::new(ErrorCode::Unsupported, "자가 검사 모드 아님"))
 }
 
 #[tauri::command]
@@ -326,11 +326,11 @@ pub fn selftest_write_log(
         None | Some("utf8") => text.into_bytes(),
         Some("base64") => base64::engine::general_purpose::STANDARD
             .decode(text.as_bytes())
-            .map_err(|e| BackendError::new(ErrorCode::Io, format!("base64 가 아니다: {e}")))?,
+            .map_err(|e| BackendError::new(ErrorCode::Io, format!("base64 구문 오류: {e}")))?,
         Some(other) => {
             return Err(BackendError::new(
                 ErrorCode::Unsupported,
-                format!("모르는 encoding: {other}"),
+                format!("지원하지 않는 encoding: {other}"),
             ))
         }
     };
@@ -350,7 +350,7 @@ pub fn selftest_finish(
     state.finish(&report)?;
     let code = code.clamp(0, EXIT_PLAN_ERROR);
     eprintln!(
-        "[selftest] 끝 (코드 {code}). 보고서: {}",
+        "[selftest] 종료 (코드 {code}). 보고서: {}",
         state.plan.report.display()
     );
     exit_app(&app, &engine, code);
@@ -442,7 +442,7 @@ mod tests {
                 &plan_json(&work, json!({ "showWindow": "yes" })),
                 "showWindow",
             ),
-            (&plan_json(&work, json!({ "projects": [] })), "비었다"),
+            (&plan_json(&work, json!({ "projects": [] })), "비어 있음"),
             (
                 &plan_json(&work, json!({ "projects": [{ "id": "../x" }] })),
                 "id",
@@ -453,7 +453,7 @@ mod tests {
             ),
             (
                 &plan_json(&work, json!({ "projects": [{ "id": "a" }, { "id": "a" }] })),
-                "겹친다",
+                "중복",
             ),
         ];
         for (text, needle) in cases {
@@ -474,7 +474,7 @@ mod tests {
         // 두 번째는 계획 오류이고 안에 둔 것을 지우지 않는다
         fs::write(work.join("keep.txt"), "x").unwrap();
         let err = prepare(&plan).unwrap_err();
-        assert!(err.contains("이미 있다"), "{err}");
+        assert!(err.contains("이미 있음"), "{err}");
         assert!(work.join("keep.txt").exists());
     }
 

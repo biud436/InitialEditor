@@ -156,13 +156,13 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
   const set = field(value, "set");
   const file = field(value, "file");
   const fileBare = isJsonText(file) ? bareProjectPath(file) : "";
-  const setShown = isJsonText(set) && sets.includes(set) ? set : `${jsonValueText(set)} (모르는 이름)`;
-  const fileShown = pngs.includes(fileBare) ? fileBare : `${fileBare || "(비었다)"} (프로젝트에 없음)`;
+  const setShown = isJsonText(set) && sets.includes(set) ? set : `${jsonValueText(set)} (스키마에 없는 이름)`;
+  const fileShown = pngs.includes(fileBare) ? fileBare : `${fileBare || "(빈 경로)"} (프로젝트에 없음)`;
   return (
     <div className="rpg-asset">
       <span className="rpg-arg-inline">
-        <select className="input field-select rpg-arg-kind" value={mode} disabled={ctx.disabled} data-testid={`${testId}-mode`} aria-label={`${spec.label} 고르는 법`} onChange={(e) => setMode(e.target.value as Mode)}>
-          <option value="">{spec.required ? "고르기" : "없음"}</option>
+        <select className="input field-select rpg-arg-kind" value={mode} disabled={ctx.disabled} data-testid={`${testId}-mode`} aria-label={`${spec.label} 참조 방식`} onChange={(e) => setMode(e.target.value as Mode)}>
+          <option value="">{spec.required ? "선택" : "없음"}</option>
           <option value="set" disabled={sets.length === 0}>
             논리 이름
           </option>
@@ -210,10 +210,10 @@ export function AssetArg({ spec, value, onChange, ctx, testId }: ArgWidgetProps)
       {present && mode !== "" && <SheetGrid kind={kind} schema={ctx.schema} url={url} index={index} disabled={ctx.disabled} onPick={setIndex} testId={`${testId}-grid`} />}
       {present && resolved && !exists(resolved) && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-missing`}>
-          프로젝트에 없는 그림 {resolved}
+          프로젝트에 없는 이미지 파일: {resolved}
         </div>
       )}
-      {present && !isPlainObject(value) && <div className="rpg-arg-note is-warning">지금 값 {stringifyJsonLossless(value)} 는 객체가 아니다</div>}
+      {present && !isPlainObject(value) && <div className="rpg-arg-note is-warning">객체여야 함 (현재: {stringifyJsonLossless(value)})</div>}
     </div>
   );
 }

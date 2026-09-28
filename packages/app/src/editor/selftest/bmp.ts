@@ -7,8 +7,8 @@ const V4_HEADER = 108;
 const BI_BITFIELDS = 3;
 
 export function encodeBmp32(width: number, height: number, rgba: ArrayLike<number>): Uint8Array {
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) throw new Error(`크기가 잘못됐다: ${width}x${height}`);
-  if (rgba.length !== width * height * 4) throw new Error(`픽셀 수가 맞지 않다: ${rgba.length} (필요 ${width * height * 4})`);
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) throw new Error(`잘못된 크기: ${width}x${height}`);
+  if (rgba.length !== width * height * 4) throw new Error(`픽셀 수 불일치: ${rgba.length} (필요 ${width * height * 4})`);
   const dataOffset = FILE_HEADER + V4_HEADER;
   const size = dataOffset + width * height * 4;
   const out = new Uint8Array(size);

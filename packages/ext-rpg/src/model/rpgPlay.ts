@@ -42,12 +42,12 @@ function targetOf(sources: RpgPlaySources, doc: MapDocument): Target {
   const game = sources.game;
   if (!game) {
     const problem = sources.gameProblem;
-    if (problem && problem !== GAME_CONFIG_MISSING) return { ok: false, reason: `rpg-game.json 을 읽지 못해 RPG 로 실행하지 않는다 (${problem})` };
-    return { ok: false, reason: sources.schemaPresent ? "rpg-game.json 이 없어 RPG 로 실행하지 않는다" : undefined };
+    if (problem && problem !== GAME_CONFIG_MISSING) return { ok: false, reason: `rpg-game.json 읽기 실패: RPG 실행 불가 (${problem})` };
+    return { ok: false, reason: sources.schemaPresent ? "rpg-game.json 없음: RPG 실행 불가" : undefined };
   }
-  if (!game.play) return { ok: false, reason: "rpg-game.json 에 play 가 없어 RPG 로 실행하지 않는다" };
+  if (!game.play) return { ok: false, reason: "rpg-game.json 에 play 없음: RPG 실행 불가" };
   const match = mapEntryFor(game, doc.path ?? "");
-  if (!match) return { ok: false, reason: "이 맵은 rpg-game.json 에 등록되지 않아 RPG 로 실행하지 않는다" };
+  if (!match) return { ok: false, reason: "rpg-game.json 에 등록되지 않은 맵: RPG 실행 불가" };
   return { ok: true, play: game.play, entry: match.entry };
 }
 
@@ -78,7 +78,7 @@ function startStateOf(sources: RpgPlaySources, doc: MapDocument): { text: string
   if (text.trim() === "") return { text, note: null };
   const parsed = parseStartState(text, { items: sources.items ? itemIds(sources.items) : null, reserved: sources.schema?.stateReserved });
   const bad = parsed.errors.length;
-  return { text, note: bad > 0 ? `시작 상태 ${text}, 틀린 항목 ${bad}개는 엔진이 건너뛴다` : `시작 상태 ${text}` };
+  return { text, note: bad > 0 ? `시작 상태 ${text}, 잘못된 항목 ${bad}개는 엔진이 건너뜀` : `시작 상태 ${text}` };
 }
 
 function toPlan(env: Record<string, string>, choice: Pick<PlayPlanChoice, "at" | "note">, stateNote: string | null): PlayPlan {
@@ -106,7 +106,7 @@ function hereChoice(doc: MapDocument, ctx: PlayContext): Pick<PlayPlanChoice, "a
     const r = herePlayPlan(map, events, cell);
     if (r.ok) return { at: r.plan.at, note: `${skipped}${label} ${r.plan.note}` };
   }
-  return { at: null, note: `${skipped}정의 파일의 시작` };
+  return { at: null, note: `${skipped}정의 파일의 시작 위치` };
 }
 
 /** 여기서 실행의 제공자 (타일맵의 registerPlayProvider 에 넘긴다) */
@@ -157,8 +157,8 @@ export function probeWatch(eventId: string | null, opts: { wanders?: boolean } =
         starts++;
         if (starts < 2) return undefined;
         return ran
-          ? `자동 재생을 멈췄다: 이벤트 ${name} 뒤에 게임이 새 게임으로 처음부터 다시 시작했다 (씬을 바꾸는 커맨드). 자동 재생은 위의 줄까지다`
-          : `자동 재생을 멈췄다: 이벤트 ${name} 이(가) 돌기 전에 게임이 새 게임으로 처음부터 다시 시작했다`;
+          ? `자동 재생 중단: 이벤트 ${name} 실행 뒤 게임이 새 게임으로 재시작됨 (씬 전환 커맨드). 자동 재생 결과는 위 줄까지`
+          : `자동 재생 중단: 이벤트 ${name} 실행 전에 게임이 새 게임으로 재시작됨`;
       } else if (eventId !== null && t === `rpg:event:${eventId}`) {
         ran = true;
       }
@@ -167,9 +167,9 @@ export function probeWatch(eventId: string | null, opts: { wanders?: boolean } =
     exit(code) {
       if (code !== 0 || eventId === null || ran) return undefined;
       const why = opts.wanders
-        ? " 배회하는 이벤트라 앞의 auto 이벤트가 도는 동안 자리를 떠났을 수 있다. 시작 상태로 그 auto 이벤트를 건너뛰거나 이 이벤트 앞에서 실행으로 손수 말을 건다"
+        ? " 배회하는 이벤트라 앞의 auto 이벤트 실행 중 원래 위치를 벗어났을 수 있음. 시작 상태로 그 auto 이벤트를 건너뛰거나 '이 이벤트 앞에서 실행' 으로 직접 실행"
         : "";
-      return `자동 재생이 끝났지만 이벤트 ${eventId} 이(가) 돌지 않았다 (rpg:event:${eventId} 줄이 없다).${why}`;
+      return `자동 재생 종료, 이벤트 ${eventId} 실행되지 않음 (rpg:event:${eventId} 줄 없음).${why}`;
     },
     restarted() {
       starts = 0;
@@ -181,7 +181,7 @@ export function probeWatch(eventId: string | null, opts: { wanders?: boolean } =
 /** 이 이벤트 앞에서 실행과 자동 재생의 계획. 못 띄우면 이유. 자동 재생은 러너가 지켜보게 한다 (probeWatch) */
 export function eventPlay(sources: RpgPlaySources, doc: MapDocument, index: number, mode: EventPlayMode): PlayPlan | string {
   const t = targetOf(sources, doc);
-  if (!t.ok) return t.reason ?? "rpg-game.json 이 없어 RPG 로 실행하지 않는다";
+  if (!t.ok) return t.reason ?? "rpg-game.json 없음: RPG 실행 불가";
   const events = mapEventsOf(doc);
   const r = eventPlayPlan(mapGeometryOf(doc), events, index, mode);
   if (!r.ok) return r.reason;
@@ -194,7 +194,7 @@ export function eventPlay(sources: RpgPlaySources, doc: MapDocument, index: numb
   const env = probeEnv(t.play, { ...target, route: r.plan.route ?? "", event: eventId });
   // 배회하는 이벤트는 자리를 떠날 수 있다. 실행 변수가 그 이벤트를 세우면(INITIAL2D_RPG_HOLD) 알리지 않는다
   const wanders = field(ev, "wander") !== undefined && field(ev, "charset") !== undefined && !holdsEvent(env, eventId);
-  const extra = [wanders ? "배회하는 이벤트라 자리를 떠나면 닿지 못할 수 있다" : null, state.note].filter((x): x is string => !!x).join(", ");
+  const extra = [wanders ? "배회하는 이벤트: 원래 위치를 벗어나면 자동 재생이 도달하지 못할 수 있음" : null, state.note].filter((x): x is string => !!x).join(", ");
   return { ...toPlan(env, r.plan, extra || null), watch: () => probeWatch(eventId, { wanders }) };
 }
 
@@ -216,7 +216,7 @@ export function eventPlayRequest(sources: RpgPlaySources, doc: MapDocument, inde
     plan: (d) => {
       const events = mapEventsOf(d);
       const at = id !== null ? events.findIndex((e) => field(e, "id") === id) : index < events.length ? index : -1;
-      if (at < 0) return `이벤트 ${id ?? `events[${index + 1}]`} 이(가) 이 맵에 없다`;
+      if (at < 0) return `이 맵에 없는 이벤트: ${id ?? `events[${index + 1}]`}`;
       return eventPlay(sources, d, at, mode);
     },
   };

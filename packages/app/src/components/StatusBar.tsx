@@ -29,12 +29,12 @@ export const StatusBar = observer(function StatusBar() {
   return (
     <div className="statusbar" data-testid="statusbar">
       <span className="statusbar-item statusbar-root" title={project.root || undefined}>
-        {project.isOpen ? project.root : "프로젝트 없음"}
+        {project.isOpen ? project.root : "열린 프로젝트 없음"}
       </span>
       <span className="statusbar-item">{MODE_LABELS[editor.mode]}{editor.bridgeUrl ? ` ${editor.bridgeUrl}` : ""}</span>
       <span className="statusbar-item">{project.isOpen ? (project.gameJson.script === "lua" ? "Lua" : "Ruby") : "-"}</span>
-      <span className="statusbar-item">{dirty > 0 ? `저장 안 됨 ${dirty}` : "저장됨"}</span>
-      <span className="statusbar-item">{watching ? "감시 중" : "감시 없음"}</span>
+      <span className="statusbar-item">{dirty > 0 ? `저장 안 된 문서 ${dirty}개` : "저장됨"}</span>
+      <span className="statusbar-item">{watching ? "파일 감시 중" : "파일 감시 안 함"}</span>
       <EngineStatus />
       <span className="statusbar-spacer" />
       <span className="statusbar-item" data-testid="status-theme">

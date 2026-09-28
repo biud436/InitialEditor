@@ -86,7 +86,7 @@ export class MapClipboard {
     const step = this.pasteCount + 1;
     const m = doc.model;
     const plan = planPaste(doc.schema, m.objects, this.objects, m.tileWidth * step, { pixelWidth: m.pixelWidth, pixelHeight: m.pixelHeight });
-    if (plan.skipped.length > 0) host.toasts.warn(`하나만 둘 수 있는 타입이라 붙이지 않았다: ${plan.skipped.join(", ")}`);
+    if (plan.skipped.length > 0) host.toasts.warn(`맵당 1개만 허용되는 타입이라 붙여넣기 제외: ${plan.skipped.join(", ")}`);
     if (plan.objects.length === 0) return [];
     this.pasteCount = step;
     const ids = plan.objects.map((o) => o.id);
@@ -100,8 +100,8 @@ export class MapClipboard {
 
 export type EditAction = "copy" | "cut" | "paste" | "duplicate" | "delete";
 
-export const NEED_MAP_SELECTION = "맵 오브젝트 패널이나 맵 뷰에서 오브젝트를 고른다";
-export const EMPTY_MAP_CLIPBOARD = "복사한 맵 오브젝트가 없다";
+export const NEED_MAP_SELECTION = "선택한 맵 오브젝트 없음 (맵 오브젝트 패널이나 맵 뷰에서 선택)";
+export const EMPTY_MAP_CLIPBOARD = "복사한 맵 오브젝트 없음";
 
 export interface MapEditHost extends MapObjectHost {
   readonly documents: { readonly active: Document | null };
@@ -134,7 +134,7 @@ export function mapEditRouter(host: MapEditHost, clipboard: () => MapClipboard |
       switch (action) {
         case "copy": {
           const n = board?.copy(doc) ?? 0;
-          if (n > 0) host.toasts.info(`맵 오브젝트 ${n}개를 복사했다`);
+          if (n > 0) host.toasts.info(`맵 오브젝트 ${n}개 복사됨`);
           break;
         }
         case "cut":

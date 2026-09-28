@@ -79,10 +79,10 @@ describe("타일맵 인스펙터", () => {
 
   it("맵의 크기와 레이어 수를 보이고, 읽지 못하면 이유를 보인다", async () => {
     await setup({ map: A, groundLayers: 1 });
-    expect(await screen.findByText("4x2 칸, 타일 16x16, 레이어 2")).toBeTruthy();
+    expect(await screen.findByText("크기 4x2 타일, 타일 16x16px, 레이어 2개")).toBeTruthy();
     cleanup();
     await setup({ map: B, groundLayers: 1 });
-    await waitFor(() => expect(screen.getByTestId("tilemap-map-info").textContent).toMatch(/^읽지 못했다: /));
+    await waitFor(() => expect(screen.getByTestId("tilemap-map-info").textContent).toMatch(/^읽기 실패: /));
   });
 
   it("목록에 없는 현재 값도 고른 채로 보인다", async () => {
@@ -94,7 +94,7 @@ describe("타일맵 인스펙터", () => {
 
   it("바닥 레이어 수를 고치고, 맵의 레이어보다 많으면 알린다", async () => {
     const { prop } = await setup({ map: A, groundLayers: 1 });
-    await screen.findByText("4x2 칸, 타일 16x16, 레이어 2");
+    await screen.findByText("크기 4x2 타일, 타일 16x16px, 레이어 2개");
     expect(screen.queryByTestId("tilemap-ground-note")).toBeNull();
     const input = screen.getByTestId("prop-groundLayers") as HTMLInputElement;
     act(() => input.focus());
@@ -118,10 +118,10 @@ describe("타일맵 인스펙터", () => {
 
   it("맵 파일이 바뀌면 요약을 다시 읽고, 새 맵 파일은 목록에 들어온다", async () => {
     const { backend, maps } = await setup({ map: A, groundLayers: 1 });
-    await screen.findByText("4x2 칸, 타일 16x16, 레이어 2");
+    await screen.findByText("크기 4x2 타일, 타일 16x16px, 레이어 2개");
     await backend.writeText(A, mapText(6, 3));
     act(() => maps.fileChanged(A));
-    expect(await screen.findByText("6x2 칸, 타일 16x16, 레이어 3")).toBeTruthy();
+    expect(await screen.findByText("크기 6x2 타일, 타일 16x16px, 레이어 3개")).toBeTruthy();
     await act(async () => {
       await backend.writeText("resources/maps/d.json", mapText(1, 1));
     });

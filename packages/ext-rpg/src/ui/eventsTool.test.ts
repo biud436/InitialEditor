@@ -120,7 +120,7 @@ describe("옮기기", () => {
     t.tool.pointerUp(t.at(18, 36));
     expect(t.cellOf("bench")).toEqual([19, 34]);
     expect(t.doc.undo.depth).toBe(0);
-    expect(t.notices.at(-1)).toMatch(/^놓을 수 없는 칸이라 제자리에 둔다: .*같은 칸\(18,36\)/);
+    expect(t.notices.at(-1)).toMatch(/^이 타일로 이동 불가, 원래 위치 유지: .*같은 타일\(18,36\)/);
   });
 
   it("배회하는 이벤트는 구역도 함께 옮기고, Alt 를 누르고 끌면 구역은 둔다", () => {
@@ -212,7 +212,7 @@ describe("놓기와 키", () => {
     const t = setup();
     t.tool.doubleClick(t.at(40, 2));
     expect(t.doc.undo.depth).toBe(0);
-    expect(t.notices.at(-1)).toMatch(/^여기에 이벤트를 놓을 수 없다: .*맵 밖/);
+    expect(t.notices.at(-1)).toMatch(/^이 타일에 이벤트 추가 불가: .*맵 범위 밖/);
   });
 
   it("Delete 는 고른 이벤트를 지우고 고르기를 푼다. 되돌리면 그대로", () => {
@@ -237,7 +237,7 @@ describe("놓기와 키", () => {
     const ev = { id: "well", x: 1, y: 2, data: { seed: bigIntValue("12345678901234567890") } };
     expect(big.write([ev])).toContain('"seed": 12345678901234567890');
     expect(big.read()).toEqual([ev]);
-    expect(t.notices.at(-1)).toBe("이벤트 1개를 복사했다");
+    expect(t.notices.at(-1)).toBe("이벤트 1개 복사됨");
     t.tool.pointerMove(t.at(3, 44));
     expect(t.key("v", { mod: true })).toBe(true);
     const i = t.idx("captain_2");
@@ -251,12 +251,12 @@ describe("놓기와 키", () => {
     const t = setup();
     t.tool.pointerMove(t.at(3, 44));
     expect(t.key("v", { mod: true })).toBe(true);
-    expect(t.notices.at(-1)).toBe("붙일 이벤트가 없다 (먼저 복사한다)");
+    expect(t.notices.at(-1)).toBe("붙여넣을 이벤트 없음 (먼저 복사 필요)");
     t.click(16, 44);
     t.key("c", { mod: true });
     t.tool.pointerMove(t.at(18, 44));
     t.key("v", { mod: true });
-    expect(t.notices.at(-1)).toMatch(/^여기에 붙일 수 없다: .*같은 칸\(18,44\)/);
+    expect(t.notices.at(-1)).toMatch(/^이 타일에 붙여넣기 불가: .*같은 타일\(18,44\)/);
     expect(t.doc.undo.depth).toBe(0);
     expect(t.key("c", { mod: true })).toBe(true);
   });
@@ -282,7 +282,7 @@ describe("잠긴 레이어", () => {
   it("고르기와 복사는 되고, 옮기기와 지우기와 붙여넣기와 놓기는 이유를 알리며 거절한다", () => {
     const t = setup({ lockPort: true });
     const reason = t.st.locked!;
-    expect(reason).toMatch(/두 벌/);
+    expect(reason).toMatch(/두 파일/);
     t.click(19, 34);
     expect(t.st.selected).toEqual([t.idx("bench")]);
     t.tool.pointerDown(t.at(19, 34));

@@ -43,7 +43,7 @@ describe("열기", () => {
     expect(store.schemaPresent).toBe(false);
     expect(store.schema).toBeNull();
     expect(store.schemaProblem).toBeNull();
-    expect(store.gameProblem).toBe("파일이 없다");
+    expect(store.gameProblem).toBe("파일 없음");
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
@@ -53,7 +53,7 @@ describe("열기", () => {
     const { store, m } = await opened(files);
     expect(store.schemaPresent).toBe(true);
     expect(store.schema).toBeNull();
-    expect(store.schemaProblem).toBe("event-commands.json 의 버전 2 을 모른다. 이 에디터는 버전 1 만 고칠 수 있다");
+    expect(store.schemaProblem).toBe("지원하지 않는 event-commands.json 버전: 2 (이 에디터는 버전 1 만 편집 가능)");
     expect(m.logs.some(([level, text]) => level === "warn" && text === store.schemaProblem)).toBe(true);
   });
 
@@ -62,8 +62,8 @@ describe("열기", () => {
     files[EVENT_SCHEMA_PATH] = "{ 틀림";
     files["resources/data/rpg-game.json"] = "3";
     const { store } = await opened(files);
-    expect(store.schemaProblem).toMatch(/^event-commands.json 을 쓸 수 없다: JSON 이 아니다/);
-    expect(store.gameProblem).toBe("설정이 객체가 아니다");
+    expect(store.schemaProblem).toMatch(/^event-commands.json 형식 오류: JSON 구문 오류/);
+    expect(store.gameProblem).toBe("설정은 객체여야 함");
   });
 
   it("열 때 이미 프로젝트가 열려 있으면 바로 읽는다", async () => {
@@ -81,7 +81,7 @@ describe("바뀐 파일", () => {
     const text = rpgProjectFiles()[EVENT_SCHEMA_PATH] as string;
     m.backend.simulateExternalChange(EVENT_SCHEMA_PATH, "modify", JSON.stringify({ ...JSON.parse(text), version: 3 }));
     await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
-    expect(store.schemaProblem).toMatch(/버전 3/);
+    expect(store.schemaProblem).toMatch(/지원하지 않는 event-commands.json 버전: 3/);
     m.backend.simulateExternalChange(EVENT_SCHEMA_PATH, "delete");
     await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(3));
     expect(store.schemaPresent).toBe(false);
@@ -130,9 +130,9 @@ describe("바뀐 파일", () => {
     expect(store.mapFileProblem("resources/maps/meadow.json")).toBeUndefined();
     const inn = JSON.parse(rpgProjectFiles()["resources/maps/inn.json"] as string);
     await m.backend.writeText("resources/maps/room.json", JSON.stringify({ ...inn, version: 9 }));
-    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/room.json")).toBe("엔진이 열 수 없는 맵: 모르는 맵 버전이다: 9 (지원: 1, 2)"));
+    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/room.json")).toBe("엔진이 열 수 없는 맵: 지원하지 않는 맵 버전: 9 (지원: 1, 2)"));
     await m.backend.writeText("resources/maps/village.json", JSON.stringify({ ...inn, tilesets: [{ image: "./resources/tiles/none.png", firstGid: 1, columns: 8 }] }));
-    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/village.json")).toBe("엔진이 열 수 없는 맵: 타일셋 그림 없음 (resources/tiles/none.png)"));
+    await vi.waitFor(() => expect(store.mapFileProblem("resources/maps/village.json")).toBe("엔진이 열 수 없는 맵: 타일셋 이미지 없음 (resources/tiles/none.png)"));
     await m.backend.writeText("resources/tiles/none.png", "png");
     expect(store.mapFileProblem("resources/maps/village.json")).toBeNull();
     // resources 밖의 그림은 파일 목록이 모르므로 있다고 본다
@@ -180,7 +180,7 @@ describe("시작 상태와 닫기", () => {
     };
     await store.setStartState("resources/maps/port_town.json", "arrived");
     expect(store.startState("resources/maps/port_town.json")).toBe("arrived");
-    expect(m.logs.at(-1)).toEqual(["warn", `${PLAY_MEMORY_PATH} 에 쓰지 못했다 (이번 실행 동안만 기억한다): 거부`]);
+    expect(m.logs.at(-1)).toEqual(["warn", `${PLAY_MEMORY_PATH} 쓰기 실패 (이번 실행 중에만 유지): 거부`]);
   });
 
   it("닫으면 비우고 알린다. 닫는 동안 끝난 읽기는 버린다", async () => {

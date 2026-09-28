@@ -28,13 +28,13 @@ export interface EditionLink {
 /** 프로세스 실행에 쓸 엔진 한 줄. 정보 창과 설정 대화상자의 "찾은 엔진" 이 같이 쓴다 */
 export function foundEngineText(runner: { engineDescription: string | null; resolving: boolean }, projectOpen: boolean): string {
   if (runner.engineDescription) return runner.engineDescription;
-  if (!projectOpen) return "프로젝트를 열면 찾는다";
-  return runner.resolving ? "찾는 중" : "없음 (F5 는 에디터 안에서 돈다)";
+  if (!projectOpen) return "열린 프로젝트 없음 (프로젝트를 열면 탐색)";
+  return runner.resolving ? "탐색 중" : "없음 (F5 는 게임 탭에서 실행)";
 }
 
 /** 데스크톱 앱은 웹판 열기, 웹판(브라우저)은 데스크톱 앱 받기 */
 export function editionLink(mode: BackendMode): EditionLink {
-  return mode === "tauri" ? { label: "웹판 열기", url: WEB_EDITION_URL } : { label: "데스크톱 앱 받기", url: RELEASES_URL };
+  return mode === "tauri" ? { label: "브라우저 모드 열기", url: WEB_EDITION_URL } : { label: "데스크톱 앱 받기", url: RELEASES_URL };
 }
 
 /**
@@ -48,7 +48,7 @@ export function webLimits(features: readonly string[] | null): string[] {
 }
 
 /** 새 프로젝트 대화상자의 Ruby 안내 (웹판에서 웹 엔진에 mruby 가 없을 때만) */
-export const WEB_NO_RUBY = "웹판에서는 실행하지 못한다 (데스크톱 앱에서 돈다)";
+export const WEB_NO_RUBY = "브라우저 모드에서 실행 불가 (데스크톱 앱에서 실행)";
 
 export function rubyNoteFor(mode: BackendMode, features: readonly string[] | null): string | null {
   if (mode === "tauri" || !features) return null;
@@ -59,6 +59,6 @@ export function rubyNoteFor(mode: BackendMode, features: readonly string[] | nul
 export async function loadEngineNotices(fetchFn: typeof fetch = fetch, base: string = engineBaseUrl()): Promise<string> {
   const url = new URL(ENGINE_NOTICES_FILE, base).href;
   const res = await fetchFn(url, { cache: "no-cache" });
-  if (!res.ok) throw new Error(`${ENGINE_DIR}${ENGINE_NOTICES_FILE} 을(를) 읽지 못했다 (HTTP ${res.status})`);
+  if (!res.ok) throw new Error(`${ENGINE_DIR}${ENGINE_NOTICES_FILE} 읽기 실패 (HTTP ${res.status})`);
   return res.text();
 }

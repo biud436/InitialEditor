@@ -77,7 +77,7 @@ class MarksState implements MapLayerState {
   refresh(): void {
     this.refreshes++;
     const s = world.schema;
-    this.locked = s === null ? "스키마가 없다" : s.version !== 1 ? `모르는 스키마 버전: ${s.version}` : null;
+    this.locked = s === null ? "스키마가 없다" : s.version !== 1 ? `지원하지 않는 스키마 버전: ${s.version}` : null;
   }
 
   dispose(): void {
@@ -175,7 +175,7 @@ describe("맵 레이어: 붙는 때와 다시 붙는 때", () => {
     expect(doc.layerState("test.marks")).toBe(s);
     expect(layer.attaches).toEqual([PATH]);
     expect(s.refreshes).toBe(1);
-    expect(s.locked).toBe("모르는 스키마 버전: 2");
+    expect(s.locked).toBe("지원하지 않는 스키마 버전: 2");
     expect(s.items).toEqual([{ id: "old", x: 0, y: 0 }]);
   });
 
@@ -267,17 +267,17 @@ describe("맵 레이어: 붙는 때와 다시 붙는 때", () => {
     f.contrib.registerMapLayer(marksLayer());
     const doc = await f.open(PATH);
     expect(doc.layerIds).toEqual(["test.marks"]);
-    expect(f.warnings).toEqual([`맵 레이어 깨짐(test.broken) 을(를) ${PATH} 에 붙이지 못했다: 스키마를 읽지 못했다`]);
+    expect(f.warnings).toEqual([`맵 레이어 깨짐(test.broken) 연결 실패 (${PATH}): 스키마를 읽지 못했다`]);
   });
 
   it("섹션은 타일맵의 키를 맡을 수 없고, 두 레이어가 한 섹션을 맡거나 같은 id 로 등록할 수 없다", async () => {
     const f = await setup();
-    expect(() => f.contrib.registerMapLayer(marksLayer({ section: "layers" }))).toThrow("맵 레이어 test.marks: 섹션 layers 은(는) 타일맵이 맡는다");
-    expect(() => f.contrib.registerMapLayer(marksLayer({ section: "objects" }))).toThrow(/타일맵이 맡는다/);
-    expect(() => f.contrib.registerMapLayer(marksLayer({ section: " " }))).toThrow(/섹션 이름이 비었다/);
+    expect(() => f.contrib.registerMapLayer(marksLayer({ section: "layers" }))).toThrow("맵 레이어 test.marks: 섹션 layers: 타일맵 전용 키");
+    expect(() => f.contrib.registerMapLayer(marksLayer({ section: "objects" }))).toThrow(/섹션 objects: 타일맵 전용 키/);
+    expect(() => f.contrib.registerMapLayer(marksLayer({ section: " " }))).toThrow(/섹션 이름 비어 있음/);
     f.contrib.registerMapLayer(marksLayer());
-    expect(() => f.contrib.registerMapLayer(marksLayer())).toThrow("맵 레이어가 이미 있다: test.marks");
-    expect(() => f.contrib.registerMapLayer(marksLayer({ id: "test.other" }))).toThrow("섹션 marks 은(는) 레이어 test.marks 이(가) 이미 맡았다");
+    expect(() => f.contrib.registerMapLayer(marksLayer())).toThrow("맵 레이어 id 중복: test.marks");
+    expect(() => f.contrib.registerMapLayer(marksLayer({ id: "test.other" }))).toThrow("섹션 marks: 레이어 test.marks에서 이미 사용 중");
     expect(() => f.contrib.registerMapLayer(marksLayer({ id: "test.events", section: "events" }))).not.toThrow();
   });
 
@@ -443,7 +443,7 @@ describe("실행 제공자", () => {
     expect(f.contrib.providerFor(doc)?.id).toBe("base");
     offBase();
     expect(f.contrib.playProviders.map((p) => p.id)).toEqual(["tie"]);
-    expect(() => f.contrib.registerPlayProvider(provider("tie", 3, () => false))).toThrow("실행 제공자가 이미 있다: tie");
+    expect(() => f.contrib.registerPlayProvider(provider("tie", 3, () => false))).toThrow("실행 제공자 id 중복: tie");
   });
 });
 
@@ -461,7 +461,7 @@ describe("실행 길 (setPlayer, play)", () => {
   it("앱이 넣은 길로 요청을 넘기고, 막힌 이유는 길의 것이다. 뺀 뒤에는 다시 길이 없다 (다른 길을 넣었으면 그대로)", async () => {
     const f = await setup();
     const doc = await f.open(PATH);
-    let blocked: string | undefined = "엔진을 찾는 중이다";
+    let blocked: string | undefined = "엔진 탐색 중";
     const seen: Array<[string, unknown]> = [];
     const player: MapPlayer = {
       blocked: () => blocked,
@@ -471,7 +471,7 @@ describe("실행 길 (setPlayer, play)", () => {
       },
     };
     const off = f.contrib.setPlayer(player);
-    expect(f.contrib.playBlocked()).toBe("엔진을 찾는 중이다");
+    expect(f.contrib.playBlocked()).toBe("엔진 탐색 중");
     blocked = undefined;
     expect(f.contrib.playBlocked()).toBeUndefined();
     expect(await f.contrib.play(doc, { label: "이 표식 앞에서 실행", plan: (d) => ({ env: { MAP: d.model.name }, at: { x: 1, y: 2 } }) })).toBe(true);
@@ -542,7 +542,7 @@ describe("맵 뷰 길 (setMapViews, pickCell, revealCell)", () => {
     expect(f.contrib.mapViewsBlocked()).toBe(NO_MAP_VIEWS);
     expect(await f.contrib.pickCell({ path: PATH, prompt: "타일을 클릭" })).toBeNull();
     expect(await f.contrib.revealCell(PATH, { x: 1, y: 2 })).toBe(false);
-    expect(f.warnings).toEqual([`타일 고르기 (${PATH}): ${NO_MAP_VIEWS}`, `타일 보기 (${PATH}): ${NO_MAP_VIEWS}`]);
+    expect(f.warnings).toEqual([`타일 선택 (${PATH}): ${NO_MAP_VIEWS}`, `타일 보기 (${PATH}): ${NO_MAP_VIEWS}`]);
   });
 
   it("앱이 넣은 길로 요청을 그대로 넘기고 결과를 돌려준다. 뺀 뒤에는 다시 길이 없다 (다른 길을 넣었으면 그대로)", async () => {

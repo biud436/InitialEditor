@@ -452,7 +452,7 @@ describe("yarn sync:rpg 가 쓴 MANIFEST 와 yarn engine:check", () => {
     const out = path.join(tmp, "out");
     const stopped = syncRpg(engine, ["--out", out]);
     expect(stopped.status).toBe(1);
-    expect(stopped.stderr).toContain("작업 트리가 커밋과 다르다");
+    expect(stopped.stderr).toContain("엔진 작업 트리에 커밋 안 된 변경 있음");
     expect(fs.existsSync(out)).toBe(false);
     const dirty = syncRpg(engine, ["--out", out, "--allow-dirty"]);
     expect(dirty.status, dirty.stderr).toBe(0);

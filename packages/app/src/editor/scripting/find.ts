@@ -165,7 +165,7 @@ export class FindStore {
       re = compileQuery(query, { caseSensitive: this.caseSensitive, regex: this.regex });
     } catch (e) {
       runInAction(() => {
-        this.error = `정규식이 잘못됐다: ${(e as Error).message}`;
+        this.error = `잘못된 정규식: ${(e as Error).message}`;
         this.results = [];
       });
       return;
@@ -202,7 +202,7 @@ export class FindStore {
         }
       }
     } catch (e) {
-      if (alive()) runInAction(() => (this.error = `찾지 못했다: ${(e as Error).message}`));
+      if (alive()) runInAction(() => (this.error = `검색 실패: ${(e as Error).message}`));
     } finally {
       if (alive()) runInAction(() => (this.running = false));
     }

@@ -43,7 +43,7 @@ export function stagedToast(s: StagedSummary): string {
   return `안드로이드 에셋 ${s.files}개, ${formatBytes(s.bytes)}`;
 }
 
-export const RTP_WARNING = "RTP 변환물이 들어갔다. 이 APK 는 배포하지 않는다";
+export const RTP_WARNING = "RTP 변환물 포함됨. 이 APK 는 배포 금지";
 
 /** 저장소에 무엇이 있는지 (android_repo_probe) */
 export interface RepoState {
@@ -77,5 +77,5 @@ export function lineLevel(line: string, stream: "stdout" | "stderr"): LineLevel 
 export function failureText(code: number | null, stderr: readonly string[]): string {
   const last = [...stderr].reverse().find((l) => l.trim() !== "");
   if (last) return last.replace(/^(prepare_assets|stage_list):\s*/, "");
-  return code === null ? "스크립트가 시그널로 끝났다" : `스크립트가 종료 코드 ${code} 로 끝났다`;
+  return code === null ? "스크립트가 시그널로 종료됨" : `스크립트 종료 (종료 코드 ${code})`;
 }

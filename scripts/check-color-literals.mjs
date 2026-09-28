@@ -39,7 +39,7 @@ for (const target of targets) {
 }
 
 if (problems.length) {
-  console.error(`색 리터럴 ${problems.length}곳. 토큰(var(--...))을 쓰거나 이유를 적고 color-literal-ok 를 붙인다.`);
+  console.error(`색 리터럴 ${problems.length}개. 토큰(var(--...))으로 바꾸거나 이유와 함께 color-literal-ok 주석 추가 필요`);
   for (const p of problems) console.error("  " + p);
   process.exit(1);
 }

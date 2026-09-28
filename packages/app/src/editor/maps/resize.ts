@@ -30,7 +30,7 @@ function signed(n: number): string {
 }
 
 export function describeOffset(s: ResizeSummary): string {
-  return `옮김 x ${signed(s.offset.dx)}칸, y ${signed(s.offset.dy)}칸`;
+  return `내용 이동 x ${signed(s.offset.dx)}, y ${signed(s.offset.dy)} (타일)`;
 }
 
 export interface ResizeHost {
@@ -52,7 +52,7 @@ export function applyResize(host: ResizeHost, doc: MapDocument, req: ResizeReque
   doc.apply(doc.resizeCommand(req.width, req.height, req.anchor));
   const warnings = outsideWarnings(summary);
   const tail = warnings.map((w) => `, ${w}`).join("");
-  host.log.info(LOG, `맵 크기를 바꿨다: ${doc.title} ${from} → ${req.width}x${req.height} 칸 (기준 ${ANCHOR_LABELS[req.anchor]}, ${describeOffset(summary)}${tail})`);
+  host.log.info(LOG, `맵 크기 변경됨: ${doc.title} ${from} → ${req.width}x${req.height} 타일 (기준점 ${ANCHOR_LABELS[req.anchor]}, ${describeOffset(summary)}${tail})`);
   if (warnings.length > 0) host.toasts.warn(warnings.join(". "));
   if (summary.eventsOutside > 0) host.log.warn(LOG, `맵 밖으로 나간 이벤트 ${summary.eventsOutside}개`);
   return true;
@@ -62,6 +62,6 @@ export function applyResize(host: ResizeHost, doc: MapDocument, req: ResizeReque
 export function outsideWarnings(s: ResizeSummary): string[] {
   const out: string[] = [];
   if (s.objectsOutside.length > 0) out.push(`맵 밖으로 나간 오브젝트 ${s.objectsOutside.length}개: ${s.objectsOutside.join(", ")}`);
-  if (s.objectsPartlyOutside.length > 0) out.push(`끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 ${s.objectsPartlyOutside.length}개: ${s.objectsPartlyOutside.join(", ")}`);
+  if (s.objectsPartlyOutside.length > 0) out.push(`영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 ${s.objectsPartlyOutside.length}개: ${s.objectsPartlyOutside.join(", ")}`);
   return out;
 }

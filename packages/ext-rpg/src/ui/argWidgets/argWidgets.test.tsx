@@ -137,7 +137,7 @@ describe("한 줄 칸의 Enter", () => {
 describe("string, text", () => {
   it("선택 글 칸은 비우면 인자를 지운다. suggest 는 제안 목록이다", () => {
     const r = renderArg(argOf("message", "name"), undefined);
-    expect(input().placeholder).toBe("비움");
+    expect(input().placeholder).toBe("지정 안 함");
     focus(input());
     typeIn(input(), "선장");
     typeIn(input(), "");
@@ -186,7 +186,7 @@ describe("integer, number", () => {
     expect(r.last()).toBe(1.5);
     cleanup();
     const c = renderArg(argOf("giveItem", "count"), 3);
-    expect(input().placeholder).toBe("비움 (기본 1)");
+    expect(input().placeholder).toBe("지정 안 함 (기본값 1)");
     fireEvent.click(screen.getByTestId("arg-clear"));
     expect(c.last()).toBeUndefined();
     expect(screen.queryByTestId("arg-clear")).toBeNull();
@@ -194,13 +194,13 @@ describe("integer, number", () => {
 
   it("파일의 값이 수가 아니면 알린다", () => {
     renderArg(argOf("wait", "ms"), "300");
-    expect(screen.getByText(/이 칸의 타입이 아니다/)).toBeTruthy();
+    expect(screen.getByText(/타입 불일치/)).toBeTruthy();
   });
 
   it("2^53을 넘는 정수는 수다: 숫자 그대로 보이고, 적은 큰 정수는 그대로 간다 (범위 밖이면 자른다)", () => {
     const r = renderArg(argOf("setVar", "value"), bigIntValue("12345678901234567890"));
     expect(input().value).toBe("12345678901234567890");
-    expect(screen.queryByText(/이 칸의 타입이 아니다/)).toBeNull();
+    expect(screen.queryByText(/타입 불일치/)).toBeNull();
     expect(document.body.textContent).not.toContain("INT:");
     focus(input());
     typeIn(input(), "98765432109876543210");
@@ -219,7 +219,7 @@ describe("integer, number", () => {
 describe("boolean, enum, scalar", () => {
   it("선택 참거짓은 세 상태 (비움은 기본값을 보인다), 필수는 체크 상자", () => {
     const r = renderArg(argOf("moveRoute", "wait"), undefined);
-    expect(optionTexts(select("arg"))).toEqual(["비움 (기본 참)", "참", "거짓"]);
+    expect(optionTexts(select("arg"))).toEqual(["지정 안 함 (기본값 참)", "참", "거짓"]);
     fireEvent.change(select("arg"), { target: { value: "false" } });
     fireEvent.change(select("arg"), { target: { value: "" } });
     expect(r.values()).toEqual([false, undefined]);
@@ -266,7 +266,7 @@ describe("boolean, enum, scalar", () => {
   it("글과 고르기 칸의 큰 정수는 타입이 틀린 값이고 숫자로 알린다", () => {
     renderArg(argOf("message", "name"), bigIntValue("12345678901234567890"));
     expect(input().value).toBe("");
-    expect(screen.getByText(/이 칸의 타입이 아니다/).textContent).toBe("지금 값 12345678901234567890 는 이 칸의 타입이 아니다");
+    expect(screen.getByText(/타입 불일치/).textContent).toBe("타입 불일치 (현재: 12345678901234567890)");
     cleanup();
     renderArg(argOf("turn", "dir"), bigIntValue("12345678901234567890"));
     expect(optionTexts(select("arg"))[0]).toBe("12345678901234567890 (목록에 없음)");
@@ -280,7 +280,7 @@ describe("ref", () => {
   it("맵: rpg-game.json 의 이름, 없는 이름은 경고", () => {
     renderArg(argOf("transfer", "map"), "nowhere");
     expect(suggested().map((s) => s[0])).toEqual(["port_town", "inn", "village", "room"]);
-    expect(screen.getByTestId("arg-note").textContent).toBe("목록에 없다");
+    expect(screen.getByTestId("arg-note").textContent).toBe("목록에 없음");
     expect(screen.getByTestId("arg-note").className).toContain("is-warning");
     focus(input());
     typeIn(input(), "inn");
@@ -332,7 +332,7 @@ describe("ref", () => {
 describe("file", () => {
   it("확장자에 맞는 파일만, 시작 폴더가 먼저. 값은 ./ 꼴", () => {
     const r = renderArg(argOf("playSe", "file"), undefined);
-    expect(optionTexts(select("arg"))).toEqual(["파일 고르기", "resources/audio/bell.ogg", "resources/audio/door.wav", "resources/bgm/harbor.ogg"]);
+    expect(optionTexts(select("arg"))).toEqual(["파일 선택", "resources/audio/bell.ogg", "resources/audio/door.wav", "resources/bgm/harbor.ogg"]);
     expect(select("arg").hasAttribute("title")).toBe(false);
     fireEvent.change(select("arg"), { target: { value: "resources/audio/door.wav" } });
     expect(r.last()).toBe("./resources/audio/door.wav");
@@ -377,7 +377,7 @@ describe("face, charset", () => {
 
   it("외형(이벤트 칸): 8명 격자와 서 있는 정면 프레임, 모르는 이름은 그렇다고", () => {
     const r = renderArg(fieldSpec(schema, "charset")!, { set: "ghost", index: 1 });
-    expect(optionTexts(select("arg-set"))[0]).toBe("ghost (모르는 이름)");
+    expect(optionTexts(select("arg-set"))[0]).toBe("ghost (스키마에 없는 이름)");
     expect(within(screen.getByTestId("arg-grid")).getAllByRole("button")).toHaveLength(8);
     const frame = screen.getByTestId("arg-grid-6").firstElementChild as HTMLElement;
     expect((frame.querySelector(".rpg-sheet-image") as HTMLElement).style.backgroundPosition).toBe("-168px -192px");
@@ -462,7 +462,7 @@ describe("options", () => {
     const confirm = vi.fn(() => false);
     const ops = renderOptions(["a", "b"], { branchSizes: [0, 2], confirm });
     await act(async () => fireEvent.click(screen.getByTestId("opt-1-remove")));
-    expect(confirm).toHaveBeenCalledWith("2번 항목의 가지에 커맨드가 2개 있다. 가지와 함께 뺄까?");
+    expect(confirm).toHaveBeenCalledWith("2번 항목의 분기에 커맨드 2개 있음. 분기와 함께 삭제할까요?");
     expect(ops.remove).not.toHaveBeenCalled();
     await act(async () => fireEvent.click(screen.getByTestId("opt-0-remove")));
     expect(ops.remove).toHaveBeenCalledWith(0);
@@ -517,7 +517,7 @@ describe("route", () => {
   it("배열이 아니면 알리고 비우고 새로 시작할 수 있다", () => {
     const r = renderArg(argOf("moveRoute", "route"), "up");
     expect(screen.getByTestId("arg-broken")).toBeTruthy();
-    fireEvent.click(screen.getByText("비우고 새로"));
+    fireEvent.click(screen.getByText("빈 배열로 교체"));
     expect(r.last()).toEqual([]);
   });
 });
@@ -541,11 +541,11 @@ describe("condition", () => {
   it("빈 조건과 꼴이 둘인 조건은 경고한다 (엔진은 앞의 꼴만 본다)", () => {
     renderArg(argOf("if", "cond"), {});
     expect(screen.getByTestId("arg-empty")).toBeTruthy();
-    expect(optionTexts(select("arg-kind"))[0]).toBe("빈 조건 (늘 참)");
+    expect(optionTexts(select("arg-kind"))[0]).toBe("빈 조건 (항상 참)");
     cleanup();
     renderArg(argOf("if", "cond"), { flag: "a", item: "b" });
     expect(select("arg-kind").value).toBe("item");
-    expect(screen.getByTestId("arg-many").textContent).toContain("item 만 본다");
+    expect(screen.getByTestId("arg-many").textContent).toContain("조건 종류가 2개 이상 (item, flag): 엔진은 첫 번째 item 만 사용. 종류를 다시 선택하면 1개만 유지");
   });
 });
 
@@ -556,9 +556,9 @@ describe("json", () => {
     expect(screen.getByTestId("arg-result").textContent).toBe("객체 (키 1개)");
     focus(input());
     typeIn(input(), "[1, 2");
-    expect(screen.getByTestId("arg-error").textContent).toMatch(/JSON 이 아니다/);
+    expect(screen.getByTestId("arg-error").textContent).toMatch(/JSON 구문 오류/);
     typeIn(input(), "[1, 2]");
-    expect(screen.getByTestId("arg-result").textContent).toBe("배열 (2칸)");
+    expect(screen.getByTestId("arg-result").textContent).toBe("배열 (요소 2개)");
     typeIn(input(), "null");
     typeIn(input(), "");
     expect(r.values()).toEqual([[1, 2], undefined, undefined]);
@@ -571,7 +571,7 @@ describe("json", () => {
     typeIn(input(), '{"seed": 98765432109876543210, "n": 1}');
     expect(r.last()).toEqual({ seed: bigIntValue("98765432109876543210"), n: 1 });
     typeIn(input(), "12345678901234567890");
-    expect(screen.getByTestId("arg-result").textContent).toBe("수");
+    expect(screen.getByTestId("arg-result").textContent).toBe("숫자");
   });
 });
 
@@ -583,7 +583,7 @@ describe("wander", () => {
     focus(input("arg-minWait"));
     typeIn(input("arg-minWait"), "10");
     expect(r.last()).toEqual({ minWait: 10 });
-    expect(input("arg-maxWait").placeholder).toBe("기본 120");
+    expect(input("arg-maxWait").placeholder).toBe("기본값 120");
     cleanup();
     const a = renderArg(fieldSpec(schema, "wander")!, { area: { x: 1, y: 2, w: 3, h: 4 } });
     focus(input("arg-area-w"));
@@ -607,7 +607,7 @@ describe("ArgRow", () => {
         ctx={{ schema, refs, files: TEST_FILES, confirm: () => true }}
         sessionPrefix="p"
         testId="arg"
-        problems={[{ severity: "error", message: "0 이상이 아니다 (지금은 -1)", location: "events[1].commands[1].ms", source: "engine" }]}
+        problems={[{ severity: "error", message: "0 이상이어야 함 (현재: -1)", location: "events[1].commands[1].ms", source: "engine" }]}
       />,
     );
     expect(screen.getByTitle("필수")).toBeTruthy();

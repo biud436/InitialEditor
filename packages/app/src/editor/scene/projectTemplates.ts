@@ -17,8 +17,8 @@ export interface ProjectTemplateOptions {
 export const PROJECT_DIRS = ["resources/images", "resources/audio", "resources/fonts", "resources/scenes", "resources/maps"];
 export const GITIGNORE_PATH = ".gitignore";
 export const GITIGNORE_TEXT =
-  "# InitialEditor 가 쓰는 편집 상태 (레이아웃, 열린 탭). 게임 데이터가 아니다\n.initial-editor/\n" +
-  "# 엔진이 실행할 때 쓰는 파일 (실행 파일 경로가 들어가 사람마다 다르다)\nconfig.setting\n";
+  "# InitialEditor 편집 상태 (레이아웃, 열린 탭). 게임 데이터 아님\n.initial-editor/\n" +
+  "# 엔진이 실행할 때 쓰는 파일 (실행 파일 경로가 들어가 사람마다 다름)\nconfig.setting\n";
 
 /** 템플릿의 game.json (엔진 기본 해상도 768x896. 플래피 씬과 타일맵 템플릿의 맵도 그 크기다) */
 export function templateGameJson(options: ProjectTemplateOptions): string {

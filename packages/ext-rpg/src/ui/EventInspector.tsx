@@ -51,7 +51,7 @@ export const EventInspector = observer(function EventInspector({ document, state
     return (
       <div className="rpg-inspector" data-testid="rpg-inspector">
         <LockBanner reason={state.locked} />
-        <div className="panel-hint">스키마를 쓸 수 없어 이벤트를 보기만 한다 ({state.section.list.length}개)</div>
+        <div className="panel-hint">이벤트 스키마 사용 불가, 읽기 전용 (이벤트 {state.section.list.length}개)</div>
       </div>
     );
   }
@@ -86,7 +86,7 @@ const EventsSummary = observer(function EventsSummary({ doc, state }: { doc: Map
         </span>
       </div>
       <LockBanner reason={state.locked} />
-      <div className="panel-hint">맵의 이벤트를 누르면 칸과 커맨드가 보인다. 빈 칸을 두 번 누르면 새 이벤트를 놓는다</div>
+      <div className="panel-hint">선택한 이벤트 없음. 맵에서 이벤트를 클릭하면 속성과 커맨드 표시, 빈 타일을 더블클릭하면 새 이벤트 추가</div>
       <ProblemList problems={problems} onPick={(p) => p.eventIndex !== undefined && state.select([p.eventIndex])} testId="rpg-inspector-problems" />
     </div>
   );
@@ -127,7 +127,7 @@ const ManySelected = observer(function ManySelected({ state, indices, services }
       <div className="rpg-inspector-ids muted">{indices.map((i) => eventLabel(state.section.list[i], i)).join(", ")}</div>
       <div className="rpg-inspector-actions">
         <button type="button" className="btn" disabled={state.locked !== null} data-testid="rpg-inspector-remove" onClick={remove}>
-          {indices.length}개 지우기
+          {indices.length}개 삭제
         </button>
       </div>
       {notice && (
@@ -229,7 +229,7 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
   if (!isPlainObject(ev)) {
     return (
       <div className="rpg-inspector" data-testid="rpg-inspector" data-mode="broken">
-        <div className="rpg-arg-note is-warning">events[{index + 1}] 는 객체가 아니라 고칠 수 없다 ({stringifyJsonLossless(ev)})</div>
+        <div className="rpg-arg-note is-warning">events[{index + 1}] 편집 불가 (객체가 아님): {stringifyJsonLossless(ev)}</div>
       </div>
     );
   }
@@ -280,7 +280,7 @@ const SingleEvent = observer(function SingleEvent({ doc, state, index, services 
         </span>
         <span className="rpg-toolbar-gap" />
         <button type="button" className="btn btn-ghost rpg-mini" disabled={state.locked !== null} data-testid="rpg-inspector-remove" onClick={remove}>
-          지우기
+          삭제
         </button>
       </div>
       <LockBanner reason={state.locked} />

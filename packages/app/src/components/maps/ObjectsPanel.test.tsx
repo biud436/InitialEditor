@@ -89,7 +89,7 @@ describe("맵 오브젝트 목록의 이름 바꾸기", () => {
     const { doc, toasts } = await setup();
     const input = startRename("slime_1", "start");
     act(() => input.blur());
-    expect(toasts).toEqual(["warn: 이미 있는 id 다: start"]);
+    expect(toasts).toEqual(["warn: 이미 있는 id: start"]);
     expect(renameInput()).toBeNull();
     expect(row("slime_1").textContent).toContain("slime_1");
     expect(doc.model.objectIds()).toEqual(["start", "slime_1", "sign_1"]);
@@ -122,7 +122,7 @@ describe("맵 오브젝트 목록의 이름 바꾸기", () => {
     const { doc, toasts } = await setup();
     const input = startRename("slime_1", "start");
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(toasts).toEqual(["warn: 이미 있는 id 다: start"]);
+    expect(toasts).toEqual(["warn: 이미 있는 id: start"]);
     expect(renameInput()).toBe(input);
     fireEvent.change(input, { target: { value: "slime_boss" } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -162,8 +162,8 @@ describe("맵 오브젝트 목록의 검사", () => {
     expect(doc.model.findObject(added)?.props).toEqual({ title: "", text: "" });
     expect(problems().getAttribute("data-count")).toBe("3");
     const texts = screen.getAllByTestId("map-objects-problem").map((p) => p.textContent ?? "");
-    expect(texts.filter((t) => t.includes(`${added}: 제목이(가) 비어 있다`))).toHaveLength(1);
-    expect(texts.filter((t) => t.includes(`${added}: 글이(가) 비어 있다`))).toHaveLength(1);
+    expect(texts.filter((t) => t.includes(`${added}: 필수 속성 제목 비어 있음`))).toHaveLength(1);
+    expect(texts.filter((t) => t.includes(`${added}: 필수 속성 글 비어 있음`))).toHaveLength(1);
   });
 });
 

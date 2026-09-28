@@ -78,7 +78,7 @@ export interface ClipboardItemDeps {
 /** 우리 항목이 눌렸을 때. 메뉴를 지은 뒤 상태가 바뀌었을 수 있어 다시 판단한다. 한 일을 돌려준다 */
 export async function runClipboardItem(id: string, deps: ClipboardItemDeps): Promise<"command" | "native" | "blocked"> {
   const kind = CLIPBOARD_COMMANDS[id];
-  if (!kind) throw new Error(`편집 커맨드가 아니다: ${id}`);
+  if (!kind) throw new Error(`편집 커맨드 아님: ${id}`);
   if (deps.route() === "command") {
     await deps.execute(id);
     return "command";
@@ -237,7 +237,7 @@ async function buildMenu(api: MenuApi, editor: Editor, ctx: BuildContext) {
     const file = items.find((i) => i.kind === "Submenu") as Awaited<ReturnType<MenuApi["Submenu"]["new"]>> | undefined;
     if (file) {
       await file.append(await api.PredefinedMenuItem.new({ item: "Separator" }));
-      await file.append(await api.PredefinedMenuItem.new({ item: "Quit", text: "끝내기" }));
+      await file.append(await api.PredefinedMenuItem.new({ item: "Quit", text: "종료" }));
     }
   }
   const menu = await api.Menu.new({ items });
@@ -265,13 +265,13 @@ export async function installNativeMenu(editor: Editor): Promise<() => void> {
         execCommand: (kind) => document.execCommand(kind),
         rebuild: () => schedule(0),
       }).then((done) => {
-        if (done === "blocked") editor.log.warn("editor", `하지 못했다: ${editor.commandLabel(id)}. 메뉴를 다시 지었으니 한 번 더 누른다`);
+        if (done === "blocked") editor.log.warn("editor", `커맨드 실행 실패: ${editor.commandLabel(id)}. 메뉴 다시 생성됨, 한 번 더 선택 필요`);
       });
     },
   };
   const scheduler = createRebuildScheduler(
     () => buildMenu(api, editor, ctx),
-    (e) => editor.log.warn("editor", `네이티브 메뉴를 만들지 못했다: ${e.message}`),
+    (e) => editor.log.warn("editor", `네이티브 메뉴 생성 실패: ${e.message}`),
   );
   const schedule = scheduler.schedule;
   const disposers = [

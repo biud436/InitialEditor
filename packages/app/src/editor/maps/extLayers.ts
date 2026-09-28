@@ -31,7 +31,7 @@ export interface LayerCommandHost {
   setHint(id: string, fn: () => string | undefined): void;
 }
 
-const NEED_MAP = "맵 탭이 활성일 때";
+const NEED_MAP = "활성 맵 탭 없음";
 
 /** 대상을 레이어로 고른다. 레이어 상태가 없으면(이 맵에 붙지 않았다) false */
 export function selectExtLayer(doc: MapDocument, id: string): boolean {
@@ -69,7 +69,7 @@ export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapS
         const t = support.activeMap?.target;
         return t?.kind === "ext" && t.id === spec.id;
       });
-      host.setHint(id, () => (!support.activeMap ? NEED_MAP : attached() ? undefined : `이 맵에는 ${spec.label} 레이어가 없다`));
+      host.setHint(id, () => (!support.activeMap ? NEED_MAP : attached() ? undefined : `이 맵에 ${spec.label} 레이어 없음`));
       const offMenu = host.menus.register({ path: `맵/${spec.label} 도구`, commandId: id, order: 60 + i });
       placed.set(spec.id, {
         spec,
@@ -92,7 +92,7 @@ export function registerLayerCommands(host: LayerCommandHost, support: Pick<MapS
 export function layerErrorsMessage(title: string, errors: readonly ObjectProblem[], max = 8): string {
   const lines = errors.slice(0, max).map((p) => `- ${p.location}: ${p.message}`);
   if (errors.length > max) lines.push(`- 그 밖에 ${errors.length - max}개`);
-  return `${title}에 오류가 ${errors.length}개 있다. 엔진이 틀린 항목을 건너뛰거나 멈출 수 있다.\n${lines.join("\n")}`;
+  return `${title}: 오류 ${errors.length}개. 엔진이 오류 항목을 건너뛰거나 실행을 멈출 수 있음. 그래도 저장할까요?\n${lines.join("\n")}`;
 }
 
 /**

@@ -126,7 +126,7 @@ export class MapFileCheck {
     const { status, images } = this.parse(path, text);
     if (status.kind !== "ok") return status;
     for (const image of images) {
-      if (!(await backend.exists(image))) return { kind: "invalid", reason: `타일셋 그림이 없다: ${image}` };
+      if (!(await backend.exists(image))) return { kind: "invalid", reason: `타일셋 이미지 파일 없음: ${image}` };
     }
     return OK;
   }

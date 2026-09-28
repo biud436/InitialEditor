@@ -99,7 +99,7 @@ describe("트리", () => {
     expect(rowEls()).toHaveLength(deepest.n);
     // 오류와 경고는 없고, 여관 주인의 handKey() 를 두 벌로 펼친 같은 묶음을 정보로 알린다
     expect(screen.getByTestId("rpg-cmd-problems").textContent).toBe("문제 1 (오류 0, 경고 0, 정보 1)");
-    expect(within(row("c.commands[1].thenDo[2]")).getByTestId("rpg-cmd-marker").title).toMatch(/같은 커맨드 묶음/);
+    expect(within(row("c.commands[1].thenDo[2]")).getByTestId("rpg-cmd-marker").title).toMatch(/같은 연속 커맨드/);
   });
 });
 
@@ -175,7 +175,7 @@ describe("고르기와 폼", () => {
     expect(stack.depth).toBe(3);
     fireEvent.click(screen.getByTestId("rpg-arg-options-1-remove"));
     await flush();
-    expect(confirm).toHaveBeenCalledWith("2번 항목의 가지에 커맨드가 1개 있다. 가지와 함께 뺄까?");
+    expect(confirm).toHaveBeenCalledWith("2번 항목의 분기에 커맨드 1개 있음. 분기와 함께 삭제할까요?");
     expect(stack.depth).toBe(3);
     confirm.mockReturnValue(true);
     fireEvent.click(screen.getByTestId("rpg-arg-options-1-remove"));
@@ -424,7 +424,7 @@ describe("복사와 붙여넣기", () => {
     press("ArrowDown", { shiftKey: true });
     press("c", { ctrlKey: true });
     expect(parseCommandsJson(clipboard.json)).toEqual(NESTED.slice(0, 2));
-    expect(screen.getByTestId("rpg-cmd-status").textContent).toBe("커맨드 2개를 복사했다");
+    expect(screen.getByTestId("rpg-cmd-status").textContent).toBe("커맨드 2개 복사됨");
     click("c.commands[3]");
     press("v", { metaKey: true });
     expect(commandsNow().map((c) => field(c, "code"))).toEqual(["message", "if", "wait", "message", "if"]);
@@ -442,7 +442,7 @@ describe("복사와 붙여넣기", () => {
     const { clipboard, stack, refused } = setup();
     click("c.commands[1]");
     press("v", { ctrlKey: true });
-    expect(screen.getByTestId("rpg-cmd-notice").textContent).toContain("붙일 커맨드가 없다");
+    expect(screen.getByTestId("rpg-cmd-notice").textContent).toContain("붙여넣을 커맨드 없음 (클립보드 내용이 커맨드 JSON 이 아님)");
     clipboard.write([{ code: "wait", ms: -5 }]);
     press("v", { ctrlKey: true });
     expect(screen.getByTestId("rpg-cmd-notice").getAttribute("role")).toBe("alert");
@@ -501,12 +501,12 @@ describe("잠김과 틀린 모양", () => {
     expect(screen.getByTestId("rpg-cmd-unknown-command").textContent).toContain('{"code":"dance","speed":2}');
     press("Delete");
     expect(commandsNow()).toEqual([7]);
-    expect(screen.getByTestId("rpg-cmd-unknown-command").textContent).toContain("객체가 아니다");
+    expect(screen.getByTestId("rpg-cmd-unknown-command").textContent).toContain("객체가 아닌 커맨드: 삭제만 가능: 7");
   });
 
   it("commands 가 배열이 아니면 트리 대신 알림", () => {
     setup(undefined as unknown as unknown[], {}, { commands: "oops" });
-    expect(screen.getByTestId("rpg-cmd-broken").textContent).toContain("events[1].commands 가 배열이 아니라");
+    expect(screen.getByTestId("rpg-cmd-broken").textContent).toContain('events[1].commands 편집 불가 (배열이 아님): "oops"');
     expect(screen.queryByTestId("rpg-cmd-tree")).toBeNull();
   });
 
@@ -547,11 +547,11 @@ describe("문제 표시", () => {
       "events[1].commands[2].cond",
       "events[1].commands[4]",
     ]);
-    expect(items[3].textContent).toContain("맵 이동 뒤의 커맨드는 실행되지 않는다");
+    expect(items[3].textContent).toContain("맵 이동 뒤의 커맨드: 실행되지 않음");
     fireEvent.click(items[1]);
     expect(cursorKey()).toBe("c.commands[2].thenDo[1]");
     expect(document.activeElement).toBe(tree());
-    expect(screen.getAllByTestId("rpg-arg-ms-problem")[0].textContent).toContain("0 이상이 아니다");
+    expect(screen.getAllByTestId("rpg-arg-ms-problem")[0].textContent).toContain("0 이상이어야 함 (현재: -1)");
   });
 
   it("problems 를 주지 않으면 스키마로 검사하고, 다른 이벤트의 문제는 보이지 않는다", () => {

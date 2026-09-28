@@ -17,7 +17,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("이미지를 해석하지 못했다"));
+    img.onerror = () => reject(new Error("이미지 디코딩 실패"));
     img.src = url;
   });
 }

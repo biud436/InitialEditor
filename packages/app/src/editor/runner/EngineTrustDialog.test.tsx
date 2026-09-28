@@ -33,7 +33,7 @@ describe("엔진 신뢰 확인 모달", () => {
       "/Users/u/Downloads/game/tools/Initial2D (출처: .initial-editor/engine)",
       "/Users/u/Downloads/game/build/Initial2D (출처: 프로젝트의 build/)",
     ]);
-    expect(screen.getByTestId("engine-trust").textContent).toContain("엔진들을 실행할까?");
+    expect(screen.getByTestId("engine-trust").textContent).toContain("엔진들을 실행할까요?");
     expect(screen.getByTestId("engine-trust").textContent).toContain("프로젝트: /Users/u/Downloads/game");
   });
 
@@ -53,9 +53,9 @@ describe("엔진 신뢰 확인 모달", () => {
 
   it("형제 폴더는 프로젝트가 가리킨 것이 아니라 옆에 있는 것이라고 말한다", () => {
     const sibling = { source: "sibling" as const, path: "/Users/u/Downloads/Initial2D/build/Initial2D", needsTrust: true };
-    expect(trustMessage({ ...question, candidates: [sibling], hasBundled: false })).toBe("프로젝트 옆 폴더의 엔진을 실행할까?");
-    expect(trustMessage({ ...question, candidates: [question.candidates[1], sibling] })).toBe("이 프로젝트가 가리키거나 옆 폴더에 있는 엔진들을 실행할까?");
-    expect(trustMessage({ ...question, candidates: [question.candidates[1]] })).toBe("이 프로젝트가 가리키는 엔진을 실행할까?");
+    expect(trustMessage({ ...question, candidates: [sibling], hasBundled: false })).toBe("프로젝트 상위 폴더의 엔진을 실행할까요?");
+    expect(trustMessage({ ...question, candidates: [question.candidates[1], sibling] })).toBe("이 프로젝트가 가리키거나 프로젝트 상위 폴더에 있는 엔진들을 실행할까요?");
+    expect(trustMessage({ ...question, candidates: [question.candidates[1]] })).toBe("이 프로젝트가 가리키는 엔진을 실행할까요?");
   });
 
   it("Escape 나 가림막으로 닫으면 답이 없다 (기억하지 않는다)", async () => {
@@ -77,7 +77,7 @@ describe("엔진 신뢰 확인 모달", () => {
     const modals = new ModalStore();
     const result = askEngineTrust(modals, { ...question, candidates: [question.candidates[1]], hasBundled: false });
     renderTop(modals);
-    expect(screen.getByTestId("engine-trust").textContent).toContain("엔진을 실행할까?");
+    expect(screen.getByTestId("engine-trust").textContent).toContain("엔진을 실행할까요?");
     expect(screen.queryByRole("button", { name: TRUST_DENY })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: TRUST_DENY_NO_BUNDLED }));
     expect(await result).toBe("deny");

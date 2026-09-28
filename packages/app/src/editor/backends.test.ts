@@ -66,7 +66,7 @@ describe("backends", () => {
     expect(await blocker(10 * GiB, 4395630592)).toBeNull();
     // 할당량을 모른다
     expect(await blocker(undefined, 4395630592)).toBe(PRIVATE_PROFILE_MESSAGE);
-    // performance.memory 가 없다
+    // performance.memory 없음
     expect(await blocker(10 * GiB, undefined)).toBe(PRIVATE_PROFILE_MESSAGE);
     // 시크릿 창과 게스트 창: 딱 2 GiB, 쓴 뒤에는 2 GiB 에 사용량을 더한 값. 힙 한도가 작아도 마찬가지
     expect(await blocker(2 * GiB, 4395630592)).toBe(PRIVATE_PROFILE_MESSAGE);

@@ -15,7 +15,7 @@ import { targetKey } from "./MapView";
 import { useMapStructure } from "./useMapModel";
 import "./LayersPanel.css";
 
-export const LAYERS_EMPTY = "맵 탭을 열면 레이어가 보인다";
+export const LAYERS_EMPTY = "활성 맵 탭 없음";
 
 export const LayersPanel = observer(function LayersPanel() {
   const editor = useEditor();
@@ -83,7 +83,7 @@ const ExtLayerRow = observer(function ExtLayerRow({ doc, spec, active }: { doc: 
           </span>
         )}
         {errors > 0 && (
-          <span className="layers-errors" data-testid="layer-errors" title="이 레이어의 오류 (인스펙터에 목록이 있다)">
+          <span className="layers-errors" data-testid="layer-errors" title="이 레이어의 오류 수 (목록은 인스펙터에 표시)">
             오류 {errors}
           </span>
         )}
@@ -146,7 +146,7 @@ const LayersBody = observer(function LayersBody({ doc }: { doc: MapDocument }) {
         <Row keyName="collision" active={current === "collision"} onSelect={() => doc.setTarget({ kind: "collision" })}>
           <Eye visible={doc.showCollision} label="통행" onToggle={() => runInAction(() => (doc.showCollision = !doc.showCollision))} />
           <span className="layers-name">통행</span>
-          <span className="layers-meta">{m.collision ? `막힘 ${collisionCells}칸` : "없음"}</span>
+          <span className="layers-meta">{m.collision ? `통행 불가 타일 ${collisionCells}개` : "없음"}</span>
         </Row>
         <div className="layers-sep" />
         {m.layers
@@ -194,13 +194,13 @@ const LayersBody = observer(function LayersBody({ doc }: { doc: MapDocument }) {
         <button type="button" className="btn" data-testid="layer-add" onClick={() => addLayer(doc)} title="대상 레이어 위에 새 레이어">
           추가
         </button>
-        <button type="button" className="btn" data-testid="layer-remove" disabled={activeIndex === null || count <= 1} onClick={() => removeLayer(doc)} title="대상 레이어 지우기 (되돌릴 수 있다)">
+        <button type="button" className="btn" data-testid="layer-remove" disabled={activeIndex === null || count <= 1} onClick={() => removeLayer(doc)} title="대상 레이어 삭제 (되돌리기 가능)">
           삭제
         </button>
-        <button type="button" className="btn" data-testid="layer-up" disabled={activeIndex === null || activeIndex >= count - 1} onClick={() => moveLayer(doc, 1)} title="위로 (나중에 그린다)">
+        <button type="button" className="btn" data-testid="layer-up" disabled={activeIndex === null || activeIndex >= count - 1} onClick={() => moveLayer(doc, 1)} title="위로 (나중에 그림)">
           위로
         </button>
-        <button type="button" className="btn" data-testid="layer-down" disabled={activeIndex === null || activeIndex <= 0} onClick={() => moveLayer(doc, -1)} title="아래로 (먼저 그린다)">
+        <button type="button" className="btn" data-testid="layer-down" disabled={activeIndex === null || activeIndex <= 0} onClick={() => moveLayer(doc, -1)} title="아래로 (먼저 그림)">
           아래로
         </button>
       </div>

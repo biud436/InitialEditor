@@ -45,7 +45,7 @@ describe("붙는 맵", () => {
     const h = layerHarness();
     const doc = h.open(MEADOW);
     expect(eventsStateOf(doc)).toBeNull();
-    expect(h.spec.hint?.(doc)).toBe("이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다");
+    expect(h.spec.hint?.(doc)).toBe("이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)");
   });
 
   it("스키마 파일이 없는 프로젝트(플래피)는 붙지 않고 힌트도 없다", () => {
@@ -56,17 +56,17 @@ describe("붙는 맵", () => {
   });
 
   it("rpg-game.json 을 읽지 못하면 붙지 않고 이유를 힌트로 보인다", () => {
-    const h = layerHarness({ sources: fixtureSources({ game: null, gameProblem: "파일이 없다" }) });
+    const h = layerHarness({ sources: fixtureSources({ game: null, gameProblem: "파일 없음" }) });
     const doc = h.open(PORT_TOWN);
     expect(eventsStateOf(doc)).toBeNull();
-    expect(h.spec.hint?.(doc)).toBe("rpg-game.json 을 읽지 못해 이벤트 레이어가 없다 (파일이 없다)");
+    expect(h.spec.hint?.(doc)).toBe("rpg-game.json 읽기 실패: 이벤트 레이어 없음 (파일 없음)");
   });
 
   it("alt 가 있는 항목의 맵(RTP 쌍둥이)은 읽기 전용이고 편집이 거절된다", () => {
     const h = layerHarness();
     const doc = h.open(VILLAGE);
     const st = stateOf(doc);
-    expect(st.locked).toBe("RTP 판과 기본 판 두 파일이라 이벤트를 두 벌 둬야 한다. 이전 전에는 Lua 정의 파일에서 고친다");
+    expect(st.locked).toBe("alt 로 등록된 맵 (RTP 버전과 기본 버전 두 파일): 이벤트를 두 파일에 따로 저장해야 하므로 편집 불가. Lua 정의 파일에서 편집");
     const r = st.run((ed) => ed.addEvent({ x: 1, y: 1 }));
     expect(r).toEqual({ ok: false, reason: st.locked });
     expect(doc.undo.depth).toBe(0);
@@ -117,7 +117,7 @@ describe("스키마가 늦게 오거나 바뀔 때 (refreshLayer)", () => {
     sources.set({ schema: null, schemaPresent: false });
     h.contrib.refreshLayer(EVENTS_LAYER_ID);
     expect(stateOf(doc)).toBe(st);
-    expect(st.locked).toBe("event-commands.json 이 없어 이벤트를 고칠 수 없다 (파일을 되살리면 풀린다)");
+    expect(st.locked).toBe("event-commands.json 없음: 이벤트 편집 불가 (파일을 복원하면 해제)");
     expect(doc.text()).toBe(edited);
     doc.undo.undo();
     expect(doc.text()).toBe(PORT_TEXT);
@@ -132,7 +132,7 @@ describe("스키마가 늦게 오거나 바뀔 때 (refreshLayer)", () => {
     sources.set({ game: { ...game, maps: game.maps.filter((m) => m.name !== "port_town") } });
     h.contrib.refreshLayer(EVENTS_LAYER_ID);
     expect(stateOf(doc)).toBe(st);
-    expect(st.locked).toBe("rpg-game.json 에서 이 맵이 빠져 이벤트를 고칠 수 없다 (등록을 되살리면 풀린다)");
+    expect(st.locked).toBe("rpg-game.json 에 이 맵의 등록 없음: 이벤트 편집 불가 (등록을 복원하면 해제)");
   });
 
   it("처음부터 모르는 버전이면 스키마 없이 붙어 잠기고, 원본을 그대로 쓴다 (제 모양 고치기도 하지 않는다)", () => {
@@ -211,7 +211,7 @@ describe("편집과 되돌리기", () => {
     const st = stateOf(doc);
     const r = st.run((ed) => ed.addEvent({ x: 16, y: 44 }));
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toMatch(/같은 칸\(16,44\)의 action/);
+    if (!r.ok) expect(r.reason).toMatch(/같은 타일\(16,44\)의 action/);
     expect(doc.undo.depth).toBe(0);
     expect(st.canRun((ed) => ed.addEvent({ x: 16, y: 44 }))).toBe(false);
     expect(st.canRun((ed) => ed.addEvent({ x: 2, y: 44 }))).toBe(true);
@@ -284,7 +284,7 @@ describe("문제", () => {
     const st = stateOf(doc);
     const captain = st.section.indexOfId("captain");
     const warnings = st.problems().filter((p) => p.severity === "warning");
-    expect(warnings.some((p) => p.location === `events[${captain + 1}].id` && p.message.includes("Lua 정의가 이긴다"))).toBe(true);
+    expect(warnings.some((p) => p.location === `events[${captain + 1}].id` && p.message.includes("게임에서는 Lua 정의가 우선"))).toBe(true);
     expect(warnings.some((p) => p.message.includes("프로젝트에 없는 파일"))).toBe(true);
     // 파일 목록을 모르면 없는 파일 경고를 내지 않는다
     sources.set({ files: null });

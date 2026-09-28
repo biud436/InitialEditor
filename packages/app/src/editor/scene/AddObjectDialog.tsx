@@ -16,7 +16,7 @@ const AddObjectList = observer(function AddObjectList({ onClose }: { onClose: ()
   return (
     <div data-testid="add-object-dialog">
       <div className="modal-body add-object-body">
-        {types.length === 0 && <div className="muted">등록된 오브젝트 타입이 없다</div>}
+        {types.length === 0 && <div className="muted">등록된 오브젝트 타입 없음</div>}
         <div className="add-object-list" role="listbox" aria-label="오브젝트 타입">
           {types.map((t, i) => (
             <button key={t.type} type="button" className="add-object-item" role="option" aria-selected={false} onClick={() => pick(t.type)} data-type={t.type} data-testid="add-object-type" data-autofocus={i === 0 ? true : undefined}>

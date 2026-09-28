@@ -31,7 +31,7 @@ export interface NewMapSource {
 
 type SizeState = { path: string; size: ImageSize | null; error: string | null };
 
-export const NEW_MAP_NO_TILESET = "타일셋 그림(PNG)이 있어야 만든다. resources 아래에 그림을 먼저 넣는다";
+export const NEW_MAP_NO_TILESET = "타일셋 이미지(PNG) 없음. resources 아래에 PNG 이미지 추가 필요";
 
 /** 처음 고를 타일셋: tiles 폴더의 것이 있으면 그것, 없으면 첫 그림 */
 export function defaultTileset(images: readonly string[]): string {
@@ -61,7 +61,7 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
       (e: Error) => {
         if (!live) return;
         setLists({ images: [], maps: [] });
-        setListError(`파일 목록을 읽지 못했다: ${e.message}`);
+        setListError(`파일 목록 읽기 실패: ${e.message}`);
       },
     );
     return () => {
@@ -83,8 +83,8 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
 
   const images = lists?.images ?? [];
   const nameError = validateMapName(name, lists?.maps ?? []);
-  const widthError = validateMapTiles(widthText, "폭은");
-  const heightError = validateMapTiles(heightText, "높이는");
+  const widthError = validateMapTiles(widthText, "너비");
+  const heightError = validateMapTiles(heightText, "높이");
   const tileError = validateTileSize(tileText);
   const layers = parseLayerNames(layersText);
   const tileSize = tileError ? 0 : Number(tileText.trim());
@@ -94,8 +94,8 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
 
   let tilesetError: string | null = null;
   if (lists && images.length === 0) tilesetError = NEW_MAP_NO_TILESET;
-  else if (image && size?.error) tilesetError = `그림을 읽지 못했다: ${size.error}`;
-  else if (image && size?.size && tileSize > 0 && (columns < 1 || rows < 1)) tilesetError = `그림(${size.size.width}x${size.size.height})이 타일 크기보다 작다`;
+  else if (image && size?.error) tilesetError = `이미지 읽기 실패: ${size.error}`;
+  else if (image && size?.size && tileSize > 0 && (columns < 1 || rows < 1)) tilesetError = `이미지(${size.size.width}x${size.size.height})가 타일 크기보다 작음`;
   // 목록과 그림 크기를 읽는 동안은 만들기를 막지만 오류로 보이지는 않는다
   const loading = !lists || (!!image && !size);
   const problems = [nameError, widthError, heightError, tileError, tilesetError, layers.error].filter((p): p is string => !!p);
@@ -124,15 +124,15 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
           <label htmlFor="new-map-name">이름</label>
           <input id="new-map-name" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="stage1" data-autofocus autoFocus data-testid="new-map-name" />
           <div className="form-help" data-testid="new-map-path">
-            {name.trim() && !nameError ? `${mapPathFor(name.trim())}으로 만든다` : "resources/maps/<이름>.json으로 만든다"}
+            {name.trim() && !nameError ? `생성 경로: ${mapPathFor(name.trim())}` : "생성 경로: resources/maps/<이름>.json"}
           </div>
         </div>
         <div className="form-row">
-          <label htmlFor="new-map-width">크기 (칸)</label>
+          <label htmlFor="new-map-width">크기 (타일)</label>
           <div className="map-dialog-pair">
-            <input id="new-map-width" className="input" inputMode="numeric" value={widthText} onChange={(e) => setWidthText(e.target.value)} aria-label="폭 (칸)" data-testid="new-map-width" />
+            <input id="new-map-width" className="input" inputMode="numeric" value={widthText} onChange={(e) => setWidthText(e.target.value)} aria-label="너비 (타일)" data-testid="new-map-width" />
             <span className="muted">x</span>
-            <input className="input" inputMode="numeric" value={heightText} onChange={(e) => setHeightText(e.target.value)} aria-label="높이 (칸)" data-testid="new-map-height" />
+            <input className="input" inputMode="numeric" value={heightText} onChange={(e) => setHeightText(e.target.value)} aria-label="높이 (타일)" data-testid="new-map-height" />
           </div>
         </div>
         <div className="form-row">
@@ -151,24 +151,24 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
             </select>
           ) : (
             <div className="muted" data-testid="new-map-no-images">
-              {lists ? "resources 아래에 PNG가 없다" : "그림 목록을 읽는 중"}
+              {lists ? "resources 아래에 PNG 없음" : "이미지 목록 읽는 중"}
             </div>
           )}
           {image && size?.size && tileSize > 0 ? (
             <div className="form-help" data-testid="new-map-columns" data-columns={columns}>
-              {size.size.width}x{size.size.height} px, {columns}열 {rows}행{spare > 0 ? ` (오른쪽 ${spare}px는 쓰지 않는다)` : ""}
+              {size.size.width}x{size.size.height} px, {columns}열 {rows}행{spare > 0 ? ` (오른쪽 ${spare}px 미사용)` : ""}
             </div>
           ) : null}
         </div>
         <div className="form-row">
           <label htmlFor="new-map-layers">레이어</label>
           <input id="new-map-layers" className="input" value={layersText} onChange={(e) => setLayersText(e.target.value)} data-testid="new-map-layers" />
-          <div className="form-help">쉼표로 가른다. 앞의 것이 아래에 그려진다</div>
+          <div className="form-help">쉼표로 구분. 앞의 레이어가 아래에 그려짐</div>
         </div>
         <div className="form-row">
           <label htmlFor="new-map-collision">통행</label>
           <label className="checkbox">
-            <input id="new-map-collision" type="checkbox" checked={collision} onChange={(e) => setCollision(e.target.checked)} data-testid="new-map-collision" /> 통행 레이어를 만든다 (전부 지나감)
+            <input id="new-map-collision" type="checkbox" checked={collision} onChange={(e) => setCollision(e.target.checked)} data-testid="new-map-collision" /> 통행 레이어 생성 (모든 타일 통행 가능)
           </label>
         </div>
         {listError ? <div className="modal-error">{listError}</div> : null}

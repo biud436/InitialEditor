@@ -19,7 +19,7 @@ describe("새 프로젝트 대화상자", () => {
     setup();
     const options = [...select("new-project-template").options].map((o) => [o.value, o.textContent]);
     expect(options).toEqual([
-      ["empty", "빈 프로젝트 (씬 하나)"],
+      ["empty", "빈 프로젝트 (씬 1개)"],
       ["flappy", "플래피버드 (씬과 컴포넌트)"],
       ["tilemap", "타일맵"],
     ]);

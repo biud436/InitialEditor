@@ -43,7 +43,7 @@ function skip(reason) {
 }
 
 if (!fs.existsSync(path.join(engineDir, "tools", "stage_list.py"))) skip(`엔진 저장소의 prepare_assets.sh 가 --project 를 모른다 (tools/stage_list.py 가 없다): ${engineDir}`);
-if (!fs.existsSync(exe)) skip(`엔진 실행 파일이 없다: ${exe} (INITIAL2D_DIR 로 저장소 위치를 주거나 cmake 로 빌드한다)`);
+if (!fs.existsSync(exe)) skip(`엔진 실행 파일 없음: ${exe} (INITIAL2D_DIR로 저장소 위치 지정 또는 cmake로 빌드)`);
 
 const failures = [];
 let passes = 0;
@@ -183,14 +183,14 @@ const errorLines = log
   .filter((l) => /error|panic|uncaught exception|scene: /i.test(l));
 check("프로세스 정상 종료 (코드 0)", run.status === 0, `status=${run.status} signal=${run.signal} | ${tail(log)}`);
 check("스크립트 오류 없음", errorLines.length === 0, errorLines.join(" | "));
-check("대기에서 시작한다 (flappy:state:ready)", log.includes("flappy:state:ready"), tail(log));
-check("자동 시연이 플레이로 들어간다 (flappy:state:play)", log.includes("flappy:state:play"), tail(log));
+check("ready 상태로 시작 (flappy:state:ready)", log.includes("flappy:state:ready"), tail(log));
+check("자동 플레이가 play 상태로 전환 (flappy:state:play)", log.includes("flappy:state:play"), tail(log));
 check("부딪히면 게임 오버 (flappy:state:dead)", log.includes("flappy:state:dead"), tail(log));
 const fm = /flappyFinal state=(\w+) score=(\d+) best=(\d+) ticks=(\d+)/.exec(log);
-check("최종 요약 (씬이 스스로 끝냈다)", fm !== null, tail(log));
+check("최종 요약 (씬 자체 종료)", fm !== null, tail(log));
 if (fm) {
-  check("파이프를 하나 이상 지난다 (best >= 1)", Number(fm[3]) >= 1, fm[0]);
-  check("900틱에 끝낸다", Number(fm[4]) === 900, fm[0]);
+  check("파이프 1개 이상 통과 (best >= 1)", Number(fm[3]) >= 1, fm[0]);
+  check("900틱에 종료", Number(fm[4]) === 900, fm[0]);
 }
 if (run.status !== 0 || errorLines.length) console.log("  --- 엔진 출력 ---\n" + log.trim().split("\n").map((l) => "  " + l).join("\n"));
 

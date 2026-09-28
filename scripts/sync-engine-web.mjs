@@ -61,8 +61,8 @@ function detectFeatures(wasm) {
 
 for (const name of FILES) {
   if (!fs.existsSync(path.join(siteDir, name))) {
-    console.error(`웹 빌드가 없다: ${path.join(siteDir, name)}`);
-    console.error("엔진 저장소에서 tools/build_web.sh 를 먼저 돌린다 (INITIAL2D_DIR 로 저장소 위치를 준다)");
+    console.error(`웹 빌드 없음: ${path.join(siteDir, name)}`);
+    console.error("엔진 저장소에서 tools/build_web.sh 먼저 실행 필요 (INITIAL2D_DIR로 저장소 위치 지정)");
     process.exit(1);
   }
 }

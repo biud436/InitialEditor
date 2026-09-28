@@ -94,7 +94,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 이미 있는 이름은 거부
     await page.getByTestId("new-map-name").fill("meadow");
-    await expect(page.getByTestId("new-map-problem")).toHaveText("이미 있다: resources/maps/meadow.json");
+    await expect(page.getByTestId("new-map-problem")).toHaveText("이미 있는 맵: resources/maps/meadow.json");
     await expect(page.getByTestId("new-map-ok")).toBeDisabled();
 
     // 6x5, 레이어 셋, 통행 켬으로 만들면 맵 탭이 열린다
@@ -107,7 +107,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(page.getByTestId("modal")).toHaveCount(0);
     await expect(docTab(page, "stage1.json")).toBeVisible();
     expect(await ev<string>(page, "(e) => e.documents.active?.kind")).toBe("map");
-    await expect(page.getByTestId("map-view")).toContainText("6x5 칸 (96x80 px)");
+    await expect(page.getByTestId("map-view")).toContainText("6x5 타일 (96x80 px)");
     await expect(tree.locator('[data-path="resources/maps/stage1.json"]')).toBeVisible();
 
     // 파일: v2, 빈 레이어 셋과 통행, 타일셋 하나, id는 있는 맵보다 크다, 고정 형식(맵 한 줄이 한 줄)
@@ -145,7 +145,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 머리 띠의 크기를 누르면 대화상자. 크기가 같으면 확인이 꺼져 있다
     await page.getByTestId("map-size").click();
-    await expect(page.getByTestId("resize-current")).toHaveText("20x12 칸 (320x192 px)");
+    await expect(page.getByTestId("resize-current")).toHaveText("20x12 타일 (320x192 px)");
     await expect(page.getByTestId("resize-ok")).toBeDisabled();
 
     // 24x14, 오른쪽 아래 기준: 내용이 x +4칸, y +2칸 옮겨진다
@@ -157,9 +157,9 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     const summary = page.getByTestId("resize-summary");
     await expect(summary).toHaveAttribute("data-dx", "4");
     await expect(summary).toHaveAttribute("data-dy", "2");
-    await expect(summary).toHaveText("옮김 x +4칸, y +2칸");
+    await expect(summary).toHaveText("내용 이동 x +4, y +2 (타일)");
     await page.getByTestId("resize-ok").click();
-    await expect(view).toContainText("24x14 칸 (384x224 px)");
+    await expect(view).toContainText("24x14 타일 (384x224 px)");
     await expect(view).toHaveAttribute("data-ready", "true");
     expect(await ev<number>(page, "(e) => e.documents.active.model.layers[0].data[2 * 24 + 4]")).toBe(ground0);
     expect(await obj(page, "start")).toMatchObject({ x: 88, y: 168 });
@@ -170,29 +170,29 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
 
     // 되돌리기 한 단계로 원래 크기와 자리, 저장 상태까지
     await openMenu(page, "편집", "되돌리기");
-    await expect(view).toContainText("20x12 칸");
+    await expect(view).toContainText("20x12 타일");
     expect(await obj(page, "start")).toMatchObject({ x: 24, y: 136 });
     await expect(tab.locator(".doc-tab-dirty")).toHaveCount(0);
     await openMenu(page, "편집", "다시 실행");
-    await expect(view).toContainText("24x14 칸");
+    await expect(view).toContainText("24x14 타일");
 
     // 저장한 파일의 레이어와 통행 길이가 새 크기다
     await view.locator(".map-view-host").focus();
     await page.keyboard.press(`${mod}+s`);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: meadow.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: meadow.json");
     const saved = JSON.parse(await ev<string>(page, `(e) => e.backend.readText('${MEADOW}')`));
     expect([saved.width, saved.height]).toEqual([24, 14]);
     expect([...saved.layers.map((l: { data: number[] }) => l.data.length), saved.collision.length]).toEqual([336, 336, 336]);
 
     // 20x12로 되돌린 뒤 줄이기. 폭 13: bat_1이 밖이고 slime_1은 순찰 범위만 밖까지 간다
     await openMenu(page, "편집", "되돌리기");
-    await expect(view).toContainText("20x12 칸");
+    await expect(view).toContainText("20x12 타일");
     await openMenu(page, "맵", "크기 바꾸기");
     await page.getByTestId("resize-width").fill("13");
     await expect(page.getByTestId("resize-outside")).toHaveAttribute("data-count", "1");
     await expect(page.getByTestId("resize-outside")).toContainText("bat_1");
     await expect(page.getByTestId("resize-partly")).toHaveAttribute("data-count", "1");
-    await expect(page.getByTestId("resize-partly")).toHaveText("끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 1개: slime_1");
+    await expect(page.getByTestId("resize-partly")).toHaveText("영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 1개: slime_1");
 
     // 폭 10: slime_1과 bat_1이 밖이다. 지우지 않고 알린다
     await page.getByTestId("resize-width").fill("10");
@@ -201,7 +201,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await expect(page.getByTestId("resize-partly")).toHaveCount(0);
     await page.getByTestId("resize-ok").click();
     await expect(page.getByTestId("toasts")).toContainText("맵 밖으로 나간 오브젝트 2개: slime_1, bat_1");
-    await expect(view).toContainText("10x12 칸");
+    await expect(view).toContainText("10x12 타일");
     await expect(page.getByTestId("map-objects-count")).toHaveText("4개");
   });
 
@@ -215,7 +215,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     // 되돌리기 한 단계
     await row("slime_1").click();
     await page.keyboard.press(`${mod}+c`);
-    await expect(page.getByTestId("toasts")).toContainText("맵 오브젝트 1개를 복사했다");
+    await expect(page.getByTestId("toasts")).toContainText("맵 오브젝트 1개 복사됨");
     await page.keyboard.press(`${mod}+v`);
     await expect(row("slime_2")).toHaveAttribute("aria-selected", "true");
     expect(await obj(page, "slime_2")).toMatchObject({ x: 216, y: 136, props: { minX: 192, maxX: 264 } });
@@ -255,7 +255,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     const scene0 = await sceneCount(page);
     await hierarchy.locator('[data-testid="hierarchy-row"]').first().click();
     await page.keyboard.press(`${mod}+c`);
-    await expect(page.getByTestId("toasts")).toContainText("오브젝트 1개를 복사했다");
+    await expect(page.getByTestId("toasts")).toContainText("오브젝트 1개 복사됨");
     await docTab(page, "meadow.json").click();
     const map0 = await objectCount(page);
     await dockTab(page, "맵 오브젝트").click();
@@ -276,7 +276,7 @@ test.describe("맵 편집 부가 기능 (메모리 모드)", () => {
     await page.keyboard.press(`${mod}+c`);
     const withStart = await objectCount(page);
     await page.keyboard.press(`${mod}+v`);
-    await expect(page.getByTestId("toasts")).toContainText("하나만 둘 수 있는 타입이라 붙이지 않았다: start");
+    await expect(page.getByTestId("toasts")).toContainText("맵당 1개만 허용되는 타입이라 붙여넣기 제외: start");
     expect(await objectCount(page)).toBe(withStart);
 
     // 잘라내고 붙이면 옮기기다: 원래 id 그대로(시작 지점은 start), x로 한 칸, y는 그대로

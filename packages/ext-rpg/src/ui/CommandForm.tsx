@@ -63,7 +63,7 @@ export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, pro
           {location}
         </span>
       </div>
-      {spec.ends && <div className="rpg-arg-note muted">이 뒤의 커맨드는 실행되지 않는다</div>}
+      {spec.ends && <div className="rpg-arg-note muted">이 커맨드 뒤의 커맨드는 실행되지 않음</div>}
       {own.map((p, i) => (
         <div key={i} className={`rpg-arg-problem is-${p.severity}`} data-testid="rpg-cmd-form-problem">
           {p.message}
@@ -87,7 +87,7 @@ export function CommandForm({ editor, eventIndex, path, cmd, spec, ctx, run, pro
       {locationActions?.applies(cmd) && <LocationTools cmd={cmd} path={path} actions={locationActions} />}
       {unknown.length > 0 && (
         <div className="rpg-unknown" data-testid="rpg-cmd-unknown">
-          <div className="muted">스키마에 없는 인자 (지우지 않고 그대로 둔다)</div>
+          <div className="muted">스키마에 없는 인자 (저장 시 유지)</div>
           {unknown.map((k) => (
             <div key={k} className="rpg-unknown-row">
               <code>{k}</code>: <code>{stringifyJsonLossless(cmd[k])}</code>

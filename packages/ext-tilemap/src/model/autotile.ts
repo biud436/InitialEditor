@@ -95,12 +95,12 @@ export function blobTilePosition(index: number): { col: number; row: number } {
 
 /** 오토타일 시트 이미지의 크기 검사. 맞으면 null, 아니면 이유 */
 export function blobSheetProblem(imageWidth: number, imageHeight: number, tileWidth: number, tileHeight: number): string | null {
-  if (tileWidth <= 0 || tileHeight <= 0) return "타일 크기는 0보다 커야 한다";
+  if (tileWidth <= 0 || tileHeight <= 0) return "타일 크기는 0보다 커야 함";
   const w = BLOB_COLUMNS * tileWidth;
   const h = BLOB_ROWS * tileHeight;
   if (imageWidth === w && imageHeight === h) return null;
-  if (imageWidth <= imageHeight) return `6행 8열 시트는 가로가 더 길다 (${imageWidth}x${imageHeight})`;
-  return `6행 8열 시트가 아니다: ${imageWidth}x${imageHeight} (타일 ${tileWidth}x${tileHeight} 이면 ${w}x${h})`;
+  if (imageWidth <= imageHeight) return `6행 8열 시트는 너비가 높이보다 커야 함 (${imageWidth}x${imageHeight})`;
+  return `이미지 크기는 ${w}x${h}여야 함 (6행 8열, 타일 ${tileWidth}x${tileHeight} 기준, 현재: ${imageWidth}x${imageHeight})`;
 }
 
 /** 타일셋 안 (origin.col, origin.row)부터 시트가 놓였을 때 마스크에 맞는 gid */

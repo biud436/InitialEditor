@@ -102,9 +102,9 @@ describe("buildRows", () => {
   it("모르는 커맨드, 객체가 아닌 칸, 끝의 null 도 줄이다 (뺄 수 있게)", () => {
     const rows = buildRows([{ code: "dance" }, 3, null], schema, new Set()) as CommandRow[];
     expect(rows.slice(0, 3).map((r) => [r.label, r.spec])).toEqual([
-      ["알 수 없는 커맨드 dance", undefined],
-      ["커맨드가 아니다", undefined],
-      ["커맨드가 아니다", undefined],
+      ["스키마에 없는 커맨드: dance", undefined],
+      ["객체가 아닌 커맨드", undefined],
+      ["객체가 아닌 커맨드", undefined],
     ]);
     expect(rows[2].summary).toBe("null");
   });
@@ -161,11 +161,11 @@ describe("요약", () => {
     expect(branchLabel("{n}. {option}", 1, big)).toBe("1. 12345678901234567890");
   });
 
-  it("조건 한 줄: 깃발의 값은 = 로, 빈 조건은 늘 참", () => {
-    expect(conditionSummary(schema, { flag: "arrived" })).toBe("깃발 arrived");
-    expect(conditionSummary(schema, { flag: "arrived", equals: false })).toBe("깃발 arrived = false");
+  it("조건 한 줄: 플래그의 값은 = 로, 빈 조건은 늘 참", () => {
+    expect(conditionSummary(schema, { flag: "arrived" })).toBe("플래그 arrived");
+    expect(conditionSummary(schema, { flag: "arrived", equals: false })).toBe("플래그 arrived = false");
     expect(conditionSummary(schema, { var: "coins", op: "<", value: 3 })).toBe("변수 coins < 3");
-    expect(conditionSummary(schema, {})).toBe("빈 조건 (늘 참)");
+    expect(conditionSummary(schema, {})).toBe("빈 조건 (항상 참)");
   });
 
   it("가지 머리줄 이름", () => {

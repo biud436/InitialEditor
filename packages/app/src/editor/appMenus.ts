@@ -35,7 +35,7 @@ export function appMenuItems(): MenuItemSpec[] {
     { path: "씬/새 씬", commandId: "scene.new", order: 10 },
     // 씬/오브젝트 추가/<타입> 은 scene/sceneCommands.ts 가 레지스트리에서 채운다 (order 10 부터). 마지막이 목록 대화상자
     { path: "씬/오브젝트 추가", order: 20 },
-    { path: "씬/오브젝트 추가/목록에서 고르기", commandId: "scene.addObject", order: 900, separatorBefore: true },
+    { path: "씬/오브젝트 추가/목록에서 선택", commandId: "scene.addObject", order: 900, separatorBefore: true },
     { path: "씬/시작 씬으로 지정", commandId: "scene.setStart", order: 30, separatorBefore: true },
     { path: "씬/격자 표시", commandId: "scene.toggleGrid", order: 40, separatorBefore: true },
     { path: "씬/스냅", commandId: "scene.toggleSnap", order: 50 },

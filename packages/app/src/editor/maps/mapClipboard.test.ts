@@ -205,7 +205,7 @@ describe("맵 클립보드", () => {
     // 한 번 더 붙이면 원래 id가 맵에 있으므로 새 id이고, 시작 지점은 붙이지 않는다
     expect(clipboard.paste(host, doc)).toEqual(["slime_2"]);
     expect(doc.model.findObject("slime_2")).toMatchObject({ x: 152, y: 40 });
-    expect(toasts).toEqual(["warn: 하나만 둘 수 있는 타입이라 붙이지 않았다: start"]);
+    expect(toasts).toEqual(["warn: 맵당 1개만 허용되는 타입이라 붙여넣기 제외: start"]);
     // 되돌리면 잘라내기 전으로 간다
     doc.undo.undo();
     doc.undo.undo();
@@ -237,7 +237,7 @@ describe("맵 클립보드", () => {
     doc.select(["start"]);
     clipboard.copy(doc);
     expect(clipboard.paste(host, doc)).toEqual([]);
-    expect(toasts).toEqual(["warn: 하나만 둘 수 있는 타입이라 붙이지 않았다: start"]);
+    expect(toasts).toEqual(["warn: 맵당 1개만 허용되는 타입이라 붙여넣기 제외: start"]);
     expect(doc.undo.depth).toBe(0);
   });
 });
@@ -268,7 +268,7 @@ describe("편집 커맨드의 맵 쪽", () => {
     const { doc, router, toasts } = await setup();
     doc.select(["slime_1"]);
     router.run("copy");
-    expect(toasts).toEqual(["info: 맵 오브젝트 1개를 복사했다"]);
+    expect(toasts).toEqual(["info: 맵 오브젝트 1개 복사됨"]);
     expect(router.enabled("paste")).toBe(true);
     router.run("paste");
     expect(doc.selectedIds).toEqual(["slime_2"]);

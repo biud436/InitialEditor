@@ -49,7 +49,7 @@ describe("scene format", () => {
 
   it("구조 오류는 자리를 말한다", () => {
     expect(() => parseScene("[]")).toThrow(SceneFormatError);
-    expect(() => parseScene('{"version": 2, "objects": []}')).toThrow(/모르는 씬 버전이다: 2/);
+    expect(() => parseScene('{"version": 2, "objects": []}')).toThrow(/지원하지 않는 씬 버전: 2/);
     expect(() => parseScene('{"version": 1, "objects": [{"type": "node"}]}')).toThrow(/objects\[0\]\.id/);
     expect(() => parseScene('{"version": 1, "objects": [{"id": "a", "type": "node", "x": "1"}]}')).toThrow(/objects\[0\]\.x/);
     expect(() => parseScene('{"version": 1, "objects": [{"id": "a", "type": "node", "scripts": [1]}]}')).toThrow(/scripts/);
@@ -95,7 +95,7 @@ describe("SceneModel commands", () => {
     expect(model.ids()).toEqual(["bg", "score", "world"]);
     undo.redo();
     expect(model.ids()).toEqual(["bg", "score", "world", "player"]);
-    expect(() => undo.push(model.addObject(makeObject("node", "bg", {})))).toThrow(/겹친다/);
+    expect(() => undo.push(model.addObject(makeObject("node", "bg", {})))).toThrow(/id 중복: bg/);
   });
 
   it("이동은 드래그 동안 합쳐지고 한 번에 되돌아간다", () => {

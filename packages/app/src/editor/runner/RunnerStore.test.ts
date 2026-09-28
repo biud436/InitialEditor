@@ -120,7 +120,7 @@ function probeFor(h: Harness, available: Record<string, string[]>) {
   return async (exe: string) => {
     h.probed.push(exe);
     const features = available[exe];
-    if (!features) throw new BackendError(`엔진 실행 파일이 없다: ${exe}`, "engine_not_found", exe);
+    if (!features) throw new BackendError(`엔진 실행 파일 없음: ${exe}`, "engine_not_found", exe);
     return features;
   };
 }
@@ -256,20 +256,20 @@ describe("RunnerStore 엔진 탐색", () => {
     expect(runner.enginePath).toBeNull();
     expect(runner.engineSource).toBe("none");
     expect(runner.canRun).toBe(false);
-    expect(runner.startHint).toContain("찾아본 곳: /home/u/game/build/Initial2D, /home/u/Initial2D/build/Initial2D");
+    expect(runner.startHint).toContain("탐색한 경로: /home/u/game/build/Initial2D, /home/u/Initial2D/build/Initial2D");
     expect(runner.statusText).toBe("엔진: 없음");
-    expect(logTexts(h.log).some((t) => t.startsWith("warn/runner: 엔진을 찾지 못했다"))).toBe(true);
+    expect(logTexts(h.log).some((t) => t.startsWith("warn/runner: 엔진 탐색 실패"))).toBe(true);
   });
 
   it("브라우저 모드는 이유를 들고 있고 찾지 않는다", async () => {
     const h = await harness({ tauri: false });
-    const runner = new RunnerStore(h.host, { unavailableReason: "브라우저 모드에서는 엔진을 띄울 수 없다" });
+    const runner = new RunnerStore(h.host, { unavailableReason: "브라우저 모드: 엔진 프로세스 실행 미지원" });
     expect(await runner.resolveEngine()).toBeNull();
-    expect(runner.unavailableReason).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
-    expect(runner.startHint).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    expect(runner.unavailableReason).toBe("브라우저 모드: 엔진 프로세스 실행 미지원");
+    expect(runner.startHint).toBe("브라우저 모드: 엔진 프로세스 실행 미지원");
     expect(runner.canRun).toBe(false);
     expect(runner.statusText).toBe("엔진: 없음");
-    expect(runner.statusTitle).toBe("브라우저 모드에서는 엔진을 띄울 수 없다");
+    expect(runner.statusTitle).toBe("브라우저 모드: 엔진 프로세스 실행 미지원");
     // 브리지 모드의 리로드는 프로젝트만 열려 있으면 된다
     expect(runner.canReload).toBe(true);
   });
@@ -277,7 +277,7 @@ describe("RunnerStore 엔진 탐색", () => {
   it("프로젝트가 닫혀 있으면 실행도 리로드도 안 된다", async () => {
     const h = await harness({ open: false });
     const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
-    expect(runner.startHint).toBe("프로젝트를 먼저 연다");
+    expect(runner.startHint).toBe("열린 프로젝트 없음");
     expect(runner.canReload).toBe(false);
   });
 });
@@ -313,7 +313,7 @@ describe("RunnerStore 실행", () => {
     expect(runner.exitCode).toBe(134);
     expect(runner.pid).toBeNull();
     expect(runner.statusText).toBe("엔진: 종료 코드 134");
-    expect(h.toasts).toContainEqual("error: 엔진이 종료 코드 134 로 끝났다. 콘솔을 본다");
+    expect(h.toasts).toContainEqual("error: 엔진 종료됨 (종료 코드 134). 콘솔 확인 필요");
     expect(logTexts(h.log).some((l) => l.startsWith("error/runner: 엔진 종료 코드 134"))).toBe(true);
     runner.dispose();
   });
@@ -463,7 +463,7 @@ describe("RunnerStore 실행", () => {
     await runner.stop();
     expect(handle.stopped).toBe(1);
     expect(runner.state).toBe("idle");
-    expect(logTexts(h.log)).toContainEqual("warn/runner: 종료 이벤트가 오지 않아 상태를 정리한다");
+    expect(logTexts(h.log)).toContainEqual("warn/runner: 종료 이벤트 시간 초과, 실행 상태 초기화");
     runner.dispose();
   });
 
@@ -478,7 +478,7 @@ describe("RunnerStore 실행", () => {
     await runner.start();
     expect(runner.state).toBe("idle");
     expect(runner.enginePath).toBeNull();
-    expect(h.toasts).toContainEqual(`error: 엔진 실행 파일이 없다: ${ENGINE}`);
+    expect(h.toasts).toContainEqual(`error: 엔진 실행 파일 없음: ${ENGINE}`);
   });
 
   it("프로젝트를 닫으면 실행 중인 엔진을 정지한다", async () => {
@@ -501,7 +501,7 @@ describe("RunnerStore 핫 리로드", () => {
     expect(result).toEqual({ count: 3 });
     expect(h.mem.pushed[0].map((f) => f.path)).toEqual(["resources/scenes/title.json", "scripts/lua/main.lua", "scripts/ruby/main.rb"]);
     expect(runner.lastReload?.count).toBe(3);
-    expect(logTexts(h.log).some((l) => l.startsWith("info/runner: 핫 리로드: 3개 파일을 보냈다"))).toBe(true);
+    expect(logTexts(h.log).some((l) => l.startsWith("info/runner: 핫 리로드: 파일 3개 전송됨"))).toBe(true);
   });
 
   it("브리지는 빈 목록을 보낸다 (서버가 모은다)", async () => {
@@ -527,7 +527,7 @@ describe("RunnerStore 핫 리로드", () => {
     const runner = new RunnerStore(h.host);
     expect(runner.canPush).toBe(false);
     expect(runner.canReload).toBe(false);
-    expect(runner.reloadHint).toBe("게임 탭에서 실행 중일 때 다시 읽는다");
+    expect(runner.reloadHint).toBe("게임 탭에서 실행 중인 게임 없음");
     expect(await runner.reload()).toBeNull();
     expect(await runner.reload(["scripts/lua/main.lua"], { fromSave: true })).toBeNull();
     expect(h.mem.pushed).toEqual([]);
@@ -541,7 +541,7 @@ describe("RunnerStore 핫 리로드", () => {
     const runner = new RunnerStore(h.host, { ...trusting, probe: probeFor(h, {}) });
     expect(await runner.reload()).toBeNull();
     expect(h.mem.pushed).toEqual([]);
-    expect(logTexts(h.log)).toContainEqual("warn/runner: 보낼 스크립트가 없다 (scripts/ 아래의 .lua 와 .rb)");
+    expect(logTexts(h.log)).toContainEqual("warn/runner: 전송할 스크립트 없음 (scripts/ 아래의 .lua 와 .rb)");
   });
 });
 
@@ -562,7 +562,7 @@ describe("RunnerStore 정지", () => {
     await runner.start();
     const stopping = runner.stop();
     expect(runner.state).toBe("stopping");
-    expect(runner.startHint).toBe("정지하는 중이다");
+    expect(runner.startHint).toBe("정지 중");
     await stopping;
     await flush();
     expect(runner.state).toBe("idle");

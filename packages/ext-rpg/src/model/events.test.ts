@@ -109,11 +109,11 @@ describe("events 섹션 왕복", () => {
   it("배열이 아닌 events 는 편집을 막고 그대로 쓴다", () => {
     const section = new EventsSection({ a: 1 }, schema);
     expect(section.usable).toBe(false);
-    expect(section.shapeError).toContain("배열이 아니다");
+    expect(section.shapeError).toContain("events 는 배열이어야 함");
     expect(section.serialize()).toEqual({ a: 1 });
     expect(section.list).toEqual([]);
     const ed = new EventEditor(section, () => ({ schema, map: { width: 4, height: 4, collision: null } }));
-    expect(() => ed.addEvent({ x: 0, y: 0 })).toThrow("배열이 아니다");
+    expect(() => ed.addEvent({ x: 0, y: 0 })).toThrow("events 는 배열이어야 함");
     // 빈 객체는 엔진에게 빈 배열이라 쓸 수 있고, 저장할 때 [] 로 쓴다
     const empty = new EventsSection({}, schema);
     expect(empty.usable).toBe(true);
@@ -289,7 +289,7 @@ describe("최상위 events 의 null 과 빈 {} (M2 3.1)", () => {
   });
 
   it("배열 자리가 아닌 값은 여전히 틀린 파일이다", () => {
-    for (const v of [{ a: 1 }, { "1": { id: "a" } }, "x", 3, true]) expect(() => parseMap(withEvents(v))).toThrow(/events 는 배열이어야 한다/);
+    for (const v of [{ a: 1 }, { "1": { id: "a" } }, "x", 3, true]) expect(() => parseMap(withEvents(v))).toThrow(/events는 배열이어야 함/);
   });
 });
 

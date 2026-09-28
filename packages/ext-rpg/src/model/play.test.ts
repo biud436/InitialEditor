@@ -111,14 +111,14 @@ describe("시작 상태 (엔진 playenv.lua 의 parseState 와 같다)", () => {
     const s = parseStartState("item:=1, item:shell=x, item:nothing=1, =3, foo:bar, items, empty=, arrived\nitem:shell=1", { items });
     expect(s.errors.map((e) => e.entry)).toEqual(["item:=1", "item:shell=x", "item:nothing=1", "=3", "foo:bar", "items", "empty=", "arrived\nitem:shell=1"]);
     expect(s.errors.map((e) => e.message)).toEqual([
-      "아이템 id 가 비었다",
-      "개수가 0 이상의 정수가 아니다",
-      "아이템 표에 없는 id nothing",
-      "이름이 비었다",
-      "모르는 접두사 (아이템은 item:<id>)",
-      "items 는 소지품 자리라 쓸 수 없다",
-      "값이 비었다",
-      "모르는 접두사 (아이템은 item:<id>)",
+      "아이템 id 비어 있음",
+      "개수는 0 이상의 정수여야 함",
+      "아이템 표에 없는 id: nothing",
+      "이름 비어 있음",
+      "지원하지 않는 접두사 (아이템은 item:<id>)",
+      "items: 예약된 상태 키(소지품)라 사용 불가",
+      "값 비어 있음",
+      "지원하지 않는 접두사 (아이템은 item:<id>)",
     ]);
     // 아이템 표가 없으면 id 를 보지 않는다
     expect(parseStartState("item:anything=2").items).toEqual({ anything: 2 });
@@ -195,22 +195,22 @@ describe("실행 명령이 고르는 자리", () => {
     expect(eventPlayPlan(map, events, 1, "probe")).toMatchObject({ ok: true, plan: { at: { x: 5, y: 2, dir: "up" }, route: "up" } });
     expect(eventPlayPlan(map, events, 2, "probe")).toMatchObject({ ok: true, plan: { at: null, route: "" } });
     expect(eventPlayPlan(map, events, 2, "play")).toMatchObject({ ok: true, plan: { at: { x: 0, y: 1, dir: "up" } } });
-    expect(eventPlayPlan(map, events, 3, "probe")).toEqual({ ok: false, reason: "parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)" });
+    expect(eventPlayPlan(map, events, 3, "probe")).toEqual({ ok: false, reason: "parallel 이벤트는 종료되지 않음 (자동 재생 불가)" });
     expect(eventPlayPlan(map, [null], 0, "play")).toMatchObject({ ok: false });
   });
 
   it("자동 재생이 닿지 못하는 touch 와 옆 칸이 없는 이벤트는 거절한다", () => {
     const events = [npc("ghost", 1, 1, { trigger: "touch" }), { id: "wall", x: 3, y: 3, trigger: "touch" }];
-    expect(eventPlayPlan(map, events, 0, "probe")).toMatchObject({ ok: false, reason: expect.stringContaining("밟을 수 없다") });
-    expect(eventPlayPlan(map, events, 1, "probe")).toMatchObject({ ok: false, reason: expect.stringContaining("막힌 칸") });
+    expect(eventPlayPlan(map, events, 0, "probe")).toMatchObject({ ok: false, reason: expect.stringContaining("플레이어 접촉 불가") });
+    expect(eventPlayPlan(map, events, 1, "probe")).toMatchObject({ ok: false, reason: expect.stringContaining("통행 불가 타일에 있어 플레이어 접촉 불가") });
     const boxed = grid([".....", "..#..", ".#.#.", "..#.."]);
-    expect(eventPlayPlan(boxed, [{ id: "in", x: 2, y: 2, solid: true }], 0, "probe")).toMatchObject({ ok: false, reason: expect.stringContaining("옆에 설 칸이 없어") });
+    expect(eventPlayPlan(boxed, [{ id: "in", x: 2, y: 2, solid: true }], 0, "probe")).toMatchObject({ ok: false, reason: expect.stringContaining("인접한 통행 가능 타일 없음 (자동 재생 불가)") });
     expect(eventPlayPlan(boxed, [{ id: "in", x: 2, y: 2, solid: true }], 0, "play")).toMatchObject({ ok: true, plan: { note: expect.stringContaining("근처") } });
   });
 
   it("커서나 뷰 가운데: 가장 가까운 설 수 있는 칸으로 옮기고 아래를 본다", () => {
-    expect(herePlayPlan(map, [], { x: 3, y: 3 })).toEqual({ ok: true, plan: { at: { x: 2, y: 3, dir: "down" }, route: null, note: "3,3 → 2,3 (막힌 칸이라 옮겼다)" } });
+    expect(herePlayPlan(map, [], { x: 3, y: 3 })).toEqual({ ok: true, plan: { at: { x: 2, y: 3, dir: "down" }, route: null, note: "3,3 → 2,3 (통행 불가 타일이라 가장 가까운 통행 가능 타일로 이동)" } });
     expect(herePlayPlan(map, [], { x: 1.4, y: 0.6 })).toEqual({ ok: true, plan: { at: { x: 1, y: 1, dir: "down" }, route: null, note: "1,1" } });
-    expect(herePlayPlan(grid(["#"]), [], { x: 0, y: 0 })).toEqual({ ok: false, reason: "설 수 있는 칸이 없다" });
+    expect(herePlayPlan(grid(["#"]), [], { x: 0, y: 0 })).toEqual({ ok: false, reason: "통행 가능한 타일 없음" });
   });
 });

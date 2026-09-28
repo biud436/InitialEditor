@@ -38,9 +38,9 @@ describe("목록", () => {
     const h = layerHarness();
     const Panel = makeEventsPanel({ services: { store: h.sources, documents: h.documents, clipboard: new EventClipboard(null) }, hint: (doc) => h.spec.hint?.(doc) });
     render(<Panel />);
-    expect(screen.getByTestId("rpg-events-panel").textContent).toBe("맵을 열면 이 맵의 이벤트가 보인다");
+    expect(screen.getByTestId("rpg-events-panel").textContent).toBe("활성 맵 탭 없음");
     act(() => void h.open(MEADOW));
-    expect(screen.getByTestId("rpg-events-hint").textContent).toBe("이벤트 레이어는 rpg-game.json 에 등록된 맵에만 있다");
+    expect(screen.getByTestId("rpg-events-hint").textContent).toBe("이벤트 레이어 없음 (rpg-game.json 에 등록된 맵에만 있음)");
   });
 
   it("port_town 의 이벤트 17개가 파일 순서로 보인다 (트리거 표식과 칸)", () => {
@@ -49,7 +49,7 @@ describe("목록", () => {
     expect(rows()).toHaveLength(17);
     expect(rowIds().slice(0, 3)).toEqual(["crates", "arrival", "captain"]);
     const door = rows().find((r) => r.dataset.id === "inn_door")!;
-    expect(door.textContent).toContain("밟");
+    expect(door.textContent).toContain("접");
     expect(door.textContent).toContain("13,29");
   });
 
@@ -61,10 +61,10 @@ describe("목록", () => {
     expect(all).toHaveLength(20);
     const [nul, str, odd] = all.slice(17);
     expect(nul.dataset.broken).toBe("true");
-    expect(nul.textContent).toBe("!events[18]객체가 아니다 (null)");
-    expect(str.textContent).toBe('!events[19]객체가 아니다 ("oops")');
+    expect(nul.textContent).toBe("!events[18]객체가 아님 (null)");
+    expect(str.textContent).toBe('!events[19]객체가 아님 ("oops")');
     expect(odd.dataset.broken).toBeUndefined();
-    expect(odd.textContent).toContain("칸이 틀렸다");
+    expect(odd.textContent).toContain("잘못된 좌표");
     for (const r of all) expect(r.textContent).not.toContain("undefined");
   });
 
@@ -91,7 +91,7 @@ describe("목록", () => {
     expect(rowIds()).toEqual(expect.arrayContaining(["kid", "keeper"]));
     fireEvent.change(search, { target: { value: "없는말" } });
     expect(screen.queryAllByTestId("rpg-events-row")).toHaveLength(0);
-    expect(screen.getByTestId("rpg-events-list").textContent).toBe("찾는 이벤트가 없다");
+    expect(screen.getByTestId("rpg-events-list").textContent).toBe("검색 결과 없음");
   });
 
   it("줄을 누르면 고르고 대상을 이벤트 레이어로 바꾼다. Shift 는 더하고 Ctrl 은 넣고 뺀다", () => {
@@ -143,11 +143,11 @@ describe("목록", () => {
   it("잠긴 레이어는 이유를 보이고 Delete 가 거절된다", () => {
     const t = setup({ lockPort: true });
     const st = stateOf(t.doc);
-    expect(screen.getByTestId("rpg-events-locked").textContent).toMatch(/두 벌/);
+    expect(screen.getByTestId("rpg-events-locked").textContent).toMatch(/두 파일/);
     fireEvent.click(rows()[0]);
     fireEvent.keyDown(screen.getByTestId("rpg-events-list"), { key: "Delete" });
     expect(st.section.list).toHaveLength(17);
-    expect(screen.getByTestId("rpg-events-notice").textContent).toMatch(/두 벌/);
+    expect(screen.getByTestId("rpg-events-notice").textContent).toMatch(/두 파일/);
   });
 });
 
@@ -182,7 +182,7 @@ describe("우클릭 실행 메뉴", () => {
     fireEvent.contextMenu(row("bench"));
     expect(item("play").disabled).toBe(false);
     expect(item("probe").disabled).toBe(true);
-    expect(item("probe").title).toBe("parallel 은 끝나지 않는다 (자동 재생을 할 수 없다)");
+    expect(item("probe").title).toBe("parallel 이벤트는 종료되지 않음 (자동 재생 불가)");
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByTestId("rpg-events-menu")).toBeNull();
     fireEvent.contextMenu(row("bench"));
@@ -236,7 +236,7 @@ describe("시작 상태", () => {
     const field = screen.getByTestId("rpg-start-state-input");
     fireEvent.change(field, { target: { value: "item:lamp_oill=1,items=2" } });
     const errors = screen.getAllByTestId("rpg-start-state-error").map((e) => e.textContent);
-    expect(errors).toEqual(["item:lamp_oill=1: 아이템 표에 없는 id lamp_oill", "items=2: items 는 소지품 자리라 쓸 수 없다"]);
+    expect(errors).toEqual(["item:lamp_oill=1: 아이템 표에 없는 id: lamp_oill", "items=2: items: 예약된 상태 키(소지품)라 사용 불가"]);
   });
 
   it("제안은 쓰인 깃발과 아이템이고, 앞의 항목을 두고 마지막 항목을 채운다", () => {

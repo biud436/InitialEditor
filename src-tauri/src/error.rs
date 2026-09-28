@@ -47,20 +47,20 @@ impl BackendError {
 
     pub fn not_found(path: impl Into<String>) -> Self {
         let path = path.into();
-        Self::with_path(ErrorCode::NotFound, format!("없다: {path}"), path)
+        Self::with_path(ErrorCode::NotFound, format!("파일이나 폴더 없음: {path}"), path)
     }
 
     pub fn outside_root(path: impl Into<String>) -> Self {
         let path = path.into();
         Self::with_path(
             ErrorCode::OutsideRoot,
-            format!("프로젝트 루트 밖이다: {path}"),
+            format!("프로젝트 루트 밖의 경로: {path}"),
             path,
         )
     }
 
     pub fn not_open() -> Self {
-        Self::new(ErrorCode::NotOpen, "프로젝트가 열려 있지 않다")
+        Self::new(ErrorCode::NotOpen, "열린 프로젝트 없음")
     }
 
     /// std::io::Error 를 옮긴다. NotFound 는 not_found 로, 나머지는 io 로.

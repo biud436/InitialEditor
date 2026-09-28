@@ -317,7 +317,7 @@ describe("MapModel.resize", () => {
     expect(() => model.resize(0, 3)).toThrow(/1 이상 1024 이하/);
     expect(() => model.resize(3, 1025)).toThrow();
     expect(() => model.resize(3, 3, "middle" as ResizeAnchor)).not.toThrow();
-    expect(() => model.resize(3, 3, "middle" as ResizeAnchor).execute()).toThrow(/모르는 기준점/);
+    expect(() => model.resize(3, 3, "middle" as ResizeAnchor).execute()).toThrow(/잘못된 기준점: middle/);
   });
 });
 

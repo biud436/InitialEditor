@@ -147,7 +147,7 @@ export class RpgProjectStore implements RpgSources {
     try {
       await this.deps.workspace.backend().writeText(PLAY_MEMORY_PATH, writePlayMemory(this.playMemory));
     } catch (e) {
-      this.deps.workspace.log.warn(LOG, `${PLAY_MEMORY_PATH} 에 쓰지 못했다 (이번 실행 동안만 기억한다): ${(e as Error).message}`);
+      this.deps.workspace.log.warn(LOG, `${PLAY_MEMORY_PATH} 쓰기 실패 (이번 실행 중에만 유지): ${(e as Error).message}`);
     }
   }
 
@@ -197,7 +197,7 @@ export class RpgProjectStore implements RpgSources {
     runInAction(() => (this.loaded = true));
     if (this.schemaPresent) {
       const s = this.schema;
-      this.deps.workspace.log.info(LOG, s ? `이벤트 스키마: 커맨드 ${s.commands.length}종, 등록된 맵 ${this.game?.maps.length ?? 0}개` : `이벤트 스키마를 쓸 수 없다: ${this.schemaProblem}`);
+      this.deps.workspace.log.info(LOG, s ? `이벤트 스키마: 커맨드 ${s.commands.length}종, 등록된 맵 ${this.game?.maps.length ?? 0}개` : `이벤트 스키마 사용 불가: ${this.schemaProblem}`);
     }
     this.deps.onChange?.();
   }
@@ -205,12 +205,12 @@ export class RpgProjectStore implements RpgSources {
   private applySchema(r: ReadResult): void {
     let schema: EventSchema | null = null;
     let problem: string | null = null;
-    if (r.kind === "error") problem = `event-commands.json 을 읽지 못했다: ${r.message}`;
+    if (r.kind === "error") problem = `event-commands.json 읽기 실패: ${r.message}`;
     else if (r.kind === "text") {
       try {
         schema = parseEventSchema(r.text);
       } catch (e) {
-        problem = schemaLockReason(e) ?? `event-commands.json 을 쓸 수 없다: ${(e as Error).message}`;
+        problem = schemaLockReason(e) ?? `event-commands.json 형식 오류: ${(e as Error).message}`;
       }
     }
     runInAction(() => {
@@ -239,7 +239,7 @@ export class RpgProjectStore implements RpgSources {
       this.game = game;
       this.gameProblem = problem;
     });
-    if (problem && r.kind !== "missing") this.deps.workspace.log.warn(LOG, `rpg-game.json 을 읽지 못했다: ${problem}`);
+    if (problem && r.kind !== "missing") this.deps.workspace.log.warn(LOG, `rpg-game.json 읽기 실패: ${problem}`);
   }
 
   /** 설정이 가리키는 것들: 아이템 표, 정의 파일, 맵 파일의 events */
@@ -271,13 +271,13 @@ export class RpgProjectStore implements RpgSources {
     let items: ItemTable | null = null;
     let problem: string | null = null;
     if (!path) problem = null;
-    else if (r.kind === "missing") problem = `아이템 표가 없다: ${path}`;
-    else if (r.kind === "error") problem = `아이템 표를 읽지 못했다: ${r.message}`;
+    else if (r.kind === "missing") problem = `아이템 표 파일 없음: ${path}`;
+    else if (r.kind === "error") problem = `아이템 표 읽기 실패: ${r.message}`;
     else {
       try {
         items = parseItemTable(r.text);
       } catch (e) {
-        problem = `아이템 표를 쓸 수 없다 (${path}): ${(e as Error).message}`;
+        problem = `아이템 표 형식 오류 (${path}): ${(e as Error).message}`;
       }
     }
     runInAction(() => {
@@ -302,9 +302,9 @@ export class RpgProjectStore implements RpgSources {
           else out.add(bareProjectPath(e.path));
         }
       }
-      if (out.size >= MAX_FILES) this.deps.workspace.log.warn(LOG, `resources/ 의 파일이 ${MAX_FILES}개를 넘어 목록을 거기서 멈췄다`);
+      if (out.size >= MAX_FILES) this.deps.workspace.log.warn(LOG, `resources/ 파일이 ${MAX_FILES}개 초과, 목록은 ${MAX_FILES}개까지만 표시`);
     } catch (e) {
-      this.deps.workspace.log.warn(LOG, `resources/ 의 파일 목록을 읽지 못했다: ${(e as Error).message}`);
+      this.deps.workspace.log.warn(LOG, `resources/ 파일 목록 읽기 실패: ${(e as Error).message}`);
     }
     return out;
   }

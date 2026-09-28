@@ -18,7 +18,7 @@ import { TypeIcon } from "../../editor/scene/typeIcons";
 import { MapObjectInspector } from "../maps/MapObjectInspector";
 import "./InspectorPanel.css";
 
-export const INSPECTOR_EMPTY = "씬 탭을 열고 오브젝트를 고르면 속성이 보인다";
+export const INSPECTOR_EMPTY = "활성 씬 탭 없음. 씬 탭에서 오브젝트를 선택하면 속성 표시";
 
 function sameValue<T>(values: T[]): T | null {
   return values.length > 0 && values.every((v) => v === values[0]) ? values[0] : null;
@@ -112,7 +112,7 @@ const CommonFields = observer(function CommonFields({ doc, objects }: { doc: Sce
   return (
     <div className="inspector-section" data-testid="inspector-common">
       {objects.length === 1 && (
-        <FieldRow label="id" hint="씬 안에서 유일해야 한다">
+        <FieldRow label="id" hint="씬 안에서 고유해야 함">
           <IdField object={objects[0]} />
         </FieldRow>
       )}
@@ -122,7 +122,7 @@ const CommonFields = observer(function CommonFields({ doc, objects }: { doc: Sce
       <FieldRow label="y">
         <NumberField value={sameValue(objects.map((o) => o.y))} onChange={(v, s) => setAxis("y", v, s)} sessionPrefix={`common:${key}:y`} step={1} testId="inspector-y" ariaLabel="y" />
       </FieldRow>
-      <FieldRow label="표시" hint="끄면 그리지 않고 컴포넌트 render 도 부르지 않는다 (update 는 부른다)">
+      <FieldRow label="표시" hint="끄면 렌더링 생략, 컴포넌트 render 호출 안 함 (update는 호출)">
         <input ref={visibleRef} type="checkbox" checked={visible === true} onChange={(e) => setVisible(e.target.checked)} data-testid="inspector-visible" aria-label="표시" />
         {visible === null && <span className="muted field-mixed">여러 값</span>}
       </FieldRow>
@@ -137,7 +137,7 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
   const open = async (name: string) => {
     const path = tools.scriptPath(name);
     if (!(await editor.backend.exists(path).catch(() => false))) {
-      editor.toasts.warn(`파일이 없다: ${path} (스크립트 붙이기에서 만들 수 있다)`);
+      editor.toasts.warn(`파일 없음: ${path} (스크립트 추가 대화상자에서 생성 가능)`);
       return;
     }
     await editor.openPath(path);
@@ -147,7 +147,7 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
       <div className="inspector-subtitle">
         스크립트 <span className="muted">({language === "mruby" ? "scripts/ruby" : "scripts/lua"} 기준 논리 이름)</span>
       </div>
-      {object.scripts.length === 0 && <div className="muted inspector-note">붙은 스크립트가 없다</div>}
+      {object.scripts.length === 0 && <div className="muted inspector-note">추가된 스크립트 없음</div>}
       {object.scripts.map((name) => (
         <div key={name} className="inspector-script" data-testid="inspector-script-row" data-name={name}>
           <span className="inspector-script-name" title={tools.scriptPath(name)}>
@@ -156,13 +156,13 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
           <button type="button" className="btn btn-ghost" onClick={() => void open(name)} data-testid="inspector-script-open" title={tools.scriptPath(name)}>
             열기
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => tools.detachScript(object.id, name)} aria-label={`${name} 떼기`} data-testid="inspector-script-remove" title="떼기">
+          <button type="button" className="btn btn-ghost" onClick={() => tools.detachScript(object.id, name)} aria-label={`${name} 제거`} data-testid="inspector-script-remove" title="제거">
             ×
           </button>
         </div>
       ))}
       <button type="button" className="btn inspector-attach" onClick={() => void openAttachScriptDialog(editor, object.id)} data-testid="inspector-attach">
-        스크립트 붙이기
+        스크립트 추가
       </button>
     </div>
   );
@@ -204,7 +204,7 @@ export const InspectorPanel = observer(function InspectorPanel() {
           <span className="inspector-title">{doc.scene.name || doc.title}</span>
           <span className="muted">씬, 오브젝트 {doc.scene.objects.length}개</span>
         </div>
-        <div className="panel-hint">계층이나 씬 뷰에서 오브젝트를 고르면 속성이 보인다</div>
+        <div className="panel-hint">선택한 오브젝트 없음. 계층이나 씬 뷰에서 선택하면 속성 표시</div>
         <ProblemsSection doc={doc} />
       </div>
     );
@@ -230,9 +230,9 @@ export const InspectorPanel = observer(function InspectorPanel() {
       <div className="inspector-body">
         <CommonFields doc={doc} objects={objects} />
         {single && Inspector && <Inspector document={doc} object={single} />}
-        {single && !Inspector && <div className="muted inspector-note">이 타입({single.type})의 인스펙터가 없다</div>}
+        {single && !Inspector && <div className="muted inspector-note">타입별 인스펙터 없음: {single.type}</div>}
         {single && <ScriptsSection object={single} />}
-        {!single && <div className="muted inspector-note">여러 개를 골랐다. 타입별 속성과 스크립트는 하나만 골랐을 때 보인다</div>}
+        {!single && <div className="muted inspector-note">여러 개 선택됨. 타입별 속성과 스크립트는 1개만 선택 시 표시</div>}
         <ProblemsSection doc={doc} />
       </div>
     </div>

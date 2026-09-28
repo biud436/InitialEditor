@@ -148,7 +148,7 @@ describe("readStageFiles", () => {
     expect(Object.keys(read.files)).toEqual(["scripts/a.lua"]);
     expect(read.tooLarge).toEqual(["scripts/b.lua"]);
 
-    await expect(readStageFiles(mem, [{ path: "scripts/missing.lua" }])).rejects.toThrow(/scripts\/missing.lua 을\(를\) 읽지 못했다/);
+    await expect(readStageFiles(mem, [{ path: "scripts/missing.lua" }])).rejects.toThrow(/scripts\/missing.lua 읽기 실패/);
 
     const controller = new AbortController();
     controller.abort();

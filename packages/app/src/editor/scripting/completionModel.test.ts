@@ -176,12 +176,12 @@ describe("callContext 와 lookupCallable", () => {
 
 describe("lookupHover", () => {
   it("받는 쪽과 단어로 설명을 찾는다", () => {
-    expect(lookupHover(ruby, "Graphics", "draw_text")!.doc).toBe("글자를 그린다");
+    expect(lookupHover(ruby, "Graphics", "draw_text")!.doc).toBe("텍스트 그리기");
     expect(lookupHover(ruby, "Graphics", "render_scale")!.label).toBe("render_scale =");
     expect(lookupHover(ruby, null, "Input")!.doc).toBe("입력");
     expect(lookupHover(ruby, "sprite", "set_position")!.doc).toBe("위치");
     expect(lookupHover(lua, null, "DrawText")!.detail).toBe("DrawText(x, y, text) -> nil");
-    expect(lookupHover(lua, "Input", "IsKeyDown")!.doc).toBe("눌렸다");
+    expect(lookupHover(lua, "Input", "IsKeyDown")!.doc).toBe("눌려 있으면 true");
     expect(lookupHover(lua, null, "nothing")).toBeUndefined();
   });
 });
@@ -297,8 +297,8 @@ describe("언어별 인자와 반환 (luaParams, rubyParams, luaReturns, rubyRet
     expect(md).toContain("배경 음악");
     expect(md).toContain("- `loop`: 타입: boolean|integer. 기본값: true. true 무한 반복, false 한 번");
     expect(describeSuggestion(luaL.callables.get("Tilemap.SetRect")!)).toContain("```\nTilemap.SetRect(handle, x, y) -> nil\nTilemap.SetRect(handle, rect) -> nil\n```");
-    expect(describeSuggestion(rubyL.callables.get("Input.trigger?")!)).toContain("_별명_: `key_down?`");
-    expect(describeSuggestion(luaL.callables.get("draw_text")!)).toContain("_별명_: `DrawText`");
+    expect(describeSuggestion(rubyL.callables.get("Input.trigger?")!)).toContain("_별칭_: `key_down?`");
+    expect(describeSuggestion(luaL.callables.get("draw_text")!)).toContain("_별칭_: `DrawText`");
     expect(describeSuggestion(lookupHover(rubyL, "Input", "key_down?")!)).toContain("- `key`: 타입: integer|symbol. 가상 키 코드");
     expect(describeSuggestion(lookupHover(luaL, "Input", "IsKeyDown")!)).toContain("- `key`: 타입: integer. 가상 키 코드");
     expect(describeSuggestion(lookupHover(rubyL, "Keys", "SPACE")!)).toBe("```\nKeys::SPACE = 32\n```");

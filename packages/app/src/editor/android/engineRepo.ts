@@ -22,7 +22,7 @@ export const REPO_SOURCE_LABELS: Record<RepoSource, string> = {
   settings: "설정의 엔진 저장소",
   project: "열린 프로젝트 자신",
   engine: "찾은 엔진의 저장소",
-  sibling: "형제 폴더 ../Initial2D",
+  sibling: "프로젝트 상위 폴더의 Initial2D",
 };
 
 export interface RepoCandidateInput {

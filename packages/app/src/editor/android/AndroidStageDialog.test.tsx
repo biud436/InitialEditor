@@ -131,7 +131,7 @@ describe("확인 대화상자", () => {
     const modals = new ModalStore();
     const answer = askStageConfirm(modals, store, repo, ROOT);
     renderTop(modals);
-    expect(screen.getByTestId("android-stage-untrusted").textContent).toContain("형제 폴더 ../Initial2D");
+    expect(screen.getByTestId("android-stage-untrusted").textContent).toContain("스크립트 위치: 프로젝트 상위 폴더의 Initial2D");
     expect(screen.getByTestId("android-stage-script").textContent).toBe(`${REPO}/android/prepare_assets.sh`);
     expect((screen.getByTestId("android-stage-ok") as HTMLButtonElement).disabled).toBe(true);
     await act(async () => {
@@ -154,7 +154,7 @@ describe("확인 대화상자", () => {
     void askStageConfirm(modals, store, await found(store), ROOT);
     renderTop(modals);
     await waitFor(() => expect(screen.getByTestId("android-stage-count").getAttribute("data-kind")).toBe("error"));
-    expect(screen.getByTestId("android-stage-count").textContent).toBe("스크립트가 종료 코드 2 로 끝났다");
+    expect(screen.getByTestId("android-stage-count").textContent).toBe("스크립트 종료 (종료 코드 2)");
     expect((screen.getByTestId("android-stage-ok") as HTMLButtonElement).disabled).toBe(true);
   });
 });
@@ -169,7 +169,7 @@ describe("못 찾음과 저장 안 된 문서", () => {
     expect(spec.title).toBe(MISSING_TITLE);
     const body = screen.getByTestId("android-stage-missing").textContent ?? "";
     expect(body).toContain(`${ROOT}/android/prepare_assets.sh (열린 프로젝트 자신)`);
-    expect(body).toContain(`${REPO}/android/prepare_assets.sh (형제 폴더 ../Initial2D)`);
+    expect(body).toContain(`${REPO}/android/prepare_assets.sh (프로젝트 상위 폴더의 Initial2D)`);
     fireEvent.click(screen.getByRole("button", { name: OPEN_SETTINGS }));
     expect(await answer).toBe(true);
   });
@@ -183,7 +183,7 @@ describe("못 찾음과 저장 안 된 문서", () => {
       const modals = new ModalStore();
       const answer = askDirtyBeforeStage(modals, 2);
       renderTop(modals);
-      expect(screen.getByTestId("android-stage-dirty").textContent).toContain("저장하지 않은 문서가 2개 있다");
+      expect(screen.getByTestId("android-stage-dirty").textContent).toContain("저장 안 된 문서 2개. 스테이징은 디스크의 파일을 복사함");
       fireEvent.click(screen.getByRole("button", { name: label }));
       expect(await answer).toBe(choice);
     });
@@ -259,7 +259,7 @@ describe("명령 android.stage", () => {
     const { editor, saved, toasts } = fakeEditor({ dirty: [doc], repoPath: REPO });
     const store = installAndroidStage(editor, fakeDeps({ runs }));
     const flow = runAndroidStage(editor, store);
-    await waitFor(() => expect(editor.modals.top?.title).toBe("저장하지 않은 문서"));
+    await waitFor(() => expect(editor.modals.top?.title).toBe("저장 안 된 문서"));
     renderTop(editor.modals);
     fireEvent.click(screen.getByRole("button", { name: DIRTY_SAVE }));
     await waitFor(() => expect(editor.modals.top?.title).toBe(STAGE_TITLE));

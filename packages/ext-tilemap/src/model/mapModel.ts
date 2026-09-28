@@ -119,7 +119,7 @@ export class MapModel {
 
   private writeCells(target: number | "collision", pairs: Iterable<[number, number]>): void {
     const arr = target === "collision" ? this.data.collision : this.data.layers[target]?.data;
-    if (!arr) throw new Error(`레이어가 없다: ${String(target)}`);
+    if (!arr) throw new Error(`레이어 없음: ${String(target)}`);
     const indices: number[] = [];
     for (const [i, v] of pairs) {
       arr[i] = v;
@@ -131,7 +131,7 @@ export class MapModel {
 
   private replaceObject(id: string, next: MapObject): void {
     const i = this.objects.findIndex((o) => o.id === id);
-    if (i < 0) throw new Error(`오브젝트가 없다: ${id}`);
+    if (i < 0) throw new Error(`오브젝트 없음: ${id}`);
     this.objects[i] = next;
     this.bump();
   }
@@ -272,7 +272,7 @@ export class MapModel {
     return {
       label: `레이어 삭제: ${this.data.layers[index]?.name ?? index}`,
       execute: () => {
-        if (model.data.layers.length <= 1) throw new Error("마지막 레이어는 지울 수 없다");
+        if (model.data.layers.length <= 1) throw new Error("마지막 레이어는 삭제 불가");
         removed = model.data.layers.splice(index, 1)[0];
         model.bump();
         model.events.emit("layers", undefined);
@@ -314,7 +314,7 @@ export class MapModel {
     return {
       label: `오브젝트 추가: ${obj.id}`,
       execute: action(() => {
-        if (model.findObject(obj.id)) throw new Error(`id 가 겹친다: ${obj.id}`);
+        if (model.findObject(obj.id)) throw new Error(`id 중복: ${obj.id}`);
         model.objects.splice(Math.min(index ?? model.objects.length, model.objects.length), 0, cloneObject(obj));
         model.bump();
       }),
@@ -378,7 +378,7 @@ export class MapModel {
   setObjectField(id: string, field: "x" | "y" | "width" | "height", value: number | undefined, coalesceKey?: string): Command {
     const model = this;
     const o = this.findObject(id);
-    if (!o) throw new Error(`오브젝트가 없다: ${id}`);
+    if (!o) throw new Error(`오브젝트 없음: ${id}`);
     const before = o[field];
     const set = (v: number | undefined) => {
       const cur = { ...model.findObject(id)! };
@@ -405,7 +405,7 @@ export class MapModel {
   setObjectProp(id: string, key: string, value: unknown, coalesceKey?: string): Command {
     const model = this;
     const o = this.findObject(id);
-    if (!o) throw new Error(`오브젝트가 없다: ${id}`);
+    if (!o) throw new Error(`오브젝트 없음: ${id}`);
     const before = structuredCloneJson(o.props);
     const cmd: Command & { value: unknown } = {
       label: `속성 변경: ${id}.${key}`,
@@ -436,7 +436,7 @@ export class MapModel {
     return {
       label: `이름 바꾸기: ${id} → ${newId}`,
       execute: action(() => {
-        if (newId === "" || (newId !== id && model.findObject(newId))) throw new Error(`쓸 수 없는 id 다: ${newId}`);
+        if (newId === "" || (newId !== id && model.findObject(newId))) throw new Error(`비어 있거나 이미 있는 id: ${newId}`);
         model.replaceObject(id, { ...model.findObject(id)!, id: newId });
       }),
       undo: action(() => model.replaceObject(newId, { ...model.findObject(newId)!, id })),

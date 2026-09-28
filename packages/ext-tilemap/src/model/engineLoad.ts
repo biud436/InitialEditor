@@ -48,45 +48,45 @@ export function checkEngineMap(text: string): EngineMapCheck {
   try {
     root = JSON.parse(text);
   } catch (e) {
-    return { ok: false, reason: `JSON 이 아니다: ${(e as Error).message}` };
+    return { ok: false, reason: `JSON 구문 오류: ${(e as Error).message}` };
   }
   const rawVersion = field(root, "version");
   const version = asInt(rawVersion);
   if (version !== 1 && version !== 2) {
     const shown = rawVersion === undefined ? "없음" : JSON.stringify(rawVersion);
-    return { ok: false, reason: `모르는 맵 버전이다: ${shown} (지원: 1, 2)` };
+    return { ok: false, reason: `지원하지 않는 맵 버전: ${shown} (지원: 1, 2)` };
   }
 
   const [width, height, tileWidth, tileHeight] = ["width", "height", "tileWidth", "tileHeight"].map((k) => asInt(field(root, k)));
   if ([width, height, tileWidth, tileHeight].some((n) => n === undefined || n <= 0)) {
-    return { ok: false, reason: "맵 크기나 타일 크기가 0 이하다" };
+    return { ok: false, reason: "맵 크기나 타일 크기가 0 이하" };
   }
   const cells = width! * height!;
 
   const layers = field(root, "layers");
-  if (!Array.isArray(layers) || layers.length === 0) return { ok: false, reason: "레이어가 없다" };
+  if (!Array.isArray(layers) || layers.length === 0) return { ok: false, reason: "레이어 없음" };
   for (const layer of layers) {
-    if (asString(field(layer, "name")) === undefined) return { ok: false, reason: "레이어 이름이 글이 아니다" };
+    if (asString(field(layer, "name")) === undefined) return { ok: false, reason: "레이어 이름은 문자열이어야 함" };
     if (!intArrayOk(field(layer, "data"), cells)) {
-      return { ok: false, reason: `레이어 "${asString(field(layer, "name")) ?? ""}"의 칸 수가 너비 x 높이와 다르거나 정수가 아닌 칸이 있다` };
+      return { ok: false, reason: `레이어 "${asString(field(layer, "name")) ?? ""}"의 data 길이가 너비 x 높이와 다르거나 정수가 아닌 요소 포함` };
     }
   }
 
   if (root !== null && typeof root === "object" && "collision" in root) {
     if (!intArrayOk(field(root, "collision"), cells)) {
-      return { ok: false, reason: "collision 의 칸 수가 너비 x 높이와 다르거나 정수가 아닌 칸이 있다" };
+      return { ok: false, reason: "collision 길이가 너비 x 높이와 다르거나 정수가 아닌 요소 포함" };
     }
   }
 
   const tilesets = field(root, "tilesets");
-  if (!Array.isArray(tilesets) || tilesets.length === 0) return { ok: false, reason: "타일셋이 없다" };
+  if (!Array.isArray(tilesets) || tilesets.length === 0) return { ok: false, reason: "타일셋 없음" };
   const images: string[] = [];
   for (const tileset of tilesets) {
     const image = asString(field(tileset, "image"));
     const firstGid = asInt(field(tileset, "firstGid"));
     const columns = asInt(field(tileset, "columns"));
     if (!image || firstGid === undefined || firstGid < 1 || columns === undefined || columns < 1) {
-      return { ok: false, reason: "타일셋 항목이 틀렸다 (image, firstGid 1 이상, columns 1 이상)" };
+      return { ok: false, reason: "잘못된 타일셋 항목 (필요: image, firstGid 1 이상, columns 1 이상)" };
     }
     images.push(projectPathOf(image));
   }

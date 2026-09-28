@@ -47,9 +47,9 @@ export const RESTORE_GUARD_KEY = "initial-editor.folders.restoring";
 /** 표시가 이보다 오래되면 무시한다 (우연히 남은 표시가 오래 막지 않게) */
 export const RESTORE_GUARD_TTL_MS = 5 * 60 * 1000;
 /** 시크릿 프로필일 수 있어 다시 열기가 폴더 고르기로 돌 때 */
-export const PRIVATE_PROFILE_MESSAGE = "시크릿 창일 수 있어 기억한 폴더를 바로 꺼내지 않는다 (꺼내다 브라우저가 통째로 꺼진다). 폴더 고르기에서 같은 폴더를 고른다";
+export const PRIVATE_PROFILE_MESSAGE = "시크릿 창일 수 있어 최근 폴더 목록을 불러오지 않음 (불러오면 브라우저가 종료될 수 있음). 폴더 열기에서 같은 폴더 선택";
 /** 지난번에 핸들을 꺼내다 페이지가 끝나 다시 열기가 폴더 고르기로 돌 때 */
-export const NO_RESTORE_MESSAGE = "지난번에 기억한 폴더를 꺼내다 브라우저가 꺼졌다. 폴더 고르기에서 같은 폴더를 고른다";
+export const NO_RESTORE_MESSAGE = "지난번 최근 폴더 목록 로드 중 브라우저 종료됨. 폴더 열기에서 같은 폴더 선택";
 
 function newKey(): string {
   const c = globalThis.crypto as { randomUUID?: () => string } | undefined;

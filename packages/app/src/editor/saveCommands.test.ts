@@ -33,8 +33,8 @@ describe("파일 > 저장", () => {
   it("저장하면 성공, 다시 읽었으면 안내, 취소면 조용히, 실패면 오류를 띄운다", async () => {
     const a = new Doc("a.lua");
     for (const [outcome, toast] of [
-      ["saved", ["success: 저장했다: a.lua"]],
-      ["reloaded", ["info: 저장하지 않고 디스크 내용으로 다시 읽었다: a.lua"]],
+      ["saved", ["success: 저장됨: a.lua"]],
+      ["reloaded", ["info: 저장하지 않고 디스크 내용으로 다시 읽음: a.lua"]],
       ["cancelled", []],
     ] as const) {
       const { h, toasts } = host([a], { "a.lua": outcome });
@@ -43,14 +43,14 @@ describe("파일 > 저장", () => {
     }
     const { h, toasts } = host([a], { "a.lua": new Error("디스크가 가득 찼다") });
     expect(await saveActiveDocument(h)).toBeNull();
-    expect(toasts).toEqual(["error: a.lua을(를) 저장하지 못했다: 디스크가 가득 찼다"]);
+    expect(toasts).toEqual(["error: a.lua 저장 실패: 디스크가 가득 찼다"]);
   });
 
   it("충돌 모달의 다시 읽기가 실패하면 저장 실패가 아니라 다시 읽지 못했다고 알린다", async () => {
     const a = new Doc("field.json");
-    const { h, toasts } = host([a], { "field.json": new ReloadFailedError("JSON 이 아니다: Expected property name") });
+    const { h, toasts } = host([a], { "field.json": new ReloadFailedError("JSON 구문 오류: Expected property name") });
     expect(await saveActiveDocument(h)).toBeNull();
-    expect(toasts).toEqual(["error: 다시 읽지 못했다: JSON 이 아니다: Expected property name"]);
+    expect(toasts).toEqual(["error: 다시 읽기 실패: JSON 구문 오류: Expected property name"]);
   });
 
   it("활성 문서가 없으면 아무것도 하지 않는다", async () => {
@@ -68,7 +68,7 @@ describe("파일 > 모두 저장", () => {
     const r = await saveAllDocuments(h);
     expect(calls).toEqual(["a.lua", "b.json"]);
     expect(r.saved).toEqual(["a.lua", "b.json"]);
-    expect(toasts).toEqual(["success: 2개 문서를 저장했다"]);
+    expect(toasts).toEqual(["success: 문서 2개 저장됨"]);
   });
 
   it("충돌 모달에서 취소한 문서는 건너뛰고 나머지를 이어 저장하며, 다시 읽은 것과 저장하지 않은 것을 알린다", async () => {
@@ -77,14 +77,14 @@ describe("파일 > 모두 저장", () => {
     const r = await saveAllDocuments(h);
     expect(calls).toEqual(["main.json", "main.lua", "forest.json"]);
     expect(r).toEqual({ saved: ["main.lua"], reloaded: ["forest.json"], cancelled: ["main.json"], failed: [], reloadFailed: [] });
-    expect(toasts).toEqual(["info: 1개 문서를 저장했다. 다시 읽은 것: forest.json. 저장하지 않은 것: main.json"]);
+    expect(toasts).toEqual(["info: 문서 1개 저장됨. 다시 읽음: forest.json. 저장 취소됨: main.json"]);
   });
 
   it("실패가 있으면 오류로 이유와 함께 알린다", async () => {
     const docs = [new Doc("a.lua"), new Doc("b.json"), new Doc("c.json")];
     const { h, toasts } = host(docs, { "a.lua": "saved", "b.json": new Error("쓰지 못했다"), "c.json": "cancelled" });
     await saveAllDocuments(h);
-    expect(toasts).toEqual(["error: 1개를 저장했고 1개는 저장하지 못했다: b.json (쓰지 못했다). 저장하지 않은 것: c.json"]);
+    expect(toasts).toEqual(["error: 문서 1개 저장됨, 1개 저장 실패: b.json (쓰지 못했다). 저장 취소됨: c.json"]);
   });
 
   it("다시 읽기에 실패한 문서는 저장 실패와 따로 오류로 알린다", async () => {
@@ -92,11 +92,11 @@ describe("파일 > 모두 저장", () => {
     const { h, toasts } = host(docs, { "a.lua": "saved", "field.json": new ReloadFailedError("JSON 이 아니다") });
     const r = await saveAllDocuments(h);
     expect(r).toEqual({ saved: ["a.lua"], reloaded: [], cancelled: [], failed: [], reloadFailed: ["field.json (JSON 이 아니다)"] });
-    expect(toasts).toEqual(["error: 1개 문서를 저장했다. 다시 읽지 못한 것: field.json (JSON 이 아니다)"]);
+    expect(toasts).toEqual(["error: 문서 1개 저장됨. 다시 읽기 실패: field.json (JSON 이 아니다)"]);
   });
 
   it("문구만 따로: 아무것도 저장하지 않고 취소만 했으면 안내다", () => {
-    expect(saveAllMessage({ saved: [], reloaded: [], cancelled: ["a.lua"], failed: [], reloadFailed: [] })).toEqual({ level: "info", text: "0개 문서를 저장했다. 저장하지 않은 것: a.lua" });
+    expect(saveAllMessage({ saved: [], reloaded: [], cancelled: ["a.lua"], failed: [], reloadFailed: [] })).toEqual({ level: "info", text: "문서 0개 저장됨. 저장 취소됨: a.lua" });
   });
 });
 
@@ -220,7 +220,7 @@ describe("문서 저장 (Editor.saveDocument)", () => {
     expect(t.asked).toEqual(["changed"]);
     expect(await t.backend.readText("notes.txt")).toBe("outside");
     expect(t.saved).toEqual([]);
-    expect(t.logs).toEqual(["저장을 취소했다: notes.txt"]);
+    expect(t.logs).toEqual(["저장 취소됨: notes.txt"]);
 
     const third = t.save(t.doc);
     expect(third).not.toBe(first);
@@ -262,7 +262,7 @@ describe("문서 저장 (Editor.saveDocument)", () => {
     expect(t.doc.text).toBe("outside");
     expect(t.doc.dirty).toBe(false);
     expect(t.saved).toEqual([]);
-    expect(t.logs).toEqual(["저장을 취소했다: notes.txt", "저장하지 않고 디스크 내용으로 다시 읽었다: notes.txt"]);
+    expect(t.logs).toEqual(["저장 취소됨: notes.txt", "저장하지 않고 디스크 내용으로 다시 읽음: notes.txt"]);
   });
 
   it("디스크를 확인하는 중에 들어온 저장은 합쳐서 최신 내용을 한 번 쓴다 (아직 쓰기 전이다)", async () => {
@@ -375,7 +375,7 @@ describe("문서 저장 (Editor.saveDocument)", () => {
     expect(t.doc.text).toBe("outside");
     expect(await second).toBe("saved");
     expect(t.asked).toEqual(["changed"]);
-    expect(t.logs).toEqual(["저장하지 않고 디스크 내용으로 다시 읽었다: notes.txt"]);
+    expect(t.logs).toEqual(["저장하지 않고 디스크 내용으로 다시 읽음: notes.txt"]);
   });
 
   it("다시 읽기가 실패하면 ReloadFailedError가 오고 콘솔에 남기며 onSaved를 부르지 않는다", async () => {
@@ -385,8 +385,8 @@ describe("문서 저장 (Editor.saveDocument)", () => {
     await t.answer("reload");
     const error = await saving.catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ReloadFailedError);
-    expect((error as Error).message).toBe("다시 읽지 못했다: JSON 이 아니다");
-    expect(t.logs).toEqual(["error: notes.txt을(를) 다시 읽지 못했다: JSON 이 아니다"]);
+    expect((error as Error).message).toBe("다시 읽기 실패: JSON 이 아니다");
+    expect(t.logs).toEqual(["error: notes.txt 다시 읽기 실패: JSON 이 아니다"]);
     expect(t.saved).toEqual([]);
     // 배너가 남고 저장은 막힌다 (내 수정도 그대로)
     expect(t.doc.reloadError).toBe("JSON 이 아니다");
@@ -432,7 +432,7 @@ describe("저장 전 질문 (beforeSave)", () => {
     await q.reply();
     expect(await first).toBe("cancelled");
     expect(writes.writes).toEqual([]);
-    expect(t.logs).toEqual(["저장을 취소했다: notes.txt"]);
+    expect(t.logs).toEqual(["저장 취소됨: notes.txt"]);
     expect(t.doc.dirty).toBe(true);
 
     const second = save(t.doc);

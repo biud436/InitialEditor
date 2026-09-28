@@ -10,7 +10,7 @@ export const SPEC_FIXTURE = {
       ruby: "Graphics",
       doc: "그리기",
       functions: [
-        { lua: "DrawText", ruby: "draw_text", params: [{ name: "x", type: "number" }, { name: "y", type: "number" }, { name: "text", type: "string" }], returns: "nil", doc: "글자를 그린다" },
+        { lua: "DrawText", ruby: "draw_text", params: [{ name: "x", type: "number" }, { name: "y", type: "number" }, { name: "text", type: "string" }], returns: "nil", doc: "텍스트 그리기" },
         { lua: "WindowWidth", ruby: "width", params: [], returns: "number", doc: "창 너비", rubyKind: "getter" },
         { lua: "SetRenderScale", ruby: "render_scale=", params: [{ name: "n", type: "number" }], returns: "nil", rubyKind: "setter" },
         { lua: null, ruby: "env", params: [{ name: "name" }], returns: "string" },
@@ -23,7 +23,7 @@ export const SPEC_FIXTURE = {
       ruby: "Input",
       doc: "입력",
       functions: [
-        { lua: "IsKeyDown", ruby: "key_down?", params: [{ name: "key", type: "key" }], returns: "boolean", doc: "눌렸다", rubyKind: "predicate" },
+        { lua: "IsKeyDown", ruby: "key_down?", params: [{ name: "key", type: "key" }], returns: "boolean", doc: "눌려 있으면 true", rubyKind: "predicate" },
         { lua: null, ruby: "press?", params: [{ name: "key", type: "key" }], returns: "boolean", rubyKind: "predicate", alias: true },
         { lua: "GetMouseX", ruby: "mouse_x", params: [], returns: "number", rubyKind: "getter" },
       ],
@@ -36,7 +36,7 @@ export const SPEC_FIXTURE = {
       ruby: "Sprite",
       doc: "스프라이트",
       luaStyle: "handle",
-      constructors: [{ lua: "Sprite.Create", ruby: "Sprite.new", params: [{ name: "x" }, { name: "y" }], returns: "Sprite", doc: "만든다" }],
+      constructors: [{ lua: "Sprite.Create", ruby: "Sprite.new", params: [{ name: "x" }, { name: "y" }], returns: "Sprite", doc: "생성" }],
       methods: [
         { lua: "SetPosition", ruby: "set_position", params: [{ name: "x" }, { name: "y" }], returns: "nil", doc: "위치" },
         { lua: "GetVisible", ruby: "visible?", params: [], returns: "boolean" },
@@ -78,8 +78,8 @@ export const LANG_SPEC_FIXTURE = {
           doc: "점의 색",
           rubyKind: "method",
         },
-        { lua: "DrawText", ruby: "draw_text", params: [{ name: "x", type: "number" }, { name: "y", type: "number" }, { name: "text", type: "string" }], returns: "number", rubyReturns: "integer", doc: "글자를 그린다", rubyKind: "method" },
-        { lua: "draw_text", ruby: null, params: [{ name: "x", type: "number" }, { name: "y", type: "number" }, { name: "text", type: "string" }], returns: "number", doc: "DrawText 의 별명", alias: true, aliasOf: "DrawText" },
+        { lua: "DrawText", ruby: "draw_text", params: [{ name: "x", type: "number" }, { name: "y", type: "number" }, { name: "text", type: "string" }], returns: "number", rubyReturns: "integer", doc: "텍스트 그리기", rubyKind: "method" },
+        { lua: "draw_text", ruby: null, params: [{ name: "x", type: "number" }, { name: "y", type: "number" }, { name: "text", type: "string" }], returns: "number", doc: "DrawText 의 별칭", alias: true, aliasOf: "DrawText" },
       ],
     },
     {
@@ -97,7 +97,7 @@ export const LANG_SPEC_FIXTURE = {
       lua: null,
       ruby: "Kernel",
       doc: "전역",
-      functions: [{ lua: "print", ruby: null, params: [{ name: "...", type: "any", variadic: true }], returns: "nil", doc: "찍는다" }],
+      functions: [{ lua: "print", ruby: null, params: [{ name: "...", type: "any", variadic: true }], returns: "nil", doc: "출력" }],
     },
     {
       name: "Input",
@@ -105,9 +105,9 @@ export const LANG_SPEC_FIXTURE = {
       ruby: "Input",
       doc: "입력",
       functions: [
-        { lua: "IsKeyDown", ruby: "key_down?", params: [{ name: "key", type: "integer", rubyType: "integer|symbol", doc: "가상 키 코드" }], returns: "boolean", doc: "눌렸다", rubyKind: "predicate" },
-        { lua: null, ruby: "trigger?", params: [{ name: "key", type: "integer", rubyType: "integer|symbol" }], returns: "boolean", doc: "key_down? 의 별명", rubyKind: "predicate", alias: true, aliasOf: "key_down?" },
-        { lua: "GetTouch", ruby: "touch", params: [{ name: "index", type: "integer" }], returns: "array|nil", luaReturns: ["integer|nil", "number", "number", "string"], doc: "손가락 하나", rubyKind: "method" },
+        { lua: "IsKeyDown", ruby: "key_down?", params: [{ name: "key", type: "integer", rubyType: "integer|symbol", doc: "가상 키 코드" }], returns: "boolean", doc: "눌려 있으면 true", rubyKind: "predicate" },
+        { lua: null, ruby: "trigger?", params: [{ name: "key", type: "integer", rubyType: "integer|symbol" }], returns: "boolean", doc: "key_down? 의 별칭", rubyKind: "predicate", alias: true, aliasOf: "key_down?" },
+        { lua: "GetTouch", ruby: "touch", params: [{ name: "index", type: "integer" }], returns: "array|nil", luaReturns: ["integer|nil", "number", "number", "string"], doc: "터치 1개", rubyKind: "method" },
         { lua: null, ruby: "touches", params: [], returns: "array[]", doc: "손가락 전부", rubyKind: "getter", prelude: true },
       ],
     },
@@ -137,7 +137,7 @@ export const LANG_SPEC_FIXTURE = {
       ruby: "Tilemap",
       doc: "맵",
       luaStyle: "handle",
-      constructors: [{ lua: "Tilemap.Load", ruby: "Tilemap.load", params: [{ name: "path", type: "string" }], returns: "Tilemap|nil", luaReturns: ["Tilemap|nil", "string|nil"], doc: "맵을 읽는다", prelude: true }],
+      constructors: [{ lua: "Tilemap.Load", ruby: "Tilemap.load", params: [{ name: "path", type: "string" }], returns: "Tilemap|nil", luaReturns: ["Tilemap|nil", "string|nil"], doc: "맵 로드", prelude: true }],
       methods: [
         {
           lua: "Draw",
@@ -145,7 +145,7 @@ export const LANG_SPEC_FIXTURE = {
           params: [{ name: "layer_from", type: "integer" }, { name: "layer_to", type: "integer" }, { name: "cam_x", type: "integer", optional: true, default: 0, doc: "월드 픽셀" }],
           returns: "nil",
           rubyReturns: "Tilemap",
-          doc: "레이어를 그린다",
+          doc: "레이어 그리기",
           rubyKind: "method",
         },
         { lua: "SetRect", ruby: "set_rect", params: [{ name: "x", type: "integer" }, { name: "y", type: "integer" }], overloads: [[{ name: "rect", type: "table", doc: "x, y 를 가진 표" }]], returns: "nil", rubyReturns: "Tilemap", doc: "사각형", rubyKind: "method" },
@@ -157,7 +157,7 @@ export const LANG_SPEC_FIXTURE = {
       ruby: "Plain",
       doc: "핸들 방식이 아닌 클래스",
       constructors: [],
-      methods: [{ lua: "Reset", ruby: "reset", params: [], returns: "nil", doc: "되돌린다", rubyKind: "method" }],
+      methods: [{ lua: "Reset", ruby: "reset", params: [], returns: "nil", doc: "초기화", rubyKind: "method" }],
     },
   ],
   constants: [{ module: "Keys", lua: null, ruby: "Keys", doc: "키", names: ["SPACE", "F1"], values: { SPACE: 32, F1: 112 } }],

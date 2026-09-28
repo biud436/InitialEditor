@@ -88,8 +88,8 @@ export type MapFileProblem = { kind: "missing" } | { kind: "invalid"; reason: st
 
 function mapFileMessage(ref: TilemapMapRef, problem: MapFileProblem): string {
   return problem.kind === "missing"
-    ? `타일맵 ${ref.id}의 맵 파일이 없다: ${ref.map}. 엔진이 씬을 거부한다`
-    : `타일맵 ${ref.id}의 맵 파일을 맵으로 읽지 못한다: ${ref.map} (${problem.reason}). 엔진이 씬을 거부한다`;
+    ? `타일맵 ${ref.id}의 맵 파일 없음: ${ref.map}. 실행하면 엔진에서 씬 로드 실패`
+    : `타일맵 ${ref.id}의 맵 파일 형식 오류: ${ref.map} (${problem.reason}). 실행하면 엔진에서 씬 로드 실패`;
 }
 
 /**
@@ -112,11 +112,11 @@ export function validateTilemapObjects(scene: unknown): ValidationProblem[] {
   for (const { index: i, id, props } of tilemapEntries(scene)) {
     const where = `objects[${i}].props`;
     if (typeof props.map !== "string" || props.map === "") {
-      problems.push({ severity: "error", message: `타일맵 ${id}에 맵 파일(props.map)이 없다. 엔진이 씬을 거부한다`, location: `${where}.map` });
+      problems.push({ severity: "error", message: `타일맵 ${id}: 맵 파일(props.map) 비어 있음. 실행하면 엔진에서 씬 로드 실패`, location: `${where}.map` });
     }
     const g = props.groundLayers;
     if (g !== undefined && (typeof g !== "number" || !Number.isFinite(g) || g < 0)) {
-      problems.push({ severity: "error", message: `타일맵 ${id}의 groundLayers는 0 이상의 수여야 한다: ${JSON.stringify(g)}`, location: `${where}.groundLayers` });
+      problems.push({ severity: "error", message: `타일맵 ${id}의 groundLayers는 0 이상의 숫자여야 함: ${JSON.stringify(g)}`, location: `${where}.groundLayers` });
     }
   }
   return problems;

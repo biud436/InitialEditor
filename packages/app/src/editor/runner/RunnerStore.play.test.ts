@@ -147,7 +147,7 @@ describe("프로세스 실행: 실행 제공자의 plan.env 가 RunSpec.env 에 
     expect(t.specs).toEqual([{ exe: ENGINE, cwd: "/home/u/game", env: { INITIAL2D_HMR: "1", ...plan.env }, args: [] }]);
     expect(t.runner.state).toBe("running");
     const lines = t.log.entries.map((e) => e.text);
-    expect(lines).toContain("여기서 실행: 항구 마을 x 16, y 43 (이벤트 captain 앞) INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg INITIAL2D_MAP=port_town INITIAL2D_RPG_AT=16,43,down INITIAL2D_RPG_TRACE=1");
+    expect(lines).toContain("이 맵에서 실행: 항구 마을 x 16, y 43 (이벤트 captain 앞) INITIAL2D_SCRIPT=lua INITIAL2D_SCENE=rpg INITIAL2D_MAP=port_town INITIAL2D_RPG_AT=16,43,down INITIAL2D_RPG_TRACE=1");
     expect(lines.some((l) => l.startsWith(`엔진 시작: PID 4321, ${ENGINE}, 언어 lua `))).toBe(true);
   });
 

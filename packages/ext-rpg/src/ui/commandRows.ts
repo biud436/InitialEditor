@@ -61,9 +61,9 @@ function baseName(path: string): string {
 
 /** 조건 한 줄: "아이템 shell >= 2", "깃발 arrived = false". 꼴이 없으면 늘 참이다 */
 export function conditionSummary(schema: EventSchema, cond: unknown): string {
-  if (!isPlainObject(cond)) return "빈 조건 (늘 참)";
+  if (!isPlainObject(cond)) return "빈 조건 (항상 참)";
   const kind = judgedCondition(schema, cond);
-  if (!kind) return "빈 조건 (늘 참)";
+  if (!kind) return "빈 조건 (항상 참)";
   const parts = [kind.label, valueText(kind.args[0], field(cond, kind.args[0].name), schema)];
   const hasOp = kind.args.some((a) => a.type === "enum");
   for (const a of kind.args.slice(1)) {
@@ -142,9 +142,9 @@ export function commandSummary(schema: EventSchema, cmd: unknown): string {
 
 /** 줄 머리의 이름 */
 export function commandLabel(schema: EventSchema, cmd: unknown): string {
-  if (!isPlainObject(cmd)) return "커맨드가 아니다";
+  if (!isPlainObject(cmd)) return "객체가 아닌 커맨드";
   const spec = commandSpec(schema, cmd.code);
-  return spec ? spec.label : `알 수 없는 커맨드 ${jsonValueText(cmd.code)}`;
+  return spec ? spec.label : `스키마에 없는 커맨드: ${jsonValueText(cmd.code)}`;
 }
 
 /** 가지 머리줄 이름: "{n}. {option}" 틀 */

@@ -157,7 +157,7 @@ describe("타일맵 그리기 계획", () => {
 describe("타일맵 노드", () => {
   it("맵을 고르지 않았으면 이름표 상자다", async () => {
     const { all, labels, bounds, backgrounds, loads } = await setup({}, { map: "", groundLayers: 1 });
-    expect(labels.map((l) => l.label)).toEqual(["tilemap: tilemap1 (맵 없음)"]);
+    expect(labels.map((l) => l.label)).toEqual(["tilemap: tilemap1 (맵 파일 미지정)"]);
     expect(bounds).toEqual([{ x: 0, y: 0, w: TILEMAP_PLACEHOLDER_SIZE, h: TILEMAP_PLACEHOLDER_SIZE }]);
     // 자리표시 상자는 보통 대상이다 (누르면 고르고 끈다)
     expect(backgrounds).toEqual([false]);
@@ -226,7 +226,7 @@ describe("타일맵 노드", () => {
 
     const invalid = await setup({ [MAP_PATH]: '{"version": 9}' });
     await tick();
-    expect(invalid.labels.at(-1)?.label).toMatch(/모르는 맵 버전이다: 9/);
+    expect(invalid.labels.at(-1)?.label).toMatch(/지원하지 않는 맵 버전: 9/);
     expect(invalid.all()).toHaveLength(0);
   });
 
@@ -234,7 +234,7 @@ describe("타일맵 노드", () => {
     const s = await setup(undefined, undefined, [SHEET]);
     await tick();
     expect(s.all()).toHaveLength(0);
-    expect(s.labels.at(-1)?.label).toMatch(/타일셋을 읽지 못했다: resources\/tiles\/t\.png \(없다\)/);
+    expect(s.labels.at(-1)?.label).toMatch(/타일셋 읽기 실패: resources\/tiles\/t\.png \(없다\)/);
     expect(s.bounds.at(-1)).toEqual({ x: 0, y: 0, w: 64, h: 32 });
   });
 

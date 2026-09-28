@@ -102,7 +102,7 @@ export class FsAccessBackend implements ProjectBackend {
     this.rootKey = null;
     const { handle, name, remembered } = await this.resolveRoot(root);
     if (!(await requestReadWrite(handle, true))) {
-      throw new BackendError(`폴더 권한이 없다: ${name}. 시작 화면에서 다시 열기를 누른다`, "io");
+      throw new BackendError(`폴더 접근 권한 없음: ${name}. 시작 화면에서 다시 열기를 클릭하면 권한 요청`, "io");
     }
     let entries: StampedEntry[];
     try {
@@ -143,7 +143,7 @@ export class FsAccessBackend implements ProjectBackend {
 
   async readBinary(rel: string): Promise<Uint8Array> {
     const p = this.rel(rel);
-    if (p === "") throw new BackendError("루트는 파일이 아니다", "io", p);
+    if (p === "") throw new BackendError("프로젝트 루트는 파일이 아님", "io", p);
     const handle = await this.fileHandle(p);
     try {
       const file = await handle.getFile();
@@ -161,7 +161,7 @@ export class FsAccessBackend implements ProjectBackend {
 
   async writeBinary(rel: string, data: Uint8Array): Promise<void> {
     const p = this.rel(rel);
-    if (p === "") throw new BackendError("루트에는 쓸 수 없다", "io", p);
+    if (p === "") throw new BackendError("프로젝트 루트에 쓰기 불가", "io", p);
     const release = this.poller.hold(p);
     let existed: boolean;
     try {
@@ -190,7 +190,7 @@ export class FsAccessBackend implements ProjectBackend {
 
   async remove(rel: string): Promise<void> {
     const p = this.rel(rel);
-    if (p === "") throw new BackendError("루트는 지울 수 없다", "outside_root", p);
+    if (p === "") throw new BackendError("프로젝트 루트 삭제 불가", "outside_root", p);
     const parent = await this.dirHandle(dirname(p));
     const release = this.poller.hold(p);
     try {
@@ -207,12 +207,12 @@ export class FsAccessBackend implements ProjectBackend {
   async rename(fromRel: string, toRel: string): Promise<void> {
     const from = this.rel(fromRel);
     const to = this.rel(toRel);
-    if (from === "" || to === "") throw new BackendError("루트는 옮길 수 없다", "outside_root", from === "" ? fromRel : toRel);
+    if (from === "" || to === "") throw new BackendError("프로젝트 루트 이동 불가", "outside_root", from === "" ? fromRel : toRel);
     if (from === to) return;
-    if (isInside(from, to)) throw new BackendError(`폴더를 자기 안으로 옮길 수 없다: ${from} → ${to}`, "io", to);
+    if (isInside(from, to)) throw new BackendError(`폴더를 그 하위 폴더로 이동 불가: ${from} → ${to}`, "io", to);
     const srcParent = await this.dirHandle(dirname(from));
     const src = await this.childHandle(srcParent, basename(from), from);
-    if (await this.exists(to)) throw new BackendError(`이미 있다: ${to}`, "io", to);
+    if (await this.exists(to)) throw new BackendError(`이미 있는 경로: ${to}`, "io", to);
     const release = this.poller.hold(from, to);
     try {
       const destDir = await this.dirHandle(dirname(to), true);
@@ -265,11 +265,11 @@ export class FsAccessBackend implements ProjectBackend {
   }
 
   async hmrPush(_files: HmrFile[], _target?: HmrTarget): Promise<{ count: number }> {
-    throw new BackendError("브라우저판에는 핫 리로드 서버가 없다. 게임 뷰의 엔진이 저장을 받아 스스로 다시 뜬다", "unsupported");
+    throw new BackendError("브라우저 폴더 모드는 핫 리로드 서버 미지원. 저장하면 게임 탭의 웹 엔진이 자동으로 다시 시작", "unsupported");
   }
 
   async run(_spec: RunSpec): Promise<RunHandle> {
-    throw new BackendError("브라우저판에서는 엔진 프로세스를 띄울 수 없다. 게임은 게임 뷰(WASM)에서 돈다", "unsupported");
+    throw new BackendError("브라우저 폴더 모드는 엔진 프로세스 실행 미지원. 게임은 게임 탭(WASM)에서 실행", "unsupported");
   }
 
   /** 폴더를 고르고 기억한다. 돌려주는 키를 open() 에 넘긴다. 취소면 null */
@@ -300,7 +300,7 @@ export class FsAccessBackend implements ProjectBackend {
   }
 
   private rel(input: string): string {
-    if (!this.rootHandle) throw new BackendError("프로젝트가 열려 있지 않다", "not_open");
+    if (!this.rootHandle) throw new BackendError("열린 프로젝트 없음", "not_open");
     return cleanRel(input);
   }
 
@@ -317,16 +317,16 @@ export class FsAccessBackend implements ProjectBackend {
       return { handle, name: sub === "" ? OPFS_NAME : basename(sub), remembered: false };
     }
     const record = await this.handles.get(key);
-    if (!record) throw new BackendError(`기억한 폴더가 없다 (${key}). 폴더 열기로 다시 고른다`, "not_found");
+    if (!record) throw new BackendError(`최근 폴더 기록 없음 (${key}). 폴더 열기로 다시 선택`, "not_found");
     const handle = this.handles.opened(key);
-    if (!handle) throw new BackendError(`${record.name} 폴더는 시작 화면의 다시 열기로 연다 (이 페이지에서 아직 꺼내지 않았다)`, "io");
+    if (!handle) throw new BackendError(`${record.name} 폴더는 시작 화면의 다시 열기로 열어야 함 (이 페이지에서 아직 불러오지 않음)`, "io");
     return { handle, name: record.name || handle.name, remembered: true };
   }
 
   /** 폴더 핸들. create 면 없는 폴더를 만들고 알린다 */
   private async dirHandle(rel: string, create = false): Promise<FsDirHandle> {
     let dir = this.rootHandle;
-    if (!dir) throw new BackendError("프로젝트가 열려 있지 않다", "not_open");
+    if (!dir) throw new BackendError("열린 프로젝트 없음", "not_open");
     let cur = "";
     for (const seg of rel.split("/").filter(Boolean)) {
       cur = joinRel(cur, seg);

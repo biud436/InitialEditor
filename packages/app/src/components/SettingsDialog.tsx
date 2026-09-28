@@ -52,11 +52,11 @@ export const EngineRepoRow = observer(function EngineRepoRow() {
         id="settings-engine-repo"
         className="input"
         value={settings.settings.engineRepoPath}
-        placeholder="비우면 자동 탐색 (열린 프로젝트, 찾은 엔진의 저장소, 형제 폴더)"
+        placeholder="지정 안 함 (자동 탐색: 열린 프로젝트, 찾은 엔진의 저장소, 프로젝트 상위 폴더의 Initial2D)"
         onChange={(e) => settings.update({ engineRepoPath: e.target.value })}
         data-testid="settings-engine-repo"
       />
-      <div className="form-help">안드로이드로 스테이징이 쓴다 (android/prepare_assets.sh 가 있는 Initial2D 체크아웃)</div>
+      <div className="form-help">안드로이드로 스테이징에 사용 (android/prepare_assets.sh 가 있는 Initial2D 체크아웃)</div>
       {trust?.allow && (
         <div className="form-help" data-testid="settings-android-trust">
           이 프로젝트에서 허용한 스테이징 스크립트: {trust.exes.join(", ")}{" "}
@@ -86,7 +86,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
         <div className="form-row">
           <label htmlFor="settings-theme">테마</label>
           <select id="settings-theme" className="select" value={s.theme} onChange={(e) => update({ theme: e.target.value as ThemePreference })} data-autofocus data-testid="settings-theme">
-            <option value="system">시스템 설정 따라가기</option>
+            <option value="system">시스템 설정 사용</option>
             <option value="dark">다크</option>
             <option value="light">라이트</option>
           </select>
@@ -101,26 +101,26 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             onChange={(e) => update({ runMode: e.target.value as RunMode })}
             data-testid="settings-run-mode"
           >
-            <option value="process">프로세스 (엔진 실행 파일, 창이 따로 뜬다)</option>
-            <option value="embedded">에디터 안 (웹 엔진, 게임 탭)</option>
+            <option value="process">프로세스 (엔진 실행 파일, 별도 창)</option>
+            <option value="embedded">게임 탭 (웹 엔진)</option>
           </select>
-          <div className="form-help">{canSpawn ? "F5 가 어디서 게임을 돌릴지. 에디터 안은 웹 엔진 빌드에 든 언어(Lua, mruby)만 돈다" : "브라우저에서는 늘 에디터 안 게임 탭에서 돈다 (웹 엔진)"}</div>
+          <div className="form-help">{canSpawn ? "F5로 게임을 실행할 위치. 게임 탭 실행은 웹 엔진 빌드에 포함된 언어(Lua, mruby)만 지원" : "브라우저에서는 항상 게임 탭에서 실행 (웹 엔진)"}</div>
         </div>
         <div className="form-row">
           <label htmlFor="settings-engine">엔진 경로</label>
-          <input id="settings-engine" className="input" value={s.enginePath} placeholder="비우면 자동 탐색 (프로젝트의 build/, 앱에 든 엔진, 형제 폴더)" onChange={(e) => update({ enginePath: e.target.value })} />
-          <div className="form-help">프로세스 실행이 쓴다</div>
+          <input id="settings-engine" className="input" value={s.enginePath} placeholder="지정 안 함 (자동 탐색: 프로젝트의 build/, 앱에 든 엔진, 프로젝트 상위 폴더의 Initial2D/build/)" onChange={(e) => update({ enginePath: e.target.value })} />
+          <div className="form-help">실행 방식이 프로세스일 때 사용</div>
         </div>
         {canSpawn && <FoundEngineRow />}
         {canSpawn && <EngineRepoRow />}
         <div className="form-row">
           <label htmlFor="settings-reload">저장 시 리로드</label>
           <label className="checkbox">
-            <input id="settings-reload" type="checkbox" checked={s.reloadOnSave} onChange={(e) => update({ reloadOnSave: e.target.checked })} /> 스크립트와 씬과 맵을 저장하면 실행 중인 게임이 다시 읽는다
+            <input id="settings-reload" type="checkbox" checked={s.reloadOnSave} onChange={(e) => update({ reloadOnSave: e.target.checked })} /> 스크립트, 씬, 맵 저장 시 실행 중인 게임에 핫 리로드
           </label>
         </div>
         <div className="form-row">
-          <label htmlFor="settings-font-size">편집기 글꼴 크기</label>
+          <label htmlFor="settings-font-size">편집기 폰트 크기</label>
           <input
             id="settings-font-size"
             className="input"
@@ -139,7 +139,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             data-testid="settings-font-size"
           />
           <div className="form-help">
-            {EDITOR_FONT_SIZE_RANGE.min}부터 {EDITOR_FONT_SIZE_RANGE.max}까지 (px). 스크립트 편집기에 바로 반영된다
+            {EDITOR_FONT_SIZE_RANGE.min}부터 {EDITOR_FONT_SIZE_RANGE.max}까지 (px). 스크립트 편집기에 즉시 반영
           </div>
         </div>
         <div className="form-row">
@@ -147,7 +147,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
           <select id="settings-tab-size" className="select" value={s.editorTabSize} onChange={(e) => update({ editorTabSize: Number(e.target.value) })} data-testid="settings-tab-size">
             {TAB_SIZES.map((n) => (
               <option key={n} value={n}>
-                {n}칸
+                공백 {n}개
               </option>
             ))}
           </select>
@@ -165,7 +165,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
           <div className="form-row">
             <label htmlFor="settings-bridge">브리지 URL</label>
             <input id="settings-bridge" className="input" value={s.bridgeUrl} placeholder="http://127.0.0.1:5960" onChange={(e) => update({ bridgeUrl: e.target.value })} />
-            <div className="form-help">다음에 프로젝트를 열 때 쓴다. 지금 연결: {editor.bridgeUrl ?? "(없음)"}</div>
+            <div className="form-help">다음 프로젝트 열기부터 적용. 현재 연결: {editor.bridgeUrl ?? "(없음)"}</div>
           </div>
         )}
       </div>

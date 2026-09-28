@@ -36,7 +36,7 @@ fn create_main_window(
         .iter()
         .find(|w| w.label == MAIN_WINDOW)
         .cloned()
-        .ok_or("tauri.conf.json 에 창 main 이 없다")?;
+        .ok_or("tauri.conf.json 에 창 main 없음")?;
     let mut builder = tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?;
     if let Some(state) = selftest {
         let show = state.plan.show_window;
@@ -117,5 +117,5 @@ pub fn run() {
             selftest::selftest_finish,
         ])
         .run(tauri::generate_context!())
-        .expect("InitialEditor 를 시작할 수 없다");
+        .expect("InitialEditor 시작 실패");
 }

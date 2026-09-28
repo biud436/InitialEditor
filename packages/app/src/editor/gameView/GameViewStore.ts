@@ -143,13 +143,13 @@ export class GameViewStore {
       const runtimePromise = this.loadRuntime();
       runtimePromise.catch(() => {}); // 기다리는 쪽에서 받는다
       const listed = await listStageFiles(backend);
-      for (const f of listed.tooLarge) log.warn(LOG, `${f.path} (${formatBytes(f.size ?? 0)}) 은(는) 32 MB 를 넘어 올리지 않았다`);
+      for (const f of listed.tooLarge) log.warn(LOG, `${f.path} (${formatBytes(f.size ?? 0)}): 32 MB 초과, 복사 제외`);
       const read = await readStageFiles(backend, listed.files, {
         concurrency: this.concurrency,
         signal,
         onProgress: (done, total) => runInAction(() => (this.progress = { done, total })),
       });
-      for (const p of read.tooLarge) log.warn(LOG, `${p} 은(는) 32 MB 를 넘어 올리지 않았다`);
+      for (const p of read.tooLarge) log.warn(LOG, `${p}: 32 MB 초과, 복사 제외`);
       const runtime = await runtimePromise;
       if (signal.aborted) throw new StageAbortedError();
       runInAction(() => (this.manifest = runtime.manifest));
@@ -178,7 +178,7 @@ export class GameViewStore {
           // 이미 죽었다
         }
         releaseEngineResources(null, game.module);
-        throw new Error(current.crashText ?? "엔진이 부팅 중에 끝났다");
+        throw new Error(current.crashText ?? "엔진이 부팅 중 종료됨");
       }
       if (signal.aborted) {
         await current.stop();
@@ -187,7 +187,7 @@ export class GameViewStore {
       this.setPhase("running");
       this.startMeters();
       const seconds = ((Date.now() - started) / 1000).toFixed(1);
-      log.info(LOG, `에디터 안 엔진: ${Object.keys(read.files).length}개 파일 ${formatBytes(read.bytes)} 올림, ${seconds} 초`);
+      log.info(LOG, `웹 엔진: 파일 ${Object.keys(read.files).length}개 ${formatBytes(read.bytes)} 복사됨, ${seconds} 초`);
       if (game.exitCode !== 0) current.fail(game.exitCode);
       return current;
     } catch (e) {
@@ -199,7 +199,7 @@ export class GameViewStore {
       runInAction(() => {
         if (this.session === session) this.session = null;
       });
-      this.setPhase(aborted ? "idle" : "failed", { message: aborted ? null : `실행하지 못했다: ${text}` });
+      this.setPhase(aborted ? "idle" : "failed", { message: aborted ? null : `실행 실패: ${text}` });
       if (aborted) throw new StageAbortedError();
       throw e instanceof Error && e.message ? e : new Error(text);
     } finally {
@@ -220,7 +220,7 @@ export class GameViewStore {
   async reload(paths?: readonly string[]): Promise<EmbeddedReload> {
     const session = this.session;
     const game = session?.game;
-    if (!session || !game || this.phase !== "running") throw new Error("에디터 안 엔진이 실행 중이 아니다");
+    if (!session || !game || this.phase !== "running") throw new Error("실행 중인 웹 엔진 없음");
     if (session.ending) return DROPPED_RELOAD;
     const { backend } = this.editor;
     let entries: StageEntry[];
@@ -239,7 +239,7 @@ export class GameViewStore {
       result = session.reloadWith(() => game.reload(read.files));
     } catch (e) {
       session.crash(e);
-      throw new Error(`엔진이 예외로 멈췄다: ${session.crashText ?? errorText(e, game)}`);
+      throw new Error(`엔진 예외로 중단: ${session.crashText ?? errorText(e, game)}`);
     }
     session.noteReload(result);
     return { count: Object.keys(read.files).length, scriptsFailed: result === false };
@@ -281,7 +281,7 @@ export class GameViewStore {
     try {
       return await captureCanvasStats(canvas, () => this.canvas === canvas && this.phase === "running");
     } catch (e) {
-      throw new Error(`게임 화면을 읽지 못했다: ${errorText(e)}`);
+      throw new Error(`게임 화면 캡처 실패: ${errorText(e)}`);
     }
   }
 
@@ -370,7 +370,7 @@ export class GameViewStore {
       const poll = () => {
         if (signal.aborted) reject(new StageAbortedError());
         else if (canvas.isConnected) resolve();
-        else if (Date.now() > deadline) reject(new Error("게임 탭의 canvas 가 화면에 붙지 않았다"));
+        else if (Date.now() > deadline) reject(new Error("게임 탭의 canvas 가 DOM 에 연결되지 않음 (시간 초과)"));
         else setTimeout(poll, 16);
       };
       poll();
@@ -415,12 +415,12 @@ export class GameViewStore {
     releaseEngineResources(this.canvas, session.game?.module ?? null);
     const message =
       code === null
-        ? "정지했다. F5 로 다시 실행한다"
+        ? "정지됨. F5로 다시 실행"
         : code === 0
-          ? "게임이 끝났다. F5 로 다시 실행한다"
+          ? "게임 종료됨. F5로 다시 실행"
           : session.crashText !== null
-            ? `엔진이 예외로 멈췄다 (종료 코드 ${code}): ${session.crashText}. F5 로 다시 실행한다`
-            : `게임이 오류로 끝났다 (종료 코드 ${code}). 콘솔의 오류 줄을 누르면 그 자리로 간다`;
+            ? `엔진 예외로 중단 (종료 코드 ${code}): ${session.crashText}. F5로 다시 실행`
+            : `게임이 오류로 종료됨 (종료 코드 ${code}). 콘솔의 오류 줄을 클릭하면 해당 파일의 줄로 이동`;
     session.game = null;
     runInAction(() => {
       this.canvas = null;

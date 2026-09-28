@@ -64,7 +64,7 @@ const M2_COMMIT = "74febb4";
 const KEEP = process.env.KEEP_WORKDIR === "1";
 
 function findSkipReason(): string | null {
-  if (!fs.existsSync(EXE)) return `엔진 실행 파일이 없다: ${EXE} (INITIAL2D_DIR 로 저장소 위치를 주거나 cmake 로 빌드한다)`;
+  if (!fs.existsSync(EXE)) return `엔진 실행 파일 없음: ${EXE} (INITIAL2D_DIR로 저장소 위치 지정 또는 cmake로 빌드)`;
   const probe = spawnSync(EXE, ["--features"], { encoding: "utf8", timeout: 30_000, env: { ...process.env, SDL_VIDEODRIVER: "dummy", SDL_AUDIODRIVER: "dummy" } });
   const features = new Set((probe.stdout ?? "").split(/\s+/).filter(Boolean));
   if (probe.status !== 0 || !features.has("lua")) return `엔진이 --features 에 lua 를 답하지 않는다 (종료 코드 ${String(probe.status)})`;
@@ -476,7 +476,7 @@ if (skipReason !== null) {
     check("[2] transfer 줄", iEvent < iTransfer, lines);
     check("[2] 여관을 연다", iTransfer < iInn, lines);
     check(`[2] 여관 ${target.x},${target.y} 에 서서 ${target.dir} 쪽을 본다 (transfer 의 x, y, dir 이 적용되었다)`, landing(lines, "inn") === playerLine("inn", target), lines);
-    check("[2] 정의 파일의 시작에는 서지 않는다", !lines.includes(playerLine("inn", innStart)), lines);
+    check("[2] 정의 파일의 시작 위치에는 서지 않는다", !lines.includes(playerLine("inn", innStart)), lines);
   });
 
   it("[2 대조] 저장한 transfer 에서 x, y, dir 을 하나씩 빼면 [2] 의 도착 검사가 실패한다 (빠진 값은 정의 파일의 시작 값)", () => {
@@ -521,7 +521,7 @@ if (skipReason !== null) {
     const run = runEngine(env);
     const lines = run.lines;
     commonChecks("3", run);
-    check("[3] 정의 파일의 시작에 선다", indexOf(lines, `rpg:player:port_town,${start.x},${start.y},${start.dir}`) >= 0, lines.slice(0, 4));
+    check("[3] 정의 파일의 시작 위치에 선다", indexOf(lines, `rpg:player:port_town,${start.x},${start.y},${start.dir}`) >= 0, lines.slice(0, 4));
     const iArrival = indexOf(lines, "rpg:event:arrival");
     const iAuto = indexOf(lines, "rpg:event:e2e_auto");
     const iD = indexOf(lines, messageLine("", "D"));
@@ -581,7 +581,7 @@ if (skipReason !== null) {
     const maps = lines.map((l, k) => (l.startsWith("rpg:map:") ? k : -1)).filter((k) => k >= 0);
     check("[6] 배의 이벤트가 돌고 첫 항목(떠난다)의 대사가 나온다", iEvent >= 0 && iEvent < iLeft, lines);
     check("[6] 그 뒤 게임이 transfer 없이 맵을 다시 연다 (새 게임)", maps.length >= 2 && maps[1] > iLeft && !lines.slice(0, maps[1]).some((l) => l.startsWith("rpg:transfer:")), lines);
-    check("[6] 러너가 이유를 들고 멈췄다", run.stopped !== undefined && run.stopped.includes("ship") && run.stopped.includes("처음부터 다시 시작"), run.stopped);
+    check("[6] 러너가 이유를 들고 멈췄다", run.stopped !== undefined && run.stopped.includes("ship") && run.stopped.includes("새 게임으로 재시작됨"), run.stopped);
     check("[6] 두 번째 판의 배 이벤트까지 가지 않았다 (되풀이가 없다)", lines.filter((l) => l === "rpg:event:ship").length === 1, lines);
     check("[6] 경로가 끝나지 않았다 (rpg:route:done 없이 멈춘 것이다)", !lines.includes("rpg:route:done"), lines.slice(-3));
     check("[6] 안전장치(EXIT_AFTER) 한참 전에 끝났다", run.ms < 120_000, { status: run.status, ms: run.ms });

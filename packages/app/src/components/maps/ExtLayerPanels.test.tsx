@@ -105,9 +105,9 @@ describe("레이어 패널의 확장 레이어", () => {
     renderWith(f.editor, <LayersPanel />);
     expect(screen.queryByTestId("layer-lock")).toBeNull();
     const state = f.town.layerState("test.marks") as FakeMarksState;
-    act(() => state.lock("모르는 스키마 버전: 9"));
-    expect(screen.getByTestId("layer-lock").getAttribute("title")).toBe("모르는 스키마 버전: 9");
-    expect(screen.getByTestId("layer-lock-reason").textContent).toBe("모르는 스키마 버전: 9");
+    act(() => state.lock("지원하지 않는 스키마 버전: 9"));
+    expect(screen.getByTestId("layer-lock").getAttribute("title")).toBe("지원하지 않는 스키마 버전: 9");
+    expect(screen.getByTestId("layer-lock-reason").textContent).toBe("지원하지 않는 스키마 버전: 9");
     act(() => f.town.apply(state.add({ id: "out", x: -1, y: 0 })));
     expect(screen.getByTestId("layer-errors").textContent).toBe("오류 1");
     act(() => state.lock(null));

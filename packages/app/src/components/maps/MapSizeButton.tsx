@@ -7,8 +7,8 @@ export const MapSizeButton = observer(function MapSizeButton({ document: doc, on
   const m = doc.model;
   void m.revision;
   return (
-    <button type="button" className="map-view-size" onClick={onResize} data-testid="map-size" title={`레이어 ${m.layers.length}, 오브젝트 ${m.objects.length}. 누르면 크기 바꾸기`}>
-      {m.width}x{m.height} 칸 ({m.pixelWidth}x{m.pixelHeight} px)
+    <button type="button" className="map-view-size" onClick={onResize} data-testid="map-size" title={`레이어 ${m.layers.length}개, 오브젝트 ${m.objects.length}개. 클릭하면 맵 크기 바꾸기`}>
+      {m.width}x{m.height} 타일 ({m.pixelWidth}x{m.pixelHeight} px)
     </button>
   );
 });

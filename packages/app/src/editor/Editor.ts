@@ -256,8 +256,8 @@ export class Editor {
       info = await this.project.open(root);
     } catch (e) {
       const message = (e as Error).message;
-      this.log.error("editor", `프로젝트를 열지 못했다: ${message}`);
-      this.toasts.error(`프로젝트를 열지 못했다: ${message}`);
+      this.log.error("editor", `프로젝트 열기 실패: ${message}`);
+      this.toasts.error(`프로젝트 열기 실패: ${message}`);
       return false;
     }
     if (this.mode !== "memory") this.settings.addRecentProject(root);
@@ -265,17 +265,17 @@ export class Editor {
     if (!info.hasGameJson) {
       const ok = await this.modals.confirm({
         title: "프로젝트 등록",
-        message: "이 폴더를 프로젝트로 등록할까요? game.json 을 만듭니다",
+        message: "이 폴더에 game.json 없음. 프로젝트로 등록할까요? (game.json 생성)",
         okLabel: "만들기",
         cancelLabel: "나중에",
       });
       if (ok) {
         try {
           await this.project.saveGameJson({ ...this.project.gameJson, name: info.name });
-          this.log.info("editor", "game.json 을 만들었다");
+          this.log.info("editor", "game.json 생성됨");
         } catch (e) {
-          this.log.error("editor", `game.json 을 만들지 못했다: ${(e as Error).message}`);
-          this.toasts.error(`game.json 을 만들지 못했다: ${(e as Error).message}`);
+          this.log.error("editor", `game.json 생성 실패: ${(e as Error).message}`);
+          this.toasts.error(`game.json 생성 실패: ${(e as Error).message}`);
         }
       }
     }
@@ -291,7 +291,7 @@ export class Editor {
     if (dirty > 0) {
       const ok = await this.modals.confirm({
         title: "프로젝트 닫기",
-        message: `저장하지 않은 문서가 ${dirty}개 있다. 저장하지 않고 닫을까?`,
+        message: `저장 안 된 문서 ${dirty}개. 저장하지 않고 닫을까요?`,
         okLabel: "닫기",
         danger: true,
       });
@@ -304,7 +304,7 @@ export class Editor {
     const root = this.project.root;
     await this.project.close();
     this.events.emit("projectClosed", undefined);
-    this.log.info("editor", `프로젝트를 닫았다: ${root}`);
+    this.log.info("editor", `프로젝트 닫힘: ${root}`);
     this.openWelcome();
     return true;
   }
@@ -348,14 +348,14 @@ export class Editor {
     if (TEXT_EXTENSIONS.has(ext)) doc = new TextPreviewDocument(this.backend, path);
     else if (IMAGE_EXTENSIONS.has(ext)) doc = new ImagePreviewDocument(this.backend, path);
     else {
-      this.toasts.info("미리보기가 없는 파일이다");
+      this.toasts.info("미리보기를 지원하지 않는 파일 형식");
       return;
     }
     this.documents.open(doc);
     try {
       await doc.load();
     } catch (e) {
-      const message = `${path} 을(를) 읽지 못했다: ${(e as Error).message}`;
+      const message = `${path} 열기 실패: ${(e as Error).message}`;
       this.log.error("editor", message);
       this.toasts.error(message);
       this.documents.close(doc);
@@ -418,18 +418,18 @@ export class Editor {
           // 실패하면 reloadFromDisk가 배너를 띄우고 저장을 막는다
           doc.reloadFromDisk().then(
             () => {
-              this.log.info("editor", `밖에서 바뀌어 다시 읽었다: ${e.path}`);
+              this.log.info("editor", `외부에서 변경되어 다시 읽음: ${e.path}`);
               this.events.emit("documentReloaded", doc);
             },
             (err: Error) => {
-              const message = `${e.path} 을(를) 다시 읽지 못했다: ${err.message}`;
+              const message = `${e.path} 다시 읽기 실패: ${err.message}`;
               this.log.warn("editor", message);
               this.toasts.error(message);
             },
           );
         } else {
           runInAction(() => (doc.externallyChanged = true));
-          this.log.warn("editor", `밖에서 바뀌었지만 수정 중이라 두었다: ${e.path}`);
+          this.log.warn("editor", `외부에서 변경됨, 저장하지 않은 변경이 있어 다시 읽지 않음: ${e.path}`);
         }
       }),
     );

@@ -60,7 +60,7 @@ export function parseShortcut(text: string): ParsedShortcut {
     else if (p === "alt" || p === "option") parsed.alt = true;
     else parsed.key = p;
   }
-  if (!parsed.key) throw new Error(`단축키에 키가 없다: ${text}`);
+  if (!parsed.key) throw new Error(`단축키 표기에 키 없음: ${text}`);
   return parsed;
 }
 
@@ -111,7 +111,7 @@ export class CommandRegistry {
   }
 
   register(cmd: EditorCommand): () => void {
-    if (this.commands.has(cmd.id)) throw new Error(`커맨드가 이미 있다: ${cmd.id}`);
+    if (this.commands.has(cmd.id)) throw new Error(`커맨드 id 중복: ${cmd.id}`);
     if (cmd.shortcut) parseShortcut(cmd.shortcut); // 표기 검증
     this.commands.set(cmd.id, cmd);
     this.events.emit("change", undefined);

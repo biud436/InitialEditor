@@ -52,21 +52,21 @@ export interface SceneToolsHost {
 /** 씬 이름 검사: 파일 이름이 되는 글자만 */
 export function validateSceneName(value: string): string | null {
   const v = value.trim();
-  if (!v) return "이름을 적는다";
-  if (/\.json$/i.test(v)) return "확장자는 붙이지 않는다";
-  if (!/^[\p{L}\p{N}_-]+$/u.test(v)) return "글자, 숫자, _, - 만 쓴다 (폴더 없이)";
+  if (!v) return "이름 비어 있음";
+  if (/\.json$/i.test(v)) return "확장자 불필요 (.json 자동 추가)";
+  if (!/^[\p{L}\p{N}_-]+$/u.test(v)) return "문자, 숫자, _, - 만 허용 (폴더 경로 불가)";
   return null;
 }
 
 /** 씬 파일의 논리 스크립트 이름 검사 (components/bird 꼴) */
 export function validateLogicalScriptName(value: string): string | null {
   const v = value.trim();
-  if (!v) return "이름을 적는다";
-  if (/\\/.test(v)) return "폴더 구분은 / 로 적는다";
-  if (/\.(lua|rb)$/i.test(v)) return "확장자는 붙이지 않는다 (언어에 따라 붙는다)";
-  if (v.startsWith("/") || v.includes("..")) return "루트 기준 상대 이름이어야 한다";
-  if (v.split("/").some((seg) => seg === "" || seg === ".")) return "경로 조각이 비었다";
-  if (!/^[A-Za-z0-9_\-./]+$/.test(v)) return "영문, 숫자, _, -, / 만 쓴다";
+  if (!v) return "이름 비어 있음";
+  if (/\\/.test(v)) return "폴더 구분자는 / 만 허용 (\\ 불가)";
+  if (/\.(lua|rb)$/i.test(v)) return "확장자 불필요 (언어에 따라 .lua 또는 .rb 자동 추가)";
+  if (v.startsWith("/") || v.includes("..")) return "루트 기준 상대 경로여야 함 (/ 로 시작하거나 .. 포함 불가)";
+  if (v.split("/").some((seg) => seg === "" || seg === ".")) return "비어 있거나 . 인 경로 구성 요소 포함";
+  if (!/^[A-Za-z0-9_\-./]+$/.test(v)) return "영문, 숫자, _, -, / 만 허용";
   return null;
 }
 
@@ -187,12 +187,12 @@ export class SceneTools {
   addObject(type: string, at?: { x: number; y: number }): SceneObject | null {
     const doc = this.activeScene;
     if (!doc) {
-      this.host.toasts.warn("씬 탭이 활성일 때 오브젝트를 더할 수 있다");
+      this.host.toasts.warn("활성 씬 탭 없음: 오브젝트 추가 불가");
       return null;
     }
     const spec = this.typeSpec(type);
     if (!spec) {
-      this.host.toasts.error(`모르는 오브젝트 타입이다: ${type}`);
+      this.host.toasts.error(`등록되지 않은 오브젝트 타입: ${type}`);
       return null;
     }
     const id = uniqueObjectId(type, doc.scene.ids());
@@ -200,7 +200,7 @@ export class SceneTools {
     const obj = makeObject(type, id, deepClone(spec.defaults), { x: p.x, y: p.y });
     this.apply(doc, doc.scene.addObject(obj));
     doc.select([id]);
-    this.host.log.info(LOG, `오브젝트 추가: ${id} (${spec.label}) at ${p.x}, ${p.y}`);
+    this.host.log.info(LOG, `오브젝트 추가됨: ${id} (${spec.label}), 위치 ${p.x}, ${p.y}`);
     return doc.scene.find(id) ?? null;
   }
 
@@ -289,11 +289,11 @@ export class SceneTools {
     const next = newId.trim();
     if (next === id) return true;
     if (next === "") {
-      this.host.toasts.warn("id 는 비울 수 없다");
+      this.host.toasts.warn("id 비어 있음");
       return false;
     }
     if (doc.scene.find(next)) {
-      this.host.toasts.warn(`이미 있는 id 다: ${next}`);
+      this.host.toasts.warn(`이미 있는 id: ${next}`);
       return false;
     }
     const selected = doc.selection.has(id);
@@ -340,7 +340,7 @@ export class SceneTools {
     const o = doc?.scene.find(id);
     if (!doc || !o) return false;
     if (o.scripts.includes(logicalName)) {
-      this.host.toasts.info(`이미 붙어 있다: ${logicalName}`);
+      this.host.toasts.info(`이미 추가된 스크립트: ${logicalName}`);
       return false;
     }
     this.apply(doc, doc.scene.attachScript(id, logicalName));
@@ -377,7 +377,7 @@ export class SceneTools {
       host.documents.open(doc);
       return doc;
     } catch (e) {
-      const message = `${path} 을(를) 열지 못했다: ${(e as Error).message}`;
+      const message = `${path} 열기 실패: ${(e as Error).message}`;
       host.log.error(LOG, message);
       host.toasts.error(message);
       return null;
@@ -388,10 +388,10 @@ export class SceneTools {
   async newScene(): Promise<SceneDocument | null> {
     const host = this.host;
     if (!host.project.isOpen) {
-      host.toasts.warn("프로젝트를 먼저 연다");
+      host.toasts.warn("열린 프로젝트 없음");
       return null;
     }
-    const name = await host.modals.prompt({ title: "새 씬", label: `${SCENES_DIR}/<이름>.json 으로 만든다`, placeholder: "stage1", okLabel: "만들기", validate: validateSceneName });
+    const name = await host.modals.prompt({ title: "새 씬", label: `생성 경로: ${SCENES_DIR}/<이름>.json`, placeholder: "stage1", okLabel: "만들기", validate: validateSceneName });
     if (!name) return null;
     return this.createScene(name.trim());
   }
@@ -401,7 +401,7 @@ export class SceneTools {
     const path = scenePathFor(name);
     try {
       if (await host.backend.exists(path)) {
-        host.toasts.warn(`이미 있다: ${path}`);
+        host.toasts.warn(`이미 있는 파일: ${path}`);
         return null;
       }
       await host.backend.writeText(path, serializeScene(emptyScene(name)));
@@ -409,9 +409,9 @@ export class SceneTools {
       await host.project.refresh("resources").catch(() => {});
       await host.project.refresh(SCENES_DIR).catch(() => {});
       await host.tree.reveal(path);
-      host.log.info(LOG, `씬을 만들었다: ${path}`);
+      host.log.info(LOG, `씬 생성됨: ${path}`);
     } catch (e) {
-      const message = `씬을 만들지 못했다: ${(e as Error).message}`;
+      const message = `씬 생성 실패: ${(e as Error).message}`;
       host.log.error(LOG, message);
       host.toasts.error(message);
       return null;
@@ -427,10 +427,10 @@ export class SceneTools {
     try {
       await host.project.saveGameJson({ ...host.project.gameJson, startScene: name });
       host.log.info(LOG, `시작 씬: ${name}`);
-      host.toasts.success(`시작 씬으로 지정했다: ${name}`);
+      host.toasts.success(`시작 씬으로 지정됨: ${name}`);
       return true;
     } catch (e) {
-      host.toasts.error(`game.json 을 저장하지 못했다: ${(e as Error).message}`);
+      host.toasts.error(`game.json 저장 실패: ${(e as Error).message}`);
       return false;
     }
   }

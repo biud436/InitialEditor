@@ -22,7 +22,7 @@ test.describe("안드로이드로 스테이징 (메모리 모드)", () => {
     const item = page.locator(".menu-item", { hasText: "안드로이드로 스테이징" });
     await expect(item).toBeVisible();
     await expect(item).toBeDisabled();
-    await expect(item).toHaveAttribute("title", "데스크톱 앱에서만 된다");
+    await expect(item).toHaveAttribute("title", "데스크톱 앱 전용");
     // 구분선 아래 (바로 앞에 구분선이 있다)
     await expect(page.locator(".menu-item-wrap", { has: item }).locator(".menu-separator")).toHaveCount(1);
     await page.keyboard.press("Escape");
@@ -31,7 +31,7 @@ test.describe("안드로이드로 스테이징 (메모리 모드)", () => {
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await openRunMenu(page);
     await expect(item).toBeDisabled();
-    await expect(item).toHaveAttribute("title", "데스크톱 앱에서만 된다");
+    await expect(item).toHaveAttribute("title", "데스크톱 앱 전용");
   });
 
   test("설정에 엔진 저장소 칸이 없다 (프로세스를 띄울 수 있는 앱에서만)", async ({ page }) => {

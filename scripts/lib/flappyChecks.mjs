@@ -31,15 +31,15 @@ export function flappyChecks(log, exitCode) {
   const text = String(log);
   const checks = [
     ...exitChecks(text, exitCode),
-    { name: "대기에서 시작한다 (flappy:state:ready)", ok: text.includes("flappy:state:ready"), detail: tail(text) },
-    { name: "자동 시연이 플레이로 들어간다 (flappy:state:play)", ok: text.includes("flappy:state:play"), detail: tail(text) },
+    { name: "ready 상태로 시작 (flappy:state:ready)", ok: text.includes("flappy:state:ready"), detail: tail(text) },
+    { name: "자동 플레이가 play 상태로 전환 (flappy:state:play)", ok: text.includes("flappy:state:play"), detail: tail(text) },
     { name: "부딪히면 게임 오버 (flappy:state:dead)", ok: text.includes("flappy:state:dead"), detail: tail(text) },
   ];
   const m = FLAPPY_FINAL.exec(text);
-  checks.push({ name: "최종 요약 (씬이 스스로 끝냈다)", ok: m !== null, detail: tail(text) });
+  checks.push({ name: "최종 요약 (씬 자체 종료)", ok: m !== null, detail: tail(text) });
   if (m) {
-    checks.push({ name: "파이프를 하나 이상 지난다 (best >= 1)", ok: Number(m[3]) >= 1, detail: m[0] });
-    checks.push({ name: `${FLAPPY_TICKS}틱에 끝낸다`, ok: Number(m[4]) === FLAPPY_TICKS, detail: m[0] });
+    checks.push({ name: "파이프 1개 이상 통과 (best >= 1)", ok: Number(m[3]) >= 1, detail: m[0] });
+    checks.push({ name: `${FLAPPY_TICKS}틱에 종료`, ok: Number(m[4]) === FLAPPY_TICKS, detail: m[0] });
   }
   return checks;
 }

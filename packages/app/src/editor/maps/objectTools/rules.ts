@@ -27,7 +27,7 @@ export const UNKNOWN_GROUP_LABEL = "스키마에 없음";
 /** 띠와 사각형 타입에 defaultWidth/defaultHeight가 없을 때 쓰는 칸 수 */
 export const FALLBACK_SIZE_TILES = 2;
 export const PATROL_RADIUS = 64;
-/** 여기서 실행: 순찰 범위가 있는 오브젝트를 고르면 범위 왼끝에서 이만큼 왼쪽에서 시작한다 */
+/** 이 맵에서 실행: 범위(rangeMin, rangeMax)가 있는 오브젝트를 선택하면 범위 최소 X에서 이만큼 왼쪽에서 시작 */
 export const PLAY_RANGE_GAP = 48;
 /** 여기서 실행: 순찰 범위 기준으로 정한 x의 아래 한계 */
 export const PLAY_MIN_X = 16;
@@ -83,8 +83,8 @@ export type AddPlan = { ok: true; object: MapObject } | { ok: false; reason: str
 /** 새 오브젝트 한 개를 만든다 (명령은 만들지 않는다). at은 점이면 그 자리, 띠와 사각형이면 가운데 */
 export function planNewObject(schema: MapObjectSchema | null, type: string, objects: readonly MapObject[], at: Point, geometry: MapGeometry): AddPlan {
   const spec = typeOf(schema, type);
-  if (!spec) return { ok: false, reason: `스키마에 없는 타입이다: ${type}` };
-  if (spec.unique && objects.some((o) => o.type === type)) return { ok: false, reason: `${spec.label} 은(는) 하나만 둘 수 있다` };
+  if (!spec) return { ok: false, reason: `스키마에 없는 타입: ${type}` };
+  if (spec.unique && objects.some((o) => o.type === type)) return { ok: false, reason: `${spec.label}: 맵당 1개만 허용` };
   const id = uniqueMapObjectId(type, objects.map((o) => o.id));
   // 점은 맵 안에 놓는다 (뷰 가운데가 맵 밖일 수 있다)
   const obj: MapObject = {
@@ -181,8 +181,8 @@ export function planDuplicate(schema: MapObjectSchema | null, objects: readonly 
 export function validateRename(id: string, next: string, taken: readonly string[]): string | null {
   const v = next.trim();
   if (v === id) return null;
-  if (v === "") return "id 는 비울 수 없다";
-  if (taken.includes(v)) return `이미 있는 id 다: ${v}`;
+  if (v === "") return "id 비어 있음";
+  if (taken.includes(v)) return `이미 있는 id: ${v}`;
   return null;
 }
 
@@ -231,7 +231,7 @@ export interface PlayPosition extends Point {
 }
 
 /** 여기서 실행의 위치 규칙 (메뉴 안내) */
-export const PLAY_POSITION_RULE = `위치는 하나만 고른 오브젝트 (순찰 범위가 있으면 왼끝에서 ${PLAY_RANGE_GAP}px 왼쪽, ${PLAY_MIN_X} 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서로 정하고 맵 안으로 자른다`;
+export const PLAY_POSITION_RULE = `실행 위치 결정 순서: 선택한 오브젝트 1개 (범위가 있으면 최소 X에서 ${PLAY_RANGE_GAP}px 왼쪽, ${PLAY_MIN_X} 이상), 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데. 결과 좌표는 맵 안으로 제한`;
 
 function isPoint(p: Point | null | undefined): p is Point {
   return !!p && Number.isFinite(p.x) && Number.isFinite(p.y);
@@ -243,8 +243,8 @@ function insideMap(p: Point, g: MapGeometry): boolean {
 
 /**
  * 실행 위치: 하나만 고른 오브젝트, 맵 안의 커서, 화면 가운데, 시작 지점, 맵 가운데 순서. 결과는 맵 안으로 자른다.
- * 고른 오브젝트에 순찰 범위가 있으면 범위 왼끝에서 PLAY_RANGE_GAP 왼쪽(PLAY_MIN_X 이상)에서 시작한다.
- * 범위 왼끝 값이 없으면 엔진처럼 x - PATROL_RADIUS로 본다.
+ * 선택한 오브젝트에 범위가 있으면 범위 최소 X에서 PLAY_RANGE_GAP 왼쪽(PLAY_MIN_X 이상)에서 시작한다.
+ * 최소 X 값이 없으면 엔진처럼 x - PATROL_RADIUS로 본다.
  */
 export function playPosition(input: PlayPositionInput): PlayPosition {
   const g = input.geometry;
@@ -260,7 +260,7 @@ export function playPosition(input: PlayPositionInput): PlayPosition {
       const v = o.props[range.min.name];
       const min = typeof v === "number" && Number.isFinite(v) ? v : o.x - PATROL_RADIUS;
       const x = Math.max(PLAY_MIN_X, min - PLAY_RANGE_GAP);
-      return fit({ x, y: o.y, source: "selection", objectId: o.id, note: `순찰 범위 왼끝 ${Math.round(min)}에서 ${PLAY_RANGE_GAP}px 왼쪽` });
+      return fit({ x, y: o.y, source: "selection", objectId: o.id, note: `범위 최소 X ${Math.round(min)}에서 ${PLAY_RANGE_GAP}px 왼쪽` });
     }
     if (o) return fit({ x: o.x, y: o.y, source: "selection", objectId: o.id });
   }
@@ -290,11 +290,11 @@ export function playMapRefusal(schema: MapObjectSchema | null, map: { name: stri
   if (!play?.maps) return null;
   const name = mapNameFor(map.name, map.path);
   if (playAllowsMap(play, name)) return null;
-  const list = play.maps.length > 0 ? play.maps.join(", ") : "비었다";
-  return `맵 ${name || "(이름 없음)"}은(는) 여기서 실행 대상이 아니다. 스키마의 play.maps: ${list}`;
+  const list = play.maps.length > 0 ? play.maps.join(", ") : "비어 있음";
+  return `'이 맵에서 실행' 대상이 아닌 맵: ${name || "(이름 없음)"} (스키마의 play.maps: ${list})`;
 }
 
-export const NO_PLAY_HINT = '스키마에 play 가 없다. resources/schema/map-objects.json 에 "play": { "env": { "INITIAL2D_SCENE": "...", "변수": "{map.name}", "위치": "{x}" } } 를 더하면 켜진다';
+export const NO_PLAY_HINT = '스키마에 play 없음. resources/schema/map-objects.json에 "play": { "env": { "INITIAL2D_SCENE": "...", "변수": "{map.name}", "위치": "{x}" } } 추가 시 사용 가능';
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));

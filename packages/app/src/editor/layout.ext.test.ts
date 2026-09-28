@@ -145,7 +145,7 @@ describe("확장 패널의 탭", () => {
     store.togglePanel("ext:rpg.events");
     store.showPanel("ext:rpg.events");
     expect(dock.getPanel("ext:rpg.events")).toBeUndefined();
-    expect(warnings).toEqual(["이 프로젝트에 해당하지 않는 확장 패널이다: 이벤트", "이 프로젝트에 해당하지 않는 확장 패널이다: 이벤트"]);
+    expect(warnings).toEqual(["이 프로젝트에서 표시하지 않는 확장 패널: 이벤트", "이 프로젝트에서 표시하지 않는 확장 패널: 이벤트"]);
     runInAction(() => shown.set(true));
     store.applyPreset("tilemap");
     expect(dock.getPanel("ext:rpg.events")).toBeDefined();
@@ -160,7 +160,7 @@ describe("확장 패널의 탭", () => {
     const { dock, store, warnings } = await setup([]);
     store.togglePanel("ext:gone" as ToolPanelId);
     expect(dock.getPanel("ext:gone")).toBeUndefined();
-    expect(warnings).toEqual(["등록되지 않은 확장 패널이다: ext:gone"]);
+    expect(warnings).toEqual(["등록되지 않은 확장 패널: ext:gone"]);
     store.dispose();
   });
 

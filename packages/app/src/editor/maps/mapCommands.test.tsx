@@ -91,9 +91,9 @@ describe("맵 커맨드: 새 맵과 크기 바꾸기", () => {
     expect(commands.get("map.new")?.shortcut).toBe("Ctrl+Alt+M");
     expect(commands.findByKey({ key: "m", ctrlKey: true, altKey: true, shiftKey: false, metaKey: false })).toBeNull();
     expect(commands.isEnabled("map.new")).toBe(false);
-    expect(hint("map.new")).toBe("프로젝트를 먼저 연다");
+    expect(hint("map.new")).toBe("열린 프로젝트 없음");
     expect(commands.isEnabled("map.resize")).toBe(false);
-    expect(hint("map.resize")).toBe("맵 탭이 활성일 때");
+    expect(hint("map.resize")).toBe("활성 맵 탭 없음");
     const paths = menus.items.filter((i) => i.commandId === "map.new" || i.commandId === "map.resize").map((i) => i.path);
     expect(paths).toEqual(["맵/새 맵", "맵/크기 바꾸기"]);
     const opened = await setup(true);
@@ -122,7 +122,7 @@ describe("맵 커맨드: 새 맵과 크기 바꾸기", () => {
     expect(saved.layers.map((l) => l.name)).toEqual(["ground", "deco"]);
     expect(saved.collision?.length).toBe(30);
     expect((documents.active as MapDocument).path).toBe("resources/maps/stage1.json");
-    expect(log.entries.some((e) => e.text.startsWith("새 맵을 만들었다: resources/maps/stage1.json (6x5 칸"))).toBe(true);
+    expect(log.entries.some((e) => e.text.startsWith("새 맵 생성됨: resources/maps/stage1.json (6x5 타일"))).toBe(true);
   });
 
   it("새 맵: 취소하면 아무것도 쓰지 않는다", async () => {
@@ -150,7 +150,7 @@ describe("맵 커맨드: 새 맵과 크기 바꾸기", () => {
       running = commands.execute("map.resize");
     });
     renderTopModal(modals);
-    expect(screen.getByTestId("resize-current").textContent).toBe("4x2 칸 (64x32 px)");
+    expect(screen.getByTestId("resize-current").textContent).toBe("4x2 타일 (64x32 px)");
     type("resize-width", "6");
     type("resize-height", "3");
     fireEvent.click(document.querySelector('[data-anchor="bottom-right"]')!);
@@ -163,6 +163,6 @@ describe("맵 커맨드: 새 맵과 크기 바꾸기", () => {
     expect(m.layers[0].data).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 5, 6, 7, 8]);
     expect(m.findObject("start")).toMatchObject({ x: 40, y: 24 });
     expect(doc!.undo.depth).toBe(1);
-    expect(log.entries.at(-1)?.text).toBe("맵 크기를 바꿨다: meadow.json 4x2 → 6x3 칸 (기준 오른쪽 아래, 옮김 x +2칸, y +1칸)");
+    expect(log.entries.at(-1)?.text).toBe("맵 크기 변경됨: meadow.json 4x2 → 6x3 타일 (기준점 오른쪽 아래, 내용 이동 x +2, y +1 (타일))");
   });
 });

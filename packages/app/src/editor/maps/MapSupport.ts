@@ -162,12 +162,12 @@ export class MapSupport {
     } catch (e) {
       const reason = (e as Error).message;
       if (e instanceof MapFormatError && fallback) {
-        editor.log.warn("editor", `${path} 은(는) 맵 형식이 아니라 텍스트로 연다: ${reason}`);
-        editor.toasts.error(`맵으로 열지 못해 텍스트로 연다: ${reason}`);
+        editor.log.warn("editor", `${path}: 맵 형식 아님, 텍스트 편집기로 열림 (${reason})`);
+        editor.toasts.error(`맵 형식 아님, 텍스트 편집기로 열림: ${reason}`);
         await fallback(path);
         return null;
       }
-      const message = `${path} 을(를) 읽지 못했다: ${reason}`;
+      const message = `${path} 열기 실패: ${reason}`;
       editor.log.error("editor", message);
       editor.toasts.error(message);
       return null;
@@ -176,7 +176,7 @@ export class MapSupport {
     if (opened !== doc) return opened instanceof MapDocument ? opened : null;
     this.trackDocument(doc);
     const m = doc.model;
-    editor.log.info("editor", `맵을 열었다: ${path} (${m.width}x${m.height} 칸, 레이어 ${m.layers.length}, 오브젝트 ${m.objects.length})`);
+    editor.log.info("editor", `맵 열림: ${path} (${m.width}x${m.height} 타일, 레이어 ${m.layers.length}개, 오브젝트 ${m.objects.length}개)`);
     return doc;
   }
 
@@ -207,7 +207,7 @@ export class MapSupport {
     try {
       this.editor.layout?.ensureMapPanels();
     } catch (e) {
-      this.editor.log.warn("editor", `맵 패널을 더하지 못했다: ${(e as Error).message}`);
+      this.editor.log.warn("editor", `맵 패널 추가 실패: ${(e as Error).message}`);
     }
   }
 

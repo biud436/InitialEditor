@@ -234,7 +234,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
     const left = length - range.count;
     setCursorKey(range.start < left ? commandKey({ list: range.list, index: range.start }) : endKey(range.list));
     setAnchorKey(null);
-    setStatus(`커맨드 ${range.count}개를 뺐다`);
+    setStatus(`커맨드 ${range.count}개 삭제됨`);
   };
 
   const move = (delta: -1 | 1) => {
@@ -253,16 +253,16 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
     if (!range) return;
     const copied = copyCommands(commands, range.list, range.start, range.count, schema);
     clipboard.write(copied);
-    setStatus(`커맨드 ${copied.length}개를 복사했다`);
+    setStatus(`커맨드 ${copied.length}개 복사됨`);
   };
 
   const paste = () => {
     const pasted = clipboard.read();
     if (!pasted) {
-      setNotice("붙일 커맨드가 없다 (클립보드가 커맨드 JSON 이 아니다)");
+      setNotice("붙여넣을 커맨드 없음 (클립보드 내용이 커맨드 JSON 이 아님)");
       return;
     }
-    if (insert(pasted, insertTarget(cursor, range, "below"))) setStatus(`커맨드 ${pasted.length}개를 붙였다`);
+    if (insert(pasted, insertTarget(cursor, range, "below"))) setStatus(`커맨드 ${pasted.length}개 붙여넣음`);
   };
 
   const openPalette = (where: InsertWhere) => {
@@ -412,7 +412,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   if (!isPlainObject(ev)) {
     return (
       <div className="rpg-cmd-editor" data-testid="rpg-cmd-editor">
-        <div className="rpg-arg-note is-warning">이벤트가 없거나 객체가 아니다 (events[{eventIndex + 1}])</div>
+        <div className="rpg-arg-note is-warning">이벤트가 없거나 객체가 아님 (events[{eventIndex + 1}])</div>
       </div>
     );
   }
@@ -420,9 +420,9 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
   return (
     <div className="rpg-cmd-editor" data-testid="rpg-cmd-editor">
       <div className="rpg-cmd-toolbar" role="toolbar" aria-label="커맨드 편집">
-        {toolbar("위에 넣기", "rpg-cmd-insert-above", editable && !!cursor, () => openPalette("above"))}
-        {toolbar("아래에 넣기", "rpg-cmd-insert-below", editable && !!cursor, () => openPalette("below"))}
-        {toolbar("빼기", "rpg-cmd-remove", editable && !!range, remove)}
+        {toolbar("위에 삽입", "rpg-cmd-insert-above", editable && !!cursor, () => openPalette("above"))}
+        {toolbar("아래에 삽입", "rpg-cmd-insert-below", editable && !!cursor, () => openPalette("below"))}
+        {toolbar("삭제", "rpg-cmd-remove", editable && !!range, remove)}
         {toolbar("위로", "rpg-cmd-up", editable && canMoveUp, () => move(-1))}
         {toolbar("아래로", "rpg-cmd-down", editable && canMoveDown, () => move(1))}
         {toolbar("복사", "rpg-cmd-copy", !!range, copy)}
@@ -479,7 +479,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
       )}
       {!commandsOk ? (
         <div className="rpg-arg-note is-warning" data-testid="rpg-cmd-broken">
-          events[{eventIndex + 1}].commands 가 배열이 아니라 고칠 수 없다 ({stringifyJsonLossless(commands)})
+          events[{eventIndex + 1}].commands 편집 불가 (배열이 아님): {stringifyJsonLossless(commands)}
         </div>
       ) : (
         <div
@@ -523,7 +523,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
                     type="button"
                     tabIndex={-1}
                     className="rpg-fold"
-                    aria-label={row.folded ? "펴기" : "접기"}
+                    aria-label={row.folded ? "펼치기" : "접기"}
                     disabled={row.broken}
                     data-testid="rpg-cmd-fold"
                     onClick={(e) => {
@@ -545,11 +545,11 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
                 {row.kind === "header" && (
                   <>
                     <span className="rpg-row-head">{row.label}</span>
-                    {row.broken ? <span className="rpg-arg-note is-warning">배열이 아니라 고칠 수 없다</span> : row.folded && <span className="muted">({row.count})</span>}
+                    {row.broken ? <span className="rpg-arg-note is-warning">편집 불가 (배열이 아님)</span> : row.folded && <span className="muted">({row.count})</span>}
                   </>
                 )}
                 {row.kind === "end" && (
-                  <span className="rpg-row-end muted" title="두 번 누르거나 Enter 로 여기에 넣는다">
+                  <span className="rpg-row-end muted" title="더블클릭 또는 Enter: 여기에 커맨드 삽입">
                     ◇
                   </span>
                 )}
@@ -584,7 +584,7 @@ export const CommandListEditor = observer(function CommandListEditor(props: Comm
       )}
       {cursor?.kind === "command" && !cursor.spec && range?.count === 1 && (
         <div className="rpg-arg-note is-warning" data-testid="rpg-cmd-unknown-command">
-          {isPlainObject(cursor.cmd) ? "스키마에 없는 커맨드라 고칠 수 없다. 빼거나 옮길 수만 있다" : "커맨드가 객체가 아니다. 뺄 수만 있다"}: <code>{stringifyJsonLossless(cursor.cmd)}</code>
+          {isPlainObject(cursor.cmd) ? "스키마에 없는 커맨드: 편집 불가, 삭제와 이동만 가능" : "객체가 아닌 커맨드: 삭제만 가능"}: <code>{stringifyJsonLossless(cursor.cmd)}</code>
         </div>
       )}
       {notice && (

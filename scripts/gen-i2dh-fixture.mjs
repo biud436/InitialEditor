@@ -16,7 +16,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const engineRoot = path.resolve(process.argv[2] ?? path.join(here, "..", "..", "Initial2D"));
 const hmrPath = path.join(engineRoot, "tools", "bridge", "lib", "hmr.js");
 if (!fs.existsSync(hmrPath)) {
-  console.error(`엔진 인코더가 없다: ${hmrPath}`);
+  console.error(`엔진 HMR 인코더 없음: ${hmrPath}`);
   process.exit(1);
 }
 const { encodeBundle, decodeBundle } = await import(pathToFileURL(hmrPath).href);

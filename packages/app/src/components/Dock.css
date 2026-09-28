@@ -104,3 +104,9 @@
 .doc-header-spacer {
   flex: 1;
 }
+
+/* 저장 상태 글자 ("저장됨", "저장 안 됨"). 폭을 고정해 상태가 바뀌어도 머리줄의 줄바꿈과 아래 뷰의 위치가 그대로다 */
+.doc-header-save-state {
+  display: inline-block;
+  min-width: 5em;
+}

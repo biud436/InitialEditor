@@ -21,7 +21,7 @@ pub fn load(dir: &Path) -> Result<Option<String>> {
 /// JSON 인지 확인한 뒤 원자적으로 쓴다 (폴더가 없으면 만든다)
 pub fn save(dir: &Path, json: &str) -> Result<()> {
     serde_json::from_str::<serde_json::Value>(json)
-        .map_err(|e| BackendError::new(ErrorCode::Io, format!("설정이 JSON 이 아니다: {e}")))?;
+        .map_err(|e| BackendError::new(ErrorCode::Io, format!("설정 JSON 구문 오류: {e}")))?;
     fs::create_dir_all(dir).map_err(|e| BackendError::io(&e, Some(&dir.to_string_lossy())))?;
     write_atomic(&dir.join(FILE_NAME), json.as_bytes())
         .map_err(|e| BackendError::io(&e, Some(FILE_NAME)))

@@ -51,7 +51,7 @@ const cell = (anchor: string) => document.querySelector(`[data-testid="resize-an
 describe("크기 바꾸기 대화상자", () => {
   it("지금 크기를 보이고, 같은 크기면 막는다", async () => {
     const { ok } = await setup();
-    expect(screen.getByTestId("resize-current").textContent).toBe("20x12 칸 (320x192 px)");
+    expect(screen.getByTestId("resize-current").textContent).toBe("20x12 타일 (320x192 px)");
     expect((screen.getByTestId("resize-width") as HTMLInputElement).value).toBe("20");
     expect(ok.disabled).toBe(true);
     expect(screen.queryByTestId("resize-summary")).toBeNull();
@@ -75,15 +75,15 @@ describe("크기 바꾸기 대화상자", () => {
     const summary = screen.getByTestId("resize-summary");
     expect(summary.getAttribute("data-dx")).toBe("2");
     expect(summary.getAttribute("data-dy")).toBe("2");
-    expect(summary.textContent).toBe("옮김 x +2칸, y +2칸");
+    expect(summary.textContent).toBe("내용 이동 x +2, y +2 (타일)");
     type("resize-width", "10");
     fireEvent.click(cell("top-left"));
-    expect(screen.getByTestId("resize-summary").textContent).toContain("줄어드는 쪽의 칸은 잘린다");
+    expect(screen.getByTestId("resize-summary").textContent).toContain("줄어드는 쪽의 타일은 잘림");
     expect(screen.getByTestId("resize-outside").getAttribute("data-count")).toBe("1");
     expect(screen.getByTestId("resize-outside").textContent).toContain("slime_1");
     // 띠 sign_1은 x 150이라 안이고 끝 182가 새 폭 160을 넘는다
     expect(screen.getByTestId("resize-partly").getAttribute("data-count")).toBe("1");
-    expect(screen.getByTestId("resize-partly").textContent).toBe("끝이나 순찰 범위가 맵 밖까지 가는 오브젝트 1개: sign_1");
+    expect(screen.getByTestId("resize-partly").textContent).toBe("영역이나 범위가 맵 밖으로 일부 나가는 오브젝트 1개: sign_1");
     type("resize-width", "12");
     expect(screen.queryByTestId("resize-partly")).toBeNull();
   });
@@ -91,11 +91,11 @@ describe("크기 바꾸기 대화상자", () => {
   it("잘못된 크기는 막고 이유를 보인다", async () => {
     const { ok } = await setup();
     type("resize-width", "2000");
-    expect(screen.getByTestId("resize-problem").textContent).toBe("폭은 1 이상 1024 이하다");
+    expect(screen.getByTestId("resize-problem").textContent).toBe("너비: 1 이상 1024 이하여야 함");
     expect(ok.disabled).toBe(true);
     type("resize-width", "20");
     type("resize-height", "abc");
-    expect(screen.getByTestId("resize-problem").textContent).toBe("높이는 정수다");
+    expect(screen.getByTestId("resize-problem").textContent).toBe("높이: 정수여야 함");
   });
 
   it("바꾸기를 누르면 새 크기와 기준점을 넘긴다", async () => {

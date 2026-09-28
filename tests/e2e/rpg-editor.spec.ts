@@ -238,11 +238,11 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await page.keyboard.press("n");
     await expect(view).toHaveAttribute("data-target", "ext:rpg.events");
     await page.getByTestId("layers").locator('[data-target="ext:rpg.events"]').getByTestId("layer-eye").click();
-    await expect(page.getByTestId("map-target-hidden")).toHaveText("숨김, 고치지 않는다");
+    await expect(page.getByTestId("map-target-hidden")).toHaveText("숨김 상태, 편집 불가");
     const d0 = await depth(page);
     const empty = await cellPoint(view, 2, 44);
     await page.mouse.dblclick(empty.x, empty.y);
-    await expect(page.getByTestId("toasts")).toContainText("숨긴 레이어는 고치지 않는다");
+    await expect(page.getByTestId("toasts")).toContainText("숨긴 레이어는 편집 불가");
     const captain = await cellPoint(view, 16, 44);
     await page.mouse.click(captain.x, captain.y);
     await host.focus();
@@ -266,8 +266,8 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^이벤트$/ }) }).click();
     const rows = page.getByTestId("rpg-events-panel").getByTestId("rpg-events-row");
     await expect(rows).toHaveCount(19);
-    await expect(rows.nth(17)).toHaveText("!events[18]객체가 아니다 (null)");
-    await expect(rows.nth(18)).toHaveText('!events[19]객체가 아니다 ("oops")');
+    await expect(rows.nth(17)).toHaveText("!events[18]객체가 아님 (null)");
+    await expect(rows.nth(18)).toHaveText('!events[19]객체가 아님 ("oops")');
     await expect(page.getByTestId("rpg-events-panel")).not.toContainText("undefined");
 
     // 다른 이벤트를 옮겨 저장해도 crates 의 seed 는 숫자 글 그대로다
@@ -278,7 +278,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await expect.poll(() => eventCell(page, "bench")).toEqual([18, 34]);
     await page.keyboard.press(`${mod}+s`);
     await page.getByRole("button", { name: "그래도 저장" }).click();
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: port_town.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: port_town.json");
     const saved = await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT);
     expect(saved).toContain('"seed": 12345678901234567890');
   });
@@ -319,7 +319,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await row.click();
     await expect(page.getByTestId("rpg-arg-value")).toHaveValue("12345678901234567890");
     await expect(page.getByTestId("rpg-inspector")).not.toContainText("INT:");
-    await expect(page.getByTestId("rpg-inspector")).not.toContainText("타입이 아니다");
+    await expect(page.getByTestId("rpg-inspector")).not.toContainText("타입 불일치");
 
     // 커맨드 복사 (트리의 Ctrl+C)와 이벤트 복사 (맵 뷰의 Ctrl+C)는 시스템 클립보드에 수로 간다
     await expect(tree).toBeFocused();
@@ -340,7 +340,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await page.keyboard.press("ArrowLeft");
     await expect.poll(() => eventCell(page, "bench")).toEqual([18, 34]);
     await page.keyboard.press(`${mod}+s`);
-    await expect(page.getByTestId("toasts")).toContainText("저장했다: port_town.json");
+    await expect(page.getByTestId("toasts")).toContainText("저장됨: port_town.json");
     await expect(page.getByRole("button", { name: "그래도 저장" })).toHaveCount(0);
     const saved = await ev<string>(page, "(e, p) => e.backend.readText(p)", PORT);
     expect(saved).toContain('"seed": 12345678901234567890');
@@ -421,7 +421,7 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     await expect.poll(() => ev<boolean>(page, "(e) => e.extensions.exportsOf('rpg').store.loaded")).toBe(true);
     await expect.poll(eventsOpen).toBe(false);
     await expect(page.getByTestId("rpg-events-panel")).toHaveCount(0);
-    await expect(page.getByText("이 맵에는 이벤트 레이어가 없다")).toHaveCount(0);
+    await expect(page.getByText("이 맵에 이벤트 레이어 없음")).toHaveCount(0);
   });
 
   test("RPG 프로젝트에서는 같은 항목이 보인다 (대조)", async ({ page }) => {

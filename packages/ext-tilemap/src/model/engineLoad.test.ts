@@ -42,24 +42,24 @@ describe("엔진이 맵 파일을 여는 규칙 (Tilemap::load)", () => {
   });
 
   it("엔진이 거부하는 것", () => {
-    expect(checkEngineMap("{ nope")).toMatchObject({ ok: false, reason: expect.stringMatching(/^JSON 이 아니다: /) });
-    expect(reason({ version: 3 })).toBe("모르는 맵 버전이다: 3 (지원: 1, 2)");
-    expect(reason({ version: "2" })).toBe('모르는 맵 버전이다: "2" (지원: 1, 2)');
-    expect(checkEngineMap("{}")).toEqual({ ok: false, reason: "모르는 맵 버전이다: 없음 (지원: 1, 2)" });
-    expect(reason({ width: 0 })).toBe("맵 크기나 타일 크기가 0 이하다");
-    expect(reason({ tileHeight: -16 })).toBe("맵 크기나 타일 크기가 0 이하다");
-    expect(reason({ layers: [] })).toBe("레이어가 없다");
-    expect(reason({ layers: {} })).toBe("레이어가 없다");
-    expect(reason({ layers: [{ name: "g", data: [0] }] })).toMatch(/^레이어 "g"의 칸 수가/);
-    expect(reason({ layers: [{ name: "g", data: [0, 1.5] }] })).toMatch(/^레이어 "g"의 칸 수가/);
-    expect(reason({ layers: [{ name: "g", data: [0, "1"] }] })).toMatch(/^레이어 "g"의 칸 수가/);
+    expect(checkEngineMap("{ nope")).toMatchObject({ ok: false, reason: expect.stringMatching(/^JSON 구문 오류: /) });
+    expect(reason({ version: 3 })).toBe("지원하지 않는 맵 버전: 3 (지원: 1, 2)");
+    expect(reason({ version: "2" })).toBe('지원하지 않는 맵 버전: "2" (지원: 1, 2)');
+    expect(checkEngineMap("{}")).toEqual({ ok: false, reason: "지원하지 않는 맵 버전: 없음 (지원: 1, 2)" });
+    expect(reason({ width: 0 })).toBe("맵 크기나 타일 크기가 0 이하");
+    expect(reason({ tileHeight: -16 })).toBe("맵 크기나 타일 크기가 0 이하");
+    expect(reason({ layers: [] })).toBe("레이어 없음");
+    expect(reason({ layers: {} })).toBe("레이어 없음");
+    expect(reason({ layers: [{ name: "g", data: [0] }] })).toMatch(/^레이어 "g"의 data 길이가 너비 x 높이와 다르거나/);
+    expect(reason({ layers: [{ name: "g", data: [0, 1.5] }] })).toMatch(/^레이어 "g"의 data 길이가 너비 x 높이와 다르거나/);
+    expect(reason({ layers: [{ name: "g", data: [0, "1"] }] })).toMatch(/^레이어 "g"의 data 길이가 너비 x 높이와 다르거나/);
     expect(reason({ collision: null })).toMatch(/^collision /);
     expect(reason({ collision: [0] })).toMatch(/^collision /);
     expect(reason({ collision: [0, 1] })).toBeNull();
-    expect(reason({ tilesets: [] })).toBe("타일셋이 없다");
-    expect(reason({ tilesets: [{ image: "", firstGid: 1, columns: 1 }] })).toMatch(/^타일셋 항목이 틀렸다/);
-    expect(reason({ tilesets: [{ image: "a.png", firstGid: 0, columns: 1 }] })).toMatch(/^타일셋 항목이 틀렸다/);
-    expect(reason({ tilesets: [{ image: "a.png", firstGid: 1, columns: 0 }] })).toMatch(/^타일셋 항목이 틀렸다/);
+    expect(reason({ tilesets: [] })).toBe("타일셋 없음");
+    expect(reason({ tilesets: [{ image: "", firstGid: 1, columns: 1 }] })).toMatch(/^잘못된 타일셋 항목/);
+    expect(reason({ tilesets: [{ image: "a.png", firstGid: 0, columns: 1 }] })).toMatch(/^잘못된 타일셋 항목/);
+    expect(reason({ tilesets: [{ image: "a.png", firstGid: 1, columns: 0 }] })).toMatch(/^잘못된 타일셋 항목/);
   });
 
   const files = existsSync(MAPS) ? readdirSync(MAPS).filter((f) => f.endsWith(".json")) : [];

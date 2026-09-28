@@ -68,7 +68,7 @@ export const ProjectPanel = observer(function ProjectPanel() {
   if (!project.isOpen) {
     return (
       <div className="panel-body">
-        <div className="panel-hint">프로젝트를 열면 파일이 보인다</div>
+        <div className="panel-hint">열린 프로젝트 없음</div>
       </div>
     );
   }
@@ -104,7 +104,7 @@ export const ProjectPanel = observer(function ProjectPanel() {
         {tree.rows.map((row) => (
           <TreeRowView key={row.entry.path} row={row} onContextMenu={openContext} />
         ))}
-        {tree.rows.length === 0 && <div className="panel-hint">빈 프로젝트다. 오른쪽 클릭으로 파일을 만든다</div>}
+        {tree.rows.length === 0 && <div className="panel-hint">빈 프로젝트. 오른쪽 클릭 메뉴로 파일 생성</div>}
       </div>
       {menu && <ContextMenu state={menu} onClose={() => setMenu(null)} />}
     </div>

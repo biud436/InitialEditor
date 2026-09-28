@@ -34,7 +34,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
   if (!list) {
     return (
       <div className="rpg-arg-note is-warning" data-testid={`${testId}-broken`}>
-        항목 목록이 배열이 아니라 고칠 수 없다 ({stringifyJsonLossless(value)})
+        항목 목록 편집 불가 (배열이 아님): {stringifyJsonLossless(value)}
       </div>
     );
   }
@@ -43,7 +43,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
   const hasCancel = ops.setCancel !== undefined;
   const remove = async (k: number) => {
     const size = branchSizes[k] ?? 0;
-    if (size > 0 && !(await ctx.confirm(`${k + 1}번 항목의 가지에 커맨드가 ${size}개 있다. 가지와 함께 뺄까?`))) return;
+    if (size > 0 && !(await ctx.confirm(`${k + 1}번 항목의 분기에 커맨드 ${size}개 있음. 분기와 함께 삭제할까요?`))) return;
     ops.remove(k);
   };
   const name = `${testId}-cancel`;
@@ -62,7 +62,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
           />
           <span className="rpg-option-tools">
             {hasCancel && (
-              <label className="rpg-option-cancel" title="취소키를 누르면 이 항목을 고른 것으로 친다">
+              <label className="rpg-option-cancel" title="취소 키를 누르면 선택되는 항목">
                 <input type="radio" name={name} checked={cancelNo === k + 1} disabled={ctx.disabled} onChange={() => ops.setCancel?.(k + 1)} data-testid={`${testId}-${k}-cancel`} />
                 취소
               </label>
@@ -73,7 +73,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
             <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || k >= list.length - 1} aria-label={`${k + 1}번 항목 아래로`} data-testid={`${testId}-${k}-down`} onClick={() => ops.move(k, k + 1)}>
               ↓
             </button>
-            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || list.length <= (spec.min ?? 1)} aria-label={`${k + 1}번 항목 빼기`} data-testid={`${testId}-${k}-remove`} onClick={() => void remove(k)}>
+            <button type="button" className="btn btn-ghost rpg-mini" disabled={ctx.disabled || list.length <= (spec.min ?? 1)} aria-label={`${k + 1}번 항목 삭제`} data-testid={`${testId}-${k}-remove`} onClick={() => void remove(k)}>
               ✕
             </button>
           </span>
@@ -81,7 +81,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
       ))}
       <div className="rpg-options-foot">
         <button type="button" className="btn" disabled={ctx.disabled} data-testid={`${testId}-add`} onClick={() => ops.add(list.length, `항목 ${list.length + 1}`)}>
-          항목 더하기
+          항목 추가
         </button>
         {hasCancel && (
           <label className="rpg-option-cancel">
@@ -92,7 +92,7 @@ export function OptionsArg({ spec, value, cancel, branchSizes = [], ops, ctx, se
       </div>
       {cancelNo !== undefined && (cancelNo < 1 || cancelNo > n) && (
         <div className="rpg-arg-note is-warning" data-testid={`${testId}-cancel-outside`}>
-          취소 번호 {cancelNo} 이 항목 밖이다
+          취소 번호 {cancelNo}: 항목 범위 밖
         </div>
       )}
     </div>
