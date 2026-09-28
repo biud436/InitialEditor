@@ -66,11 +66,16 @@ async function addObject(page: Page, type: string): Promise<string> {
 
 /** 인스펙터의 x, y 칸으로 고른 오브젝트를 옮긴다 */
 async function placeSelected(page: Page, at: Point) {
-  for (const [axis, value] of [["x", at.x], ["y", at.y]] as const) {
-    const field = page.getByTestId(`inspector-${axis}`);
-    await field.fill(String(value));
-    await field.press("Enter");
-  }
+  // 이미지를 고른 직후에는 인스펙터가 다시 그려져 입력이 먹히지 않을 수 있다. 모델의 좌표가 맞을 때까지 다시 입력한다
+  const [id] = await selected(page);
+  await expect(async () => {
+    for (const [axis, value] of [["x", at.x], ["y", at.y]] as const) {
+      const field = page.getByTestId(`inspector-${axis}`);
+      await field.fill(String(value));
+      await field.press("Enter");
+    }
+    expect(await position(page, id)).toEqual([at.x, at.y]);
+  }).toPass({ timeout: 10_000 });
 }
 
 /** 월드 좌표를 페이지 좌표로 (캔버스 안이어야 한다) */

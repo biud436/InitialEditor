@@ -102,6 +102,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
     <div
       className="map-view"
       data-testid="map-view"
+      data-path={doc.path ?? ""}
       data-zoom={zoom}
       data-pan-x={t?.panX ?? 0}
       data-pan-y={t?.panY ?? 0}

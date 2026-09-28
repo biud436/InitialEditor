@@ -75,6 +75,8 @@ export async function openRpgProject(page: Page): Promise<void> {
 export async function openMap(page: Page, p: string, tab: string): Promise<void> {
   await ev(page, "(e, p) => e.openPath(p)", p);
   await expect(page.getByTestId("doc-tab").filter({ hasText: tab })).toBeVisible();
+  // 탭이 이미 열려 있으면 앞으로 오기 전에도 위 두 조건이 참이다. 보이는 맵 뷰가 그 경로일 때까지 기다린다
+  await expect(page.getByTestId("map-view")).toHaveAttribute("data-path", p);
   await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
 }
 
