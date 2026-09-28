@@ -88,7 +88,7 @@ export class ScriptSupport {
     if (loaded.source === "project") {
       editor.log.info("editor", `API 명세 로드됨: ${API_SPEC_PATH} (함수 ${n.functions}개, 클래스 ${n.classes}개, 상수 ${n.constants}개)`);
     } else {
-      editor.log.info("editor", `내장 기본 API 명세(fallback) 사용 (함수 ${n.functions}개). 프로젝트의 ${API_SPEC_PATH} 없음 또는 로드 실패`);
+      editor.log.info("editor", `내장 기본 API 명세(fallback)를 사용합니다 (함수 ${n.functions}개). 프로젝트에 ${API_SPEC_PATH} 파일이 없거나 불러오지 못했습니다.`);
     }
   }
 

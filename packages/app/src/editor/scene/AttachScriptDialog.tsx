@@ -83,7 +83,7 @@ const AttachScriptForm = observer(function AttachScriptForm({ objectId, onClose 
               <option key={s} value={s} />
             ))}
           </datalist>
-          <div className="form-help">{path ? `파일: ${path}` : name ? error : `기존 컴포넌트 ${suggestions.length}개 (매개변수 선언 ${declaredCount}개). scripts/${language === "mruby" ? "ruby" : "lua"}/ 기준 상대 경로, 확장자 제외`}</div>
+          <div className="form-help">{path ? `파일: ${path}` : name ? error : `기존 컴포넌트 ${suggestions.length}개 (매개변수 선언 ${declaredCount}개). scripts/${language === "mruby" ? "ruby" : "lua"}/ 기준 상대 경로를 확장자 없이 입력합니다.`}</div>
         </div>
         <div className="form-row">
           <label htmlFor="attach-script-create">파일이 없으면 생성</label>

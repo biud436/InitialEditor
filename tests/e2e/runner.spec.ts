@@ -41,7 +41,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     const manifest = JSON.parse(readFileSync(path.resolve("packages/app/public/engine/MANIFEST.json"), "utf8")) as { features: string[]; engineCommit: string };
     await expect(engine).toHaveAttribute("title", new RegExp(`기능 ${manifest.features.join(" ")}, 엔진 커밋 ${manifest.engineCommit.slice(0, 7)}`));
-    await expect(page.getByTestId("console-list")).toContainText("실행(F5)은 게임 탭의 웹 엔진 사용");
+    await expect(page.getByTestId("console-list")).toContainText("실행(F5)에 게임 탭의 웹 엔진을 사용합니다");
     // 실행 전이라 정지는 꺼져 있고 실행 표시도 없다
     const toolbar = page.getByTestId("toolbar");
     await expect(toolbar.locator('[data-command="run.stop"]')).toBeDisabled();

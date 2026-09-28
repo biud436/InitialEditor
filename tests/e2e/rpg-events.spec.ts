@@ -354,7 +354,7 @@ test.describe("RPG 이벤트 (브리지 모드, 내장 게임 뷰의 자동 재�
     await expect(page.getByTestId("rpg-inspector-id")).toHaveText("ship");
     await page.getByTestId("rpg-inspector-probe").click();
 
-    const stopped = "자동 재생 중단: 이벤트 ship 실행 뒤 게임이 새 게임으로 재시작됨";
+    const stopped = "자동 재생을 중단했습니다. 이벤트 ship 실행 뒤 씬 전환 커맨드로 게임이 새 게임으로 다시 시작되었습니다";
     await expect.poll(async () => (await editorLogTexts(page)).some((l) => l.startsWith(stopped)), { timeout: 90_000 }).toBe(true);
     await expect.poll(() => ev<string>(page, "(e) => e.runner.state"), { timeout: 15_000 }).toBe("idle");
     await expect(page.getByTestId("toasts")).toContainText(stopped);

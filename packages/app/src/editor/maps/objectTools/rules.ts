@@ -294,7 +294,7 @@ export function playMapRefusal(schema: MapObjectSchema | null, map: { name: stri
   return `'이 맵에서 실행' 대상이 아닌 맵: ${name || "(이름 없음)"} (스키마의 play.maps: ${list})`;
 }
 
-export const NO_PLAY_HINT = '스키마에 play 없음. resources/schema/map-objects.json에 "play": { "env": { "INITIAL2D_SCENE": "...", "변수": "{map.name}", "위치": "{x}" } } 추가 시 사용 가능';
+export const NO_PLAY_HINT = '스키마에 play가 없습니다. resources/schema/map-objects.json에 "play": { "env": { "INITIAL2D_SCENE": "...", "변수": "{map.name}", "위치": "{x}" } }를 추가하면 사용할 수 있습니다.';
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));

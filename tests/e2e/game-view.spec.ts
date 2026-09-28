@@ -299,7 +299,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
     await expect(page.getByTestId("game-canvas")).toHaveCount(0);
-    await expect(page.getByTestId("game-message")).toContainText("정지됨");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 정지되었습니다");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (게임 탭): 대기");
     await expect(page.getByTestId("console-list")).toContainText("엔진 정지");
     await expect(page.getByTestId("console-list")).not.toContainText("Lua error");
@@ -364,7 +364,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await markPage(page);
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지됨");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 정지되었습니다");
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (게임 탭): 대기");
     // 편집기의 글은 그대로다 (F5 와 Shift+F5 가 글자를 넣지 않았다). 보이는 줄은 편집기의 스크롤에 따라 달라서 모델의 글로 본다
     expect(await scriptText(page)).toBe(original);
@@ -535,7 +535,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(1);
     await page.keyboard.press("F5");
     const ask = page.getByTestId("run-dirty");
-    await expect(ask).toContainText("저장 안 된 문서 1개 (main.lua)");
+    await expect(ask).toContainText("저장하지 않은 문서가 1개 있습니다 (main.lua)");
     await expect(page.getByRole("button", { name: "모두 저장하고 실행" })).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(ask).toHaveCount(0);
@@ -808,7 +808,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
 
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지됨");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 정지되었습니다");
   });
 
   test("Update 의 Lua 실행 오류는 네이티브처럼 오류 줄을 찍고 종료 코드 1 로 끝나며, 그 줄을 누르면 그 자리로 간다", async ({ page }) => {
@@ -894,10 +894,10 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(page.getByTestId("console-list")).toContainText("샘플 프로젝트 시작");
     await expect.poll(async () => (await capture(page))?.nonBackground ?? 0, { timeout: 10_000 }).toBeGreaterThanOrEqual(SAMPLE_MAP_PIXELS);
     await expect(page.getByTestId("console-list")).not.toContainText("mruby: uncaught exception");
-    await expect(page.getByTestId("console-list")).not.toContainText("이 웹 엔진 빌드에 mruby 없음");
+    await expect(page.getByTestId("console-list")).not.toContainText("이 웹 엔진 빌드에는 mruby가 없습니다");
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지됨");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 정지되었습니다");
   });
 
   test("Ruby 의 C 를 거치는 끝없는 재귀는 네이티브처럼 SystemStackError 와 역추적을 찍고 종료 코드 1 로 끝나며, rescue 로 잡으면 게임이 돈다", async ({ page }) => {
@@ -956,7 +956,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     expect(pageErrors).toEqual([]);
     await page.keyboard.press("Shift+F5");
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
-    await expect(page.getByTestId("game-message")).toContainText("정지됨");
+    await expect(page.getByTestId("game-message")).toContainText("게임이 정지되었습니다");
     await expect(consoleRows(page, "stack:destroy")).toHaveCount(1);
   });
 
@@ -1019,8 +1019,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     );
     await expect(page.getByTestId("language-select")).toHaveValue("mruby");
     await page.keyboard.press("F5");
-    await expect(page.getByTestId("toasts")).toContainText("이 웹 엔진 빌드에 mruby 없음");
-    await expect(page.getByTestId("console-list")).toContainText("game.json 의 script 를 lua 로 변경");
+    await expect(page.getByTestId("toasts")).toContainText("이 웹 엔진 빌드에는 mruby가 없습니다");
+    await expect(page.getByTestId("console-list")).toContainText("game.json의 script를 lua로 변경");
     await expect(page.getByTestId("doc-tab").filter({ hasText: "게임" })).toHaveCount(0);
     await expect(page.getByTestId("status-engine")).toHaveText("엔진 (게임 탭): 대기");
   });

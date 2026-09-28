@@ -70,7 +70,7 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await expect(page.getByTestId("hierarchy")).toContainText("활성 씬 탭 없음");
     await newScene(page, "stage1");
     const hierarchy = page.getByTestId("hierarchy");
-    await expect(hierarchy).toContainText("그리기 순서: 위가 먼저");
+    await expect(hierarchy).toContainText("그리기 순서 (위 항목부터)");
     await expect(page.getByTestId("inspector")).toContainText("오브젝트 0개");
 
     // 씬 > 오브젝트 추가 > 스프라이트: 계층에 보이고 선택되어 있다

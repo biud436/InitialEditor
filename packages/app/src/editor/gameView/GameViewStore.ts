@@ -145,13 +145,13 @@ export class GameViewStore {
       const runtimePromise = this.loadRuntime();
       runtimePromise.catch(() => {}); // 기다리는 쪽에서 받는다
       const listed = await listStageFiles(backend, undefined, this.editor.tree?.filter.scope);
-      for (const f of listed.tooLarge) log.warn(LOG, `${f.path} (${formatBytes(f.size ?? 0)}): 32 MB 초과, 복사 제외`);
+      for (const f of listed.tooLarge) log.warn(LOG, `${f.path} (${formatBytes(f.size ?? 0)}): 32 MB를 넘어 복사하지 않았습니다`);
       const read = await readStageFiles(backend, listed.files, {
         concurrency: this.concurrency,
         signal,
         onProgress: (done, total) => runInAction(() => (this.progress = { done, total })),
       });
-      for (const p of read.tooLarge) log.warn(LOG, `${p}: 32 MB 초과, 복사 제외`);
+      for (const p of read.tooLarge) log.warn(LOG, `${p}: 32 MB를 넘어 복사하지 않았습니다`);
       const runtime = await runtimePromise;
       if (signal.aborted) throw new StageAbortedError();
       runInAction(() => (this.manifest = runtime.manifest));

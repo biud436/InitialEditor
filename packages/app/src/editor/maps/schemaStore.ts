@@ -114,7 +114,7 @@ export class MapSchemaStore {
     this.setResult(schema, error, schema ? "project" : "none");
     if (error) log.error(LOG, error);
     else if (schema) log.info(LOG, `맵 오브젝트 스키마: 타입 ${schema.types.length}개 (${schema.types.map((t) => t.type).join(", ")})${playSummary(schema)}`);
-    else log.info(LOG, `맵 오브젝트 스키마 없음 (${SCHEMA_PATH}). 오브젝트는 타입과 좌표만 표시`);
+    else log.info(LOG, `맵 오브젝트 스키마 없음 (${SCHEMA_PATH}). 오브젝트는 타입과 좌표만 표시됩니다.`);
     return schema;
   }
 

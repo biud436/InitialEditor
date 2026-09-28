@@ -227,9 +227,9 @@ test.describe("저장 충돌 (브리지 모드)", () => {
     await docTab(page, "main.lua").click();
     await page.keyboard.press(`${mod}+Shift+KeyS`);
     await expect(conflict(page)).toBeVisible();
-    await expect(modal(page)).toContainText("main.json: 외부에서 변경됨");
+    await expect(modal(page)).toContainText("main.json: 외부에서 변경되었습니다");
     await modal(page).getByRole("button", { name: "덮어쓰기" }).click();
-    await expect(modal(page)).toContainText("main.lua: 외부에서 변경됨");
+    await expect(modal(page)).toContainText("main.lua: 외부에서 변경되었습니다");
     await modal(page).getByRole("button", { name: "취소" }).click();
     await expect(modal(page)).toHaveCount(0);
     await expect(page.getByTestId("toasts")).toContainText("문서 1개 저장됨. 저장 취소됨: main.lua");
@@ -267,7 +267,7 @@ test.describe("저장 충돌 (브리지 모드)", () => {
       .toContainEqual(expect.stringMatching(/^resources\/maps\/field\.json 다시 읽기 실패: JSON 구문 오류: /));
     // 배너는 다시 읽지 못한 상태로 남고, 내 수정과 디스크는 그대로다
     await expect(banner).toHaveAttribute("data-error", "true");
-    await expect(banner).toContainText("디스크에서 다시 읽기 실패로 저장 차단: JSON 구문 오류: ");
+    await expect(banner).toContainText("디스크에서 다시 읽지 못해 저장할 수 없습니다: JSON 구문 오류: ");
     expect(await ev(page, "(e) => [e.documents.active.dirty, e.documents.active.model.layers[0].data[0]]")).toEqual([true, 9]);
     expect(disk(MAP_PATH)).toBe(broken);
   });

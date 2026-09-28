@@ -324,7 +324,7 @@ test.describe("맵 뷰: 밖에서 바뀐 파일", () => {
       await e.backend.writeText(p, '{ "version": 9 }\n');
       await e.openPath(p);
     }, "resources/maps/broken.json");
-    await expect(page.getByTestId("toasts")).toContainText("맵 형식 아님, 텍스트 편집기로 열림");
+    await expect(page.getByTestId("toasts")).toContainText("맵 형식이 아니어서 텍스트 에디터로 열었습니다");
     await expect(page.locator(".monaco-editor")).toBeVisible();
     expect(await active(page, "(d) => d.kind")).not.toBe("map");
     expect(errors).toEqual([]);

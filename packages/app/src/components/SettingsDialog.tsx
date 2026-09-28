@@ -165,7 +165,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
           <div className="form-row">
             <label htmlFor="settings-bridge">브리지 URL</label>
             <input id="settings-bridge" className="input" value={s.bridgeUrl} placeholder="http://127.0.0.1:5960" onChange={(e) => update({ bridgeUrl: e.target.value })} />
-            <div className="form-help">다음 프로젝트 열기부터 적용. 현재 연결: {editor.bridgeUrl ?? "(없음)"}</div>
+            <div className="form-help">다음에 프로젝트를 열 때부터 적용됩니다. 현재 연결: {editor.bridgeUrl ?? "(없음)"}</div>
           </div>
         )}
       </div>

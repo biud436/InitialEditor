@@ -51,7 +51,7 @@ export const LocationTools = observer(function LocationTools({ cmd, path, action
           type="button"
           className="btn rpg-mini"
           disabled={b.reveal !== undefined}
-          title={b.reveal ?? "대상 맵을 열고 x, y 타일을 뷰 가운데에 표시"}
+          title={b.reveal ?? "대상 맵을 열어 x, y 타일을 뷰 가운데에 표시합니다"}
           aria-describedby={b.reveal !== undefined ? described : undefined}
           data-testid="rpg-location-reveal"
           onClick={() => actions.reveal(path)}
