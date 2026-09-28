@@ -1,5 +1,5 @@
 // 프로젝트 패널: 파일 트리. 폴더는 펼칠 때 읽고(뷰 모델 ProjectTreeModel), 더블클릭으로 문서를 연다.
-// 오른쪽 클릭 메뉴로 새 파일, 새 폴더, 이름 바꾸기, 삭제, 새로 고침.
+// 오른쪽 클릭 메뉴로 새 파일, 새 폴더, 이름 바꾸기, 삭제, 새로 고침. 머리의 필터 단추가 프로젝트 파일만 보이게 한다.
 
 import { dirname, extname, type Entry } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
@@ -8,7 +8,7 @@ import { useEditor } from "../../editor/EditorContext";
 import { entryDir, newFile, newFolder, refreshDir, removeEntry, renameEntry } from "../../editor/projectActions";
 import type { TreeRow } from "../../editor/projectTree";
 import { ContextMenu, type ContextMenuItem, type ContextMenuState } from "../ContextMenu";
-import { ChevronIcon, EntryIcon, RefreshIcon } from "../icons";
+import { ChevronIcon, EntryIcon, FilterIcon, RefreshIcon } from "../icons";
 import "./ProjectPanel.css";
 
 const TreeRowView = observer(function TreeRowView({ row, onContextMenu }: { row: TreeRow; onContextMenu: (e: MouseEvent, entry: Entry) => void }) {
@@ -96,6 +96,19 @@ export const ProjectPanel = observer(function ProjectPanel() {
         <span className="project-name" title={project.root}>
           {project.info?.name}
         </span>
+        <button
+          type="button"
+          className={"btn btn-ghost project-filter" + (tree.filter.enabled ? " is-on" : "")}
+          aria-pressed={tree.filter.enabled}
+          aria-label="프로젝트 파일만 표시"
+          title={tree.filter.enabled ? `프로젝트 파일만 표시 중 (숨김 ${tree.hiddenCount}개). 클릭하면 전체 표시` : "전체 표시 중. 클릭하면 프로젝트 파일(game.json, scripts, resources)만 표시"}
+          data-testid="project-filter"
+          data-hidden={tree.hiddenCount}
+          onClick={() => tree.filter.toggle()}
+        >
+          <FilterIcon />
+          {tree.filter.enabled && tree.hiddenCount > 0 && <span className="project-filter-count">{tree.hiddenCount}</span>}
+        </button>
         <button type="button" className="btn btn-ghost project-refresh" aria-label="새로 고침" title="새로 고침" onClick={() => void refreshDir(editor, "")}>
           <RefreshIcon />
         </button>
@@ -104,7 +117,11 @@ export const ProjectPanel = observer(function ProjectPanel() {
         {tree.rows.map((row) => (
           <TreeRowView key={row.entry.path} row={row} onContextMenu={openContext} />
         ))}
-        {tree.rows.length === 0 && <div className="panel-hint">빈 프로젝트. 오른쪽 클릭 메뉴로 파일 생성</div>}
+        {tree.rows.length === 0 && (
+          <div className="panel-hint" data-testid="project-empty">
+            {tree.hiddenCount > 0 ? `표시할 프로젝트 파일 없음 (숨김 ${tree.hiddenCount}개). 필터를 끄면 전체 표시` : "빈 프로젝트. 오른쪽 클릭 메뉴로 파일 생성"}
+          </div>
+        )}
       </div>
       {menu && <ContextMenu state={menu} onClose={() => setMenu(null)} />}
     </div>
