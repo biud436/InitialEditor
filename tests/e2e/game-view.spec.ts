@@ -56,6 +56,13 @@ function consoleRows(page: Page, text: string) {
 }
 
 /** 프로젝트 트리에서 scripts/lua/main.lua 를 열고 편집기에 초점을 둔다 */
+/** 실행 전의 저장 질문(runCommands.ts 의 runDirtyAsk)이 떴으면 그 단추를 누른다 */
+async function answerRunDirty(page: Page, label: "모두 저장하고 실행" | "저장하지 않고 실행" | "취소"): Promise<void> {
+  await expect(page.getByTestId("run-dirty")).toBeVisible();
+  await page.getByRole("button", { name: label }).click();
+  await expect(page.getByTestId("run-dirty")).toHaveCount(0);
+}
+
 async function openMainLua(page: Page): Promise<void> {
   const tree = page.getByTestId("project-tree");
   await tree.locator('[data-path="scripts"]').click();
@@ -432,6 +439,8 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await cdp.send("Input.dispatchKeyEvent", { type: "rawKeyDown", key: "F5", code: "F5", windowsVirtualKeyCode: 116, nativeVirtualKeyCode: 116 });
     await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "F5", code: "F5", windowsVirtualKeyCode: 116, nativeVirtualKeyCode: 116 });
     await expect.poll(() => page.evaluate(() => (window as unknown as { __f5: unknown[] }).__f5)).toEqual([{ composing: true, prevented: true }]);
+    // 조합 중인 글로 main.lua 가 저장 안 된 문서라 실행 전에 묻는다
+    await answerRunDirty(page, "저장하지 않고 실행");
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
     expect(await pageWasNotReloaded(page)).toBe(true);
@@ -494,6 +503,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await moveCursor(page, 1);
     await page.keyboard.insertText('print("marker:v2")\n');
     await page.keyboard.press("F5");
+    await answerRunDirty(page, "저장하지 않고 실행");
     await page.waitForFunction(() => (window as unknown as { __reads: string[] }).__reads.includes("scripts/lua/main.lua"));
     const view = page.getByTestId("game-view");
     await expect(view).toHaveAttribute("data-phase", "staging");
@@ -515,6 +525,36 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await expect(page.getByTestId("console-list")).not.toContainText("개 전송됨");
     await view.getByRole("button", { name: "정지" }).click();
     await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+  });
+
+  test("저장 안 된 스크립트가 있으면 F5 가 먼저 묻고, Enter(모두 저장하고 실행)는 저장한 뒤 새 글로 실행한다", async ({ page }) => {
+    await openMainLua(page);
+    await moveCursor(page, 1);
+    await page.keyboard.insertText('print("marker:saved-before-run")\n');
+    const scriptTab = page.getByTestId("doc-tab").filter({ hasText: "main.lua" });
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(1);
+    await page.keyboard.press("F5");
+    const ask = page.getByTestId("run-dirty");
+    await expect(ask).toContainText("저장 안 된 문서 1개 (main.lua)");
+    await expect(page.getByRole("button", { name: "모두 저장하고 실행" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(ask).toHaveCount(0);
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(0);
+    const view = page.getByTestId("game-view");
+    await expect(view).toHaveAttribute("data-phase", "running", { timeout: 30_000 });
+    await expect(consoleRows(page, "marker:saved-before-run")).toHaveCount(1, { timeout: 10_000 });
+    await view.getByRole("button", { name: "정지" }).click();
+    await expect(view).toHaveAttribute("data-phase", "ended", { timeout: 10_000 });
+
+    // 취소하면 게임도 저장도 없다
+    await scriptTab.click();
+    await focusCode(page);
+    await page.keyboard.insertText("-- later\n");
+    await page.keyboard.press("F5");
+    await page.getByRole("button", { name: "취소" }).click();
+    await expect(ask).toHaveCount(0);
+    await expect(scriptTab.locator(".doc-tab-dirty")).toHaveCount(1);
+    await expect(view).toHaveAttribute("data-phase", "ended");
   });
 
   test("게임이 끝난 뒤 저장해도 메모리 모드는 리로드하지 않고 리로드했다고 적지 않는다", async ({ page }) => {
