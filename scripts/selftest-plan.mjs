@@ -3,7 +3,7 @@
 // INITIAL_EDITOR_SELFTEST 로 이 파일을 읽고, 앱이 계획대로 새 프로젝트를 만들어 돌린다. 판정은 scripts/selftest-check.mjs.
 //
 //   node scripts/selftest-plan.mjs --os <mac|linux|windows|local> --work <workDir> --out <plan.json>
-//                                  [--embedded] [--forest <엔진 저장소>] [--total-timeout <ms>]
+//                                  [--embedded] [--forest <엔진 저장소>] [--rpg <엔진 저장소>] [--total-timeout <ms>]
 //
 //   mac, linux  플래피 Lua 와 Ruby, 타일맵을 앱에 든 엔진으로 (필수), 플래피 Lua 를 에디터 안에서 (시도). 창을 보인다
 //   windows     앱에 든 엔진이 없다: 플래피 Lua 를 프로세스 방식으로 시작해 에디터 안으로 넘어가 돈다 (필수). 창을 보인다
@@ -11,6 +11,10 @@
 //   --forest    엔진 저장소의 알데바란 숲(resources/maps/aldebaran_forest.json)을 맵 뷰로 열어 deco 레이어의 빈 하늘 칸 하나를
 //               칠해 저장하고, 게임을 같은 카메라로 돌려 맵 뷰의 타일과 게임 화면을, 그리고 판정이 저장한 맵으로 그린 기준과
 //               게임 화면을 견준다 (E3 완료 기준 1. 레이어마다, 칠한 칸까지). 게임에 필요한 것만 <workDir>-forest 로 복사한다
+//   --rpg       엔진 저장소의 항구 마을(resources/maps/port_town.json)을 맵 뷰로 열어 RPG 확장의 탐침이 이벤트 레이어와 뷰가 그린
+//               표식을 적게 하고, 맵 메뉴의 "이 이벤트 앞에서 실행"과 "이 이벤트 자동 재생"을 앱에 든 엔진으로 돌린다 (E5 완료 기준
+//               첫째와 셋째). 판정은 표식의 자리를 맵 파일과 게임의 그리기 규칙으로, 선 자리를 게임의 rpg:player: 줄로 본다.
+//               --forest 와 같은 저장소면 숲 사본을 함께 쓰고, 아니면 <workDir>-rpg 로 복사한다
 //
 // workDir 은 아직 없어야 한다 (셸이 만든다). 보고서는 <workDir>/report.json, 로그와 스크린샷은 <workDir>/logs/.
 
@@ -34,7 +38,10 @@ export const FOREST_PLACEMENT = "^알데바란: 시작 x (-?\\d+(?:\\.\\d+)?)(?:
  */
 export const FOREST_EDIT = { kind: "paintTile", map: FOREST_MAP, layer: 1, x: 80, y: 8, gid: 36 };
 /** 숲 사본에 복사할 엔진 저장소의 경로 (RTP 와 그 변환물은 싣지 않는다. INITIAL2D_NO_RTP=1 로 돈다) */
-export const FOREST_COPY = ["scripts", "resources/maps", "resources/aldebaran", "resources/fonts", "resources/schema", "resources/data", "resources/tiles", "resources/audio", "resources/ui", "resources/icons"];
+export const FOREST_COPY = ["scripts", "resources/maps", "resources/aldebaran", "resources/fonts", "resources/schema", "resources/data", "resources/tiles", "resources/audio", "resources/ui", "resources/icons", "resources/charsets", "resources/faces", "resources/titles"];
+export const RPG_MAP = "resources/maps/port_town.json";
+/** 앞에서 실행과 자동 재생을 해 볼 이벤트: 외형과 dir 이 있고 배회하지 않는다 (물고기 장수) */
+export const RPG_EVENT = "fishmonger";
 export const FOREST_GAME_JSON = { name: "aldebaran-selftest", windowWidth: 768, windowHeight: 896, renderScale: 1, script: "lua" };
 
 const HEADLESS = { SDL_VIDEODRIVER: "dummy", SDL_AUDIODRIVER: "dummy" };
@@ -106,8 +113,25 @@ export function forestProject(workDir, root) {
   };
 }
 
+export function rpgProject(root) {
+  const play = (mode) => ({ extension: "rpg", map: RPG_MAP, args: { event: RPG_EVENT, mode } });
+  return {
+    id: "rpg-port",
+    root,
+    language: "lua",
+    openMap: RPG_MAP,
+    probe: { extension: "rpg", map: RPG_MAP },
+    runs: [
+      // 앞에서 실행: 플레이어가 그 앞에 서면 끝이다. 240 프레임 뒤에 끝낸다 (yarn test:engine-events 의 [5] 와 같다)
+      { mode: "process", expectEngineSource: "bundled", check: "eventFront", env: { ...HEADLESS, INITIAL2D_NO_RTP: "1", INITIAL2D_EXIT_AFTER: "240" }, timeoutMs: 60_000, play: play("play") },
+      // 자동 재생: 경로를 다 걸으면 게임이 스스로 끝난다. EXIT_AFTER 는 안전판이다
+      { mode: "process", expectEngineSource: "bundled", check: "eventProbe", env: { ...HEADLESS, INITIAL2D_NO_RTP: "1", INITIAL2D_EXIT_AFTER: "6000" }, timeoutMs: 120_000, play: play("probe") },
+    ],
+  };
+}
+
 /** 계획 객체 (파일은 쓰지 않는다) */
-export function buildPlan({ os, workDir, embedded = false, forestRoot = null, totalTimeoutMs = null }) {
+export function buildPlan({ os, workDir, embedded = false, forestRoot = null, rpgRoot = null, totalTimeoutMs = null }) {
   if (!OSES.includes(os)) throw new Error(`--os 는 ${OSES.join(", ")} 중 하나다`);
   if (!path.isAbsolute(workDir)) throw new Error(`workDir 은 절대 경로다: ${workDir}`);
   let projects;
@@ -127,6 +151,7 @@ export function buildPlan({ os, workDir, embedded = false, forestRoot = null, to
     showWindow = withEmbedded;
   }
   if (forestRoot) projects.push(forestProject(workDir, forestRoot));
+  if (rpgRoot) projects.push(rpgProject(rpgRoot));
   const runs = projects.flatMap((p) => p.runs);
   const budget = runs.reduce((sum, r) => sum + r.timeoutMs, 0) + 60_000 * projects.length;
   return {
@@ -139,10 +164,10 @@ export function buildPlan({ os, workDir, embedded = false, forestRoot = null, to
   };
 }
 
-/** 엔진 저장소에서 숲을 돌리는 데 필요한 것만 dest 로 복사한다. 돌려주는 것은 복사한 파일 수 */
-export function prepareForest(engineDir, dest) {
-  const map = path.join(engineDir, FOREST_MAP);
-  if (!fs.existsSync(map)) throw new Error(`엔진 저장소에 숲 맵이 없다: ${map}`);
+/** 엔진 저장소에서 숲과 항구 마을을 돌리는 데 필요한 것만 dest 로 복사한다. 돌려주는 것은 복사한 파일 수 */
+export function prepareForest(engineDir, dest, required = FOREST_MAP) {
+  const map = path.join(engineDir, required);
+  if (!fs.existsSync(map)) throw new Error(`엔진 저장소에 맵이 없다: ${map}`);
   if (fs.existsSync(dest)) throw new Error(`숲 사본 폴더가 이미 있다: ${dest}`);
   let files = 0;
   for (const rel of FOREST_COPY) {
@@ -163,7 +188,7 @@ export function prepareForest(engineDir, dest) {
 }
 
 export function parseArgs(argv) {
-  const out = { os: null, work: null, out: null, embedded: false, forest: null, totalTimeout: null };
+  const out = { os: null, work: null, out: null, embedded: false, forest: null, rpg: null, totalTimeout: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const value = () => {
@@ -175,6 +200,7 @@ export function parseArgs(argv) {
     else if (a === "--work") out.work = path.resolve(value());
     else if (a === "--out") out.out = path.resolve(value());
     else if (a === "--forest") out.forest = path.resolve(value());
+    else if (a === "--rpg") out.rpg = path.resolve(value());
     else if (a === "--total-timeout") out.totalTimeout = Number(value());
     else if (a === "--embedded") out.embedded = true;
     else throw new Error(`모르는 인자: ${a}`);
@@ -192,7 +218,17 @@ export function writePlan(args) {
     forestRoot = `${args.work}-forest`;
     prepareForest(args.forest, forestRoot);
   }
-  const plan = buildPlan({ os: args.os, workDir: args.work, embedded: args.embedded, forestRoot, totalTimeoutMs: args.totalTimeout });
+  let rpgRoot = null;
+  if (args.rpg) {
+    if (forestRoot && args.rpg === args.forest) {
+      if (!fs.existsSync(path.join(forestRoot, RPG_MAP))) throw new Error(`엔진 저장소에 맵이 없다: ${path.join(args.rpg, RPG_MAP)}`);
+      rpgRoot = forestRoot;
+    } else {
+      rpgRoot = `${args.work}-rpg`;
+      prepareForest(args.rpg, rpgRoot, RPG_MAP);
+    }
+  }
+  const plan = buildPlan({ os: args.os, workDir: args.work, embedded: args.embedded, forestRoot, rpgRoot, totalTimeoutMs: args.totalTimeout });
   fs.mkdirSync(path.dirname(args.out), { recursive: true });
   fs.writeFileSync(args.out, JSON.stringify(plan, null, 2) + "\n");
   return plan;
@@ -206,7 +242,7 @@ export function main(argv, deps = {}) {
     args = parseArgs(argv);
   } catch (e) {
     err(`selftest-plan: ${e.message}`);
-    err("사용법: selftest-plan.mjs --os <mac|linux|windows|local> --work <workDir> --out <plan.json> [--embedded] [--forest <엔진 저장소>] [--total-timeout <ms>]");
+    err("사용법: selftest-plan.mjs --os <mac|linux|windows|local> --work <workDir> --out <plan.json> [--embedded] [--forest <엔진 저장소>] [--rpg <엔진 저장소>] [--total-timeout <ms>]");
     return 2;
   }
   try {

@@ -3,14 +3,17 @@
 // mode 를 넘긴다), 실행별 전체 로그, 맵 뷰 뽑기를 차례로 하고 보고서를 셸에 넘긴다. 판정은 scripts/selftest-check.mjs 가
 // 로그와 스크린샷으로 다시 한다. 여기의 ok 는 앱이 본 것이고 종료 코드에만 쓴다.
 // 모달이 뜨면(신뢰 확인, 저장 여부 등) 그 제목을 dialogs 에 적고 닫는다. 그 자체가 실패다.
+// 계획의 probe 는 확장의 탐침(ext-tilemap 의 MapSelftestProbe)이 맵에 붙인 것을 보고서에 적고, 실행의 play 는 탐침이 만든 요청을
+// 앱의 맵 실행 길(여기서 실행과 같은 길)로 띄운다. 계획의 mode 와 env 만 더한다.
 
 import type { Document, LogEntry, ProjectBackend, RunMode, SaveOutcome } from "@initial-editor/core";
+import type { MapSelftestProbe, PlayRequest } from "@initial-editor/ext-tilemap";
 import { MapDocument, singleBrush, stamp } from "@initial-editor/ext-tilemap/model";
 import type { EngineSource } from "../runner/engineCandidates";
 import type { ProjectTemplateOptions } from "../scene/projectTemplates";
 import { encodeBmp32 } from "./bmp";
 import type { CspViolation } from "./csp";
-import { projectRoot, runLogName, type MapCaptureSpec, type PlanProject, type PlanRun, type SelftestPlan } from "./plan";
+import { projectRoot, runLogName, type MapCaptureSpec, type PlanProbe, type PlanProject, type PlanRun, type SelftestPlan } from "./plan";
 
 export interface SelftestRunner {
   readonly state: "idle" | "starting" | "running" | "stopping";
@@ -68,6 +71,10 @@ export interface SelftestHost {
   /** 맵 뷰의 타일 레이어만 월드 좌표 rect 로 1배 (뷰가 없거나 타일셋이 아직이면 null) */
   captureMapTiles(doc: MapDocument, rect: Rect): Promise<TilePixels | null>;
   cspViolations(): readonly CspViolation[];
+  /** 확장의 내보내기에 있는 탐침 (없으면 null) */
+  extensionProbe(extensionId: string): MapSelftestProbe | null;
+  /** 확장의 실행 요청을 앱의 맵 실행 길로 띄운다. 러너에는 mode 와 env 를 더한다 (요청의 변수가 이긴다). 띄웠으면 true */
+  playMap(doc: MapDocument, request: PlayRequest, opts: { mode: RunMode; env: Record<string, string> }): Promise<boolean>;
 }
 
 export interface SelftestShell {
@@ -104,6 +111,8 @@ export interface RunReport {
   errorLines: string[];
   tail: string[];
   mapCapture: { file: string; rect: Rect; placementX: number } | null;
+  /** 확장의 실행 요청으로 띄운 실행 (계획의 play) */
+  play: { extension: string; map: string; args: Record<string, unknown>; label: string | null; refused: string | null } | null;
 }
 
 export interface ProjectReport {
@@ -116,6 +125,8 @@ export interface ProjectReport {
   /** cellBefore: 칠하기 전 그 칸의 gid (판정이 칠하기 전 맵의 그림을 셈할 때 쓴다), cellAfter: 저장한 파일을 다시 읽은 칸 */
   edit: { map: string; layer: number; x: number; y: number; gid: number; cellBefore: number | null; dirtyAfterPaint: boolean; saved: SaveOutcome | null; dirtyAfterSave: boolean; cellAfter: number | null } | null;
   mapView: { path: string; ready: boolean; error: string | null; warning: string | null; width: number; height: number; pixelWidth: number; pixelHeight: number; objects: number } | null;
+  /** 확장의 탐침이 적은 것 (계획의 probe). result 는 마지막 describe */
+  probe: { extension: string; map: string; ready: boolean; waitedMs: number; result: unknown } | null;
   problems: string[];
   runs: RunReport[];
 }
@@ -247,6 +258,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
       entryScript: { path: project.entry, opened: false },
       edit: null,
       mapView: null,
+      probe: null,
       problems: [],
       runs: [],
     };
@@ -276,6 +288,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
 
       if (project.edit) await applyEdit(project, pr);
       if (project.openMap) await openMapView(project.openMap, pr);
+      if (project.probe) await describeProbe(project.probe, pr);
 
       for (let i = 0; i < project.runs.length; i++) {
         pr.runs.push(await runOnce(project, project.runs[i], i + 1));
@@ -353,6 +366,41 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     noteMapView(path, doc, await waitMapView(doc), pr);
   }
 
+  function probeOf(extension: string): MapSelftestProbe {
+    const probe = host.extensionProbe(extension);
+    if (!probe) throw new Error(`탐침 없음: 확장 ${extension}`);
+    return probe;
+  }
+
+  /** 탐침의 describe 가 ready 일 때까지 묻는다. 창이 숨었으면 짧게 보고 넘어간다 */
+  async function describeProbe(spec: PlanProbe, pr: ProjectReport): Promise<void> {
+    await progress({ project: pr.id, step: "probe", extension: spec.extension, map: spec.map });
+    const probe = probeOf(spec.extension);
+    const doc = await mapDocument(spec.map);
+    const t0 = now();
+    const deadline = t0 + mapViewWaitMs;
+    let result = probe.describe(doc);
+    while (!result.ready && now() < deadline) {
+      await sleep(pollMs);
+      result = probe.describe(doc);
+    }
+    pr.probe = { extension: spec.extension, map: spec.map, ready: result.ready, waitedMs: now() - t0, result };
+    if (!result.ready && plan.showWindow) pr.problems.push(`probe_not_ready: ${spec.extension} ${spec.map}`);
+  }
+
+  /** 계획의 play: 탐침이 만든 요청을 앱의 맵 실행 길로 띄운다. 띄웠으면 true */
+  async function startPlay(run: PlanRun, rr: RunReport): Promise<boolean> {
+    const spec = run.play!;
+    const doc = await mapDocument(spec.map);
+    const request = probeOf(spec.extension).playRequest(doc, spec.args);
+    rr.play = { extension: spec.extension, map: spec.map, args: spec.args, label: typeof request === "string" ? null : request.label, refused: typeof request === "string" ? request : null };
+    if (typeof request === "string") {
+      rr.problems.push(`play_refused: ${request}`);
+      return false;
+    }
+    return host.playMap(doc, request, { mode: run.mode, env: run.env });
+  }
+
   async function runOnce(project: PlanProject, run: PlanRun, n: number): Promise<RunReport> {
     const runner = host.runner;
     await progress({ project: project.id, step: "run", run: n, mode: run.mode });
@@ -377,12 +425,18 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
       errorLines: [],
       tail: [],
       mapCapture: null,
+      play: null,
     };
     const dialogsBefore = report.dialogs.length;
     let started = false;
     try {
-      await withTimeout(runner.start({ mode: run.mode, env: run.env, ...(run.scene ? { scene: run.scene } : {}) }), run.timeoutMs, "실행 시작");
-      started = runner.state !== "idle" || runner.exitCode !== null;
+      if (run.play) {
+        const played = await withTimeout(startPlay(run, rr), run.timeoutMs, "실행 시작");
+        started = played && (runner.state !== "idle" || runner.exitCode !== null);
+      } else {
+        await withTimeout(runner.start({ mode: run.mode, env: run.env, ...(run.scene ? { scene: run.scene } : {}) }), run.timeoutMs, "실행 시작");
+        started = runner.state !== "idle" || runner.exitCode !== null;
+      }
       if (!started) rr.problems.push("start_failed");
       const deadline = t0 + run.timeoutMs;
       while (runner.state !== "idle" && now() < deadline) await sleep(pollMs);

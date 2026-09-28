@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import { Document, LogStore, type ProjectBackend, type RunMode } from "@initial-editor/core";
 import { MemoryBackend } from "@initial-editor/core/testing";
+import type { MapSelftestProbe } from "@initial-editor/ext-tilemap";
 import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import type { EngineSource } from "../runner/engineCandidates";
@@ -84,6 +85,7 @@ interface HostOptions {
   capture?: (rect: Rect) => TilePixels | null;
   /** 이 경로를 열 때 모달을 띄운다 */
   modalOn?: string;
+  probes?: Record<string, MapSelftestProbe>;
 }
 
 function makeHost(opts: HostOptions = {}) {
@@ -115,6 +117,7 @@ function makeHost(opts: HostOptions = {}) {
   const templates: Array<{ root: string; template: string; language: string }> = [];
   const runner = new FakeRunner(log, opts.script ?? (() => ({ lines: ["ok"] })));
   let opened: string | null = null;
+  const plays: Array<{ path: string; label: string; mode: RunMode; env: Record<string, string> }> = [];
   const host: SelftestHost = {
     app: { version: "2.0.0-dev", commit: "abc1234", platform: "mac", mode: "tauri", backend: "tauri" },
     backend,
@@ -155,6 +158,15 @@ function makeHost(opts: HostOptions = {}) {
     mapViewStatus: () => ({ ready: true, error: null, warning: null }),
     captureMapTiles: async (_doc, rect) => opts.capture?.(rect) ?? null,
     cspViolations: () => (opts.csp ?? []).map((d) => ({ directive: d, blocked: "eval", source: null, line: null, sample: null })),
+    extensionProbe: (id) => opts.probes?.[id] ?? null,
+    // 앱의 맵 실행 길처럼: 요청의 계획을 세우고 계획의 변수가 이기게 러너를 시작한다
+    async playMap(doc, request, o) {
+      plays.push({ path: doc.path!, label: request.label, mode: o.mode, env: o.env });
+      const p = request.plan(doc);
+      if (typeof p === "string") return false;
+      await runner.start({ mode: o.mode, env: { ...o.env, ...p.env } });
+      return true;
+    },
   };
   const logs = new Map<string, string | Uint8Array>();
   const finished: Array<{ report: string; code: number }> = [];
@@ -167,7 +179,7 @@ function makeHost(opts: HostOptions = {}) {
     },
     finish: async (report, code) => void finished.push({ report, code }),
   };
-  return { host, shell, runner, log, logs, finished, steps, templates, closed, disk, get opened() {
+  return { host, shell, runner, log, logs, finished, steps, templates, closed, disk, plays, get opened() {
     return opened;
   } };
 }
@@ -348,6 +360,79 @@ describe("자가 검사 흐름", () => {
     const noTiles = makeHost({ disks, script: () => ({ lines: ["시작 x 100"] }), capture: () => null });
     const r2 = await runSelftest(plan([{ id: "f", root: "/fx", runs: [{ mode: "process", check: "mapFrame", timeoutMs: 5000, mapCapture: capture }] }]), noTiles.host, noTiles.shell, fast);
     expect(r2.projects[0].runs[0].problems).toEqual(["capture: 맵 뷰에서 타일을 뽑지 못했다"]);
+  });
+});
+
+describe("확장의 탐침과 확장의 실행 요청", () => {
+  const MAP = "resources/maps/town.json";
+  const mapText = JSON.stringify({ version: 2, name: "town", width: 8, height: 8, tileWidth: 16, tileHeight: 16, tilesets: [], layers: [{ name: "g", data: new Array(64).fill(0) }], collision: new Array(64).fill(0), objects: [] });
+  const disks = { "/fx/town": { "game.json": "{}", "scripts/lua/main.lua": "--", [MAP]: mapText } };
+
+  function probe(opts: { readyAfter?: number; refuse?: string } = {}) {
+    let asked = 0;
+    const requests: Array<Record<string, unknown>> = [];
+    const p: MapSelftestProbe = {
+      describe: (doc) => {
+        asked++;
+        return { ready: asked > (opts.readyAfter ?? 0), map: doc.path, count: 3 };
+      },
+      playRequest: (_doc, args) => {
+        requests.push({ ...args });
+        if (opts.refuse) return opts.refuse;
+        return { label: "이 이벤트 앞에서 실행", plan: () => ({ env: { INITIAL2D_SCENE: "rpg", INITIAL2D_EXIT_AFTER: "999" }, at: { x: 3, y: 4 } }) };
+      },
+    };
+    return { p, requests, asked: () => asked };
+  }
+
+  const probeRun = { mode: "process", check: "eventFront", timeoutMs: 5000, env: { SDL_VIDEODRIVER: "dummy", INITIAL2D_EXIT_AFTER: "60" }, play: { extension: "rpg", map: MAP, args: { event: "fishmonger" } } };
+
+  it("probe 는 맵을 열고 describe 가 ready 일 때까지 다시 물어 마지막 결과를 적는다", async () => {
+    const pr = probe({ readyAfter: 2 });
+    const t = makeHost({ disks, probes: { rpg: pr.p } });
+    const report = await runSelftest(plan([{ id: "town", root: "/fx/town", probe: { extension: "rpg", map: MAP }, runs: [RUN] }]), t.host, t.shell, fast);
+    const p = report.projects[0];
+    expect(p.probe).toMatchObject({ extension: "rpg", map: MAP, ready: true, result: { ready: true, map: MAP, count: 3 } });
+    expect(pr.asked()).toBe(3);
+    expect(p.problems).toEqual([]);
+    expect(t.steps.map((s) => s.step)).toContain("probe");
+  });
+
+  it("끝내 ready 가 아니면 보이는 창에서만 실패다. 탐침이 없는 확장은 실패다", async () => {
+    const shown = makeHost({ disks, probes: { rpg: probe({ readyAfter: 1e9 }).p } });
+    const r1 = await runSelftest(plan([{ id: "town", root: "/fx/town", probe: { extension: "rpg", map: MAP }, runs: [RUN] }], { showWindow: true }), shown.host, shown.shell, fast);
+    expect(r1.projects[0].probe?.ready).toBe(false);
+    expect(r1.projects[0].problems).toEqual([`probe_not_ready: rpg ${MAP}`]);
+    const hidden = makeHost({ disks, probes: { rpg: probe({ readyAfter: 1e9 }).p } });
+    const r2 = await runSelftest(plan([{ id: "town", root: "/fx/town", probe: { extension: "rpg", map: MAP }, runs: [RUN] }]), hidden.host, hidden.shell, fast);
+    expect(r2.projects[0].problems).toEqual([]);
+    const none = makeHost({ disks });
+    const r3 = await runSelftest(plan([{ id: "town", root: "/fx/town", probe: { extension: "rpg", map: MAP }, runs: [RUN] }]), none.host, none.shell, fast);
+    expect(r3.projects[0].problems).toEqual(["error: 탐침 없음: 확장 rpg"]);
+    expect(r3.ok).toBe(false);
+  });
+
+  it("play 는 탐침의 요청을 맵 실행 길로 띄운다: 계획의 mode 와 env 에 요청의 변수가 이긴다", async () => {
+    const pr = probe();
+    const t = makeHost({ disks, probes: { rpg: pr.p }, script: () => ({ lines: ["rpg:player:town,3,4,left"] }) });
+    const report = await runSelftest(plan([{ id: "town", root: "/fx/town", runs: [probeRun] }]), t.host, t.shell, fast);
+    const run = report.projects[0].runs[0];
+    expect(run.problems).toEqual([]);
+    expect(run.play).toEqual({ extension: "rpg", map: MAP, args: { event: "fishmonger" }, label: "이 이벤트 앞에서 실행", refused: null });
+    expect(pr.requests).toEqual([{ event: "fishmonger" }]);
+    expect(t.plays).toEqual([{ path: MAP, label: "이 이벤트 앞에서 실행", mode: "process", env: probeRun.env }]);
+    expect(t.runner.starts).toEqual([{ mode: "process", env: { SDL_VIDEODRIVER: "dummy", INITIAL2D_EXIT_AFTER: "999", INITIAL2D_SCENE: "rpg" } }]);
+    expect(t.logs.get("town-1.log")).toBe("rpg:player:town,3,4,left\n");
+  });
+
+  it("탐침이 요청을 만들지 못하면 러너를 시작하지 않고 이유를 적는다", async () => {
+    const t = makeHost({ disks, probes: { rpg: probe({ refuse: "이 맵에 없는 이벤트: nobody" }).p } });
+    const report = await runSelftest(plan([{ id: "town", root: "/fx/town", runs: [probeRun] }]), t.host, t.shell, fast);
+    const run = report.projects[0].runs[0];
+    expect(run.play?.refused).toBe("이 맵에 없는 이벤트: nobody");
+    expect(run.problems).toEqual(expect.arrayContaining(["play_refused: 이 맵에 없는 이벤트: nobody", "start_failed"]));
+    expect(t.runner.starts).toEqual([]);
+    expect(report.ok).toBe(false);
   });
 });
 

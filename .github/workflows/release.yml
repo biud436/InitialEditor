@@ -337,7 +337,7 @@ jobs:
           dmg=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg)
           mount=$(hdiutil attach -nobrowse -readonly "$dmg" | awk -F'\t' '/\/Volumes\// {print $NF}' | tail -1)
           echo "dmg: $dmg -> $mount"
-          node scripts/selftest-plan.mjs --os mac --work "$SELFTEST_DIR/run" --out "$SELFTEST_DIR/plan.json" --forest "$GITHUB_WORKSPACE/Initial2D"
+          node scripts/selftest-plan.mjs --os mac --work "$SELFTEST_DIR/run" --out "$SELFTEST_DIR/plan.json" --forest "$GITHUB_WORKSPACE/Initial2D" --rpg "$GITHUB_WORKSPACE/Initial2D"
           code=0
           node scripts/selftest-app.mjs "$mount/InitialEditor.app" --plan "$SELFTEST_DIR/plan.json" --no-check || code=$?
           hdiutil detach "$mount" || true
@@ -353,7 +353,7 @@ jobs:
         run: |
           appimage=$(ls src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage)
           chmod +x "$appimage"
-          node scripts/selftest-plan.mjs --os linux --work "$SELFTEST_DIR/run" --out "$SELFTEST_DIR/plan.json" --forest "$GITHUB_WORKSPACE/Initial2D"
+          node scripts/selftest-plan.mjs --os linux --work "$SELFTEST_DIR/run" --out "$SELFTEST_DIR/plan.json" --forest "$GITHUB_WORKSPACE/Initial2D" --rpg "$GITHUB_WORKSPACE/Initial2D"
           xvfb-run -a -s "-screen 0 1600x1000x24" node scripts/selftest-app.mjs "$appimage" --plan "$SELFTEST_DIR/plan.json" --no-check
 
       - name: 자가 검사 (Windows, 무인 설치본)

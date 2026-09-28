@@ -5,8 +5,8 @@ import type { RunMode } from "@initial-editor/core";
 import type { EngineSource } from "../runner/engineCandidates";
 import type { ProjectTemplateId } from "../scene/templateManifest";
 
-export type SelftestCheck = "flappy" | "tilemapPixel" | "mapFrame";
-export const CHECKS: readonly SelftestCheck[] = ["flappy", "tilemapPixel", "mapFrame"];
+export type SelftestCheck = "flappy" | "tilemapPixel" | "mapFrame" | "eventFront" | "eventProbe";
+export const CHECKS: readonly SelftestCheck[] = ["flappy", "tilemapPixel", "mapFrame", "eventFront", "eventProbe"];
 export const TEMPLATES: readonly ProjectTemplateId[] = ["empty", "flappy", "tilemap"];
 export const ENGINE_SOURCES: readonly EngineSource[] = ["settings", "project-file", "project-build", "bundled", "sibling", "none"];
 
@@ -31,6 +31,19 @@ export interface MapCaptureSpec {
   placement: string;
 }
 
+/** 확장의 탐침(MapSelftestProbe)에 맵 하나를 묻는다: 맵 뷰로 열고 describe 가 ready 일 때까지 기다려 보고서에 적는다 */
+export interface PlanProbe {
+  extension: string;
+  map: string;
+}
+
+/** 러너를 직접 시작하지 않고 확장의 탐침이 만든 실행 요청을 앱의 맵 실행 길(여기서 실행과 같은 길)로 띄운다 */
+export interface PlanPlay {
+  extension: string;
+  map: string;
+  args: Record<string, unknown>;
+}
+
 export interface PlanRun {
   mode: RunMode;
   optional: boolean;
@@ -43,6 +56,7 @@ export interface PlanRun {
   scene: string | null;
   timeoutMs: number;
   mapCapture: MapCaptureSpec | null;
+  play: PlanPlay | null;
 }
 
 export interface PlanProject {
@@ -56,6 +70,7 @@ export interface PlanProject {
   edit: PlanEdit | null;
   /** 맵 뷰로 열어 둘 맵 (실행 뒤 뽑기에 쓴다) */
   openMap: string | null;
+  probe: PlanProbe | null;
   runs: PlanRun[];
 }
 
@@ -123,6 +138,12 @@ function parseRun(v: unknown, where: string): PlanRun {
     mapCapture = { map: str(m.map, `${where}.mapCapture.map`), width: int(m.width, `${where}.mapCapture.width`, 1), height: int(m.height, `${where}.mapCapture.height`, 1), placement };
   }
   if (check === "mapFrame" && !mapCapture) fail(`${where}: check mapFrame 에는 mapCapture 가 있어야 한다`);
+  let play: PlanPlay | null = null;
+  if (r.play != null) {
+    const p = obj(r.play, `${where}.play`);
+    play = { extension: str(p.extension, `${where}.play.extension`), map: str(p.map, `${where}.play.map`), args: p.args == null ? {} : obj(p.args, `${where}.play.args`) };
+  }
+  if ((check === "eventFront" || check === "eventProbe") && !play) fail(`${where}: check ${check} 에는 play 가 있어야 한다`);
   return {
     mode,
     optional: r.optional === true,
@@ -133,6 +154,7 @@ function parseRun(v: unknown, where: string): PlanRun {
     scene: optStr(r.scene, `${where}.scene`),
     timeoutMs: int(r.timeoutMs, `${where}.timeoutMs`, 1000),
     mapCapture,
+    play,
   };
 }
 
@@ -140,6 +162,11 @@ function parseEdit(v: unknown, where: string): PlanEdit {
   const e = obj(v, where);
   if (e.kind !== "paintTile") fail(`${where}.kind 는 paintTile 이다`);
   return { kind: "paintTile", map: str(e.map, `${where}.map`), layer: int(e.layer, `${where}.layer`, 0), x: int(e.x, `${where}.x`, 0), y: int(e.y, `${where}.y`, 0), gid: int(e.gid, `${where}.gid`, 0) };
+}
+
+function parseProbe(v: unknown, where: string): PlanProbe {
+  const p = obj(v, where);
+  return { extension: str(p.extension, `${where}.extension`), map: str(p.map, `${where}.map`) };
 }
 
 export function entryScript(language: "lua" | "mruby"): string {
@@ -172,6 +199,7 @@ export function parsePlan(raw: unknown): SelftestPlan {
       entry: optStr(o.entry, `${where}.entry`) ?? entryScript(language),
       edit: o.edit == null ? null : parseEdit(o.edit, `${where}.edit`),
       openMap: optStr(o.openMap, `${where}.openMap`),
+      probe: o.probe == null ? null : parseProbe(o.probe, `${where}.probe`),
       runs: runsRaw.map((r, j) => parseRun(r, `${where}.runs[${j}]`)),
     };
   });

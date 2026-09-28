@@ -13,6 +13,12 @@
 //                 타일셋 그림(scripts/lib/png.mjs)으로 기준을 직접 그려 견준다: 맵 뷰 뽑기가 기준과 같고, 레이어마다 그 레이어만
 //                 보이는 픽셀이 게임 화면에 있고, 계획이 칠한 칸이 저장한 파일에 있고 게임 화면에도 있다 (칠하기 전 gid 와 다른 픽셀).
 //                 게임이 레이어 하나를 빼고 그리거나 칠하기 전 맵을 돌리면 여기서 떨어진다
+//   eventFront    종료 코드 0, 오류 줄 없음, 게임이 맵의 이벤트를 다 읽었고(rpg:map:<맵> events:<수> skipped:0), 플레이어가 선 자리
+//                 (rpg:player:)가 판정이 디스크의 맵 파일로 셈한 "이 이벤트 앞" 이다 (ext-rpg 의 eventPlayPlan 을 Vite SSR 로 부른다)
+//   eventProbe    위에 더해 자동 재생의 시작 자리에 섰고 자동 재생이 그 이벤트를 돌렸다 (rpg:event:<id>)
+// 계획의 probe (확장의 탐침): 이벤트 레이어가 붙었고 잠기지 않았고 오류가 없으며, 탐침이 적은 이벤트가 맵 파일의 이벤트와 같고,
+// 뷰가 그린 표식이 이벤트마다 하나씩 게임의 그리기 규칙(엔진 scripts/lua/rpg/character.lua 의 draw: 가로 가운데, 발이 칸 아래 변)의
+// 자리에 있다. 외형이 있는 이벤트는 스키마의 프레임 크기로 그린 그림이고 그 시트 파일이 프로젝트에 있다. 나머지는 칸의 표식이다
 // 선택 실행의 실패는 WARN 줄만. 종료 코드: 0 통과, 1 실패, 2 인자 오류.
 // BMP 읽기는 tests/e2e/support/bmp.ts (단위 시험 있음)를 Vite 의 SSR 로 읽는다.
 
@@ -73,6 +79,7 @@ export function judge(plan, report, deps) {
     if (project.template && !(rp.files > 0)) fail(`${project.id}: 템플릿으로 쓴 파일이 없다`, String(rp.files));
     if (rp.entryScript?.opened) pass(`진입 스크립트를 편집기로 열었다 (${rp.entryScript.path})`);
     else fail(`${project.id}: 진입 스크립트를 열지 못했다`);
+    if (project.probe) judgeProbe(plan, project, rp, (name, ok, detail) => (ok ? pass(`${project.id}: ${name}`) : fail(`${project.id}: ${name}`, detail)));
 
     project.runs.forEach((run, i) => {
       const n = i + 1;
@@ -102,6 +109,7 @@ export function judge(plan, report, deps) {
           for (const c of checks) note(c.name, c.ok, c.detail);
           if (run.check === "tilemapPixel") judgeTilemap(project, run, rp, note, readBmp);
           if (run.check === "mapFrame") judgeMapFrame(plan, project, run, rp, rr, log, note, readBmp);
+          if (run.check === "eventFront" || run.check === "eventProbe") judgeEventRun(plan, project, run, rr, log, note, deps.eventPlayPlan);
         }
       }
       if (runFailures.length) {
@@ -204,6 +212,101 @@ function judgeMapFrame(plan, project, run, rp, rr, log, note, readBmp) {
   for (const c of checks) note(c.name, c.ok, c.detail, true);
 }
 
+/** 맵 파일과 rpg-game.json 의 그 맵 이름 */
+function readEventMap(root, mapPath) {
+  const map = readJson(path.join(root, mapPath));
+  const game = readJson(path.join(root, "resources/data/rpg-game.json"));
+  const entry = (game.maps ?? []).find((m) => m.file === mapPath || (m.alt ?? []).includes(mapPath));
+  return { map, name: entry?.name ?? null, events: Array.isArray(map.events) ? map.events : [] };
+}
+
+function judgeProbe(plan, project, rp, note) {
+  const spec = project.probe;
+  const root = projectRoot(plan, project);
+  let disk;
+  let schema;
+  try {
+    disk = readEventMap(root, spec.map);
+    schema = readJson(path.join(root, "resources/schema/event-commands.json"));
+  } catch (e) {
+    note("맵 파일과 스키마를 읽는다", false, e.message);
+    return;
+  }
+  const probe = rp.probe;
+  const r = probe?.result ?? null;
+  note(`탐침 ${spec.extension} 이(가) ${spec.map} 을(를) 적었다`, probe?.extension === spec.extension && probe?.map === spec.map && r !== null, JSON.stringify(probe ?? null));
+  if (!r) return;
+  note("탐침이 ready 다 (뷰가 외형 그림을 다 읽었다)", r.ready === true, `기다린 ${probe.waitedMs} ms`);
+  if (plan.showWindow) note("맵 뷰가 그릴 준비가 됐다 (WebGL)", rp.mapView?.path === spec.map && rp.mapView?.ready === true, JSON.stringify(rp.mapView ?? null));
+  note("이벤트 레이어가 붙었고 잠기지 않았고 오류가 없다", r.attached === true && r.locked === null && r.errors === 0, JSON.stringify({ attached: r.attached, locked: r.locked, errors: r.errors, hint: r.hint }));
+  const expected = disk.events.map((e, index) => ({ index, id: e.id ?? null, x: e.x ?? null, y: e.y ?? null, charset: e.charset !== undefined }));
+  note(`탐침의 이벤트가 맵 파일의 이벤트 ${expected.length}개와 같다`, JSON.stringify(r.events) === JSON.stringify(expected), `탐침 ${Array.isArray(r.events) ? r.events.length : "없음"}개`);
+  const drawn = Array.isArray(r.view?.drawn) ? r.view.drawn : [];
+  note(`뷰가 표식 ${expected.length}개를 그렸다`, drawn.length === expected.length && new Set(drawn.map((d) => d.index)).size === expected.length, `그린 ${drawn.length}개`);
+  const failed = Array.isArray(r.view?.failedSheets) ? r.view.failedSheets : [];
+  note("읽지 못한 외형 그림이 없다", Boolean(r.view) && failed.length === 0, failed.join(", "));
+  const tw = disk.map.tileWidth;
+  const th = disk.map.tileHeight;
+  const frameW = schema.sheets?.charset?.frameW;
+  const frameH = schema.sheets?.charset?.frameH;
+  const byIndex = new Map(drawn.map((d) => [d.index, d]));
+  const wrong = [];
+  const sheets = new Set();
+  for (const ev of expected) {
+    const d = byIndex.get(ev.index);
+    if (!d) {
+      wrong.push(`${ev.id}: 그리지 않았다`);
+      continue;
+    }
+    if (ev.charset) {
+      const x = ev.x * tw + (tw - frameW) / 2;
+      const y = (ev.y + 1) * th - frameH;
+      if (d.kind !== "sprite" || d.x !== x || d.y !== y || d.frame?.w !== frameW || d.frame?.h !== frameH) wrong.push(`${ev.id}: ${JSON.stringify(d)} (기대 sprite ${x},${y} ${frameW}x${frameH})`);
+      if (d.sheet) sheets.add(d.sheet);
+    } else if (d.kind !== "badge" || d.x !== ev.x * tw || d.y !== ev.y * th) {
+      wrong.push(`${ev.id}: ${JSON.stringify(d)} (기대 badge ${ev.x * tw},${ev.y * th})`);
+    }
+  }
+  note("표식이 게임의 그리기 규칙 자리에 있다 (외형은 가로 가운데와 발이 칸 아래 변, 나머지는 칸)", wrong.length === 0, wrong.slice(0, 5).join(" | "));
+  const missing = [...sheets].filter((sheet) => !fs.existsSync(path.join(root, sheet)));
+  note(`외형 그림 ${sheets.size}장이 프로젝트에 있다`, sheets.size > 0 && missing.length === 0, missing.join(", "));
+}
+
+function judgeEventRun(plan, project, run, rr, log, note, eventPlayPlan) {
+  const spec = run.play;
+  if (!spec) {
+    note("계획에 play 가 있다", false);
+    return;
+  }
+  note("탐침이 실행 요청을 만들었다", Boolean(rr.play) && rr.play.refused === null, JSON.stringify(rr.play ?? null));
+  let disk;
+  try {
+    disk = readEventMap(projectRoot(plan, project), spec.map);
+  } catch (e) {
+    note("맵 파일을 읽는다", false, e.message);
+    return;
+  }
+  const lines = log.split("\n").map((l) => l.trim());
+  const id = spec.args?.event;
+  const index = disk.events.findIndex((e) => e.id === id);
+  note(`맵 파일에 이벤트 ${id} 이(가) 있고 rpg-game.json 에 맵이 있다`, index >= 0 && disk.name !== null, `${disk.name}`);
+  if (index < 0 || disk.name === null) return;
+  const loaded = lines.find((l) => l.startsWith(`rpg:map:${disk.name} `));
+  note(`게임이 맵의 이벤트 ${disk.events.length}개를 다 읽었다`, loaded === `rpg:map:${disk.name} events:${disk.events.length} skipped:0`, loaded ?? "rpg:map: 줄 없음");
+  const mode = spec.args?.mode === "probe" ? "probe" : "play";
+  const geometry = { width: disk.map.width, height: disk.map.height, collision: Array.isArray(disk.map.collision) ? disk.map.collision : null };
+  const r = eventPlayPlan(geometry, disk.events, index, mode);
+  if (!r.ok) {
+    note(`판정이 이 이벤트의 ${mode} 자리를 셈한다`, false, r.reason);
+    return;
+  }
+  const at = r.plan.at;
+  const want = `rpg:player:${disk.name},${at.x},${at.y},${at.dir}`;
+  const player = lines.find((l) => l.startsWith(`rpg:player:${disk.name},`));
+  note(`플레이어가 ${mode === "probe" ? "자동 재생의 시작" : "이벤트 앞"}에 섰다 (${want})`, player === want, player ?? "rpg:player: 줄 없음", true);
+  if (run.check === "eventProbe") note(`자동 재생이 이벤트를 돌렸다 (rpg:event:${id})`, lines.includes(`rpg:event:${id}`));
+}
+
 export function parseArgs(argv) {
   const out = { plan: null, report: null };
   for (let i = 0; i < argv.length; i++) {
@@ -218,8 +321,8 @@ export function parseArgs(argv) {
   return out;
 }
 
-/** tests/e2e/support/bmp.ts 의 readBmp 를 Vite SSR 로 */
-export async function loadReadBmp() {
+/** tests/e2e/support/bmp.ts 의 readBmp 와 ext-rpg 의 eventPlayPlan 을 Vite SSR 로 */
+export async function loadJudgeModules() {
   const { createServer } = await import("vite");
   const vite = await createServer({
     configFile: false,
@@ -230,7 +333,9 @@ export async function loadReadBmp() {
     optimizeDeps: { noDiscovery: true, include: [] },
   });
   try {
-    return (await vite.ssrLoadModule("/tests/e2e/support/bmp.ts")).readBmp;
+    const { readBmp } = await vite.ssrLoadModule("/tests/e2e/support/bmp.ts");
+    const { eventPlayPlan } = await vite.ssrLoadModule("/packages/ext-rpg/src/model/play.ts");
+    return { readBmp, eventPlayPlan };
   } finally {
     await vite.close();
   }
@@ -264,8 +369,8 @@ export async function main(argv, deps = {}) {
       return 1;
     }
   }
-  const readBmp = deps.readBmp ?? (await loadReadBmp());
-  const result = judge({ ...plan, report: reportPath }, report, { readBmp });
+  const loaded = deps.readBmp && deps.eventPlayPlan ? {} : await loadJudgeModules();
+  const result = judge({ ...plan, report: reportPath }, report, { readBmp: deps.readBmp ?? loaded.readBmp, eventPlayPlan: deps.eventPlayPlan ?? loaded.eventPlayPlan });
   for (const line of result.lines) log(line);
   for (const w of result.warnings) log(`WARN ${w}`);
   const passes = result.lines.filter((l) => l.includes("PASS")).length;
