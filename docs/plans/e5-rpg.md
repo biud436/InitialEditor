@@ -1230,3 +1230,28 @@ README 항목은 엔진 PR #57 의 README 와 엔진 `index.md` 로 닫았다. �
 남은 것 (저자): Tauri 창에서 `port_town.json` 의 이벤트 17개 보기(완료 기준 첫째, 웹 번들로는 확인), Tauri 앱의 프로세스 모드로 "이 이벤트 앞에서 실행"과
 "이 이벤트 자동 재생"을 한 번씩 눌러 보기(셋째), 사람의 브리지 왕복 한 번(마일스톤 3). WebKit 에서만 깨지는 판 다섯은 이 가지 밖의 일이다 (넷은 E5 전부터,
 하나는 `fix/webkit-script-tabs`). 엔진 문구를 바꾼 `f04eba2` 로 핀을 올리는 일은 문구 PR 에서 한다.
+
+### WebKit 에서 깨지던 판과 next 두 번째 합치기 (2026-09-28, `feat/e5-layer`)
+
+앞 절의 WebKit 실패 넷을 다시 돌려 까닭을 가렸다. 하나는 앱의 버그였고 셋은 테스트가 브라우저 차이를 몰랐다.
+
+- **메뉴 바의 하위 메뉴** (앱 버그, `MenuBar.tsx`): 부모 항목(씬 > 오브젝트 추가)은 마우스를 올리면 열리는데 누르기가 열림을 뒤집어 닫았다.
+  사람은 올린 뒤에 누르므로 모든 브라우저에서 하위 메뉴가 사라졌다. Chromium 의 e2e 는 올리기의 렌더가 누르기보다 늦어 우연히 통과했다.
+  누르기는 이제 열기만 한다. 새 e2e(`scene-tools.spec.ts` 의 하위 메뉴 판)는 올리고 기다린 뒤 두 번 누르고, 고치기 전 빌드의 Chromium 에서 실패한다.
+- **되살린 레이아웃** (`rpg-editor.spec.ts`): 레이아웃은 바뀐 뒤 400ms 에 저장되는데 테스트가 곧바로 읽었다. 같은 조건을 poll 로 기다린다.
+- **큰 정수 복사** (`rpg-editor.spec.ts`): WebKit 은 클립보드 권한을 줄 수 없고 페이지의 `readText` 도 막는다. WebKit 에서는 앱이 부른
+  `writeText` 의 글을 그 쓰기가 성공한 뒤에만 기록해 읽는다 (진짜 쓰기가 거절되면 기록이 없어 실패한다).
+- **고르기 단추의 Tab** (`rpg-transfer-pick.spec.ts`): WebKit(Safari, macOS 앱의 WKWebView)의 Tab 은 입력 칸만 돌고 단추까지는 Option+Tab 이다.
+  WebKit 에서는 Option+Tab 으로 같은 흐름을 본다.
+
+그 뒤 `origin/next`(`e354fc2`, PR #56 의 WebKit 스크립트 탭 고침과 Playwright 의 WebKit 프로젝트)를 합쳤다. 부딪힌 곳은 없었다.
+
+검수 (엔진은 `ef00946` 의 깨끗한 사본이고 `INITIAL2D_DIR` 로 준다):
+
+| 검사 | 결과 |
+|---|---|
+| `yarn typecheck`, `yarn lint`, `yarn check:colors`, `yarn engine:check`, `yarn version:check`, `gen-licenses.mjs --check`, `check-web-dist.mjs` | 통과 |
+| Vitest 전체 | 155 파일 가운데 154, 1771건 통과, 6건 건너뜀, 실패 없음 |
+| `yarn test:engine-events` | 건너뛰지 않음. 8건(판 10) 통과, 엔진 `ef00946` (사본에서 cmake 로 빌드한 `build/Initial2D`, 기능 `lua mruby`) |
+| Playwright Chromium 전체 | 138건 가운데 135건 통과, 실패 없음. 건너뛴 셋은 `pages.spec.ts` 의 `_headers` 검사다 (알데바란 숲 스펙은 네이티브 엔진을 빌드한 뒤 따로 돌려 통과) |
+| Playwright WebKit (`rpg-editor`, `rpg-layer`, `rpg-transfer-pick`, `rpg-events`, `inspector-scroll`, `scene-tools`) | 고치기 전 34건 가운데 27건, 고친 뒤 `rpg-editor`, `rpg-transfer-pick`, `scene-tools` 28건 모두 통과 |
