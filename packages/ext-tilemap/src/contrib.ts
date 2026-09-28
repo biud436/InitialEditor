@@ -189,6 +189,17 @@ export interface MapPlayer {
 
 export const NO_MAP_PLAYER = "맵을 띄울 길이 없다 (에디터가 실행기를 넣지 않았다)";
 
+/**
+ * 설치본 자가 검사(앱의 editor/selftest)가 확장에 묻는 것. 확장의 내보내기 selftest 칸에 둔다.
+ * 판정은 앱이 아니라 scripts/selftest-check.mjs 가 보고서와 디스크의 맵 파일로 한다
+ */
+export interface MapSelftestProbe {
+  /** 이 맵에 붙인 것의 보고 (JSON 으로 적을 수 있는 값). ready 가 참이 될 때까지 자가 검사가 다시 묻는다 */
+  describe(doc: MapDocument): { ready: boolean } & Record<string, unknown>;
+  /** 계획의 인자로 실행 요청을 만든다 (메뉴의 실행 명령과 같은 요청). 만들 수 없으면 그 이유 */
+  playRequest(doc: MapDocument, args: Readonly<Record<string, unknown>>): PlayRequest | string;
+}
+
 /** 맵 뷰에서 타일 하나를 고르는 요청 */
 export interface CellPickRequest {
   /** 고를 맵 파일 (프로젝트 경로). 탭으로 열고, 이미 열려 있으면 그 탭으로 간다 */

@@ -10,14 +10,16 @@
 //     명령(맵 메뉴, 인스펙터의 단추, 목록의 우클릭)이고 타일맵의 실행 길(play)로 띄운다. 앱이 저장할지 묻고 러너에 넘긴다
 
 import type { Extension, ExtensionApi } from "@initial-editor/core";
-import { TILEMAP_EXTENSION_ID, type MapLayerSpec, type TilemapApi } from "@initial-editor/ext-tilemap";
+import { TILEMAP_EXTENSION_ID, type MapLayerSpec, type MapSelftestProbe, type TilemapApi } from "@initial-editor/ext-tilemap";
 import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { EVENTS_LAYER_ID, eventsStateOf } from "./model/layer";
 import { EVENT_PLAY_LABELS, eventPlayBlocked, eventPlayRequest, rpgPlayProvider, type EventPlayMode } from "./model/rpgPlay";
 import { RpgProjectStore } from "./projectStore";
+import { rpgSelftestProbe } from "./selftest";
 import { commandClipboard } from "./ui/clipboard";
 import { EventClipboard } from "./ui/eventClipboard";
 import { createEventsLayer } from "./ui/eventsLayer";
+import type { EventsLayerView } from "./ui/EventsLayerView";
 import { makeEventsPanel } from "./ui/EventsPanel";
 import { LocationPicker } from "./ui/locationPick";
 import { ImageUrls, type RpgPlayActions, type RpgUiServices } from "./ui/services";
@@ -33,6 +35,8 @@ export interface RpgExports {
   store: RpgProjectStore;
   layer: MapLayerSpec;
   services: RpgUiServices;
+  /** 설치본 자가 검사의 탐침 (selftest.ts) */
+  selftest: MapSelftestProbe;
 }
 
 export const rpgExtension: Extension = {
@@ -71,7 +75,8 @@ export const rpgExtension: Extension = {
       notify: (message) => ws.toasts.warn(message),
       location: new LocationPicker({ views: tilemap, documents: ws.documents, sources: store, notify: (message) => ws.toasts.warn(message) }),
     };
-    const layer = createEventsLayer(services);
+    const views = new Map<MapDocument, EventsLayerView>();
+    const layer = createEventsLayer(services, views);
     api.onDeactivate(tilemap.registerMapLayer(layer));
     api.onDeactivate(tilemap.registerPlayProvider(rpgPlayProvider(store)));
     /** 활성 맵에서 하나만 고른 이벤트 */
@@ -108,6 +113,6 @@ export const rpgExtension: Extension = {
       // 첫 읽기 전에는 모른다: 되살린 레이아웃이 이 패널을 읽기가 끝날 때까지 둔다
       visible: () => (store.loaded ? store.schemaPresent : undefined),
     });
-    return { store, layer, services };
+    return { store, layer, services, selftest: rpgSelftestProbe(store, layer, views) };
   },
 };

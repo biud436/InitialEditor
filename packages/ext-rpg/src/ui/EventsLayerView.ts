@@ -24,6 +24,8 @@ interface Sheet {
 export interface EventsLayerViewDeps {
   /** 프로젝트 파일이 있는가 (외형의 후보 고르기). 모르면 null */
   fileExists(): ((projectPath: string) => boolean) | null;
+  /** 뷰가 치워졌다 */
+  disposed?(): void;
 }
 
 /** 테스트와 도구가 보는 그린 표식 하나 */
@@ -68,8 +70,19 @@ export class EventsLayerView implements MapLayerView {
     runInAction(() => this.zoomTick.set(this.zoomTick.get() + 1));
   }
 
+  /** 읽는 중인 외형 그림이 있는가 (다 읽으면 다시 그린다) */
+  get loading(): boolean {
+    return [...this.sheets.values()].some((s) => s.status === "loading");
+  }
+
+  /** 읽지 못한 외형 그림 (표식으로 대신 그렸다) */
+  get failedSheets(): string[] {
+    return [...this.sheets].filter(([, s]) => s.status === "failed").map(([path]) => path);
+  }
+
   dispose(): void {
     this.disposed = true;
+    this.deps.disposed?.();
     this.stop?.();
     this.stop = null;
     this.clearMarkers();
