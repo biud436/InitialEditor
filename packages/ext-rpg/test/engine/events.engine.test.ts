@@ -581,7 +581,7 @@ if (skipReason !== null) {
     const maps = lines.map((l, k) => (l.startsWith("rpg:map:") ? k : -1)).filter((k) => k >= 0);
     check("[6] 배의 이벤트가 돌고 첫 항목(떠난다)의 대사가 나온다", iEvent >= 0 && iEvent < iLeft, lines);
     check("[6] 그 뒤 게임이 transfer 없이 맵을 다시 연다 (새 게임)", maps.length >= 2 && maps[1] > iLeft && !lines.slice(0, maps[1]).some((l) => l.startsWith("rpg:transfer:")), lines);
-    check("[6] 러너가 이유를 들고 멈췄다", run.stopped !== undefined && run.stopped.includes("ship") && run.stopped.includes("처음부터 다시 시작"), run.stopped);
+    check("[6] 러너가 이유를 들고 멈췄다", run.stopped !== undefined && run.stopped.includes("ship") && run.stopped.includes("새 게임으로 재시작됨"), run.stopped);
     check("[6] 두 번째 판의 배 이벤트까지 가지 않았다 (되풀이가 없다)", lines.filter((l) => l === "rpg:event:ship").length === 1, lines);
     check("[6] 경로가 끝나지 않았다 (rpg:route:done 없이 멈춘 것이다)", !lines.includes("rpg:route:done"), lines.slice(-3));
     check("[6] 안전장치(EXIT_AFTER) 한참 전에 끝났다", run.ms < 120_000, { status: run.status, ms: run.ms });
