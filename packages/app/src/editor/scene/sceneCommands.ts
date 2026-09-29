@@ -35,8 +35,17 @@ export function registerSceneCommands(editor: Editor, tools: SceneTools): () => 
   editor.setHint("scene.setStart", sceneHint);
   editor.setChecked("scene.setStart", () => tools.isStartScene());
 
-  // 편집 커맨드는 활성 문서의 종류로 가른다: 맵이면 맵 오브젝트(maps/mapClipboard.ts), 아니면 씬 오브젝트
-  const maps = mapEditRouter(editor, () => editor.mapSupport?.clipboard ?? null);
+  // 편집 커맨드는 활성 문서의 종류로 가른다: 그래프면 노드(graph/GraphSupport.ts), 맵이면 맵 오브젝트(maps/mapClipboard.ts), 아니면 씬 오브젝트
+  const graphs = editor.graphSupport?.router;
+  const mapRouter = mapEditRouter(editor, () => editor.mapSupport?.clipboard ?? null);
+  const maps = graphs
+    ? {
+        active: () => graphs.active() || mapRouter.active(),
+        enabled: (a: EditAction) => (graphs.active() ? graphs.enabled(a) : mapRouter.enabled(a)),
+        run: (a: EditAction) => (graphs.active() ? graphs.run(a) : mapRouter.run(a)),
+        hint: (a: EditAction) => (graphs.active() ? graphs.hint(a) : mapRouter.hint(a)),
+      }
+    : mapRouter;
   const edit = (spec: { id: string; label: string; shortcut: string; action: EditAction; enabled: () => boolean; hint: () => string | undefined; run: () => void }) => {
     reg({
       id: spec.id,

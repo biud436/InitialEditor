@@ -34,6 +34,8 @@ import type { RunnerStore } from "./runner/RunnerStore";
 import { installScriptSupport } from "./scripting";
 import type { ScriptSupport } from "./scripting";
 import { installSceneSupport } from "./sceneView";
+import { installGraphSupport } from "./graph";
+import type { GraphSupport } from "./graph";
 import type { SceneSupport } from "./sceneView";
 import { installMapSupport, type MapSupport } from "./maps";
 import { installSceneTools } from "./scene";
@@ -105,6 +107,8 @@ export class Editor {
   scripting!: ScriptSupport;
   /** E2: 씬 뷰 (installSceneSupport 가 붙인다: 씬 문서 열기와 PIXI 씬 뷰) */
   sceneSupport!: SceneSupport;
+  /** 비주얼 스크립팅 (installGraphSupport 가 붙인다: 그래프 문서 열기와 캔버스) */
+  graphSupport!: GraphSupport;
   /** E3: 맵 뷰 (installMapSupport 가 붙인다: 맵 문서 열기, PIXI 맵 뷰, 팔레트와 레이어 패널의 상태, 맵 커맨드) */
   mapSupport!: MapSupport;
   /** E2: 씬 도구 (installSceneTools 가 붙인다: 계층, 인스펙터, 씬 커맨드, 템플릿) */
@@ -176,7 +180,8 @@ export class Editor {
     this.disposers.push(installRecentProjectsMenu(this));
     installScriptSupport(this);
     installSceneSupport(this); // 스크립트 지원 뒤에: openPath 를 바깥에서 감싸 resources/scenes/*.json 을 먼저 가로챈다
-    installMapSupport(this); // 가장 바깥에서 resources/maps/*.json 을 가로챈다
+    installMapSupport(this); // resources/maps/*.json 을 가로챈다
+    this.disposers.push(installGraphSupport(this)); // 가장 바깥에서 scripts/components/**/*.graph.json 을 가로챈다
     installSceneTools(this);
     this.disposers.push(installGameView(this)); // 실행기보다 먼저: 실행기가 에디터 안 실행을 받는다
     installRunner(this);

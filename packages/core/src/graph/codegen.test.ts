@@ -125,6 +125,14 @@ describe("코드 생성: 식과 문장", () => {
         end`);
   });
 
+  it("값만 정하고 잇지 않은 갈래는 빈 갈래다", () => {
+    const g = graph([n("u", "event.update", { next: "s" }), n("s", "flow.switch", { args: { value: 3 }, cases: { "1": "", "2": "p" } }), n("p", "text.print", { args: { value: "two" } })]);
+    expect(validateGraph(g, { libraries: new Map() }).problems).toEqual([]);
+    const code = gen(g);
+    expect(code.lua.text).toContain('\tif 3 == 1 then\n\telseif 3 == 2 then\n\t\tprint("two")\n\tend');
+    expect(code.ruby.text).toContain('        case 3\n        when 1\n        when 2\n          puts("two")\n        end');
+  });
+
   it("조건 분기의 else 만 있으면 부정한다", () => {
     const g = gen(graph([n("u", "event.update", { next: "b" }), n("k", "api.call", { fn: "Input.IsKeyPress", args: { key: "LEFT" } }), n("b", "flow.branch", { in: { cond: "k" }, else: "p" }), n("p", "text.print", { args: { value: "no" } })]));
     expect(g.lua.text).toContain("\tif not Input.IsKeyPress(37) then\n\t\tprint(\"no\")\n\tend");

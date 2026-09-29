@@ -153,7 +153,7 @@
 
 **진행 (2026-09-28)**: 검토 문서 [visual-scripting-review.md](visual-scripting-review.md)를 썼다. 저자가 읽고 고른다.
 
-**진행 (2026-09-29)**: 저자가 "비주얼 스크립팅"이라고 해서 검토 문서의 권고(방식 C, 생성기 먼저)대로 시작했다. 계획과 포맷의 정본은 [visual-scripting.md](visual-scripting.md)다. V1(포맷, 검사, Lua 와 Ruby 생성, 진짜 엔진 교차 검사)을 마쳤고 V2(캔버스 편집기)를 한다.
+**진행 (2026-09-29)**: 저자가 "비주얼 스크립팅"이라고 해서 검토 문서의 권고(방식 C, 생성기 먼저)대로 시작했다. 계획과 포맷의 정본은 [visual-scripting.md](visual-scripting.md)다. V1(포맷, 검사, Lua 와 Ruby 생성, 진짜 엔진 교차 검사)과 V2(캔버스 편집기)를 마쳤다.
 
 ## 작은 후보 (E3 이전표에서)
 

@@ -193,6 +193,8 @@ export abstract class Document {
   private diskText: string | null = null;
   /** 덮어쓰기를 골랐다: 다음 저장은 디스크와 견주지 않는다 */
   private overwriteChosen = false;
+  /** 마지막 저장에서 이 문서의 파일 말고 함께 쓴 파일 (그래프 문서의 생성 코드). 저장 뒤 핫 리로드가 같이 싣는다 */
+  writtenWithSave: readonly string[] = [];
 
   constructor(
     readonly kind: DocumentKind,

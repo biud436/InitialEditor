@@ -5,7 +5,7 @@
 //   맨 아래: 검사 결과 (document.problems)
 // 여러 개를 골랐으면 공통 칸만 보이고 값이 다르면 "여러 값" 이다. 변경은 전부 editor.sceneTools 를 거쳐 명령이 된다.
 
-import type { SceneDocument, SceneObject } from "@initial-editor/core";
+import { graphPathOfComponent, isGraphPath, type SceneDocument, type SceneObject } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
@@ -142,6 +142,12 @@ const ScriptsSection = observer(function ScriptsSection({ object }: { object: Sc
     setFolded(next);
   };
   const open = async (name: string) => {
+    // 그래프에서 만든 컴포넌트면 그래프를 연다 (생성 코드가 아니라)
+    const graph = graphPathOfComponent(name);
+    if (isGraphPath(graph) && (await editor.backend.exists(graph).catch(() => false))) {
+      await editor.openPath(graph);
+      return;
+    }
     const path = tools.scriptPath(name);
     if (!(await editor.backend.exists(path).catch(() => false))) {
       editor.toasts.warn(`파일 없음: ${path} (스크립트 추가 대화상자에서 생성 가능)`);

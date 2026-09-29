@@ -4,7 +4,7 @@
 //   저장은 UTF-8 과 LF 로 (03-project-and-runtime.md 파일 규칙 5). 밖에서 바뀌면 Editor 가 미수정이면 reload 를,
 //   수정 중이면 externallyChanged 를 올려 배너(ExternalChangeBanner)가 뜬다.
 
-import { Document, basename, extname, type ProjectBackend } from "@initial-editor/core";
+import { Document, basename, extname, generatedFrom, type ProjectBackend } from "@initial-editor/core";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { languageForExtension, monaco } from "../scripting/monaco";
 
@@ -22,6 +22,8 @@ export class ScriptDocument extends Document {
   model: monaco.editor.ITextModel | null = null;
   loaded = false;
   error: string | null = null;
+  /** 그래프에서 만든 파일이면 그 그래프의 경로 (편집기는 읽기 전용이다) */
+  graphSource: string | null = null;
   readonly language: string;
   /** 탭을 오갈 때 커서와 스크롤을 지킨다 (뷰가 뗄 때 저장하고 붙일 때 되살린다) */
   viewState: monaco.editor.ICodeEditorViewState | null = null;
@@ -36,7 +38,7 @@ export class ScriptDocument extends Document {
   ) {
     super(SCRIPT_KIND, path, basename(path));
     this.language = languageForExtension(extname(path));
-    makeObservable<ScriptDocument, "setModel">(this, { model: observable.ref, loaded: observable, error: observable, setModel: action });
+    makeObservable<ScriptDocument, "setModel">(this, { model: observable.ref, loaded: observable, error: observable, graphSource: observable, setModel: action });
   }
 
   /** 지금 모델의 텍스트 (LF) */
@@ -80,6 +82,7 @@ export class ScriptDocument extends Document {
     this.model = model;
     this.loaded = true;
     this.error = null;
+    this.graphSource = /\.(lua|rb)$/.test(this.path ?? "") ? generatedFrom(text) : null;
     this.markSaved();
   }
 

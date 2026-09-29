@@ -14,3 +14,18 @@
 .script-editor-host .monaco-editor {
   background: var(--bg-panel);
 }
+
+/* 그래프에서 만든 파일의 알림 줄 (읽기 전용) */
+.script-editor-generated {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--fg-muted);
+}
+
+.script-editor-generated .btn {
+  padding: 2px var(--space-2);
+}

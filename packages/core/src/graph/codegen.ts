@@ -198,7 +198,7 @@ abstract class Emitter {
         }
         visitChain(n.then, depth + 1);
         visitChain(n.else, depth + 1);
-        for (const c of Object.values(n.cases ?? {})) visitChain(c, depth + 1);
+        for (const c of Object.values(n.cases ?? {})) visitChain(c || undefined, depth + 1);
         visitChain(n.body, depth + 1);
       }
     };
@@ -245,7 +245,7 @@ abstract class Emitter {
   }
 
   protected chain(head: string | undefined, indent: number, plan: HookPlan) {
-    for (let id = head; id !== undefined; id = this.node(id).next) this.statement(this.node(id), indent, plan);
+    for (let id = head || undefined; id !== undefined; id = this.node(id).next) this.statement(this.node(id), indent, plan);
   }
 
   protected hooks(): HookName[] {

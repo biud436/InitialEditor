@@ -1,0 +1,421 @@
+/* 그래프 문서 뷰: 머리줄, 캔버스(DOM 노드와 SVG 선), 옆 창, 노드 추가 목록 */
+
+.graph-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.graph-view-header .btn {
+  padding: 2px var(--space-2);
+}
+
+.graph-view-status-error {
+  color: var(--danger);
+}
+
+.graph-view-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- 캔버스 ---- */
+
+.graph-canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--graph-bg);
+  background-image: linear-gradient(var(--graph-grid) 1px, transparent 1px), linear-gradient(90deg, var(--graph-grid) 1px, transparent 1px);
+  outline: none;
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+}
+
+.graph-canvas[data-panning="true"] {
+  cursor: grabbing;
+}
+
+.graph-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.graph-wires {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.graph-wire {
+  fill: none;
+  stroke-width: 2;
+}
+
+.graph-wire[data-kind="exec"] {
+  stroke: var(--graph-exec);
+  stroke-width: 3;
+}
+
+.graph-wire-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12;
+  pointer-events: stroke;
+  cursor: context-menu;
+}
+
+.graph-wire-draft {
+  stroke-dasharray: 6 4;
+}
+
+.graph-band {
+  position: absolute;
+  border: 1px solid var(--accent);
+  background: var(--bg-selection);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ---- 노드 ---- */
+
+.graph-node {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--graph-node-border);
+  border-radius: 6px;
+  background: var(--graph-node);
+  color: var(--fg);
+  font-size: 12px;
+  box-shadow: var(--shadow);
+}
+
+.graph-node[data-selected="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.graph-node[data-error="true"] {
+  border-color: var(--danger);
+}
+
+.graph-node[data-error="true"][data-selected="true"] {
+  box-shadow: 0 0 0 2px var(--danger);
+}
+
+.graph-node[data-warning="true"]:not([data-error="true"]) {
+  border-style: dashed;
+}
+
+.graph-node-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-3) 0 var(--space-3);
+  border-radius: 5px 5px 0 0;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: move;
+}
+
+.graph-node-header[data-cat="event"] { background: var(--graph-cat-event); }
+.graph-node-header[data-cat="flow"] { background: var(--graph-cat-flow); }
+.graph-node-header[data-cat="variable"] { background: var(--graph-cat-variable); }
+.graph-node-header[data-cat="object"] { background: var(--graph-cat-object); }
+.graph-node-header[data-cat="scene"] { background: var(--graph-cat-scene); }
+.graph-node-header[data-cat="math"] { background: var(--graph-cat-math); }
+.graph-node-header[data-cat="logic"] { background: var(--graph-cat-logic); }
+.graph-node-header[data-cat="text"] { background: var(--graph-cat-text); }
+.graph-node-header[data-cat="engine"] { background: var(--graph-cat-engine); }
+.graph-node-header[data-cat="library"] { background: var(--graph-cat-library); }
+
+.graph-node-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-node-detail {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-row {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 26px;
+  white-space: nowrap;
+}
+
+.graph-row-in {
+  left: 12px;
+  right: 50%;
+}
+
+.graph-row-out {
+  right: 12px;
+  left: 50%;
+  justify-content: flex-end;
+}
+
+/* 값 입력의 줄은 상수 편집기가 들어가도록 넓게 (출력 줄이 같은 높이에 있으면 그 글자와 겹치지 않게 짧게 둔다) */
+.graph-row-in[data-wide="true"] {
+  right: 12px;
+}
+
+.graph-row-label {
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-arg {
+  min-width: 0;
+  flex: 1;
+  max-width: 120px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-input);
+  color: var(--fg);
+  font: inherit;
+  font-family: var(--font-mono);
+}
+
+.graph-arg[type="checkbox"] {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.graph-arg-default {
+  color: var(--fg-disabled);
+  font-style: italic;
+}
+
+.graph-pin {
+  position: absolute;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 2px solid var(--graph-any);
+  border-radius: 50%;
+  background: var(--graph-node);
+  cursor: crosshair;
+}
+
+.graph-pin[data-connected="true"] {
+  background: currentColor;
+}
+
+.graph-pin[data-pin-kind="exec-in"],
+.graph-pin[data-pin-kind="exec-out"] {
+  border-radius: 2px;
+  transform: rotate(45deg) scale(0.9);
+  border-color: var(--graph-exec);
+  color: var(--graph-exec);
+}
+
+.graph-pin[data-hover="true"] {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.graph-pin[data-type="number"] { border-color: var(--graph-number); color: var(--graph-number); }
+.graph-pin[data-type="integer"] { border-color: var(--graph-integer); color: var(--graph-integer); }
+.graph-pin[data-type="boolean"] { border-color: var(--graph-boolean); color: var(--graph-boolean); }
+.graph-pin[data-type="string"] { border-color: var(--graph-string); color: var(--graph-string); }
+.graph-pin[data-type="enum"] { border-color: var(--graph-enum); color: var(--graph-enum); }
+.graph-pin[data-type="object"] { border-color: var(--graph-object); color: var(--graph-object); }
+.graph-pin[data-type="any"] { border-color: var(--graph-any); color: var(--graph-any); }
+
+/* ---- 옆 창 ---- */
+
+.graph-side {
+  width: 280px;
+  flex: none;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-size: 12px;
+}
+
+.graph-side-section {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.graph-side-section h3,
+.graph-side-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.graph-side-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.graph-side-row > label {
+  flex: none;
+  width: 64px;
+  color: var(--fg-muted);
+}
+
+.graph-side-row .input,
+.graph-side-row .select {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  font-size: 12px;
+}
+
+.graph-side-section > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.graph-side-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.graph-side-section:not([open]) > summary {
+  margin-bottom: 0;
+}
+
+.graph-var {
+  display: grid;
+  grid-template-columns: 1fr 76px 56px 22px;
+  gap: var(--space-1);
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.graph-var .btn {
+  padding: 0;
+}
+
+.graph-var-head {
+  margin-bottom: 2px;
+  font-size: 11px;
+}
+
+.graph-var .input,
+.graph-var .select {
+  min-width: 0;
+  height: 24px;
+  font-size: 12px;
+}
+
+.graph-var-extra {
+  grid-column: 1 / 4;
+}
+
+.graph-problem {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-1);
+  padding: 2px 4px;
+  border: none;
+  border-radius: 3px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.graph-problem:hover {
+  background: var(--bg-hover);
+}
+
+.graph-problem[data-severity="error"]::before {
+  content: "오류 ";
+  color: var(--danger);
+}
+
+.graph-problem[data-severity="warning"]::before {
+  content: "경고 ";
+  color: var(--warning);
+}
+
+/* ---- 노드 추가 목록 ---- */
+
+.graph-palette {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  max-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+}
+
+.graph-palette .input {
+  margin: var(--space-2);
+}
+
+.graph-palette-list {
+  overflow-y: auto;
+  padding-bottom: var(--space-1);
+}
+
+.graph-palette-group {
+  padding: var(--space-1) var(--space-3) 2px;
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+
+.graph-palette-item {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 3px var(--space-3) 3px var(--space-4);
+  border: none;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.graph-palette-item[data-active="true"],
+.graph-palette-item:hover {
+  background: var(--bg-hover);
+}
+
+.graph-palette-item-detail {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+}
+
+.graph-palette-empty {
+  padding: var(--space-2) var(--space-3);
+  color: var(--fg-muted);
+}

@@ -55,7 +55,11 @@ export function installRunner(editor: Editor): () => void {
       saves.cancel();
       void runner.onProjectClosed();
     }),
-    editor.events.on("documentSaved", (doc) => saves.onSaved(doc.path)),
+    editor.events.on("documentSaved", (doc) => {
+      saves.onSaved(doc.path);
+      // 그래프 문서는 저장하면서 생성 코드를 함께 쓴다
+      for (const p of doc.writtenWithSave) saves.onSaved(p);
+    }),
     // 설정 대화상자에서 글자마다 --features 를 띄우지 않게 잠시 기다린다
     reaction(
       () => editor.settings.settings.enginePath,
