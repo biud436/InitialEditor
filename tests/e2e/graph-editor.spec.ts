@@ -180,9 +180,9 @@ test.describe("비주얼 스크립팅 (메모리 모드)", () => {
     const main = [
       'local hello = require("scripts/lua/components/hello")',
       "local obj, scene = { x = 0, y = 0, props = {} }, { state = {} }",
-      "function init() hello.init(obj, scene, {}) end",
-      "function update(elapsed) end",
-      "function render() end",
+      "function Initialize() hello.init(obj, scene, {}) end",
+      "function Update(elapsed) end",
+      "function Render() end",
       "",
     ].join("\n");
     await withEditor(page, async (e, [g, m]) => {
