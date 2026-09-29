@@ -357,6 +357,19 @@ jobs:
             exit 1
           fi
 
+      # 비주얼 스크립팅의 엔진 교차 검사 (visual-scripting.md 6절): 그래프에서 만든 bird 와 샘플러를 설치한 엔진으로 두 언어에서 돌린다
+      - name: 그래프 엔진 교차 검사 (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 10
+        env:
+          INITIAL2D_EXE: /usr/bin/Initial2D
+        run: |
+          yarn test:engine-graph 2>&1 | tee "$RUNNER_TEMP/engine-graph.log"
+          if grep -q 'SKIP' "$RUNNER_TEMP/engine-graph.log"; then
+            echo "건너뛴 판이 있어 검사하지 않았다 (엔진, mruby 확인)"
+            exit 1
+          fi
+
       # ---- 자가 검사 (5절). 판정은 다음 단계가 로그와 스크린샷으로 한다 ----
 
       - name: 자가 검사 (macOS, dmg 안의 앱)

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "name": "flappy",
+  "label": "플래피",
+  "lua": { "require": "scripts/lua/components/flappy/common" },
+  "ruby": { "require": "scripts/ruby/components/flappy/common", "module": "FlappyCommon" },
+  "constants": [
+    { "key": "GRAVITY", "type": "number", "label": "중력 가속도" },
+    { "key": "FLAP", "type": "number", "label": "날갯짓 속도" },
+    { "key": "MAX_FALL", "type": "number", "label": "최대 낙하 속도" },
+    { "key": "BIRD_X", "type": "integer", "label": "새의 x" },
+    { "key": "BIRD_H", "type": "integer", "label": "새의 높이" }
+  ],
+  "functions": [
+    { "key": "state", "label": "공유 상태", "args": [{ "key": "scene", "type": "scene" }], "returns": "state" },
+    { "key": "dt", "label": "틱 시간 (초)", "args": [{ "key": "elapsed", "type": "number", "label": "경과 시간 (ms)" }], "returns": "number" },
+    { "key": "flapPressed", "label": "날갯짓 입력", "ruby": "flap_pressed?", "args": [{ "key": "st", "type": "state" }], "returns": "boolean" },
+    { "key": "sfx", "label": "효과음", "args": [{ "key": "name", "type": "string", "label": "이름" }] },
+    { "key": "die", "label": "게임 오버", "args": [{ "key": "st", "type": "state" }] }
+  ]
+}

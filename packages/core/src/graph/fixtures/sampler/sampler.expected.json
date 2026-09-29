@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "fields": [
+    {
+      "key": "label",
+      "type": "string",
+      "label": "이름",
+      "default": "샘플"
+    },
+    {
+      "key": "count",
+      "type": "integer",
+      "label": "횟수",
+      "default": 1,
+      "min": 0
+    },
+    {
+      "key": "mode",
+      "type": "enum",
+      "values": [
+        "a",
+        "b"
+      ],
+      "default": "b"
+    }
+  ]
+}

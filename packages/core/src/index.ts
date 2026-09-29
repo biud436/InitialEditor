@@ -17,4 +17,5 @@ export * from "./sceneDocument";
 export * from "./log";
 export * from "./errorLinks";
 export * from "./settings";
+export * from "./graph";
 export { MemoryBackend } from "./testing/memory-backend";
