@@ -144,6 +144,23 @@ F5 는 늘 이쪽이고, Tauri 앱은 설정의 **실행 방식**(프로세스, 
 - 템플릿 파일은 엔진 저장소의 사본입니다. `INITIAL2D_DIR=../Initial2D yarn sync:templates` 로 엔진 체크아웃에서 다시 맞추고, 엔진의 템플릿 묶음(`tools/pack_templates.py` 가 만든 `Initial2D-templates.zip`)에서 맞출 때는 `yarn sync:templates --from-zip <zip 이나 dist 폴더>` 입니다. 엔진의 추적 파일이 커밋과 다르면 멈추므로 엔진을 먼저 커밋합니다 (`--allow-dirty` 로 넘길 수는 있지만 그 사본은 단위 테스트가 막습니다).
 - 교차 검사 `yarn test:engine-scene` 이 템플릿 셋 x 언어 둘을 임시 프로젝트로 써서 진짜 엔진을 헤드리스로 돌립니다. 빈 프로젝트는 컴포넌트에 매개변수 선언과 값을 주고 엔진이 넘긴 params 를 봅니다. 타일맵은 맵 문서로 칸 (24, 28) 을 표식 타일로 칠해 저장한 뒤 엔진 화면의 그 칸 색을 봅니다. 엔진은 `INITIAL2D_DIR` 의 `build/Initial2D` 이고, 배포용 빌드처럼 다른 실행 파일은 `INITIAL2D_EXE=<경로> yarn test:engine-scene` 으로 줍니다.
 
+## 비주얼 스크립팅
+
+컴포넌트를 노드 그래프로 만들 수 있습니다. 그래프는 새 실행기가 아니라 Lua 와 Ruby 코드를 만드는 원본이라서, 게임은 손으로 쓴 컴포넌트와 똑같이 돕니다 (씬 로더, 매개변수, 핫 리로드, 오류 줄). 계획과 포맷은 [docs/plans/visual-scripting.md](docs/plans/visual-scripting.md)입니다.
+
+- 그래프는 `scripts/components/<경로>.graph.json` 이고 컴포넌트 `components/<경로>` 가 됩니다. 그래프에서 `scripts/lua/components/<경로>.lua`, `scripts/ruby/components/<경로>.rb`, 매개변수를 선언했으면 선언 파일 `scripts/components/<경로>.json` 을 만듭니다. 생성 파일은 커밋합니다 (엔진은 그래프를 읽지 않습니다). 검사와 생성은 코어(`packages/core/src/graph/`)에 있고, 캔버스 편집기는 만드는 중입니다.
+- 생성 파일의 첫 줄은 `-- 그래프에서 만든 파일: <그래프 경로>` 입니다. 이 줄이 없는 파일(손으로 쓴 파일)은 덮어쓰지 않습니다.
+- 노드는 이벤트(init, update, render, destroy), 흐름(조건 분기, 값 분기, 반복), 상태와 지역 변수와 매개변수, 오브젝트와 props, 씬, 수학, 비교와 논리, 텍스트, 엔진 API(입력, 소리, 화면 크기 등 22개)입니다.
+- 게임의 도우미 모듈은 노드 라이브러리(`*.nodes.json`)로 노드가 됩니다. 두 언어의 이름을 적어 두면 Lua 는 `flappy.GRAVITY`, Ruby 는 `FlappyCommon::GRAVITY` 로 부릅니다.
+- 예: 플래피 `bird` 전체를 노드 80개로 적은 그래프가 `packages/core/src/graph/fixtures/flappy/` 에 있고, 만든 코드(`bird.expected.lua`, `bird.expected.rb`)가 그 옆에 있습니다.
+
+교차 검사 `yarn test:engine-graph` 는 그래프에서 만든 코드를 진짜 엔진으로 돌립니다. 플래피는 `bird` 를 그래프의 것으로 바꿔도 손으로 쓴 `bird` 와 같은 판(상태 전이, 점수, 요약)이 나오는지, 샘플러 그래프는 노드마다 찍은 값이 기대값과 같고 Lua 와 Ruby 가 같은지 봅니다.
+
+```bash
+INITIAL2D_DIR=../Initial2D yarn test:engine-graph   # 엔진 빌드(build/Initial2D)가 있어야 한다
+KEEP_WORKDIR=1 yarn test:engine-graph               # 임시 프로젝트를 남긴다
+```
+
 ## 맵 편집 (E3)
 
 `resources/maps/*.json`(엔진 맵 포맷 v1, v2)을 열면 맵 뷰가 뜹니다. 알데바란 숲(256x28 칸)처럼 생성기가 만든 맵도
@@ -410,6 +427,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn test:engine-scene` | 에디터 템플릿으로 만든 프로젝트(빈, 플래피, 타일맵 x Lua, Ruby)를 진짜 엔진이 돌리는 교차 검사 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
 | `yarn test:engine-map` | 맵 편집의 엔진 교차 검사 (위 "맵 편집 (E3)"): 통행 편집과 엔진의 막힘, 새 맵과 엔진 화면의 골든(Lua, Ruby), 항구 마을 한 칸을 칠한 뒤의 엔진 인수 시나리오 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
 | `yarn test:android-stage` | 안드로이드 스테이징 교차 검사 (에디터와 같은 인자로 스테이징한 폴더만으로 데스크톱 엔진이 플래피를 돌린다, 스탬프, `config.setting` 과 RTP 가 빠지는지). 엔진 저장소는 `INITIAL2D_DIR` |
+| `yarn test:engine-graph` | 그래프에서 만든 Lua 와 Ruby 를 진짜 엔진이 돌리는 교차 검사 (위 "비주얼 스크립팅"): 그래프의 플래피 `bird` 가 손으로 쓴 것과 같은 판인지, 샘플러의 값이 두 언어에서 같은지 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
 | `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 생성물 표시)를 갱신 (`INITIAL2D_DIR`). `--from-zip <zip 이나 dist 폴더>` 는 엔진의 템플릿 묶음에서 |
 | `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |

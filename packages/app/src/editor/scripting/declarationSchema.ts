@@ -4,7 +4,8 @@
 import { COMPONENT_DECLARATION_VERSION, COMPONENT_FIELD_TYPES } from "@initial-editor/core";
 
 export const DECLARATION_SCHEMA_URI = "initial://schemas/component-declaration.json";
-export const DECLARATION_FILE_MATCH = ["**/scripts/components/*.json", "**/scripts/components/**/*.json"];
+// 그래프(*.graph.json)와 노드 라이브러리(*.nodes.json)도 scripts/components/ 아래에 있지만 선언 파일이 아니다 (뒤의 ! 가 이긴다)
+export const DECLARATION_FILE_MATCH = ["**/scripts/components/*.json", "**/scripts/components/**/*.json", "!**/*.graph.json", "!**/*.nodes.json"];
 
 export const DECLARATION_SCHEMA = {
   $schema: "http://json-schema.org/draft-07/schema#",

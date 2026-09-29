@@ -45,9 +45,9 @@ export function componentDeclarationPath(logicalName: string): string {
   return `scripts/${logicalName}.json`;
 }
 
-/** 선언 파일 경로를 논리 이름으로. scripts/ 아래 .json 이 아니면 null (scripts/lua, scripts/ruby 아래도 아니다) */
+/** 선언 파일 경로를 논리 이름으로. scripts/ 아래 .json 이 아니면 null (scripts/lua, scripts/ruby 아래도, 그래프와 노드 라이브러리도 아니다) */
 export function componentNameFromDeclarationPath(path: string): string | null {
-  if (!path.startsWith("scripts/") || !path.endsWith(".json")) return null;
+  if (!path.startsWith("scripts/") || !path.endsWith(".json") || path.endsWith(".graph.json") || path.endsWith(".nodes.json")) return null;
   const name = path.slice("scripts/".length, -".json".length);
   if (name === "" || name.startsWith("lua/") || name.startsWith("ruby/")) return null;
   return name;

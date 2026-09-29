@@ -29,6 +29,8 @@ describe("선언 파일", () => {
     expect(componentNameFromDeclarationPath("scripts/components/flappy/bird.json")).toBe("components/flappy/bird");
     expect(componentNameFromDeclarationPath("scripts/lua/components/x.json")).toBeNull();
     expect(componentNameFromDeclarationPath("resources/x.json")).toBeNull();
+    expect(componentNameFromDeclarationPath("scripts/components/flappy/bird.graph.json")).toBeNull();
+    expect(componentNameFromDeclarationPath("scripts/components/flappy/common.nodes.json")).toBeNull();
   });
 
   it("읽는다", () => {
