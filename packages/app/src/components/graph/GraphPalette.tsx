@@ -5,11 +5,14 @@ import { filterPalette, type PaletteEntry } from "../../editor/graph/palette";
 
 export function GraphPalette({
   entries,
+  title,
   at,
   onPick,
   onClose,
 }: {
   entries: readonly PaletteEntry[];
+  /** 목록 위의 안내 (선을 놓아 열었을 때) */
+  title?: string;
   at: { x: number; y: number };
   onPick: (entry: PaletteEntry) => void;
   onClose: () => void;
@@ -60,6 +63,7 @@ export function GraphPalette({
           e.preventDefault();
         }}
       />
+      {title && <div className="graph-palette-title" data-testid="graph-palette-title">{title}</div>}
       <div className="graph-palette-list">
         {list.length === 0 && <div className="graph-palette-empty">맞는 노드 없음</div>}
         {groups.map(([category, items]) => (

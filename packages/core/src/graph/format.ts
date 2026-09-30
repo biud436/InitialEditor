@@ -52,6 +52,15 @@ export interface GraphNode {
   extra?: Record<string, unknown>;
 }
 
+/** 캔버스의 메모 상자. 코드에는 들어가지 않는다 */
+export interface GraphComment {
+  id: string;
+  text: string;
+  /** [x, y, 너비, 높이] */
+  box: [number, number, number, number];
+  extra?: Record<string, unknown>;
+}
+
 export interface GraphFile {
   version: number;
   /** 노드 라이브러리 파일 (*.nodes.json) */
@@ -62,6 +71,7 @@ export interface GraphFile {
   locals: VarDecl[];
   nodes: GraphNode[];
   layout: Record<string, [number, number]>;
+  comments?: GraphComment[];
   extra?: Record<string, unknown>;
 }
 
@@ -84,7 +94,7 @@ function extraOf(raw: Record<string, unknown>, known: readonly string[]): Record
 
 const VAR_KEYS = ["key", "type", "label", "values", "default", "ruby"] as const;
 const NODE_KEYS = ["id", "kind", "field", "type", "fn", "const", "in", "args", "next", "then", "else", "body", "cases"] as const;
-const ROOT_KEYS = ["version", "uses", "params", "state", "locals", "nodes", "layout"] as const;
+const ROOT_KEYS = ["version", "uses", "params", "state", "locals", "nodes", "layout", "comments"] as const;
 
 function stringMap(raw: unknown, where: string): Record<string, string> | undefined {
   if (raw === undefined) return undefined;
@@ -104,7 +114,8 @@ function optString(raw: Record<string, unknown>, key: string, where: string): st
   return v;
 }
 
-function parseVar(raw: unknown, where: string): VarDecl {
+/** 변수 선언 하나 (상태 필드, 지역 변수, 라이브러리가 선언한 상태 필드). 모양이 틀리면 GraphFormatError */
+export function parseVar(raw: unknown, where: string): VarDecl {
   if (!isRecord(raw)) throw new GraphFormatError(`${where}는 객체여야 합니다`);
   if (typeof raw.key !== "string") throw new GraphFormatError(`${where}.key는 문자열이어야 합니다`);
   if (typeof raw.type !== "string" || !(VAR_TYPES as readonly string[]).includes(raw.type)) {
@@ -201,6 +212,20 @@ export function parseGraph(text: string): GraphFile {
     nodes: raw.nodes.map((n, i) => parseNode(n, `nodes[${i}]`)),
     layout,
   };
+  if (raw.comments !== undefined) {
+    if (!Array.isArray(raw.comments)) throw new GraphFormatError("comments는 배열이어야 합니다");
+    graph.comments = raw.comments.map((c, i) => {
+      const where = `comments[${i}]`;
+      if (!isRecord(c)) throw new GraphFormatError(`${where}는 객체여야 합니다`);
+      if (typeof c.id !== "string" || c.id === "") throw new GraphFormatError(`${where}.id는 비어 있지 않은 문자열이어야 합니다`);
+      if (typeof c.text !== "string") throw new GraphFormatError(`${where}.text는 문자열이어야 합니다`);
+      if (!Array.isArray(c.box) || c.box.length !== 4 || c.box.some((n) => typeof n !== "number" || !Number.isFinite(n))) throw new GraphFormatError(`${where}.box는 숫자 네 개의 배열이어야 합니다`);
+      const comment: GraphComment = { id: c.id, text: c.text, box: [c.box[0], c.box[1], c.box[2], c.box[3]] as [number, number, number, number] };
+      const extra = extraOf(c, ["id", "text", "box"]);
+      if (extra) comment.extra = extra;
+      return comment;
+    });
+  }
   const extra = extraOf(raw, ROOT_KEYS);
   if (extra) graph.extra = extra;
   return graph;
@@ -260,6 +285,7 @@ export function serializeGraph(g: GraphFile): string {
   out.push(`  "nodes": ${lines(g.nodes.map((n) => inlineJson(nodeJson(n))), "  ")}`);
   const ids = [...g.nodes.map((n) => n.id).filter((id) => g.layout[id]), ...Object.keys(g.layout).filter((id) => !g.nodes.some((n) => n.id === id))];
   if (ids.length) out.push(`  "layout": {\n${ids.map((id) => `    ${JSON.stringify(id)}: ${inlineJson(g.layout[id])}`).join(",\n")}\n  }`);
+  if (g.comments?.length) out.push(`  "comments": ${lines(g.comments.map((c) => inlineJson({ id: c.id, text: c.text, box: c.box, ...c.extra })), "  ")}`);
   for (const [k, v] of Object.entries(g.extra ?? {})) out.push(`  ${JSON.stringify(k)}: ${inlineJson(v)}`);
   return `{\n${out.join(",\n")}\n}\n`;
 }

@@ -3,16 +3,7 @@
   "uses": ["scripts/components/flappy/common.nodes.json"],
   "state": {
     "from": "flappy.state",
-    "fields": [
-      { "key": "state", "type": "enum", "label": "진행 상태", "values": ["ready", "play", "dead"] },
-      { "key": "bird", "type": "object", "label": "새" },
-      { "key": "H", "type": "integer", "label": "화면 높이" },
-      { "key": "GROUND_Y", "type": "integer", "label": "땅의 y" },
-      { "key": "readyTime", "type": "number", "label": "대기 시간" },
-      { "key": "birdVy", "type": "number", "label": "새의 속도" },
-      { "key": "birdAngle", "type": "number", "label": "새의 기울기" },
-      { "key": "autoplay", "type": "boolean", "label": "자동 시연" }
-    ]
+    "fields": []
   },
   "locals": [
     { "key": "dt", "type": "number", "label": "틱 시간 (초)" }

@@ -381,6 +381,11 @@
   margin: var(--space-2);
 }
 
+.graph-palette-title {
+  padding: 0 var(--space-3) var(--space-1);
+  color: var(--fg-muted);
+}
+
 .graph-palette-list {
   overflow-y: auto;
   padding-bottom: var(--space-1);
@@ -418,4 +423,100 @@
 .graph-palette-empty {
   padding: var(--space-2) var(--space-3);
   color: var(--fg-muted);
+}
+
+/* ---- 메모 상자 (노드 뒤) ---- */
+
+.graph-comment {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--graph-node-border);
+  border-radius: 6px;
+  background: var(--graph-comment);
+  pointer-events: none;
+}
+
+.graph-comment[data-selected="true"] {
+  border-color: var(--accent);
+}
+
+.graph-comment-top {
+  position: absolute;
+  pointer-events: none;
+}
+
+.graph-comment-header {
+  height: 28px;
+  padding: 0 var(--space-3);
+  overflow: hidden;
+  border-radius: 5px 5px 0 0;
+  background: var(--graph-comment-header);
+  box-shadow: 0 1px 0 var(--graph-node-border);
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 28px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: move;
+  pointer-events: auto;
+}
+
+.graph-comment-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  pointer-events: auto;
+  background: linear-gradient(135deg, transparent 50%, var(--graph-node-border) 50%);
+  border-radius: 0 0 5px 0;
+}
+
+/* ---- 미니맵 ---- */
+
+.graph-minimap {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.graph-minimap-node {
+  fill: var(--graph-node-border);
+}
+
+.graph-minimap-comment {
+  fill: var(--graph-comment-header);
+}
+
+.graph-minimap-view {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.graph-comment-text {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: var(--space-1);
+  font-size: 12px;
+  resize: vertical;
+}
+
+.graph-inherited {
+  margin-bottom: var(--space-2);
+}
+
+.graph-inherited-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 1px 0;
+  font-family: var(--font-mono);
 }

@@ -12,7 +12,16 @@
     { "key": "BIRD_H", "type": "integer", "label": "새의 높이" }
   ],
   "functions": [
-    { "key": "state", "label": "공유 상태", "args": [{ "key": "scene", "type": "scene" }], "returns": "state" },
+    { "key": "state", "label": "공유 상태", "args": [{ "key": "scene", "type": "scene" }], "returns": "state", "fields": [
+      { "key": "state", "type": "enum", "label": "진행 상태", "values": ["ready", "play", "dead"] },
+      { "key": "bird", "type": "object", "label": "새" },
+      { "key": "H", "type": "integer", "label": "화면 높이" },
+      { "key": "GROUND_Y", "type": "integer", "label": "땅의 y" },
+      { "key": "readyTime", "type": "number", "label": "대기 시간" },
+      { "key": "birdVy", "type": "number", "label": "새의 속도" },
+      { "key": "birdAngle", "type": "number", "label": "새의 기울기" },
+      { "key": "autoplay", "type": "boolean", "label": "자동 시연" }
+    ] },
     { "key": "dt", "label": "틱 시간 (초)", "args": [{ "key": "elapsed", "type": "number", "label": "경과 시간 (ms)" }], "returns": "number" },
     { "key": "flapPressed", "label": "날갯짓 입력", "ruby": "flap_pressed?", "args": [{ "key": "st", "type": "state" }], "returns": "boolean" },
     { "key": "sfx", "label": "효과음", "args": [{ "key": "name", "type": "string", "label": "이름" }] },

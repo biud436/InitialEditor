@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MemoryBackend } from "../testing/memory-backend";
-import { addNode, connectData, connectExec, disconnectData, moveNodes, removeNodes, renameCase, setArg, updateVar, uniqueNodeId } from "./edit";
+import { addComment, addNode, connectData, connectExec, disconnectData, moveNodes, nodesInComment, removeComments, removeNodes, renameCase, setArg, updateComment, updateVar, uniqueNodeId } from "./edit";
 import { emptyGraph, parseGraph, serializeGraph, type GraphFile } from "./format";
 import { nodeGeometry, NODE_WIDTH } from "./geometry";
 import { GraphDocument } from "./graphDocument";
@@ -78,13 +78,31 @@ describe("그래프 편집 함수", () => {
     expect(g.layout.b).toEqual([1, 4]);
   });
 
+  it("메모: id 는 노드와 겹치지 않고, 상자 안에 통째로 든 노드를 찾는다", () => {
+    const g = base();
+    g.nodes.push({ id: "note", kind: "math.random" });
+    g.layout.note = [900, 900];
+    const id = addComment(g, "메모", [-10.4, -10, 300.6, 60]);
+    expect(id).toBe("note_2");
+    expect(uniqueNodeId(g, "note_2")).toBe("note_2_2");
+    expect(g.comments).toEqual([{ id: "note_2", text: "메모", box: [-10, -10, 301, 60] }]);
+    const size = () => ({ width: 210, height: 30 });
+    expect(nodesInComment(g, g.comments![0], size)).toEqual(["update"]);
+    updateComment(g, id, { box: [-10, -10, 500, 60] });
+    expect(nodesInComment(g, g.comments![0], size)).toEqual(["update", "a"]);
+    updateComment(g, id, { text: "바뀜" });
+    expect(g.comments![0].text).toBe("바뀜");
+    removeComments(g, [id]);
+    expect(g.comments).toBeUndefined();
+  });
+
   it("변수 이름을 바꾸면 그 변수를 쓰는 노드도 바뀐다", () => {
-    const g = parseGraph(read("flappy", "bird.graph.json"));
-    const users = g.nodes.filter((n) => n.field === "birdVy").map((n) => n.id);
-    expect(users.length).toBe(7);
-    updateVar(g, "state", "birdVy", { key: "velocity", type: "number" });
-    expect(g.nodes.filter((n) => n.field === "velocity").map((n) => n.id)).toEqual(users);
-    expect(g.state!.fields.find((f) => f.key === "velocity")).toEqual({ key: "velocity", type: "number" });
+    const g = parseGraph(read("sampler", "sampler.graph.json"));
+    const users = g.nodes.filter((n) => n.field === "ticks").map((n) => n.id);
+    expect(users.length).toBe(2);
+    updateVar(g, "state", "ticks", { key: "tickCount", type: "integer", default: 0 });
+    expect(g.nodes.filter((n) => n.field === "tickCount").map((n) => n.id)).toEqual(users);
+    expect(g.state!.fields.find((f) => f.key === "tickCount")).toEqual({ key: "tickCount", type: "integer", default: 0 });
   });
 });
 

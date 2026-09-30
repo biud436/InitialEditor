@@ -2,7 +2,7 @@
 //   Lua 는 require 한 표의 필드(flappy.GRAVITY, flappy.sfx(...)), Ruby 는 모듈의 상수와 메서드(FlappyCommon::GRAVITY, FlappyCommon.sfx(...))
 //   인자 형식 scene 과 state 는 노드의 포트가 아니라 생성 코드가 채운다 (scene, 그래프의 상태 표)
 
-import { VAR_TYPES, type VarType } from "./format";
+import { GraphFormatError, parseVar, VAR_TYPES, type VarDecl, type VarType } from "./format";
 import { IDENTIFIER, LUA_KEYWORDS, GENERATED_NAMES, snakeCase } from "./names";
 
 export const LIBRARY_VERSION = 1;
@@ -36,6 +36,8 @@ export interface LibraryFunction {
   /** 없으면 실행 노드, 있으면 값 노드 */
   returns?: LibraryReturnType;
   values?: string[];
+  /** returns 가 state 인 함수: 그 상태 표의 필드. 이 함수를 state.from 으로 쓰는 그래프는 필드를 다시 적지 않는다 */
+  fields?: VarDecl[];
 }
 
 export interface NodeLibrary {
@@ -171,6 +173,16 @@ export function parseNodeLibrary(path: string, text: string): NodeLibrary {
       if (!RETURN_TYPES.includes(returns)) throw new NodeLibraryError(`${where}.returns는 ${RETURN_TYPES.join(", ")} 중 하나여야 합니다`);
       fn.returns = returns as LibraryReturnType;
       fn.values = values(f, returns, where);
+    }
+    if (f.fields !== undefined) {
+      if (fn.returns !== "state") throw new NodeLibraryError(`${where}.fields는 state 를 반환하는 함수에만 쓸 수 있습니다`);
+      if (!Array.isArray(f.fields)) throw new NodeLibraryError(`${where}.fields는 배열이어야 합니다`);
+      try {
+        fn.fields = f.fields.map((v, j) => parseVar(v, `${where}.fields[${j}]`));
+      } catch (e) {
+        if (e instanceof GraphFormatError) throw new NodeLibraryError(e.message);
+        throw e;
+      }
     }
     lib.functions.push(fn);
   });

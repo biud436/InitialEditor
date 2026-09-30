@@ -104,6 +104,16 @@ describe("그래프 검사", () => {
     expect(problems(graph([update("d"), { id: "d", kind: "lib.call", fn: "flappy.nope" }], { uses: [LIB_PATH] }), [[LIB_PATH, FLAPPY]])).toEqual(["E d: 라이브러리 함수가 없습니다: flappy.nope"]);
   });
 
+  it("state.from 라이브러리 함수가 선언한 필드를 쓴다. 그래프가 같은 필드를 다시 적으면 오류", () => {
+    const g = parseGraph(readFileSync(join(FIXTURES, "flappy", "bird.graph.json"), "utf8"));
+    const a = validateGraph(g, { libraries: new Map([[LIB_PATH, FLAPPY]]) });
+    expect(a.inheritedState.map((f) => f.key)).toContain("birdVy");
+    expect(a.env.state!.get("birdVy")).toMatchObject({ type: "number" });
+    expect(a.rubyStateName("GROUND_Y")).toBe("ground_y");
+    g.state!.fields = [{ key: "birdVy", type: "number" }, { key: "lives", type: "integer" }];
+    expect(problems(g, [[LIB_PATH, FLAPPY]])).toEqual(["E -: 상태 필드 birdVy는 라이브러리(flappy.state)가 이미 선언했습니다"]);
+  });
+
   it("오브젝트 속성", () => {
     expect(problems(graph([update("s"), { id: "s", kind: "obj.set", field: "id", args: { value: "x" } }]))).toEqual(["E s: 쓸 수 없는 오브젝트 속성입니다: id"]);
     expect(problems(graph([update("s"), { id: "s", kind: "obj.set", field: "z", args: { value: 1 } }]))[0]).toMatch(/오브젝트 속성이 아닙니다: z/);

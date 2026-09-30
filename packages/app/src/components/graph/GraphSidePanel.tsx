@@ -12,6 +12,7 @@ import {
   setParams,
   setStateFrom,
   setUses,
+  updateComment,
   updateVar,
   VAR_TYPES,
   WRITABLE_OBJECT_FIELDS,
@@ -151,6 +152,7 @@ const NodeSettings = observer(function NodeSettings({ doc, node }: { doc: GraphD
 
 const VarSection = observer(function VarSection({ doc, which, title }: { doc: GraphDocument; which: VarList; title: string }) {
   const vars = which === "state" ? (doc.graph.state?.fields ?? []) : doc.graph.locals;
+  const count = vars.length + (which === "state" ? doc.analysis.inheritedState.length : 0);
   const add = () => {
     const taken = new Set(vars.map((v) => v.key));
     let n = 1;
@@ -159,16 +161,27 @@ const VarSection = observer(function VarSection({ doc, which, title }: { doc: Gr
   };
   const update = (v: VarDecl, next: Partial<VarDecl>) => doc.change(`${title} 변경: ${v.key}`, (g) => updateVar(g, which, v.key, cleanVar({ ...v, ...next })));
   return (
-    <details className="graph-side-section" open={vars.length <= 4} data-testid={`graph-vars-${which}`}>
+    <details className="graph-side-section" open={count <= 4} data-testid={`graph-vars-${which}`}>
       <summary>
         <span>
-          {title} <span className="muted">{vars.length}</span>
+          {title} <span className="muted">{count}</span>
         </span>
         <button className="btn btn-ghost" onClick={(e) => (e.preventDefault(), add())} data-testid={`graph-add-${which}`}>
           추가
         </button>
       </summary>
       {which === "state" && <StateFrom doc={doc} />}
+      {which === "state" && doc.analysis.inheritedState.length > 0 && (
+        <div className="graph-inherited" data-testid="graph-inherited-state">
+          <div className="muted">라이브러리가 선언한 필드 (라이브러리 파일에서 편집합니다)</div>
+          {doc.analysis.inheritedState.map((v) => (
+            <div key={v.key} className="graph-inherited-row" title={v.label}>
+              <span>{v.key}</span>
+              <span className="muted">{v.type === "enum" ? `enum (${(v.values ?? []).join(", ")})` : v.type}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {vars.length > 0 && (
         <div className="graph-var graph-var-head muted">
           <span>이름</span>
@@ -315,12 +328,35 @@ const LibrarySection = observer(function LibrarySection({ doc }: { doc: GraphDoc
   );
 });
 
+const CommentSettings = observer(function CommentSettings({ doc, id }: { doc: GraphDocument; id: string }) {
+  const comment = doc.graph.comments?.find((c) => c.id === id);
+  const [text, setText] = useState(comment?.text ?? "");
+  useEffect(() => setText(comment?.text ?? ""), [comment?.text]);
+  if (!comment) return null;
+  const done = () => {
+    if (text !== comment.text) doc.change(`메모 변경: ${id}`, (g) => updateComment(g, id, { text }), undefined, true);
+  };
+  return (
+    <div className="graph-side-section" data-testid="graph-comment-settings">
+      <h3>
+        <span>
+          메모 <span className="muted">{id}</span>
+        </span>
+      </h3>
+      <textarea className="input graph-comment-text" rows={4} value={text} data-testid="graph-comment-text" onChange={(e) => setText(e.target.value)} onBlur={done} />
+      <div className="muted">첫 줄이 상자의 제목입니다. 머리를 드래그하면 안의 노드가 함께 움직입니다.</div>
+    </div>
+  );
+});
+
 export const GraphSidePanel = observer(function GraphSidePanel({ doc, support }: { doc: GraphDocument; support: GraphSupport }) {
   const selected = doc.graph.nodes.filter((n) => doc.selection.has(n.id));
+  const notes = (doc.graph.comments ?? []).filter((c) => doc.selection.has(c.id));
   const problems = doc.problems;
   return (
     <div className="graph-side" data-testid="graph-side">
       {selected.length === 1 && <NodeSettings doc={doc} node={selected[0]} />}
+      {selected.length === 0 && notes.length === 1 && <CommentSettings doc={doc} id={notes[0].id} />}
       {selected.length > 1 && <div className="graph-side-section muted">노드 {selected.length}개 선택됨</div>}
       <VarSection doc={doc} which="state" title="상태 필드" />
       <VarSection doc={doc} which="locals" title="지역 변수" />

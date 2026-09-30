@@ -82,6 +82,9 @@ test.describe("비주얼 스크립팅 (메모리 모드)", () => {
     await expect(view).toBeVisible();
     await expect(view.locator("[data-node]")).toHaveCount(80);
     await expect(page.getByTestId("graph-status")).toHaveText("오류 없음");
+    // 상태 필드는 라이브러리(common.nodes.json)가 선언한 것이 보인다
+    await page.getByTestId("graph-vars-state").locator("summary").click();
+    await expect(page.getByTestId("graph-inherited-state")).toContainText("birdVy");
 
     // 부유 폭 14 를 20 으로
     const arg = view.locator('[data-node="float_off"] [data-arg="b"]');
@@ -202,6 +205,59 @@ test.describe("비주얼 스크립팅 (메모리 모드)", () => {
     await page.keyboard.press(`${mod}+s`);
     await expect(page.getByTestId("console-list")).toContainText("핫 리로드: 웹 엔진에 파일 3개를 다시 복사했습니다", { timeout: 10_000 });
     await expect(page.getByTestId("console-list")).toContainText("graph:v2", { timeout: 10_000 });
+  });
+
+  test("메모 상자, 미니맵, 선을 놓아 연 목록은 그 선에 맞는 노드만", async ({ page }) => {
+    await openSample(page);
+    await writeBird(page);
+    await withEditor(page, (e, p) => e.openPath(p), BIRD);
+    const view = page.getByTestId("graph-view");
+    await expect(view.locator("[data-node]")).toHaveCount(80);
+    const focus = (ids: string[]) =>
+      withEditor(page, (e, list) => (e.graphSupport as unknown as { focus(d: unknown, n: string[]): void }).focus(e.documents.active, list), ids);
+    const layoutOf = (id: string) => withEditor(page, (e, n) => (e.documents.active as unknown as { graph: { layout: Record<string, [number, number]> } }).graph.layout[n], id);
+
+    // 고른 노드를 감싸는 메모, 옆 창에서 글 고치기
+    await focus(["fall", "cap_if"]);
+    await view.getByTestId("graph-add-comment").click();
+    const note = view.locator('[data-comment="note"]');
+    await expect(note).toHaveAttribute("data-selected", "true");
+    await page.getByTestId("graph-comment-text").fill("중력과 최대 속도");
+    await page.getByTestId("graph-comment-text").blur();
+    await expect(note.locator(".graph-comment-header")).toHaveText("중력과 최대 속도");
+
+    // 머리를 끌면 안의 노드가 함께 움직인다
+    const fall0 = await layoutOf("fall");
+    const cap0 = await layoutOf("cap_if");
+    await dragTo(page, note.locator(".graph-comment-header"), { x: (await center(note.locator(".graph-comment-header"))).x + 80, y: (await center(note.locator(".graph-comment-header"))).y + 40 });
+    const fall1 = await layoutOf("fall");
+    const cap1 = await layoutOf("cap_if");
+    expect(fall1[0] - fall0[0]).toBeGreaterThan(20);
+    expect(fall1[0] - fall0[0]).toBe(cap1[0] - cap0[0]);
+    expect(fall1[1] - fall0[1]).toBe(cap1[1] - cap0[1]);
+
+    // Delete 는 고른 메모만 지운다
+    await page.keyboard.press("Delete");
+    await expect(note).toHaveCount(0);
+    await expect(view.locator("[data-node]")).toHaveCount(80);
+
+    // 미니맵을 누르면 그 자리로 옮긴다
+    const canvas = view.getByTestId("graph-canvas");
+    const panX = await canvas.getAttribute("data-pan-x");
+    const map = (await view.getByTestId("graph-minimap").boundingBox())!;
+    await page.mouse.click(map.x + 10, map.y + map.height / 2);
+    await expect(canvas).not.toHaveAttribute("data-pan-x", panX!);
+
+    // 참과 거짓 출력의 선을 놓으면 그 값을 받는 노드만 보인다
+    await focus(["too_fast"]);
+    const pin = view.locator('[data-node="too_fast"] [data-pin="out"]');
+    const at = await center(pin);
+    await dragTo(page, pin, { x: at.x + 60, y: at.y + 160 });
+    await expect(page.getByTestId("graph-palette-title")).toHaveText("선에 이을 수 있는 노드");
+    const items = page.getByTestId("graph-palette").locator(".graph-palette-item");
+    await expect(items.filter({ hasText: "조건 분기" })).toHaveCount(1);
+    await expect(items.filter({ hasText: "덧셈" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
   });
 
   test("손으로 쓴 파일은 덮어쓰지 않고, 확인 뒤에 덮어쓴다", async ({ page }) => {

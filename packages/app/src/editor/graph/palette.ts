@@ -2,14 +2,18 @@
 
 import {
   API_NODES,
+  assignable,
   nodeSpec,
   OBJECT_FIELDS,
   PLAIN_KINDS,
   WRITABLE_OBJECT_FIELDS,
   type GraphAnalysis,
+  type GraphEnv,
   type GraphFile,
   type GraphNode,
+  type GType,
   type NodeCategory,
+  type PortType,
 } from "@initial-editor/core";
 
 export interface PaletteEntry {
@@ -74,4 +78,30 @@ export function filterPalette(entries: readonly PaletteEntry[], query: string): 
   const q = query.trim().toLowerCase();
   if (!q) return [...entries];
   return entries.filter((e) => [e.label, e.detail ?? "", e.category, e.node.kind, e.node.fn ?? "", e.node.const ?? ""].some((s) => s.toLowerCase().includes(q)));
+}
+
+/** 빈 곳에 놓은 선의 끝: 실행 출구나 입구, 값의 출력(그 형식)이나 입력(포트가 받는 형식) */
+export type WireEnd = { kind: "exec-out" } | { kind: "exec-in" } | { kind: "data-out"; type: GType | null } | { kind: "data-in"; type: PortType | null };
+
+/** 선을 놓아 연 목록에 올릴 노드인가: 새 노드에 그 선을 이을 포트가 있다 */
+export function fitsWire(entry: PaletteEntry, end: WireEnd, env: GraphEnv): boolean {
+  const spec = nodeSpec({ id: "_", ...entry.node }, env);
+  if (typeof spec === "string") return false;
+  switch (end.kind) {
+    case "exec-out":
+      return spec.exec && !spec.event;
+    case "exec-in":
+      return spec.exec;
+    case "data-out":
+      return spec.inputs.some((p) => !end.type || assignable(p.type, end.type!));
+    case "data-in": {
+      if (spec.exec || spec.outputs.length === 0) return false;
+      if (!end.type) return true;
+      // 입력에 따라 형식이 정해지는 노드(덧셈 등)는 정수 입력일 때와 아닐 때를 모두 본다
+      const outs = spec.resolve
+        ? [spec.resolve(Object.fromEntries(spec.inputs.map((p) => [p.key, null]))), spec.resolve(Object.fromEntries(spec.inputs.map((p) => [p.key, { t: "integer" } as GType])))]
+        : [spec.outputs[0].type];
+      return outs.some((t) => assignable(end.type!, t));
+    }
+  }
 }

@@ -20,6 +20,13 @@ describe("노드 라이브러리", () => {
     expect(l.functions.find((f) => f.key === "sfx")!.returns).toBeUndefined();
   });
 
+  it("state 를 반환하는 함수는 그 상태 표의 필드를 선언한다", () => {
+    const l = parseNodeLibrary(PATH, FLAPPY);
+    expect(l.functions.find((f) => f.key === "state")!.fields!.map((f) => f.key)).toEqual(["state", "bird", "H", "GROUND_Y", "readyTime", "birdVy", "birdAngle", "autoplay"]);
+    expect(() => parseNodeLibrary("x", lib({ functions: [{ key: "f", returns: "number", fields: [] }] }))).toThrow(/fields는 state 를 반환하는 함수에만/);
+    expect(() => parseNodeLibrary("x", lib({ functions: [{ key: "f", returns: "state", fields: [{ key: "a", type: "list" }] }] }))).toThrow(/functions\[0\]\.fields\[0\]\.type/);
+  });
+
   it("Ruby 이름은 없으면 snake_case", () => {
     const l = parseNodeLibrary("x.nodes.json", lib({ functions: [{ key: "resetGame", args: [] }] }));
     expect(l.functions[0].ruby).toBe("reset_game");

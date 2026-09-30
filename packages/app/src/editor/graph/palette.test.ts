@@ -2,7 +2,7 @@ import { parseGraph, parseNodeLibrary, validateGraph } from "@initial-editor/cor
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { filterPalette, paletteEntries } from "./palette";
+import { filterPalette, fitsWire, paletteEntries, type WireEnd } from "./palette";
 
 const F = join(__dirname, "..", "..", "..", "..", "core", "src", "graph", "fixtures", "flappy");
 const LIB = "scripts/components/flappy/common.nodes.json";
@@ -30,5 +30,43 @@ describe("노드 추가 목록", () => {
     expect(filterPalette(entries, "birdvy").every((e) => e.node.field === "birdVy")).toBe(true);
     expect(filterPalette(entries, "GRAVITY").map((e) => e.node.const)).toEqual(["flappy.GRAVITY"]);
     expect(filterPalette(entries, "  ").length).toBe(entries.length);
+  });
+});
+
+describe("선을 놓아 연 목록", () => {
+  const graph = parseGraph(readFileSync(join(F, "bird.graph.json"), "utf8"));
+  const lib = parseNodeLibrary(LIB, readFileSync(join(F, "common.nodes.json"), "utf8"));
+  const analysis = validateGraph(graph, { libraries: new Map([[LIB, lib]]) });
+  const entries = paletteEntries(graph, analysis);
+  const fits = (end: WireEnd) => entries.filter((e) => fitsWire(e, end, analysis.env));
+  const kinds = (end: WireEnd) => new Set(fits(end).map((e) => e.node.kind));
+
+  it("실행 출구에는 문장만, 실행 입구에는 이벤트도", () => {
+    const out = kinds({ kind: "exec-out" });
+    expect(out.has("text.print")).toBe(true);
+    expect(out.has("math.add")).toBe(false);
+    expect(out.has("event.render")).toBe(false);
+    expect(kinds({ kind: "exec-in" }).has("event.render")).toBe(true);
+  });
+
+  it("값의 출력에는 그 형식을 받는 입력이 있는 노드만", () => {
+    const bool = kinds({ kind: "data-out", type: { t: "boolean" } });
+    expect(bool.has("flow.branch")).toBe(true);
+    expect(bool.has("logic.not")).toBe(true);
+    expect(bool.has("math.sin")).toBe(false);
+    const num = fits({ kind: "data-out", type: { t: "number" } });
+    expect(num.some((e) => e.node.kind === "state.set" && e.node.field === "birdVy")).toBe(true);
+    expect(num.some((e) => e.node.kind === "state.set" && e.node.field === "state")).toBe(false);
+  });
+
+  it("값의 입력에는 그 형식을 내는 값 노드만 (덧셈은 정수도 낸다)", () => {
+    const toBool = kinds({ kind: "data-in", type: { t: "boolean" } });
+    expect(toBool.has("cmp.gt")).toBe(true);
+    expect(toBool.has("math.add")).toBe(false);
+    expect(toBool.has("text.print")).toBe(false);
+    const toInt = kinds({ kind: "data-in", type: { t: "integer" } });
+    expect(toInt.has("math.add")).toBe(true);
+    expect(toInt.has("math.div")).toBe(false);
+    expect(toInt.has("math.floor")).toBe(true);
   });
 });

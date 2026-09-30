@@ -14,6 +14,8 @@ import {
   layoutGraph,
   moveNodes,
   nodeGeometry,
+  nodesInComment,
+  updateComment,
   parseLink,
   switchCaseValues,
   type ExitName,
@@ -59,7 +61,10 @@ type Drag =
   | { kind: "pan"; sx: number; sy: number; origin: GraphViewport; moved: boolean; button: number }
   | { kind: "nodes"; sx: number; sy: number; origins: Map<string, [number, number]>; key: string; moved: boolean }
   | { kind: "band"; wx: number; wy: number; cx: number; cy: number; additive: boolean }
-  | { kind: "wire"; from: PinRef; detach: PinRef | null; wx: number; wy: number; hover: PinRef | null };
+  | { kind: "wire"; from: PinRef; detach: PinRef | null; wx: number; wy: number; hover: PinRef | null }
+  | { kind: "comment"; id: string; resize: boolean; sx: number; sy: number; box: [number, number, number, number]; members: Map<string, [number, number]>; key: string; moved: boolean };
+
+const MIN_COMMENT = { width: 120, height: 60 };
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 2;
@@ -109,6 +114,16 @@ export const GraphCanvas = observer(function GraphCanvas({
   const [view, setViewState] = useState<GraphViewport>(() => support.viewport(doc) ?? { x: 40, y: 40, zoom: 1 });
   const [drag, setDrag] = useState<Drag | null>(null);
   const spaceDown = useRef(false);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const update = () => setSize({ width: host.clientWidth, height: host.clientHeight });
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, []);
   const fitted = useRef(support.viewport(doc) !== null);
 
   const setView = useCallback(
@@ -310,6 +325,26 @@ export const GraphCanvas = observer(function GraphCanvas({
       setDrag({ kind: "wire", from: pin, detach: null, wx: w.x, wy: w.y, hover: null });
       return;
     }
+    // 메모: 머리를 끌면 상자와 그 안의 노드를, 모서리를 끌면 크기를 바꾼다
+    const grip = target.closest("[data-comment-grip]") as HTMLElement | null;
+    const commentId = grip?.closest("[data-comment]")?.getAttribute("data-comment");
+    const comment = commentId ? graph.comments?.find((c) => c.id === commentId) : undefined;
+    if (grip && comment) {
+      const additive = e.shiftKey || e.ctrlKey || e.metaKey;
+      if (additive) doc.select([comment.id], true);
+      else if (!doc.selection.has(comment.id)) doc.select([comment.id]);
+      host.setPointerCapture(e.pointerId);
+      const resize = grip.dataset.commentGrip === "resize";
+      const members = new Map<string, [number, number]>();
+      if (!resize) {
+        for (const id of nodesInComment(graph, comment, (nid) => byId.get(nid)?.geom ?? { width: 0, height: 0 })) {
+          const p = byId.get(id);
+          if (p) members.set(id, [p.x, p.y]);
+        }
+      }
+      setDrag({ kind: "comment", id: comment.id, resize, sx: e.clientX, sy: e.clientY, box: [...comment.box], members, key: `graph-drag:${++dragSeq}`, moved: false });
+      return;
+    }
     const nodeId = target.closest("[data-node]")?.getAttribute("data-node");
     if (nodeId) {
       const additive = e.shiftKey || e.ctrlKey || e.metaKey;
@@ -349,6 +384,27 @@ export const GraphCanvas = observer(function GraphCanvas({
     } else if (drag.kind === "band") {
       const w = toWorld(e.clientX, e.clientY);
       setDrag({ ...drag, cx: w.x, cy: w.y });
+    } else if (drag.kind === "comment") {
+      const dx = (e.clientX - drag.sx) / view.zoom;
+      const dy = (e.clientY - drag.sy) / view.zoom;
+      if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 3 / view.zoom) return;
+      if (!drag.moved) setDrag({ ...drag, moved: true });
+      const [x, y, w, h] = drag.box;
+      if (drag.resize) {
+        const box: [number, number, number, number] = [x, y, Math.max(MIN_COMMENT.width, w + dx), Math.max(MIN_COMMENT.height, h + dy)];
+        doc.change(`메모 크기: ${drag.id}`, (g) => updateComment(g, drag.id, { box }), drag.key, true);
+      } else {
+        const moves = [...drag.members].map(([id, [nx, ny]]) => ({ id, x: nx + dx, y: ny + dy }));
+        doc.change(
+          `메모 이동: ${drag.id}`,
+          (g) => {
+            updateComment(g, drag.id, { box: [x + dx, y + dy, w, h] });
+            moveNodes(g, moves);
+          },
+          drag.key,
+          true,
+        );
+      }
     } else {
       const w = toWorld(e.clientX, e.clientY);
       const over = pinFromTarget(document.elementFromPoint(e.clientX, e.clientY));
@@ -497,6 +553,16 @@ export const GraphCanvas = observer(function GraphCanvas({
           ))}
           {draft && <path className="graph-wire graph-wire-draft" data-kind={draft.kind} d={draft.d} style={draft.kind === "data" ? { stroke: `var(--graph-${draft.type})` } : undefined} />}
         </svg>
+        {/* 메모의 몸은 노드 뒤에, 제목 줄과 크기 손잡이는 노드 위에 (노드가 가까이 붙어도 제목이 보이고 잡힌다) */}
+        {(graph.comments ?? []).map((c) => (
+          <div
+            key={c.id}
+            className="graph-comment"
+            data-comment-body={c.id}
+            data-selected={doc.selection.has(c.id) ? "true" : "false"}
+            style={{ left: c.box[0], top: c.box[1], width: c.box[2], height: c.box[3] }}
+          />
+        ))}
         {placed.map((p) => (
           <GraphNodeView
             key={p.node.id}
@@ -509,7 +575,29 @@ export const GraphCanvas = observer(function GraphCanvas({
             argType={argType}
           />
         ))}
+        {(graph.comments ?? []).map((c) => (
+          <div
+            key={c.id}
+            className="graph-comment-top"
+            data-comment={c.id}
+            data-selected={doc.selection.has(c.id) ? "true" : "false"}
+            style={{ left: c.box[0], top: c.box[1], width: c.box[2], height: c.box[3] }}
+          >
+            <div className="graph-comment-header" data-comment-grip="move" title={c.text}>
+              {c.text.split("\n")[0] || "메모"}
+            </div>
+            <span className="graph-comment-resize" data-comment-grip="resize" />
+          </div>
+        ))}
       </div>
+      {placed.length > 0 && size.width > 0 && (
+        <Minimap
+          boxes={[...placed.map((p) => ({ x: p.x, y: p.y, w: p.geom.width, h: p.geom.height, comment: false })), ...(graph.comments ?? []).map((c) => ({ x: c.box[0], y: c.box[1], w: c.box[2], h: c.box[3], comment: true }))]}
+          view={view}
+          size={size}
+          onCenter={(wx, wy) => setView({ ...view, x: size.width / 2 - wx * view.zoom, y: size.height / 2 - wy * view.zoom })}
+        />
+      )}
       {band && (
         <div
           className="graph-band"
@@ -598,3 +686,64 @@ const GraphNodeView = observer(function GraphNodeView({
   );
 });
 
+
+const MINIMAP = { width: 180, height: 120, pad: 6 };
+
+/** 오른쪽 아래의 전체 그림: 노드와 메모, 지금 보이는 곳. 누르거나 끌면 그 자리를 가운데로 */
+function Minimap({
+  boxes,
+  view,
+  size,
+  onCenter,
+}: {
+  boxes: { x: number; y: number; w: number; h: number; comment: boolean }[];
+  view: GraphViewport;
+  size: { width: number; height: number };
+  onCenter: (wx: number, wy: number) => void;
+}) {
+  const seen = { x: -view.x / view.zoom, y: -view.y / view.zoom, w: size.width / view.zoom, h: size.height / view.zoom };
+  const all = [...boxes, seen];
+  const x0 = Math.min(...all.map((b) => b.x));
+  const y0 = Math.min(...all.map((b) => b.y));
+  const x1 = Math.max(...all.map((b) => b.x + b.w));
+  const y1 = Math.max(...all.map((b) => b.y + b.h));
+  const scale = Math.min((MINIMAP.width - MINIMAP.pad * 2) / Math.max(1, x1 - x0), (MINIMAP.height - MINIMAP.pad * 2) / Math.max(1, y1 - y0));
+  const sx = (x: number) => MINIMAP.pad + (x - x0) * scale;
+  const sy = (y: number) => MINIMAP.pad + (y - y0) * scale;
+  const center = (e: ReactPointerEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    onCenter(x0 + (e.clientX - r.left - MINIMAP.pad) / scale, y0 + (e.clientY - r.top - MINIMAP.pad) / scale);
+  };
+  return (
+    <svg
+      className="graph-minimap"
+      width={MINIMAP.width}
+      height={MINIMAP.height}
+      data-testid="graph-minimap"
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        center(e);
+      }}
+      onPointerMove={(e) => {
+        e.stopPropagation();
+        if (e.buttons & 1) center(e);
+      }}
+      onPointerUp={(e) => e.stopPropagation()}
+      onWheel={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+    >
+      {boxes
+        .filter((b) => b.comment)
+        .map((b, i) => (
+          <rect key={`c${i}`} className="graph-minimap-comment" x={sx(b.x)} y={sy(b.y)} width={b.w * scale} height={b.h * scale} />
+        ))}
+      {boxes
+        .filter((b) => !b.comment)
+        .map((b, i) => (
+          <rect key={i} className="graph-minimap-node" x={sx(b.x)} y={sy(b.y)} width={Math.max(1, b.w * scale)} height={Math.max(1, b.h * scale)} />
+        ))}
+      <rect className="graph-minimap-view" x={sx(seen.x)} y={sy(seen.y)} width={seen.w * scale} height={seen.h * scale} />
+    </svg>
+  );
+}

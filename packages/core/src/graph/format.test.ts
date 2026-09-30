@@ -10,7 +10,8 @@ describe("그래프 파일 포맷", () => {
     const g = parseGraph(BIRD);
     expect(g.uses).toEqual(["scripts/components/flappy/common.nodes.json"]);
     expect(g.state?.from).toBe("flappy.state");
-    expect(g.state?.fields.map((f) => f.key)).toContain("birdVy");
+    // 상태 필드는 라이브러리(common.nodes.json 의 state 함수)가 선언한다
+    expect(g.state?.fields).toEqual([]);
     expect(g.locals).toEqual([{ key: "dt", type: "number", label: "틱 시간 (초)" }]);
     expect(g.nodes.length).toBe(80);
     expect(g.nodes.find((n) => n.id === "by_state")).toMatchObject({ kind: "flow.switch", in: { value: "st_state" }, cases: { ready: "float_y", play: "fall", dead: "tumble_if" }, next: "sync_angle" });
@@ -60,6 +61,15 @@ describe("그래프 파일 포맷", () => {
     expect(g.nodes[0].extra).toEqual({ comment: "여기" });
     const again = parseGraph(serializeGraph(g));
     expect(again).toEqual(g);
+  });
+
+  it("메모 상자는 한 줄에 하나로 쓰고 다시 읽는다", () => {
+    const g = emptyGraph();
+    g.comments = [{ id: "note", text: "날갯짓\n두 줄", box: [0, -40, 300, 200] }];
+    const text = serializeGraph(g);
+    expect(text).toContain('  "comments": [\n    { "id": "note", "text": "날갯짓\\n두 줄", "box": [0, -40, 300, 200] }\n  ]');
+    expect(parseGraph(text)).toEqual(g);
+    expect(() => parseGraph('{"version":1,"nodes":[],"comments":[{"id":"a","text":"x","box":[1,2,3]}]}')).toThrow(/comments\[0\]\.box는 숫자 네 개/);
   });
 
   it("state.from 이 없으면 scene", () => {
