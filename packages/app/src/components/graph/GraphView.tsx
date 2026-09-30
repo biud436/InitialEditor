@@ -5,7 +5,7 @@ import { addNode, assignable, connectData, connectExec, generatedPaths, nodeGeom
 import { observer } from "mobx-react-lite";
 import { useMemo, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
-import { paletteEntries, type PaletteEntry } from "../../editor/graph/palette";
+import { fitsWire, paletteEntries, type PaletteEntry, type WireEnd } from "../../editor/graph/palette";
 import { GraphCanvas, type PaletteRequest } from "./GraphCanvas";
 import { GraphPalette } from "./GraphPalette";
 import { GraphSidePanel } from "./GraphSidePanel";
@@ -24,6 +24,17 @@ export const GraphView = observer(function GraphView({ doc }: { doc: GraphDocume
   const [palette, setPalette] = useState<PaletteRequest | null>(null);
   const [fitSignal, setFitSignal] = useState(0);
   const entries = useMemo(() => paletteEntries(doc.graph, doc.analysis), [doc.graph, doc.analysis]);
+  // 선을 빈 곳에 놓아 열었으면 그 선을 이을 수 있는 노드만
+  const wireEnd = useMemo((): WireEnd | null => {
+    const from = palette?.pending;
+    if (!from) return null;
+    if (from.kind === "exec-out" || from.kind === "exec-in") return { kind: from.kind };
+    if (from.kind === "data-out") return { kind: "data-out", type: doc.analysis.outType(from.node, from.key) };
+    const target = doc.graph.nodes.find((n) => n.id === from.node);
+    const spec = target ? nodeSpec(target, doc.analysis.env) : null;
+    return { kind: "data-in", type: spec && typeof spec !== "string" ? (spec.inputs.find((p) => p.key === from.key)?.type ?? null) : null };
+  }, [palette, doc.graph, doc.analysis]);
+  const shown = useMemo(() => (wireEnd ? entries.filter((e) => fitsWire(e, wireEnd, doc.analysis.env)) : entries), [entries, wireEnd, doc.analysis]);
   const errors = doc.problems.filter((p) => p.severity === "error").length;
   const warnings = doc.problems.length - errors;
   const gen = doc.lastGeneration;
@@ -58,12 +69,18 @@ export const GraphView = observer(function GraphView({ doc }: { doc: GraphDocume
     if (added) doc.select([added]);
   };
 
-  const openCenter = () => {
+  /** 캔버스 가운데의 월드 좌표와 캔버스 크기 */
+  const viewCenter = () => {
     const host = document.querySelector<HTMLElement>(`[data-graph-path="${CSS.escape(doc.path ?? "")}"] .graph-canvas`);
     const w = host?.clientWidth ?? 600;
     const h = host?.clientHeight ?? 400;
     const v = support.viewport(doc) ?? { x: 0, y: 0, zoom: 1 };
-    setPalette({ screen: { x: w / 2 - 140, y: 40 }, world: { x: (w / 2 - v.x) / v.zoom, y: (h / 2 - v.y) / v.zoom }, pending: null });
+    return { w, h, world: { x: (w / 2 - v.x) / v.zoom, y: (h / 2 - v.y) / v.zoom } };
+  };
+
+  const openCenter = () => {
+    const c = viewCenter();
+    setPalette({ screen: { x: c.w / 2 - 140, y: 40 }, world: c.world, pending: null });
   };
 
   return (
@@ -81,6 +98,9 @@ export const GraphView = observer(function GraphView({ doc }: { doc: GraphDocume
         <span className="doc-header-spacer" />
         <button className="btn btn-ghost" onClick={openCenter} data-testid="graph-add-node">
           노드 추가
+        </button>
+        <button className="btn btn-ghost" onClick={() => support.addComment(doc, viewCenter().world)} data-testid="graph-add-comment" title="선택한 노드를 감싸는 메모 상자">
+          메모
         </button>
         <button className="btn btn-ghost" onClick={() => support.layout(doc)} data-testid="graph-layout">
           자동 정렬
@@ -103,7 +123,7 @@ export const GraphView = observer(function GraphView({ doc }: { doc: GraphDocume
       <div className="graph-view-body" style={{ position: "relative" }}>
         <GraphCanvas doc={doc} support={support} onPalette={setPalette} fitSignal={fitSignal} />
         <GraphSidePanel doc={doc} support={support} />
-        {palette && <GraphPalette entries={entries} at={palette.screen} onPick={pick} onClose={() => setPalette(null)} />}
+        {palette && <GraphPalette entries={shown} title={wireEnd ? "선에 이을 수 있는 노드" : undefined} at={palette.screen} onPick={pick} onClose={() => setPalette(null)} />}
       </div>
     </div>
   );

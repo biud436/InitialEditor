@@ -48,6 +48,8 @@ export interface GraphAnalysis {
   outType(node: string, port?: string): GType | null;
   /** Ruby 쪽 이름 (상태 필드는 Symbol 이름, 지역 변수는 변수 이름) */
   rubyStateName(key: string): string;
+  /** state.from 의 라이브러리 함수가 선언한 상태 필드 (그래프 파일에는 없다) */
+  inheritedState: readonly VarDecl[];
   rubyLocalName(key: string): string;
 }
 
@@ -110,6 +112,8 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
   };
 
   let state: Map<string, VarDecl> | null = null;
+  /** 라이브러리가 선언한 상태 필드 (그래프는 다시 적지 않는다) */
+  const inherited: VarDecl[] = [];
   if (graph.state) {
     state = new Map();
     const from = graph.state.from;
@@ -119,8 +123,11 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
       const fn = ref && lib ? lib.functions.find((f) => f.key === ref[1]) : undefined;
       if (!fn) error(`state.from은 "scene" 이나 상태 표를 반환하는 라이브러리 함수여야 합니다: ${from}`);
       else if (fn.returns !== "state" || fn.args.some((a) => a.type !== "scene")) error(`state.from 함수는 scene 만 받고 state 를 반환해야 합니다: ${from}`);
+      else inherited.push(...(fn.fields ?? []));
     }
-    for (const f of graph.state.fields) {
+    const libKeys = new Set(inherited.map((f) => f.key));
+    for (const f of graph.state.fields) if (libKeys.has(f.key)) error(`상태 필드 ${f.key}는 라이브러리(${from})가 이미 선언했습니다`);
+    for (const f of [...inherited, ...graph.state.fields.filter((f) => !libKeys.has(f.key))]) {
       if (!IDENTIFIER.test(f.key)) {
         error(`상태 필드 이름은 식별자여야 합니다: ${f.key}`);
         continue;
@@ -410,6 +417,7 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
     inputs,
     outType: (node, port = "out") => outputType(node, port),
     rubyStateName: (key) => rubyState.get(key) ?? snakeCase(key),
+    inheritedState: inherited,
     rubyLocalName: (key) => rubyLocal.get(key) ?? snakeCase(key),
   };
 }

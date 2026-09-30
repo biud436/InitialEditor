@@ -1,6 +1,6 @@
 // 그래프 편집: GraphFile 을 받아 새 GraphFile 을 돌려주는 순수 함수들. 그래프 문서의 명령이 이것으로 앞뒤 상태를 만든다.
 
-import type { GraphFile, GraphNode, VarDecl } from "./format";
+import type { GraphComment, GraphFile, GraphNode, VarDecl } from "./format";
 import { IDENTIFIER } from "./names";
 import { parseLink } from "./validate";
 
@@ -11,7 +11,7 @@ export function cloneGraph(g: GraphFile): GraphFile {
 /** base 로 시작하는 아직 없는 노드 id (base, base_2, base_3 ...) */
 export function uniqueNodeId(g: GraphFile, base: string): string {
   const clean = base.replace(/[^A-Za-z0-9_]/g, "_").replace(/^([^A-Za-z_])/, "n_$1") || "node";
-  const taken = new Set(g.nodes.map((n) => n.id));
+  const taken = new Set([...g.nodes.map((n) => n.id), ...(g.comments ?? []).map((c) => c.id)]);
   if (!taken.has(clean)) return clean;
   for (let i = 2; ; i++) if (!taken.has(`${clean}_${i}`)) return `${clean}_${i}`;
 }
@@ -173,4 +173,38 @@ export function setParams(g: GraphFile, params: Record<string, unknown>[] | null
 
 export function setUses(g: GraphFile, uses: string[]): void {
   g.uses = [...uses];
+}
+
+// ---- 메모 ----
+
+/** 메모 id 는 노드 id 와도 겹치지 않는다 (선택이 둘을 같이 담는다) */
+export function addComment(g: GraphFile, text: string, box: [number, number, number, number]): string {
+  const taken = new Set([...g.nodes.map((n) => n.id), ...(g.comments ?? []).map((c) => c.id)]);
+  let id = "note";
+  for (let i = 2; taken.has(id); i++) id = `note_${i}`;
+  g.comments = [...(g.comments ?? []), { id, text, box: box.map(Math.round) as [number, number, number, number] }];
+  return id;
+}
+
+export function updateComment(g: GraphFile, id: string, patch: { text?: string; box?: [number, number, number, number] }): void {
+  g.comments = (g.comments ?? []).map((c) => (c.id === id ? { ...c, ...patch, box: (patch.box ?? c.box).map(Math.round) as [number, number, number, number] } : c));
+}
+
+export function removeComments(g: GraphFile, ids: Iterable<string>): void {
+  const gone = new Set(ids);
+  g.comments = (g.comments ?? []).filter((c) => !gone.has(c.id));
+  if (!g.comments.length) delete g.comments;
+}
+
+/** 메모 상자 안에 통째로 든 노드 (크기는 부르는 쪽이 준다) */
+export function nodesInComment(g: GraphFile, comment: GraphComment, size: (id: string) => { width: number; height: number }): string[] {
+  const [x, y, w, h] = comment.box;
+  return g.nodes
+    .filter((n) => {
+      const p = g.layout[n.id];
+      if (!p) return false;
+      const s = size(n.id);
+      return p[0] >= x && p[1] >= y && p[0] + s.width <= x + w && p[1] + s.height <= y + h;
+    })
+    .map((n) => n.id);
 }

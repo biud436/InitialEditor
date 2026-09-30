@@ -65,6 +65,8 @@
   --graph-cat-text: #634660;
   --graph-cat-engine: #2d5a61;
   --graph-cat-library: #66552a;
+  --graph-comment: rgba(120, 130, 150, 0.12);
+  --graph-comment-header: rgba(70, 78, 92, 0.92);
 
   /* 부가 토큰: 모달 뒤 가림막과 그림자. 색 리터럴이 컴포넌트에 새지 않게 여기 둔다 */
   --overlay: rgba(0, 0, 0, 0.55);
@@ -123,6 +125,8 @@
   --graph-cat-text: #efd9ec;
   --graph-cat-engine: #d0e7ea;
   --graph-cat-library: #efe6c8;
+  --graph-comment: rgba(90, 100, 120, 0.08);
+  --graph-comment-header: rgba(205, 211, 221, 0.95);
 
   --overlay: rgba(20, 24, 30, 0.35);
   --shadow: 0 6px 24px rgba(20, 24, 30, 0.2);

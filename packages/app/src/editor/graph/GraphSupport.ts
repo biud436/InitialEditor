@@ -6,6 +6,7 @@
 //   - 생성 파일의 줄(콘솔의 오류 링크)에서 그래프의 노드로
 
 import {
+  addComment,
   addNode,
   componentNameOfGraph,
   dirname,
@@ -17,9 +18,13 @@ import {
   isGraphPath,
   layoutGraph,
   moveNodes,
+  nodeSize,
+  nodesInComment,
   parseLink,
+  removeComments,
   removeNodes,
   serializeGraph,
+  updateComment,
   type GraphNode,
 } from "@initial-editor/core";
 import { action, computed, makeObservable, observable } from "mobx";
@@ -224,19 +229,67 @@ export class GraphSupport {
 
   // ---- 자동 정렬과 편집 커맨드 ----
 
+  /** 자동 정렬. 메모 상자는 정렬 전에 그 안에 있던 노드들을 다시 감싼다 */
   layout(doc: GraphDocument): void {
     const positions = layoutGraph(doc.graph, doc.analysis);
-    doc.change("자동 정렬", (g) => moveNodes(g, Object.entries(positions).map(([id, [x, y]]) => ({ id, x, y }))), undefined, true);
+    const size = (id: string) => {
+      const n = doc.graph.nodes.find((x) => x.id === id);
+      return n ? nodeSize(doc.analysis, n) : { width: 0, height: 0 };
+    };
+    const members = (doc.graph.comments ?? []).map((c) => [c.id, nodesInComment(doc.graph, c, size)] as const);
+    doc.change(
+      "자동 정렬",
+      (g) => {
+        moveNodes(g, Object.entries(positions).map(([id, [x, y]]) => ({ id, x, y })));
+        for (const [id, inside] of members) {
+          const box = this.boxAround(g.layout, inside, size);
+          if (box) updateComment(g, id, { box });
+        }
+      },
+      undefined,
+      true,
+    );
+  }
+
+  /** 노드들을 감싸는 메모 상자 (머리 줄과 여백 포함). 노드가 없으면 null */
+  boxAround(layout: Record<string, [number, number]>, ids: readonly string[], size: (id: string) => { width: number; height: number }): [number, number, number, number] | null {
+    const at = ids.filter((id) => layout[id]);
+    if (!at.length) return null;
+    const pad = 20;
+    const x0 = Math.min(...at.map((id) => layout[id][0])) - pad;
+    const y0 = Math.min(...at.map((id) => layout[id][1])) - pad - 28;
+    const x1 = Math.max(...at.map((id) => layout[id][0] + size(id).width)) + pad;
+    const y1 = Math.max(...at.map((id) => layout[id][1] + size(id).height)) + pad;
+    return [x0, y0, x1 - x0, y1 - y0];
+  }
+
+  /** 메모를 더한다: 고른 노드가 있으면 그것을 감싸고, 없으면 at 에 기본 크기로. 더한 메모를 고른다 */
+  addComment(doc: GraphDocument, at: { x: number; y: number }): string {
+    const size = (id: string) => {
+      const n = doc.graph.nodes.find((x) => x.id === id);
+      return n ? nodeSize(doc.analysis, n) : { width: 0, height: 0 };
+    };
+    const box = this.boxAround(doc.graph.layout, [...doc.selection].filter((id) => doc.graph.nodes.some((n) => n.id === id)), size) ?? [at.x, at.y, 320, 160];
+    let id = "";
+    doc.change("메모 추가", (g) => (id = addComment(g, "메모", box)), undefined, true);
+    doc.select([id]);
+    return id;
   }
 
   selectedNodes(doc: GraphDocument): GraphNode[] {
     return doc.graph.nodes.filter((n) => doc.selection.has(n.id));
   }
 
+  /** 고른 노드와 메모를 지운다 */
   deleteSelected(doc: GraphDocument): void {
     const ids = [...doc.selection].filter((id) => doc.graph.nodes.some((n) => n.id === id));
-    if (!ids.length) return;
-    doc.change(ids.length === 1 ? `노드 삭제: ${ids[0]}` : `노드 ${ids.length}개 삭제`, (g) => removeNodes(g, ids));
+    const notes = [...doc.selection].filter((id) => (doc.graph.comments ?? []).some((c) => c.id === id));
+    if (!ids.length && !notes.length) return;
+    const label = ids.length ? (ids.length === 1 ? `노드 삭제: ${ids[0]}` : `노드 ${ids.length}개 삭제`) : "메모 삭제";
+    doc.change(label, (g) => {
+      removeNodes(g, ids);
+      if (notes.length) removeComments(g, notes);
+    });
     doc.clearSelection();
   }
 
