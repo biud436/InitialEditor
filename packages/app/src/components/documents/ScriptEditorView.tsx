@@ -90,6 +90,12 @@ export const ScriptEditorView = observer(function ScriptEditorView({ doc }: { do
     codeRef.current?.updateOptions(editorOptionsFrom({ editorFontSize, editorTabSize, editorWordWrap, editorMinimap }));
   }, [editorFontSize, editorTabSize, editorWordWrap, editorMinimap]);
 
+  // 그래프에서 만든 파일은 읽기 전용이다 (저장하면 그래프가 다시 쓴다)
+  const graphSource = doc.graphSource;
+  useEffect(() => {
+    codeRef.current?.updateOptions({ readOnly: graphSource !== null });
+  }, [graphSource, model]);
+
   return (
     <div className="script-editor" data-testid="script-editor" data-language={doc.language}>
       <div className="doc-header">
@@ -103,6 +109,14 @@ export const ScriptEditorView = observer(function ScriptEditorView({ doc }: { do
         <span>{languageLabel(doc.language)}</span>
         <span className="doc-header-save-state">{doc.dirty ? "저장 안 됨" : "저장됨"}</span>
       </div>
+      {graphSource && (
+        <div className="script-editor-generated" data-testid="script-generated">
+          <span>그래프에서 만든 파일입니다. 이 파일이 아니라 그래프({graphSource})를 편집합니다.</span>
+          <button className="btn" onClick={() => void editor.graphSupport.revealGenerated(doc.path ?? "", cursor.line)} data-testid="script-open-graph">
+            그래프 열기
+          </button>
+        </div>
+      )}
       {doc.error ? <div className="panel-hint">열기 실패: {doc.error}</div> : !doc.loaded ? <div className="panel-hint">불러오는 중</div> : null}
       <div className="script-editor-host" ref={hostRef} />
     </div>

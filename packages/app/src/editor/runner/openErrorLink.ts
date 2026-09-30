@@ -9,6 +9,8 @@ interface Revealable {
 }
 
 export async function openErrorLink(editor: Editor, link: ErrorLink): Promise<void> {
+  // 그래프에서 만든 파일의 줄이면 그래프를 열고 그 줄을 만든 노드를 보여 준다
+  if (await editor.graphSupport?.revealGenerated(link.path, link.line)) return;
   await editor.openPath(link.path);
   const doc = editor.documents.findByPath(link.path) as Revealable | undefined;
   doc?.revealLine?.(link.line, link.column);

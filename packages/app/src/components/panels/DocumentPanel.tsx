@@ -1,6 +1,6 @@
 // 가운데 문서 탭의 본문. 문서 종류에 따라 뷰를 고르고, 밖에서 바뀐 문서에는 배너를 얹는다.
 
-import { SceneDocument } from "@initial-editor/core";
+import { GraphDocument, SceneDocument } from "@initial-editor/core";
 import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import type { IDockviewPanelProps } from "dockview";
 import { observer } from "mobx-react-lite";
@@ -11,6 +11,7 @@ import { WelcomeDocument } from "../../editor/documents/WelcomeDocument";
 import { useEditor } from "../../editor/EditorContext";
 import { GameDocument } from "../../editor/gameView/GameDocument";
 import { ExternalChangeBanner } from "../documents/ExternalChangeBanner";
+import { GraphView } from "../graph/GraphView";
 import { MapView } from "../maps/MapView";
 import { GameView } from "../documents/GameView";
 import { ImagePreviewView } from "../documents/ImagePreviewView";
@@ -30,6 +31,7 @@ export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPan
   else if (doc instanceof ImagePreviewDocument) view = <ImagePreviewView doc={doc} />;
   else if (doc instanceof SceneDocument) view = <SceneView document={doc} />;
   else if (doc instanceof MapDocument) view = <MapView document={doc} />;
+  else if (doc instanceof GraphDocument) view = <GraphView doc={doc} />;
   else if (doc instanceof GameDocument) view = <GameView doc={doc} />;
   else view = <div className="panel-hint">지원하지 않는 문서 종류: {doc.kind}</div>;
   return (

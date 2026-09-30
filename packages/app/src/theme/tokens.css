@@ -42,6 +42,30 @@
   --scene-selection: #4a8fe7;
   --scene-camera: #d9a441;
 
+  /* 그래프 캔버스: 선은 값의 형식마다, 노드 머리는 분류마다 */
+  --graph-bg: #141619;
+  --graph-grid: #1f2226;
+  --graph-node: #262a30;
+  --graph-node-border: #3a3f47;
+  --graph-exec: #e4e7eb;
+  --graph-number: #7cc46f;
+  --graph-integer: #4fc1a6;
+  --graph-boolean: #e0726a;
+  --graph-string: #d98ad0;
+  --graph-enum: #5bb8dd;
+  --graph-object: #7c9ff0;
+  --graph-any: #9aa3ad;
+  --graph-cat-event: #7a3434;
+  --graph-cat-flow: #474f5b;
+  --graph-cat-variable: #3b5a3b;
+  --graph-cat-object: #32496e;
+  --graph-cat-scene: #2f5557;
+  --graph-cat-math: #4a4a68;
+  --graph-cat-logic: #5c4a36;
+  --graph-cat-text: #634660;
+  --graph-cat-engine: #2d5a61;
+  --graph-cat-library: #66552a;
+
   /* 부가 토큰: 모달 뒤 가림막과 그림자. 색 리터럴이 컴포넌트에 새지 않게 여기 둔다 */
   --overlay: rgba(0, 0, 0, 0.55);
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
@@ -76,6 +100,29 @@
   --scene-grid-major: #c9ccd2;
   --scene-selection: #1f6fd0;
   --scene-camera: #9a6b00;
+
+  --graph-bg: #f0f1f3;
+  --graph-grid: #e2e4e8;
+  --graph-node: #ffffff;
+  --graph-node-border: #c5cad2;
+  --graph-exec: #39404a;
+  --graph-number: #3f8f34;
+  --graph-integer: #1d8a70;
+  --graph-boolean: #c24a41;
+  --graph-string: #a8469c;
+  --graph-enum: #1f7fa8;
+  --graph-object: #3a62c4;
+  --graph-any: #6b747f;
+  --graph-cat-event: #f1d3d1;
+  --graph-cat-flow: #dde1e7;
+  --graph-cat-variable: #d6ead3;
+  --graph-cat-object: #d3def2;
+  --graph-cat-scene: #d0e8e8;
+  --graph-cat-math: #e0dff0;
+  --graph-cat-logic: #efe2d2;
+  --graph-cat-text: #efd9ec;
+  --graph-cat-engine: #d0e7ea;
+  --graph-cat-library: #efe6c8;
 
   --overlay: rgba(20, 24, 30, 0.35);
   --shadow: 0 6px 24px rgba(20, 24, 30, 0.2);

@@ -1,697 +1,184 @@
 {
   "version": 1,
-  "uses": [
-    "scripts/components/flappy/common.nodes.json"
-  ],
+  "uses": ["scripts/components/flappy/common.nodes.json"],
   "state": {
     "from": "flappy.state",
     "fields": [
-      {
-        "key": "state",
-        "type": "enum",
-        "values": [
-          "ready",
-          "play",
-          "dead"
-        ],
-        "label": "진행 상태"
-      },
-      {
-        "key": "bird",
-        "type": "object",
-        "label": "새"
-      },
-      {
-        "key": "H",
-        "type": "integer",
-        "label": "화면 높이"
-      },
-      {
-        "key": "GROUND_Y",
-        "type": "integer",
-        "label": "땅의 y"
-      },
-      {
-        "key": "readyTime",
-        "type": "number",
-        "label": "대기 시간"
-      },
-      {
-        "key": "birdVy",
-        "type": "number",
-        "label": "새의 속도"
-      },
-      {
-        "key": "birdAngle",
-        "type": "number",
-        "label": "새의 기울기"
-      },
-      {
-        "key": "autoplay",
-        "type": "boolean",
-        "label": "자동 시연"
-      }
+      { "key": "state", "type": "enum", "label": "진행 상태", "values": ["ready", "play", "dead"] },
+      { "key": "bird", "type": "object", "label": "새" },
+      { "key": "H", "type": "integer", "label": "화면 높이" },
+      { "key": "GROUND_Y", "type": "integer", "label": "땅의 y" },
+      { "key": "readyTime", "type": "number", "label": "대기 시간" },
+      { "key": "birdVy", "type": "number", "label": "새의 속도" },
+      { "key": "birdAngle", "type": "number", "label": "새의 기울기" },
+      { "key": "autoplay", "type": "boolean", "label": "자동 시연" }
     ]
   },
   "locals": [
-    {
-      "key": "dt",
-      "type": "number",
-      "label": "틱 시간 (초)"
-    }
+    { "key": "dt", "type": "number", "label": "틱 시간 (초)" }
   ],
   "nodes": [
-    {
-      "id": "st_state",
-      "kind": "state.get",
-      "field": "state"
-    },
-    {
-      "id": "st_h",
-      "kind": "state.get",
-      "field": "H"
-    },
-    {
-      "id": "st_ground",
-      "kind": "state.get",
-      "field": "GROUND_Y"
-    },
-    {
-      "id": "st_ready",
-      "kind": "state.get",
-      "field": "readyTime"
-    },
-    {
-      "id": "st_vy",
-      "kind": "state.get",
-      "field": "birdVy"
-    },
-    {
-      "id": "st_angle",
-      "kind": "state.get",
-      "field": "birdAngle"
-    },
-    {
-      "id": "st_auto",
-      "kind": "state.get",
-      "field": "autoplay"
-    },
-    {
-      "id": "self",
-      "kind": "obj.self"
-    },
-    {
-      "id": "oy",
-      "kind": "obj.get",
-      "field": "y"
-    },
-    {
-      "id": "c_gravity",
-      "kind": "lib.const",
-      "const": "flappy.GRAVITY"
-    },
-    {
-      "id": "c_flap",
-      "kind": "lib.const",
-      "const": "flappy.FLAP"
-    },
-    {
-      "id": "c_maxfall",
-      "kind": "lib.const",
-      "const": "flappy.MAX_FALL"
-    },
-    {
-      "id": "c_birdx",
-      "kind": "lib.const",
-      "const": "flappy.BIRD_X"
-    },
-    {
-      "id": "c_birdh",
-      "kind": "lib.const",
-      "const": "flappy.BIRD_H"
-    },
-    {
-      "id": "dt",
-      "kind": "local.get",
-      "field": "dt"
-    },
-    {
-      "id": "half_h",
-      "kind": "math.div",
-      "in": {
-        "a": "st_h"
-      },
-      "args": {
-        "b": 2
-      }
-    },
-    {
-      "id": "half_bird",
-      "kind": "math.div",
-      "in": {
-        "a": "c_birdh"
-      },
-      "args": {
-        "b": 2
-      }
-    },
-    {
-      "id": "center",
-      "kind": "math.sub",
-      "in": {
-        "a": "half_h",
-        "b": "half_bird"
-      }
-    },
-    {
-      "id": "init",
-      "kind": "event.init",
-      "next": "keep_bird"
-    },
-    {
-      "id": "keep_bird",
-      "kind": "state.set",
-      "field": "bird",
-      "in": {
-        "value": "self"
-      },
-      "next": "place_x"
-    },
-    {
-      "id": "place_x",
-      "kind": "obj.set",
-      "field": "x",
-      "in": {
-        "value": "c_birdx"
-      },
-      "next": "place_y"
-    },
-    {
-      "id": "place_y",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "value": "center"
-      }
-    },
-    {
-      "id": "update",
-      "kind": "event.update",
-      "next": "set_dt"
-    },
-    {
-      "id": "tick_dt",
-      "kind": "lib.call",
-      "fn": "flappy.dt",
-      "in": {
-        "elapsed": "update.elapsed"
-      }
-    },
-    {
-      "id": "set_dt",
-      "kind": "local.set",
-      "field": "dt",
-      "in": {
-        "value": "tick_dt"
-      },
-      "next": "by_state"
-    },
-    {
-      "id": "by_state",
-      "kind": "flow.switch",
-      "in": {
-        "value": "st_state"
-      },
-      "cases": {
-        "ready": "float_y",
-        "play": "fall",
-        "dead": "tumble_if"
-      },
-      "next": "sync_angle"
-    },
-    {
-      "id": "ready_phase",
-      "kind": "math.mul",
-      "in": {
-        "a": "st_ready"
-      },
-      "args": {
-        "b": 4
-      }
-    },
-    {
-      "id": "ready_sin",
-      "kind": "math.sin",
-      "in": {
-        "a": "ready_phase"
-      }
-    },
-    {
-      "id": "float_off",
-      "kind": "math.mul",
-      "in": {
-        "a": "ready_sin"
-      },
-      "args": {
-        "b": 14
-      }
-    },
-    {
-      "id": "float_pos",
-      "kind": "math.add",
-      "in": {
-        "a": "center",
-        "b": "float_off"
-      }
-    },
-    {
-      "id": "float_y",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "value": "float_pos"
-      },
-      "next": "float_angle"
-    },
-    {
-      "id": "float_tilt",
-      "kind": "math.mul",
-      "in": {
-        "a": "ready_sin"
-      },
-      "args": {
-        "b": 6
-      }
-    },
-    {
-      "id": "float_angle",
-      "kind": "state.set",
-      "field": "birdAngle",
-      "in": {
-        "value": "float_tilt"
-      }
-    },
-    {
-      "id": "gravity_dt",
-      "kind": "math.mul",
-      "in": {
-        "a": "c_gravity",
-        "b": "dt"
-      }
-    },
-    {
-      "id": "vy_gravity",
-      "kind": "math.add",
-      "in": {
-        "a": "st_vy",
-        "b": "gravity_dt"
-      }
-    },
-    {
-      "id": "fall",
-      "kind": "state.set",
-      "field": "birdVy",
-      "in": {
-        "value": "vy_gravity"
-      },
-      "next": "cap_if"
-    },
-    {
-      "id": "too_fast",
-      "kind": "cmp.gt",
-      "in": {
-        "a": "st_vy",
-        "b": "c_maxfall"
-      }
-    },
-    {
-      "id": "cap_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "too_fast"
-      },
-      "then": "cap",
-      "next": "move"
-    },
-    {
-      "id": "cap",
-      "kind": "state.set",
-      "field": "birdVy",
-      "in": {
-        "value": "c_maxfall"
-      }
-    },
-    {
-      "id": "vy_dt",
-      "kind": "math.mul",
-      "in": {
-        "a": "st_vy",
-        "b": "dt"
-      }
-    },
-    {
-      "id": "moved_y",
-      "kind": "math.add",
-      "in": {
-        "a": "oy",
-        "b": "vy_dt"
-      }
-    },
-    {
-      "id": "move",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "value": "moved_y"
-      },
-      "next": "ceil_if"
-    },
-    {
-      "id": "above_top",
-      "kind": "cmp.lt",
-      "in": {
-        "a": "oy"
-      },
-      "args": {
-        "b": 0
-      }
-    },
-    {
-      "id": "ceil_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "above_top"
-      },
-      "then": "ceil_y",
-      "next": "flap_if"
-    },
-    {
-      "id": "ceil_y",
-      "kind": "obj.set",
-      "field": "y",
-      "args": {
-        "value": 0
-      },
-      "next": "ceil_vy"
-    },
-    {
-      "id": "ceil_vy",
-      "kind": "state.set",
-      "field": "birdVy",
-      "args": {
-        "value": 0
-      }
-    },
-    {
-      "id": "flap_input",
-      "kind": "lib.call",
-      "fn": "flappy.flapPressed"
-    },
-    {
-      "id": "flap_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "flap_input"
-      },
-      "then": "flap",
-      "next": "auto_if"
-    },
-    {
-      "id": "flap",
-      "kind": "state.set",
-      "field": "birdVy",
-      "in": {
-        "value": "c_flap"
-      },
-      "next": "flap_sound"
-    },
-    {
-      "id": "flap_sound",
-      "kind": "lib.call",
-      "fn": "flappy.sfx",
-      "args": {
-        "name": "flap"
-      }
-    },
-    {
-      "id": "falling",
-      "kind": "cmp.gt",
-      "in": {
-        "a": "st_vy"
-      },
-      "args": {
-        "b": 0
-      }
-    },
-    {
-      "id": "half_screen",
-      "kind": "math.mul",
-      "in": {
-        "a": "st_h"
-      },
-      "args": {
-        "b": 0.5
-      }
-    },
-    {
-      "id": "below_half",
-      "kind": "cmp.gt",
-      "in": {
-        "a": "oy",
-        "b": "half_screen"
-      }
-    },
-    {
-      "id": "low_fall",
-      "kind": "logic.and",
-      "in": {
-        "a": "falling",
-        "b": "below_half"
-      }
-    },
-    {
-      "id": "auto_flap",
-      "kind": "logic.and",
-      "in": {
-        "a": "st_auto",
-        "b": "low_fall"
-      }
-    },
-    {
-      "id": "auto_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "auto_flap"
-      },
-      "then": "auto",
-      "next": "tilt"
-    },
-    {
-      "id": "auto",
-      "kind": "state.set",
-      "field": "birdVy",
-      "in": {
-        "value": "c_flap"
-      }
-    },
-    {
-      "id": "tilt_raw",
-      "kind": "math.mul",
-      "in": {
-        "a": "st_vy"
-      },
-      "args": {
-        "b": 0.075
-      }
-    },
-    {
-      "id": "tilt_clamped",
-      "kind": "math.clamp",
-      "in": {
-        "value": "tilt_raw"
-      },
-      "args": {
-        "min": -22,
-        "max": 60
-      }
-    },
-    {
-      "id": "tilt",
-      "kind": "state.set",
-      "field": "birdAngle",
-      "in": {
-        "value": "tilt_clamped"
-      },
-      "next": "ground_if"
-    },
-    {
-      "id": "bird_bottom",
-      "kind": "math.add",
-      "in": {
-        "a": "oy",
-        "b": "c_birdh"
-      }
-    },
-    {
-      "id": "on_ground",
-      "kind": "cmp.ge",
-      "in": {
-        "a": "bird_bottom",
-        "b": "st_ground"
-      }
-    },
-    {
-      "id": "ground_y",
-      "kind": "math.sub",
-      "in": {
-        "a": "st_ground",
-        "b": "c_birdh"
-      }
-    },
-    {
-      "id": "ground_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "on_ground"
-      },
-      "then": "land"
-    },
-    {
-      "id": "land",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "value": "ground_y"
-      },
-      "next": "die"
-    },
-    {
-      "id": "die",
-      "kind": "lib.call",
-      "fn": "flappy.die"
-    },
-    {
-      "id": "in_air",
-      "kind": "cmp.lt",
-      "in": {
-        "a": "bird_bottom",
-        "b": "st_ground"
-      }
-    },
-    {
-      "id": "tumble_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "in_air"
-      },
-      "then": "drop"
-    },
-    {
-      "id": "drop",
-      "kind": "state.set",
-      "field": "birdVy",
-      "in": {
-        "value": "vy_gravity"
-      },
-      "next": "drop_move"
-    },
-    {
-      "id": "drop_move",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "value": "moved_y"
-      },
-      "next": "spin"
-    },
-    {
-      "id": "spin_dt",
-      "kind": "math.mul",
-      "in": {
-        "b": "dt"
-      },
-      "args": {
-        "a": 220
-      }
-    },
-    {
-      "id": "spin_add",
-      "kind": "math.add",
-      "in": {
-        "a": "st_angle",
-        "b": "spin_dt"
-      }
-    },
-    {
-      "id": "spin_max",
-      "kind": "math.min",
-      "in": {
-        "b": "spin_add"
-      },
-      "args": {
-        "a": 90
-      }
-    },
-    {
-      "id": "spin",
-      "kind": "state.set",
-      "field": "birdAngle",
-      "in": {
-        "value": "spin_max"
-      },
-      "next": "sink_if"
-    },
-    {
-      "id": "sunk",
-      "kind": "cmp.gt",
-      "in": {
-        "a": "bird_bottom",
-        "b": "st_ground"
-      }
-    },
-    {
-      "id": "sink_if",
-      "kind": "flow.branch",
-      "in": {
-        "cond": "sunk"
-      },
-      "then": "sink"
-    },
-    {
-      "id": "sink",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "value": "ground_y"
-      }
-    },
-    {
-      "id": "sync_angle",
-      "kind": "prop.set",
-      "field": "angle",
-      "type": "number",
-      "in": {
-        "value": "st_angle"
-      },
-      "next": "sync_anim"
-    },
-    {
-      "id": "alive",
-      "kind": "cmp.ne",
-      "in": {
-        "a": "st_state"
-      },
-      "args": {
-        "b": "dead"
-      }
-    },
-    {
-      "id": "sync_anim",
-      "kind": "obj.set",
-      "field": "animate",
-      "in": {
-        "value": "alive"
-      }
-    }
-  ]
+    { "id": "st_state", "kind": "state.get", "field": "state" },
+    { "id": "st_h", "kind": "state.get", "field": "H" },
+    { "id": "st_ground", "kind": "state.get", "field": "GROUND_Y" },
+    { "id": "st_ready", "kind": "state.get", "field": "readyTime" },
+    { "id": "st_vy", "kind": "state.get", "field": "birdVy" },
+    { "id": "st_angle", "kind": "state.get", "field": "birdAngle" },
+    { "id": "st_auto", "kind": "state.get", "field": "autoplay" },
+    { "id": "self", "kind": "obj.self" },
+    { "id": "oy", "kind": "obj.get", "field": "y" },
+    { "id": "c_gravity", "kind": "lib.const", "const": "flappy.GRAVITY" },
+    { "id": "c_flap", "kind": "lib.const", "const": "flappy.FLAP" },
+    { "id": "c_maxfall", "kind": "lib.const", "const": "flappy.MAX_FALL" },
+    { "id": "c_birdx", "kind": "lib.const", "const": "flappy.BIRD_X" },
+    { "id": "c_birdh", "kind": "lib.const", "const": "flappy.BIRD_H" },
+    { "id": "dt", "kind": "local.get", "field": "dt" },
+    { "id": "half_h", "kind": "math.div", "in": { "a": "st_h" }, "args": { "b": 2 } },
+    { "id": "half_bird", "kind": "math.div", "in": { "a": "c_birdh" }, "args": { "b": 2 } },
+    { "id": "center", "kind": "math.sub", "in": { "a": "half_h", "b": "half_bird" } },
+    { "id": "init", "kind": "event.init", "next": "keep_bird" },
+    { "id": "keep_bird", "kind": "state.set", "field": "bird", "in": { "value": "self" }, "next": "place_x" },
+    { "id": "place_x", "kind": "obj.set", "field": "x", "in": { "value": "c_birdx" }, "next": "place_y" },
+    { "id": "place_y", "kind": "obj.set", "field": "y", "in": { "value": "center" } },
+    { "id": "update", "kind": "event.update", "next": "set_dt" },
+    { "id": "tick_dt", "kind": "lib.call", "fn": "flappy.dt", "in": { "elapsed": "update.elapsed" } },
+    { "id": "set_dt", "kind": "local.set", "field": "dt", "in": { "value": "tick_dt" }, "next": "by_state" },
+    { "id": "by_state", "kind": "flow.switch", "in": { "value": "st_state" }, "next": "sync_angle", "cases": { "ready": "float_y", "play": "fall", "dead": "tumble_if" } },
+    { "id": "ready_phase", "kind": "math.mul", "in": { "a": "st_ready" }, "args": { "b": 4 } },
+    { "id": "ready_sin", "kind": "math.sin", "in": { "a": "ready_phase" } },
+    { "id": "float_off", "kind": "math.mul", "in": { "a": "ready_sin" }, "args": { "b": 14 } },
+    { "id": "float_pos", "kind": "math.add", "in": { "a": "center", "b": "float_off" } },
+    { "id": "float_y", "kind": "obj.set", "field": "y", "in": { "value": "float_pos" }, "next": "float_angle" },
+    { "id": "float_tilt", "kind": "math.mul", "in": { "a": "ready_sin" }, "args": { "b": 6 } },
+    { "id": "float_angle", "kind": "state.set", "field": "birdAngle", "in": { "value": "float_tilt" } },
+    { "id": "gravity_dt", "kind": "math.mul", "in": { "a": "c_gravity", "b": "dt" } },
+    { "id": "vy_gravity", "kind": "math.add", "in": { "a": "st_vy", "b": "gravity_dt" } },
+    { "id": "fall", "kind": "state.set", "field": "birdVy", "in": { "value": "vy_gravity" }, "next": "cap_if" },
+    { "id": "too_fast", "kind": "cmp.gt", "in": { "a": "st_vy", "b": "c_maxfall" } },
+    { "id": "cap_if", "kind": "flow.branch", "in": { "cond": "too_fast" }, "next": "move", "then": "cap" },
+    { "id": "cap", "kind": "state.set", "field": "birdVy", "in": { "value": "c_maxfall" } },
+    { "id": "vy_dt", "kind": "math.mul", "in": { "a": "st_vy", "b": "dt" } },
+    { "id": "moved_y", "kind": "math.add", "in": { "a": "oy", "b": "vy_dt" } },
+    { "id": "move", "kind": "obj.set", "field": "y", "in": { "value": "moved_y" }, "next": "ceil_if" },
+    { "id": "above_top", "kind": "cmp.lt", "in": { "a": "oy" }, "args": { "b": 0 } },
+    { "id": "ceil_if", "kind": "flow.branch", "in": { "cond": "above_top" }, "next": "flap_if", "then": "ceil_y" },
+    { "id": "ceil_y", "kind": "obj.set", "field": "y", "args": { "value": 0 }, "next": "ceil_vy" },
+    { "id": "ceil_vy", "kind": "state.set", "field": "birdVy", "args": { "value": 0 } },
+    { "id": "flap_input", "kind": "lib.call", "fn": "flappy.flapPressed" },
+    { "id": "flap_if", "kind": "flow.branch", "in": { "cond": "flap_input" }, "next": "auto_if", "then": "flap" },
+    { "id": "flap", "kind": "state.set", "field": "birdVy", "in": { "value": "c_flap" }, "next": "flap_sound" },
+    { "id": "flap_sound", "kind": "lib.call", "fn": "flappy.sfx", "args": { "name": "flap" } },
+    { "id": "falling", "kind": "cmp.gt", "in": { "a": "st_vy" }, "args": { "b": 0 } },
+    { "id": "half_screen", "kind": "math.mul", "in": { "a": "st_h" }, "args": { "b": 0.5 } },
+    { "id": "below_half", "kind": "cmp.gt", "in": { "a": "oy", "b": "half_screen" } },
+    { "id": "low_fall", "kind": "logic.and", "in": { "a": "falling", "b": "below_half" } },
+    { "id": "auto_flap", "kind": "logic.and", "in": { "a": "st_auto", "b": "low_fall" } },
+    { "id": "auto_if", "kind": "flow.branch", "in": { "cond": "auto_flap" }, "next": "tilt", "then": "auto" },
+    { "id": "auto", "kind": "state.set", "field": "birdVy", "in": { "value": "c_flap" } },
+    { "id": "tilt_raw", "kind": "math.mul", "in": { "a": "st_vy" }, "args": { "b": 0.075 } },
+    { "id": "tilt_clamped", "kind": "math.clamp", "in": { "value": "tilt_raw" }, "args": { "min": -22, "max": 60 } },
+    { "id": "tilt", "kind": "state.set", "field": "birdAngle", "in": { "value": "tilt_clamped" }, "next": "ground_if" },
+    { "id": "bird_bottom", "kind": "math.add", "in": { "a": "oy", "b": "c_birdh" } },
+    { "id": "on_ground", "kind": "cmp.ge", "in": { "a": "bird_bottom", "b": "st_ground" } },
+    { "id": "ground_y", "kind": "math.sub", "in": { "a": "st_ground", "b": "c_birdh" } },
+    { "id": "ground_if", "kind": "flow.branch", "in": { "cond": "on_ground" }, "then": "land" },
+    { "id": "land", "kind": "obj.set", "field": "y", "in": { "value": "ground_y" }, "next": "die" },
+    { "id": "die", "kind": "lib.call", "fn": "flappy.die" },
+    { "id": "in_air", "kind": "cmp.lt", "in": { "a": "bird_bottom", "b": "st_ground" } },
+    { "id": "tumble_if", "kind": "flow.branch", "in": { "cond": "in_air" }, "then": "drop" },
+    { "id": "drop", "kind": "state.set", "field": "birdVy", "in": { "value": "vy_gravity" }, "next": "drop_move" },
+    { "id": "drop_move", "kind": "obj.set", "field": "y", "in": { "value": "moved_y" }, "next": "spin" },
+    { "id": "spin_dt", "kind": "math.mul", "in": { "b": "dt" }, "args": { "a": 220 } },
+    { "id": "spin_add", "kind": "math.add", "in": { "a": "st_angle", "b": "spin_dt" } },
+    { "id": "spin_max", "kind": "math.min", "in": { "b": "spin_add" }, "args": { "a": 90 } },
+    { "id": "spin", "kind": "state.set", "field": "birdAngle", "in": { "value": "spin_max" }, "next": "sink_if" },
+    { "id": "sunk", "kind": "cmp.gt", "in": { "a": "bird_bottom", "b": "st_ground" } },
+    { "id": "sink_if", "kind": "flow.branch", "in": { "cond": "sunk" }, "then": "sink" },
+    { "id": "sink", "kind": "obj.set", "field": "y", "in": { "value": "ground_y" } },
+    { "id": "sync_angle", "kind": "prop.set", "field": "angle", "type": "number", "in": { "value": "st_angle" }, "next": "sync_anim" },
+    { "id": "alive", "kind": "cmp.ne", "in": { "a": "st_state" }, "args": { "b": "dead" } },
+    { "id": "sync_anim", "kind": "obj.set", "field": "animate", "in": { "value": "alive" } }
+  ],
+  "layout": {
+    "st_state": [780, 488],
+    "st_h": [520, 104],
+    "st_ground": [3120, 1282],
+    "st_ready": [0, 630],
+    "st_vy": [780, 846],
+    "st_angle": [1300, 1554],
+    "st_auto": [2600, 1088],
+    "self": [520, 56],
+    "oy": [1300, 980],
+    "c_gravity": [520, 846],
+    "c_flap": [2600, 1040],
+    "c_maxfall": [1040, 954],
+    "c_birdx": [780, 82],
+    "c_birdh": [520, 152],
+    "dt": [520, 894],
+    "half_h": [780, 130],
+    "half_bird": [780, 238],
+    "center": [1040, 108],
+    "init": [520, 0],
+    "keep_bird": [780, 0],
+    "place_x": [1040, 0],
+    "place_y": [1300, 0],
+    "update": [520, 406],
+    "tick_dt": [520, 488],
+    "set_dt": [780, 406],
+    "by_state": [1040, 406],
+    "ready_phase": [260, 630],
+    "ready_sin": [520, 630],
+    "float_off": [780, 630],
+    "float_pos": [1040, 630],
+    "float_y": [1300, 574],
+    "float_tilt": [1300, 682],
+    "float_angle": [1560, 574],
+    "gravity_dt": [780, 894],
+    "vy_gravity": [1040, 846],
+    "fall": [1300, 790],
+    "too_fast": [1300, 872],
+    "cap_if": [1560, 790],
+    "cap": [1820, 958],
+    "vy_dt": [1300, 1062],
+    "moved_y": [1560, 898],
+    "move": [1820, 790],
+    "above_top": [1820, 1040],
+    "ceil_if": [2080, 790],
+    "ceil_y": [2340, 958],
+    "ceil_vy": [2600, 958],
+    "flap_input": [2340, 1066],
+    "flap_if": [2600, 790],
+    "flap": [2860, 958],
+    "flap_sound": [3120, 958],
+    "falling": [2340, 1114],
+    "half_screen": [2080, 898],
+    "below_half": [2340, 1222],
+    "low_fall": [2600, 1136],
+    "auto_flap": [2860, 1040],
+    "auto_if": [3120, 790],
+    "auto": [3380, 958],
+    "tilt_raw": [2860, 1148],
+    "tilt_clamped": [3120, 1040],
+    "tilt": [3380, 790],
+    "bird_bottom": [3120, 1174],
+    "on_ground": [3380, 1040],
+    "ground_y": [3640, 1014],
+    "ground_if": [3640, 790],
+    "land": [3900, 958],
+    "die": [4160, 958],
+    "in_air": [1040, 1386],
+    "tumble_if": [1300, 1330],
+    "drop": [1560, 1498],
+    "drop_move": [1820, 1498],
+    "spin_dt": [1300, 1602],
+    "spin_add": [1560, 1580],
+    "spin_max": [1820, 1606],
+    "spin": [2080, 1498],
+    "sunk": [2080, 1580],
+    "sink_if": [2340, 1498],
+    "sink": [2600, 1666],
+    "sync_angle": [4160, 406],
+    "alive": [4160, 1006],
+    "sync_anim": [4420, 406]
+  }
 }

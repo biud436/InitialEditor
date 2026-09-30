@@ -1,1166 +1,291 @@
 {
   "version": 1,
   "params": [
-    {
-      "key": "label",
-      "type": "string",
-      "label": "이름",
-      "default": "샘플"
-    },
-    {
-      "key": "count",
-      "type": "integer",
-      "label": "횟수",
-      "default": 1,
-      "min": 0
-    },
-    {
-      "key": "mode",
-      "type": "enum",
-      "values": [
-        "a",
-        "b"
-      ],
-      "default": "b"
-    }
+    { "key": "label", "type": "string", "label": "이름", "default": "샘플" },
+    { "key": "count", "type": "integer", "label": "횟수", "default": 1, "min": 0 },
+    { "key": "mode", "type": "enum", "values": ["a", "b"], "default": "b" }
   ],
   "state": {
     "from": "scene",
     "fields": [
-      {
-        "key": "ticks",
-        "type": "integer",
-        "default": 0
-      },
-      {
-        "key": "phase",
-        "type": "enum",
-        "values": [
-          "start",
-          "run",
-          "done"
-        ],
-        "default": "start"
-      }
+      { "key": "ticks", "type": "integer", "default": 0 },
+      { "key": "phase", "type": "enum", "values": ["start", "run", "done"], "default": "start" }
     ]
   },
   "locals": [
-    {
-      "key": "acc",
-      "type": "integer"
-    },
-    {
-      "key": "half",
-      "type": "number"
-    }
+    { "key": "acc", "type": "integer" },
+    { "key": "half", "type": "number" }
   ],
   "nodes": [
-    {
-      "id": "p_label",
-      "kind": "param.get",
-      "field": "label"
-    },
-    {
-      "id": "p_count",
-      "kind": "param.get",
-      "field": "count"
-    },
-    {
-      "id": "p_mode",
-      "kind": "param.get",
-      "field": "mode"
-    },
-    {
-      "id": "acc",
-      "kind": "local.get",
-      "field": "acc"
-    },
-    {
-      "id": "half",
-      "kind": "local.get",
-      "field": "half"
-    },
-    {
-      "id": "ticks",
-      "kind": "state.get",
-      "field": "ticks"
-    },
-    {
-      "id": "phase",
-      "kind": "state.get",
-      "field": "phase"
-    },
-    {
-      "id": "self",
-      "kind": "obj.self"
-    },
-    {
-      "id": "other",
-      "kind": "scene.find",
-      "args": {
-        "id": "other"
-      }
-    },
-    {
-      "id": "init",
-      "kind": "event.init",
-      "next": "s_label"
-    },
-    {
-      "id": "s_label_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "label="
-      },
-      "in": {
-        "b": "p_label"
-      }
-    },
-    {
-      "id": "s_label",
-      "kind": "text.print",
-      "in": {
-        "value": "s_label_txt"
-      },
-      "next": "s_count"
-    },
-    {
-      "id": "s_count_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "count="
-      },
-      "in": {
-        "b": "p_count"
-      }
-    },
-    {
-      "id": "s_count",
-      "kind": "text.print",
-      "in": {
-        "value": "s_count_txt"
-      },
-      "next": "mode_sw"
-    },
-    {
-      "id": "mode_sw",
-      "kind": "flow.switch",
-      "in": {
-        "value": "p_mode"
-      },
-      "cases": {
-        "a": "mode_a",
-        "b": "mode_b"
-      },
-      "next": "loop"
-    },
-    {
-      "id": "mode_a",
-      "kind": "text.print",
-      "args": {
-        "value": "mode a"
-      }
-    },
-    {
-      "id": "mode_b",
-      "kind": "text.print",
-      "args": {
-        "value": "mode b"
-      }
-    },
-    {
-      "id": "loop",
-      "kind": "flow.repeat",
-      "in": {
-        "count": "p_count"
-      },
-      "body": "acc_set",
-      "next": "s_acc"
-    },
-    {
-      "id": "acc_add",
-      "kind": "math.add",
-      "in": {
-        "a": "acc",
-        "b": "loop.index"
-      }
-    },
-    {
-      "id": "acc_set",
-      "kind": "local.set",
-      "field": "acc",
-      "in": {
-        "value": "acc_add"
-      }
-    },
-    {
-      "id": "s_acc_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "acc="
-      },
-      "in": {
-        "b": "acc"
-      }
-    },
-    {
-      "id": "s_acc",
-      "kind": "text.print",
-      "in": {
-        "value": "s_acc_txt"
-      },
-      "next": "half_set"
-    },
-    {
-      "id": "half_div",
-      "kind": "math.div",
-      "args": {
-        "a": 7,
-        "b": 2
-      }
-    },
-    {
-      "id": "half_set",
-      "kind": "local.set",
-      "field": "half",
-      "in": {
-        "value": "half_div"
-      },
-      "next": "s_half"
-    },
-    {
-      "id": "s_half_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "half="
-      },
-      "in": {
-        "b": "half"
-      }
-    },
-    {
-      "id": "s_half",
-      "kind": "text.print",
-      "in": {
-        "value": "s_half_txt"
-      },
-      "next": "s_div1"
-    },
-    {
-      "id": "div1",
-      "kind": "math.div",
-      "in": {
-        "a": "p_count"
-      },
-      "args": {
-        "b": 2
-      }
-    },
-    {
-      "id": "s_div1_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "div="
-      },
-      "in": {
-        "b": "div1"
-      }
-    },
-    {
-      "id": "s_div1",
-      "kind": "text.print",
-      "in": {
-        "value": "s_div1_txt"
-      },
-      "next": "s_div2"
-    },
-    {
-      "id": "two",
-      "kind": "math.floor",
-      "args": {
-        "a": 2.5
-      }
-    },
-    {
-      "id": "div2",
-      "kind": "math.div",
-      "in": {
-        "a": "p_count",
-        "b": "two"
-      }
-    },
-    {
-      "id": "s_div2_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "div2="
-      },
-      "in": {
-        "b": "div2"
-      }
-    },
-    {
-      "id": "s_div2",
-      "kind": "text.print",
-      "in": {
-        "value": "s_div2_txt"
-      },
-      "next": "s_mod"
-    },
-    {
-      "id": "mod",
-      "kind": "math.mod",
-      "args": {
-        "a": -7,
-        "b": 3
-      }
-    },
-    {
-      "id": "s_mod_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "mod="
-      },
-      "in": {
-        "b": "mod"
-      }
-    },
-    {
-      "id": "s_mod",
-      "kind": "text.print",
-      "in": {
-        "value": "s_mod_txt"
-      },
-      "next": "s_floor"
-    },
-    {
-      "id": "floor",
-      "kind": "math.floor",
-      "args": {
-        "a": -2.5
-      }
-    },
-    {
-      "id": "s_floor_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "floor="
-      },
-      "in": {
-        "b": "floor"
-      }
-    },
-    {
-      "id": "s_floor",
-      "kind": "text.print",
-      "in": {
-        "value": "s_floor_txt"
-      },
-      "next": "s_abs"
-    },
-    {
-      "id": "neg",
-      "kind": "math.neg",
-      "args": {
-        "a": 4
-      }
-    },
-    {
-      "id": "abs",
-      "kind": "math.abs",
-      "in": {
-        "a": "neg"
-      }
-    },
-    {
-      "id": "s_abs_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "abs="
-      },
-      "in": {
-        "b": "abs"
-      }
-    },
-    {
-      "id": "s_abs",
-      "kind": "text.print",
-      "in": {
-        "value": "s_abs_txt"
-      },
-      "next": "s_clamp"
-    },
-    {
-      "id": "clamp",
-      "kind": "math.clamp",
-      "args": {
-        "value": 15,
-        "min": 0,
-        "max": 10
-      }
-    },
-    {
-      "id": "s_clamp_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "clamp="
-      },
-      "in": {
-        "b": "clamp"
-      }
-    },
-    {
-      "id": "s_clamp",
-      "kind": "text.print",
-      "in": {
-        "value": "s_clamp_txt"
-      },
-      "next": "s_minmax"
-    },
-    {
-      "id": "min",
-      "kind": "math.min",
-      "args": {
-        "a": 3,
-        "b": 1.5
-      }
-    },
-    {
-      "id": "max",
-      "kind": "math.max",
-      "args": {
-        "a": 2,
-        "b": 7
-      }
-    },
-    {
-      "id": "minmax",
-      "kind": "text.concat",
-      "in": {
-        "a": "min",
-        "b": "max"
-      }
-    },
-    {
-      "id": "s_minmax_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "minmax="
-      },
-      "in": {
-        "b": "minmax"
-      }
-    },
-    {
-      "id": "s_minmax",
-      "kind": "text.print",
-      "in": {
-        "value": "s_minmax_txt"
-      },
-      "next": "s_sqrt"
-    },
-    {
-      "id": "sqrt",
-      "kind": "math.sqrt",
-      "args": {
-        "a": 16
-      }
-    },
-    {
-      "id": "s_sqrt_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "sqrt="
-      },
-      "in": {
-        "b": "sqrt"
-      }
-    },
-    {
-      "id": "s_sqrt",
-      "kind": "text.print",
-      "in": {
-        "value": "s_sqrt_txt"
-      },
-      "next": "s_trig"
-    },
-    {
-      "id": "sin0",
-      "kind": "math.sin",
-      "args": {
-        "a": 0
-      }
-    },
-    {
-      "id": "cos0",
-      "kind": "math.cos",
-      "args": {
-        "a": 0
-      }
-    },
-    {
-      "id": "trig",
-      "kind": "math.add",
-      "in": {
-        "a": "sin0",
-        "b": "cos0"
-      }
-    },
-    {
-      "id": "s_trig_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "trig="
-      },
-      "in": {
-        "b": "trig"
-      }
-    },
-    {
-      "id": "s_trig",
-      "kind": "text.print",
-      "in": {
-        "value": "s_trig_txt"
-      },
-      "next": "s_and"
-    },
-    {
-      "id": "gt",
-      "kind": "cmp.gt",
-      "args": {
-        "a": 3,
-        "b": 2
-      }
-    },
-    {
-      "id": "eq",
-      "kind": "cmp.eq",
-      "args": {
-        "a": 1,
-        "b": 2
-      }
-    },
-    {
-      "id": "not",
-      "kind": "logic.not",
-      "in": {
-        "a": "eq"
-      }
-    },
-    {
-      "id": "and",
-      "kind": "logic.and",
-      "in": {
-        "a": "gt",
-        "b": "not"
-      }
-    },
-    {
-      "id": "s_and_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "and="
-      },
-      "in": {
-        "b": "and"
-      }
-    },
-    {
-      "id": "s_and",
-      "kind": "text.print",
-      "in": {
-        "value": "s_and_txt"
-      },
-      "next": "s_or"
-    },
-    {
-      "id": "lt",
-      "kind": "cmp.lt",
-      "args": {
-        "a": 5,
-        "b": 4
-      }
-    },
-    {
-      "id": "or",
-      "kind": "logic.or",
-      "in": {
-        "a": "lt"
-      },
-      "args": {
-        "b": false
-      }
-    },
-    {
-      "id": "s_or_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "or="
-      },
-      "in": {
-        "b": "or"
-      }
-    },
-    {
-      "id": "s_or",
-      "kind": "text.print",
-      "in": {
-        "value": "s_or_txt"
-      },
-      "next": "s_cmp"
-    },
-    {
-      "id": "le",
-      "kind": "cmp.le",
-      "args": {
-        "a": 2,
-        "b": 2
-      }
-    },
-    {
-      "id": "ge",
-      "kind": "cmp.ge",
-      "args": {
-        "a": 1,
-        "b": 2
-      }
-    },
-    {
-      "id": "ne",
-      "kind": "cmp.ne",
-      "args": {
-        "a": "x",
-        "b": "y"
-      }
-    },
-    {
-      "id": "cmp3a",
-      "kind": "text.concat",
-      "in": {
-        "a": "le",
-        "b": "ge"
-      }
-    },
-    {
-      "id": "cmp3",
-      "kind": "text.concat",
-      "in": {
-        "a": "cmp3a",
-        "b": "ne"
-      }
-    },
-    {
-      "id": "s_cmp_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "cmp="
-      },
-      "in": {
-        "b": "cmp3"
-      }
-    },
-    {
-      "id": "s_cmp",
-      "kind": "text.print",
-      "in": {
-        "value": "s_cmp_txt"
-      },
-      "next": "set_x"
-    },
-    {
-      "id": "set_x",
-      "kind": "obj.set",
-      "field": "x",
-      "args": {
-        "value": 12.5
-      },
-      "next": "s_x"
-    },
-    {
-      "id": "get_x",
-      "kind": "obj.get",
-      "field": "x"
-    },
-    {
-      "id": "s_x_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "x="
-      },
-      "in": {
-        "b": "get_x"
-      }
-    },
-    {
-      "id": "s_x",
-      "kind": "text.print",
-      "in": {
-        "value": "s_x_txt"
-      },
-      "next": "set_hp"
-    },
-    {
-      "id": "set_hp",
-      "kind": "prop.set",
-      "field": "hp",
-      "type": "integer",
-      "args": {
-        "value": 5
-      },
-      "next": "s_hp"
-    },
-    {
-      "id": "get_hp",
-      "kind": "prop.get",
-      "field": "hp",
-      "type": "integer"
-    },
-    {
-      "id": "hp_plus",
-      "kind": "math.add",
-      "in": {
-        "a": "get_hp"
-      },
-      "args": {
-        "b": 1
-      }
-    },
-    {
-      "id": "s_hp_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "hp+1="
-      },
-      "in": {
-        "b": "hp_plus"
-      }
-    },
-    {
-      "id": "s_hp",
-      "kind": "text.print",
-      "in": {
-        "value": "s_hp_txt"
-      },
-      "next": "s_other"
-    },
-    {
-      "id": "other_id",
-      "kind": "obj.get",
-      "field": "id",
-      "in": {
-        "target": "other"
-      }
-    },
-    {
-      "id": "s_other_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "other="
-      },
-      "in": {
-        "b": "other_id"
-      }
-    },
-    {
-      "id": "s_other",
-      "kind": "text.print",
-      "in": {
-        "value": "s_other_txt"
-      },
-      "next": "set_other_y"
-    },
-    {
-      "id": "set_other_y",
-      "kind": "obj.set",
-      "field": "y",
-      "in": {
-        "target": "other"
-      },
-      "args": {
-        "value": 40
-      },
-      "next": "s_other_y"
-    },
-    {
-      "id": "other_y",
-      "kind": "obj.get",
-      "field": "y",
-      "in": {
-        "target": "other"
-      }
-    },
-    {
-      "id": "s_other_y_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "otherY="
-      },
-      "in": {
-        "b": "other_y"
-      }
-    },
-    {
-      "id": "s_other_y",
-      "kind": "text.print",
-      "in": {
-        "value": "s_other_y_txt"
-      },
-      "next": "id_sw"
-    },
-    {
-      "id": "self_id",
-      "kind": "obj.get",
-      "field": "id",
-      "in": {
-        "target": "self"
-      }
-    },
-    {
-      "id": "id_sw",
-      "kind": "flow.switch",
-      "in": {
-        "value": "self_id"
-      },
-      "cases": {
-        "sampler": "id_hit"
-      },
-      "else": "id_miss",
-      "next": "s_width"
-    },
-    {
-      "id": "id_hit",
-      "kind": "text.print",
-      "args": {
-        "value": "id sampler"
-      }
-    },
-    {
-      "id": "id_miss",
-      "kind": "text.print",
-      "args": {
-        "value": "id other"
-      }
-    },
-    {
-      "id": "width",
-      "kind": "api.call",
-      "fn": "Graphics.WindowWidth"
-    },
-    {
-      "id": "width_ok",
-      "kind": "cmp.gt",
-      "in": {
-        "a": "width"
-      },
-      "args": {
-        "b": 0
-      }
-    },
-    {
-      "id": "s_width_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "width>0="
-      },
-      "in": {
-        "b": "width_ok"
-      }
-    },
-    {
-      "id": "s_width",
-      "kind": "text.print",
-      "in": {
-        "value": "s_width_txt"
-      },
-      "next": "s_input"
-    },
-    {
-      "id": "space",
-      "kind": "api.call",
-      "fn": "Input.IsKeyPress",
-      "args": {
-        "key": "SPACE"
-      }
-    },
-    {
-      "id": "mouse",
-      "kind": "api.call",
-      "fn": "Input.IsMouseDown",
-      "args": {
-        "button": "left"
-      }
-    },
-    {
-      "id": "inputs",
-      "kind": "logic.or",
-      "in": {
-        "a": "space",
-        "b": "mouse"
-      }
-    },
-    {
-      "id": "s_input_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "input="
-      },
-      "in": {
-        "b": "inputs"
-      }
-    },
-    {
-      "id": "s_input",
-      "kind": "text.print",
-      "in": {
-        "value": "s_input_txt"
-      },
-      "next": "s_phase"
-    },
-    {
-      "id": "s_phase_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "phase="
-      },
-      "in": {
-        "b": "phase"
-      }
-    },
-    {
-      "id": "s_phase",
-      "kind": "text.print",
-      "in": {
-        "value": "s_phase_txt"
-      },
-      "next": "s_is_start"
-    },
-    {
-      "id": "is_start",
-      "kind": "cmp.eq",
-      "in": {
-        "a": "phase"
-      },
-      "args": {
-        "b": "start"
-      }
-    },
-    {
-      "id": "s_is_start_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "start?="
-      },
-      "in": {
-        "b": "is_start"
-      }
-    },
-    {
-      "id": "s_is_start",
-      "kind": "text.print",
-      "in": {
-        "value": "s_is_start_txt"
-      },
-      "next": "s_rnd"
-    },
-    {
-      "id": "rnd",
-      "kind": "math.randomInt",
-      "args": {
-        "min": 4,
-        "max": 4
-      }
-    },
-    {
-      "id": "s_rnd_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "rnd="
-      },
-      "in": {
-        "b": "rnd"
-      }
-    },
-    {
-      "id": "s_rnd",
-      "kind": "text.print",
-      "in": {
-        "value": "s_rnd_txt"
-      },
-      "next": "s_rnd01"
-    },
-    {
-      "id": "rnd01",
-      "kind": "math.random"
-    },
-    {
-      "id": "rnd_ok",
-      "kind": "cmp.lt",
-      "in": {
-        "a": "rnd01"
-      },
-      "args": {
-        "b": 1
-      }
-    },
-    {
-      "id": "s_rnd01_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "rnd01<1="
-      },
-      "in": {
-        "b": "rnd_ok"
-      }
-    },
-    {
-      "id": "s_rnd01",
-      "kind": "text.print",
-      "in": {
-        "value": "s_rnd01_txt"
-      },
-      "next": "esc"
-    },
-    {
-      "id": "esc",
-      "kind": "text.print",
-      "args": {
-        "value": "quote\" hash# brace#{x} back\\slash"
-      }
-    },
-    {
-      "id": "update",
-      "kind": "event.update",
-      "next": "tick"
-    },
-    {
-      "id": "ticks_plus",
-      "kind": "math.add",
-      "in": {
-        "a": "ticks"
-      },
-      "args": {
-        "b": 1
-      }
-    },
-    {
-      "id": "tick",
-      "kind": "state.set",
-      "field": "ticks",
-      "in": {
-        "value": "ticks_plus"
-      },
-      "next": "tick_sw"
-    },
-    {
-      "id": "tick_sw",
-      "kind": "flow.switch",
-      "in": {
-        "value": "ticks"
-      },
-      "cases": {
-        "1": "t1",
-        "2": "t2",
-        "3": "t3"
-      },
-      "next": "phase_sw"
-    },
-    {
-      "id": "t1",
-      "kind": "text.print",
-      "args": {
-        "value": "tick one"
-      },
-      "next": "to_run"
-    },
-    {
-      "id": "to_run",
-      "kind": "state.set",
-      "field": "phase",
-      "args": {
-        "value": "run"
-      }
-    },
-    {
-      "id": "t2",
-      "kind": "text.print",
-      "args": {
-        "value": "tick two"
-      }
-    },
-    {
-      "id": "elapsed_pos",
-      "kind": "cmp.gt",
-      "in": {
-        "a": "update.elapsed"
-      },
-      "args": {
-        "b": 0
-      }
-    },
-    {
-      "id": "t3_txt",
-      "kind": "text.concat",
-      "args": {
-        "a": "tick three elapsed>0="
-      },
-      "in": {
-        "b": "elapsed_pos"
-      }
-    },
-    {
-      "id": "t3",
-      "kind": "text.print",
-      "in": {
-        "value": "t3_txt"
-      },
-      "next": "to_done"
-    },
-    {
-      "id": "to_done",
-      "kind": "state.set",
-      "field": "phase",
-      "args": {
-        "value": "done"
-      },
-      "next": "bye"
-    },
-    {
-      "id": "bye",
-      "kind": "api.call",
-      "fn": "System.GameExit"
-    },
-    {
-      "id": "phase_sw",
-      "kind": "flow.switch",
-      "in": {
-        "value": "phase"
-      },
-      "cases": {
-        "run": "ph_run",
-        "done": "ph_done"
-      },
-      "else": "ph_else"
-    },
-    {
-      "id": "ph_run",
-      "kind": "text.print",
-      "args": {
-        "value": "phase run"
-      }
-    },
-    {
-      "id": "ph_done",
-      "kind": "text.print",
-      "args": {
-        "value": "phase done"
-      }
-    },
-    {
-      "id": "ph_else",
-      "kind": "text.print",
-      "args": {
-        "value": "phase other"
-      }
-    }
-  ]
+    { "id": "p_label", "kind": "param.get", "field": "label" },
+    { "id": "p_count", "kind": "param.get", "field": "count" },
+    { "id": "p_mode", "kind": "param.get", "field": "mode" },
+    { "id": "acc", "kind": "local.get", "field": "acc" },
+    { "id": "half", "kind": "local.get", "field": "half" },
+    { "id": "ticks", "kind": "state.get", "field": "ticks" },
+    { "id": "phase", "kind": "state.get", "field": "phase" },
+    { "id": "self", "kind": "obj.self" },
+    { "id": "other", "kind": "scene.find", "args": { "id": "other" } },
+    { "id": "init", "kind": "event.init", "next": "s_label" },
+    { "id": "s_label_txt", "kind": "text.concat", "in": { "b": "p_label" }, "args": { "a": "label=" } },
+    { "id": "s_label", "kind": "text.print", "in": { "value": "s_label_txt" }, "next": "s_count" },
+    { "id": "s_count_txt", "kind": "text.concat", "in": { "b": "p_count" }, "args": { "a": "count=" } },
+    { "id": "s_count", "kind": "text.print", "in": { "value": "s_count_txt" }, "next": "mode_sw" },
+    { "id": "mode_sw", "kind": "flow.switch", "in": { "value": "p_mode" }, "next": "loop", "cases": { "a": "mode_a", "b": "mode_b" } },
+    { "id": "mode_a", "kind": "text.print", "args": { "value": "mode a" } },
+    { "id": "mode_b", "kind": "text.print", "args": { "value": "mode b" } },
+    { "id": "loop", "kind": "flow.repeat", "in": { "count": "p_count" }, "next": "s_acc", "body": "acc_set" },
+    { "id": "acc_add", "kind": "math.add", "in": { "a": "acc", "b": "loop.index" } },
+    { "id": "acc_set", "kind": "local.set", "field": "acc", "in": { "value": "acc_add" } },
+    { "id": "s_acc_txt", "kind": "text.concat", "in": { "b": "acc" }, "args": { "a": "acc=" } },
+    { "id": "s_acc", "kind": "text.print", "in": { "value": "s_acc_txt" }, "next": "half_set" },
+    { "id": "half_div", "kind": "math.div", "args": { "a": 7, "b": 2 } },
+    { "id": "half_set", "kind": "local.set", "field": "half", "in": { "value": "half_div" }, "next": "s_half" },
+    { "id": "s_half_txt", "kind": "text.concat", "in": { "b": "half" }, "args": { "a": "half=" } },
+    { "id": "s_half", "kind": "text.print", "in": { "value": "s_half_txt" }, "next": "s_div1" },
+    { "id": "div1", "kind": "math.div", "in": { "a": "p_count" }, "args": { "b": 2 } },
+    { "id": "s_div1_txt", "kind": "text.concat", "in": { "b": "div1" }, "args": { "a": "div=" } },
+    { "id": "s_div1", "kind": "text.print", "in": { "value": "s_div1_txt" }, "next": "s_div2" },
+    { "id": "two", "kind": "math.floor", "args": { "a": 2.5 } },
+    { "id": "div2", "kind": "math.div", "in": { "a": "p_count", "b": "two" } },
+    { "id": "s_div2_txt", "kind": "text.concat", "in": { "b": "div2" }, "args": { "a": "div2=" } },
+    { "id": "s_div2", "kind": "text.print", "in": { "value": "s_div2_txt" }, "next": "s_mod" },
+    { "id": "mod", "kind": "math.mod", "args": { "a": -7, "b": 3 } },
+    { "id": "s_mod_txt", "kind": "text.concat", "in": { "b": "mod" }, "args": { "a": "mod=" } },
+    { "id": "s_mod", "kind": "text.print", "in": { "value": "s_mod_txt" }, "next": "s_floor" },
+    { "id": "floor", "kind": "math.floor", "args": { "a": -2.5 } },
+    { "id": "s_floor_txt", "kind": "text.concat", "in": { "b": "floor" }, "args": { "a": "floor=" } },
+    { "id": "s_floor", "kind": "text.print", "in": { "value": "s_floor_txt" }, "next": "s_abs" },
+    { "id": "neg", "kind": "math.neg", "args": { "a": 4 } },
+    { "id": "abs", "kind": "math.abs", "in": { "a": "neg" } },
+    { "id": "s_abs_txt", "kind": "text.concat", "in": { "b": "abs" }, "args": { "a": "abs=" } },
+    { "id": "s_abs", "kind": "text.print", "in": { "value": "s_abs_txt" }, "next": "s_clamp" },
+    { "id": "clamp", "kind": "math.clamp", "args": { "value": 15, "min": 0, "max": 10 } },
+    { "id": "s_clamp_txt", "kind": "text.concat", "in": { "b": "clamp" }, "args": { "a": "clamp=" } },
+    { "id": "s_clamp", "kind": "text.print", "in": { "value": "s_clamp_txt" }, "next": "s_minmax" },
+    { "id": "min", "kind": "math.min", "args": { "a": 3, "b": 1.5 } },
+    { "id": "max", "kind": "math.max", "args": { "a": 2, "b": 7 } },
+    { "id": "minmax", "kind": "text.concat", "in": { "a": "min", "b": "max" } },
+    { "id": "s_minmax_txt", "kind": "text.concat", "in": { "b": "minmax" }, "args": { "a": "minmax=" } },
+    { "id": "s_minmax", "kind": "text.print", "in": { "value": "s_minmax_txt" }, "next": "s_sqrt" },
+    { "id": "sqrt", "kind": "math.sqrt", "args": { "a": 16 } },
+    { "id": "s_sqrt_txt", "kind": "text.concat", "in": { "b": "sqrt" }, "args": { "a": "sqrt=" } },
+    { "id": "s_sqrt", "kind": "text.print", "in": { "value": "s_sqrt_txt" }, "next": "s_trig" },
+    { "id": "sin0", "kind": "math.sin", "args": { "a": 0 } },
+    { "id": "cos0", "kind": "math.cos", "args": { "a": 0 } },
+    { "id": "trig", "kind": "math.add", "in": { "a": "sin0", "b": "cos0" } },
+    { "id": "s_trig_txt", "kind": "text.concat", "in": { "b": "trig" }, "args": { "a": "trig=" } },
+    { "id": "s_trig", "kind": "text.print", "in": { "value": "s_trig_txt" }, "next": "s_and" },
+    { "id": "gt", "kind": "cmp.gt", "args": { "a": 3, "b": 2 } },
+    { "id": "eq", "kind": "cmp.eq", "args": { "a": 1, "b": 2 } },
+    { "id": "not", "kind": "logic.not", "in": { "a": "eq" } },
+    { "id": "and", "kind": "logic.and", "in": { "a": "gt", "b": "not" } },
+    { "id": "s_and_txt", "kind": "text.concat", "in": { "b": "and" }, "args": { "a": "and=" } },
+    { "id": "s_and", "kind": "text.print", "in": { "value": "s_and_txt" }, "next": "s_or" },
+    { "id": "lt", "kind": "cmp.lt", "args": { "a": 5, "b": 4 } },
+    { "id": "or", "kind": "logic.or", "in": { "a": "lt" }, "args": { "b": false } },
+    { "id": "s_or_txt", "kind": "text.concat", "in": { "b": "or" }, "args": { "a": "or=" } },
+    { "id": "s_or", "kind": "text.print", "in": { "value": "s_or_txt" }, "next": "s_cmp" },
+    { "id": "le", "kind": "cmp.le", "args": { "a": 2, "b": 2 } },
+    { "id": "ge", "kind": "cmp.ge", "args": { "a": 1, "b": 2 } },
+    { "id": "ne", "kind": "cmp.ne", "args": { "a": "x", "b": "y" } },
+    { "id": "cmp3a", "kind": "text.concat", "in": { "a": "le", "b": "ge" } },
+    { "id": "cmp3", "kind": "text.concat", "in": { "a": "cmp3a", "b": "ne" } },
+    { "id": "s_cmp_txt", "kind": "text.concat", "in": { "b": "cmp3" }, "args": { "a": "cmp=" } },
+    { "id": "s_cmp", "kind": "text.print", "in": { "value": "s_cmp_txt" }, "next": "set_x" },
+    { "id": "set_x", "kind": "obj.set", "field": "x", "args": { "value": 12.5 }, "next": "s_x" },
+    { "id": "get_x", "kind": "obj.get", "field": "x" },
+    { "id": "s_x_txt", "kind": "text.concat", "in": { "b": "get_x" }, "args": { "a": "x=" } },
+    { "id": "s_x", "kind": "text.print", "in": { "value": "s_x_txt" }, "next": "set_hp" },
+    { "id": "set_hp", "kind": "prop.set", "field": "hp", "type": "integer", "args": { "value": 5 }, "next": "s_hp" },
+    { "id": "get_hp", "kind": "prop.get", "field": "hp", "type": "integer" },
+    { "id": "hp_plus", "kind": "math.add", "in": { "a": "get_hp" }, "args": { "b": 1 } },
+    { "id": "s_hp_txt", "kind": "text.concat", "in": { "b": "hp_plus" }, "args": { "a": "hp+1=" } },
+    { "id": "s_hp", "kind": "text.print", "in": { "value": "s_hp_txt" }, "next": "s_other" },
+    { "id": "other_id", "kind": "obj.get", "field": "id", "in": { "target": "other" } },
+    { "id": "s_other_txt", "kind": "text.concat", "in": { "b": "other_id" }, "args": { "a": "other=" } },
+    { "id": "s_other", "kind": "text.print", "in": { "value": "s_other_txt" }, "next": "set_other_y" },
+    { "id": "set_other_y", "kind": "obj.set", "field": "y", "in": { "target": "other" }, "args": { "value": 40 }, "next": "s_other_y" },
+    { "id": "other_y", "kind": "obj.get", "field": "y", "in": { "target": "other" } },
+    { "id": "s_other_y_txt", "kind": "text.concat", "in": { "b": "other_y" }, "args": { "a": "otherY=" } },
+    { "id": "s_other_y", "kind": "text.print", "in": { "value": "s_other_y_txt" }, "next": "id_sw" },
+    { "id": "self_id", "kind": "obj.get", "field": "id", "in": { "target": "self" } },
+    { "id": "id_sw", "kind": "flow.switch", "in": { "value": "self_id" }, "next": "s_width", "else": "id_miss", "cases": { "sampler": "id_hit" } },
+    { "id": "id_hit", "kind": "text.print", "args": { "value": "id sampler" } },
+    { "id": "id_miss", "kind": "text.print", "args": { "value": "id other" } },
+    { "id": "width", "kind": "api.call", "fn": "Graphics.WindowWidth" },
+    { "id": "width_ok", "kind": "cmp.gt", "in": { "a": "width" }, "args": { "b": 0 } },
+    { "id": "s_width_txt", "kind": "text.concat", "in": { "b": "width_ok" }, "args": { "a": "width>0=" } },
+    { "id": "s_width", "kind": "text.print", "in": { "value": "s_width_txt" }, "next": "s_input" },
+    { "id": "space", "kind": "api.call", "fn": "Input.IsKeyPress", "args": { "key": "SPACE" } },
+    { "id": "mouse", "kind": "api.call", "fn": "Input.IsMouseDown", "args": { "button": "left" } },
+    { "id": "inputs", "kind": "logic.or", "in": { "a": "space", "b": "mouse" } },
+    { "id": "s_input_txt", "kind": "text.concat", "in": { "b": "inputs" }, "args": { "a": "input=" } },
+    { "id": "s_input", "kind": "text.print", "in": { "value": "s_input_txt" }, "next": "s_phase" },
+    { "id": "s_phase_txt", "kind": "text.concat", "in": { "b": "phase" }, "args": { "a": "phase=" } },
+    { "id": "s_phase", "kind": "text.print", "in": { "value": "s_phase_txt" }, "next": "s_is_start" },
+    { "id": "is_start", "kind": "cmp.eq", "in": { "a": "phase" }, "args": { "b": "start" } },
+    { "id": "s_is_start_txt", "kind": "text.concat", "in": { "b": "is_start" }, "args": { "a": "start?=" } },
+    { "id": "s_is_start", "kind": "text.print", "in": { "value": "s_is_start_txt" }, "next": "s_rnd" },
+    { "id": "rnd", "kind": "math.randomInt", "args": { "min": 4, "max": 4 } },
+    { "id": "s_rnd_txt", "kind": "text.concat", "in": { "b": "rnd" }, "args": { "a": "rnd=" } },
+    { "id": "s_rnd", "kind": "text.print", "in": { "value": "s_rnd_txt" }, "next": "s_rnd01" },
+    { "id": "rnd01", "kind": "math.random" },
+    { "id": "rnd_ok", "kind": "cmp.lt", "in": { "a": "rnd01" }, "args": { "b": 1 } },
+    { "id": "s_rnd01_txt", "kind": "text.concat", "in": { "b": "rnd_ok" }, "args": { "a": "rnd01<1=" } },
+    { "id": "s_rnd01", "kind": "text.print", "in": { "value": "s_rnd01_txt" }, "next": "esc" },
+    { "id": "esc", "kind": "text.print", "args": { "value": "quote\" hash# brace#{x} back\\slash" } },
+    { "id": "update", "kind": "event.update", "next": "tick" },
+    { "id": "ticks_plus", "kind": "math.add", "in": { "a": "ticks" }, "args": { "b": 1 } },
+    { "id": "tick", "kind": "state.set", "field": "ticks", "in": { "value": "ticks_plus" }, "next": "tick_sw" },
+    { "id": "tick_sw", "kind": "flow.switch", "in": { "value": "ticks" }, "next": "phase_sw", "cases": { "1": "t1", "2": "t2", "3": "t3" } },
+    { "id": "t1", "kind": "text.print", "args": { "value": "tick one" }, "next": "to_run" },
+    { "id": "to_run", "kind": "state.set", "field": "phase", "args": { "value": "run" } },
+    { "id": "t2", "kind": "text.print", "args": { "value": "tick two" } },
+    { "id": "elapsed_pos", "kind": "cmp.gt", "in": { "a": "update.elapsed" }, "args": { "b": 0 } },
+    { "id": "t3_txt", "kind": "text.concat", "in": { "b": "elapsed_pos" }, "args": { "a": "tick three elapsed>0=" } },
+    { "id": "t3", "kind": "text.print", "in": { "value": "t3_txt" }, "next": "to_done" },
+    { "id": "to_done", "kind": "state.set", "field": "phase", "args": { "value": "done" }, "next": "bye" },
+    { "id": "bye", "kind": "api.call", "fn": "System.GameExit" },
+    { "id": "phase_sw", "kind": "flow.switch", "in": { "value": "phase" }, "else": "ph_else", "cases": { "run": "ph_run", "done": "ph_done" } },
+    { "id": "ph_run", "kind": "text.print", "args": { "value": "phase run" } },
+    { "id": "ph_done", "kind": "text.print", "args": { "value": "phase done" } },
+    { "id": "ph_else", "kind": "text.print", "args": { "value": "phase other" } }
+  ],
+  "layout": {
+    "p_label": [0, 56],
+    "p_count": [260, 164],
+    "p_mode": [780, 82],
+    "acc": [1040, 224],
+    "half": [1560, 358],
+    "ticks": [0, 738],
+    "phase": [7540, 440],
+    "self": [6760, 216],
+    "other": [5720, 190],
+    "init": [260, 0],
+    "s_label_txt": [260, 56],
+    "s_label": [520, 0],
+    "s_count_txt": [520, 82],
+    "s_count": [780, 0],
+    "mode_sw": [1040, 0],
+    "mode_a": [1300, 168],
+    "mode_b": [1300, 250],
+    "loop": [1300, 0],
+    "acc_add": [1300, 332],
+    "acc_set": [1560, 168],
+    "s_acc_txt": [1300, 440],
+    "s_acc": [1560, 0],
+    "half_div": [1560, 250],
+    "half_set": [1820, 0],
+    "s_half_txt": [1820, 82],
+    "s_half": [2080, 0],
+    "div1": [1820, 190],
+    "s_div1_txt": [2080, 82],
+    "s_div1": [2340, 0],
+    "two": [1820, 298],
+    "div2": [2080, 190],
+    "s_div2_txt": [2340, 82],
+    "s_div2": [2600, 0],
+    "mod": [2340, 190],
+    "s_mod_txt": [2600, 82],
+    "s_mod": [2860, 0],
+    "floor": [2600, 190],
+    "s_floor_txt": [2860, 82],
+    "s_floor": [3120, 0],
+    "neg": [2600, 272],
+    "abs": [2860, 190],
+    "s_abs_txt": [3120, 82],
+    "s_abs": [3380, 0],
+    "clamp": [3120, 190],
+    "s_clamp_txt": [3380, 82],
+    "s_clamp": [3640, 0],
+    "min": [3120, 324],
+    "max": [3120, 432],
+    "minmax": [3380, 190],
+    "s_minmax_txt": [3640, 82],
+    "s_minmax": [3900, 0],
+    "sqrt": [3640, 190],
+    "s_sqrt_txt": [3900, 82],
+    "s_sqrt": [4160, 0],
+    "sin0": [3640, 272],
+    "cos0": [3640, 354],
+    "trig": [3900, 190],
+    "s_trig_txt": [4160, 82],
+    "s_trig": [4420, 0],
+    "gt": [3900, 298],
+    "eq": [3640, 436],
+    "not": [3900, 406],
+    "and": [4160, 190],
+    "s_and_txt": [4420, 82],
+    "s_and": [4680, 0],
+    "lt": [4160, 298],
+    "or": [4420, 190],
+    "s_or_txt": [4680, 82],
+    "s_or": [4940, 0],
+    "le": [4160, 406],
+    "ge": [4160, 514],
+    "ne": [4420, 406],
+    "cmp3a": [4420, 298],
+    "cmp3": [4680, 190],
+    "s_cmp_txt": [4940, 82],
+    "s_cmp": [5200, 0],
+    "set_x": [5460, 0],
+    "get_x": [5200, 82],
+    "s_x_txt": [5460, 108],
+    "s_x": [5720, 0],
+    "set_hp": [5980, 0],
+    "get_hp": [5460, 216],
+    "hp_plus": [5720, 82],
+    "s_hp_txt": [5980, 108],
+    "s_hp": [6240, 0],
+    "other_id": [5980, 216],
+    "s_other_txt": [6240, 82],
+    "s_other": [6500, 0],
+    "set_other_y": [6760, 0],
+    "other_y": [6500, 82],
+    "s_other_y_txt": [6760, 108],
+    "s_other_y": [7020, 0],
+    "self_id": [7020, 82],
+    "id_sw": [7280, 0],
+    "id_hit": [7540, 250],
+    "id_miss": [7540, 168],
+    "width": [6760, 264],
+    "width_ok": [7020, 164],
+    "s_width_txt": [7280, 108],
+    "s_width": [7540, 0],
+    "space": [7020, 272],
+    "mouse": [7020, 354],
+    "inputs": [7280, 216],
+    "s_input_txt": [7540, 332],
+    "s_input": [7800, 0],
+    "s_phase_txt": [7800, 82],
+    "s_phase": [8060, 0],
+    "is_start": [7800, 190],
+    "s_is_start_txt": [8060, 82],
+    "s_is_start": [8320, 0],
+    "rnd": [8060, 190],
+    "s_rnd_txt": [8320, 82],
+    "s_rnd": [8580, 0],
+    "rnd01": [8060, 298],
+    "rnd_ok": [8320, 190],
+    "s_rnd01_txt": [8580, 82],
+    "s_rnd01": [8840, 0],
+    "esc": [9100, 0],
+    "update": [260, 682],
+    "ticks_plus": [260, 764],
+    "tick": [520, 682],
+    "tick_sw": [780, 682],
+    "t1": [1040, 850],
+    "to_run": [1300, 850],
+    "t2": [1040, 932],
+    "elapsed_pos": [520, 1070],
+    "t3_txt": [780, 1070],
+    "t3": [1040, 1014],
+    "to_done": [1300, 1014],
+    "bye": [1560, 1014],
+    "phase_sw": [1560, 682],
+    "ph_run": [1820, 932],
+    "ph_done": [1820, 1014],
+    "ph_else": [1820, 850]
+  }
 }

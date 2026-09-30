@@ -7,3 +7,7 @@ export * from "./kinds";
 export * from "./validate";
 export * from "./codegen";
 export * from "./compile";
+export * from "./edit";
+export * from "./geometry";
+export * from "./layout";
+export * from "./graphDocument";

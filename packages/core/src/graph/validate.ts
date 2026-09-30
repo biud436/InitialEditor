@@ -57,7 +57,8 @@ function exitTargets(n: GraphNode): [string, string][] {
   if (n.then !== undefined) out.push(["then", n.then]);
   if (n.else !== undefined) out.push(["else", n.else]);
   if (n.body !== undefined) out.push(["body", n.body]);
-  for (const [v, id] of Object.entries(n.cases ?? {})) out.push([`cases.${v}`, id]);
+  // 값만 정하고 아직 잇지 않은 갈래는 target 이 빈 문자열이다
+  for (const [v, id] of Object.entries(n.cases ?? {})) if (id !== "") out.push([`cases.${v}`, id]);
   return out;
 }
 
@@ -221,7 +222,7 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
       statements.set(id, { hook, repeats, depth });
       walk(n.then, hook, repeats, depth + 1);
       walk(n.else, hook, repeats, depth + 1);
-      for (const c of Object.values(n.cases ?? {})) walk(c, hook, repeats, depth + 1);
+      for (const c of Object.values(n.cases ?? {})) walk(c || undefined, hook, repeats, depth + 1);
       if (n.kind === "flow.repeat") walk(n.body, hook, [...repeats, id], depth + 1);
       id = n.next;
     }
@@ -296,10 +297,8 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
     const spec = specs.get(id)!;
     const ports = new Set(spec.inputs.map((p) => p.key));
     for (const k of Object.keys(n.in ?? {})) if (!ports.has(k)) error(`알 수 없는 입력 포트입니다: ${k}`, id, k);
-    for (const k of Object.keys(n.args ?? {})) {
-      if (!ports.has(k)) error(`알 수 없는 입력 포트의 상수입니다: ${k}`, id, k);
-      else if (n.in?.[k] !== undefined) warn(`입력 ${k}에 연결과 상수가 함께 있습니다 (연결을 씁니다)`, id, k);
-    }
+    // 이어진 포트의 상수는 남겨 둔다 (끊으면 다시 쓴다). 생성 코드는 연결을 쓴다
+    for (const k of Object.keys(n.args ?? {})) if (!ports.has(k)) error(`알 수 없는 입력 포트의 상수입니다: ${k}`, id, k);
     const resolved = resolveInputs(id);
     const record: Record<string, { value: InputValue; type: GType }> = {};
     const linkTypes: GType[] = [];
