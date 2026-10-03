@@ -155,10 +155,13 @@ function runReport(over: Record<string, unknown> = {}) {
 }
 
 /** 앱에 든 언어 서버가 떠서 완성과 호버를 준 보고 (계획의 languageServer) */
-const LANGUAGE_SERVER_OK = { state: "running", version: "3.19.1", reason: "", waitedMs: 1200, at: { line: 12, character: 18 }, completion: ["Load(path)", "Save(path, value)"], hover: "function Json.Load(path: string)" };
+const LANGUAGE_SERVER_OK = { state: "running", version: "3.19.1", reason: "", waitedMs: 1200, at: { line: 12, character: 18 }, completion: ["Load(path)", "Save(path, value)"], hover: "function Json.Load(path: string)", symbols: [] };
+/** Ruby 분석기 워커가 진입 스크립트의 문서 기호를 준 보고 */
+const RUBY_SERVER_OK = { state: "running", version: "1.9.0", reason: "", waitedMs: 300, at: null, completion: [], hover: "", symbols: ["init", "update", "render", "destroy"] };
 
 function projectReport(id: string, runs: unknown[], over: Record<string, unknown> = {}) {
-  return { id, files: 20, entryScript: { path: "scripts/lua/main.lua", opened: true }, problems: [], languageServer: id === "flappy-lua" ? LANGUAGE_SERVER_OK : null, runs, ...over };
+  const languageServer = id === "flappy-lua" ? LANGUAGE_SERVER_OK : id === "flappy-ruby" ? RUBY_SERVER_OK : null;
+  return { id, files: 20, entryScript: { path: "scripts/lua/main.lua", opened: true }, problems: [], languageServer, runs, ...over };
 }
 
 function setup(plan: Plan, report: unknown, logs: Record<string, string | Uint8Array>) {
@@ -238,6 +241,14 @@ describe("자가 검사 판정 (selftest-check.mjs)", () => {
     missing.projects[0].languageServer = null;
     setup(plan, missing, logs);
     expect(judge(plan).failures).toEqual(["flappy-lua: 언어 서버가 떴다"]);
+
+    // Ruby 는 문서 기호를 본다
+    setup(plan, report, logs);
+    expect(judge(plan).lines.join("\n")).toContain("PASS  flappy-ruby: 언어 서버 1.9.0: 진입 스크립트의 문서 기호에 update");
+    const noSymbols = structuredClone(report);
+    noSymbols.projects[1].languageServer = { ...RUBY_SERVER_OK, symbols: [] };
+    setup(plan, noSymbols, logs);
+    expect(judge(plan).failures).toEqual(["flappy-ruby: 언어 서버 1.9.0: 진입 스크립트의 문서 기호에 update"]);
   });
 
   it("보고서가 없으면 실패", () => {

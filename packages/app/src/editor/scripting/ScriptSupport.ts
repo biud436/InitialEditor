@@ -1,7 +1,7 @@
 // 스크립트 편집 지원의 상태 (E1 마일스톤 1, 4, 5). Editor.scripting 으로 붙는다.
 //   - 텍스트 파일을 ScriptDocument 로 여는 것 (openPath 를 감싼다, 아래 install 의 설명)
 //   - API 명세와 Monaco 공급자 (자동완성, 시그니처, 호버). 프로젝트를 열고 닫을 때 다시 읽는다
-//   - Lua 언어 서버 (lsp/LanguageServer.ts). 서버가 도는 동안 Lua 의 명세 공급자는 씬 계약 스니펫만 남긴다
+//   - 언어 서버 (lsp/LanguageServer.ts): Lua 와 Ruby 에 하나씩. LuaLS 가 도는 동안 Lua 의 명세 공급자는 씬 계약 스니펫만 남긴다
 //   - Monaco 테마 연동, 프로젝트 찾기(FindStore), 커맨드와 메뉴(scriptCommands.ts)
 
 import { extname } from "@initial-editor/core";
@@ -11,7 +11,8 @@ import { SCRIPT_EXTENSIONS, ScriptDocument } from "../documents/ScriptDocument";
 import { countSpec, EMPTY_SPEC, type ApiSpec } from "./apiSpec";
 import { registerApiProviders, type SpecProviderMode } from "./completion";
 import { FindStore } from "./find";
-import { LuaLanguageServer } from "./lsp/LanguageServer";
+import { defaultLaunchers, ScriptLanguageServer } from "./lsp/LanguageServer";
+import { workerLauncher } from "./lsp/worker/launcher";
 import { registerScriptCommands } from "./scriptCommands";
 import { API_SPEC_PATH, loadApiSpec, type SpecSource } from "./specLoader";
 import { installMonacoTheme } from "./themes";
@@ -22,8 +23,10 @@ export class ScriptSupport {
   /** 명세의 출처. "none" 은 아직 안 읽었다 */
   specSource: SpecSource | "none" = "none";
   readonly find: FindStore;
-  /** Lua 언어 서버 (데스크톱의 LuaLS) */
-  readonly languageServer: LuaLanguageServer;
+  /** Lua 언어 서버 (데스크톱은 LuaLS, 그 밖에는 분석기 워커) */
+  readonly languageServer: ScriptLanguageServer;
+  /** Ruby 언어 서버 (분석기 워커) */
+  readonly rubyServer: ScriptLanguageServer;
   /** Lua 의 명세 공급자: 전부, 또는 언어 서버가 돌 때 씬 계약 스니펫만 */
   luaSpecMode: SpecProviderMode = "full";
   private disposers: Array<() => void> = [];
@@ -33,7 +36,8 @@ export class ScriptSupport {
 
   constructor(private readonly editor: Editor) {
     this.find = new FindStore({ backend: () => editor.backend, isOpen: () => editor.project.isOpen, scope: () => editor.tree?.filter.scope });
-    this.languageServer = new LuaLanguageServer(editor, this);
+    this.languageServer = new ScriptLanguageServer(editor, this, { languageId: "lua", launchers: defaultLaunchers("lua", workerLauncher) });
+    this.rubyServer = new ScriptLanguageServer(editor, this, { languageId: "ruby", launchers: defaultLaunchers("ruby", workerLauncher) });
     makeObservable(this, { spec: observable.ref, specSource: observable, luaSpecMode: observable, openCount: computed, activeScript: computed });
   }
 
@@ -76,8 +80,15 @@ export class ScriptSupport {
       }),
     );
     void this.reloadSpec();
-    this.languageServer.install();
-    this.disposers.push(() => this.languageServer.dispose());
+    for (const server of this.languageServers) {
+      server.install();
+      this.disposers.push(() => server.dispose());
+    }
+  }
+
+  /** 언어 서버들 (상태 바와 다시 시작 커맨드) */
+  get languageServers(): ScriptLanguageServer[] {
+    return [this.languageServer, this.rubyServer];
   }
 
   /** Lua 의 명세 공급자 범위를 바꾸고 다시 건다 */

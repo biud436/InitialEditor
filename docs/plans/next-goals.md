@@ -10,7 +10,7 @@
 | 3. 비주얼 스크립팅 (🟡 2026-09-29, 방식 C) | 검토 문서는 소, 만들면 대 | 방식 C 라 고치지 않는다 |
 
 언어 서버(LSP)는 따로 이슈 [#53](https://github.com/biud436/InitialEditor/issues/53)에 정리했다. 이것도 에디터를 끝낸 뒤에 한다.
-계획은 [language-server.md](language-server.md)이고 단계 0(엔진 스텁)과 단계 1(데스크톱 LuaLS)을 2026-10-03 에 했다.
+계획은 [language-server.md](language-server.md)이고 단계 0(엔진 스텁), 단계 1(데스크톱 LuaLS), 단계 2(분석기 워커)를 2026-10-03 에 했다.
 
 ## 1. 프로젝트 뷰 필터
 

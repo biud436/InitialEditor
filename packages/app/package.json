@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@bjorn3/browser_wasi_shim": "0.4.2",
     "@initial-editor/backend-bridge": "2.0.0-alpha.3",
     "@initial-editor/backend-fsaccess": "2.0.0-alpha.3",
     "@initial-editor/backend-tauri": "2.0.0-alpha.3",
@@ -19,9 +20,11 @@
     "@initial-editor/ext-rpg": "2.0.0-alpha.3",
     "@initial-editor/ext-tilemap": "2.0.0-alpha.3",
     "@initial-editor/ui": "2.0.0-alpha.3",
+    "@ruby/prism": "1.9.0",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "dockview": "^4.0.0",
+    "luaparse": "0.3.1",
     "mobx": "^6.13.0",
     "mobx-react-lite": "^4.0.0",
     "monaco-editor": "^0.52.0",
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@testing-library/dom": "^10.0.0",
     "@testing-library/react": "^16.0.0",
+    "@types/luaparse": "^0.2.13",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",

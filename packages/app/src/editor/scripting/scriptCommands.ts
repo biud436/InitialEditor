@@ -3,7 +3,7 @@
 //   edit.findInProject (Ctrl+Shift+F): 프로젝트 찾기 패널을 열고 입력 칸에 초점 (선택한 글자가 있으면 그것으로)
 //   file.newScript (Ctrl+Alt+N): 새 스크립트 대화상자
 //   edit.undo, edit.redo: 스크립트 탭이 활성이면 Monaco 의 스택으로 (appCommands 의 것을 감싼다)
-//   tools.restartLanguageServer: Lua 언어 서버를 다시 시작한다 (서버를 띄울 수 있는 실행 환경에서 프로젝트가 열려 있을 때)
+//   tools.restartLanguageServer: 언어 서버(Lua, Ruby)를 다시 시작한다 (프로젝트가 열려 있고 설정이 켜져 있을 때)
 // Monaco 안에서 누른 키는 Monaco 가 먼저 받으므로 같은 단축키를 편집기 액션으로도 건다 (ScriptEditorView).
 
 import type { EditorCommand } from "@initial-editor/core";
@@ -101,11 +101,13 @@ export function registerScriptCommands(editor: Editor, support: ScriptSupport): 
     id: "tools.restartLanguageServer",
     label: "언어 서버 다시 시작",
     category: "tools",
-    enabled: () => editor.project.isOpen && support.languageServer.hasLauncher && editor.settings.settings.languageServer,
-    run: () => support.languageServer.restart(),
+    enabled: () => editor.project.isOpen && support.languageServers.some((s) => s.hasLauncher) && editor.settings.settings.languageServer,
+    run: async () => {
+      await Promise.all(support.languageServers.filter((s) => s.hasLauncher).map((s) => s.restart()));
+    },
   });
   editor.setHint("tools.restartLanguageServer", () => {
-    if (!support.languageServer.hasLauncher) return "이 실행 환경에는 언어 서버가 없습니다";
+    if (!support.languageServers.some((s) => s.hasLauncher)) return "이 실행 환경에는 언어 서버가 없습니다";
     if (!editor.settings.settings.languageServer) return "설정에서 언어 서버를 껐습니다";
     return editor.project.isOpen ? undefined : NEED_PROJECT;
   });

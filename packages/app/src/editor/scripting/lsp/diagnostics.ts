@@ -6,8 +6,8 @@ import type * as lsp from "vscode-languageserver-protocol";
 
 export type DiagnosticsMode = ScriptDiagnostics;
 
-/** 구문 오류의 출처 (LuaLS 는 구문 검사와 규칙 진단의 source 가 다르다) */
-const SYNTAX_SOURCES = new Set(["Lua Syntax Check."]);
+/** 구문 오류의 출처: LuaLS 의 구문 검사, 분석기 워커의 luaparse 와 prism (워커는 구문 오류만 낸다) */
+const SYNTAX_SOURCES = new Set(["Lua Syntax Check.", "luaparse", "prism"]);
 
 export function isSyntaxDiagnostic(d: lsp.Diagnostic): boolean {
   return d.source !== undefined && SYNTAX_SOURCES.has(d.source);

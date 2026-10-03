@@ -442,7 +442,7 @@ describe("확장의 탐침과 확장의 실행 요청", () => {
 });
 
 describe("언어 서버", () => {
-  function server(states: string[], answers: { completion?: string[]; hover?: string } = {}) {
+  function server(states: string[], answers: { completion?: string[]; hover?: string; symbols?: string[] } = {}) {
     let i = 0;
     const calls: Array<[string, string, number, number]> = [];
     const s: SelftestLanguageServer & { calls: typeof calls } = {
@@ -461,6 +461,10 @@ describe("언어 서버", () => {
       hover: async (path, line, character) => {
         calls.push(["hover", path, line, character]);
         return answers.hover ?? "function Json.Load(path: string)\nJSON 파일을 읽는다";
+      },
+      symbols: async (path) => {
+        calls.push(["symbols", path, 0, 0]);
+        return answers.symbols ?? ["init", "update", "render", "destroy"];
       },
     };
     return s;
@@ -516,6 +520,23 @@ describe("언어 서버", () => {
     const report = await runSelftest(plan([LS_PROJECT]), t.host, t.shell, fast);
     expect(n).toBe(3);
     expect(report.projects[0].problems).toEqual([]);
+  });
+
+  it("Ruby 는 Ruby 서버에 진입 스크립트의 문서 기호를 묻는다", async () => {
+    const ls = server(["starting", "running"]);
+    const asked: string[] = [];
+    const t = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: ls });
+    const host = { ...t.host, languageServer: (language: "lua" | "mruby") => (asked.push(language), ls) };
+    const report = await runSelftest(plan([{ ...LS_PROJECT, id: "flappy-ruby", language: "mruby" }]), host, t.shell, fast);
+    expect(asked).toEqual(["mruby"]);
+    expect(report.projects[0].problems).toEqual([]);
+    expect(report.projects[0].languageServer).toMatchObject({ state: "running", symbols: ["init", "update", "render", "destroy"], completion: [] });
+    expect(ls.calls).toEqual([["symbols", "scripts/ruby/main.rb", 0, 0]]);
+
+    const empty = server(["running"], { symbols: [] });
+    const t2 = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: empty });
+    const r2 = await runSelftest(plan([{ ...LS_PROJECT, id: "flappy-ruby", language: "mruby" }]), t2.host, t2.shell, fast);
+    expect(r2.projects[0].problems[0]).toMatch(/^language_server_symbols: scripts\/ruby\/main.rb 의 문서 기호에 update 가 없습니다/);
   });
 
   it("계획에 languageServer 가 없으면 묻지 않는다", async () => {

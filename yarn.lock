@@ -296,6 +296,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bjorn3/browser_wasi_shim@npm:0.4.2":
+  version: 0.4.2
+  resolution: "@bjorn3/browser_wasi_shim@npm:0.4.2"
+  checksum: 10c0/eb9c961f0c9e6d7a28c01bdfb5aa8ff6a3b7e8ffef7f9d1970f24389b2f71edb7c2c7f50583ec95adf2b68decb681cc996410bc119f669538354878b02655a2f
+  languageName: node
+  linkType: hard
+
 "@csstools/color-helpers@npm:^5.1.0":
   version: 5.1.0
   resolution: "@csstools/color-helpers@npm:5.1.0"
@@ -811,6 +818,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@initial-editor/app@workspace:packages/app"
   dependencies:
+    "@bjorn3/browser_wasi_shim": "npm:0.4.2"
     "@initial-editor/backend-bridge": "npm:2.0.0-alpha.3"
     "@initial-editor/backend-fsaccess": "npm:2.0.0-alpha.3"
     "@initial-editor/backend-tauri": "npm:2.0.0-alpha.3"
@@ -818,14 +826,17 @@ __metadata:
     "@initial-editor/ext-rpg": "npm:2.0.0-alpha.3"
     "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.3"
     "@initial-editor/ui": "npm:2.0.0-alpha.3"
+    "@ruby/prism": "npm:1.9.0"
     "@tauri-apps/api": "npm:^2.0.0"
     "@tauri-apps/plugin-dialog": "npm:^2.0.0"
     "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"
+    "@types/luaparse": "npm:^0.2.13"
     "@types/react": "npm:^18.3.0"
     "@types/react-dom": "npm:^18.3.0"
     "@vitejs/plugin-react": "npm:^4.3.0"
     dockview: "npm:^4.0.0"
+    luaparse: "npm:0.3.1"
     mobx: "npm:^6.13.0"
     mobx-react-lite: "npm:^4.0.0"
     monaco-editor: "npm:^0.52.0"
@@ -1366,6 +1377,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ruby/prism@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@ruby/prism@npm:1.9.0"
+  checksum: 10c0/c4c83ffff68bf5350a5ae221523a6995ded0ac8bfd46eab4437d0e0e1e9a2cfcb8f760cecb5019cdba9e95f6f9f3c0575c27f108cb9c86e2fa9efbcd8aa84a94
+  languageName: node
+  linkType: hard
+
 "@tauri-apps/api@npm:^2.0.0, @tauri-apps/api@npm:^2.11.0":
   version: 2.11.1
   resolution: "@tauri-apps/api@npm:2.11.1"
@@ -1619,6 +1637,13 @@ __metadata:
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 10c0/a996a745e6c5d60292f36731dd41341339d4eeed8180bb09226e5c8d23759067692b1d88e5d91d72ee83dfc00d3aca8e7bd43ea120516c17922cbcb7c3e252db
+  languageName: node
+  linkType: hard
+
+"@types/luaparse@npm:^0.2.13":
+  version: 0.2.13
+  resolution: "@types/luaparse@npm:0.2.13"
+  checksum: 10c0/b5f0bd7f83090cac83497ebb4fd3e3d62e039e232a8f1b15fe7a27cda4263eb186681758cc4f7c0b08fc3b1262c9ec80e308a94cd760b89f2450c787b031bfda
   languageName: node
   linkType: hard
 
@@ -3275,6 +3300,15 @@ __metadata:
   dependencies:
     yallist: "npm:^3.0.2"
   checksum: 10c0/89b2ef2ef45f543011e38737b8a8622a2f8998cddf0e5437174ef8f1f70a8b9d14a918ab3e232cb3ba343b7abddffa667f0b59075b2b80e6b4d63c3de6127482
+  languageName: node
+  linkType: hard
+
+"luaparse@npm:0.3.1":
+  version: 0.3.1
+  resolution: "luaparse@npm:0.3.1"
+  bin:
+    luaparse: bin/luaparse
+  checksum: 10c0/c96c6152c7b5d73c98d4f51e28d700697a865edd8f5c28b16f0c4c34b91f7d0493212f181394384c02291300d453bc0d3ddc2cc52abc73c3be213520bec84c53
   languageName: node
   linkType: hard
 

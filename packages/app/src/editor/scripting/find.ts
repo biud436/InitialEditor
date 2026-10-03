@@ -185,7 +185,7 @@ export class FindStore {
     try {
       let sinceYield = 0;
       const scope = this.deps.scope?.() ?? new ProjectScope();
-      for await (const entry of walk(backend, SEARCH_ROOTS, alive, scope)) {
+      for await (const entry of walkProject(backend, SEARCH_ROOTS, alive, scope)) {
         if (!alive()) return;
         if (!isSearchableEntry(entry)) continue;
         let text: string;
@@ -213,7 +213,7 @@ export class FindStore {
 }
 
 /** 루트들 아래를 깊이 우선으로 돈다. 순서는 프로젝트 패널과 같다 (sortEntries: 폴더 먼저, 이름순). 없는 루트는 건너뛴다 */
-async function* walk(backend: ProjectBackend, roots: string[], alive: () => boolean, scope: ProjectScope): AsyncGenerator<Entry> {
+export async function* walkProject(backend: ProjectBackend, roots: string[], alive: () => boolean, scope: ProjectScope): AsyncGenerator<Entry> {
   for (const root of roots) {
     if (!alive()) return;
     if (scope.includes(root, "dir") && (await backend.exists(root).catch(() => false))) yield* walkDir(backend, root, alive, scope);
