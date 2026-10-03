@@ -28,6 +28,13 @@ describe("uri", () => {
     expect(relativeTo("C:\\Users\\u\\game", "c:/Users/u/game/a.lua")).toBe("a.lua");
   });
 
+  it("Windows 의 확장 경로 접두사(\\\\?\\)를 뗀다 (셸이 정규화한 프로젝트 루트)", () => {
+    expect(fileUri("\\\\?\\D:\\a\\proj")).toBe("file:///d%3A/a/proj");
+    expect(fileUri("\\\\?\\D:\\a\\proj\\scripts\\main.lua")).toBe("file:///d%3A/a/proj/scripts/main.lua");
+    expect(relativeTo("\\\\?\\D:\\a\\proj", "d:/a/proj/scripts/main.lua")).toBe("scripts/main.lua");
+    expect(joinPath("\\\\?\\D:\\a\\proj", "resources/api/initial2d.lua")).toBe("D:/a/proj/resources/api/initial2d.lua");
+  });
+
   it("file URI 가 아니면 null", () => {
     expect(filePath("initial:/a.lua")).toBeNull();
     expect(filePath("file://host/share/a.lua")).toBeNull();
