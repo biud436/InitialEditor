@@ -349,13 +349,13 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     }
     const lines = text.slice(0, index + "Json.".length).split("\n");
     lr.at = { line: lines.length - 1, character: lines[lines.length - 1].length };
-    // 서버는 작업 공간을 다 읽기 전에는 빈 완성과 "Workspace loading" 호버를 준다. 답이 나올 때까지 다시 묻는다
+    // 서버는 작업 공간을 다 읽기 전에는 빈 완성이나 문서의 낱말 목록, "Workspace loading" 호버를 준다. 답이 나올 때까지 다시 묻는다
     const answerDeadline = now() + languageServerWaitMs;
     try {
       for (;;) {
         lr.completion = (await withTimeout(server.completion(project.entry, lr.at.line, lr.at.character), STEP_TIMEOUT_MS, "언어 서버 완성")).slice(0, 20);
         lr.hover = (await withTimeout(server.hover(project.entry, lr.at.line, lr.at.character + 1), STEP_TIMEOUT_MS, "언어 서버 호버")).slice(0, 400);
-        if ((lr.completion.length && lr.hover.includes("Load")) || now() >= answerDeadline) break;
+        if ((lr.completion.some((l) => l.startsWith("Load")) && lr.hover.includes("Load")) || now() >= answerDeadline) break;
         await sleep(pollMs * 5);
       }
     } catch (e) {

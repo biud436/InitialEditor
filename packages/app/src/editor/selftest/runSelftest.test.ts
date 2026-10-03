@@ -510,7 +510,8 @@ describe("언어 서버", () => {
     let n = 0;
     const ls = server(["running"]);
     const answers = ls.completion;
-    ls.completion = async (...a) => (++n < 3 ? [] : answers(...a));
+    // 작업 공간을 읽기 전에는 빈 목록, 그다음은 문서의 낱말 목록
+    ls.completion = async (...a) => (++n === 1 ? [] : n === 2 ? ["scripts", "main", "game"] : answers(...a));
     const t = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: ls });
     const report = await runSelftest(plan([LS_PROJECT]), t.host, t.shell, fast);
     expect(n).toBe(3);

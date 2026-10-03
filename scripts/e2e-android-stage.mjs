@@ -139,7 +139,9 @@ const manifestPath = path.join(dest, "assets_manifest.txt");
 const listed = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, "utf8").split("\n").filter(Boolean) : [];
 const stampFile = `assets_stamp/${stamp}.txt`;
 check("스탬프 파일이 목록에 있다", stamp !== "" && listed.includes(stampFile) && fs.existsSync(path.join(dest, stampFile)), stampFile);
-check("목록 = 템플릿 파일 + 스탬프", JSON.stringify(listed.filter((p) => p !== stampFile)) === JSON.stringify(written), listed.join(", "));
+// 점으로 시작하는 파일(템플릿의 .luarc.json)은 스테이징이 빼므로 기대 목록에서도 뺀다
+const expected = written.filter((p) => !p.split("/").some((s) => s.startsWith(".")));
+check("목록 = 템플릿 파일(점 파일 빼고) + 스탬프", JSON.stringify(listed.filter((p) => p !== stampFile)) === JSON.stringify(expected), listed.join(", "));
 check("config.setting 이 없다", !listed.some((p) => p.endsWith("config.setting")) && !fs.existsSync(path.join(dest, "config.setting")));
 check("RTP 변환물이 없다", !listed.some((p) => p.startsWith("resources/rtp/")) && !fs.existsSync(path.join(dest, "resources", "rtp")));
 check(".initial-editor 와 점 파일이 없다", !listed.some((p) => p.split("/").some((s) => s.startsWith("."))));
