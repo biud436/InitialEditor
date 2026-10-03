@@ -62,14 +62,18 @@ function signatureOf(sig: Signature, doc: string): monaco.languages.SignatureInf
   };
 }
 
-function registerLanguage(lang: Lang, index: LangIndex): monaco.IDisposable[] {
+/** full 은 명세의 완성, 시그니처, 호버 전부. hooks 는 씬 계약 스니펫만 (언어 서버가 나머지를 맡을 때) */
+export type SpecProviderMode = "full" | "hooks";
+
+function registerLanguage(lang: Lang, index: LangIndex, mode: SpecProviderMode = "full"): monaco.IDisposable[] {
   const triggerCharacters = lang === "ruby" ? [".", ":"] : ["."];
   const completion = monaco.languages.registerCompletionItemProvider(lang, {
-    triggerCharacters,
+    triggerCharacters: mode === "full" ? triggerCharacters : [],
     provideCompletionItems(model, position) {
       const prefix = linePrefix(model, position);
       const ctx = analyzePrefix(prefix, lang);
-      const list = candidates(index, ctx, lang, model.getValue());
+      const all = candidates(index, ctx, lang, model.getValue());
+      const list = mode === "full" ? all : all.filter((s) => s.kind === "hook");
       if (!list.length) return { suggestions: [] };
       // 치던 단어를 통째로 바꾼다. Symbol 은 `:` 부터라서 Monaco 는 친 `:sp` 를 라벨 `:space` 와 견준다
       const wordStart = position.column - ctx.word.length - (ctx.symbolArg && prefix.endsWith(":" + ctx.word) ? 1 : 0);
@@ -77,6 +81,7 @@ function registerLanguage(lang: Lang, index: LangIndex): monaco.IDisposable[] {
       return { suggestions: list.map((s, i) => toItem(s, range, i)) };
     },
   });
+  if (mode === "hooks") return [completion];
   const signatures = monaco.languages.registerSignatureHelpProvider(lang, {
     signatureHelpTriggerCharacters: ["(", ","],
     signatureHelpRetriggerCharacters: [","],
@@ -113,9 +118,9 @@ function registerLanguage(lang: Lang, index: LangIndex): monaco.IDisposable[] {
   return [completion, signatures, hover];
 }
 
-/** 명세로 Lua 와 Ruby 공급자를 건다. 돌려주는 함수로 뗀다 */
-export function registerApiProviders(spec: ApiSpec): () => void {
-  const disposables = [...registerLanguage("lua", buildIndex(spec, "lua")), ...registerLanguage("ruby", buildIndex(spec, "ruby"))];
+/** 명세로 Lua 와 Ruby 공급자를 건다. 돌려주는 함수로 뗀다. Lua 에 언어 서버가 붙어 있으면 luaMode 는 hooks 다 */
+export function registerApiProviders(spec: ApiSpec, luaMode: SpecProviderMode = "full"): () => void {
+  const disposables = [...registerLanguage("lua", buildIndex(spec, "lua"), luaMode), ...registerLanguage("ruby", buildIndex(spec, "ruby"))];
   return () => {
     for (const d of disposables) d.dispose();
   };

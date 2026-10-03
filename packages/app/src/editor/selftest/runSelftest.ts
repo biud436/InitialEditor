@@ -5,6 +5,7 @@
 // 모달이 뜨면(신뢰 확인, 저장 여부 등) 그 제목을 dialogs 에 적고 닫는다. 그 자체가 실패다.
 // 계획의 probe 는 확장의 탐침(ext-tilemap 의 MapSelftestProbe)이 맵에 붙인 것을 보고서에 적고, 실행의 play 는 탐침이 만든 요청을
 // 앱의 맵 실행 길(여기서 실행과 같은 길)로 띄운다. 계획의 mode 와 env 만 더한다.
+// 계획의 languageServer 는 진입 스크립트를 연 뒤 앱에 든 언어 서버가 뜨기를 기다려, 진입 스크립트의 "Json." 뒤 완성과 호버를 묻는다.
 
 import type { Document, LogEntry, ProjectBackend, RunMode, SaveOutcome } from "@initial-editor/core";
 import type { MapSelftestProbe, PlayRequest } from "@initial-editor/ext-tilemap";
@@ -46,6 +47,17 @@ export interface TilePixels {
   pixels: ArrayLike<number>;
 }
 
+/** 언어 서버의 상태와 요청 (자가 검사가 쓰는 것만) */
+export interface SelftestLanguageServer {
+  readonly state: string;
+  readonly version: string | null;
+  readonly reason: string;
+  /** 프로젝트 상대 경로의 그 자리(0부터)에서 완성 후보의 이름들 */
+  completion(path: string, line: number, character: number): Promise<string[]>;
+  /** 그 자리의 호버 글 (없으면 빈 문자열) */
+  hover(path: string, line: number, character: number): Promise<string>;
+}
+
 export interface MapViewStatus {
   ready: boolean;
   error: string | null;
@@ -75,6 +87,8 @@ export interface SelftestHost {
   extensionProbe(extensionId: string): MapSelftestProbe | null;
   /** 확장의 실행 요청을 앱의 맵 실행 길로 띄운다. 러너에는 mode 와 env 를 더한다 (요청의 변수가 이긴다). 띄웠으면 true */
   playMap(doc: MapDocument, request: PlayRequest, opts: { mode: RunMode; env: Record<string, string> }): Promise<boolean>;
+  /** Lua 언어 서버. 서버를 띄울 수 없는 실행 환경이면 null */
+  languageServer(): SelftestLanguageServer | null;
 }
 
 export interface SelftestShell {
@@ -91,6 +105,8 @@ export interface SelftestDeps {
   pollMs?: number;
   /** 맵 뷰가 준비되기를 기다리는 시간. 창이 숨었으면 짧게 보고 넘어간다 */
   mapViewWaitMs?: number;
+  /** 언어 서버가 뜨기를 기다리는 시간 */
+  languageServerWaitMs?: number;
 }
 
 export interface RunReport {
@@ -127,6 +143,8 @@ export interface ProjectReport {
   mapView: { path: string; ready: boolean; error: string | null; warning: string | null; width: number; height: number; pixelWidth: number; pixelHeight: number; objects: number } | null;
   /** 확장의 탐침이 적은 것 (계획의 probe). result 는 마지막 describe */
   probe: { extension: string; map: string; ready: boolean; waitedMs: number; result: unknown } | null;
+  /** 계획의 languageServer: 서버 상태, 기다린 시간, 진입 스크립트의 "Json." 뒤 완성 후보(앞 20개)와 호버 */
+  languageServer: { state: string; version: string | null; reason: string; waitedMs: number; at: { line: number; character: number } | null; completion: string[]; hover: string } | null;
   problems: string[];
   runs: RunReport[];
 }
@@ -200,6 +218,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
   const now = deps.now ?? (() => Date.now());
   const pollMs = deps.pollMs ?? 100;
   const mapViewWaitMs = deps.mapViewWaitMs ?? (plan.showWindow ? 30_000 : 5_000);
+  const languageServerWaitMs = deps.languageServerWaitMs ?? 60_000;
   const started = now();
   const report: SelftestReport = {
     version: 1,
@@ -259,6 +278,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
       edit: null,
       mapView: null,
       probe: null,
+      languageServer: null,
       problems: [],
       runs: [],
     };
@@ -286,6 +306,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
       pr.entryScript.opened = host.findDocument(project.entry) !== null;
       if (!pr.entryScript.opened) pr.problems.push(`entry_not_opened: ${project.entry}`);
 
+      if (project.languageServer) await checkLanguageServer(project, pr);
       if (project.edit) await applyEdit(project, pr);
       if (project.openMap) await openMapView(project.openMap, pr);
       if (project.probe) await describeProbe(project.probe, pr);
@@ -301,6 +322,49 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
       current = null;
     }
     return pr;
+  }
+
+  async function checkLanguageServer(project: PlanProject, pr: ProjectReport): Promise<void> {
+    await progress({ project: project.id, step: "language-server" });
+    const server = host.languageServer();
+    if (!server) {
+      pr.problems.push("language_server_missing: 이 실행 환경에는 언어 서버를 실행하는 방법이 없습니다");
+      return;
+    }
+    const t0 = now();
+    const deadline = t0 + languageServerWaitMs;
+    while ((server.state === "idle" || server.state === "starting") && now() < deadline) await sleep(pollMs);
+    const lr: NonNullable<ProjectReport["languageServer"]> = { state: server.state, version: server.version, reason: server.reason, waitedMs: now() - t0, at: null, completion: [], hover: "" };
+    pr.languageServer = lr;
+    if (server.state !== "running") {
+      pr.problems.push(`language_server_not_running: ${server.state} ${server.reason}`.trim());
+      return;
+    }
+    const doc = host.findDocument(project.entry) as (Document & { text?: string }) | null;
+    const text = doc?.text ?? "";
+    const index = text.indexOf("Json.");
+    if (index < 0) {
+      pr.problems.push(`language_server_no_anchor: ${project.entry} 에 "Json." 이 없습니다`);
+      return;
+    }
+    const lines = text.slice(0, index + "Json.".length).split("\n");
+    lr.at = { line: lines.length - 1, character: lines[lines.length - 1].length };
+    // 서버는 작업 공간을 다 읽기 전에는 빈 완성이나 문서의 낱말 목록, "Workspace loading" 호버를 준다. 답이 나올 때까지 다시 묻는다
+    const answerDeadline = now() + languageServerWaitMs;
+    try {
+      for (;;) {
+        lr.completion = (await withTimeout(server.completion(project.entry, lr.at.line, lr.at.character), STEP_TIMEOUT_MS, "언어 서버 완성")).slice(0, 20);
+        lr.hover = (await withTimeout(server.hover(project.entry, lr.at.line, lr.at.character + 1), STEP_TIMEOUT_MS, "언어 서버 호버")).slice(0, 400);
+        if ((lr.completion.some((l) => l.startsWith("Load")) && lr.hover.includes("Load")) || now() >= answerDeadline) break;
+        await sleep(pollMs * 5);
+      }
+    } catch (e) {
+      pr.problems.push(`language_server_request: ${message(e)}`);
+      return;
+    }
+    lr.waitedMs = now() - t0;
+    if (!lr.completion.some((l) => l.startsWith("Load"))) pr.problems.push(`language_server_completion: "Json." 뒤에 Load 가 없습니다 (${lr.completion.join(", ")})`);
+    if (!lr.hover.includes("Load")) pr.problems.push(`language_server_hover: Json.Load 의 호버가 비어 있습니다`);
   }
 
   async function mapDocument(path: string): Promise<MapDocument> {

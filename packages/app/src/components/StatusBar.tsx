@@ -1,4 +1,4 @@
-// 상태 바: 프로젝트 루트, 백엔드 모드, 스크립트 언어, 저장 안 된 문서 수, 감시 상태, 엔진 상태(E1 실행기), 테마.
+// 상태 바: 프로젝트 루트, 백엔드 모드, 스크립트 언어, 저장 안 된 문서 수, 감시 상태, 엔진 상태(E1 실행기), 언어 서버, 테마.
 
 import { observer } from "mobx-react-lite";
 import { MODE_LABELS } from "../editor/backends";
@@ -15,6 +15,18 @@ const EngineStatus = observer(function EngineStatus() {
   return (
     <span className={className} data-testid="status-engine" title={runner.statusTitle}>
       {runner.statusText}
+    </span>
+  );
+});
+
+/** Lua 언어 서버: 시작 중, LuaLS 3.19.1, 오류. 서버를 띄울 수 없는 실행 환경(브라우저)에서는 보이지 않는다 */
+const LanguageServerStatus = observer(function LanguageServerStatus() {
+  const server = useEditor().scripting.languageServer;
+  if (!server.hasLauncher) return null;
+  const className = ["statusbar-item", "statusbar-lsp", server.state === "running" ? "running" : "", server.state === "failed" ? "failed" : ""].filter(Boolean).join(" ");
+  return (
+    <span className={className} data-testid="status-lsp" data-state={server.state} title={server.statusTitle}>
+      {server.statusText}
     </span>
   );
 });
@@ -36,6 +48,7 @@ export const StatusBar = observer(function StatusBar() {
       <span className="statusbar-item">{dirty > 0 ? `저장 안 된 문서 ${dirty}개` : "저장됨"}</span>
       <span className="statusbar-item">{watching ? "파일 감시 중" : "파일 감시 안 함"}</span>
       <EngineStatus />
+      <LanguageServerStatus />
       <span className="statusbar-spacer" />
       <span className="statusbar-item" data-testid="status-theme">
         {theme}

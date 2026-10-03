@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime.version": "Lua 5.3",
+  "workspace.library": [
+    "resources/api/initial2d.lua"
+  ],
+  "diagnostics.groupFileStatus": {
+    "redefined": "None",
+    "type-check": "None"
+  },
+  "diagnostics.disable": [
+    "trailing-space"
+  ]
+}

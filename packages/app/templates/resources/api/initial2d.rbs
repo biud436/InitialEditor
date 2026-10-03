@@ -1,0 +1,474 @@
+# Initial2D 스크립트 API 시그니처 (Ruby, RBS)
+# tools/gen_api_stubs.py 가 resources/api/initial2d-api.json 에서 만든다. 손으로 고치지 않는다.
+# 타입 검사기용이며 엔진이 읽지 않는다.
+# 명세 version 1
+
+# 화면 크기, 렌더 배율, 비트맵 폰트 텍스트, 점 그리기 (Lua 는 전역 함수)
+module Graphics
+  # 논리 해상도 너비 (px, 렌더 배율로 나눈 값)
+  def self.width: () -> Integer
+
+  # 논리 해상도 높이 (px, 렌더 배율로 나눈 값)
+  def self.height: () -> Integer
+
+  # 현재 픽셀 확대 배율
+  def self.render_scale: () -> Integer
+
+  # 픽셀 확대 배율 설정. 적용된 값 반환 (1 에서 16 사이로 제한)
+  def self.render_scale=: (Integer scale) -> Integer
+
+  # 최근 초당 프레임 수 (FPS, SDL2 백엔드는 보통 60)
+  def self.frame_count: () -> Integer
+
+  # 비트맵 폰트(.fnt)를 로드해 텍스트 그리기에 사용. 로드에 성공하면 true
+  def self.prepare_font: (String path) -> bool
+
+  # 로드한 비트맵 폰트로 텍스트 그리기. 그린 너비(px) 반환 (폰트가 없으면 0)
+  def self.draw_text: (Numeric x, Numeric y, String text) -> Integer
+
+  # 텍스트 너비 (px, 그리지 않고 측정, 폰트가 없으면 0)
+  def self.text_width: (String text) -> Integer
+
+  # draw_point 의 색 설정 (Lua 는 인자 4개 모두 필요, 0 반환)
+  def self.set_color: (Integer r, Integer g, Integer b, ?Integer a) -> void
+
+  # 점 1개 그리기 (색은 Lua 는 draw_set_color, Ruby 는 set_color 로 설정, Lua 는 0 반환)
+  def self.draw_point: (Integer x, Integer y) -> void
+end
+
+# 플랫폼, 종료, 경로, 리소스 목록, 메시지 상자, 환경 변수 (Lua 는 전역 함수)
+module System
+  # 실행 중인 플랫폼 이름 (windows, macos, linux, android, ios 또는 SDL 이 보고하는 소문자 이름)
+  def self.platform: () -> String
+
+  # 현재 프레임 처리 후 게임 종료
+  def self.exit: () -> void
+
+  # 작업 디렉터리 경로 (Ruby 는 항상 / 구분자, Lua 는 인자를 지정하면 \ 를 / 로 변환)
+  def self.current_directory: () -> String
+
+  # ./resources 아래 파일의 경로 목록 (하위 폴더 포함, 예: ./resources/maps/sample.json)
+  def self.resource_files: () -> Array[String]
+
+  # 메시지 상자 표시 (첫 번째 인자는 본문, 두 번째는 제목)
+  def self.message_box: (String text, ?String caption) -> void
+
+  # 창 아이콘을 이미지 파일로 변경
+  def self.app_icon=: (String path) -> void
+
+  # 환경 변수 값, 없으면 nil (mruby 에는 ENV 없음. Lua 는 os.getenv)
+  def self.env: (String name) -> String?
+
+  # 현재 실행 중인 스크립트 백엔드 이름 (항상 "mruby")
+  def self.script: () -> String
+end
+
+# 스크립트 파일 로드와 출력 (Lua 는 전역 함수, Ruby 는 수신자 없이 호출하는 Kernel 메서드)
+module Kernel
+  # Ruby 파일을 매번 다시 로드해 실행. 실패하면 예외 (Lua 의 LoadScript 에 해당)
+  def self?.load: (String path) -> bool | ...
+
+  # Ruby 파일을 한 번만 로드. 새로 로드했으면 true
+  def self?.require: (String path) -> bool | ...
+end
+
+# 키보드, 마우스, 멀티터치 입력 (고정 스텝마다 상태 갱신)
+module Input
+  # 이번 틱에 눌렸으면 true
+  def self.key_down?: ((Integer | Symbol) key) -> bool
+
+  # 이번 틱에 떼었으면 true
+  def self.key_up?: ((Integer | Symbol) key) -> bool
+
+  # 눌린 상태면 true
+  def self.key_press?: ((Integer | Symbol) key) -> bool
+
+  # 이번 틱에 아무 키나 눌렸으면 true
+  def self.any_key_down?: () -> bool
+
+  # key_down? 의 별칭 (RGSS 이름). 이번 틱에 눌렸으면 true
+  def self.trigger?: ((Integer | Symbol) key) -> bool
+
+  # key_press? 의 별칭 (RGSS 이름). 눌린 상태면 true
+  def self.press?: ((Integer | Symbol) key) -> bool
+
+  # key_up? 의 별칭 (RGSS 이름). 이번 틱에 떼었으면 true
+  def self.release?: ((Integer | Symbol) key) -> bool
+
+  # 마우스 x (논리 좌표)
+  def self.mouse_x: () -> Numeric
+
+  # 마우스 y (논리 좌표)
+  def self.mouse_y: () -> Numeric
+
+  # 이번 틱에 마우스 버튼이 눌렸으면 true
+  def self.mouse_down?: ((Integer | Symbol) button) -> bool
+
+  # 이번 틱에 마우스 버튼을 떼었으면 true
+  def self.mouse_up?: ((Integer | Symbol) button) -> bool
+
+  # 마우스 버튼이 눌린 상태면 true
+  def self.mouse_press?: ((Integer | Symbol) button) -> bool
+
+  # 이번 틱에 아무 마우스 버튼이나 눌렸으면 true
+  def self.any_mouse_down?: () -> bool
+
+  # 마우스 휠 값 (올림 -1, 내림 1)
+  def self.mouse_z: () -> Integer
+
+  # 마우스 휠 값 설정
+  def self.mouse_z=: (Integer wheel) -> void
+
+  # 이번 틱의 터치 수 (뗀 터치도 1틱 동안 포함, GDI 는 항상 0)
+  def self.touch_count: () -> Integer
+
+  # 터치 1개의 id, x, y, 단계(down, press, up). 범위 밖이면 nil
+  def self.touch: (Integer index) -> Array[untyped]?
+
+  # 이번 틱의 모든 터치 ([id, x, y, 단계] 의 배열)
+  def self.touches: () -> Array[Array[untyped]]
+end
+
+# 배경 음악과 효과음 (SDL_mixer, 파일은 재생 시 로드하고 id 로 구분)
+module Audio
+  # 음악 파일을 로드해 배경 음악으로 재생 (Lua 는 loop 까지 인자 3개 모두 필요). Ruby 는 로드에 성공하면 true
+  def self.play_music: (String path, String id, ?(bool | Integer) loop) -> bool
+
+  # 효과음 파일을 로드해 재생 (Lua 는 loop 까지 인자 3개 모두 필요). Ruby 는 로드에 성공하면 true
+  def self.play_sound: (String path, String id, ?(bool | Integer) loop) -> bool
+
+  # 배경 음악 볼륨 설정 (0..255 를 SDL_mixer 의 0..128 로 변환)
+  def self.volume=: (Integer volume) -> void
+
+  # 배경 음악 볼륨 (SDL_mixer 의 0..128)
+  def self.volume: () -> Integer
+
+  # 현재 곡이 끝난 뒤 재생할 음악 예약 (Lua 는 loop 까지 인자 3개 모두 필요). Ruby 는 로드에 성공하면 true
+  def self.insert_next_music: (String path, String id, ?(bool | Integer) loop) -> bool
+
+  # 배경 음악 일시 정지
+  def self.pause_music: () -> void
+
+  # 배경 음악 정지
+  def self.stop_music: () -> void
+
+  # 일시 정지한 배경 음악 재개
+  def self.resume_music: () -> void
+
+  # 배경 음악 재생 중이면 true
+  def self.playing_music?: () -> bool
+
+  # ms 동안 페이드 아웃 후 배경 음악 정지
+  def self.fade_out_music: (Integer ms) -> void
+
+  # 배경 음악 재생 위치(초) 이동
+  def self.music_position=: (Numeric seconds) -> void
+
+  # 로드한 음악을 메모리에서 해제
+  def self.release_music: (String id) -> void
+end
+
+# JSON 읽기 (객체는 Lua 테이블이나 Hash, 배열은 배열, null 은 nil)
+module Json
+  # JSON 파일 읽기. 실패 시 Lua 는 nil 과 오류 메시지, Ruby 는 RuntimeError
+  def self.load: (String path) -> untyped
+
+  # JSON 문자열 파싱. 실패 시 RuntimeError
+  def self.parse: (String text) -> untyped
+end
+
+# 텍스처 캐시 (이미지를 id 로 등록, 스프라이트가 id 로 참조)
+module TextureManager
+  # 이미지 파일을 텍스처로 로드해 id 로 등록. 로드에 성공하면 true
+  def self.load: (String path, String id) -> bool
+
+  # id 의 텍스처 해제 (등록되지 않은 id 도 true)
+  def self.remove: (String id) -> bool
+
+  # id 로 등록된 텍스처가 있으면 true
+  def self.valid?: (String id) -> bool
+end
+
+# 가상 키 상수 (Windows 가상 키 값, Input 메서드에 Symbol 을 넘기면 이 상수에서 조회)
+module Keys
+  BACK: Integer
+  BACKSPACE: Integer
+  TAB: Integer
+  RETURN: Integer
+  ENTER: Integer
+  SHIFT: Integer
+  CONTROL: Integer
+  CTRL: Integer
+  MENU: Integer
+  ALT: Integer
+  PAUSE: Integer
+  ESCAPE: Integer
+  ESC: Integer
+  SPACE: Integer
+  PAGE_UP: Integer
+  PAGE_DOWN: Integer
+  END: Integer
+  HOME: Integer
+  LEFT: Integer
+  UP: Integer
+  RIGHT: Integer
+  DOWN: Integer
+  INSERT: Integer
+  DELETE: Integer
+  DIGIT0: Integer
+  NUMPAD0: Integer
+  DIGIT1: Integer
+  NUMPAD1: Integer
+  DIGIT2: Integer
+  NUMPAD2: Integer
+  DIGIT3: Integer
+  NUMPAD3: Integer
+  DIGIT4: Integer
+  NUMPAD4: Integer
+  DIGIT5: Integer
+  NUMPAD5: Integer
+  DIGIT6: Integer
+  NUMPAD6: Integer
+  DIGIT7: Integer
+  NUMPAD7: Integer
+  DIGIT8: Integer
+  NUMPAD8: Integer
+  DIGIT9: Integer
+  NUMPAD9: Integer
+  A: Integer
+  B: Integer
+  C: Integer
+  D: Integer
+  E: Integer
+  F: Integer
+  G: Integer
+  H: Integer
+  I: Integer
+  J: Integer
+  K: Integer
+  L: Integer
+  M: Integer
+  N: Integer
+  O: Integer
+  P: Integer
+  Q: Integer
+  R: Integer
+  S: Integer
+  T: Integer
+  U: Integer
+  V: Integer
+  W: Integer
+  X: Integer
+  Y: Integer
+  Z: Integer
+  F1: Integer
+  F2: Integer
+  F3: Integer
+  F4: Integer
+  F5: Integer
+  F6: Integer
+  F7: Integer
+  F8: Integer
+  F9: Integer
+  F10: Integer
+  F11: Integer
+  F12: Integer
+end
+
+# 텍스처 1장을 그리는 스프라이트 (시트 애니메이션, 회전, 확대, 불투명도)
+class Sprite
+  # 스프라이트 생성. 텍스처는 TextureManager 에 먼저 등록 필요 (Lua 는 인자가 부족하면 0 반환)
+  def initialize: (Numeric x, Numeric y, Integer width, Integer height, Integer max_frames, String texture_id) -> void
+
+  # 이미지 파일을 텍스처로 로드해 스프라이트 생성 (Lua 의 scripts/lua/image.lua 에 해당). 실패 시 RuntimeError
+  def self.load: (String path, String id, ?Numeric x, ?Numeric y, ?Integer width, ?Integer height, ?Integer frames) -> Sprite
+
+  # 경과 시간만큼 애니메이션 진행 후 변환(위치, 확대, 회전) 적용
+  def update: (Numeric elapsed) -> Sprite
+
+  # 화면에 그리기
+  def draw: () -> Sprite
+
+  # 위치 (x, y)
+  def position: () -> Array[Numeric]
+
+  # x 좌표
+  def x: () -> Numeric
+
+  # y 좌표
+  def y: () -> Numeric
+
+  # 위치 설정
+  def set_position: (Numeric x, Numeric y) -> Sprite
+
+  # x 좌표만 설정
+  def x=: (Numeric x) -> void
+
+  # y 좌표만 설정
+  def y=: (Numeric y) -> void
+
+  # [x, y] 로 위치 설정
+  def position=: (Array[Numeric] pair) -> void
+
+  # 확대 배율
+  def scale: () -> Numeric
+
+  # 확대 배율 설정
+  def scale=: (Numeric scale) -> void
+
+  # 한 프레임 너비 (px)
+  def width: () -> Integer
+
+  # 한 프레임 높이 (px)
+  def height: () -> Integer
+
+  # 회전 각도(도)
+  def angle: () -> Numeric
+
+  # 회전 각도(도) 설정
+  def angle=: (Numeric degrees) -> void
+
+  # 회전 각도(라디안)
+  def radians: () -> Numeric
+
+  # 회전 각도(라디안) 설정
+  def radians=: (Numeric radians) -> void
+
+  # 보이는 상태면 true
+  def visible?: () -> bool
+
+  # 표시 여부 설정
+  def visible=: (bool visible) -> void
+
+  # 불투명도 (0..255)
+  def opacity: () -> Integer
+
+  # 불투명도 설정
+  def opacity=: (Integer opacity) -> void
+
+  # 프레임 사이 시간(ms)
+  def frame_delay: () -> Numeric
+
+  # 프레임 사이 시간 설정
+  def frame_delay=: (Numeric delay) -> void
+
+  # 애니메이션 프레임 범위 설정 (last 는 마지막 프레임의 다음 번호)
+  def set_frames: (Integer first, Integer last) -> Sprite
+
+  # 애니메이션 첫 프레임
+  def start_frame: () -> Integer
+
+  # 애니메이션 마지막 프레임
+  def end_frame: () -> Integer
+
+  # 현재 프레임
+  def current_frame: () -> Integer
+
+  # 현재 프레임 설정
+  def current_frame=: (Integer frame) -> void
+
+  # 애니메이션 반복 여부 설정
+  def loop=: (bool loop) -> void
+
+  # 애니메이션이 끝났으면 true
+  def anim_complete?: () -> bool
+
+  # 애니메이션 완료 상태 설정
+  def anim_complete=: (bool complete) -> void
+
+  # 시트 분할 설정 (열 수 cols, 행 수 rows, 기본 4x4, R2K3 CharSet 은 3x4)
+  def set_sheet_grid: (Integer cols, Integer rows) -> Sprite
+
+  # 소스 사각형 (텍스처에서 잘라 그리는 영역). Lua 는 width, height 키에 오른쪽, 아래 좌표가 들어 있음. Ruby 는 x, y, right, bottom, width, height 키
+  def rect: () -> Hash[untyped, untyped]
+
+  # 소스 사각형 설정 (텍스처에서 잘라 그릴 영역, x, y, width, height 키를 가진 테이블 1개도 허용)
+  def set_rect: (Integer x, Integer y, Integer width, Integer height) -> Sprite | (Hash[untyped, untyped] rect) -> Sprite
+
+  # 스프라이트 해제 (텍스처는 해제하지 않음)
+  def dispose: () -> void
+
+  # 이미 해제했으면 true (해제 후 사용하면 RuntimeError)
+  def disposed?: () -> bool
+end
+
+# 맵 포맷 v1, v2 JSON 을 로드해 그리는 다층 타일맵 (x, y 는 0부터 세는 타일 좌표)
+class Tilemap
+  # 맵 파일 로드. 실패 시 nil (Lua 는 오류 메시지도 반환)
+  def self.load: (String path) -> Tilemap?
+
+  # 맵 파일 로드. 실패 시 RuntimeError (메시지는 로더의 오류)
+  def initialize: (String path) -> void
+
+  # 레이어 범위를 카메라 오프셋을 적용해 그리기 (화면에 보이는 타일만)
+  def draw: (Integer layer_from, Integer layer_to, ?Integer cam_x, ?Integer cam_y) -> Tilemap
+
+  # 맵 크기 (너비 타일 수, 높이 타일 수, 타일 너비 px, 타일 높이 px, 레이어 수)
+  def size: () -> Array[Integer]
+
+  # 맵 너비 (타일 수)
+  def width: () -> Integer
+
+  # 맵 높이 (타일 수)
+  def height: () -> Integer
+
+  # 타일 너비 (px)
+  def tile_width: () -> Integer
+
+  # 타일 높이 (px)
+  def tile_height: () -> Integer
+
+  # 레이어 수
+  def layer_count: () -> Integer
+
+  # 타일 gid (빈 타일과 범위 밖은 0)
+  def tile_id: (Integer x, Integer y, Integer layer) -> Integer
+
+  # 타일 gid 변경. 변경하면 true, 범위 밖이면 false
+  def set_tile_id: (Integer x, Integer y, Integer layer, Integer gid) -> bool
+
+  # 타일 좌표 (x, y)가 통행 가능하면 true (범위 밖은 false)
+  def passable?: (Integer x, Integer y) -> bool
+
+  # 타일맵 해제 (타일셋 텍스처는 TextureManager 에 남음)
+  def dispose: () -> void
+
+  # 이미 해제했으면 true (해제 후 사용하면 RuntimeError)
+  def disposed?: () -> bool
+end
+
+# 시스템 폰트로 텍스트 텍스처를 만드는 동적 폰트 (Windows 전용, macOS 와 Android 는 동작 없는 스텁)
+class FontEx
+  # 폰트 이름, 크기, 텍스처 크기로 생성 (Lua 는 인자가 부족하면 0 반환)
+  def initialize: (String face, Integer size, Integer width, Integer height) -> void
+
+  # 갱신 (현재 동작 없음)
+  def update: (Numeric elapsed) -> FontEx
+
+  # 화면에 그리기
+  def draw: () -> FontEx
+
+  # 표시할 텍스트 설정
+  def text=: (String text) -> void
+
+  # 위치 설정
+  def set_position: (Integer x, Integer y) -> FontEx
+
+  # 텍스트 색 설정
+  def set_text_color: (Integer r, Integer g, Integer b) -> FontEx
+
+  # 불투명도 설정
+  def opacity=: (Integer opacity) -> void
+
+  # 회전 각도(도) 설정
+  def angle=: (Numeric degrees) -> void
+
+  # 텍스트 너비 (px)
+  def text_width: (String text) -> Integer
+
+  # 폰트 해제
+  def dispose: () -> void
+
+  # 이미 해제했으면 true (해제 후 사용하면 RuntimeError)
+  def disposed?: () -> bool
+end

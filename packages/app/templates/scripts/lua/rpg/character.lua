@@ -283,7 +283,7 @@ end
 
 local MS_PER_FRAME = 1000 / 60
 
---- @param steps 명령 배열
+-- @param steps 명령 배열
 -- @param opts.loop        true면 끝에서 처음으로 돌아간다
 -- @param opts.skipBlocked true면 막힌 명령을 건너뛴다 (기본은 성공할 때까지 재시도)
 function Character:setRoute(steps, opts)

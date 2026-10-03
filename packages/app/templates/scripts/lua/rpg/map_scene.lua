@@ -27,7 +27,7 @@ local MapScene = {}
 MapScene.__index = MapScene
 M.MapScene = MapScene
 
---- @param opts.mapPath       맵 파일 경로 (필수)
+-- @param opts.mapPath       맵 파일 경로 (필수)
 -- @param opts.tilemap       Tilemap 모듈 (기본 _G.Tilemap)
 -- @param opts.imageFactory  Image 생성자 (기본 scripts/lua/image)
 -- @param opts.viewW, viewH  화면 크기 (기본 WindowWidth/Height)

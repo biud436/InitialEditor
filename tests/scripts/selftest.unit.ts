@@ -84,8 +84,9 @@ describe("자가 검사 계획 (selftest-plan.mjs)", () => {
     const plan = planMod.buildPlan({ os: "windows", workDir: path.join(tmp, "run") });
     expect(plan.showWindow).toBe(true);
     expect(plan.projects).toEqual([
-      { id: "flappy-lua", template: "flappy", language: "lua", runs: [{ mode: "process", expectEngineSource: "none", expectFallback: "embedded", check: "flappy", env: { INITIAL2D_AUTOPLAY: "1" }, timeoutMs: 150000 }] },
+      { id: "flappy-lua", template: "flappy", language: "lua", languageServer: true, runs: [{ mode: "process", expectEngineSource: "none", expectFallback: "embedded", check: "flappy", env: { INITIAL2D_AUTOPLAY: "1" }, timeoutMs: 150000 }] },
     ]);
+    expect(parsePlan(plan).projects[0].languageServer).toBe(true);
     expect(parsePlan(plan).projects[0].runs[0].expectFallback).toBe("embedded");
   });
 
@@ -153,8 +154,11 @@ function runReport(over: Record<string, unknown> = {}) {
   return { mode: "process", optional: false, ok: true, exitCode: 0, fallback: null, engine: { source: "bundled", path: "/a/Initial2D", features: ["lua"], meta: null }, tail: ["frame 79"], ...over };
 }
 
+/** 앱에 든 언어 서버가 떠서 완성과 호버를 준 보고 (계획의 languageServer) */
+const LANGUAGE_SERVER_OK = { state: "running", version: "3.19.1", reason: "", waitedMs: 1200, at: { line: 12, character: 18 }, completion: ["Load(path)", "Save(path, value)"], hover: "function Json.Load(path: string)" };
+
 function projectReport(id: string, runs: unknown[], over: Record<string, unknown> = {}) {
-  return { id, files: 20, entryScript: { path: "scripts/lua/main.lua", opened: true }, problems: [], runs, ...over };
+  return { id, files: 20, entryScript: { path: "scripts/lua/main.lua", opened: true }, problems: [], languageServer: id === "flappy-lua" ? LANGUAGE_SERVER_OK : null, runs, ...over };
 }
 
 function setup(plan: Plan, report: unknown, logs: Record<string, string | Uint8Array>) {
@@ -212,6 +216,28 @@ describe("자가 검사 판정 (selftest-check.mjs)", () => {
     expect(r.failures).toEqual([]);
     expect(r.lines.join("\n")).toContain("PASS  flappy-lua 실행 1 (process, flappy): ready 상태로 시작 (flappy:state:ready)");
     expect(r.lines.join("\n")).toContain("칠한 칸 (24, 28) 이 표식 색 #d8c880 이다");
+  });
+
+  it("언어 서버: 떴고 완성과 호버가 맞으면 통과, 아니면 실패", () => {
+    const plan = localPlan();
+    const { report, logs } = happy(plan);
+    setup(plan, report, logs);
+    expect(judge(plan).lines.join("\n")).toContain('PASS  flappy-lua: 언어 서버 3.19.1: "Json." 뒤 완성에 Load');
+
+    const failed = structuredClone(report);
+    failed.projects[0].languageServer = { ...LANGUAGE_SERVER_OK, state: "failed", reason: "언어 서버가 종료되었습니다 (종료 코드 1)" };
+    setup(plan, failed, logs);
+    expect(judge(plan).failures).toEqual(["flappy-lua: 언어 서버가 떴다"]);
+
+    const wrong = structuredClone(report);
+    wrong.projects[0].languageServer = { ...LANGUAGE_SERVER_OK, completion: ["foo"], hover: "" };
+    setup(plan, wrong, logs);
+    expect(judge(plan).failures).toEqual(['flappy-lua: 언어 서버 3.19.1: "Json." 뒤 완성에 Load', "flappy-lua: 언어 서버: Json.Load 의 호버"]);
+
+    const missing = structuredClone(report);
+    missing.projects[0].languageServer = null;
+    setup(plan, missing, logs);
+    expect(judge(plan).failures).toEqual(["flappy-lua: 언어 서버가 떴다"]);
   });
 
   it("보고서가 없으면 실패", () => {

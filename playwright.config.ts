@@ -4,7 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = Number(process.env.E2E_PORT ?? 4173);
 
 // WebKit 프로젝트가 도는 스펙. 브라우저 엔진에 따라 동작이 갈리는 것만 (Tauri 의 macOS 웹뷰가 WKWebView 다)
-const WEBKIT_SPECS = ["scripting.spec.ts", "script-tabs.spec.ts", "graph-editor.spec.ts"];
+const WEBKIT_SPECS = ["scripting.spec.ts", "script-tabs.spec.ts", "graph-editor.spec.ts", "language-server.spec.ts"];
 
 // 브라우저 모드 UI 스모크 (docs/plans/e0-foundation.md 마일스톤 6).
 // 테스트(tests/e2e/)가 브리지 서버를 임시 프로젝트로 직접 띄우고, 여기서는 Vite preview 만 띄운다.

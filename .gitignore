@@ -139,3 +139,6 @@ src-tauri/binaries/
 src-tauri/licenses/engine/
 test-results/
 playwright-report/
+
+# 앱에 싣는 LuaLS (scripts/fetch-luals.mjs 가 받는다)
+src-tauri/luals/

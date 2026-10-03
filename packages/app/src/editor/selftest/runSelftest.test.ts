@@ -9,7 +9,7 @@ import { MapDocument } from "@initial-editor/ext-tilemap/model";
 import { describe, expect, it } from "vitest";
 import type { EngineSource } from "../runner/engineCandidates";
 import { parsePlan } from "./plan";
-import { errorLines, followCamera, placementX, runSelftest, type Rect, type SelftestHost, type SelftestRunner, type SelftestShell, type TilePixels } from "./runSelftest";
+import { errorLines, followCamera, placementX, runSelftest, type Rect, type SelftestHost, type SelftestLanguageServer, type SelftestRunner, type SelftestShell, type TilePixels } from "./runSelftest";
 
 const TILEMAP_MAP = fs.readFileSync(new URL("../../../templates/resources/templates/tilemap/map.json", import.meta.url), "utf8");
 
@@ -70,7 +70,10 @@ class FakeRunner implements SelftestRunner {
 }
 
 class ScriptDoc extends Document {
-  constructor(path: string) {
+  constructor(
+    path: string,
+    readonly text = "",
+  ) {
     super("script", path, path);
   }
   async save(): Promise<void> {}
@@ -86,6 +89,7 @@ interface HostOptions {
   /** 이 경로를 열 때 모달을 띄운다 */
   modalOn?: string;
   probes?: Record<string, MapSelftestProbe>;
+  languageServer?: SelftestLanguageServer | null;
 }
 
 function makeHost(opts: HostOptions = {}) {
@@ -137,7 +141,7 @@ function makeHost(opts: HostOptions = {}) {
       if (opts.modalOn === path) modals.push({ id: modals.length + 1, title: "엔진 실행 확인" });
       if (docs.has(path)) return;
       if (path.startsWith("resources/maps/")) docs.set(path, await MapDocument.open(backend, path));
-      else if (await backend.exists(path)) docs.set(path, new ScriptDoc(path));
+      else if (await backend.exists(path)) docs.set(path, new ScriptDoc(path, await backend.readText(path)));
     },
     findDocument: (path) => docs.get(path) ?? null,
     async saveDocument(doc) {
@@ -151,7 +155,7 @@ function makeHost(opts: HostOptions = {}) {
       templates.push({ root: current, template: options.template, language: options.language });
       const entry = options.language === "mruby" ? "scripts/ruby/main.rb" : "scripts/lua/main.lua";
       await b.writeText("game.json", JSON.stringify({ script: options.language }));
-      await b.writeText(entry, "-- main\n");
+      await b.writeText(entry, options.language === "mruby" ? "# main\n" : '-- main\nlocal game = Json.Load("./game.json")\n');
       if (options.template === "tilemap") await b.writeText("resources/maps/start.json", TILEMAP_MAP);
       return ["game.json", entry];
     },
@@ -159,6 +163,7 @@ function makeHost(opts: HostOptions = {}) {
     captureMapTiles: async (_doc, rect) => opts.capture?.(rect) ?? null,
     cspViolations: () => (opts.csp ?? []).map((d) => ({ directive: d, blocked: "eval", source: null, line: null, sample: null })),
     extensionProbe: (id) => opts.probes?.[id] ?? null,
+    languageServer: () => opts.languageServer ?? null,
     // 앱의 맵 실행 길처럼: 요청의 계획을 세우고 계획의 변수가 이기게 러너를 시작한다
     async playMap(doc, request, o) {
       plays.push({ path: doc.path!, label: request.label, mode: o.mode, env: o.env });
@@ -197,7 +202,7 @@ function plan(projects: unknown[], extra: Record<string, unknown> = {}) {
   return parsePlan({ version: 1, workDir: "/tmp/run", report: "/tmp/run/report.json", totalTimeoutMs: 600000, projects, ...extra });
 }
 
-const fast = { pollMs: 2, mapViewWaitMs: 50 };
+const fast = { pollMs: 2, mapViewWaitMs: 50, languageServerWaitMs: 300 };
 
 describe("자가 검사 흐름", () => {
   it("템플릿으로 만들고 열고 진입 스크립트를 열고 돌린 뒤, 실행마다 전체 로그를 쓰고 0 으로 끝낸다", async () => {
@@ -433,6 +438,92 @@ describe("확장의 탐침과 확장의 실행 요청", () => {
     expect(run.problems).toEqual(expect.arrayContaining(["play_refused: 이 맵에 없는 이벤트: nobody", "start_failed"]));
     expect(t.runner.starts).toEqual([]);
     expect(report.ok).toBe(false);
+  });
+});
+
+describe("언어 서버", () => {
+  function server(states: string[], answers: { completion?: string[]; hover?: string } = {}) {
+    let i = 0;
+    const calls: Array<[string, string, number, number]> = [];
+    const s: SelftestLanguageServer & { calls: typeof calls } = {
+      calls,
+      get state() {
+        const v = states[Math.min(i, states.length - 1)];
+        i++;
+        return v;
+      },
+      version: "3.19.1",
+      reason: "",
+      completion: async (path, line, character) => {
+        calls.push(["completion", path, line, character]);
+        return answers.completion ?? ["Load(path)", "Save(path, value)"];
+      },
+      hover: async (path, line, character) => {
+        calls.push(["hover", path, line, character]);
+        return answers.hover ?? "function Json.Load(path: string)\nJSON 파일을 읽는다";
+      },
+    };
+    return s;
+  }
+  const LS_PROJECT = { id: "flappy-lua", template: "flappy", language: "lua", languageServer: true, runs: [RUN] };
+
+  it("진입 스크립트를 연 뒤 서버가 뜨기를 기다려 \"Json.\" 뒤의 완성과 호버를 묻는다", async () => {
+    const ls = server(["starting", "starting", "running"]);
+    const t = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: ls });
+    const report = await runSelftest(plan([LS_PROJECT]), t.host, t.shell, fast);
+    const p = report.projects[0];
+    expect(p.problems).toEqual([]);
+    expect(p.languageServer).toMatchObject({ state: "running", version: "3.19.1", at: { line: 1, character: 18 }, completion: ["Load(path)", "Save(path, value)"] });
+    expect(ls.calls).toEqual([
+      ["completion", "scripts/lua/main.lua", 1, 18],
+      ["hover", "scripts/lua/main.lua", 1, 19],
+    ]);
+    expect(t.steps.map((x) => x.step)).toContain("language-server");
+    expect(report.ok).toBe(true);
+  });
+
+  it("서버가 뜨지 않거나, 없거나, 답이 틀리면 실패로 적는다", async () => {
+    const failed = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: server(["starting", "failed"]) });
+    const r1 = await runSelftest(plan([LS_PROJECT]), failed.host, failed.shell, fast);
+    expect(r1.projects[0].problems[0]).toMatch(/^language_server_not_running: failed/);
+    expect(r1.ok).toBe(false);
+
+    const none = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: null });
+    const r2 = await runSelftest(plan([LS_PROJECT]), none.host, none.shell, fast);
+    expect(r2.projects[0].problems[0]).toMatch(/^language_server_missing/);
+
+    const wrong = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: server(["running"], { completion: ["foo"], hover: "" }) });
+    const r3 = await runSelftest(plan([LS_PROJECT]), wrong.host, wrong.shell, fast);
+    expect(r3.projects[0].problems.map((x) => x.split(":")[0])).toEqual(["language_server_completion", "language_server_hover"]);
+
+    const loading = server(["running"], { completion: [], hover: "Workspace loading: 0 / 0" });
+    const r5 = await runSelftest(plan([LS_PROJECT]), makeHost({ script: () => ({ lines: flappyLines() }), languageServer: loading }).host, makeHost().shell, fast);
+    expect(loading.calls.length).toBeGreaterThan(2);
+    expect(r5.projects[0].problems.map((x) => x.split(":")[0])).toEqual(["language_server_completion", "language_server_hover"]);
+
+    const slow = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: server(["starting"]) });
+    const r4 = await runSelftest(plan([LS_PROJECT]), slow.host, slow.shell, { ...fast, languageServerWaitMs: 20 });
+    expect(r4.projects[0].problems[0]).toMatch(/^language_server_not_running: starting/);
+  });
+
+  it("서버가 작업 공간을 읽는 동안의 빈 답은 다시 묻는다", async () => {
+    let n = 0;
+    const ls = server(["running"]);
+    const answers = ls.completion;
+    // 작업 공간을 읽기 전에는 빈 목록, 그다음은 문서의 낱말 목록
+    ls.completion = async (...a) => (++n === 1 ? [] : n === 2 ? ["scripts", "main", "game"] : answers(...a));
+    const t = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: ls });
+    const report = await runSelftest(plan([LS_PROJECT]), t.host, t.shell, fast);
+    expect(n).toBe(3);
+    expect(report.projects[0].problems).toEqual([]);
+  });
+
+  it("계획에 languageServer 가 없으면 묻지 않는다", async () => {
+    const ls = server(["running"]);
+    const t = makeHost({ script: () => ({ lines: flappyLines() }), languageServer: ls });
+    const report = await runSelftest(plan([{ ...LS_PROJECT, languageServer: undefined }]), t.host, t.shell, fast);
+    expect(report.projects[0].languageServer).toBeNull();
+    expect(ls.calls).toEqual([]);
   });
 });
 

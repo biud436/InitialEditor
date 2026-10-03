@@ -53,6 +53,8 @@ INITIAL_EDITOR_OPEN=~/mygame yarn tauri dev   # 시작하자마자 그 폴더를
 
 - 프로젝트 패널에서 `.lua`, `.rb`, `.json` 을 열면 Monaco 편집기가 뜹니다. Ctrl+S 로 저장하면 (설정이 켜져 있으면) 실행 중인 게임에 핫 리로드가 갑니다. 밖에서 파일이 바뀌면 수정 중이 아닐 때는 조용히 다시 읽고, 수정 중이면 배너로 묻습니다. 저장할 때 디스크의 파일이 연 때와 다르면(배너에서 편집 내용 유지를 골랐어도, 파일이 지워졌어도) 덮어쓰기, 다시 읽기, 취소를 모달로 한 번 더 묻습니다. 씬, 맵, 모두 저장도 같습니다. 다시 읽기는 저장하지 않은 수정을 버리므로 한 번 더 확인하고, 디스크의 파일이 깨져 다시 읽지 못하면 "다시 읽지 못했다"고 알린 뒤 내 수정과 배너를 그대로 둡니다. 큰 맵을 쓰는 중에 고치고 다시 저장하면 앞의 쓰기가 끝난 뒤 최신 내용으로 한 번 더 저장합니다.
 - 자동완성은 프로젝트의 `resources/api/initial2d-api.json`(엔진 저장소가 만들어 둔 API 명세)을 읽습니다. 없으면 내장 기본값으로 동작하며 콘솔에 그렇게 적힙니다. `Input.` 뒤에 멤버, `(` 뒤에 시그니처, 빈 파일에서 씬 계약 네 함수 스니펫.
+- 데스크톱 앱은 Lua 스크립트를 열면 앱에 든 언어 서버 LuaLS 를 띄웁니다. 지역 변수, `require` 한 모듈, 직접 만든 함수까지 아는 자동 완성과 호버, 진단(물결 밑줄), 정의로 이동(F12, Ctrl+클릭), 참조(Shift+F12), 이름 바꾸기(F2, 여러 파일이면 그 파일들을 열어 저장할 수 있게 합니다), 기호로 이동(Ctrl+Shift+O)이 됩니다. 상태 바에 `LuaLS 3.19.1` 처럼 보이고, 멈추면 도구 > 언어 서버 다시 시작. 서버가 도는 동안 명세 자동완성은 씬 계약 스니펫만 남습니다. 브라우저판과 Ruby 는 지금처럼 명세 자동완성입니다.
+- 진단 규칙은 프로젝트의 `.luarc.json` 입니다. 새 Lua 프로젝트는 엔진 템플릿의 것(형식 검사, 지역 변수 다시 선언, 줄 끝 공백을 끈 LuaLS 기본)과 엔진 API 스텁 `resources/api/initial2d.lua` 를 받고, VS Code 같은 다른 에디터의 LuaLS 도 같은 파일을 읽습니다. 둘 다 없는 옛 프로젝트는 같은 규칙과 앱에 든 스텁을 씁니다. 도구 > 설정의 "진단 표시"에서 표시 안 함, 구문 오류만, 규칙 전체를 고르고, "언어 서버"를 끄면 명세 자동완성만 씁니다. 계획과 구조는 [docs/plans/language-server.md](./docs/plans/language-server.md).
 - 찾기: 편집기 안 Ctrl+F, 프로젝트 전체 Ctrl+Shift+F (대소문자, 정규식). 새 스크립트 Ctrl+Alt+N (씬 템플릿 또는 컴포넌트 템플릿, Lua 나 Ruby).
 - 엔진 프로세스 실행(F5, 설정의 실행 방식이 프로세스일 때)은 Tauri 앱에서만 됩니다. 브라우저에서는 F5 가 에디터 안 게임 탭에서 돕니다 (아래 "에디터 안에서 실행"). 엔진은 설정의 경로, 프로젝트의 `.initial-editor/engine`(한 줄 경로), 프로젝트 안 `build/Initial2D`, 앱에 든 엔진(설치본), 형제 폴더 `../Initial2D/build/Initial2D` 순서로 찾고 `--features` 로 확인합니다. 프로젝트가 가리키는 실행 파일(`.initial-editor/engine`, `build/`, 형제 폴더)은 처음 한 번 경로를 보여 주고 실행해도 되는지 묻습니다. 답은 프로젝트가 아니라 앱 설정에 남고, 도구 > 설정의 "찾은 엔진" 줄에서 신뢰 취소나 다시 묻기를 합니다. 엔진을 못 찾으면 F5 는 에디터 안 게임 탭으로 넘어갑니다 (Ruby 프로젝트는 이유를 띄웁니다). 정지 Shift+F5, 리로드 Ctrl+Shift+R. 엔진 출력은 콘솔에 오고 `파일:줄:` 은 링크라 누르면 그 줄로 갑니다. 저장하지 않은 문서가 있으면 F5 와 Ctrl+F5, 다시 시작이 먼저 묻습니다. 게임은 디스크의 파일을 읽기 때문입니다. Enter 는 "모두 저장하고 실행"이고, "저장하지 않고 실행"과 "취소"도 있습니다.
 - 배포된 페이지(Cloudflare Pages 등, 로컬이 아닌 호스트)에서는 브리지에 닿을 수 없어 웹판(브라우저 폴더)으로 시작합니다. 폴더 열기가 없는 브라우저는 메모리 모드입니다. 아래 "웹판" 절.
@@ -232,13 +234,14 @@ tools/build_dist.sh                                   # dist/Initial2D-<트리�
 
 # 에디터에서
 yarn engine:fetch --from ../Initial2D/dist            # src-tauri/binaries/ 와 src-tauri/licenses/engine/ 으로 받는다
+yarn luals:fetch                                      # 앱에 싣는 언어 서버 LuaLS 를 src-tauri/luals/ 로 (설치본 빌드 전에)
 node scripts/check-sidecar.mjs src-tauri/binaries/Initial2D-aarch64-apple-darwin
 yarn tauri dev --config src-tauri/tauri.sidecar.conf.json     # 앱에 든 엔진으로 개발 빌드
 yarn tauri build --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json   # 설치본 (.app 과 dmg)
 yarn engine:check                                     # 템플릿, 웹 엔진, RPG 픽스처, 받은 엔진이 핀의 커밋인지
 ```
 
-- 설치본 빌드는 덮어쓰기 설정 둘을 이 순서로 줍니다. `tauri.dist.conf.json` 이 소스맵 없는 프런트(`yarn build:desktop`)와 제3자 고지(`licenses/`)를, `tauri.sidecar.conf.json` 이 앱에 든 엔진과 `engine.json` 을 싣습니다. `--bundles` 를 주지 않으면 `.app` 과 함께 dmg 도 만들고, 그때 Finder 창이 잠깐 뜹니다. `.app` 만 만들려면 `--bundles app` 을 붙입니다.
+- 설치본 빌드는 덮어쓰기 설정 둘을 이 순서로 줍니다. `tauri.dist.conf.json` 이 소스맵 없는 프런트(`yarn build:desktop`)와 제3자 고지(`licenses/`)와 언어 서버(`luals/`, 먼저 `yarn luals:fetch`)를, `tauri.sidecar.conf.json` 이 앱에 든 엔진과 `engine.json` 을 싣습니다. `--bundles` 를 주지 않으면 `.app` 과 함께 dmg 도 만들고, 그때 Finder 창이 잠깐 뜹니다. `.app` 만 만들려면 `--bundles app` 을 붙입니다.
 
 - `--from` 폴더는 엔진의 `dist/` 나 `dist.yml` 산출물 폴더입니다. 엔진 커밋이 핀과 다르면 받지 않고, 다른 엔진을 잠깐 시험할 때는 `--any-commit` 을 붙입니다. `--target <트리플>` 로 다른 타깃을 받고, Windows 타깃은 엔진이 없어 고지만 받습니다. `--templates <빈 폴더>` 는 엔진 대신 템플릿 묶음(`Initial2D-templates.zip`)을 풉니다.
 - 받은 파일은 gitignore 입니다: `src-tauri/binaries/Initial2D-<트리플>`, `src-tauri/binaries/engine.json`(판 정보. 상태 바 툴팁과 설정에 "앱에 든 엔진 (cac4b94, lua mruby)" 처럼 보입니다), `src-tauri/licenses/engine/THIRD-PARTY.md`.
@@ -269,6 +272,7 @@ yarn build:desktop                # 소스맵 없는 프런트 (릴리스 번들
 
 # 이 컴퓨터에서 설치본을 만들어 자가 검사
 yarn engine:fetch --from ../Initial2D/dist
+yarn luals:fetch
 yarn tauri build --bundles app --config src-tauri/tauri.dist.conf.json --config src-tauri/tauri.sidecar.conf.json
 yarn selftest:app src-tauri/target/release/bundle/macos/InitialEditor.app
 yarn selftest:app <앱> --forest ../Initial2D     # 알데바란 숲에 한 칸을 칠해 게임 화면과 견주는 것까지
@@ -277,6 +281,7 @@ yarn selftest:app <앱> --rpg ../Initial2D        # 항구 마을의 이벤트 �
 
 - `yarn selftest:app` 은 창을 띄우지 않습니다. 앱을 자가 검사 모드(`INITIAL_EDITOR_SELFTEST=<계획 파일>`)로 띄우면, 앱에 든 템플릿으로
   플래피 Lua, 플래피 Ruby, 타일맵 프로젝트를 임시 폴더에 만들고, 타일맵은 맵 문서로 한 칸을 칠해 저장한 뒤, 셋 다 앱에 든 엔진으로 돌립니다.
+  플래피 Lua 에서는 앱에 든 LuaLS 가 뜨고 진입 스크립트의 `Json.` 뒤 완성과 호버에 `Load` 가 나오는지도 봅니다.
   끝나면 `scripts/selftest-check.mjs` 가 실행마다 남은 전체 로그와 스크린샷으로 판정합니다. 작업 폴더(보고서, 로그, 스크린샷)는 지우지 않고 경로를 찍습니다.
 - 자가 검사는 설정, 최근 프로젝트, 레이아웃, 창 위치, 웹뷰 저장소를 읽지도 쓰지도 않습니다. 확인 창이 뜨거나 웹뷰 보안 정책(CSP) 위반이 있으면 실패입니다.
 - `--forest <엔진 저장소>` 는 숲 맵의 사본을 맵 뷰로 열어 deco 레이어의 빈 칸 하나를 칠해 저장하고 앱에 든 엔진으로 돌린 뒤, 게임 화면을 맵 뷰와 견주고 저장한 맵과 타일셋으로 직접 그린 기준과도 견줍니다. 레이어마다, 칠한 칸까지 게임 화면에 있어야 통과합니다 (게임이 레이어 하나를 빼고 그리거나 칠하기 전 맵을 돌리면 실패).
@@ -433,6 +438,8 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn test:engine-map` | 맵 편집의 엔진 교차 검사 (위 "맵 편집 (E3)"): 통행 편집과 엔진의 막힘, 새 맵과 엔진 화면의 골든(Lua, Ruby), 항구 마을 한 칸을 칠한 뒤의 엔진 인수 시나리오 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
 | `yarn test:android-stage` | 안드로이드 스테이징 교차 검사 (에디터와 같은 인자로 스테이징한 폴더만으로 데스크톱 엔진이 플래피를 돌린다, 스탬프, `config.setting` 과 RTP 가 빠지는지). 엔진 저장소는 `INITIAL2D_DIR` |
 | `yarn test:engine-graph` | 그래프에서 만든 Lua 와 Ruby 를 진짜 엔진이 돌리는 교차 검사 (위 "비주얼 스크립팅"): 그래프의 플래피 `bird` 가 손으로 쓴 것과 같은 판인지, 샘플러의 값이 두 언어에서 같은지 (`INITIAL2D_DIR`, 실행 파일을 직접 줄 때는 `INITIAL2D_EXE`) |
+| `yarn luals:fetch` | 앱에 싣는 언어 서버 LuaLS 를 받아(sha256 확인) 쓰지 않는 것을 빼고 `src-tauri/luals/` 에 푼다. 고지는 `src-tauri/licenses/luals/`. `--target <트리플>`, `--from <압축 파일>` |
+| `yarn test:luals` | 진짜 LuaLS 와 에디터의 LSP 클라이언트 (`tests/luals/`): 새 RPG 프로젝트가 경고 없이 읽히는지, 스텁 없는 프로젝트의 진단, 완성, 호버, 정의, 참조, 이름 바꾸기. 먼저 `yarn luals:fetch`, 다른 실행 파일은 `INITIAL_EDITOR_LUALS` |
 | `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 생성물 표시)를 갱신 (`INITIAL2D_DIR`). `--from-zip <zip 이나 dist 폴더>` 는 엔진의 템플릿 묶음에서 |
 | `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |
@@ -446,7 +453,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn sync:engine-web` | 엔진 저장소의 웹 빌드(`build-web/site/` 의 `Initial2D.js`, `Initial2D.wasm`, `initial2d-loader.js`)와 제3자 고지(`THIRD-PARTY.md`)를 `packages/app/public/engine/` 으로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 기능)를 갱신 (`INITIAL2D_DIR`). 먼저 엔진 저장소에서 `tools/build_web.sh` |
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright, Chromium 으로 모든 스펙 (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
-| `yarn test:e2e:webkit` | 같은 Playwright 를 WebKit(macOS 앱의 웹뷰 WKWebView 와 같은 엔진)으로. 브라우저 엔진에 따라 동작이 갈리는 스펙(`playwright.config.ts` 의 `WEBKIT_SPECS`: 스크립트 편집, 스크립트 탭 여럿)만 돕니다. 처음 한 번 `npx playwright install --with-deps webkit`, 스펙 하나만은 `yarn test:e2e:webkit tests/e2e/script-tabs.spec.ts` |
+| `yarn test:e2e:webkit` | 같은 Playwright 를 WebKit(macOS 앱의 웹뷰 WKWebView 와 같은 엔진)으로. 브라우저 엔진에 따라 동작이 갈리는 스펙(`playwright.config.ts` 의 `WEBKIT_SPECS`: 스크립트 편집, 스크립트 탭 여럿, 그래프, 언어 서버)만 돕니다. 언어 서버 스펙(`language-server.spec.ts`)은 `yarn luals:fetch` 로 받은 LuaLS 를 시험 프로세스가 띄워 붙이고, 없으면 CI 가 아닐 때 건너뜁니다. 처음 한 번 `npx playwright install --with-deps webkit`, 스펙 하나만은 `yarn test:e2e:webkit tests/e2e/script-tabs.spec.ts` |
 | `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
 | `yarn check:terms` | UI 문구 검사: `packages/*/src`, `src-tauri/src` 의 문자열 리터럴과 JSX 텍스트에서 쓰지 않는 말과 한다체 끝맺음을 찾는다 (규칙은 아래 "UI 문구"). 폴더나 파일을 주면 거기만 |
 | `node scripts/check-web-dist.mjs` | 빌드한 `dist/` 검사 (`_headers`, 웹 엔진과 MANIFEST, 고지, Pages 한도). `--desktop` 은 소스맵이 없는지도 (위 "웹판 배포") |

@@ -1,6 +1,7 @@
 // Monaco 의 진입점. 전체(editor.main)가 아니라 쓰는 기능만 골라 담아 번들을 줄인다:
 //   편집기 코어 + 찾기와 바꾸기, 자동완성(suggest), 시그니처 도움말, 호버, 스니펫, 접기, 주석 토글, 다중 커서,
 //   괄호 짝, 들여쓰기, 줄 조작, 단어 강조, 오른쪽 클릭 메뉴, 클립보드.
+//   언어 서버(lsp/)가 쓰는 정의로 이동(F12, Ctrl+클릭)과 참조 미리보기, 이름 바꾸기(F2), 문서 기호(Ctrl+Shift+O).
 //   언어는 Lua, Ruby, Markdown (basic-languages) 과 JSON (진단 워커 포함, 컴포넌트 매개변수 선언 파일의 스키마).
 // 워커는 Vite 의 ?worker 로 (vite.config.ts 는 손대지 않아도 된다). 다른 모듈은 monaco 를 여기서만 가져온다.
 
@@ -12,15 +13,19 @@ import "monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js";
 import "monaco-editor/esm/vs/editor/contrib/comment/browser/comment.js";
 import "monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js";
 import "monaco-editor/esm/vs/editor/contrib/cursorUndo/browser/cursorUndo.js";
+import "monaco-editor/esm/vs/editor/contrib/documentSymbols/browser/documentSymbols.js";
 import "monaco-editor/esm/vs/editor/contrib/find/browser/findController.js";
 import "monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js";
 import "monaco-editor/esm/vs/editor/contrib/gotoError/browser/gotoError.js";
+import "monaco-editor/esm/vs/editor/contrib/gotoSymbol/browser/goToCommands.js";
+import "monaco-editor/esm/vs/editor/contrib/gotoSymbol/browser/link/goToDefinitionAtPosition.js";
 import "monaco-editor/esm/vs/editor/contrib/hover/browser/hoverContribution.js";
 import "monaco-editor/esm/vs/editor/contrib/indentation/browser/indentation.js";
 import "monaco-editor/esm/vs/editor/contrib/lineSelection/browser/lineSelection.js";
 import "monaco-editor/esm/vs/editor/contrib/linesOperations/browser/linesOperations.js";
 import "monaco-editor/esm/vs/editor/contrib/multicursor/browser/multicursor.js";
 import "monaco-editor/esm/vs/editor/contrib/parameterHints/browser/parameterHints.js";
+import "monaco-editor/esm/vs/editor/contrib/rename/browser/rename.js";
 import "monaco-editor/esm/vs/editor/contrib/smartSelect/browser/smartSelect.js";
 import "monaco-editor/esm/vs/editor/contrib/snippet/browser/snippetController2.js";
 import "monaco-editor/esm/vs/editor/contrib/suggest/browser/suggestController.js";
@@ -29,6 +34,7 @@ import "monaco-editor/esm/vs/editor/contrib/wordHighlighter/browser/wordHighligh
 import "monaco-editor/esm/vs/editor/contrib/wordOperations/browser/wordOperations.js";
 import "monaco-editor/esm/vs/editor/contrib/wordPartOperations/browser/wordPartOperations.js";
 import "monaco-editor/esm/vs/editor/common/standaloneStrings.js";
+import "monaco-editor/esm/vs/editor/standalone/browser/quickAccess/standaloneGotoSymbolQuickAccess.js";
 import "monaco-editor/esm/vs/base/browser/ui/codicons/codiconStyles.js";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import "monaco-editor/esm/vs/basic-languages/lua/lua.contribution";

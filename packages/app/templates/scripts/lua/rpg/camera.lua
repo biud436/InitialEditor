@@ -28,7 +28,7 @@ local Camera = {}
 Camera.__index = Camera
 M.Camera = Camera
 
---- @param opts.viewW, viewH   화면(논리 해상도) 크기
+-- @param opts.viewW, viewH   화면(논리 해상도) 크기
 -- @param opts.worldW, worldH  맵 전체 크기 (픽셀)
 function M.new(opts)
 	opts = opts or {}

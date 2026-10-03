@@ -9,6 +9,8 @@
 //   engine_run(exe, cwd, args, env) → { id, pid }, engine_stop(id), engine_features(exe, timeout_ms?) → string[]
 //   engine_exists(paths) → boolean[], engine_bundled() → { path, meta, metaError? } | null
 //   settings_load() → string | null, settings_save(json)
+//   lsp_available() → { exe, version } | null, lsp_start(root, channel, library?) → { id, pid, exe, version, library },
+//   lsp_send(id, text), lsp_stop(id). 서버의 메시지와 끝은 lsp_start 에 넘긴 채널로 온다 (LspEvent)
 // 이벤트: fs:change { path, kind, origin }, engine:output { id, stream, line }, engine:exit { id, code }
 //
 // 동기 명령은 메인 스레드에서 돌므로 파일과 소켓을 만지는 것은 전부 `async` 로 표시해 별도 스레드에서 돈다.
@@ -19,7 +21,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use percent_encoding::percent_decode_str;
-use tauri::ipc::{InvokeBody, Request, Response};
+use tauri::ipc::{Channel, InvokeBody, Request, Response};
 use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::bundled::{self, BundledEngine};
@@ -27,6 +29,7 @@ use crate::engine::{self, EngineState, RunInfo};
 use crate::error::{BackendError, ErrorCode, Result};
 use crate::fsutil::lock;
 use crate::hmr::{self, HmrFile, PushResult};
+use crate::lsp::{self, LspEvent, LspInfo, LspState};
 use crate::project::{Entry, ProjectFs, ProjectInfo};
 use crate::settings;
 use crate::watcher::{self, WatcherCore, WatcherHandle};
@@ -270,4 +273,92 @@ pub fn startup_open_path() -> Option<String> {
     args.iter()
         .position(|a| a == "--open")
         .and_then(|i| args.get(i + 1).cloned())
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LspAvailable {
+    pub exe: String,
+    pub version: Option<String>,
+}
+
+fn luals_exe(app: &AppHandle) -> Option<PathBuf> {
+    lsp::find_luals(app.path().resource_dir().ok().as_deref())
+}
+
+/// 앱에 든 LuaLS. 없으면 null (브라우저와 같은 명세 공급자를 쓴다)
+#[tauri::command(async)]
+pub fn lsp_available(app: AppHandle) -> Option<LspAvailable> {
+    let exe = luals_exe(&app)?;
+    Some(LspAvailable {
+        exe: exe.to_string_lossy().into_owned(),
+        version: lsp::read_version(&exe),
+    })
+}
+
+/// 프로젝트 루트에서 LuaLS 를 띄운다. 로그와 생성 메타 파일은 앱 폴더에 둔다 (설치 폴더는 읽기 전용일 수 있다).
+/// library 가 있으면 엔진 API 스텁의 글이고, 앱 캐시의 luals-library/initial2d.lua 에 써서 그 경로를 돌려준다
+#[tauri::command(async)]
+pub fn lsp_start(
+    app: AppHandle,
+    state: State<'_, Arc<LspState>>,
+    root: String,
+    channel: Channel<LspEvent>,
+    library: Option<String>,
+) -> Result<LspInfo> {
+    let exe = luals_exe(&app).ok_or_else(|| {
+        BackendError::new(ErrorCode::NotFound, "앱에 든 언어 서버(LuaLS)가 없습니다")
+    })?;
+    let path = app.path();
+    let log = path
+        .app_log_dir()
+        .map_err(|e| BackendError::new(ErrorCode::Io, format!("앱 로그 폴더 경로 확인 실패: {e}")))?
+        .join("luals");
+    let meta = path
+        .app_cache_dir()
+        .map_err(|e| BackendError::new(ErrorCode::Io, format!("앱 캐시 폴더 경로 확인 실패: {e}")))?
+        .join("luals-meta");
+    for dir in [&log, &meta] {
+        std::fs::create_dir_all(dir).map_err(|e| BackendError::io(&e, Some(&dir.to_string_lossy())))?;
+    }
+    let library_path = match library {
+        Some(text) => {
+            let dir = meta
+                .parent()
+                .map(|p| p.join("luals-library"))
+                .unwrap_or_else(|| meta.join("library"));
+            std::fs::create_dir_all(&dir)
+                .map_err(|e| BackendError::io(&e, Some(&dir.to_string_lossy())))?;
+            let file = dir.join("initial2d.lua");
+            std::fs::write(&file, text)
+                .map_err(|e| BackendError::io(&e, Some(&file.to_string_lossy())))?;
+            Some(file.to_string_lossy().into_owned())
+        }
+        None => None,
+    };
+    let args = vec![
+        format!("--logpath={}", log.to_string_lossy()),
+        format!("--metapath={}", meta.to_string_lossy()),
+    ];
+    let mut info = LspState::spawn(state.inner(), &exe, std::path::Path::new(&root), &args, move |event| {
+        let _ = channel.send(event);
+    })?;
+    info.library = library_path;
+    eprintln!(
+        "[initial-editor] 언어 서버 시작: {} {} (pid {}, {root})",
+        info.exe,
+        info.version.as_deref().unwrap_or(""),
+        info.pid
+    );
+    Ok(info)
+}
+
+#[tauri::command(async)]
+pub fn lsp_send(state: State<'_, Arc<LspState>>, id: u32, text: String) -> Result<()> {
+    state.send(id, &text)
+}
+
+#[tauri::command(async)]
+pub fn lsp_stop(state: State<'_, Arc<LspState>>, id: u32) {
+    state.stop(id);
 }

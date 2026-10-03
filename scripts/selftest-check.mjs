@@ -19,6 +19,7 @@
 // 계획의 probe (확장의 탐침): 이벤트 레이어가 붙었고 잠기지 않았고 오류가 없으며, 탐침이 적은 이벤트가 맵 파일의 이벤트와 같고,
 // 뷰가 그린 표식이 이벤트마다 하나씩 게임의 그리기 규칙(엔진 scripts/lua/rpg/character.lua 의 draw: 가로 가운데, 발이 칸 아래 변)의
 // 자리에 있다. 외형이 있는 이벤트는 스키마의 프레임 크기로 그린 그림이고 그 시트 파일이 프로젝트에 있다. 나머지는 칸의 표식이다
+// 계획의 languageServer: 앱에 든 언어 서버가 running 이 되었고, 진입 스크립트의 "Json." 뒤 완성 후보에 Load 가 있고 호버에 Load 가 있다.
 // 선택 실행의 실패는 WARN 줄만. 종료 코드: 0 통과, 1 실패, 2 인자 오류.
 // BMP 읽기는 tests/e2e/support/bmp.ts (단위 시험 있음)를 Vite 의 SSR 로 읽는다.
 
@@ -80,6 +81,15 @@ export function judge(plan, report, deps) {
     if (rp.entryScript?.opened) pass(`진입 스크립트를 편집기로 열었다 (${rp.entryScript.path})`);
     else fail(`${project.id}: 진입 스크립트를 열지 못했다`);
     if (project.probe) judgeProbe(plan, project, rp, (name, ok, detail) => (ok ? pass(`${project.id}: ${name}`) : fail(`${project.id}: ${name}`, detail)));
+    if (project.languageServer) {
+      const ls = rp.languageServer ?? null;
+      const say = (name, ok, detail) => (ok ? pass(`${project.id}: ${name}`) : fail(`${project.id}: ${name}`, detail));
+      say("언어 서버가 떴다", ls?.state === "running", ls ? `${ls.state} ${ls.reason ?? ""}`.trim() : "보고서에 없다");
+      if (ls?.state === "running") {
+        say(`언어 서버 ${ls.version ?? ""}: "Json." 뒤 완성에 Load`.replace("  ", " "), (ls.completion ?? []).some((l) => String(l).startsWith("Load")), (ls.completion ?? []).join(", "));
+        say("언어 서버: Json.Load 의 호버", String(ls.hover ?? "").includes("Load"), JSON.stringify(ls.hover ?? ""));
+      }
+    }
 
     project.runs.forEach((run, i) => {
       const n = i + 1;

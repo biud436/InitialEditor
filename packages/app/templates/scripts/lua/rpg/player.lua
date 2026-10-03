@@ -30,7 +30,7 @@ local Player = {}
 Player.__index = Player
 M.Player = Player
 
---- @param opts.character  조종할 Character (필수)
+-- @param opts.character  조종할 Character (필수)
 -- @param opts.input      엔진 Input과 같은 표면의 테이블 (기본 _G.Input)
 -- @param opts.pad        가상 D-패드 (scripts/lua/ui/vpad). 있으면 키보다 우선
 -- @param opts.keys       방향 → 가상 키 코드 표

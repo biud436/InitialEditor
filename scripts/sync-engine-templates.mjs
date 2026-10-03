@@ -41,8 +41,12 @@ export const SOURCES = [
   // 한글 비트맵 폰트 (템플릿 씬의 text 가 쓴다)
   { from: "resources/fonts/hangul.fnt", to: "resources/fonts/hangul.fnt", groups: ["common"], language: null, kind: BINARY },
   { from: "resources/fonts/hangul_0.png", to: "resources/fonts/hangul_0.png", groups: ["common"], language: null, kind: BINARY },
-  // API 명세 (자동완성)
+  // API 명세 (자동완성)와 언어 서버용 스텁, LuaLS 설정 (.luarc.json)
   { from: "resources/api/initial2d-api.json", to: "resources/api/initial2d-api.json", groups: ["common"], language: null, kind: TEXT },
+  { from: "resources/api/initial2d.lua", to: "resources/api/initial2d.lua", groups: ["common"], language: "lua", kind: TEXT },
+  { from: "resources/templates/luarc.json", to: ".luarc.json", groups: ["common"], language: "lua", kind: TEXT },
+  { from: "resources/api/initial2d.rb", to: "resources/api/initial2d.rb", groups: ["common"], language: "ruby", kind: TEXT },
+  { from: "resources/api/initial2d.rbs", to: "resources/api/initial2d.rbs", groups: ["common"], language: "ruby", kind: TEXT },
   // 진입점 (세 템플릿 모두)
   { from: "resources/templates/main.lua", to: "scripts/lua/main.lua", groups: ["empty", "flappy", "tilemap"], language: "lua", kind: TEXT },
   { from: "resources/templates/main.rb", to: "scripts/ruby/main.rb", groups: ["empty", "flappy", "tilemap"], language: "ruby", kind: TEXT },

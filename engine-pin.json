@@ -1,12 +1,12 @@
 {
   "comment": "에디터가 묶이는 엔진 (docs/plans/e6-packaging.md 4.2 절). engineTag 는 엔진의 공개 릴리스이고 native, templates, thirdParty 는 그 자산의 sha256 이다 (yarn engine:pin <태그> 가 쓴다). yarn engine:fetch 는 --from 없이 릴리스에서 받는다. CI 는 engineCommit 을 체크아웃해 tools/build_dist.sh 로 엔진을 만든다. 템플릿과 웹 엔진, ext-rpg 픽스처의 MANIFEST 커밋도 engineCommit 과 같아야 한다 (yarn engine:check). ciEngineRef 는 새 엔진 코드가 필요한 PR 이 잠시 쓰는 칸이고 릴리스 전에 비운다",
-  "engineTag": "v2.0.0-alpha.3",
-  "engineCommit": "352d61915004fe507a5fe4a1e72a30d9e136e927",
+  "engineTag": "v2.0.0-alpha.4",
+  "engineCommit": "498c6d85fb198eee3dbcc0aae8d185af6716a0e3",
   "ciEngineRef": null,
   "native": {
     "aarch64-apple-darwin": {
       "asset": "Initial2D-aarch64-apple-darwin",
-      "sha256": "f94514356d5cbb5cb0d14f5b989636bae7ee070e3a24df14ee86609872125cc1",
+      "sha256": "16513c56eac0b7149ab6a0bff4d0b26b4aff26636a61109d231cd164cabac03b",
       "size": 3448720,
       "features": [
         "lua",
@@ -15,7 +15,7 @@
     },
     "x86_64-unknown-linux-gnu": {
       "asset": "Initial2D-x86_64-unknown-linux-gnu",
-      "sha256": "1617a39e71fd7564ce00cf1e5bd8b46f63e0847047327d725f4b95a3680364bf",
+      "sha256": "f633fddac9c9c3d02ba9bd337da7cef7cef9735a303a3c55013526c30ff2fbe0",
       "size": 4788848,
       "features": [
         "lua",
@@ -25,7 +25,7 @@
   },
   "templates": {
     "asset": "Initial2D-templates.zip",
-    "sha256": "b4f29b7ccd3e12a0fe068eb307b16d29e3f8dd6377b41edb408e75f5fd8129e6"
+    "sha256": "dd99d4852d24e7e06060034e626040c20e6a15a8e07913f445000e8dd1548fea"
   },
   "thirdParty": {
     "asset": "THIRD-PARTY.md",

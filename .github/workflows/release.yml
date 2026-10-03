@@ -4,6 +4,7 @@
 # 도는지(자가 검사) 본 뒤 번들과 SHA256SUMS.txt 를 워크플로 산출물로 올린다.
 #   - 엔진은 공개 릴리스가 없으므로 engine-pin.json 의 커밋을 체크아웃해 tools/build_dist.sh 로 직접 만든다 (engine 잡)
 #   - Windows 는 엔진이 없다 (R5 전). 사이드카 없이 내고, 자가 검사는 에디터 안(웹 엔진)으로 넘어가는 길을 본다
+#   - 언어 서버 LuaLS 는 세 OS 모두 싣는다 (scripts/fetch-luals.mjs, tauri.dist.conf.json). 자가 검사가 뜨는지 본다
 #   - 릴리스는 v* 태그를 민 실행에서만, 그것도 초안으로만 만든다 (공개는 저자). workflow_dispatch 와 PR 은 산출물뿐이다
 # 로컬에서 같은 검사: yarn selftest:app <빌드한 앱> (README 의 "설치 파일과 자가 검사")
 name: release
@@ -21,6 +22,7 @@ on:
     paths:
       - src-tauri/**
       - scripts/fetch-engine.mjs
+      - scripts/fetch-luals.mjs
       - scripts/check-sidecar.mjs
       - scripts/selftest-*.mjs
       - scripts/lib/**
@@ -287,6 +289,9 @@ jobs:
           chmod +x "$GITHUB_WORKSPACE/engine-dist/Initial2D-"* || true
           yarn engine:fetch --from "$GITHUB_WORKSPACE/engine-dist" --target "${{ matrix.target }}"
 
+      - name: 앱에 싣는 언어 서버 받기 (LuaLS)
+        run: yarn luals:fetch --target "${{ matrix.target }}"
+
       - name: 번들
         run: |
           configs=(--config src-tauri/tauri.dist.conf.json)
@@ -356,6 +361,12 @@ jobs:
             echo "건너뛴 판이 있어 검사하지 않았다 (엔진, mruby, 엔진 체크아웃 확인)"
             exit 1
           fi
+
+      # 앱에 싣는 LuaLS 와 LSP 클라이언트 (language-server.md 7절). 번들에 든 것과 같은 src-tauri/luals 를 쓴다
+      - name: 언어 서버 교차 검사 (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 10
+        run: yarn test:luals
 
       # 비주얼 스크립팅의 엔진 교차 검사 (visual-scripting.md 6절): 그래프에서 만든 bird 와 샘플러를 설치한 엔진으로 두 언어에서 돌린다
       - name: 그래프 엔진 교차 검사 (Linux)

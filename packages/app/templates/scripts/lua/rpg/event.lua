@@ -31,7 +31,7 @@ local Event = {}
 Event.__index = Event
 M.Event = Event
 
---- @param opts.id       이벤트 이름 (moveRoute 대상 지정과 로그에 쓴다)
+-- @param opts.id       이벤트 이름 (moveRoute 대상 지정과 로그에 쓴다)
 -- @param opts.x, opts.y 타일 좌표
 -- @param opts.trigger   "action" | "touch" | "auto" | "parallel"
 -- @param opts.commands  커맨드 배열 (9단계). script가 없으면 이것을 컴파일해 쓴다

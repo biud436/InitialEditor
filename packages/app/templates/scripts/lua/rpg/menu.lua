@@ -27,7 +27,7 @@ local Menu = {}
 Menu.__index = Menu
 M.Menu = Menu
 
---- @param opts.skin        Window.Skin (필수)
+-- @param opts.skin        Window.Skin (필수)
 -- @param opts.measure     function(text) -> 픽셀 폭 (필수)
 -- @param opts.drawText    function(x, y, text)
 -- @param opts.screenW/H   화면 크기 (창을 가운데 놓는 데 쓴다)

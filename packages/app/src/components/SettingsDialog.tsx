@@ -1,8 +1,8 @@
 // 설정 대화상자 (도구 > 설정). 테마, 실행 방식(E4), 엔진 경로(E1 이 쓴다), 찾은 엔진과 신뢰 취소(E6), 저장 시 리로드,
-// 엔진 저장소(E6 안드로이드 스테이징), 편집기(글꼴, 탭, 줄바꿈, 미니맵), 브리지 URL(브라우저 모드).
+// 엔진 저장소(E6 안드로이드 스테이징), 편집기(글꼴, 탭, 줄바꿈, 미니맵), 언어 서버와 진단 표시 범위, 브리지 URL(브라우저 모드).
 // 실행 방식은 프로세스를 띄울 수 있는 백엔드(Tauri)에서만 고른다.
 
-import { EDITOR_FONT_SIZE_RANGE, type RunMode, type ThemePreference } from "@initial-editor/core";
+import { EDITOR_FONT_SIZE_RANGE, type RunMode, type ScriptDiagnostics, type ThemePreference } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import { foundEngineText } from "../editor/about";
@@ -10,6 +10,7 @@ import type { Editor } from "../editor/Editor";
 import { useEditor } from "../editor/EditorContext";
 
 const TAB_SIZES = [2, 4, 8];
+const DIAGNOSTICS_LABELS: Record<ScriptDiagnostics, string> = { off: "표시 안 함", syntax: "구문 오류만", rules: "규칙 전체 (.luarc.json)" };
 
 /** 찾은 엔진 한 줄과, 열린 프로젝트가 가리키는 엔진에 대한 답(신뢰 취소, 다시 묻기) */
 export const FoundEngineRow = observer(function FoundEngineRow() {
@@ -161,6 +162,28 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             <input type="checkbox" checked={s.editorMinimap} onChange={(e) => update({ editorMinimap: e.target.checked })} data-testid="settings-minimap" /> 미니맵
           </label>
         </div>
+        {editor.scripting.languageServer.hasLauncher && (
+          <div className="form-row">
+            <label>언어 서버</label>
+            <label className="checkbox">
+              <input type="checkbox" checked={s.languageServer} onChange={(e) => update({ languageServer: e.target.checked })} data-testid="settings-language-server" /> Lua 스크립트에 LuaLS 사용
+            </label>
+            <div className="form-help">끄면 API 명세의 자동 완성만 씁니다. 상태: {editor.scripting.languageServer.statusText}</div>
+          </div>
+        )}
+        {editor.scripting.languageServer.hasLauncher && (
+          <div className="form-row">
+            <label htmlFor="settings-diagnostics">진단 표시</label>
+            <select id="settings-diagnostics" className="select" value={s.scriptDiagnostics} onChange={(e) => update({ scriptDiagnostics: e.target.value as ScriptDiagnostics })} data-testid="settings-diagnostics">
+              {(Object.keys(DIAGNOSTICS_LABELS) as ScriptDiagnostics[]).map((mode) => (
+                <option key={mode} value={mode}>
+                  {DIAGNOSTICS_LABELS[mode]}
+                </option>
+              ))}
+            </select>
+            <div className="form-help">규칙은 프로젝트의 .luarc.json 을 따릅니다. 없으면 새 프로젝트 템플릿의 규칙을 씁니다.</div>
+          </div>
+        )}
         {editor.isBrowser && (
           <div className="form-row">
             <label htmlFor="settings-bridge">브리지 URL</label>

@@ -61,7 +61,7 @@ function M.pick(items, x, y, hitScale)
 	return best
 end
 
---- @param opts.items    { { id, label, x, y, size }, ... }
+-- @param opts.items    { { id, label, x, y, size }, ... }
 -- @param opts.drawText  function(x, y, text) (기본 전역 DrawText)
 -- @param opts.measure   function(text) -> 폭 (기본 전역 GetTextWidth)
 -- @param opts.input     엔진 Input과 같은 표면 (기본 전역 Input)

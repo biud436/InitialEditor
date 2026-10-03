@@ -18,7 +18,7 @@ function strip(key: string): string {
   return key.startsWith(PREFIX) ? key.slice(PREFIX.length) : key;
 }
 
-const texts = import.meta.glob("../../../templates/**/*.{lua,rb,json}", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+const texts = import.meta.glob("../../../templates/**/*.{lua,rb,rbs,json}", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 const urls = import.meta.glob("../../../templates/**/*.{png,fnt,wav,ogg}", { query: "?url", import: "default", eager: true }) as Record<string, string>;
 
 const textByPath = new Map(Object.entries(texts).map(([k, v]) => [strip(k), v]));

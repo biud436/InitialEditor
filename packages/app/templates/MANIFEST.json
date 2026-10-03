@@ -1,9 +1,9 @@
 {
   "comment": "scripts/sync-engine-templates.mjs 가 만든다. 손으로 고치지 않는다. path 는 엔진 저장소와 이 폴더 안의 경로, to 는 새 프로젝트 안의 경로",
-  "source": "checkout",
-  "syncCommand": "yarn sync:templates",
-  "engineCommit": "352d61915004fe507a5fe4a1e72a30d9e136e927",
-  "syncedAt": "2026-09-28",
+  "source": "release",
+  "syncCommand": "yarn sync:templates --from-zip <Initial2D-templates.zip>",
+  "engineCommit": "498c6d85fb198eee3dbcc0aae8d185af6716a0e3",
+  "syncedAt": "2026-10-03",
   "files": [
     {
       "path": "scripts/lua/scene_loader.lua",
@@ -87,6 +87,54 @@
       "kind": "text",
       "size": 42428,
       "sha256": "925964ca679ec779970509653855cd85581f3574c656d10554b3b44fb4975482",
+      "generated": false
+    },
+    {
+      "path": "resources/api/initial2d.lua",
+      "to": "resources/api/initial2d.lua",
+      "groups": [
+        "common"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 17807,
+      "sha256": "ea6be4e4f9f971114020539c4389e69bd85c77b342f3c30009da48e8714c3fce",
+      "generated": false
+    },
+    {
+      "path": "resources/templates/luarc.json",
+      "to": ".luarc.json",
+      "groups": [
+        "common"
+      ],
+      "language": "lua",
+      "kind": "text",
+      "size": 336,
+      "sha256": "de4a23d80d2e1aab30b49c5163d4d8fe3f11180b052358fc88d2b0a3b49db20c",
+      "generated": false
+    },
+    {
+      "path": "resources/api/initial2d.rb",
+      "to": "resources/api/initial2d.rb",
+      "groups": [
+        "common"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 20192,
+      "sha256": "009f7f2c1610a0d8792bc87b1d8dad52a5a41415577963f61ac1f960028822d0",
+      "generated": false
+    },
+    {
+      "path": "resources/api/initial2d.rbs",
+      "to": "resources/api/initial2d.rbs",
+      "groups": [
+        "common"
+      ],
+      "language": "ruby",
+      "kind": "text",
+      "size": 14944,
+      "sha256": "8a7c2b4b2d4c9e0f3007e2cc2364b8feb7861cbd43ddc91999fef260611f5ace",
       "generated": false
     },
     {
@@ -269,8 +317,8 @@
       ],
       "language": null,
       "kind": "binary",
-      "size": 86170,
-      "sha256": "4b707a80839027cea3aed10585c56cb2709754eb1ce05424b571f00f366ae626",
+      "size": 87779,
+      "sha256": "fd893be3b9ffef667502adad62c36adc672fb54117a6b86af6489c2b99d96b88",
       "generated": true
     },
     {
@@ -281,8 +329,8 @@
       ],
       "language": null,
       "kind": "binary",
-      "size": 981,
-      "sha256": "bc58975f58b794f127c3fdd3548d25edb0a23d8a3e489d2291bc5afaacbd33d2",
+      "size": 1044,
+      "sha256": "065e86cd2631f9c590e33b73a778b0e7dec076bf15714434fa2fbd5a09a4eab6",
       "generated": true
     },
     {
@@ -293,8 +341,8 @@
       ],
       "language": null,
       "kind": "binary",
-      "size": 1683,
-      "sha256": "b448683818d3a8f3ee8d1c9de11235cc36899aec1a106041bfb3944bff990b18",
+      "size": 1536,
+      "sha256": "525adebaf46f1510ce4d24f0937c23312fe0f6a2e530552f3729ba3078c37ea0",
       "generated": true
     },
     {
@@ -305,8 +353,8 @@
       ],
       "language": null,
       "kind": "binary",
-      "size": 574,
-      "sha256": "39fc95932e316f6479bd8eb8f3af1dcbcb1cb1c30d5401e27b03ba6327acdc51",
+      "size": 651,
+      "sha256": "4905aee67b20b8346f5248d0a9bebeef1e163c50676d8421bef3f8b07424d5a4",
       "generated": true
     },
     {
@@ -510,8 +558,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 2320,
-      "sha256": "15c2045eedbdf74bfcf81de2a9ee9982b86c8fdf58e7349f05821778524aac8b",
+      "size": 2319,
+      "sha256": "05869daad315634ac76098f75bf406115aac802c923b0469e6386c6dde280a3c",
       "generated": false
     },
     {
@@ -522,8 +570,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 13200,
-      "sha256": "4899dd3b571b5d6b173a80b1245ec7b85b60e73ce49ce15f135dcf5901af51e5",
+      "size": 13199,
+      "sha256": "b6ca8658acae73b5fe8d1689580c934f69735e36b5f077abe8139442cf8c09be",
       "generated": false
     },
     {
@@ -534,8 +582,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 7674,
-      "sha256": "809da3aaa295c025f13a305974c5ad0f4413746cec9f810d057470b228f0ad67",
+      "size": 7673,
+      "sha256": "4e6c3b08e2d9ee3f5760f4cd2f97cf2ca1a610a7a9a4085739cd106f5ab9faf4",
       "generated": false
     },
     {
@@ -558,8 +606,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 9544,
-      "sha256": "ad2fa82d6e359b4959b567fd51f2422ee4a4a290d602d244c11d5ae7b78ab629",
+      "size": 9543,
+      "sha256": "2c4ddcfbbe222e3200b19524891b2cc434c9aaad35caa3917c455d72543bad4a",
       "generated": false
     },
     {
@@ -606,8 +654,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 7000,
-      "sha256": "0b1ba9ac60c03773c2c7ce96d14014720e8df098b27feca9571f33f454a73418",
+      "size": 6999,
+      "sha256": "8ae4bd75a2a57b530f6201d756d817282f4ece3682416943940f51853d3b74c3",
       "generated": false
     },
     {
@@ -630,8 +678,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 7227,
-      "sha256": "37b06659943517a769ecddff236aafe1eba197e2fee10ca718a030008c6bae1d",
+      "size": 7226,
+      "sha256": "206b1342adef25ea14aa1756d3f437e4cdb851390ce8d7765e680dca16b17acb",
       "generated": false
     },
     {
@@ -642,8 +690,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 12818,
-      "sha256": "884a074b22a9e0a3bb0acdc46569c247d9b1cdf037b62e3e3034a786fa94acd9",
+      "size": 12817,
+      "sha256": "39b0433632a3a2e1b4fc9057bc18d1f9b07a45c9cc0338a550a02a86619a4182",
       "generated": false
     },
     {
@@ -654,8 +702,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 4092,
-      "sha256": "a2da0eb5cd1f97c94a97969eda7a0b0b01df7a4ed96cd5561e22584efd811c05",
+      "size": 4091,
+      "sha256": "f702fe42010677746c0082511ff47944daa125b6e8179b1bd01287e7cb857ab6",
       "generated": false
     },
     {
@@ -702,8 +750,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 11302,
-      "sha256": "7c27187c361c242fb24a14a1e7103daf92a3e2397a44cf3a3e077cd12cd94feb",
+      "size": 11300,
+      "sha256": "8ce2a33ad0d83bf4d9e0d5cffec8e71bf15fe853082009688d895b12e4273d14",
       "generated": false
     },
     {
@@ -738,8 +786,8 @@
       ],
       "language": "lua",
       "kind": "text",
-      "size": 5556,
-      "sha256": "576e09f3894b3e42ed8e18e4e0ed2cd79f61eee8c520249b74237affc17403a0",
+      "size": 5555,
+      "sha256": "b79234c1e4ad655c94c0c842a776282055e1bdc044846cb57a64bf0561e9cc24",
       "generated": false
     },
     {
