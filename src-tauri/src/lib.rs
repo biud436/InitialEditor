@@ -1,6 +1,6 @@
 // InitialEditor 데스크톱 셸 (Tauri 2). Rust 는 명령 표(docs/plans/01-tech-stack.md 6절)만 맡는다.
 // 파일 접근(project.rs), 감시(watcher.rs), 핫 리로드 push(hmr.rs), 엔진 프로세스(engine.rs), 앱에 든 엔진(bundled.rs),
-// 설정(settings.rs)이 그 표의 전부이고, 메뉴와 창 상태와 테마는 프런트가 Tauri API 로 직접 한다.
+// 설정(settings.rs), 언어 서버(lsp.rs)가 그 표의 전부이고, 메뉴와 창 상태와 테마는 프런트가 Tauri API 로 직접 한다.
 // 바깥 링크는 opener 플러그인이 연다 (capabilities/default.json 이 주소를 좁힌다).
 // 창 main 은 설정(tauri.conf.json, create: false)대로 여기서 만든다. 자가 검사(selftest.rs)면 계획의 showWindow 로
 // 보임을 정하고, 사용자의 상태를 건드리지 않게 window-state 플러그인을 붙이지 않고 웹뷰 저장소를 남기지 않는다.
@@ -12,6 +12,7 @@ pub mod engine;
 pub mod error;
 pub mod fsutil;
 pub mod hmr;
+pub mod lsp;
 pub mod paths;
 pub mod project;
 pub mod selftest;
@@ -76,6 +77,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(commands::AppState::default())
         .manage(Arc::new(engine::EngineState::default()))
+        .manage(Arc::new(lsp::LspState::default()))
         .manage(selftest::SelftestSlot(selftest))
         .setup(move |app| {
             create_main_window(app, setup_selftest.as_deref())?;
@@ -109,6 +111,10 @@ pub fn run() {
             commands::settings_load,
             commands::settings_save,
             commands::startup_open_path,
+            commands::lsp_available,
+            commands::lsp_start,
+            commands::lsp_send,
+            commands::lsp_stop,
             android::android_stage,
             android::android_repo_probe,
             selftest::selftest_plan,
@@ -116,6 +122,12 @@ pub fn run() {
             selftest::selftest_write_log,
             selftest::selftest_finish,
         ])
-        .run(tauri::generate_context!())
-        .expect("InitialEditor 시작 실패");
+        .build(tauri::generate_context!())
+        .expect("InitialEditor 시작 실패")
+        .run(|app, event| {
+            // 언어 서버는 입력이 닫히면 스스로 끝나지만, 앱이 끝날 때 기다리지 않고 정리한다
+            if let tauri::RunEvent::Exit = event {
+                app.state::<Arc<lsp::LspState>>().kill_all();
+            }
+        });
 }

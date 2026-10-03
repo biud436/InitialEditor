@@ -71,6 +71,8 @@ export interface PlanProject {
   /** 맵 뷰로 열어 둘 맵 (실행 뒤 뽑기에 쓴다) */
   openMap: string | null;
   probe: PlanProbe | null;
+  /** 진입 스크립트에서 앱에 든 언어 서버(LuaLS)가 뜨고 완성과 호버를 주는지 본다 (Lua 프로젝트) */
+  languageServer: boolean;
   runs: PlanRun[];
 }
 
@@ -200,6 +202,7 @@ export function parsePlan(raw: unknown): SelftestPlan {
       edit: o.edit == null ? null : parseEdit(o.edit, `${where}.edit`),
       openMap: optStr(o.openMap, `${where}.openMap`),
       probe: o.probe == null ? null : parseProbe(o.probe, `${where}.probe`),
+      languageServer: o.languageServer === true,
       runs: runsRaw.map((r, j) => parseRun(r, `${where}.runs[${j}]`)),
     };
   });

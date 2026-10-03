@@ -414,3 +414,4 @@ export function startupOpenPath(): Promise<string | null> {
 }
 
 export { selftestFinish, selftestPlan, selftestProgress, selftestWriteLog } from "./selftest";
+export { lspAvailable, TauriLanguageServer, type LspAvailable, type LspInfo } from "./lsp";

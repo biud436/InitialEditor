@@ -1,6 +1,6 @@
 # CI (docs/plans/e0-foundation.md 마일스톤 6, e6-packaging.md 4.1 절): 타입 검사, 린트, 단위 테스트, 빌드, 색 리터럴 검사, UI 문구 검사,
 # Playwright 스모크(Chromium 전부, WebKit 은 스크립트 편집 스펙만), 판과 제3자 고지 대조, 웹판 dist 와 Pages 헤더 검사,
-# 그리고 Rust 명령의 cargo test(세 OS)와 Tauri 디버그 빌드.
+# 그리고 Rust 명령의 cargo test(세 OS)와 Tauri 디버그 빌드. 언어 서버(LuaLS)는 받아서 클라이언트 시험과 e2e 에 쓴다.
 # 엔진 저장소(biud436/Initial2D)를 형제 폴더로 받아 브리지 스모크와 적합성 테스트가 진짜 브리지 서버를 띄우게 한다.
 # 엔진은 engine-pin.json 의 커밋으로 받는다 (ciEngineRef 가 있으면 그것). 엔진 기본 브랜치가 앞서 나가도 매일의 CI 가 흔들리지 않는다.
 # 설치 파일과 자가 검사는 release.yml 이다.
@@ -70,6 +70,13 @@ jobs:
         working-directory: InitialEditor
         run: yarn test
 
+      # 진짜 LuaLS 와 LSP 클라이언트 (docs/plans/language-server.md 7절). 받은 LuaLS 는 e2e 의 language-server.spec.ts 도 쓴다
+      - name: 언어 서버 (LuaLS 받기와 클라이언트 시험)
+        working-directory: InitialEditor
+        run: |
+          yarn luals:fetch
+          yarn test:luals
+
       - name: 브리지 적합성 테스트
         working-directory: InitialEditor
         env:
@@ -112,7 +119,7 @@ jobs:
         run: npx playwright install --with-deps webkit
 
       # playwright.config.ts 의 WEBKIT_SPECS 만 (macOS 앱의 웹뷰인 WKWebView 와 같은 엔진)
-      - name: Playwright WebKit (스크립트 편집, 스크립트 탭 여럿)
+      - name: Playwright WebKit (스크립트 편집, 스크립트 탭 여럿, 그래프, 언어 서버)
         working-directory: InitialEditor
         env:
           CI: "1"

@@ -9,6 +9,8 @@ import type { Editor } from "../Editor";
 import type { KeyValueStorage } from "../LocalStorageSettingsStorage";
 import { playRequest, type PlayHost } from "../maps/objectTools/playHere";
 import { writeProjectTemplate } from "../scene/projectTemplates";
+import { completionItems, toHover } from "../scripting/lsp/convert";
+import type * as lsp from "vscode-languageserver-protocol";
 import type { CspCollector } from "./csp";
 import { parsePlan } from "./plan";
 import { runSelftest, type SelftestDeps, type SelftestHost, type SelftestShell } from "./runSelftest";
@@ -66,6 +68,35 @@ export function editorSelftestHost(editor: Editor, csp: Pick<CspCollector, "list
     captureMapTiles: async (doc, rect) => editor.mapSupport.rendererFor(doc)?.captureTiles(rect) ?? null,
     cspViolations: () => csp.list,
     extensionProbe: (id) => editor.extensions.exportsOf<{ selftest?: MapSelftestProbe }>(id)?.selftest ?? null,
+    languageServer: () => {
+      const server = editor.scripting.languageServer;
+      if (!server.hasLauncher) return null;
+      const call = async <T,>(method: string, path: string, line: number, character: number): Promise<T | null> => {
+        const client = server.client;
+        const binding = server.binding;
+        if (!client || !binding) throw new Error(`언어 서버가 실행 중이 아닙니다 (${server.state})`);
+        return client.request<T>(method, { textDocument: { uri: binding.serverUri(path) }, position: { line, character } });
+      };
+      return {
+        get state() {
+          return server.state;
+        },
+        get version() {
+          return server.version;
+        },
+        get reason() {
+          return server.reason;
+        },
+        completion: async (path, line, character) => {
+          const result = await call<lsp.CompletionList | lsp.CompletionItem[]>("textDocument/completion", path, line, character);
+          return completionItems(result).items.map((i) => i.label);
+        },
+        hover: async (path, line, character) => {
+          const hover = await call<lsp.Hover>("textDocument/hover", path, line, character);
+          return (toHover(hover)?.contents ?? []).map((c) => c.value).join("\n");
+        },
+      };
+    },
     playMap: async (doc, request, opts) => {
       // 프로젝트를 연 뒤의 엔진 탐색이 끝나기를 기다린다. 그동안 앱의 실행 길은 "엔진을 찾는 중" 으로 막힌다
       await when(() => !editor.runner.resolving, { timeout: 60_000 }).catch(() => {});

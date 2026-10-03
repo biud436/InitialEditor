@@ -59,3 +59,24 @@ describe("SettingsStore 엔진 신뢰", () => {
     expect(store.settings.engineTrust).toEqual({});
   });
 });
+
+describe("SettingsStore 언어 서버", () => {
+  it("기본은 켜져 있고 진단은 규칙 전체다. 바꾸면 저장된다", async () => {
+    const storage = new MemorySettingsStorage();
+    const store = new SettingsStore(storage);
+    expect(store.settings.languageServer).toBe(true);
+    expect(store.settings.scriptDiagnostics).toBe("rules");
+    store.update({ languageServer: false, scriptDiagnostics: "syntax" });
+    await Promise.resolve();
+    expect(storage.data).toMatchObject({ languageServer: false, scriptDiagnostics: "syntax" });
+  });
+
+  it("손으로 고친 설정 파일의 틀린 값은 기본으로 되돌린다", async () => {
+    const storage = new MemorySettingsStorage();
+    storage.data = { languageServer: "yes" as unknown as boolean, scriptDiagnostics: "all" as EditorSettings["scriptDiagnostics"] };
+    const store = new SettingsStore(storage);
+    await store.load();
+    expect(store.settings.languageServer).toBe(true);
+    expect(store.settings.scriptDiagnostics).toBe("rules");
+  });
+});

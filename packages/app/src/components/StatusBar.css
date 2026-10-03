@@ -39,3 +39,11 @@
 .statusbar-engine.failed {
   color: var(--danger);
 }
+
+.statusbar-lsp.running {
+  color: var(--success);
+}
+
+.statusbar-lsp.failed {
+  color: var(--danger);
+}

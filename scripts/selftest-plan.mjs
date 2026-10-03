@@ -8,6 +8,7 @@
 //   mac, linux  플래피 Lua 와 Ruby, 타일맵을 앱에 든 엔진으로 (필수), 플래피 Lua 를 에디터 안에서 (시도). 창을 보인다
 //   windows     앱에 든 엔진이 없다: 플래피 Lua 를 프로세스 방식으로 시작해 에디터 안으로 넘어가 돈다 (필수). 창을 보인다
 //   local       mac 과 같되 프로세스 실행만이고 창을 숨긴다 (yarn selftest:app 의 기본). --embedded 면 에디터 안 실행을 더하고 창을 보인다
+//   세 OS 와 local 모두 플래피 Lua 에서 앱에 든 언어 서버(LuaLS)가 뜨고 진입 스크립트의 "Json." 뒤 완성과 호버를 주는지 본다
 //   --forest    엔진 저장소의 알데바란 숲(resources/maps/aldebaran_forest.json)을 맵 뷰로 열어 deco 레이어의 빈 하늘 칸 하나를
 //               칠해 저장하고, 게임을 같은 카메라로 돌려 맵 뷰의 타일과 게임 화면을, 그리고 판정이 저장한 맵으로 그린 기준과
 //               게임 화면을 견준다 (E3 완료 기준 1. 레이어마다, 칠한 칸까지). 게임에 필요한 것만 <workDir>-forest 로 복사한다
@@ -138,12 +139,12 @@ export function buildPlan({ os, workDir, embedded = false, forestRoot = null, rp
   let showWindow;
   if (os === "windows") {
     // 앱에 든 엔진이 없다 (R5 전): 프로세스 방식으로 시작하므로 엔진 탐색과 넘어감이 둘 다 검사 대상이다
-    projects = [{ id: "flappy-lua", template: "flappy", language: "lua", runs: [{ mode: "process", expectEngineSource: "none", expectFallback: "embedded", check: "flappy", env: { INITIAL2D_AUTOPLAY: "1" }, timeoutMs: 150_000 }] }];
+    projects = [{ id: "flappy-lua", template: "flappy", language: "lua", languageServer: true, runs: [{ mode: "process", expectEngineSource: "none", expectFallback: "embedded", check: "flappy", env: { INITIAL2D_AUTOPLAY: "1" }, timeoutMs: 150_000 }] }];
     showWindow = true;
   } else {
     const withEmbedded = os !== "local" || embedded;
     projects = [
-      { id: "flappy-lua", template: "flappy", language: "lua", runs: withEmbedded ? [flappyProcessRun(), flappyEmbeddedRun()] : [flappyProcessRun()] },
+      { id: "flappy-lua", template: "flappy", language: "lua", languageServer: true, runs: withEmbedded ? [flappyProcessRun(), flappyEmbeddedRun()] : [flappyProcessRun()] },
       { id: "flappy-ruby", template: "flappy", language: "mruby", runs: [flappyProcessRun()] },
       tilemapProject(workDir),
     ];

@@ -9,6 +9,10 @@ export type ThemePreference = "system" | "dark" | "light";
 export type RunMode = "process" | "embedded";
 export const RUN_MODES: readonly RunMode[] = ["process", "embedded"];
 
+/** 언어 서버 진단 중 마커로 보일 것: 끔, 구문 오류만, 규칙 목록(프로젝트의 .luarc.json 또는 템플릿의 규칙) 전부 */
+export type ScriptDiagnostics = "off" | "syntax" | "rules";
+export const SCRIPT_DIAGNOSTICS: readonly ScriptDiagnostics[] = ["off", "syntax", "rules"];
+
 /**
  * 프로젝트가 가리키는 엔진 실행 파일(.initial-editor/engine, build/, 형제 폴더)에 대한 답 (E6 2.3 절).
  * 프로젝트 폴더가 아니라 앱 설정에 남아서 프로젝트가 스스로 신뢰를 적을 수 없다
@@ -40,6 +44,10 @@ export interface EditorSettings {
   editorWordWrap: boolean;
   /** 스크립트 편집기의 미니맵 */
   editorMinimap: boolean;
+  /** 앱에 든 언어 서버(LuaLS)를 Lua 스크립트에 붙인다. 언어 서버가 없는 실행 환경은 이 값과 상관없이 명세 공급자를 쓴다 */
+  languageServer: boolean;
+  /** 언어 서버 진단의 표시 범위 */
+  scriptDiagnostics: ScriptDiagnostics;
   /** 프로젝트 정규 경로별 엔진 신뢰 (E6) */
   engineTrust: Record<string, EngineTrustRecord>;
   /** 안드로이드 스테이징에 쓸 엔진 저장소 (android/prepare_assets.sh 가 있는 폴더). 비우면 자동 탐색 (E6) */
@@ -59,6 +67,8 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   editorTabSize: 2,
   editorWordWrap: false,
   editorMinimap: false,
+  languageServer: true,
+  scriptDiagnostics: "rules",
   engineTrust: {},
   engineRepoPath: "",
   androidTrust: {},
@@ -130,6 +140,8 @@ export class SettingsStore {
     next.editorTabSize = clampInt(next.editorTabSize, EDITOR_TAB_SIZE_RANGE.min, EDITOR_TAB_SIZE_RANGE.max, DEFAULT_SETTINGS.editorTabSize);
     next.editorWordWrap = !!next.editorWordWrap;
     next.editorMinimap = !!next.editorMinimap;
+    next.languageServer = typeof next.languageServer === "boolean" ? next.languageServer : DEFAULT_SETTINGS.languageServer;
+    if (!SCRIPT_DIAGNOSTICS.includes(next.scriptDiagnostics)) next.scriptDiagnostics = DEFAULT_SETTINGS.scriptDiagnostics;
     next.engineTrust = cleanEngineTrust(next.engineTrust);
     next.engineRepoPath = typeof next.engineRepoPath === "string" ? next.engineRepoPath : "";
     next.androidTrust = cleanEngineTrust(next.androidTrust);

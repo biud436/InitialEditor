@@ -1,6 +1,7 @@
 // 스크립트 편집 지원의 상태 (E1 마일스톤 1, 4, 5). Editor.scripting 으로 붙는다.
 //   - 텍스트 파일을 ScriptDocument 로 여는 것 (openPath 를 감싼다, 아래 install 의 설명)
 //   - API 명세와 Monaco 공급자 (자동완성, 시그니처, 호버). 프로젝트를 열고 닫을 때 다시 읽는다
+//   - Lua 언어 서버 (lsp/LanguageServer.ts). 서버가 도는 동안 Lua 의 명세 공급자는 씬 계약 스니펫만 남긴다
 //   - Monaco 테마 연동, 프로젝트 찾기(FindStore), 커맨드와 메뉴(scriptCommands.ts)
 
 import { extname } from "@initial-editor/core";
@@ -8,8 +9,9 @@ import { computed, makeObservable, observable, runInAction } from "mobx";
 import type { Editor } from "../Editor";
 import { SCRIPT_EXTENSIONS, ScriptDocument } from "../documents/ScriptDocument";
 import { countSpec, EMPTY_SPEC, type ApiSpec } from "./apiSpec";
-import { registerApiProviders } from "./completion";
+import { registerApiProviders, type SpecProviderMode } from "./completion";
 import { FindStore } from "./find";
+import { LuaLanguageServer } from "./lsp/LanguageServer";
 import { registerScriptCommands } from "./scriptCommands";
 import { API_SPEC_PATH, loadApiSpec, type SpecSource } from "./specLoader";
 import { installMonacoTheme } from "./themes";
@@ -20,6 +22,10 @@ export class ScriptSupport {
   /** 명세의 출처. "none" 은 아직 안 읽었다 */
   specSource: SpecSource | "none" = "none";
   readonly find: FindStore;
+  /** Lua 언어 서버 (데스크톱의 LuaLS) */
+  readonly languageServer: LuaLanguageServer;
+  /** Lua 의 명세 공급자: 전부, 또는 언어 서버가 돌 때 씬 계약 스니펫만 */
+  luaSpecMode: SpecProviderMode = "full";
   private disposers: Array<() => void> = [];
   private projectDisposers: Array<() => void> = [];
   private providers: (() => void) | null = null;
@@ -27,7 +33,8 @@ export class ScriptSupport {
 
   constructor(private readonly editor: Editor) {
     this.find = new FindStore({ backend: () => editor.backend, isOpen: () => editor.project.isOpen, scope: () => editor.tree?.filter.scope });
-    makeObservable(this, { spec: observable.ref, specSource: observable, openCount: computed, activeScript: computed });
+    this.languageServer = new LuaLanguageServer(editor, this);
+    makeObservable(this, { spec: observable.ref, specSource: observable, luaSpecMode: observable, openCount: computed, activeScript: computed });
   }
 
   /** 열린 스크립트 문서 수 (상태 바용) */
@@ -69,6 +76,18 @@ export class ScriptSupport {
       }),
     );
     void this.reloadSpec();
+    this.languageServer.install();
+    this.disposers.push(() => this.languageServer.dispose());
+  }
+
+  /** Lua 의 명세 공급자 범위를 바꾸고 다시 건다 */
+  setLuaSpecMode(mode: SpecProviderMode): void {
+    if (this.luaSpecMode === mode) return;
+    runInAction(() => {
+      this.luaSpecMode = mode;
+    });
+    this.providers?.();
+    this.providers = registerApiProviders(this.spec, mode);
   }
 
   /** 명세를 다시 읽고 Monaco 공급자를 다시 건다 (프로젝트의 resources/api/initial2d-api.json, 없으면 내장 기본값) */
@@ -82,7 +101,7 @@ export class ScriptSupport {
       this.specSource = loaded.source;
     });
     this.providers?.();
-    this.providers = registerApiProviders(loaded.spec);
+    this.providers = registerApiProviders(loaded.spec, this.luaSpecMode);
     const n = countSpec(loaded.spec);
     if (loaded.problem) editor.log.warn("editor", loaded.problem);
     if (loaded.source === "project") {
