@@ -3,6 +3,7 @@
 //   포트에서 포트로 끌면 잇는다 (입력에서 출력으로도). 이어진 입력을 끌면 그 선을 옮기고, 빈 곳에 놓으면 끊긴다.
 //   빈 곳에 놓은 출력 선, 빈 곳의 오른쪽 클릭과 두 번 클릭은 노드 추가 목록을 연다. Alt 와 포트 클릭은 그 포트의 선을 모두 끊고,
 //   선의 오른쪽 클릭은 그 선을 끊는다. 편집은 모두 문서의 명령이라 되돌리기 한 단계씩이다 (끌기는 한 단계로 합쳐진다).
+//   옆 창의 변수를 끌어 놓으면 그 자리에 읽기 노드(Alt 는 쓰기 노드)를 만든다. 맞는 포트 위에 놓으면 그 포트 옆에 만들어 잇는다.
 
 import {
   assignable,
@@ -33,6 +34,7 @@ import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { GraphSupport, GraphViewport } from "../../editor/graph/GraphSupport";
+import { draggedNode, droppedNode, endNodeDrag, GRAPH_NODE_MIME, placeNode, previewNode, type NewNode } from "../../editor/graph/placeNode";
 import { ArgEditor } from "./ArgEditor";
 
 export interface PinRef {
@@ -113,6 +115,8 @@ export const GraphCanvas = observer(function GraphCanvas({
   const hostRef = useRef<HTMLDivElement>(null);
   const [view, setViewState] = useState<GraphViewport>(() => support.viewport(doc) ?? { x: 40, y: 40, zoom: 1 });
   const [drag, setDrag] = useState<Drag | null>(null);
+  // 옆 창에서 끌어 온 변수를 놓으면 이을 포트
+  const [dropPin, setDropPin] = useState<PinRef | null>(null);
   const spaceDown = useRef(false);
   const [size, setSize] = useState({ width: 0, height: 0 });
   useEffect(() => {
@@ -463,6 +467,59 @@ export const GraphCanvas = observer(function GraphCanvas({
     }
   };
 
+  // ---- 옆 창에서 끌어 온 변수 ----
+
+  /** 끌어 온 노드를 이 포트에 이을 수 있는가: 값 입력은 형식이 맞는 값 노드, 실행 출구는 실행 노드 */
+  const dropFits = (node: NewNode, pin: PinRef): boolean => {
+    const p = previewNode(doc, node);
+    if (!p) return false;
+    if (pin.kind === "exec-out") return p.exec;
+    if (pin.kind !== "data-in" || p.exec || !p.out) return false;
+    const want = pinType(pin);
+    return !want || want.t === "comparable" || want.t === "switchable" || assignable(want as PortType, p.out);
+  };
+
+  const sameDropPin = (a: PinRef | null, b: PinRef | null) => a?.node === b?.node && a?.kind === b?.kind && a?.key === b?.key;
+
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!e.dataTransfer.types.includes(GRAPH_NODE_MIME)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    const node = draggedNode();
+    const pin = pinFromTarget(e.target);
+    const next = node && pin && dropFits(droppedNode(node, e.altKey), pin) ? pin : null;
+    if (!sameDropPin(next, dropPin)) setDropPin(next);
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const raw = e.dataTransfer.getData(GRAPH_NODE_MIME);
+    if (!raw) return;
+    e.preventDefault();
+    setDropPin(null);
+    endNodeDrag();
+    let node: NewNode;
+    try {
+      node = droppedNode(JSON.parse(raw) as NewNode, e.altKey);
+    } catch {
+      return;
+    }
+    const preview = previewNode(doc, node);
+    if (!preview) return;
+    const pin = pinFromTarget(e.target);
+    const target = pin && dropFits(node, pin) ? pin : null;
+    const at = target ? pinAt(target) : null;
+    const w = toWorld(e.clientX, e.clientY);
+    // 값 입력이면 새 노드의 출력이 그 입력과 같은 높이로 왼쪽에, 실행 출구면 오른쪽에 놓는다
+    const world =
+      target && at
+        ? target.kind === "data-in"
+          ? { x: at.x - preview.width - 48, y: at.y - (preview.outPin?.y ?? 0) }
+          : { x: at.x + 48, y: at.y - 16 }
+        : { x: w.x, y: w.y };
+    placeNode(doc, node, world, target, preview.label);
+    hostRef.current?.focus();
+  };
+
   const openPaletteAt = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     if (target.closest("[data-node], input, select, button")) return;
@@ -531,6 +588,12 @@ export const GraphCanvas = observer(function GraphCanvas({
       }}
       onContextMenu={(e) => e.preventDefault()}
       onDoubleClick={openPaletteAt}
+      onDragOver={onDragOver}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropPin(null);
+      }}
+      onDrop={onDrop}
+      data-drop-pin={dropPin ? `${dropPin.node}.${dropPin.key}` : undefined}
     >
       <div className="graph-world" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
         <svg className="graph-wires">
@@ -570,7 +633,7 @@ export const GraphCanvas = observer(function GraphCanvas({
             placed={p}
             selected={doc.selection.has(p.node.id)}
             connected={(pin) => connected(pin, p.node.id)}
-            hover={drag?.kind === "wire" ? drag.hover : null}
+            hover={drag?.kind === "wire" ? drag.hover : dropPin}
             pinType={pinType}
             argType={argType}
           />

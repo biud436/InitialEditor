@@ -46,6 +46,14 @@ describe("그래프 검사", () => {
     expect(problems(graph([update("a"), print("a", 1, "zz")]))).toEqual(["E a: next 출구가 없는 노드를 가리킵니다: zz"]);
   });
 
+  it("파일 경로 입력: 비었거나 폴더 경로면 오류", () => {
+    const play = (args: Record<string, unknown>) => problems(graph([update("s"), { id: "s", kind: "api.call", fn: "Audio.PlaySound", args }]));
+    expect(play({})).toEqual(["E s.path: 입력이 비어 있습니다: 파일 경로"]);
+    expect(play({ path: "./resources/audio/", id: "flap.wav", loop: 3 })).toEqual(["E s.path: 입력 파일 경로의 상수: 폴더 경로입니다. 파일 이름까지 입력합니다 (예: ./resources/audio/flap.wav)"]);
+    expect(play({ path: " " })).toEqual(["E s.path: 입력 파일 경로의 상수: 파일 경로가 비어 있습니다"]);
+    expect(play({ path: "./resources/audio/flap.wav" })).toEqual([]);
+  });
+
   it("값의 연결과 형식", () => {
     expect(problems(graph([update("p"), { id: "p", kind: "text.print" }]))).toEqual(["E p.value: 입력이 비어 있습니다: 값"]);
     expect(problems(graph([update("p"), { id: "p", kind: "text.print", args: { value: 1, other: 2 } }]))).toEqual(["E p.other: 알 수 없는 입력 포트의 상수입니다: other"]);

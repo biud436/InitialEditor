@@ -8,6 +8,12 @@ export interface ApiParam {
   label: string;
   type: ApiParamType;
   default?: unknown;
+  /** 상수 칸이 비었을 때 보이는 예 */
+  placeholder?: string;
+  /** 파일 경로 (검사가 빈 값과 폴더 경로를 오류로 본다) */
+  file?: boolean;
+  /** 이 상수가 빈 문자열이면 대신 넘길 다른 입력 (효과음의 이름이 비면 파일 경로) */
+  emptyUses?: string;
 }
 
 export interface ApiNodeDef {
@@ -27,11 +33,15 @@ export interface ApiNodeDef {
 
 const key: ApiParam = { key: "key", label: "키", type: "key", default: "SPACE" };
 const button: ApiParam = { key: "button", label: "버튼", type: "button", default: "left" };
-const soundArgs: ApiParam[] = [
-  { key: "path", label: "파일", type: "string", default: "./resources/audio/" },
-  { key: "id", label: "id", type: "string", default: "" },
-  { key: "loop", label: "반복 횟수 (-1이면 무한)", type: "integer", default: 0 },
+// 엔진은 파일을 읽어 이름(id)으로 기억하고 다시 부를 때 그 이름으로 찾는다. 이름을 비우면 파일 경로를 이름으로 쓴다.
+// 반복은 SDL_mixer 의 값 그대로라 효과음은 추가 반복 횟수(0이면 한 번), 음악은 재생 횟수다
+const audioArgs = (loop: ApiParam): ApiParam[] => [
+  { key: "path", label: "파일 경로", type: "string", placeholder: "./resources/audio/flap.wav", file: true },
+  { key: "id", label: "이름 (비우면 파일 경로)", type: "string", default: "", emptyUses: "path" },
+  loop,
 ];
+const soundArgs = audioArgs({ key: "loop", label: "추가 반복 (0이면 한 번, -1이면 무한)", type: "integer", default: 0 });
+const musicArgs = audioArgs({ key: "loop", label: "재생 횟수 (-1이면 무한)", type: "integer", default: -1 });
 
 export const API_NODES: readonly ApiNodeDef[] = [
   { id: "Graphics.WindowWidth", label: "화면 너비", lua: "WindowWidth", ruby: "Graphics.width", rubyKind: "getter", params: [], returns: "integer" },
@@ -59,7 +69,7 @@ export const API_NODES: readonly ApiNodeDef[] = [
   { id: "Input.GetMouseX", label: "마우스 x", lua: "Input.GetMouseX", ruby: "Input.mouse_x", rubyKind: "getter", params: [], returns: "number" },
   { id: "Input.GetMouseY", label: "마우스 y", lua: "Input.GetMouseY", ruby: "Input.mouse_y", rubyKind: "getter", params: [], returns: "number" },
   { id: "Audio.PlaySound", label: "효과음 재생", lua: "Audio.PlaySound", ruby: "Audio.play_sound", rubyKind: "method", params: soundArgs },
-  { id: "Audio.PlayMusic", label: "배경 음악 재생", lua: "Audio.PlayMusic", ruby: "Audio.play_music", rubyKind: "method", params: soundArgs.map((p) => (p.key === "loop" ? { ...p, default: -1 } : p)) },
+  { id: "Audio.PlayMusic", label: "배경 음악 재생", lua: "Audio.PlayMusic", ruby: "Audio.play_music", rubyKind: "method", params: musicArgs },
   { id: "Audio.StopMusic", label: "배경 음악 정지", lua: "Audio.StopMusic", ruby: "Audio.stop_music", rubyKind: "method", params: [] },
   { id: "Audio.PauseMusic", label: "배경 음악 일시 정지", lua: "Audio.PauseMusic", ruby: "Audio.pause_music", rubyKind: "method", params: [] },
   { id: "Audio.ResumeMusic", label: "배경 음악 재개", lua: "Audio.ResumeMusic", ruby: "Audio.resume_music", rubyKind: "method", params: [] },

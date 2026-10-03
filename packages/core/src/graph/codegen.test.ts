@@ -169,6 +169,22 @@ describe("코드 생성: 식과 문장", () => {
     expect(printed([n("m", "api.call", { fn: "Input.GetMouseX" })], "m")).toEqual({ lua: "print(Input.GetMouseX())", ruby: "puts(Input.mouse_x)" });
   });
 
+  it("효과음의 이름이 비면 파일 경로를 이름으로 넘긴다 (매개변수로 이은 경로도)", () => {
+    const g = gen(
+      graph(
+        [
+          n("u", "event.update", { next: "s" }),
+          n("s", "api.call", { fn: "Audio.PlaySound", args: { path: "./resources/audio/hit.wav" }, next: "m" }),
+          n("p", "param.get", { field: "sound" }),
+          n("m", "api.call", { fn: "Audio.PlaySound", in: { path: "p" }, args: { id: "" } }),
+        ],
+        { params: [{ key: "sound", type: "string", default: "./resources/audio/flap.wav" }] },
+      ),
+    );
+    expect(g.lua.text).toContain('\tAudio.PlaySound("./resources/audio/hit.wav", "./resources/audio/hit.wav", 0)\n\tAudio.PlaySound(params.sound, params.sound, 0)');
+    expect(g.ruby.text).toContain('Audio.play_sound("./resources/audio/hit.wav", "./resources/audio/hit.wav", 0)\n        Audio.play_sound(@params["sound"], @params["sound"], 0)');
+  });
+
   it("문자열 상수의 이스케이프", () => {
     expect(printed([n("t", "text.concat", { args: { a: 'a"b\\c', b: "#{x}\n" } })], "t")).toEqual({ lua: 'print("a\\"b\\\\c" .. "#{x}\\n")', ruby: 'puts("a\\"b\\\\c\\#{x}\\n")' });
   });

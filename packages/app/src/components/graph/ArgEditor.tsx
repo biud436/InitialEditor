@@ -34,7 +34,7 @@ export function ArgEditor({ doc, node, port, type }: { doc: GraphDocument; node:
     );
   }
   if (t.t === "number" || t.t === "integer" || t.t === "numeric") return <NumberArg {...common} value={value ?? port.default} integer={t.t === "integer"} onCommit={commit} />;
-  return <TextArg {...common} value={value ?? port.default} onCommit={commit} />;
+  return <TextArg {...common} value={value ?? port.default} placeholder={port.placeholder} onCommit={commit} />;
 }
 
 function NumberArg({ value, integer, onCommit, ...rest }: { value: unknown; integer: boolean; onCommit: (v: unknown) => void; className: string; "data-arg": string }) {
@@ -58,6 +58,7 @@ function NumberArg({ value, integer, onCommit, ...rest }: { value: unknown; inte
   );
 }
 
-function TextArg({ value, onCommit, ...rest }: { value: unknown; onCommit: (v: unknown) => void; className: string; "data-arg": string }) {
-  return <input {...rest} type="text" value={value === undefined ? "" : String(value)} onPointerDown={stop} onChange={(e) => onCommit(e.target.value)} />;
+function TextArg({ value, placeholder, onCommit, ...rest }: { value: unknown; placeholder?: string; onCommit: (v: unknown) => void; className: string; "data-arg": string }) {
+  const text = value === undefined ? "" : String(value);
+  return <input {...rest} type="text" value={text} placeholder={placeholder} title={text || placeholder} onPointerDown={stop} onChange={(e) => onCommit(e.target.value)} />;
 }
