@@ -3,7 +3,7 @@
 
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
-import { APP_COMMIT, EDITOR_NOTICES_URL, editionLink, ENGINE_NOTICES_FILE, ENGINE_README_API, foundEngineText, loadEngineNotices, PLANS_INDEX } from "../editor/about";
+import { APP_COMMIT, EDITOR_NOTICES_URL, editionLink, ENGINE_NOTICES_FILE, ENGINE_README_API, foundEngineText, loadEngineNotices, USER_GUIDE } from "../editor/about";
 import { MODE_LABELS, type BackendMode } from "../editor/backends";
 import type { EngineManifest } from "../editor/gameView/engineAssets";
 import type { ModalStore } from "../editor/modals";
@@ -100,11 +100,11 @@ const AboutBody = observer(function AboutBody({ host, deps, close }: { host: Abo
           <button type="button" className="btn btn-ghost" data-testid="about-notices" onClick={() => void openNoticesDialog(host, deps)}>
             제3자 고지
           </button>
-          <ExternalLink host={host} href={PLANS_INDEX} testId="about-plans" deps={open}>
-            계획 문서
+          <ExternalLink host={host} href={USER_GUIDE} testId="about-guide" deps={open}>
+            사용자 가이드
           </ExternalLink>
           <ExternalLink host={host} href={ENGINE_README_API} testId="about-api" deps={open}>
-            엔진 API 대응표
+            엔진 API 레퍼런스
           </ExternalLink>
         </div>
       </div>

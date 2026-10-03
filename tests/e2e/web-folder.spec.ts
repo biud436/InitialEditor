@@ -246,7 +246,8 @@ const CRASH_NOTICE = "지난번에 최근 폴더 목록을 불러오는 중 브�
 
 async function expectBrowserWelcome(page: Page) {
   const welcome = page.getByTestId("welcome");
-  await expect(welcome).toContainText("브라우저 폴더 모드.");
+  // 브라우저 폴더 모드만 폴더 열기 단추와 최근 폴더가 있다 (폴더 열기가 없는 브라우저면 꺼진 채로 있다)
+  await expect(welcome.getByRole("button", { name: "폴더 열기", exact: true })).toBeVisible();
   await expect(welcome).toContainText("최근 폴더");
   return welcome;
 }
@@ -571,7 +572,7 @@ test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
     await expect(footer.getByTestId("welcome-edition")).toHaveAttribute("href", "https://github.com/biud436/InitialEditor/releases");
     await expect(footer.getByTestId("welcome-edition")).not.toHaveAttribute("target", /.+/);
     // 이 웹 엔진 빌드에는 mruby 가 있어 Ruby 실행은 안 되는 것에 없다
-    await expect(page.getByTestId("welcome-web-limits")).toHaveText("브라우저 모드 미지원: 엔진 프로세스 실행, 안드로이드 스테이징 (데스크톱 앱에서 지원)");
+    await expect(page.getByTestId("welcome-web-limits")).toHaveText("데스크톱 앱에서만 되는 기능: 엔진 프로세스 실행, 안드로이드 스테이징");
 
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
@@ -596,7 +597,7 @@ test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
     await withoutMruby(page);
     await page.goto("/?backend=browser");
     await expectBrowserWelcome(page);
-    await expect(page.getByTestId("welcome-web-limits")).toHaveText("브라우저 모드 미지원: 엔진 프로세스 실행, 안드로이드 스테이징, Ruby 게임 실행 (데스크톱 앱에서 지원)");
+    await expect(page.getByTestId("welcome-web-limits")).toHaveText("데스크톱 앱에서만 되는 기능: 엔진 프로세스 실행, 안드로이드 스테이징, Ruby 게임 실행");
   });
 });
 
@@ -715,7 +716,7 @@ test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라
     deployed.hostname = "pages.localhost";
     await page.goto(deployed.href);
     const welcome = page.getByTestId("welcome");
-    await expect(welcome).toContainText("메모리 모드.");
+    await expect(welcome).toContainText("페이지를 다시 열면 처음 상태로 돌아갑니다");
     await expect(welcome).toContainText("이 브라우저는 폴더 열기를 지원하지 않아 샘플 프로젝트로 시작했습니다");
     await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
     await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();

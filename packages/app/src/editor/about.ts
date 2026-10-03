@@ -7,10 +7,14 @@ import { ENGINE_DIR, engineBaseUrl } from "./gameView/engineAssets";
 /** vite.config.ts 의 define 이 채운다. 테스트처럼 define 이 없으면 "dev" */
 export const APP_COMMIT: string = typeof __APP_COMMIT__ === "string" ? __APP_COMMIT__ : "dev";
 
-/** 엔진 README 의 Lua 대응표 */
+/** 엔진 README 의 API 대응표 (Lua 와 Ruby) */
 export const ENGINE_README_API = "https://github.com/biud436/Initial2D#lua-대응표";
-/** 계획 문서 (통합 브랜치 next) */
-export const PLANS_INDEX = "https://github.com/biud436/InitialEditor/blob/next/docs/plans/index.md";
+/** 사용자 가이드 (통합 브랜치 next 의 docs/guide). page 를 주면 그 문서 */
+export const GUIDE_BASE = "https://github.com/biud436/InitialEditor/blob/next/docs/guide/";
+export const USER_GUIDE = `${GUIDE_BASE}README.md`;
+export function guidePage(page: string): string {
+  return GUIDE_BASE + page;
+}
 /** 데스크톱 앱을 받는 곳 (GitHub 릴리스) */
 export const RELEASES_URL = "https://github.com/biud436/InitialEditor/releases";
 /** 웹판 (Cloudflare Pages 의 프로덕션 주소) */

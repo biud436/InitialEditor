@@ -26,8 +26,10 @@ describe("확장 패널", () => {
   it("등록된 패널이 없으면 무엇이 오는 자리인지와 맵 패널이 어디 있는지 알린다", () => {
     setup();
     const hint = screen.getByTestId("extensions-empty").textContent ?? "";
-    expect(hint).toContain("registerPanel");
+    expect(hint).toContain("RPG 이벤트 같은 확장 패널");
     expect(hint).toContain("맵 탭을 열면");
+    // 사용자에게 보이는 글이라 API 이름과 계획 단계 이름을 쓰지 않는다
+    expect(hint).not.toContain("registerPanel");
     expect(hint).not.toContain("E3");
   });
 

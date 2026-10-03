@@ -538,11 +538,11 @@ export class SceneTools {
     return this.openScene(path);
   }
 
-  /** 활성 씬을 game.json 의 startScene 으로 */
-  async setStartScene(): Promise<boolean> {
+  /** 씬(주지 않으면 활성 씬)을 game.json 의 startScene 으로. 도구 모음의 씬 목록도 이것을 부른다 */
+  async setStartScene(name: string | null = this.activeSceneName): Promise<boolean> {
     const host = this.host;
-    const name = this.activeSceneName;
     if (!name || !host.project.isOpen) return false;
+    if (host.project.gameJson.startScene === name) return true;
     try {
       await host.project.saveGameJson({ ...host.project.gameJson, startScene: name });
       host.log.info(LOG, `시작 씬: ${name}`);

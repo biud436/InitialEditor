@@ -68,7 +68,12 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await openSample(page);
     const mod = await primaryKey(page);
     await expect(page.getByTestId("hierarchy")).toContainText("활성 씬 탭 없음");
+    // 도구 모음의 씬 목록은 game.json 의 startScene 이다
+    const sceneSelect = page.getByTestId("scene-select");
+    await expect(sceneSelect).toHaveValue("main");
     await newScene(page, "stage1");
+    // 새 씬 파일이 생기면 목록에 더해진다
+    await expect(sceneSelect.locator("option")).toHaveText(["main", "stage1"]);
     const hierarchy = page.getByTestId("hierarchy");
     await expect(hierarchy).toContainText("그리기 순서 (위 항목부터)");
     await expect(page.getByTestId("inspector")).toContainText("오브젝트 0개");
@@ -145,6 +150,11 @@ test.describe("씬 도구 (메모리 모드)", () => {
     await openMenu(page, "씬", "시작 씬으로 지정");
     await expect(page.getByTestId("toasts")).toContainText("시작 씬으로 지정됨: stage1");
     expect(await withEditor(page, (e) => e.project.gameJson.startScene)).toBe("stage1");
+    await expect(sceneSelect).toHaveValue("stage1");
+    // 도구 모음에서 바꾸면 game.json 에 바로 저장된다
+    await sceneSelect.selectOption("main");
+    await expect(page.getByTestId("toasts")).toContainText("시작 씬으로 지정됨: main");
+    expect((JSON.parse(await withEditor(page, (e) => e.backend.readText("game.json"))) as { startScene?: string }).startScene).toBe("main");
 
     // 저장 (Ctrl+S): 파일에 오브젝트가 있다
     await player.click();
