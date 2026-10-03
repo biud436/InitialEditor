@@ -985,7 +985,7 @@ Pages 빌드는 엔진을 만들지 않는다 (emsdk 가 없다). 커밋한 `pub
   열기" 도 같다 (로컬의 `?backend=memory` 는 전과 같이 맵을 열지 않는다. 테스트들이 그 상태에 기댄다).
 - 정보 창(`components/AboutDialog.tsx`): 판, 커밋, 웹 엔진 커밋, 데스크톱 앱이면 찾은 엔진(앱에 든 엔진이면 그 판), 제3자 고지. 웹판이면 "데스크톱 앱 받기", 데스크톱이면 "웹판 열기".
   구현: 판, 커밋(`__APP_COMMIT__`), 웹 엔진(MANIFEST 의 커밋 일곱 자리와 기능, 커밋 안 된 변경이면 그렇다고), 모드와 플랫폼,
-  "웹판 열기"(https://initial-editor.biud436.com/) 또는 "데스크톱 앱 받기", "제3자 고지", 계획 문서, 엔진 API 대응표. 제3자 고지는 앱이
+  "웹판 열기"(https://initial-editor.biud436.com/) 또는 "데스크톱 앱 받기", "제3자 고지", 사용자 가이드(`docs/guide/`), 엔진 API 대응표. 제3자 고지는 앱이
   놓인 곳의 `engine/THIRD-PARTY.md` 를 읽어 대화상자에 보인다 (웹판과 데스크톱이 같은 파일. `yarn sync:engine-web` 이 엔진 저장소 루트의
   고지를 웹 엔진 옆에 복사하고 MANIFEST 의 `files` 에는 넣지 않는다). 에디터 쪽 고지는 저장소의 `src-tauri/licenses` 링크다.
   계획 문서 링크는 옛 `blob/master`(2021년 브랜치라 파일이 없다)에서 `blob/next` 로 고쳤다. 엔진 판(`engine.json`) 줄은 2.3 의 몫이다.

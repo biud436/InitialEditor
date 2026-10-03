@@ -15,6 +15,9 @@
 모르고, 타일맵과 RPG 이벤트는 확장이 더합니다. 계획과 진행 상황은 [docs/plans/index.md](./docs/plans/index.md)에
 있습니다 (E0 부터 E6 까지 마쳤고 프리릴리스는 [Releases](https://github.com/biud436/InitialEditor/releases) 에 있습니다).
 
+에디터를 쓰는 법은 [사용자 가이드](./docs/guide/README.md)에 있습니다. 앱에서는 도움말 > 사용자 가이드(F1)로 엽니다.
+아래는 에디터를 빌드하고 고치는 사람을 위한 내용입니다.
+
 두 가지 모드로 돕니다.
 
 | 모드 | 무엇 | 로컬 파일 | 엔진 실행 |
@@ -455,6 +458,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn test:engine` | 진짜 엔진과 핫 리로드 교차 검사 (엔진을 헤드리스로 띄우고 I2DH 묶음을 보내 `HotReload: reloaded` 를 본다). 엔진 저장소 위치는 `INITIAL2D_DIR`, 기본 `../Initial2D` |
 | `yarn test:e2e` | Playwright, Chromium 으로 모든 스펙 (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
 | `yarn test:e2e:webkit` | 같은 Playwright 를 WebKit(macOS 앱의 웹뷰 WKWebView 와 같은 엔진)으로. 브라우저 엔진에 따라 동작이 갈리는 스펙(`playwright.config.ts` 의 `WEBKIT_SPECS`: 스크립트 편집, 스크립트 탭 여럿, 그래프, 언어 서버, 분석기 워커)만 돕니다. 언어 서버 스펙(`language-server.spec.ts`)은 `yarn luals:fetch` 로 받은 LuaLS 를 시험 프로세스가 띄워 붙이고, 없으면 CI 가 아닐 때 건너뜁니다. 처음 한 번 `npx playwright install --with-deps webkit`, 스펙 하나만은 `yarn test:e2e:webkit tests/e2e/script-tabs.spec.ts` |
+| `yarn guide:screenshots` | 사용자 가이드의 화면(`docs/guide/images/*.png`)을 다시 찍는다 (`tests/guide/`, `playwright.guide.config.ts`). 먼저 `yarn build`. 웹판 메모리 모드에서 RPG 데모와 플래피버드 템플릿으로 찍고 상태 바는 잘라 냅니다 |
 | `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
 | `yarn check:terms` | UI 문구 검사: `packages/*/src`, `src-tauri/src` 의 문자열 리터럴과 JSX 텍스트에서 쓰지 않는 말과 한다체 끝맺음을 찾는다 (규칙은 아래 "UI 문구"). 폴더나 파일을 주면 거기만 |
 | `node scripts/check-web-dist.mjs` | 빌드한 `dist/` 검사 (`_headers`, 웹 엔진과 MANIFEST, 고지, Pages 한도). `--desktop` 은 소스맵이 없는지도 (위 "웹판 배포") |
