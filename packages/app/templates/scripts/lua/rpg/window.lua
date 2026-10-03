@@ -131,7 +131,7 @@ local Skin = {}
 Skin.__index = Skin
 M.Skin = Skin
 
---- @param opts.path          스킨 이미지 경로
+-- @param opts.path          스킨 이미지 경로
 -- @param opts.spec          규격 표 (기본 Specs.window)
 -- @param opts.scale         확대 배율 (기본 1)
 -- @param opts.imageFactory  Image 생성자 (기본 scripts/lua/image, 테스트는 가짜를 넣는다)
@@ -208,7 +208,7 @@ local Window = {}
 Window.__index = Window
 M.Window = Window
 
---- @param opts.skin      Skin (필수)
+-- @param opts.skin      Skin (필수)
 -- @param opts.x, y       화면 좌상단 좌표
 -- @param opts.width, height  화면 픽셀 크기 (scale의 배수로 내림한다)
 -- @param opts.padding    안쪽 여백 (기본 모서리 크기 x 배율)

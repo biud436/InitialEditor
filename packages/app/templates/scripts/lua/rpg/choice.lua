@@ -25,7 +25,7 @@ local Choice = {}
 Choice.__index = Choice
 M.Choice = Choice
 
---- @param opts.skin       Window.Skin (필수)
+-- @param opts.skin       Window.Skin (필수)
 -- @param opts.measure    function(text) -> 픽셀 폭 (필수)
 -- @param opts.drawText   function(x, y, text) (기본 전역 DrawText)
 -- @param opts.lineHeight 항목 한 줄 높이 (화면 픽셀)

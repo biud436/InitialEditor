@@ -32,7 +32,7 @@ local Dialogue = {}
 Dialogue.__index = Dialogue
 M.Dialogue = Dialogue
 
---- @param opts.skin       Window.Skin (필수)
+-- @param opts.skin       Window.Skin (필수)
 -- @param opts.measure    function(text) -> 픽셀 폭 (기본 전역 GetTextWidth)
 -- @param opts.drawText   function(x, y, text) (기본 전역 DrawText)
 -- @param opts.lines      한 쪽에 보일 줄 수 (기본 3)
