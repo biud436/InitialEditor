@@ -3,10 +3,11 @@
 import type { ReactNode } from "react";
 import { defaultOpenDeps, openLink, type OpenExternalDeps, type OpenLinkHost } from "../editor/openExternal";
 
-export function ExternalLink({ host, href, children, testId, deps = defaultOpenDeps }: { host: OpenLinkHost; href: string; children: ReactNode; testId?: string; deps?: OpenExternalDeps }) {
+export function ExternalLink({ host, href, children, testId, className, deps = defaultOpenDeps }: { host: OpenLinkHost; href: string; children: ReactNode; testId?: string; className?: string; deps?: OpenExternalDeps }) {
   return (
     <a
       href={href}
+      className={className}
       rel="noreferrer"
       data-testid={testId}
       data-external="true"

@@ -116,8 +116,8 @@ describe("정보 창", () => {
     fireEvent.click(link);
     expect(t.invoked).toEqual([[OPEN_URL_COMMAND, { url: WEB_EDITION_URL }]]);
     expect(t.opened).toEqual([]);
-    fireEvent.click(screen.getByTestId("about-plans"));
-    expect(t.invoked[1]).toEqual([OPEN_URL_COMMAND, { url: "https://github.com/biud436/InitialEditor/blob/next/docs/plans/index.md" }]);
+    fireEvent.click(screen.getByTestId("about-guide"));
+    expect(t.invoked[1]).toEqual([OPEN_URL_COMMAND, { url: "https://github.com/biud436/InitialEditor/blob/next/docs/guide/README.md" }]);
   });
 
   it("웹판은 데스크톱 앱 받기이고 새 탭으로 연다", () => {

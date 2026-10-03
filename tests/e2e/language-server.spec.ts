@@ -124,7 +124,8 @@ test.describe("Lua 언어 서버", () => {
     const root = await openSample(page);
     const link = await connect(page, root);
     try {
-      await expect(lspState(page)).toHaveAttribute("data-state", "idle");
+      // 대기 중인 서버는 상태 바에 보이지 않는다
+      await expect(lspState(page)).toHaveCount(0);
       await page.evaluate(() => (window as unknown as EditorWindow).initialEditor.scripting.openScript("scripts/lua/lsp/main.lua"));
       await expect(page.locator(CODE)).toContainText("Util.add");
       await expect(lspState(page)).toHaveAttribute("data-state", "running", { timeout: 60_000 });
@@ -190,7 +191,7 @@ test.describe("Lua 언어 서버", () => {
       const closing = page.evaluate(() => (window as unknown as EditorWindow).initialEditor.closeProject());
       await page.getByRole("dialog").getByRole("button", { name: "닫기", exact: true }).click();
       expect(await closing).toBe(true);
-      await expect(lspState(page)).toHaveAttribute("data-state", "idle");
+      await expect(lspState(page)).toHaveCount(0);
       await expect.poll(() => link.server()?.child.exitCode !== null || link.server()?.child.signalCode !== null, { timeout: 10_000 }).toBe(true);
     } finally {
       link.server()?.cleanup();

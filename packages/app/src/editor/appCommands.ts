@@ -4,7 +4,7 @@
 import { BridgeBackend } from "@initial-editor/backend-bridge";
 import type { EditorCommand, ScriptBackend } from "@initial-editor/core";
 import { openAboutDialog } from "../components/AboutDialog";
-import { ENGINE_README_API, PLANS_INDEX } from "./about";
+import { ENGINE_README_API, guidePage, USER_GUIDE } from "./about";
 import { openSettingsDialog } from "../components/SettingsDialog";
 import { browserFolders } from "./browserFolders";
 import type { Editor } from "./Editor";
@@ -15,10 +15,9 @@ import { openLink } from "./openExternal";
 import { saveActiveDocument, saveAllDocuments } from "./saveCommands";
 
 // 바깥 링크 주소는 about.ts 에 있다 (정보 창과 시작 화면이 같이 쓴다)
-export { ENGINE_README_API, PLANS_INDEX };
+export { ENGINE_README_API, USER_GUIDE };
 
 export const BROWSER_NO_RUN = "브라우저 모드: 엔진 프로세스 실행 미지원";
-export const SCENE_LATER = "미구현";
 
 function isHttpUrl(value: string): string | null {
   try {
@@ -136,7 +135,8 @@ export function registerAppCommands(editor: Editor): void {
   reg({ id: "window.layout.reset", label: "레이아웃 초기화", category: "window", run: () => editor.layout.reset() });
 
   // 도움말
-  reg({ id: "help.api", label: "엔진 API 대응표", category: "help", run: () => void openLink(editor, ENGINE_README_API) });
-  reg({ id: "help.plans", label: "계획 문서", category: "help", run: () => void openLink(editor, PLANS_INDEX) });
+  reg({ id: "help.api", label: "엔진 API 레퍼런스", category: "help", run: () => void openLink(editor, ENGINE_README_API) });
+  reg({ id: "help.guide", label: "사용자 가이드", category: "help", shortcut: "F1", run: () => void openLink(editor, USER_GUIDE) });
+  reg({ id: "help.shortcuts", label: "단축키", category: "help", run: () => void openLink(editor, guidePage("shortcuts.md")) });
   reg({ id: "help.about", label: "InitialEditor 정보", category: "help", run: () => openAboutDialog(editor) });
 }

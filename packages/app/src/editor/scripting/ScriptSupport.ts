@@ -117,8 +117,9 @@ export class ScriptSupport {
     if (loaded.problem) editor.log.warn("editor", loaded.problem);
     if (loaded.source === "project") {
       editor.log.info("editor", `API 명세 로드됨: ${API_SPEC_PATH} (함수 ${n.functions}개, 클래스 ${n.classes}개, 상수 ${n.constants}개)`);
-    } else {
-      editor.log.info("editor", `내장 기본 API 명세(fallback)를 사용합니다 (함수 ${n.functions}개). 프로젝트에 ${API_SPEC_PATH} 파일이 없거나 불러오지 못했습니다.`);
+    } else if (editor.project.isOpen) {
+      // 프로젝트가 없는 시작 화면에서는 알릴 것이 없다
+      editor.log.info("editor", `엔진 API 명세: 프로젝트에 ${API_SPEC_PATH} 가 없거나 읽지 못해 앱에 든 기본 명세를 씁니다 (함수 ${n.functions}개).`);
     }
   }
 

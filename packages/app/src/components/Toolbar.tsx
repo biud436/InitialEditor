@@ -1,9 +1,11 @@
 // 메뉴 바 아래 툴바. 실행과 정지와 리로드는 runner/runCommands.ts 의 커맨드에 묶이고, 비활성 이유는 툴팁에 있다
 // (켜져 있어도 설명이 있으면 붙는다: 에디터 안 실행). 실행 중이면 초록 점과 PID(에디터 안이면 그 표시)와 경과 시간이
-// 붙는다 (editor.runner). 언어 선택은 game.json 의 script 이고 바꾸면 바로 저장한다. 씬 선택은 E2 의 자리다.
+// 붙는다 (editor.runner). 언어 선택은 game.json 의 script, 씬 선택은 startScene 이고 바꾸면 바로 저장한다.
+// 씬 목록은 resources/scenes 의 *.json 이다 (프로젝트의 폴더 캐시라 파일이 생기고 지워지면 따라간다).
 
-import type { ScriptBackend } from "@initial-editor/core";
+import { dirname, SCENES_DIR, type ScriptBackend } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
+import { useEffect } from "react";
 import { useEditor } from "../editor/EditorContext";
 import { PlayIcon, ReloadIcon, StopIcon } from "./icons";
 import "./Toolbar.css";
@@ -38,10 +40,62 @@ const RunningIndicator = observer(function RunningIndicator() {
   );
 });
 
+/** resources/scenes 아래 씬 파일의 이름 (확장자 없이) */
+function useSceneNames(): string[] {
+  const project = useEditor().project;
+  const root = project.isOpen ? project.root : null;
+  useEffect(() => {
+    if (!root) return;
+    void project.entries(SCENES_DIR).catch(() => {});
+    // 폴더를 아직 못 읽었으면(없던 폴더) 그 안에 파일이 생길 때 다시 읽는다. 읽은 폴더는 프로젝트가 스스로 갱신한다
+    return project.events.on("change", (e) => {
+      if (dirname(e.path) === SCENES_DIR && !project.folders.has(SCENES_DIR)) void project.refresh(SCENES_DIR).catch(() => {});
+    });
+  }, [project, root]);
+  if (!root) return [];
+  const entries = project.folders.get(SCENES_DIR) ?? [];
+  return entries.filter((e) => e.kind === "file" && e.name.endsWith(".json")).map((e) => e.name.slice(0, -".json".length));
+}
+
+const NO_START_SCENE = "(시작 씬 없음)";
+
+const SceneSelect = observer(function SceneSelect() {
+  const editor = useEditor();
+  const project = editor.project;
+  const names = useSceneNames();
+  const start = project.gameJson.startScene;
+  // game.json 이 가리키는 씬 파일이 없어도 목록에 남겨 지금 값을 보인다
+  const options = start && !names.includes(start) ? [start, ...names] : names;
+  const title = !project.isOpen ? "열린 프로젝트 없음" : options.length === 0 ? `${SCENES_DIR} 에 씬 없음` : "게임을 시작할 때 여는 씬 (game.json 의 startScene)";
+  return (
+    <label className="toolbar-field" title={title}>
+      씬
+      <select
+        className="select"
+        value={start ?? ""}
+        disabled={!project.isOpen || options.length === 0}
+        onChange={(e) => void editor.sceneTools.setStartScene(e.target.value)}
+        data-testid="scene-select"
+      >
+        {!start && (
+          <option value="" disabled>
+            {NO_START_SCENE}
+          </option>
+        )}
+        {options.map((name) => (
+          <option key={name} value={name}>
+            {name}
+            {names.includes(name) ? "" : " (파일 없음)"}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+});
+
 export const Toolbar = observer(function Toolbar() {
   const editor = useEditor();
   const project = editor.project;
-  const tools = [...editor.registries.tools.values()];
 
   const onLanguage = (script: ScriptBackend) => {
     void editor.commands.execute(script === "lua" ? "run.language.lua" : "run.language.mruby");
@@ -61,22 +115,6 @@ export const Toolbar = observer(function Toolbar() {
         </CommandButton>
         <RunningIndicator />
       </div>
-      <div className="toolbar-sep" />
-      <div className="toolbar-group" aria-label="도구">
-        <span className="toolbar-caption">도구</span>
-        <button type="button" className="toolbar-button" disabled title="선택: 미구현">
-          선택
-        </button>
-        <button type="button" className="toolbar-button" disabled title="이동: 미구현">
-          이동
-        </button>
-        {tools.map((t) => (
-          <button key={t.id} type="button" className="toolbar-button" disabled title={`${t.label}: 툴바의 확장 도구 실행 미구현`}>
-            {t.label}
-          </button>
-        ))}
-        {tools.length === 0 && <span className="toolbar-caption muted">등록된 확장 도구 없음</span>}
-      </div>
       <div className="toolbar-spacer" />
       <label className="toolbar-field">
         언어
@@ -85,12 +123,7 @@ export const Toolbar = observer(function Toolbar() {
           <option value="mruby">Ruby</option>
         </select>
       </label>
-      <label className="toolbar-field">
-        씬
-        <select className="select" disabled title="씬 선택: 미구현">
-          <option>{project.gameJson.startScene ?? "(시작 씬 없음)"}</option>
-        </select>
-      </label>
+      <SceneSelect />
     </div>
   );
 });

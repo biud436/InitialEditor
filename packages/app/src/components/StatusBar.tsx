@@ -1,4 +1,5 @@
-// 상태 바: 프로젝트 루트, 백엔드 모드, 스크립트 언어, 저장 안 된 문서 수, 감시 상태, 엔진 상태(E1 실행기), 언어 서버, 테마.
+// 상태 바: 프로젝트 루트, 백엔드 모드, 스크립트 언어, 저장 상태, 엔진 상태(실행기), 언어 서버, 테마.
+// 알릴 것이 없는 항목(열린 프로젝트가 없을 때의 언어, 대기 중이거나 꺼진 언어 서버)은 보이지 않는다.
 
 import { observer } from "mobx-react-lite";
 import { MODE_LABELS } from "../editor/backends";
@@ -20,9 +21,9 @@ const EngineStatus = observer(function EngineStatus() {
   );
 });
 
-/** 언어 서버 하나: 시작 중, LuaLS 3.19.1, Ruby 분석기, 오류. 서버를 띄우는 방법이 없으면 보이지 않는다 */
+/** 언어 서버 하나: 시작 중, LuaLS 3.19.1, Ruby 분석기, 오류. 서버를 띄우는 방법이 없거나 대기 중이거나 꺼졌으면 보이지 않는다 */
 const LanguageServerStatus = observer(function LanguageServerStatus({ server }: { server: ScriptLanguageServer }) {
-  if (!server.hasLauncher) return null;
+  if (!server.hasLauncher || server.state === "idle" || server.state === "off") return null;
   const className = ["statusbar-item", "statusbar-lsp", server.state === "running" ? "running" : "", server.state === "failed" ? "failed" : ""].filter(Boolean).join(" ");
   return (
     <span className={className} data-testid={`status-lsp-${server.languageId}`} data-state={server.state} title={server.statusTitle}>
@@ -35,7 +36,6 @@ export const StatusBar = observer(function StatusBar() {
   const editor = useEditor();
   const project = editor.project;
   const dirty = editor.documents.dirtyDocuments.length;
-  const watching = project.isOpen && editor.backend.capabilities.watch;
   const themePref = editor.settings.settings.theme;
   const theme = THEME_LABEL[editor.theme.applied] + (themePref === "system" ? " (시스템)" : "");
   return (
@@ -44,9 +44,8 @@ export const StatusBar = observer(function StatusBar() {
         {project.isOpen ? project.root : "열린 프로젝트 없음"}
       </span>
       <span className="statusbar-item">{MODE_LABELS[editor.mode]}{editor.bridgeUrl ? ` ${editor.bridgeUrl}` : ""}</span>
-      <span className="statusbar-item">{project.isOpen ? (project.gameJson.script === "lua" ? "Lua" : "Ruby") : "-"}</span>
+      {project.isOpen && <span className="statusbar-item">{project.gameJson.script === "lua" ? "Lua" : "Ruby"}</span>}
       <span className="statusbar-item">{dirty > 0 ? `저장 안 된 문서 ${dirty}개` : "저장됨"}</span>
-      <span className="statusbar-item">{watching ? "파일 감시 중" : "파일 감시 안 함"}</span>
       <EngineStatus />
       {editor.scripting.languageServers.map((server) => (
         <LanguageServerStatus key={server.languageId} server={server} />

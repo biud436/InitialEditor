@@ -51,8 +51,9 @@ export function appMenuItems(): MenuItemSpec[] {
 
     { path: "도구/설정", commandId: "tools.settings", order: 10 },
 
-    { path: "도움말/엔진 API 대응표", commandId: "help.api", order: 10 },
-    { path: "도움말/계획 문서", commandId: "help.plans", order: 20 },
+    { path: "도움말/사용자 가이드", commandId: "help.guide", order: 10 },
+    { path: "도움말/단축키", commandId: "help.shortcuts", order: 15 },
+    { path: "도움말/엔진 API 레퍼런스", commandId: "help.api", order: 20, separatorBefore: true },
     { path: "도움말/InitialEditor 정보", commandId: "help.about", order: 30, separatorBefore: true },
   ];
   PANEL_IDS.forEach((id, i) => items.push({ path: `창/${PANEL_TITLES[id]}`, commandId: `window.panel.${id}`, order: 10 + i }));
