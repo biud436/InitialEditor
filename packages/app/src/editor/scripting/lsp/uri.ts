@@ -1,7 +1,8 @@
 // 프로젝트 경로와 LSP 의 file URI 사이 (docs/plans/language-server.md 4.2절).
 // 에디터의 Monaco 모델은 initial:/<프로젝트 상대 경로> 이고, 언어 서버는 디스크의 절대 경로를 file URI 로 본다.
-// URI 는 경로 조각마다 percent 인코딩하고, Windows 경로는 file:///C:/... 꼴이다. 서버가 드라이브 문자를 소문자로 하거나
-// 콜론을 %3A 로 보내도 같은 경로로 읽는다.
+// URI 는 경로 조각마다 percent 인코딩한다. Windows 경로는 VS Code 와 같은 file:///c%3A/... 꼴(드라이브 소문자, 콜론 인코딩)로 보낸다.
+// LuaLS 는 이 꼴로 작업 공간과 연 파일을 견주어서, file:///C:/... 로 연 파일은 작업 공간 밖으로 보고 라이브러리를 읽지 않았다.
+// 서버가 보낸 URI 는 어느 꼴이든 같은 경로로 읽는다.
 
 const DRIVE = /^[A-Za-z]:/;
 
@@ -15,7 +16,7 @@ export function normalizePath(path: string): string {
 /** 절대 경로를 file URI 로 */
 export function fileUri(absPath: string): string {
   const p = normalizePath(absPath);
-  const segments = p.split("/").map((s, i) => (i <= 1 && DRIVE.test(s) && s.length === 2 ? s : encodeURIComponent(s)));
+  const segments = p.split("/").map((s, i) => (i === 0 && DRIVE.test(s) && s.length === 2 ? `${s[0].toLowerCase()}%3A` : encodeURIComponent(s)));
   const joined = segments.join("/");
   return DRIVE.test(p) ? `file:///${joined}` : `file://${joined}`;
 }

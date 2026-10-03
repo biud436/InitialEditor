@@ -21,7 +21,9 @@ describe("uri", () => {
   });
 
   it("Windows 경로: 드라이브 문자의 대소문자와 %3A 를 가리지 않는다", () => {
-    expect(fileUri("C:\\Users\\u\\game\\a.lua")).toBe("file:///C:/Users/u/game/a.lua");
+    expect(fileUri("C:\\Users\\u\\game\\a.lua")).toBe("file:///c%3A/Users/u/game/a.lua");
+    expect(filePath(fileUri("C:\\Users\\RUNNER~1\\내 게임\\a.lua"))).toBe("c:/Users/RUNNER~1/내 게임/a.lua");
+    expect(relativeTo("C:\\Users\\u\\game", filePath(fileUri("C:\\Users\\u\\game\\scripts\\a.lua"))!)).toBe("scripts/a.lua");
     expect(filePath("file:///c%3A/Users/u/game/a.lua")).toBe("c:/Users/u/game/a.lua");
     expect(relativeTo("C:\\Users\\u\\game", "c:/Users/u/game/a.lua")).toBe("a.lua");
   });
