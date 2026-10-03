@@ -171,7 +171,7 @@ function DragGrip({ node, write }: { node: NewNode; write: boolean }) {
 function DragHint({ write }: { write: boolean }) {
   return (
     <div className="muted graph-drag-hint">
-      ⠿ 를 캔버스로 드래그하면 노드가 추가되고, 입력 포트 위로 드래그하면 바로 연결됩니다.{write ? " Alt 를 누르고 있으면 쓰기 노드입니다." : ""}
+      ⠿를 캔버스로 드래그하면 노드가 추가됩니다. 입력 포트 위로 드래그하면 바로 연결됩니다.{write ? " Alt를 누른 채 드래그하면 값을 바꾸는 노드가 추가됩니다." : ""}
     </div>
   );
 }

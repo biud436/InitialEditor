@@ -122,10 +122,10 @@ const WebEditionFooter = observer(function WebEditionFooter({ editor }: { editor
 const GettingStarted = observer(function GettingStarted({ editor }: { editor: Editor }) {
   const key = (id: string) => editor.commands.formatShortcut(id);
   const steps: Array<{ title: string; text: string; page: string }> = [
-    { title: "새 프로젝트", text: "템플릿(빈 프로젝트, 플래피버드, 타일맵, RPG 데모)과 스크립트 언어(Lua, Ruby)를 선택하면 바로 실행되는 프로젝트가 만들어집니다.", page: "first-project.md" },
-    { title: "씬 편집", text: "씬 뷰에 스프라이트와 텍스트를 배치하고, 인스펙터에서 위치와 컴포넌트를 정합니다.", page: "scenes.md" },
-    { title: "스크립트 편집", text: "컴포넌트 스크립트를 편집하고 저장하면 실행 중인 게임에 바로 반영됩니다.", page: "scripts.md" },
-    { title: "게임 실행", text: `${key("run.start") || "F5"} 로 게임을 실행합니다. 콘솔의 오류 줄을 누르면 그 스크립트의 그 줄로 이동합니다.`, page: "running.md" },
+    { title: "새 프로젝트", text: "템플릿(빈 프로젝트, 플래피버드, 타일맵, RPG 데모)과 언어(Lua, Ruby)를 선택하면 바로 실행할 수 있는 프로젝트가 만들어집니다.", page: "first-project.md" },
+    { title: "씬 편집", text: "씬 뷰에 스프라이트와 텍스트를 배치하고, 인스펙터에서 위치와 컴포넌트를 설정합니다.", page: "scenes.md" },
+    { title: "스크립트 편집", text: "컴포넌트 스크립트를 수정해 저장하면 실행 중인 게임에 바로 적용됩니다.", page: "scripts.md" },
+    { title: "게임 실행", text: `${key("run.start") || "F5"} 키를 누르면 게임이 실행됩니다. 콘솔에서 오류 줄을 클릭하면 해당 스크립트의 오류 위치로 이동합니다.`, page: "running.md" },
   ];
   return (
     <Section title="시작하기" testId="welcome-steps">
