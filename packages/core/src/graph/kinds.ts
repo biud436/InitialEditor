@@ -34,6 +34,10 @@ export interface PortDef {
   /** 이어지지도 상수도 없을 때: object 는 컴포넌트의 오브젝트, 나머지는 default 값 */
   optional?: boolean;
   default?: unknown;
+  /** 상수 칸이 비었을 때 보이는 예 */
+  placeholder?: string;
+  /** 파일 경로를 받는 입력 (상수가 비었거나 폴더면 검사가 오류로 본다) */
+  file?: boolean;
 }
 
 export interface OutDef {
@@ -322,7 +326,7 @@ export function nodeSpec(node: GraphNode, env: GraphEnv): NodeSpec | string {
     case "api.call": {
       const a = node.fn === undefined ? undefined : apiNode(node.fn);
       if (!a) return `엔진 API 노드가 없습니다: ${node.fn ?? "(fn 없음)"}`;
-      const inputs = a.params.map((p) => ({ key: p.key, label: p.label, type: apiType(p.type), optional: p.default !== undefined, default: p.default }));
+      const inputs = a.params.map((p) => ({ key: p.key, label: p.label, type: apiType(p.type), optional: p.default !== undefined, default: p.default, placeholder: p.placeholder, file: p.file }));
       return a.returns ? data(a.label, "engine", inputs, T[a.returns], a.id) : stmt(a.label, "engine", inputs, a.id);
     }
   }

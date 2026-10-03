@@ -25,6 +25,7 @@ import {
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 import type { GraphSupport } from "../../editor/graph/GraphSupport";
+import { endNodeDrag, startNodeDrag, type NewNode } from "../../editor/graph/placeNode";
 
 /** 떠날 때나 Enter 에 반영하는 글 칸 */
 function CommitInput({ value, onCommit, placeholder, testId }: { value: string; onCommit: (v: string) => void; placeholder?: string; testId?: string }) {
@@ -150,6 +151,31 @@ const NodeSettings = observer(function NodeSettings({ doc, node }: { doc: GraphD
   );
 });
 
+/** 줄 앞의 손잡이: 캔버스로 끌면 그 변수의 노드를 만든다 (GraphCanvas 의 drop) */
+function DragGrip({ node, write }: { node: NewNode; write: boolean }) {
+  return (
+    <span
+      className="graph-var-grip"
+      draggable
+      data-testid="graph-var-grip"
+      data-field={node.field}
+      title={write ? "캔버스로 드래그: 읽기 노드 (Alt: 쓰기 노드)" : "캔버스로 드래그: 읽기 노드"}
+      onDragStart={(e) => startNodeDrag(e, node)}
+      onDragEnd={endNodeDrag}
+    >
+      ⠿
+    </span>
+  );
+}
+
+function DragHint({ write }: { write: boolean }) {
+  return (
+    <div className="muted graph-drag-hint">
+      ⠿ 를 캔버스로 드래그하면 노드가 추가되고, 입력 포트 위로 드래그하면 바로 연결됩니다.{write ? " Alt 를 누르고 있으면 쓰기 노드입니다." : ""}
+    </div>
+  );
+}
+
 const VarSection = observer(function VarSection({ doc, which, title }: { doc: GraphDocument; which: VarList; title: string }) {
   const vars = which === "state" ? (doc.graph.state?.fields ?? []) : doc.graph.locals;
   const count = vars.length + (which === "state" ? doc.analysis.inheritedState.length : 0);
@@ -160,6 +186,7 @@ const VarSection = observer(function VarSection({ doc, which, title }: { doc: Gr
     doc.change(`${title} 추가`, (g) => addVar(g, which, { key: `value${n}`, type: "number" }));
   };
   const update = (v: VarDecl, next: Partial<VarDecl>) => doc.change(`${title} 변경: ${v.key}`, (g) => updateVar(g, which, v.key, cleanVar({ ...v, ...next })));
+  const read = (key: string): NewNode => ({ kind: which === "state" ? "state.get" : "local.get", field: key });
   return (
     <details className="graph-side-section" open={count <= 4} data-testid={`graph-vars-${which}`}>
       <summary>
@@ -176,14 +203,17 @@ const VarSection = observer(function VarSection({ doc, which, title }: { doc: Gr
           <div className="muted">라이브러리가 선언한 필드 (라이브러리 파일에서 편집합니다)</div>
           {doc.analysis.inheritedState.map((v) => (
             <div key={v.key} className="graph-inherited-row" title={v.label}>
-              <span>{v.key}</span>
+              <DragGrip node={read(v.key)} write />
+              <span className="graph-inherited-key">{v.key}</span>
               <span className="muted">{v.type === "enum" ? `enum (${(v.values ?? []).join(", ")})` : v.type}</span>
             </div>
           ))}
         </div>
       )}
+      {count > 0 && <DragHint write />}
       {vars.length > 0 && (
         <div className="graph-var graph-var-head muted">
+          <span />
           <span>이름</span>
           <span>형식</span>
           <span>기본값</span>
@@ -192,6 +222,7 @@ const VarSection = observer(function VarSection({ doc, which, title }: { doc: Gr
       )}
       {vars.map((v) => (
         <div className="graph-var" key={v.key} data-var={v.key} title={v.label}>
+          <DragGrip node={read(v.key)} write />
           <CommitInput value={v.key} onCommit={(key) => update(v, { key: key.trim() })} />
           <select className="select" value={v.type} onChange={(e) => update(v, { type: e.target.value as VarType, values: e.target.value === "enum" ? (v.values ?? ["a", "b"]) : undefined, default: undefined })}>
             {VAR_TYPES.map((t) => (
@@ -268,8 +299,10 @@ const ParamsSection = observer(function ParamsSection({ doc }: { doc: GraphDocum
         </button>
       </summary>
       {params.length === 0 && <div className="muted">씬의 인스펙터에서 오브젝트마다 값을 정하는 입력 항목입니다. 추가하면 선언 파일도 만듭니다.</div>}
+      {params.length > 0 && <DragHint write={false} />}
       {params.map((p, i) => (
         <div className="graph-var" key={i} data-param={String(p.key ?? "")}>
+          <DragGrip node={{ kind: "param.get", field: String(p.key ?? "") }} write={false} />
           <CommitInput value={String(p.key ?? "")} onCommit={(key) => update(i, { key: key.trim() })} />
           <select className="select" value={String(p.type ?? "number")} onChange={(e) => update(i, { type: e.target.value, default: undefined, values: e.target.value === "enum" ? ["a", "b"] : undefined })}>
             {COMPONENT_FIELD_TYPES.map((t) => (

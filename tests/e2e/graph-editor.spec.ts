@@ -168,6 +168,52 @@ test.describe("비주얼 스크립팅 (메모리 모드)", () => {
     expect(await readFile(page, "scripts/ruby/components/hello.rb")).toContain('module Components\n  class Hello\n    def init(obj, scene)\n      puts("hi")\n    end');
   });
 
+  test("옆 창의 매개변수를 입력 포트로 드래그하면 노드가 생기고 이어진다. 상태 필드는 빈 곳에 놓으면 읽기, Alt 는 쓰기 노드", async ({ page }) => {
+    await openSample(page);
+    await page.getByRole("menubar").getByRole("menuitem", { name: "파일", exact: true }).click();
+    await page.locator(".menu-item", { hasText: "새 그래프 컴포넌트" }).first().click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("textbox").fill("sound");
+    await dialog.getByRole("button", { name: "만들기" }).click();
+    const view = page.getByTestId("graph-view");
+    await expect(view.locator("[data-node]")).toHaveCount(2);
+
+    // 효과음 재생: 파일 경로는 비어 있고 예가 보이며, 비어 있으면 오류다
+    await view.getByTestId("graph-add-node").click();
+    await page.getByTestId("graph-palette-search").fill("효과음");
+    await page.keyboard.press("Enter");
+    const sound = view.locator('[data-node][data-kind="api.call"]');
+    await expect(sound).toBeVisible();
+    const soundId = (await sound.getAttribute("data-node"))!;
+    await expect(sound.locator('[data-arg="path"]')).toHaveAttribute("placeholder", "./resources/audio/flap.wav");
+    await sound.locator('[data-arg="path"]').fill("./resources/audio/");
+    await expect(page.getByTestId("graph-problem-list")).toContainText("폴더 경로입니다");
+
+    // 매개변수를 하나 만들어 문자열로 바꾸고, 손잡이를 파일 경로 포트로 드래그한다
+    await view.getByTestId("graph-add-param").click();
+    const param = view.locator('[data-param="param1"]');
+    await param.locator("select").selectOption("string");
+    await param.getByTestId("graph-var-grip").dragTo(sound.locator('[data-pin="path"]'));
+    const reader = view.locator('[data-node][data-kind="param.get"]');
+    await expect(reader).toHaveCount(1);
+    const readerId = (await reader.getAttribute("data-node"))!;
+    expect(await withEditor(page, (e, id) => e.documents.active?.graph.nodes.find((n) => n.id === id)?.in, soundId)).toEqual({ path: readerId });
+    await expect(sound.locator('[data-arg="path"]')).toHaveCount(0);
+    await expect(page.getByTestId("graph-problem-list")).not.toContainText("폴더 경로입니다");
+
+    // 상태 필드: 빈 곳에 놓으면 읽기 노드, Alt 를 누른 채 놓으면 쓰기 노드
+    await view.getByTestId("graph-add-state").click();
+    const grip = view.locator('[data-var="value1"]').getByTestId("graph-var-grip");
+    const canvas = view.getByTestId("graph-canvas");
+    const box = (await canvas.boundingBox())!;
+    await grip.dragTo(canvas, { targetPosition: { x: box.width * 0.2, y: box.height * 0.8 } });
+    await expect(view.locator('[data-node][data-kind="state.get"]')).toHaveCount(1);
+    await page.keyboard.down("Alt");
+    await grip.dragTo(canvas, { targetPosition: { x: box.width * 0.4, y: box.height * 0.8 } });
+    await page.keyboard.up("Alt");
+    await expect(view.locator('[data-node][data-kind="state.set"]')).toHaveCount(1);
+  });
+
   test("게임 탭이 도는 중에 그래프를 저장하면 생성 코드가 다시 올라가 게임에 반영된다", async ({ page }) => {
     await openSample(page);
     const mod = await primaryKey(page);

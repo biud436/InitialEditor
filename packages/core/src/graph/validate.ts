@@ -335,7 +335,7 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
         linkTypes.push(t);
       } else if (r.value.kind === "literal") {
         const want: PortType = p.type.t === "comparable" || p.type.t === "switchable" ? r.type : p.type;
-        const problem = literalProblem(want, r.value.value) ?? keyProblem(want, r.value.value);
+        const problem = literalProblem(want, r.value.value) ?? keyProblem(want, r.value.value) ?? fileProblem(p, r.value.value);
         if (problem) error(`입력 ${p.label}의 상수: ${problem}`, id, p.key);
       }
     }
@@ -343,6 +343,13 @@ export function validateGraph(graph: GraphFile, ctx: GraphContext): GraphAnalysi
       error(`비교하는 두 값의 형식이 다릅니다: ${typeName(linkTypes[0])}, ${typeName(linkTypes[1])}`, id);
     }
     inputs.set(id, record);
+  };
+
+  const fileProblem = (p: PortDef, v: unknown): string | null => {
+    if (!p.file || typeof v !== "string") return null;
+    if (v.trim() === "") return "파일 경로가 비어 있습니다";
+    if (/[\\/]$/.test(v.trim())) return `폴더 경로입니다. 파일 이름까지 입력합니다 (예: ${p.placeholder ?? "./resources/audio/flap.wav"})`;
+    return null;
   };
 
   const keyProblem = (t: PortType, v: unknown): string | null => (t.t === "key" && typeof v === "string" && !(v in KEY_CODES) ? `알 수 없는 키 이름입니다: ${v}` : null);

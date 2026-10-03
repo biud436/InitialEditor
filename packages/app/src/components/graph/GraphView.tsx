@@ -1,11 +1,12 @@
 // 그래프 문서 뷰 (docs/plans/visual-scripting.md 7절). 머리줄(컴포넌트 이름, 노드 수, 문제, 생성 상태, 커맨드), 캔버스, 옆 창.
-// 노드 추가 목록에서 고른 노드는 연 자리에 놓고, 빈 곳에 놓은 선이 있었으면 새 노드의 맞는 포트와 잇는다.
+// 노드 추가 목록에서 고른 노드는 연 자리에 놓고, 빈 곳에 놓은 선이 있었으면 새 노드의 맞는 포트와 잇는다 (placeNode).
 
-import { addNode, assignable, connectData, connectExec, generatedPaths, nodeGeometry, nodeSpec, type ExitName, type GraphDocument, type GType, type PortType } from "@initial-editor/core";
+import { generatedPaths, nodeSpec, type GraphDocument } from "@initial-editor/core";
 import { observer } from "mobx-react-lite";
 import { useMemo, useState } from "react";
 import { useEditor } from "../../editor/EditorContext";
 import { fitsWire, paletteEntries, type PaletteEntry, type WireEnd } from "../../editor/graph/palette";
+import { placeNode } from "../../editor/graph/placeNode";
 import { GraphCanvas, type PaletteRequest } from "./GraphCanvas";
 import { GraphPalette } from "./GraphPalette";
 import { GraphSidePanel } from "./GraphSidePanel";
@@ -43,30 +44,7 @@ export const GraphView = observer(function GraphView({ doc }: { doc: GraphDocume
   const pick = (entry: PaletteEntry) => {
     const req = palette!;
     setPalette(null);
-    let added = "";
-    doc.change(`노드 추가: ${entry.label}`, (g) => {
-      added = addNode(g, entry.node, [req.world.x, req.world.y]);
-      const from = req.pending;
-      if (!from) return;
-      const node = g.nodes.find((n) => n.id === added)!;
-      const spec = nodeSpec(node, doc.analysis.env);
-      if (typeof spec === "string") return;
-      const pins = nodeGeometry(node, spec).pins;
-      if (from.kind === "exec-out" && spec.exec && !spec.event) connectExec(g, { node: from.node, exit: from.key as ExitName }, added);
-      else if (from.kind === "exec-in" && spec.exec) connectExec(g, { node: added, exit: "next" }, from.node);
-      else if (from.kind === "data-out") {
-        const t = doc.analysis.outType(from.node, from.key);
-        const port = spec.inputs.find((p) => !t || assignable(p.type, t));
-        if (port) connectData(g, { node: from.node, port: from.key }, { node: added, port: port.key });
-      } else if (from.kind === "data-in" && pins.some((p) => p.kind === "data-out")) {
-        const target = g.nodes.find((n) => n.id === from.node);
-        const targetSpec = target ? nodeSpec(target, doc.analysis.env) : null;
-        const want: GType | PortType | undefined = targetSpec && typeof targetSpec !== "string" ? targetSpec.inputs.find((p) => p.key === from.key)?.type : undefined;
-        const out = spec.outputs[0];
-        if (out && (!want || assignable(want as PortType, out.type))) connectData(g, { node: added, port: out.key }, { node: from.node, port: from.key });
-      }
-    });
-    if (added) doc.select([added]);
+    placeNode(doc, entry.node, req.world, req.pending, entry.label);
   };
 
   /** 캔버스 가운데의 월드 좌표와 캔버스 크기 */

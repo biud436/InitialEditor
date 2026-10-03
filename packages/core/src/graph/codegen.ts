@@ -121,6 +121,19 @@ abstract class Emitter {
     return this.literal(def.default, r.type);
   }
 
+  /** 엔진 API 노드의 인자. 이름처럼 비면 다른 입력을 쓰는 인자(emptyUses)는 그 입력으로 바꾼다 */
+  protected apiArgs(n: GraphNode): Expr[] {
+    const def = apiNode(n.fn!)!;
+    return def.params.map((p) => (p.emptyUses && this.isEmptyText(n.id, p.key) ? this.input(n.id, p.emptyUses) : this.input(n.id, p.key)));
+  }
+
+  private isEmptyText(id: string, port: string): boolean {
+    const r = this.a.inputs.get(id)![port];
+    if (r.value.kind === "link") return false;
+    const v = r.value.kind === "literal" ? r.value.value : this.a.specs.get(id)!.inputs.find((p) => p.key === port)!.default;
+    return v === undefined || v === "";
+  }
+
   protected isLiteral(id: string, port: string): boolean {
     return this.a.inputs.get(id)![port].value.kind !== "link";
   }
@@ -299,7 +312,7 @@ class LuaEmitter extends Emitter {
 
   private apiCall(n: GraphNode): Expr {
     const def = apiNode(n.fn!)!;
-    return this.call(def.lua, def.params.map((p) => this.input(n.id, p.key)));
+    return this.call(def.lua, this.apiArgs(n));
   }
 
   private tostr(id: string, port: string): Expr {
@@ -555,7 +568,7 @@ class RubyEmitter extends Emitter {
 
   private apiCall(n: GraphNode): Expr {
     const def = apiNode(n.fn!)!;
-    const args = def.params.map((p) => this.input(n.id, p.key));
+    const args = this.apiArgs(n);
     if (def.rubyKind === "getter") return { code: def.ruby, prec: P.ATOM };
     return this.call(def.ruby, args);
   }

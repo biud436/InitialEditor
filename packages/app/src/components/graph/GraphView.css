@@ -198,6 +198,10 @@
   font-family: var(--font-mono);
 }
 
+.graph-inherited-key {
+  flex: 1;
+}
+
 .graph-arg[type="checkbox"] {
   flex: none;
   width: 14px;
@@ -307,7 +311,7 @@
 
 .graph-var {
   display: grid;
-  grid-template-columns: 1fr 76px 56px 22px;
+  grid-template-columns: 14px 1fr 76px 56px 22px;
   gap: var(--space-1);
   align-items: center;
   margin-bottom: var(--space-1);
@@ -330,7 +334,24 @@
 }
 
 .graph-var-extra {
-  grid-column: 1 / 4;
+  grid-column: 2 / 5;
+}
+
+.graph-var-grip {
+  color: var(--fg-muted);
+  cursor: grab;
+  text-align: center;
+  user-select: none;
+}
+
+.graph-var-grip:hover {
+  color: var(--fg);
+}
+
+.graph-drag-hint {
+  margin-bottom: var(--space-1);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .graph-problem {
@@ -515,7 +536,7 @@
 
 .graph-inherited-row {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--space-2);
   padding: 1px 0;
   font-family: var(--font-mono);
