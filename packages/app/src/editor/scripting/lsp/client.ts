@@ -6,6 +6,7 @@
 
 import type * as lsp from "vscode-languageserver-protocol";
 import { RpcConnection, type CancelToken, type MessageTransport } from "./rpc";
+import { normalizePath } from "./uri";
 import { READ_FILE, WORKSPACE_FILES, type WorkspaceFile } from "./worker/protocol";
 
 export interface ClientOptions {
@@ -105,7 +106,7 @@ export class LanguageClient {
       processId: null,
       clientInfo: { name: "InitialEditor" },
       locale: "en",
-      rootPath: o.root,
+      rootPath: normalizePath(o.root),
       rootUri: o.rootUri,
       workspaceFolders: [{ uri: o.rootUri, name: lastSegment(o.root) }],
       capabilities: CLIENT_CAPABILITIES,
