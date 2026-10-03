@@ -64,7 +64,7 @@ describe("check-web-dist", () => {
     const r = check(makeDist());
     expect(r.err).toBe("");
     expect(r.code).toBe(0);
-    expect(r.out.trim()).toBe("OK 웹판 dist: 파일 9 개, 0.0 MiB, 소스맵 0 개, _headers 규칙 4 개");
+    expect(r.out.trim()).toBe("OK 웹판 dist: 파일 9 개, 0.0 MiB, 소스맵 0 개, _headers 규칙 5 개");
   });
 
   it("dist 가 없으면 실패한다", () => {
