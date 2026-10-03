@@ -13,7 +13,7 @@
 
 import { expect, test, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const DIST = path.resolve("dist");
@@ -119,6 +119,18 @@ test.describe("웹판 응답 헤더 (_headers)", () => {
     const wasm = await request.get(`${pages.url}/engine/Initial2D.wasm`);
     expect(wasm.headers()["content-type"]).toBe("application/wasm");
     expect([...(await wasm.body()).subarray(0, 4)]).toEqual([0x00, 0x61, 0x73, 0x6d]);
+  });
+
+  test("assets 의 wasm(분석기 워커의 Prism)도 application/wasm 이다", async ({ request }) => {
+    test.skip(!pages.url, pages.reason ?? "");
+    const wasm = readdirSync(path.join(DIST, "assets")).filter((n) => n.endsWith(".wasm"));
+    expect(wasm.length).toBeGreaterThan(0);
+    for (const name of wasm) {
+      const res = await request.get(`${pages.url}/assets/${name}`);
+      expect(res.status(), name).toBe(200);
+      expect(res.headers()["content-type"], name).toBe("application/wasm");
+      expect(res.headers()["cache-control"], name).toBe("public, max-age=31536000, immutable");
+    }
   });
 
   test("해시 이름의 assets 는 오래 두고, 모든 응답에 nosniff 와 referrer 정책이 있고 교차 출처 격리 헤더는 없다", async ({ request }) => {
