@@ -119,7 +119,13 @@ export class RpcConnection {
     }
     if (typeof message.method === "string") {
       if (message.id !== undefined && message.id !== null) this.answer(message.id, message.method, message.params);
-      else this.notificationHandlers.get(message.method)?.(message.params);
+      else {
+        try {
+          this.notificationHandlers.get(message.method)?.(message.params);
+        } catch (e) {
+          this.onProtocolError(`알림 처리 실패 (${message.method}): ${(e as Error)?.message ?? String(e)}`);
+        }
+      }
       return;
     }
     if (message.id === undefined || message.id === null) return;

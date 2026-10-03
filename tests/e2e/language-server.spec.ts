@@ -67,6 +67,9 @@ async function connect(page: Page, root: string): Promise<{ server: () => NodeLu
   await page.evaluate(async (root) => {
     const w = window as unknown as EditorWindow & { __lspStart(lib: string | null): Promise<string | null>; __lspSend(t: string): void; __lspStop(): void };
     await w.initialEditor.scripting.languageServer.setLauncher({
+      name: "LuaLS",
+      replacesSpec: true,
+      readsDisk: true,
       available: async () => ({ version: "e2e" }),
       launch: async (_projectRoot: string, library: string | undefined) => {
         const libraryPath = await w.__lspStart(library ?? null);
@@ -109,7 +112,7 @@ async function goTo(page: Page, line: number, column: number) {
 }
 
 function lspState(page: Page) {
-  return page.getByTestId("status-lsp");
+  return page.getByTestId("status-lsp-lua");
 }
 
 test.describe("Lua 언어 서버", () => {

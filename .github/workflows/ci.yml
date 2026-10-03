@@ -119,7 +119,7 @@ jobs:
         run: npx playwright install --with-deps webkit
 
       # playwright.config.ts 의 WEBKIT_SPECS 만 (macOS 앱의 웹뷰인 WKWebView 와 같은 엔진)
-      - name: Playwright WebKit (스크립트 편집, 스크립트 탭 여럿, 그래프, 언어 서버)
+      - name: Playwright WebKit (스크립트 편집, 스크립트 탭 여럿, 그래프, 언어 서버, 분석기 워커)
         working-directory: InitialEditor
         env:
           CI: "1"

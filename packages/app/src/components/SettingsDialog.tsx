@@ -162,16 +162,22 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
             <input type="checkbox" checked={s.editorMinimap} onChange={(e) => update({ editorMinimap: e.target.checked })} data-testid="settings-minimap" /> 미니맵
           </label>
         </div>
-        {editor.scripting.languageServer.hasLauncher && (
+        {editor.scripting.languageServers.some((x) => x.hasLauncher) && (
           <div className="form-row">
             <label>언어 서버</label>
             <label className="checkbox">
-              <input type="checkbox" checked={s.languageServer} onChange={(e) => update({ languageServer: e.target.checked })} data-testid="settings-language-server" /> Lua 스크립트에 LuaLS 사용
+              <input type="checkbox" checked={s.languageServer} onChange={(e) => update({ languageServer: e.target.checked })} data-testid="settings-language-server" /> 스크립트에 언어 서버 사용
             </label>
-            <div className="form-help">끄면 API 명세의 자동 완성만 씁니다. 상태: {editor.scripting.languageServer.statusText}</div>
+            <div className="form-help">
+              Lua 는 데스크톱 앱에서 LuaLS, 그 밖에는 구문 분석기(Lua 는 luaparse, Ruby 는 Prism)를 씁니다. 끄면 API 명세의 자동 완성만 씁니다. 상태:{" "}
+              {editor.scripting.languageServers
+                .filter((x) => x.hasLauncher)
+                .map((x) => x.statusText)
+                .join(", ")}
+            </div>
           </div>
         )}
-        {editor.scripting.languageServer.hasLauncher && (
+        {editor.scripting.languageServers.some((x) => x.hasLauncher) && (
           <div className="form-row">
             <label htmlFor="settings-diagnostics">진단 표시</label>
             <select id="settings-diagnostics" className="select" value={s.scriptDiagnostics} onChange={(e) => update({ scriptDiagnostics: e.target.value as ScriptDiagnostics })} data-testid="settings-diagnostics">
@@ -181,7 +187,7 @@ const SettingsForm = observer(function SettingsForm({ onClose }: { onClose: () =
                 </option>
               ))}
             </select>
-            <div className="form-help">규칙은 프로젝트의 .luarc.json 을 따릅니다. 없으면 새 프로젝트 템플릿의 규칙을 씁니다.</div>
+            <div className="form-help">LuaLS 의 규칙은 프로젝트의 .luarc.json 을 따르고, 없으면 새 프로젝트 템플릿의 규칙을 씁니다. 구문 분석기는 구문 오류만 표시합니다.</div>
           </div>
         )}
         {editor.isBrowser && (

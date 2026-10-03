@@ -128,6 +128,20 @@ describe("RpcConnection", () => {
     expect(rpc.isClosed).toBe(true);
   });
 
+  it("알림 처리기가 던져도 연결은 산다", async () => {
+    const t = new FakeTransport();
+    const errors: string[] = [];
+    const rpc = new RpcConnection(t, (m) => errors.push(m));
+    rpc.onNotification("boom", () => {
+      throw new Error("터졌다");
+    });
+    t.deliver({ jsonrpc: "2.0", method: "boom", params: null });
+    expect(errors[0]).toContain("boom");
+    const p = rpc.request("after", null);
+    t.deliver({ jsonrpc: "2.0", id: 1, result: 7 });
+    await expect(p).resolves.toBe(7);
+  });
+
   it("JSON 이 아닌 메시지는 알리고 무시한다", () => {
     const t = new FakeTransport();
     const errors: string[] = [];

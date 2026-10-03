@@ -9,7 +9,7 @@ import type { Editor } from "../Editor";
 import type { KeyValueStorage } from "../LocalStorageSettingsStorage";
 import { playRequest, type PlayHost } from "../maps/objectTools/playHere";
 import { writeProjectTemplate } from "../scene/projectTemplates";
-import { completionItems, toHover } from "../scripting/lsp/convert";
+import { completionItems, toDocumentSymbols, toHover } from "../scripting/lsp/convert";
 import type * as lsp from "vscode-languageserver-protocol";
 import type { CspCollector } from "./csp";
 import { parsePlan } from "./plan";
@@ -68,8 +68,8 @@ export function editorSelftestHost(editor: Editor, csp: Pick<CspCollector, "list
     captureMapTiles: async (doc, rect) => editor.mapSupport.rendererFor(doc)?.captureTiles(rect) ?? null,
     cspViolations: () => csp.list,
     extensionProbe: (id) => editor.extensions.exportsOf<{ selftest?: MapSelftestProbe }>(id)?.selftest ?? null,
-    languageServer: () => {
-      const server = editor.scripting.languageServer;
+    languageServer: (language) => {
+      const server = language === "mruby" ? editor.scripting.rubyServer : editor.scripting.languageServer;
       if (!server.hasLauncher) return null;
       const call = async <T,>(method: string, path: string, line: number, character: number): Promise<T | null> => {
         const client = server.client;
@@ -94,6 +94,15 @@ export function editorSelftestHost(editor: Editor, csp: Pick<CspCollector, "list
         hover: async (path, line, character) => {
           const hover = await call<lsp.Hover>("textDocument/hover", path, line, character);
           return (toHover(hover)?.contents ?? []).map((c) => c.value).join("\n");
+        },
+        symbols: async (path) => {
+          const client = server.client;
+          const binding = server.binding;
+          if (!client || !binding) throw new Error(`언어 서버가 실행 중이 아닙니다 (${server.state})`);
+          const result = await client.request<lsp.DocumentSymbol[] | lsp.SymbolInformation[] | null>("textDocument/documentSymbol", { textDocument: { uri: binding.serverUri(path) } });
+          return toDocumentSymbols(result).flatMap(function names(s): string[] {
+            return [s.name, ...(s.children ?? []).flatMap(names)];
+          });
         },
       };
     },

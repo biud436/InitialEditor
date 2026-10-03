@@ -5,7 +5,8 @@
 // 모달이 뜨면(신뢰 확인, 저장 여부 등) 그 제목을 dialogs 에 적고 닫는다. 그 자체가 실패다.
 // 계획의 probe 는 확장의 탐침(ext-tilemap 의 MapSelftestProbe)이 맵에 붙인 것을 보고서에 적고, 실행의 play 는 탐침이 만든 요청을
 // 앱의 맵 실행 길(여기서 실행과 같은 길)로 띄운다. 계획의 mode 와 env 만 더한다.
-// 계획의 languageServer 는 진입 스크립트를 연 뒤 앱에 든 언어 서버가 뜨기를 기다려, 진입 스크립트의 "Json." 뒤 완성과 호버를 묻는다.
+// 계획의 languageServer 는 진입 스크립트를 연 뒤 그 언어의 서버가 뜨기를 기다려, Lua 는 진입 스크립트의 "Json." 뒤 완성과 호버를,
+// Ruby 는 진입 스크립트의 문서 기호(분석기 워커)를 묻는다.
 
 import type { Document, LogEntry, ProjectBackend, RunMode, SaveOutcome } from "@initial-editor/core";
 import type { MapSelftestProbe, PlayRequest } from "@initial-editor/ext-tilemap";
@@ -56,6 +57,8 @@ export interface SelftestLanguageServer {
   completion(path: string, line: number, character: number): Promise<string[]>;
   /** 그 자리의 호버 글 (없으면 빈 문자열) */
   hover(path: string, line: number, character: number): Promise<string>;
+  /** 문서 기호의 이름들 (중첩은 펼친다) */
+  symbols(path: string): Promise<string[]>;
 }
 
 export interface MapViewStatus {
@@ -87,8 +90,8 @@ export interface SelftestHost {
   extensionProbe(extensionId: string): MapSelftestProbe | null;
   /** 확장의 실행 요청을 앱의 맵 실행 길로 띄운다. 러너에는 mode 와 env 를 더한다 (요청의 변수가 이긴다). 띄웠으면 true */
   playMap(doc: MapDocument, request: PlayRequest, opts: { mode: RunMode; env: Record<string, string> }): Promise<boolean>;
-  /** Lua 언어 서버. 서버를 띄울 수 없는 실행 환경이면 null */
-  languageServer(): SelftestLanguageServer | null;
+  /** 그 언어의 언어 서버. 서버를 띄울 수 없는 실행 환경이면 null */
+  languageServer(language: "lua" | "mruby"): SelftestLanguageServer | null;
 }
 
 export interface SelftestShell {
@@ -143,8 +146,8 @@ export interface ProjectReport {
   mapView: { path: string; ready: boolean; error: string | null; warning: string | null; width: number; height: number; pixelWidth: number; pixelHeight: number; objects: number } | null;
   /** 확장의 탐침이 적은 것 (계획의 probe). result 는 마지막 describe */
   probe: { extension: string; map: string; ready: boolean; waitedMs: number; result: unknown } | null;
-  /** 계획의 languageServer: 서버 상태, 기다린 시간, 진입 스크립트의 "Json." 뒤 완성 후보(앞 20개)와 호버 */
-  languageServer: { state: string; version: string | null; reason: string; waitedMs: number; at: { line: number; character: number } | null; completion: string[]; hover: string } | null;
+  /** 계획의 languageServer: 서버 상태, 기다린 시간, Lua 는 진입 스크립트의 "Json." 뒤 완성 후보(앞 20개)와 호버, Ruby 는 문서 기호 */
+  languageServer: { state: string; version: string | null; reason: string; waitedMs: number; at: { line: number; character: number } | null; completion: string[]; hover: string; symbols: string[] } | null;
   problems: string[];
   runs: RunReport[];
 }
@@ -326,7 +329,7 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
 
   async function checkLanguageServer(project: PlanProject, pr: ProjectReport): Promise<void> {
     await progress({ project: project.id, step: "language-server" });
-    const server = host.languageServer();
+    const server = host.languageServer(project.language);
     if (!server) {
       pr.problems.push("language_server_missing: 이 실행 환경에는 언어 서버를 실행하는 방법이 없습니다");
       return;
@@ -334,10 +337,26 @@ export async function runSelftest(plan: SelftestPlan, host: SelftestHost, shell:
     const t0 = now();
     const deadline = t0 + languageServerWaitMs;
     while ((server.state === "idle" || server.state === "starting") && now() < deadline) await sleep(pollMs);
-    const lr: NonNullable<ProjectReport["languageServer"]> = { state: server.state, version: server.version, reason: server.reason, waitedMs: now() - t0, at: null, completion: [], hover: "" };
+    const lr: NonNullable<ProjectReport["languageServer"]> = { state: server.state, version: server.version, reason: server.reason, waitedMs: now() - t0, at: null, completion: [], hover: "", symbols: [] };
     pr.languageServer = lr;
     if (server.state !== "running") {
       pr.problems.push(`language_server_not_running: ${server.state} ${server.reason}`.trim());
+      return;
+    }
+    if (project.language === "mruby") {
+      const symbolsDeadline = now() + languageServerWaitMs;
+      try {
+        for (;;) {
+          lr.symbols = await withTimeout(server.symbols(project.entry), STEP_TIMEOUT_MS, "언어 서버 문서 기호");
+          if (lr.symbols.includes("update") || now() >= symbolsDeadline) break;
+          await sleep(pollMs * 5);
+        }
+      } catch (e) {
+        pr.problems.push(`language_server_request: ${message(e)}`);
+        return;
+      }
+      lr.waitedMs = now() - t0;
+      if (!lr.symbols.includes("update")) pr.problems.push(`language_server_symbols: ${project.entry} 의 문서 기호에 update 가 없습니다 (${lr.symbols.join(", ")})`);
       return;
     }
     const doc = host.findDocument(project.entry) as (Document & { text?: string }) | null;

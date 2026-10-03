@@ -7,6 +7,7 @@
 import type * as lsp from "vscode-languageserver-protocol";
 import { RpcConnection, type CancelToken, type MessageTransport } from "./rpc";
 import { normalizePath } from "./uri";
+import { READ_FILE, WORKSPACE_FILES, type WorkspaceFile } from "./worker/protocol";
 
 export interface ClientOptions {
   /** 서버가 볼 작업 공간의 절대 경로 */
@@ -19,6 +20,11 @@ export interface ClientOptions {
   onDiagnostics?(params: lsp.PublishDiagnosticsParams): void;
   /** 바뀐 글을 모았다가 보내는 시간 (ms) */
   changeDelay?: number;
+  /** 디스크를 모르는 서버(분석기 워커)가 묻는 프로젝트 파일 */
+  workspace?: {
+    files(): Promise<WorkspaceFile[]>;
+    read(uri: string): Promise<string | null>;
+  };
 }
 
 /** 클라이언트가 처리하는 기능 (initialize 의 capabilities) */
@@ -83,6 +89,11 @@ export class LanguageClient {
     c.onNotification("window/logMessage", (p) => options.onLog?.((p as lsp.LogMessageParams).type, (p as lsp.LogMessageParams).message));
     c.onNotification("window/showMessage", (p) => options.onLog?.((p as lsp.ShowMessageParams).type, (p as lsp.ShowMessageParams).message));
     c.onNotification("textDocument/publishDiagnostics", (p) => options.onDiagnostics?.(p as lsp.PublishDiagnosticsParams));
+    const workspace = options.workspace;
+    if (workspace) {
+      c.onRequest(WORKSPACE_FILES, () => workspace.files());
+      c.onRequest(READ_FILE, (p) => workspace.read((p as { uri: string }).uri));
+    }
   }
 
   get isRunning(): boolean {
