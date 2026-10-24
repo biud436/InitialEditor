@@ -18,7 +18,7 @@ async function openSample(page: Page) {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
 }
 
@@ -36,7 +36,7 @@ test.describe("실행기 (메모리 모드)", () => {
     await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     await expect(engine).toHaveAttribute("title", /게임 탭에서 실행 \(웹 엔진\)/);
     // 프로젝트를 열면 웹 엔진의 MANIFEST 를 읽어 기능과 커밋을 툴팁에 더한다
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await expect(engine).toHaveText("엔진 (게임 탭): 대기");
     const manifest = JSON.parse(readFileSync(path.resolve("packages/app/public/engine/MANIFEST.json"), "utf8")) as { features: string[]; engineCommit: string };

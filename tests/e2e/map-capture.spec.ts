@@ -30,7 +30,7 @@ async function openMeadow(page: Page) {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((keys) => keys.forEach((k) => localStorage.removeItem(k)), [LAYOUT_KEY, MAP_VIEW_KEY]);
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   const tree = page.getByTestId("project-tree");
   await tree.locator('[data-path="resources"]').click();
   await tree.locator('[data-path="resources/maps"]').click();

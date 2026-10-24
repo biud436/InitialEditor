@@ -49,7 +49,6 @@ import { DocumentDock } from "./documentDock";
 import { registerExtensionPanelCommands } from "./extensionPanels";
 import { IMAGE_EXTENSIONS, ImagePreviewDocument } from "./documents/ImagePreviewDocument";
 import { TEXT_EXTENSIONS, TextPreviewDocument } from "./documents/TextPreviewDocument";
-import { WELCOME_KIND, WelcomeDocument } from "./documents/WelcomeDocument";
 import { LayoutPersistence } from "./layoutPersistence";
 import { LayoutStore } from "./layout";
 import type { KeyValueStorage } from "./LocalStorageSettingsStorage";
@@ -150,7 +149,6 @@ export class Editor {
     this.documentDock = new DocumentDock({
       documents: this.documents,
       openPath: (path) => this.openPath(path),
-      openWelcome: () => this.openWelcome(),
       canOpenPaths: () => this.project.isOpen,
     });
     this.layout = new LayoutStore({
@@ -195,7 +193,6 @@ export class Editor {
       this.log.error("editor", `확장 활성 실패: ${(e as Error).message}`);
     }
     this.installTilemapPlaces();
-    this.openWelcome();
     this.log.info("editor", `InitialEditor ${this.version} 시작 (모드: ${MODE_LABELS[this.mode]}, 백엔드: ${this.backend.kind}, 플랫폼: ${this.platform})`);
     if (this.autoOpenRoot) void this.openProject(this.autoOpenRoot);
   }
@@ -286,7 +283,32 @@ export class Editor {
     }
     await this.layout.restore();
     this.events.emit("projectOpened", info);
+    if (this.documents.documents.length === 0) await this.openStartDocument();
     return true;
+  }
+
+  /**
+   * 게임을 처음 열었을 때(복원할 탭이 없을 때) 손댈 곳을 연다: game.json 의 시작 씬, 없으면 resources/maps 의 첫 맵,
+   * 그것도 없으면 진입점 스크립트. 아무것도 없으면 열지 않는다
+   */
+  async openStartDocument(): Promise<void> {
+    const start = this.project.gameJson.startScene;
+    const candidates: string[] = [];
+    if (start) candidates.push(`resources/scenes/${start}.json`);
+    try {
+      const maps = (await this.backend.list("resources/maps")).filter((e) => e.kind === "file" && e.name.endsWith(".json")).map((e) => `resources/maps/${e.name}`);
+      candidates.push(...maps.sort());
+    } catch {
+      // 맵 폴더가 없다
+    }
+    const language = this.project.gameJson.script === "mruby" ? "ruby" : "lua";
+    candidates.push(language === "ruby" ? "scripts/ruby/main.rb" : "scripts/lua/main.lua");
+    for (const path of candidates) {
+      if (await this.backend.exists(path).catch(() => false)) {
+        await this.openPath(path).catch(() => {});
+        return;
+      }
+    }
   }
 
   /** 프로젝트를 닫는다. 저장 안 된 문서가 있으면 묻는다. 취소면 false */
@@ -303,14 +325,11 @@ export class Editor {
       if (!ok) return false;
     }
     await this.layout.flush();
-    for (const doc of [...this.documents.documents]) {
-      if (doc.kind !== WELCOME_KIND) this.documents.close(doc);
-    }
+    for (const doc of [...this.documents.documents]) this.documents.close(doc);
     const root = this.project.root;
     await this.project.close();
     this.events.emit("projectClosed", undefined);
     this.log.info("editor", `프로젝트 닫힘: ${root}`);
-    this.openWelcome();
     return true;
   }
 
@@ -325,15 +344,6 @@ export class Editor {
     this.setProject(new Project(backend));
     this.log.info("editor", `백엔드 교체: ${backend.kind}${bridgeUrl ? ` (${bridgeUrl})` : ""}`);
     return true;
-  }
-
-  openWelcome(): void {
-    const existing = this.documents.documents.find((d) => d.kind === WELCOME_KIND);
-    if (existing) {
-      this.documents.activate(existing);
-      return;
-    }
-    this.documents.open(new WelcomeDocument());
   }
 
   /** 프로젝트 패널의 더블클릭. 확장자에 따라 미리보기 문서를 연다 */

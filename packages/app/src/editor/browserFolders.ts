@@ -147,6 +147,19 @@ export class BrowserFolders {
     return handle;
   }
 
+  /**
+   * 새 게임의 폴더를 고르기만 한다 (새 게임 대화상자의 폴더 고르기 단추). 클릭 처리기에서 바로 부른다.
+   * 열린 게임은 닫지 않는다. 대화상자에서 만들기를 누른 뒤에 newProject.ts 가 닫는다. 취소면 null
+   */
+  async pickFolderHandle(): Promise<FsDirHandle | null> {
+    try {
+      return await this.backend.pickHandle();
+    } catch (e) {
+      this.fail("폴더 선택 실패", e);
+      return null;
+    }
+  }
+
   /** 새 프로젝트를 만들 폴더를 기억하고 이 백엔드로 바꾼다. 돌려주는 키를 open 에 넘긴다. 못 하면 null */
   async adopt(handle: FsDirHandle): Promise<string | null> {
     let key: string;

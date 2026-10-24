@@ -56,7 +56,7 @@ export async function openRpgProject(page: Page): Promise<void> {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
   // 바이너리 먼저, 설정(rpg-game.json)은 마지막: 설정을 읽을 때 아이템 표와 맵 파일이 이미 있다
   const binaries = BINARY_FILES.map((p) => [p, readFileSync(path.join(FIXTURES, p)).toString("base64")]);
