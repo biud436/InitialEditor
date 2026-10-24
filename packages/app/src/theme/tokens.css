@@ -11,6 +11,40 @@
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+
+  /* 크기 (docs/plans/quality.md 6.1절). 글자, 컨트롤, 목록 줄, 간격은 이 값만 쓴다 */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 20px;
+  --leading: 1.45;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 600;
+
+  --control-sm: 24px;
+  --control-md: 28px;
+  --control-lg: 32px;
+  --row: 26px;
+  --panel-header: 32px;
+  --toolbar: 40px;
+
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-full: 999px;
+
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 20px;
+  --icon-xl: 32px;
+
+  --check: 16px;
+  --switch-height: 18px;
+  --switch-thumb: 12px;
+  --badge: 18px;
 }
 
 /* 다크: 중립 회색 편집기 팔레트에 파란 강조 */
@@ -35,6 +69,17 @@
   --success: #57ab5a;
   --border: #383d45;
   --focus-ring: #6fa8f5;
+  --border-strong: #4a515b;
+  --fg-subtle: #737d88;
+  --bg-active: #3a4049;
+  --accent-hover: #5b9cf0;
+  --accent-soft: rgba(74, 143, 231, 0.18);
+  --danger-soft: rgba(229, 83, 75, 0.16);
+  --warning-soft: rgba(217, 164, 65, 0.16);
+  --tooltip-bg: #0e1013;
+  --tooltip-fg: #e4e7eb;
+  --checker-a: #2a2d33;
+  --checker-b: #23262b;
 
   --scene-bg: #101214;
   --scene-grid: #24282d;
@@ -96,6 +141,17 @@
   --success: #2f8a34;
   --border: #d0d4da;
   --focus-ring: #4a8fe7;
+  --border-strong: #b4bac3;
+  --fg-subtle: #7d8691;
+  --bg-active: #d3d7de;
+  --accent-hover: #1a62b8;
+  --accent-soft: rgba(31, 111, 208, 0.12);
+  --danger-soft: rgba(201, 60, 52, 0.1);
+  --warning-soft: rgba(154, 107, 0, 0.12);
+  --tooltip-bg: #1f2328;
+  --tooltip-fg: #ffffff;
+  --checker-a: #e8e9ec;
+  --checker-b: #ffffff;
 
   --scene-bg: #f2f3f5;
   --scene-grid: #e0e2e6;

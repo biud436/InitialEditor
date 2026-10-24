@@ -43,14 +43,22 @@ export function pickLicense(expr) {
   return text;
 }
 
-/** 패키지 폴더의 라이선스 원문 파일들 (고른 라이선스의 이름이 든 파일이 있으면 그것만) */
+/** 패키지 폴더의 라이선스 원문 파일들 (고른 라이선스의 이름이 든 파일이 있으면 그것만).
+ *  맨 위에 없으면 dist/ 를 본다 (pretendard 는 원문을 dist/LICENSE.txt 에만 둔다) */
 export function licenseFiles(dir, chosen) {
-  let names;
-  try {
-    names = fs.readdirSync(dir).filter((n) => LICENSE_FILE.test(n) && fs.statSync(path.join(dir, n)).isFile());
-  } catch {
-    return [];
+  const found = (d) => {
+    try {
+      return fs.readdirSync(d).filter((n) => LICENSE_FILE.test(n) && fs.statSync(path.join(d, n)).isFile());
+    } catch {
+      return [];
+    }
+  };
+  let names = found(dir);
+  if (!names.length && found(path.join(dir, "dist")).length) {
+    dir = path.join(dir, "dist");
+    names = found(dir);
   }
+  if (!names.length) return [];
   names.sort();
   const hint = FILE_HINTS[chosen];
   if (hint && names.length > 1) {
