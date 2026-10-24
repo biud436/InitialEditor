@@ -9,10 +9,11 @@
 // 다시 그리기: 맵 파일이나 타일셋 그림이 바뀌면(MapFileCache의 changed) 새로 읽어 다 읽은 뒤에 바꿔 끼운다.
 //   props가 바뀌면 씬 렌더러가 노드를 새로 만든다.
 // 맵을 고르지 않았거나 읽지 못하면 이름표가 붙은 자리표시 상자를 그린다.
+// 타일 애니메이션은 재생하지 않고 게임을 시작할 때의 프레임(시계 0)을 그린다.
 
 import type { SceneObject } from "@initial-editor/core";
 import { readTilemapProps } from "@initial-editor/ext-tilemap";
-import type { MapData } from "@initial-editor/ext-tilemap/model";
+import { animatedGid, tileAnimations, type MapData } from "@initial-editor/ext-tilemap/model";
 import { Container, Graphics, Sprite } from "pixi.js";
 import { CHUNK_TILES, chunkCells, chunkGrid } from "../maps/mapGeometry";
 import type { MapFileCache } from "./mapFiles";
@@ -52,6 +53,7 @@ export function planTilemap(map: MapData, sheets: ReadonlyArray<SheetSize | null
   const th = map.tileHeight;
   const grid = chunkGrid(map, chunkSize);
   const valid = new Map<number, boolean>();
+  const animations = tileAnimations(map.tilesets);
   const chunks: ChunkPlan[] = [];
   let drawn = 0;
   let skipped = 0;
@@ -61,7 +63,7 @@ export function planTilemap(map: MapData, sheets: ReadonlyArray<SheetSize | null
       const tiles: ChunkPlan["tiles"] = [];
       for (let y = r.y0; y < r.y0 + r.h; y++) {
         for (let x = r.x0; x < r.x0 + r.w; x++) {
-          const gid = layer.data[y * map.width + x];
+          const gid = animatedGid(animations, layer.data[y * map.width + x], 0);
           if (!(gid > 0)) continue;
           let ok = valid.get(gid);
           if (ok === undefined) {

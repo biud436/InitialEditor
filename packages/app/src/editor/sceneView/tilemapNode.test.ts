@@ -147,6 +147,13 @@ describe("타일맵 그리기 계획", () => {
     expect(plan.chunks[0].tiles).toEqual([{ x: 16, y: 16, gid: 3 }]);
   });
 
+  it("애니메이션 범위의 칸은 게임을 시작할 때의 프레임(시계 0)을 그린다", () => {
+    const tilesets = [{ image: SHEET, firstGid: 1, columns: 4, animations: [{ tile: 1, count: 2, frames: [5, 1], duration: 100 }] }];
+    const plan = planTilemap(parseMap(mapText([1, 2, 3, 4, 0, 0, 0, 0], { tilesets })), [{ width: 64, height: 32 }], 2);
+    expect(plan.chunks[0].tiles.map((t) => t.gid)).toEqual([1, 6]);
+    expect(plan.chunks[1].tiles.map((t) => t.gid)).toEqual([7, 4]);
+  });
+
   it("타일셋 그림을 못 읽었으면 그 칸은 모두 건너뛴다", () => {
     const plan = planTilemap(parseMap(mapText([1, 2, 3, 4, 5, 6, 7, 8])), [null]);
     expect(plan.chunks).toEqual([]);
