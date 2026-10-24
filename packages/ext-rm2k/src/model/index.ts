@@ -6,3 +6,7 @@ export * from "./bake";
 export * from "./rules";
 export * from "./palette";
 export * from "./tileset";
+export * from "./lcf";
+export * from "./lcfText";
+export * from "./images";
+export * from "./convert";

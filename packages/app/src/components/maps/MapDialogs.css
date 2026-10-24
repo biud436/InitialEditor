@@ -93,3 +93,83 @@
 .map-dialog-guides .link-button:hover {
   text-decoration: underline;
 }
+
+/* 맵 가져오기 */
+.map-dialog-medium {
+  width: 220px;
+}
+
+.map-import {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.map-import-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.map-import-all {
+  font-size: 12px;
+}
+
+.map-import-list {
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.map-import-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: start;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.map-import-item:last-child {
+  border-bottom: none;
+}
+
+.map-import-item input {
+  margin-top: 3px;
+}
+
+.map-import-item.is-blocked b {
+  color: var(--fg-muted);
+}
+
+.map-import-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.map-import-target,
+.map-import-note {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.map-import-problem {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.map-import-overwrite {
+  color: var(--warning);
+}
+
+.map-import-progress {
+  margin-right: auto;
+}

@@ -46,7 +46,7 @@ async function setup(files: Record<string, string | Uint8Array> = {}) {
 }
 
 describe("RPG Maker 2000 타일맵 확장", () => {
-  it("타일셋 종류 rm2k 를 등록한다: ChipSet 크기와 타일 16 만 받는다", async () => {
+  it("타일셋 종류 rm2k 와 맵 가져오기를 등록한다: ChipSet 크기와 타일 16 만 받는다", async () => {
     const { tilemap, host } = await setup();
     expect(tilemap.tilesetKinds.map((k) => k.id)).toEqual(["rm2k"]);
     const kind = tilemap.tilesetKinds[0];
@@ -55,8 +55,11 @@ describe("RPG Maker 2000 타일맵 확장", () => {
     expect(kind.accepts?.({ width: 256, height: 256 }, 16, 16)).toBe(false);
     expect(tilemap.tilesetKind({ ...rm2kTileset(CHIPSET, ATLAS), firstGid: 1 })?.id).toBe("rm2k");
     expect(tilemap.tilesetKind({ image: "a.png", firstGid: 1, columns: 48, extra: {} })).toBeNull();
+    // 맵 가져오기 "RPG Maker 2000 게임" 도 등록한다
+    expect(tilemap.mapImporters.map((i) => [i.id, i.label])).toEqual([["rm2k-game", "RPG Maker 2000 게임"]]);
     await host.deactivate("rm2k");
     expect(tilemap.tilesetKinds).toEqual([]);
+    expect(tilemap.mapImporters).toEqual([]);
   });
 
   it("새 맵: 고른 ChipSet 을 resources/tiles 에 굽고 선택지를 타일셋 항목에 적는다", async () => {

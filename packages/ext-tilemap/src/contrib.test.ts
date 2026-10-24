@@ -606,3 +606,17 @@ describe("타일셋 종류 (registerTilesetKind)", () => {
     expect(() => contrib.registerTilesetKind({ id: "k", label: "K2", owns: () => false })).toThrow(/중복/);
   });
 });
+
+describe("맵 가져오기 (registerMapImporter)", () => {
+  const importer = (id: string) => ({ id, label: id, accepts: () => true, plan: async () => ({ title: "", items: [], notes: [], run: async () => ({ maps: [], files: [], notes: [] }) }) });
+
+  it("등록 순서로 보이고, 돌려준 함수로 빠진다. id 가 겹치면 거부한다", () => {
+    const contrib = new TilemapContrib();
+    const offA = contrib.registerMapImporter(importer("a"));
+    contrib.registerMapImporter(importer("b"));
+    expect(contrib.mapImporters.map((i) => i.id)).toEqual(["a", "b"]);
+    expect(() => contrib.registerMapImporter(importer("a"))).toThrow(/중복/);
+    offA();
+    expect(contrib.mapImporters.map((i) => i.id)).toEqual(["b"]);
+  });
+});

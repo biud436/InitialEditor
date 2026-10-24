@@ -76,8 +76,13 @@ async function transform(bytes: Uint8Array, stream: ByteTransform): Promise<Uint
   return out;
 }
 
+/** zlib 형식의 압축을 푼다 (PNG 의 IDAT, RPG Maker 2000 의 XYZ 그림) */
+export function inflateZlib(bytes: Uint8Array): Promise<Uint8Array> {
+  return transform(bytes, new DecompressionStream("deflate") as unknown as ByteTransform);
+}
+
 function inflate(bytes: Uint8Array): Promise<Uint8Array> {
-  return transform(bytes, new DecompressionStream("deflate") as unknown as ByteTransform).catch((e: Error) => {
+  return inflateZlib(bytes).catch((e: Error) => {
     throw new Error(`PNG: 압축을 풀 수 없습니다 (${e.message})`);
   });
 }
