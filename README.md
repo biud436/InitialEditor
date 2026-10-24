@@ -226,6 +226,27 @@ INITIAL2D_DIR=../Initial2D yarn test:engine-map   # 엔진 빌드(build/Initial2
 KEEP_WORKDIR=1 yarn test:engine-map               # 임시 프로젝트와 엔진 사본을 남긴다
 ```
 
+### RPG Maker 2000 ChipSet
+
+확장 `packages/ext-rm2k`가 RPG Maker 2000의 ChipSet(480x256)을 맡습니다. 사용법은 설명서 [docs/guide/rm2k.md](docs/guide/rm2k.md),
+배치와 규칙의 근거는 [docs/plans/rm2k-tilemap.md](docs/plans/rm2k-tilemap.md)입니다.
+
+- 새 맵(Ctrl+Alt+M)에서 ChipSet 이미지를 고르고 타일 크기가 16이면 형식이 RPG Maker 2000 ChipSet으로 골라집니다. 물결(왕복, 한 방향)과
+  빠르기(400ms, 200ms)를 정해 만들면 `resources/tiles/<이름>.rm2k.png`에 아틀라스를 쓰고, 타일셋 항목에 `animations`와 `rm2k` 키를 적습니다.
+- 팔레트는 하층(162개)과 상층(144개) 두 쪽입니다. 땅(D1..D12)과 물(A1, A2, 깊은 물)은 칠하면 칠한 칸과 이웃의 모양이 함께 맞춰지고,
+  되돌리기 한 번에 돌아갑니다. 채우기는 같은 지형을 한 영역으로 봅니다.
+- 원본 ChipSet이 바뀌면 열린 맵의 아틀라스를 다시 굽고, 맵을 열 때 아틀라스가 없으면 굽습니다. 물과 애니메이션 타일은 엔진의 타일
+  애니메이션(엔진 `Tilemap.Update`)이 움직이므로 그 기능이 있는 엔진이어야 합니다.
+
+```sh
+INITIAL2D_DIR=../Initial2D yarn test:engine-rm2k   # 굽고 칠한 맵을 진짜 엔진이 시계 넷에서 같게 그리는지 (타일 애니메이션 전 엔진이면 SKIP)
+KEEP_WORKDIR=1 yarn test:engine-rm2k               # 임시 폴더(ChipSet, 아틀라스, 맵, 스크린샷)를 남긴다
+yarn build && yarn test:e2e tests/e2e/rm2k-tilemap.spec.ts  # 새 맵의 형식, 팔레트 두 쪽, 땅과 물 칠하기, 채우기
+```
+
+검사는 저장소에 넣을 수 있는 검사용 ChipSet(`packages/ext-rm2k/src/model/testChipset.ts`, 조각마다 제 자리를 색으로 든 이미지)으로 합니다.
+RTP의 ChipSet과 그것으로 구운 아틀라스는 저장소에 넣지 않습니다.
+
 ## 앱에 싣는 엔진
 
 설치본은 엔진 실행 파일 하나를 앱 안에 싣습니다. 엔진 저장소의 `tools/build_dist.sh` 로 만든 배포용 빌드이고, 에디터가 묶이는 엔진 커밋은
@@ -419,10 +440,13 @@ packages/backend-fsaccess/ ProjectBackend 의 브라우저 폴더(File System Ac
 packages/backend-tauri/   ProjectBackend 의 Tauri 구현 (invoke 래퍼). Rust 본체는 src-tauri/
 packages/app/             React 셸: 도킹(dockview), 패널, 메뉴와 단축키, 테마, 두 진입 모드
 packages/ext-tilemap/     타일맵 확장: 맵 모델(포맷, 타일 계산, 명령, 오브젝트 스키마, 오토타일)과 씬의 타일맵 오브젝트 타입,
-                          다른 확장이 맵에 레이어와 이 맵에서 실행 제공자를 붙이고, 맵을 띄우고, 맵 뷰에서 타일을 고르는 자리(contrib.ts)
+                          다른 확장이 맵에 레이어와 이 맵에서 실행 제공자를 붙이고, 맵을 띄우고, 맵 뷰에서 타일을 고르고,
+                          타일셋 종류(팔레트 쪽, 모양 맞추기 규칙, 새 맵의 변환)를 더하는 자리(contrib.ts)
 packages/ui/              React 입력 부품: 인스펙터의 숫자, 글, 스키마 칸 입력. 앱과 확장이 함께 쓴다
 packages/ext-rpg/         RPG 확장: 이벤트 모델(스키마, 게임 설정, 검사, 명령, 실행 제공자와 실행 변수), 맵 뷰의 이벤트 레이어
                           (뷰, 도구, 인스펙터, 목록 패널), 커맨드 목록 편집기, 이벤트 실행 명령, 엔진 교차 검사
+packages/ext-rm2k/        RPG Maker 2000 타일맵 확장: ChipSet 굽기(아틀라스 판 1), 47 모양 표와 물의 모서리 규칙, 하층과 상층 팔레트,
+                          새 맵의 형식, ChipSet 이 바뀌면 다시 굽기, 엔진 교차 검사
 src-tauri/                Rust: 파일과 프로세스 명령, 감시, 핫 리로드 push, 앱에 든 엔진 찾기
 tests/e2e/                Playwright (브라우저 모드)와 알데바란 인수 테스트, 도우미는 tests/e2e/support/
 tests/scripts/            scripts/*.mjs 의 단위 테스트 (판 번호, 고지, 자가 검사 계획과 판정)
@@ -447,6 +471,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn luals:fetch` | 앱에 싣는 언어 서버 LuaLS 를 받아(sha256 확인) 쓰지 않는 것을 빼고 `src-tauri/luals/` 에 푼다. 고지는 `src-tauri/licenses/luals/`. `--target <트리플>`, `--from <압축 파일>` |
 | `yarn test:luals` | 진짜 LuaLS 와 에디터의 LSP 클라이언트 (`tests/luals/`): 새 RPG 프로젝트가 경고 없이 읽히는지, 스텁 없는 프로젝트의 진단, 완성, 호버, 정의, 참조, 이름 바꾸기. 먼저 `yarn luals:fetch`, 다른 실행 파일은 `INITIAL_EDITOR_LUALS` |
 | `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
+| `yarn test:engine-rm2k` | 구운 ChipSet 과 모양을 맞춰 칠한 맵을 진짜 엔진이 시계 넷에서 아틀라스와 같게 그리고 물과 애니메이션 타일이 움직이는지 (위 "RPG Maker 2000 ChipSet", `INITIAL2D_DIR`, `INITIAL2D_EXE`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 생성물 표시)를 갱신 (`INITIAL2D_DIR`). `--from-zip <zip 이나 dist 폴더>` 는 엔진의 템플릿 묶음에서 |
 | `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |
 | `yarn engine:fetch` | 앱에 싣는 엔진을 받는다. `--from <엔진 dist 폴더>`, `--target <트리플>`, `--templates <폴더>`, `--any-commit` (위 "앱에 싣는 엔진") |
