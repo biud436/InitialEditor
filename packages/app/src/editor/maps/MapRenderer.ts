@@ -7,6 +7,9 @@
 //   RenderTexture 한 장에 그리고, 화면에는 그 텍스처의 스프라이트 하나만 올린다. 모델의 "cells" 이벤트로 바뀐 칸의
 //   스프라이트만 고치고, 그 칸이 든 덩어리만 다음 프레임에 다시 그린다. 빈 덩어리는 텍스처를 만들지 않는다.
 // 타일 텍스처: 타일셋 이미지를 TextureCache로 한 번 읽고 gid마다 frame을 자른 Texture를 캐시한다 (nearest).
+// 타일 애니메이션: 타일셋의 animations(tileAnimation.ts)를 엔진과 같은 시계 규칙으로 그린다. 보기 설정의 애니메이션이 켜져
+//   있으면 티커의 시간만큼 시계가 가고, 꺼지면 시계 0(게임을 시작할 때의 프레임)이다. 덩어리마다 애니메이션 칸을 기억해 두고
+//   범위의 프레임 번호가 바뀌면 그 칸이 든 덩어리만 다시 그린다.
 // 통행: 덩어리마다 Graphics 하나. 막힌 칸을 행 단위 구간으로 묶어 --danger로 옅게 칠한다.
 // 오브젝트: Graphics 하나에 전부 다시 그린다 (수가 적다). 글자는 오브젝트마다 Text 하나이고 줌의 역수로 배율을 준다.
 // 확장 레이어(docs/plans/e5-rpg.md 2.2): 상태가 붙은 레이어마다 Container 하나를 order 순으로 extRoot에 두고 createView를 부른다.
@@ -19,7 +22,20 @@
 
 import { Emitter } from "@initial-editor/core";
 import type { MapLayerSpec, MapLayerTool, MapLayerToolContext, MapLayerView, MapLayerViewContext } from "@initial-editor/ext-tilemap";
-import { isJsonText, tileSource, typeOf, type AutotileRule, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
+import {
+  animatedGid,
+  animationOf,
+  animationStep,
+  isJsonText,
+  tileAnimations,
+  tileSource,
+  typeOf,
+  type AutotileRule,
+  type MapDocument,
+  type MapObject,
+  type ObjectTypeSchema,
+  type TileAnimationTable,
+} from "@initial-editor/ext-tilemap/model";
 import { comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, UPDATE_PRIORITY } from "pixi.js";
 import type { LoadedTexture, TextureCache } from "../sceneView/textures";
@@ -92,6 +108,8 @@ interface ChunkNode {
   count: number;
   rt: RenderTexture | null;
   display: Sprite;
+  /** 애니메이션 범위에 든 칸 (덩어리 안 번호) */
+  animated: Set<number>;
 }
 
 interface LayerNode {
@@ -129,7 +147,8 @@ export const EXT_DIM_ALPHA = 0.5;
 export class MapRenderer {
   /** 화면 변환 (screen = world * zoom + pan). 뷰가 data-zoom, data-pan-x, data-pan-y로 내보낸다 */
   readonly transform = observable<ViewTransform>({ zoom: 1, panX: MARGIN, panY: MARGIN });
-  readonly status = observable<{ ready: boolean; error: string | null; warning: string | null }>({ ready: false, error: null, warning: null });
+  /** animations: 이 맵의 타일 애니메이션 범위 수 (0 이면 뷰가 애니메이션 토글을 숨긴다) */
+  readonly status = observable<{ ready: boolean; error: string | null; warning: string | null; animations: number }>({ ready: false, error: null, warning: null, animations: 0 });
   /** 포인터 아래의 칸과 픽셀 (헤더 표시용) */
   readonly hover = observable.box<{ cell: Cell; px: Point } | null>(null, { equals: comparer.structural });
   readonly stats = observable<MapRenderStats>({ chunkRenders: 0, chunkTextures: 0 });
@@ -158,6 +177,11 @@ export class MapRenderer {
   private tilesetRun = 0;
   private tilesetsSettled = false;
   private readonly tileTextures = new Map<number, Texture | null>();
+  private animations: TileAnimationTable = { ranges: [], errors: [] };
+  /** 타일 애니메이션의 시계 (밀리초) */
+  private animClock = 0;
+  /** 범위마다 지금 그린 프레임 번호 */
+  private animSteps: number[] = [];
   private readonly dirtyTiles = new Map<number, Map<number, Set<number> | "all">>();
   private dirtyCollision: Set<number> | "all" = "all";
   private needLayers = true;
@@ -637,7 +661,10 @@ export class MapRenderer {
         this.needGrid = true;
         // 타일셋이 같으면 읽은 이미지는 그대로이고 칸만 바뀌었다
         if (!this.sameTilesets()) this.loadTilesets();
-        else this.needWarning = true;
+        else {
+          this.refreshAnimations();
+          this.needWarning = true;
+        }
         this.needLayers = true;
         this.needObjects = true;
         this.drawStatic();
@@ -665,6 +692,13 @@ export class MapRenderer {
         () => view.grid,
         () => {
           this.needGrid = true;
+        },
+      ),
+      reaction(
+        () => view.animate,
+        () => {
+          this.animClock = 0;
+          this.updateAnimatedCells();
         },
       ),
       reaction(
@@ -822,6 +856,7 @@ export class MapRenderer {
   private loadTilesets(): void {
     const run = ++this.tilesetRun;
     this.tilesetsSettled = false;
+    this.refreshAnimations();
     this.tilesets = this.model.tilesets.map((t) => ({ image: t.image, loaded: null, error: null }));
     const jobs = this.tilesets.map((slot) =>
       this.deps.textures.load(slot.image).then(
@@ -843,6 +878,76 @@ export class MapRenderer {
       this.needWarning = false;
       this.updateWarning();
     });
+  }
+
+  /** 타일셋의 animations 를 다시 읽는다. 칸은 다음 덩어리 갱신에서 새 표로 그린다 */
+  private refreshAnimations(): void {
+    this.animations = tileAnimations(this.model.tilesets);
+    this.animClock = 0;
+    this.animSteps = this.animations.ranges.map(() => 0);
+    this.markAllTiles();
+    const count = this.animations.ranges.length;
+    if (this.status.animations !== count) {
+      runInAction(() => {
+        this.status.animations = count;
+      });
+    }
+  }
+
+  /** 칸에 그릴 gid (애니메이션의 지금 프레임) */
+  private shownGid(gid: number): number {
+    return this.animations.ranges.length === 0 ? gid : animatedGid(this.animations, gid, this.animClock);
+  }
+
+  /** 시계를 ms 만큼 보낸다. 프레임 번호가 바뀐 범위가 있으면 애니메이션 칸을 다시 그린다 */
+  private advanceAnimation(ms: number): void {
+    const { ranges } = this.animations;
+    if (ranges.length === 0 || !this.deps.view.animate || ms <= 0) return;
+    this.animClock += ms;
+    let changed = false;
+    ranges.forEach((r, i) => {
+      const step = animationStep(r, this.animClock);
+      if (step !== this.animSteps[i]) {
+        this.animSteps[i] = step;
+        changed = true;
+      }
+    });
+    if (changed) this.updateAnimatedCells();
+  }
+
+  /** 애니메이션 칸의 텍스처를 지금 시계로 바꾸고 그 덩어리를 다시 그린다 */
+  private updateAnimatedCells(): number {
+    if (!this.app || !this.tilesetsSettled) return 0;
+    this.animSteps = this.animations.ranges.map((r) => animationStep(r, this.animClock));
+    const m = this.model;
+    let renders = 0;
+    this.layers.forEach((node, layer) => {
+      const data = m.layers[layer]?.data;
+      if (!data) return;
+      for (const ch of node.chunks.values()) {
+        if (ch.animated.size === 0) continue;
+        let changed = false;
+        for (const k of ch.animated) {
+          const sprite = ch.sprites[k];
+          const gid = data[(ch.y0 + Math.floor(k / ch.w)) * m.width + ch.x0 + (k % ch.w)];
+          const tex = this.tileTexture(this.shownGid(gid));
+          if (sprite && tex && sprite.texture !== tex) {
+            sprite.texture = tex;
+            changed = true;
+          }
+        }
+        if (changed && ch.rt) {
+          this.app!.renderer.render({ container: ch.content, target: ch.rt, clear: true, clearColor: [0, 0, 0, 0] });
+          renders++;
+        }
+      }
+    });
+    if (renders > 0) {
+      runInAction(() => {
+        this.stats.chunkRenders += renders;
+      });
+    }
+    return renders;
   }
 
   private releaseTileTextures(): void {
@@ -892,6 +997,8 @@ export class MapRenderer {
       }
     }
     if (missing > 0) parts.push(`타일셋에 없는 gid 타일 ${missing}개`);
+    const animErrors = this.animations.errors;
+    if (animErrors.length > 0) parts.push(`게임에서 읽지 못하는 타일 애니메이션 항목 ${animErrors.length}개 (${animErrors[0]})`);
     runInAction(() => {
       this.status.warning = parts.length ? parts.join(", ") : null;
     });
@@ -905,6 +1012,7 @@ export class MapRenderer {
     if (this.pendingCenter) this.applyPendingCenter();
     if (this.needLayers) this.rebuildLayers();
     const renders = this.tilesetsSettled ? this.flushTiles() : 0;
+    if (this.tilesetsSettled) this.advanceAnimation(this.app.ticker?.deltaMS ?? 0);
     if (this.needWarning && this.tilesetsSettled) {
       this.needWarning = false;
       this.updateWarning();
@@ -981,7 +1089,7 @@ export class MapRenderer {
       const display = new Sprite(Texture.EMPTY);
       display.position.set(r.x0 * tw, r.y0 * th);
       display.visible = false;
-      ch = { x0: r.x0, y0: r.y0, w: r.w, h: r.h, content: new Container(), sprites: new Array<Sprite | null>(r.w * r.h).fill(null), count: 0, rt: null, display };
+      ch = { x0: r.x0, y0: r.y0, w: r.w, h: r.h, content: new Container(), sprites: new Array<Sprite | null>(r.w * r.h).fill(null), count: 0, rt: null, display, animated: new Set() };
       node.container.addChild(display);
       node.chunks.set(chunk, ch);
       cells = "all";
@@ -1006,7 +1114,9 @@ export class MapRenderer {
 
   private setCell(ch: ChunkNode, lx: number, ly: number, gid: number): void {
     const k = ly * ch.w + lx;
-    const tex = gid > 0 ? this.tileTexture(gid) : null;
+    if (gid > 0 && animationOf(this.animations, gid)) ch.animated.add(k);
+    else ch.animated.delete(k);
+    const tex = gid > 0 ? this.tileTexture(this.shownGid(gid)) : null;
     const sprite = ch.sprites[k];
     if (!tex) {
       if (sprite) {

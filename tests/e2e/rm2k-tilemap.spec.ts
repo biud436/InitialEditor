@@ -2,7 +2,8 @@
 // (packages/ext-rm2k/src/model/testChipset.ts)을 써 두고, 사람이 하는 길로 간다:
 //   새 맵 대화상자에서 그 그림을 고르면 형식이 RPG Maker 2000 ChipSet 으로 골라진다 → 물결 빠르기를 바꿔 만든다 → 맵 파일의
 //   타일셋 항목과 구운 아틀라스 → 팔레트의 하층과 상층 → 땅 오토타일을 사각형으로 칠하면 칸마다 모양이 맞고 되돌리기 한 번에
-//   돌아간다 → 물을 칠하고 가운데에 깊은 물 → 물 영역 채우기는 모양이 다른 물 칸을 한 영역으로 본다
+//   돌아간다 → 물을 칠하고 가운데에 깊은 물 → 물 영역 채우기는 모양이 다른 물 칸을 한 영역으로 본다 → 물이 맵 뷰에서 움직이고
+//   애니메이션 토글로 멈춘다
 // 아틀라스 번호는 packages/ext-rm2k/src/model/atlas.ts 의 배치(판 1)다: D 는 289 + 종류*48 + 모양, 물 A1 은 913 + 물 칸.
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -183,5 +184,17 @@ test.describe("RPG Maker 2000 타일맵", () => {
     expect(shallow).toHaveLength(15);
     // 땅 오토타일은 그대로다
     expect(at(cells, 2, 2)).toBe(D1(0));
+
+    // 물은 맵 뷰에서 움직인다 (빠르게: 200ms 마다 물이 든 덩어리를 다시 그린다). 끄면 멈춘다
+    const toggle = page.getByTestId("map-toggle-animation");
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    const renders = async () => Number(await view.getAttribute("data-chunk-renders"));
+    const before = await renders();
+    await expect.poll(renders, { timeout: 3000 }).toBeGreaterThan(before + 2);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    const stopped = await renders();
+    await page.waitForTimeout(800);
+    expect(await renders()).toBe(stopped);
   });
 });

@@ -1,4 +1,4 @@
-// 맵 뷰의 보기 설정: 격자, 현재 레이어 위를 흐리게, 팔레트 배율. localStorage 한 키에 남는다.
+// 맵 뷰의 보기 설정: 격자, 현재 레이어 위를 흐리게, 타일 애니메이션, 팔레트 배율. localStorage 한 키에 남는다.
 // 줌과 팬은 렌더러마다 따로 든다 (맵마다 크기가 달라서).
 
 import { action, makeObservable, observable, reaction } from "mobx";
@@ -10,10 +10,12 @@ export const PALETTE_ZOOMS = [1, 2, 3] as const;
 export interface MapViewSettings {
   grid: boolean;
   dimAbove: boolean;
+  /** 타일셋의 animations 를 맵 뷰에서 재생한다 */
+  animate: boolean;
   paletteZoom: number;
 }
 
-export const DEFAULT_MAP_VIEW: MapViewSettings = { grid: true, dimAbove: false, paletteZoom: 2 };
+export const DEFAULT_MAP_VIEW: MapViewSettings = { grid: true, dimAbove: false, animate: true, paletteZoom: 2 };
 
 function sanitize(raw: unknown): Partial<MapViewSettings> {
   if (!raw || typeof raw !== "object") return {};
@@ -21,6 +23,7 @@ function sanitize(raw: unknown): Partial<MapViewSettings> {
   const out: Partial<MapViewSettings> = {};
   if (typeof r.grid === "boolean") out.grid = r.grid;
   if (typeof r.dimAbove === "boolean") out.dimAbove = r.dimAbove;
+  if (typeof r.animate === "boolean") out.animate = r.animate;
   if (typeof r.paletteZoom === "number" && (PALETTE_ZOOMS as readonly number[]).includes(r.paletteZoom)) out.paletteZoom = r.paletteZoom;
   return out;
 }
@@ -28,6 +31,7 @@ function sanitize(raw: unknown): Partial<MapViewSettings> {
 export class MapViewState {
   grid = DEFAULT_MAP_VIEW.grid;
   dimAbove = DEFAULT_MAP_VIEW.dimAbove;
+  animate = DEFAULT_MAP_VIEW.animate;
   paletteZoom = DEFAULT_MAP_VIEW.paletteZoom;
   private stop: (() => void) | null = null;
 
@@ -38,9 +42,11 @@ export class MapViewState {
     makeObservable(this, {
       grid: observable,
       dimAbove: observable,
+      animate: observable,
       paletteZoom: observable,
       toggleGrid: action,
       toggleDimAbove: action,
+      toggleAnimate: action,
       setPaletteZoom: action,
       load: action,
     });
@@ -60,7 +66,7 @@ export class MapViewState {
   }
 
   toJSON(): MapViewSettings {
-    return { grid: this.grid, dimAbove: this.dimAbove, paletteZoom: this.paletteZoom };
+    return { grid: this.grid, dimAbove: this.dimAbove, animate: this.animate, paletteZoom: this.paletteZoom };
   }
 
   load(): void {
@@ -74,6 +80,7 @@ export class MapViewState {
     const s = { ...DEFAULT_MAP_VIEW, ...sanitize(parsed) };
     this.grid = s.grid;
     this.dimAbove = s.dimAbove;
+    this.animate = s.animate;
     this.paletteZoom = s.paletteZoom;
   }
 
@@ -83,6 +90,10 @@ export class MapViewState {
 
   toggleDimAbove(): void {
     this.dimAbove = !this.dimAbove;
+  }
+
+  toggleAnimate(): void {
+    this.animate = !this.animate;
   }
 
   setPaletteZoom(zoom: number): void {

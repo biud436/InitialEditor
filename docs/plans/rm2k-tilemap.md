@@ -61,6 +61,8 @@
 
 - `ext-tilemap`: `TilemapApi.registerTilesetKind`, `tilesetKind`, `autotileRules`. 모양 맞추기는 `model/autotileRules.ts`의
   `applyAutotile`(칠한 칸과 이웃 8칸, 순수 함수). 채우기는 `floodFillArea`의 `regionOf`로 같은 지형을 한 영역으로 본다.
+- 맵 뷰: 타일셋의 `animations`를 엔진과 같은 규칙(`tileAnimation.ts`의 `animatedGid`)으로 재생한다. 보기 설정 `animate`(맵 >
+  타일 애니메이션 재생)를 끄면 시계 0이다.
 - 앱: 맵 도구의 칠하기 한 곳(`MapToolController.apply`)이 타일 레이어의 바뀜을 규칙에 넣는다. 이웃의 모양 변경도 같은 되돌리기
   단계다. 팔레트는 종류가 준 쪽을 탭으로 보이고 칸마다 아틀라스의 그림을 그린다. 새 맵 대화상자는 그림을 받는 종류가 있으면
   형식과 종류의 선택지를 보이고, 만들 때 종류의 `createTileset`이 아틀라스를 쓴다.
@@ -87,7 +89,8 @@
       (타일셋 종류의 `guides`). 따라 하기는 브라우저 폴더 모드에서 문서의 순서대로 해 보고 맞췄다 (게임 탭 실행까지)
 - [ ] 따라 하기의 화면 그림. RTP ChipSet 화면은 소재의 재배포에 걸려 저장소에 넣지 않았다 (저자 판단)
 - [ ] 저자 확인: 팔레트와 칠한 화면 (quality.md 5.1의 첫 화면 승인)
-- [ ] 맵 뷰에서 물결 미리 보기 (지금은 첫 프레임)
+- [x] 맵 뷰에서 물결 재생 (`ext-tilemap`의 `tileAnimation.ts`, 맵 뷰의 애니메이션 토글). 엔진과 같은 시계 규칙이고, 덩어리마다
+      애니메이션 칸을 기억해 프레임이 바뀐 덩어리만 다시 그린다. 엔진이 읽지 못하는 항목은 맵 뷰 경고. 팔레트와 씬 뷰는 시계 0
 - [ ] RPG Maker 2000 데이터베이스의 통행(방향, 별, 벽)과 지형 번호. 엔진의 통행이 0과 1뿐이라 RPG 레이어(`scripts/lua/rpg/`)에서
       정할 일이다
 - [ ] `.lmu` 맵 가져오기, XYZ 이미지 읽기

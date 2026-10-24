@@ -4,7 +4,7 @@
 //   map.tool.<도구>: 펜 B, 사각형 R, 채우기 G, 지우개 E, 스포이드 I, 통행 C, 오브젝트 V.
 //     맵 탭이 활성이고 초점이 입력 칸에 없고 타일을 고르는 중이 아닐 때만 켜진다 (MapSupport.toolKeysOff)
 //   map.layer.<id>: 확장 레이어를 대상으로 (단축키는 레이어의 toolKey). extLayers.ts 가 등록한다
-//   map.toggleGrid, map.toggleCollision, map.toggleObjects, map.toggleDimAbove: 보기 토글 (체크 표시)
+//   map.toggleGrid, map.toggleCollision, map.toggleObjects, map.toggleDimAbove, map.toggleAnimation: 보기 토글 (체크 표시)
 //   map.zoomIn (Ctrl+=), map.zoomOut (Ctrl+-), map.zoomReset (Ctrl+0), map.fit: 맵 탭이 활성일 때.
 //     씬의 줌 커맨드와 단축키가 같지만 둘은 활성 조건이 겹치지 않아 활성인 쪽이 받는다
 
@@ -131,6 +131,8 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
   editor.setChecked("map.toggleObjects", () => support.activeMap?.showObjects ?? false);
   reg({ id: "map.toggleDimAbove", label: "위 레이어 흐리게", category: "map", run: () => support.view.toggleDimAbove() });
   editor.setChecked("map.toggleDimAbove", () => support.view.dimAbove);
+  reg({ id: "map.toggleAnimation", label: "타일 애니메이션 재생", category: "map", run: () => support.view.toggleAnimate() });
+  editor.setChecked("map.toggleAnimation", () => support.view.animate);
 
   reg({ id: "map.zoomIn", label: "줌 확대", category: "map", shortcut: "Ctrl+=", enabled: () => renderer() !== null, run: () => renderer()?.zoomIn() });
   reg({ id: "map.zoomOut", label: "줌 축소", category: "map", shortcut: "Ctrl+-", enabled: () => renderer() !== null, run: () => renderer()?.zoomOut() });
@@ -145,6 +147,7 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
     editor.menus.register({ path: "맵/통행 오버레이", commandId: "map.toggleCollision", order: 110 }),
     editor.menus.register({ path: "맵/오브젝트 오버레이", commandId: "map.toggleObjects", order: 120 }),
     editor.menus.register({ path: "맵/위 레이어 흐리게", commandId: "map.toggleDimAbove", order: 130 }),
+    editor.menus.register({ path: "맵/타일 애니메이션 재생", commandId: "map.toggleAnimation", order: 140 }),
     editor.menus.register({ path: "맵/줌 확대", commandId: "map.zoomIn", order: 200, separatorBefore: true }),
     editor.menus.register({ path: "맵/줌 축소", commandId: "map.zoomOut", order: 210 }),
     editor.menus.register({ path: "맵/줌 100%", commandId: "map.zoomReset", order: 220 }),

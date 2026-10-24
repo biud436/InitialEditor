@@ -2,6 +2,7 @@
 // 렌더러(MapRenderer)는 뷰마다 하나이고 내릴 때 버린다. 테마가 바뀌면 토큰을 다시 읽어 렌더러에 준다.
 // data-zoom, data-pan-x, data-pan-y는 월드 → 화면 변환(screen = world * zoom + pan)이다. e2e가 칸과 오브젝트를
 // 캔버스 픽셀로 옮길 때 쓴다. data-tool, data-target은 문서의 편집 상태, data-ready는 타일셋까지 그린 뒤 true.
+// 애니메이션 토글은 타일셋에 animations 가 있는 맵에만 보인다.
 // 확장이 이 맵에서 타일을 고르는 동안(MapSupport.picker) 캔버스 위 가운데에 요청의 글과 취소 단추를 띄우고(캔버스가 밀리지
 // 않게 겹쳐 그린다. 띠 위의 누름은 취소 단추 말고는 아래 타일로 간다), 캔버스 자리에 data-pick-surface를 달아 그 밖의 누름이
 // 고르기를 취소하게 하고, 캔버스 자리에 초점을 준다.
@@ -207,6 +208,18 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
           >
             통행
           </button>
+          {status?.animations ? (
+            <button
+              type="button"
+              className={"btn" + (view.animate ? " is-on" : "")}
+              aria-pressed={view.animate}
+              onClick={run("map.toggleAnimation")}
+              data-testid="map-toggle-animation"
+              title="물과 애니메이션 타일을 게임과 같은 간격으로 재생합니다. 끄면 게임을 시작할 때의 프레임을 보여 줍니다."
+            >
+              애니메이션
+            </button>
+          ) : null}
           <button
             type="button"
             className={"btn" + (doc.showObjects ? " is-on" : "")}
