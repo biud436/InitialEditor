@@ -142,3 +142,6 @@ playwright-report/
 
 # 앱에 싣는 LuaLS (scripts/fetch-luals.mjs 가 받는다)
 src-tauri/luals/
+
+# 화면 검수판 (yarn review)
+/review/
