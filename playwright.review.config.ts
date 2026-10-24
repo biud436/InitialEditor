@@ -11,6 +11,8 @@ export default defineConfig({
   reporter: "list",
   use: {
     ...devices["Desktop Chrome"],
+    // 헤드리스 촬영은 소리를 내지 않는다
+    launchOptions: { args: ["--mute-audio"] },
     baseURL: `http://127.0.0.1:${PORT}`,
   },
   webServer: {
