@@ -9,6 +9,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { MUTE_AUDIO } from "./support/muteAudio";
 
 const LAYOUT_KEY = "initial-editor.layout";
 const FIXTURES = join(__dirname, "..", "..", "packages", "core", "src", "graph", "fixtures", "flappy");
@@ -73,6 +74,11 @@ async function dragTo(page: Page, from: Locator, to: { x: number; y: number }) {
 }
 
 test.describe("비주얼 스크립팅 (메모리 모드)", () => {
+  // 게임 탭을 돌리는 스펙이라 WebKit 에서도 소리를 끈다 (크로미움은 --mute-audio)
+  test.beforeEach(async ({ context }) => {
+    await context.addInitScript(MUTE_AUDIO);
+  });
+
   test("플래피 bird 그래프: 상수를 바꿔 저장하면 생성 코드가 바뀌고, 되돌리기, 생성 파일의 줄에서 노드로", async ({ page }) => {
     await openSample(page);
     await writeBird(page);
