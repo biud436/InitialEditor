@@ -1,0 +1,7 @@
+{
+  "comment": "부품과 크기 토큰으로 옮긴 화면 (scripts/check-ui-kit.mjs). 화면을 옮기면 여기에 더한다. docs/plans/quality.md 5.1절",
+  "paths": [
+    "packages/ui/src/kit",
+    "packages/app/src/components/gallery"
+  ]
+}

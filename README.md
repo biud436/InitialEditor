@@ -461,6 +461,8 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn test:e2e` | Playwright, Chromium 으로 모든 스펙 (먼저 `yarn build`, 처음 한 번 `yarn playwright install chromium`). 브리지 모드와 알데바란 인수 테스트는 `INITIAL2D_DIR`의 엔진 저장소를 쓰고, 없으면 건너뜁니다. 포트는 환경 변수로 바꿉니다: `E2E_PORT`(미리보기, 기본 4173), `E2E_BRIDGE_PORT`(브리지를 고정 포트로 띄우는 테스트의 포트) |
 | `yarn test:e2e:webkit` | 같은 Playwright 를 WebKit(macOS 앱의 웹뷰 WKWebView 와 같은 엔진)으로. 브라우저 엔진에 따라 동작이 갈리는 스펙(`playwright.config.ts` 의 `WEBKIT_SPECS`: 스크립트 편집, 스크립트 탭 여럿, 그래프, 언어 서버, 분석기 워커)만 돕니다. 언어 서버 스펙(`language-server.spec.ts`)은 `yarn luals:fetch` 로 받은 LuaLS 를 시험 프로세스가 띄워 붙이고, 없으면 CI 가 아닐 때 건너뜁니다. 처음 한 번 `npx playwright install --with-deps webkit`, 스펙 하나만은 `yarn test:e2e:webkit tests/e2e/script-tabs.spec.ts` |
 | `yarn guide:screenshots` | 사용자 가이드의 화면(`docs/guide/images/*.png`)을 다시 찍는다 (`tests/guide/`, `playwright.guide.config.ts`). 먼저 `yarn build`. 웹판 메모리 모드에서 RPG 데모와 플래피버드 템플릿으로 찍고 상태 바는 잘라 냅니다 |
+| `yarn review` | 화면 검수판. 주요 화면을 다크와 라이트, 1400x900과 960x600으로 찍어 `review/index.html`에 모읍니다 (`tests/review/`). 먼저 `yarn build` |
+| `yarn check:ui` | 부품으로 옮긴 화면(`scripts/ui-kit-scope.json`)에서 토큰이 아닌 크기와 직접 쓴 `<button>`, `<input>`을 찾습니다 |
 | `yarn check:colors` | 토큰 파일 밖의 색 리터럴 검사 (테마 규칙) |
 | `yarn check:terms` | UI 문구 검사: `packages/*/src`, `src-tauri/src` 의 문자열 리터럴과 JSX 텍스트에서 쓰지 않는 말과 한다체 끝맺음을 찾는다 (규칙은 아래 "UI 문구"). 폴더나 파일을 주면 거기만 |
 | `node scripts/check-web-dist.mjs` | 빌드한 `dist/` 검사 (`_headers`, 웹 엔진과 MANIFEST, 고지, Pages 한도). `--desktop` 은 소스맵이 없는지도 (위 "웹판 배포") |
@@ -471,6 +473,16 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 색은 `packages/app/src/theme/tokens.css`의 토큰(CSS 변수)으로만 씁니다. `<html data-theme="dark|light">`로 바뀌고
 기본은 OS 설정을 따릅니다. 새 테마는 토큰 값 한 벌을 더하면 됩니다. 규칙은
 [docs/plans/02-scope-and-screens.md](./docs/plans/02-scope-and-screens.md) 6절.
+
+## 화면 부품과 검수
+
+화면은 `packages/ui`의 부품(단추, 입력, 선택 목록, 패널 머리, 목록 줄, 빈 상태 같은 것)과 `tokens.css`의 크기 토큰
+(글자 13px, 컨트롤 28px, 목록 줄 26px, 간격 4px 단위)으로만 짭니다. 아이콘은 Lucide 한 벌입니다.
+부품은 `?ui=gallery`(예: `http://localhost:5173/?ui=gallery`)에서 한 화면에 모아 볼 수 있습니다.
+
+화면 하나는 두 창 크기와 두 테마에서 잘리는 곳이 없고, 빈 상태와 오류 상태가 있고, 개발자용 문구가 없을 때 끝난 것으로 봅니다.
+기준은 [docs/plans/quality.md](./docs/plans/quality.md) 5절에 있습니다. 화면을 고치면 `yarn review`로 전후를 찍어 PR에 붙이고,
+부품으로 옮긴 화면은 `scripts/ui-kit-scope.json`에 더해 `yarn check:ui`가 지키게 합니다.
 
 ## UI 문구
 

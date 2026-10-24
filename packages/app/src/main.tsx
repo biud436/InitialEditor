@@ -25,6 +25,13 @@ declare global {
 const csp = installCspCollector(document);
 
 async function boot(): Promise<void> {
+  // UI 견본 (docs/plans/quality.md 6.4절): 에디터를 띄우지 않고 부품만 보여 준다
+  if (new URLSearchParams(window.location.search).get("ui") === "gallery") {
+    const { Gallery } = await import("./components/gallery/Gallery");
+    const root = document.getElementById("root");
+    if (root) createRoot(root).render(<Gallery />);
+    return;
+  }
   const query = parseQuery(window.location.search);
   const mode = chooseMode(query, { VITE_DEFAULT_BACKEND: import.meta.env.VITE_DEFAULT_BACKEND as string | undefined });
   const plan = mode === "tauri" ? await selftestPlan().catch(() => null) : null;

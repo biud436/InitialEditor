@@ -95,6 +95,11 @@ jobs:
         working-directory: InitialEditor
         run: node scripts/check-color-literals.mjs
 
+      # docs/plans/quality.md 5.1절: 부품으로 옮긴 화면(scripts/ui-kit-scope.json)의 크기 토큰과 부품 사용
+      - name: 화면 부품과 크기 토큰 검사
+        working-directory: InitialEditor
+        run: node scripts/check-ui-kit.mjs
+
       # docs/design/ui-terms.md 3절: 쓰지 않는 말과 한다체 끝맺음 (문자열 리터럴과 JSX 텍스트, 테스트 제외)
       - name: UI 문구 검사
         working-directory: InitialEditor
