@@ -4,6 +4,7 @@
 //   - 팔레트는 하층과 상층 두 쪽이고, 칠하면 땅과 물의 모양을 이웃에 맞춘다 (rules.ts)
 //   - 원본 ChipSet 이 바뀌면 열린 맵의 아틀라스를 다시 굽고, 맵을 열 때 아틀라스가 없으면 굽는다 (저장소에 아틀라스를 두지
 //     않아도 ChipSet 만 있으면 된다)
+//   - 맵 가져오기 "RPG Maker 2000 게임" 을 등록한다 (importer.ts)
 
 import type { Extension, ExtensionApi } from "@initial-editor/core";
 import { TILEMAP_EXTENSION_ID, type PalettePage, type TilemapApi, type TilesetKindSpec } from "@initial-editor/ext-tilemap";
@@ -23,6 +24,7 @@ import {
   TILE,
   type WaterAnimation,
 } from "./model";
+import { rm2kImporter } from "./importer";
 
 export const RM2K_EXTENSION_ID = "rm2k";
 export const RM2K_TILESET_KIND = "rm2k";
@@ -96,6 +98,7 @@ export const rm2kExtension: Extension = {
     const tilemap = api.exportsOf<TilemapApi>(TILEMAP_EXTENSION_ID);
     const { workspace } = api;
     api.onDeactivate(tilemap.registerTilesetKind(rm2kTilesetKind()));
+    api.onDeactivate(tilemap.registerMapImporter(rm2kImporter()));
 
     // 같은 아틀라스를 두 번 겹쳐 굽지 않는다 (굽는 중에 또 바뀌면 끝난 뒤 한 번 더)
     const running = new Map<string, Promise<void>>();

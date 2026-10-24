@@ -91,11 +91,30 @@
 - [ ] 저자 확인: 팔레트와 칠한 화면 (quality.md 5.1의 첫 화면 승인)
 - [x] 맵 뷰에서 물결 재생 (`ext-tilemap`의 `tileAnimation.ts`, 맵 뷰의 애니메이션 토글). 엔진과 같은 시계 규칙이고, 덩어리마다
       애니메이션 칸을 기억해 프레임이 바뀐 덩어리만 다시 그린다. 엔진이 읽지 못하는 항목은 맵 뷰 경고. 팔레트와 씬 뷰는 시계 0
-- [ ] RPG Maker 2000 데이터베이스의 통행(방향, 별, 벽)과 지형 번호. 엔진의 통행이 0과 1뿐이라 RPG 레이어(`scripts/lua/rpg/`)에서
-      정할 일이다
-- [ ] `.lmu` 맵 가져오기, XYZ 이미지 읽기
+- [x] 게임 가져오기 (9절): `.ldb`의 ChipSet과 통행과 물결, `.lmt`의 이름, `.lmu`의 타일, XYZ와 BMP 이미지. 따라 하기
+      `docs/guide/rm2k-import.md`, 설명서 `rm2k.md`의 게임 가져오기 절
+- [ ] 방향별 통행과 지형 번호. 엔진의 통행이 0과 1뿐이라 RPG 레이어(`scripts/lua/rpg/`)에서 정할 일이다
+- [ ] 이벤트 가져오기 (RPG 확장의 이벤트로 옮기기). 가져온 맵을 RPG 템플릿의 맵 목록(`rpg-game.json`)에 올리는 길
 - [ ] 엔진 핀이 타일 애니메이션을 담은 판이 되면 `release.yml`에 `yarn test:engine-rm2k`를 더한다 (다른 엔진 교차 검사처럼 SKIP은 실패).
       지금 핀(alpha.4)에서는 SKIP이라 더하지 않았다
+
+## 9. 게임 가져오기
+
+맵 > 맵 가져오기 (앱의 `ImportMapDialog.tsx`, `importMaps.ts`). 타일맵 확장에 장르와 상관없는 자리 `registerMapImporter`를 열고
+(`accepts`, `plan`, `run`), `ext-rm2k`의 `importer.ts`가 "RPG Maker 2000 게임"을 등록한다. 폴더는 `<input webkitdirectory>`로
+고르므로 백엔드와 상관없다.
+
+- LCF 읽기 `lcf.ts`: 근거는 liblcf의 `generator/csv/fields.csv`. 맵의 크기(기본 20x15)와 ChipSet 번호(기본 1)는 기본값이면
+  파일에 없다. `.lmt`는 맵 목록만, `.ldb`는 ChipSet 덩어리(0x14)만 읽는다.
+- 타일 번호와 그리는 순서와 통행 `convert.ts`: EasyRPG Player의 `TilemapLayer`(별과 벽은 캐릭터 위, D 모양 47과 48은 가운데,
+  49는 견본)와 `Game_Map::IsPassableTile`(상층, 별, 하층, 벽의 윗면). 엔진 통행은 네 방향 모두 막힌 칸만 1이다.
+- 텍스트 인코딩 `lcfText.ts`: 후보마다 풀어 흔한 글자 비율로 고른다 (KS X 1001 한글, JIS 1수준, GB2312 1급을 디코더로 만든 집합).
+  `RPG_RT.ini`의 `[EasyRPG] Encoding`이 있으면 따른다.
+- 이미지 `images.ts`: XYZ(zlib, 팔레트 256색), 압축 없는 BMP. 0번 색이 투명이고 PNG로 쓸 때 알파로 바꾼다.
+- 검사: 단위(`lcf`, `lcfText`, `images`, `convert`, `importer`, 대화상자), 엔진 교차 검사 `rm2k-import.engine.test.ts`(검사용
+  ChipSet의 조각 자리로 칸마다 RPG Maker 2000 규칙의 조각과 엔진 화면을 견주고 통행을 견준다. D 모양 49를 일부러 틀리게 하면
+  실패하는 것을 확인했다), e2e(폴더 고르기에서 맵 열기까지). EasyRPG TestGame-2000(GPL, 저장소에 넣지 않음)의 맵 다섯을
+  `RM2K_GAME_DIR`로 가져와 형식 검사와 엔진 읽기를 지났고, 100x100 월드 맵을 아틀라스로 그려 물가와 깊은 물과 통행을 눈으로 봤다.
 
 ## 8. 확인하지 못한 것
 

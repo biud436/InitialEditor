@@ -13,6 +13,8 @@
 //                 revealCell 은 맵 파일을 열고 타일을 뷰 가운데에 둔다. 앱이 setMapViews 로 맵 탭과 뷰를 다루는 길을 넣는다
 //   타일셋 종류   타일셋 그림을 그대로 쓰지 않는 형식 (RPG Maker 2000 ChipSet 은 ext-rm2k). 팔레트에 보일 쪽, 칠한 뒤 모양
 //                 맞추기 규칙(model/autotileRules.ts), 새 맵 대화상자에서 그림으로 타일셋 항목을 만드는 길을 준다
+//   맵 가져오기   다른 도구의 맵 폴더(RPG Maker 2000 게임은 ext-rm2k)를 읽어 맵 파일로 쓴다. 앱의 맵 > 맵 가져오기 대화상자가
+//                 고른 폴더를 accepts 로 묻고, plan 이 돌려준 항목을 보이고, 고른 항목으로 run 을 부른다
 //
 // 뷰와 도구와 인스펙터는 앱이 붙인다. 여기 타입은 DOM 과 PIXI 를 모른다: PIXI 물체와 React 컴포넌트는 unknown 이고 앱이 좁혀 쓴다.
 
@@ -283,6 +285,75 @@ export interface TilesetKindSpec {
   createTileset?(request: TilesetCreateRequest): Promise<Omit<Tileset, "firstGid">>;
 }
 
+/** 맵 가져오기 대화상자가 고른 폴더. 경로는 그 폴더 기준이고 "/" 로 잇는다 */
+export interface ImportSource {
+  /** 고른 폴더의 이름 */
+  readonly name: string;
+  readonly paths: readonly string[];
+  read(path: string): Promise<Uint8Array>;
+}
+
+/** 가져올 수 있는 것 하나 (보통 맵 하나) */
+export interface MapImportItem {
+  /** 가져오기 안의 열쇠 */
+  id: string;
+  label: string;
+  /** 크기, 타일셋 따위 한 줄 */
+  detail: string;
+  /** 쓸 맵 파일 (프로젝트 경로) */
+  target: string;
+  /** 프로젝트에 target 이 이미 있다 (대화상자가 처음에 고르지 않는다) */
+  exists: boolean;
+  /** 가져올 수 없는 이유. 있으면 고를 수 없다 */
+  problems: readonly string[];
+  /** 가져오되 알릴 것 (가져오지 않는 내용 따위) */
+  notes: readonly string[];
+}
+
+export interface MapImportRun {
+  backend: ProjectBackend;
+  /** 처음 쓸 맵의 id (프로젝트의 맵 id 가운데 가장 큰 것 + 1). 맵마다 1 씩 늘린다 */
+  firstMapId: number;
+  /** 항목 하나를 쓸 때마다 */
+  progress?(done: number, total: number): void;
+}
+
+export interface MapImportResult {
+  /** 쓴 맵 파일 (고른 순서) */
+  maps: string[];
+  /** 맵 말고 쓴 파일 (타일셋 그림 따위) */
+  files: string[];
+  /** 콘솔에 남길 것 */
+  notes: string[];
+}
+
+export interface MapImportPlan {
+  /** 고른 폴더의 이름 (게임 이름 따위) */
+  title: string;
+  items: readonly MapImportItem[];
+  /** 대화상자 위쪽에 보일 것 (글의 인코딩 따위) */
+  notes: readonly string[];
+  /** 고른 항목을 프로젝트에 쓴다 */
+  run(ids: readonly string[], target: MapImportRun): Promise<MapImportResult>;
+}
+
+/** 다른 도구의 맵을 가져오는 방법 (맵 > 맵 가져오기) */
+export interface MapImporterSpec {
+  readonly id: string;
+  /** 대화상자의 가져오기 이름 */
+  readonly label: string;
+  /** 고를 폴더의 설명 한 줄 */
+  readonly description?: string;
+  /** 사용자 가이드의 문서 (docs/guide 의 파일 이름) */
+  readonly guides?: ReadonlyArray<{ label: string; page: string }>;
+  /** 대화상자의 선택지. 바꾸면 plan 을 다시 부른다 */
+  readonly options?: readonly TilesetKindOption[];
+  /** 이 가져오기가 읽는 폴더인가 */
+  accepts(source: ImportSource): boolean;
+  /** 폴더를 읽어 가져올 것을 정한다. 폴더가 맞지 않으면 던진다 */
+  plan(source: ImportSource, options: Readonly<Record<string, string>>, backend: ProjectBackend): Promise<MapImportPlan>;
+}
+
 export interface TilemapApi {
   registerMapLayer(spec: MapLayerSpec): () => void;
   registerPlayProvider(spec: PlayProviderSpec): () => void;
@@ -313,6 +384,9 @@ export interface TilemapApi {
   tilesetKind(tileset: Tileset): TilesetKindSpec | null;
   /** 맵의 타일셋들의 모양 맞추기 규칙 (타일셋 순서) */
   autotileRules(tilesets: readonly Tileset[]): AutotileRule[];
+  registerMapImporter(spec: MapImporterSpec): () => void;
+  /** 등록된 맵 가져오기, 등록 순서 (관찰 가능) */
+  readonly mapImporters: readonly MapImporterSpec[];
 }
 
 export interface TilemapContribDeps {
@@ -333,6 +407,7 @@ export class TilemapContrib implements TilemapApi {
   private readonly player = observable.box<MapPlayer | null>(null, { deep: false });
   private readonly views = observable.box<MapViews | null>(null, { deep: false });
   private readonly kinds = observable.array<TilesetKindSpec>([], { deep: false });
+  private readonly importers = observable.array<MapImporterSpec>([], { deep: false });
   private offOpen: (() => void) | null = null;
 
   constructor(private readonly deps: TilemapContribDeps = {}) {
@@ -447,6 +522,18 @@ export class TilemapContrib implements TilemapApi {
     });
   }
 
+  get mapImporters(): readonly MapImporterSpec[] {
+    return this.importers.slice();
+  }
+
+  registerMapImporter(spec: MapImporterSpec): () => void {
+    if (this.importers.some((k) => k.id === spec.id)) throw new Error(`맵 가져오기 id 중복: ${spec.id}`);
+    action(() => this.importers.push(spec))();
+    return action(() => {
+      this.importers.remove(spec);
+    });
+  }
+
   tilesetKind(tileset: Tileset): TilesetKindSpec | null {
     return this.kinds.find((k) => k.owns(tileset)) ?? null;
   }
@@ -492,6 +579,7 @@ export class TilemapContrib implements TilemapApi {
       this.player.set(null);
       this.views.set(null);
       this.kinds.clear();
+      this.importers.clear();
     })();
   }
 }

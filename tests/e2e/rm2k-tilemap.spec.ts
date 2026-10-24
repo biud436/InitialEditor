@@ -6,9 +6,13 @@
 //   애니메이션 토글로 멈춘다
 // 아틀라스 번호는 packages/ext-rm2k/src/model/atlas.ts 의 배치(판 1)다: D 는 289 + 종류*48 + 모양, 물 A1 은 913 + 물 칸.
 
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { encodePng } from "../../packages/core/src/png";
 import { codedChipset } from "../../packages/ext-rm2k/src/model/testChipset";
+import { writeDatabase, writeMapTree, writeMapUnit } from "../../packages/ext-rm2k/src/model/testLcf";
 
 const LAYOUT_KEY = "initial-editor.layout";
 const CHIPSET = "resources/ChipSet/Coded.png";
@@ -196,5 +200,68 @@ test.describe("RPG Maker 2000 타일맵", () => {
     const stopped = await renders();
     await page.waitForTimeout(800);
     expect(await renders()).toBe(stopped);
+  });
+});
+
+test.describe("RPG Maker 2000 게임 가져오기", () => {
+  test("게임 폴더를 고르면 맵 목록이 나오고, 고른 맵을 가져와 연다", async ({ page }) => {
+    // 게임 폴더: 맵 둘 (둘째 맵의 ChipSet 그림은 없다), 이름은 CP949
+    const ascii = (s: string) => [...s].map((c) => c.charCodeAt(0));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rm2k-game-"));
+    const game = path.join(dir, "MyGame");
+    fs.mkdirSync(path.join(game, "ChipSet"), { recursive: true });
+    const lowerPass = new Uint8Array(162).fill(15);
+    lowerPass[0] = 0;
+    fs.writeFileSync(path.join(game, "RPG_RT.ldb"), writeDatabase([{ id: 1, name: ascii("Field"), file: ascii("Coded"), lower: lowerPass }, { id: 2, name: ascii("Town"), file: ascii("World") }]));
+    fs.writeFileSync(path.join(game, "RPG_RT.lmt"), writeMapTree([{ id: 1, name: [189, 195, 192, 219, 192, 199, 32, 184, 182, 192, 187] }, { id: 2, name: ascii("Town") }]));
+    fs.writeFileSync(path.join(game, "RPG_RT.ini"), "[RPG_RT]\r\nGameTitle=My Game\r\n");
+    const lower = Array.from({ length: 300 }, (_, i) => (i % 20 < 5 ? 0 : 4000));
+    fs.writeFileSync(path.join(game, "Map0001.lmu"), writeMapUnit({ lower, upper: new Array(300).fill(10000), events: 4 }));
+    fs.writeFileSync(path.join(game, "Map0002.lmu"), writeMapUnit({ chipsetId: 2, lower: new Array(300).fill(5000) }));
+    fs.writeFileSync(path.join(game, "ChipSet", "Coded.png"), await encodePng(codedChipset()));
+
+    try {
+      await page.goto("/?backend=memory&sample=meadow");
+      await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
+      await page.reload();
+      await page.getByRole("button", { name: /^샘플 (프로젝트|게임) 열기$/ }).click();
+      await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
+
+      await page.getByRole("menubar").getByRole("menuitem", { name: "맵", exact: true }).click();
+      await page.locator(".menu-item").filter({ has: page.locator(".menu-label", { hasText: /^맵 가져오기$/ }) }).click();
+      const dialog = page.getByTestId("import-map-dialog");
+      await expect(dialog).toBeVisible();
+      await expect(page.getByTestId("import-map-kind")).toHaveText("RPG Maker 2000 게임");
+      await expect(page.getByTestId("import-map-guides").getByRole("button")).toHaveText(["따라 하기", "설명서"]);
+      await expect(page.getByTestId("import-map-ok")).toBeDisabled();
+
+      await page.getByTestId("import-map-folder-input").setInputFiles(game);
+      await expect(page.getByTestId("import-map-title")).toHaveText("My Game");
+      await expect(page.getByTestId("import-map-note")).toHaveText(["자동으로 선택한 텍스트 인코딩: 한국어 (CP949)"]);
+      const items = page.getByTestId("import-map-item");
+      await expect(items).toHaveCount(2);
+      await expect(items.nth(0)).toContainText("MAP0001 시작의 마을");
+      await expect(items.nth(0)).toContainText("이벤트 4개는 가져오지 않습니다");
+      await expect(items.nth(1)).toContainText("ChipSet 이미지가 없습니다: World");
+      await expect(page.getByTestId("import-map-count")).toHaveText("맵 2개 가운데 1개 선택");
+      await page.getByTestId("import-map-ok").click();
+
+      await expect(page.getByTestId("modal")).toHaveCount(0);
+      await expect(page.getByTestId("doc-tab").filter({ hasText: "map0001.json" })).toBeVisible();
+      const view = page.getByTestId("map-view");
+      await expect(view).toHaveAttribute("data-ready", "true");
+      await expect(page.getByTestId("palette-page-tab")).toHaveText(["하층", "상층"]);
+      const written = await ev<boolean[]>(page, "async (e) => Promise.all(['resources/ChipSet/Coded.png', 'resources/tiles/Coded.rm2k.png', 'resources/maps/map0001.json'].map((p) => e.backend.exists(p)))");
+      expect(written).toEqual([true, true, true]);
+      const map = await ev<{ name: string; layers: string[]; blocked: number; water: string }>(
+        page,
+        "(e) => { const m = e.documents.active.model; return { name: m.name, layers: m.layers.map((l) => l.name), blocked: m.collision.filter((c) => c).length, water: m.tilesets[0].extra.rm2k.water }; }",
+      );
+      expect(map).toEqual({ name: "시작의 마을", layers: ["lower", "upper"], blocked: 75, water: "pingpong" });
+      // 물이 있는 맵이라 애니메이션 토글이 보인다
+      await expect(page.getByTestId("map-toggle-animation")).toBeVisible();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

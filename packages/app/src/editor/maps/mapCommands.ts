@@ -1,6 +1,8 @@
 // 맵 커맨드와 "맵" 메뉴 (씬 30과 실행 40 사이, 35).
 //   map.new (Ctrl+Alt+M): 새 맵 대화상자 (newMap.ts, components/maps/NewMapDialog.tsx). 프로젝트가 열려 있을 때
 //   map.resize: 크기 바꾸기 대화상자 (resize.ts, components/maps/ResizeMapDialog.tsx). 맵 탭이 활성일 때
+//   map.import: 맵 가져오기 대화상자 (importMaps.ts, components/maps/ImportMapDialog.tsx). 프로젝트가 열려 있고 확장이 맵
+//     가져오기를 등록했을 때. 가져온 첫 맵을 연다
 //   map.tool.<도구>: 펜 B, 사각형 R, 채우기 G, 지우개 E, 스포이드 I, 통행 C, 오브젝트 V.
 //     맵 탭이 활성이고 초점이 입력 칸에 없고 타일을 고르는 중이 아닐 때만 켜진다 (MapSupport.toolKeysOff)
 //   map.layer.<id>: 확장 레이어를 대상으로 (단축키는 레이어의 toolKey). extLayers.ts 가 등록한다
@@ -11,6 +13,7 @@
 import type { EditorCommand } from "@initial-editor/core";
 import type { MapDocument, MapTool } from "@initial-editor/ext-tilemap/model";
 import { runInAction } from "mobx";
+import { openImportMapDialog } from "../../components/maps/ImportMapDialog";
 import { openNewMapDialog } from "../../components/maps/NewMapDialog";
 import { openResizeMapDialog } from "../../components/maps/ResizeMapDialog";
 import type { Editor } from "../Editor";
@@ -91,8 +94,23 @@ export function registerMapCommands(editor: Editor, support: MapSupport): () => 
     },
   });
   editor.setHint("map.resize", () => (hasMap() ? undefined : NEED_MAP));
+  const importers = () => editor.tilemap?.mapImporters ?? [];
+  reg({
+    id: "map.import",
+    label: "맵 가져오기",
+    category: "map",
+    enabled: () => editor.project.isOpen && importers().length > 0,
+    run: async () => {
+      const result = await openImportMapDialog(editor);
+      if (!result) return;
+      editor.toasts.success(`맵 ${result.maps.length}개를 가져왔습니다. 맵마다의 내용은 콘솔에 있습니다.`);
+      if (result.maps[0]) await support.openMap(result.maps[0]);
+    },
+  });
+  editor.setHint("map.import", () => (!editor.project.isOpen ? NEED_PROJECT : importers().length === 0 ? "맵 가져오기 형식 없음" : undefined));
   disposers.push(
     editor.menus.register({ path: "맵/새 맵", commandId: "map.new", order: 1 }),
+    editor.menus.register({ path: "맵/맵 가져오기", commandId: "map.import", order: 1.5 }),
     editor.menus.register({ path: "맵/크기 바꾸기", commandId: "map.resize", order: 2 }),
   );
 
