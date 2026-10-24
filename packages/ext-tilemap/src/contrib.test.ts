@@ -584,3 +584,25 @@ describe("맵 뷰 길 (setMapViews, pickCell, revealCell)", () => {
     expect(seen).toEqual([NO_MAP_VIEWS, undefined, NO_MAP_VIEWS]);
   });
 });
+
+describe("타일셋 종류 (registerTilesetKind)", () => {
+  const tileset = (extra: Record<string, unknown>) => ({ image: "a.png", firstGid: 1, columns: 8, extra });
+  const rule = { terrainOf: () => null, resolve: (_t: string, _n: unknown, current: number) => current };
+
+  it("extra 로 맡는 타일셋을 찾고, 맵의 타일셋 순서로 규칙을 모은다", () => {
+    const contrib = new TilemapContrib();
+    const off = contrib.registerTilesetKind({ id: "k", label: "K", owns: (t) => t.extra.k === true, autotile: () => rule });
+    expect(contrib.tilesetKind(tileset({ k: true }))?.id).toBe("k");
+    expect(contrib.tilesetKind(tileset({}))).toBeNull();
+    expect(contrib.autotileRules([tileset({}), tileset({ k: true })])).toEqual([rule]);
+    off();
+    expect(contrib.tilesetKinds).toEqual([]);
+    expect(contrib.autotileRules([tileset({ k: true })])).toEqual([]);
+  });
+
+  it("id 가 겹치면 등록을 거부한다", () => {
+    const contrib = new TilemapContrib();
+    contrib.registerTilesetKind({ id: "k", label: "K", owns: () => false });
+    expect(() => contrib.registerTilesetKind({ id: "k", label: "K2", owns: () => false })).toThrow(/중복/);
+  });
+});
