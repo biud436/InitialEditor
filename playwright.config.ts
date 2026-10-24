@@ -22,7 +22,8 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // 헤드리스 테스트는 소리를 내지 않는다 (WebKit 은 tests/e2e/support/muteAudio.ts)
+    { name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: { args: ["--mute-audio"] } } },
     { name: "webkit", use: { ...devices["Desktop Safari"] }, testMatch: WEBKIT_SPECS },
   ],
   webServer: {
