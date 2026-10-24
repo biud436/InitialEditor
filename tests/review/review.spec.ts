@@ -4,7 +4,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
 const REPO = path.resolve(__dirname, "..", "..");
 const OUT = path.join(REPO, "review");
@@ -55,7 +55,30 @@ async function writeFlappy(page: Page) {
 interface Scenario {
   name: string;
   title: string;
+  /** 페이지를 열기 전에 컨텍스트를 준비한다 (폴더 고르기를 브라우저 전용 저장소로 바꾸기 같은) */
+  init?: (context: BrowserContext) => Promise<void>;
   run: (page: Page) => Promise<void>;
+}
+
+/** 웹판의 폴더 고르기를 브라우저 전용 저장소(OPFS)의 새 폴더로 바꾼다 (진짜 대화상자는 자동화할 수 없다) */
+async function opfsPicker(context: BrowserContext) {
+  await context.addInitScript(() => {
+    (window as unknown as { showDirectoryPicker: () => Promise<unknown> }).showDirectoryPicker = async () => {
+      const root = await navigator.storage.getDirectory();
+      return root.getDirectoryHandle(`game${Date.now()}`, { create: true });
+    };
+  });
+}
+
+async function openNewGame(page: Page) {
+  await page.goto("/?backend=browser");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.getByTestId("launcher").getByRole("button", { name: /새 게임/ }).click();
+  await expect(page.getByTestId("new-project-dialog")).toBeVisible();
+  await page.getByRole("radio", { name: /플래피버드/ }).click();
+  await page.getByTestId("new-project-pick").click();
+  await expect(page.getByTestId("new-project-folder")).not.toHaveText("선택한 폴더 없음");
 }
 
 const SCENARIOS: Scenario[] = [
@@ -69,12 +92,39 @@ const SCENARIOS: Scenario[] = [
   },
   {
     name: "start",
-    title: "시작 (게임 없음)",
+    title: "시작 창 (웹판 샘플 모드)",
     run: async (page) => {
       await page.goto("/?backend=memory");
       await page.evaluate(() => localStorage.clear());
       await page.reload();
-      await expect(page.getByRole("button", { name: "샘플 프로젝트 열기" })).toBeVisible();
+      await expect(page.getByTestId("launcher")).toBeVisible();
+    },
+  },
+  {
+    name: "start-browser",
+    title: "시작 창 (웹판, 폴더 열기)",
+    init: opfsPicker,
+    run: async (page) => {
+      await page.goto("/?backend=browser");
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await expect(page.getByTestId("launcher")).toBeVisible();
+    },
+  },
+  {
+    name: "new-game",
+    title: "새 게임 (플래피버드, 폴더 선택 뒤)",
+    init: opfsPicker,
+    run: openNewGame,
+  },
+  {
+    name: "new-game-created",
+    title: "새 게임을 만든 직후",
+    init: opfsPicker,
+    run: async (page) => {
+      await openNewGame(page);
+      await page.getByTestId("new-project-ok").click();
+      await expect(page.getByTestId("scene-view")).toBeVisible({ timeout: 20_000 });
     },
   },
   {
@@ -126,6 +176,7 @@ for (const scenario of SCENARIOS) {
     for (const size of SIZES) {
       test(`${scenario.name} ${theme} ${size.name}`, async ({ browser }) => {
         const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, colorScheme: theme });
+        if (scenario.init) await scenario.init(context);
         const page = await context.newPage();
         await scenario.run(page);
         await page.waitForTimeout(700);

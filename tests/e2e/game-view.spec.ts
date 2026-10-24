@@ -244,7 +244,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
   });
 
@@ -398,16 +398,17 @@ test.describe("게임 뷰 (메모리 모드)", () => {
     const canvas = page.getByTestId("game-canvas");
     await expect(canvas).toBeFocused();
     const gameTab = page.getByTestId("doc-tab").filter({ hasText: "게임" });
-    const startTab = page.getByTestId("doc-tab").filter({ hasText: "시작" });
+    // 처음 연 게임은 시작 씬 탭이 있다. 그 탭의 줄로 끌어다 놓는다
+    const startTab = page.getByTestId("doc-tab").filter({ hasText: "main.json" });
     const sameStrip = () =>
       page.evaluate(() => {
         const tabs = [...document.querySelectorAll('[data-testid="doc-tab"]')];
         const strip = (text: string) => tabs.find((t) => t.textContent?.includes(text))?.closest(".dv-tabs-container") ?? null;
-        return strip("게임") !== null && strip("게임") === strip("시작");
+        return strip("게임") !== null && strip("게임") === strip("main.json");
       });
     expect(await sameStrip()).toBe(false);
 
-    // 게임 탭을 시작 탭의 줄 끝으로 끌어다 놓는다
+    // 게임 탭을 시작 씬 탭의 줄 끝으로 끌어다 놓는다
     const from = (await gameTab.boundingBox())!;
     const to = (await startTab.boundingBox())!;
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
@@ -1012,7 +1013,7 @@ test.describe("게임 뷰 (메모리 모드)", () => {
       await route.fulfill({ response: res, json: manifest });
     });
     await page.reload();
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
     await page.evaluate(() =>
       (window as unknown as { initialEditor: { commands: { execute(id: string): Promise<boolean> } } }).initialEditor.commands.execute("run.language.mruby"),

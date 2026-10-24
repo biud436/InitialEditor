@@ -7,7 +7,6 @@ import { observer } from "mobx-react-lite";
 import type { DocumentPanelParams } from "../../editor/documentDock";
 import { ImagePreviewDocument } from "../../editor/documents/ImagePreviewDocument";
 import { ScriptDocument } from "../../editor/documents/ScriptDocument";
-import { WelcomeDocument } from "../../editor/documents/WelcomeDocument";
 import { useEditor } from "../../editor/EditorContext";
 import { GameDocument } from "../../editor/gameView/GameDocument";
 import { ExternalChangeBanner } from "../documents/ExternalChangeBanner";
@@ -17,7 +16,6 @@ import { GameView } from "../documents/GameView";
 import { ImagePreviewView } from "../documents/ImagePreviewView";
 import { SceneView } from "../documents/SceneView";
 import { ScriptEditorView } from "../documents/ScriptEditorView";
-import { WelcomeView } from "../documents/WelcomeView";
 
 export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPanelProps<DocumentPanelParams>) {
   const editor = useEditor();
@@ -26,8 +24,7 @@ export const DocumentPanel = observer(function DocumentPanel(props: IDockviewPan
     return <div className="panel-hint">문서 여는 중: {props.params?.path ?? props.api.id}</div>;
   }
   let view;
-  if (doc instanceof WelcomeDocument) view = <WelcomeView />;
-  else if (doc instanceof ScriptDocument) view = <ScriptEditorView doc={doc} />;
+  if (doc instanceof ScriptDocument) view = <ScriptEditorView doc={doc} />;
   else if (doc instanceof ImagePreviewDocument) view = <ImagePreviewView doc={doc} />;
   else if (doc instanceof SceneDocument) view = <SceneView document={doc} />;
   else if (doc instanceof MapDocument) view = <MapView document={doc} />;

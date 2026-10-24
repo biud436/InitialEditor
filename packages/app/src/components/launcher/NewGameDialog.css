@@ -1,0 +1,100 @@
+/* 새 게임 대화상자 */
+
+.new-game-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-4);
+}
+
+.new-game-templates {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+.new-game-fields {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  align-items: start;
+  gap: var(--space-3) var(--space-3);
+}
+
+.new-game-label {
+  padding-top: var(--space-1);
+  color: var(--fg-muted);
+  font-size: var(--text-md);
+  line-height: var(--control-sm);
+}
+
+.new-game-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.new-game-control > .kit-input {
+  max-width: 480px;
+}
+
+.new-game-folder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 480px;
+  min-width: 0;
+}
+
+.new-game-folder-path,
+.new-game-folder-empty {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-md);
+  padding: 0 var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  font-size: var(--text-md);
+  line-height: calc(var(--control-md) - 2px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-game-folder-empty {
+  color: var(--fg-disabled);
+}
+
+.new-game-fixed {
+  line-height: var(--control-md);
+  color: var(--fg-muted);
+}
+
+.new-game-custom {
+  display: grid;
+  grid-template-columns: 140px 140px;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.new-game-hint {
+  color: var(--fg-subtle);
+  font-size: var(--text-sm);
+  word-break: keep-all;
+}
+
+.new-game-error {
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.new-game-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+}

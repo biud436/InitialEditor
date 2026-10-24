@@ -16,12 +16,12 @@ export const BRANCH_ORDER: Array<[string, number]> = [
 
 export function appMenuItems(): MenuItemSpec[] {
   const items: MenuItemSpec[] = [
-    { path: "파일/새 프로젝트", commandId: "file.newProject", order: 10 },
-    { path: "파일/프로젝트 열기", commandId: "file.openProject", order: 20 },
+    { path: "파일/새 게임", commandId: "file.newProject", order: 10 },
+    { path: "파일/게임 열기", commandId: "file.openProject", order: 20 },
     // 파일/최근 프로젝트/* 는 recentProjects.ts 가 채운다 (order 30 자리)
     { path: "파일/저장", commandId: "file.save", order: 40, separatorBefore: true },
     { path: "파일/모두 저장", commandId: "file.saveAll", order: 50 },
-    { path: "파일/프로젝트 닫기", commandId: "file.closeProject", order: 60, separatorBefore: true },
+    { path: "파일/게임 닫기", commandId: "file.closeProject", order: 60, separatorBefore: true },
 
     { path: "편집/되돌리기", commandId: "edit.undo", order: 10 },
     { path: "편집/다시 실행", commandId: "edit.redo", order: 20 },

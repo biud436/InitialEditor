@@ -22,18 +22,18 @@ test.describe("메모리 모드 스모크", () => {
   });
 
   test("시작 탭, 샘플 프로젝트, 파일 트리, 미리보기, 테마, 레이아웃 저장", async ({ page }) => {
-    // 시작 탭
-    await expect(page.getByTestId("welcome")).toBeVisible();
-    await expect(page.getByTestId("doc-tab").filter({ hasText: "시작" })).toBeVisible();
+    // 게임이 열려 있지 않으면 시작 창이 덮는다 (시작 탭은 없다)
+    await expect(page.getByTestId("launcher")).toBeVisible();
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "시작" })).toHaveCount(0);
 
     // 콘솔에 시작 줄
     await expect(page.getByTestId("console-list")).toContainText(/InitialEditor .* 시작/);
     await expect(page.getByTestId("console-list")).toContainText("모드: 메모리");
 
     // 샘플 프로젝트 열기 (메모리 모드는 버튼 하나)
-    const openButton = page.getByRole("button", { name: "샘플 프로젝트 열기" });
+    const openButton = page.getByRole("button", { name: "샘플 게임 열기" });
     await expect(openButton).toBeVisible();
-    await expect(page.getByRole("button", { name: "프로젝트 열기", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "게임 열기", exact: true })).toHaveCount(0);
     await openButton.click();
 
     // 프로젝트 패널
@@ -88,7 +88,7 @@ test.describe("메모리 모드 스모크", () => {
 
     // 새로 고침 뒤에도 콘솔은 닫혀 있고 다른 패널은 그대로다
     await page.reload();
-    await expect(page.getByTestId("welcome")).toBeVisible();
+    await expect(page.getByTestId("launcher")).toBeVisible();
     await expect(page.getByTestId("console")).toHaveCount(0);
     await expect(page.getByTestId("hierarchy").getByText("활성 씬 탭 없음")).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -103,14 +103,14 @@ test.describe("메모리 모드 스모크", () => {
     const tip = page.getByTestId("toolbar").locator(".toolbar-tip").first();
     await expect(run).toBeDisabled();
     await expect(tip).toHaveAttribute("title", /열린 프로젝트 없음/);
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     // 브라우저 모드의 F5 는 웹 엔진을 게임 탭에서 돌린다 (E4, game-view.spec.ts)
     await expect(run).toBeEnabled();
     await expect(tip).toHaveAttribute("title", /^실행 \(F5\) ?: 게임 탭에서 실행 \(웹 엔진\)$/);
   });
 
   test("오른쪽 클릭 메뉴는 누른 자리에 뜬다", async ({ page }) => {
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     const row = page.getByTestId("project-tree").locator('[data-path="scripts"]');
     await expect(row).toBeVisible();
     const box = (await row.boundingBox())!;
@@ -134,7 +134,7 @@ test.describe("메모리 모드 스모크", () => {
       void dialog.dismiss();
     });
     const openMain = async () => {
-      await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+      await page.getByRole("button", { name: "샘플 게임 열기" }).click();
       const tree = page.getByTestId("project-tree");
       await tree.locator('[data-path="scripts"]').click();
       await tree.locator('[data-path="scripts/lua"]').click();
@@ -149,7 +149,7 @@ test.describe("메모리 모드 스모크", () => {
       .poll(() => page.evaluate(() => (window as unknown as BackendWindow).initialEditor.backend.exists(".initial-editor/layout.json")))
       .toBe(true);
     await page.reload();
-    await expect(page.getByTestId("welcome")).toBeVisible();
+    await expect(page.getByTestId("launcher")).toBeVisible();
     expect(dialogs).toEqual([]);
 
     // 고쳐 저장하면 문서는 깨끗해도 저장한 것이 페이지에만 있다. 새로 고치려 하면 묻고, 머무르면 프로젝트가 그대로다
@@ -168,7 +168,7 @@ test.describe("메모리 모드 스모크", () => {
   });
 
   test("미리보기가 없는 파일은 토스트로 알린다", async ({ page }) => {
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     const tree = page.getByTestId("project-tree");
     await tree.locator('[data-path="resources"]').click();
     await tree.locator('[data-path="resources/maps"]').click();
@@ -194,7 +194,7 @@ test.describe("game.json 없는 프로젝트 등록", () => {
     await page.goto("/?backend=memory&sample=nogame");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toContainText("game.json을 만들고 프로젝트로 등록할까요?");
@@ -215,7 +215,7 @@ test.describe("game.json 없는 프로젝트 등록", () => {
 
   test("나중에를 누르면 만들지 않는다", async ({ page }) => {
     await page.goto("/?backend=memory&sample=nogame");
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "나중에" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();

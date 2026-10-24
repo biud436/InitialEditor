@@ -1,5 +1,5 @@
 // 정보 창과 시작 화면이 보이는 판, 커밋, 링크 (docs/plans/e6-packaging.md 7.4). 그리기는 components/AboutDialog.tsx 와
-// components/documents/WelcomeView.tsx 가 한다.
+// components/launcher/Launcher.tsx 가 한다.
 
 import type { BackendMode } from "./backends";
 import { ENGINE_DIR, engineBaseUrl } from "./gameView/engineAssets";

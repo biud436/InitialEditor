@@ -161,3 +161,32 @@ export function Kbd({ children }: { children: ReactNode }) {
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cx("kit-card", className)}>{children}</div>;
 }
+
+/** 줄 전체가 하나의 단추 (최근 게임 같은 목록). 오른쪽에 동작을 둘 수 있다 */
+export function RowButton({ icon: Icon, title, detail, onClick, actions, tooltip }: { icon?: LucideIcon; title: ReactNode; detail?: ReactNode; onClick: () => void; actions?: ReactNode; tooltip?: string }) {
+  return (
+    <div className="kit-row-button">
+      <button type="button" className="kit-row-button-main" onClick={onClick} title={tooltip}>
+        {Icon && <Icon className="kit-row-button-icon" size={20} strokeWidth={1.5} aria-hidden />}
+        <span className="kit-row-button-text">
+          <span className="kit-row-button-title">{title}</span>
+          {detail !== undefined && <span className="kit-row-button-detail">{detail}</span>}
+        </span>
+      </button>
+      {actions && <span className="kit-row-button-actions">{actions}</span>}
+    </div>
+  );
+}
+
+/** 여럿 중 하나를 고르는 카드 (템플릿). 위에 그림, 아래에 제목과 한 줄 설명 */
+export function ChoiceCard({ selected, onSelect, media, title, description, disabled }: { selected: boolean; onSelect: () => void; media: ReactNode; title: string; description?: string; disabled?: boolean }) {
+  return (
+    <button type="button" role="radio" aria-checked={selected} disabled={disabled} className={cx("kit-choice", selected && "is-selected")} onClick={onSelect}>
+      <span className="kit-choice-media">{media}</span>
+      <span className="kit-choice-text">
+        <span className="kit-choice-title">{title}</span>
+        {description && <span className="kit-choice-desc">{description}</span>}
+      </span>
+    </button>
+  );
+}

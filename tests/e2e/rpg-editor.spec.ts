@@ -112,7 +112,7 @@ test.describe("RPG 이벤트 편집기 (메모리 모드)", () => {
     await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
     const mod = await primaryKey(page);
     await page.getByRole("menubar").getByRole("menuitem", { name: "씬", exact: true }).click();
@@ -367,7 +367,7 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     await page.goto("/?backend=memory&sample=meadow");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
     await openMap(page, MEADOW, "meadow.json");
     await expect.poll(() => ev<boolean>(page, "(e) => e.extensions.exportsOf('rpg').store.loaded")).toBe(true);
@@ -414,7 +414,7 @@ test.describe("RPG 스키마가 없는 프로젝트 (문서 2.5)", () => {
     await page.evaluate(([key, layout]) => localStorage.setItem(key, layout), [LAYOUT_KEY, withEvents] as const);
     await page.reload();
     await expect.poll(eventsOpen).toBe(true);
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     // 되살린 타일맵 레이아웃에서는 프로젝트 트리가 가려진 탭일 수 있어 프로젝트가 열렸는지로 기다린다
     await expect.poll(() => ev<boolean>(page, "(e) => e.project.isOpen")).toBe(true);
     await openMap(page, MEADOW, "meadow.json");

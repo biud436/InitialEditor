@@ -215,7 +215,7 @@
 
 .kit-tooltip {
   position: fixed;
-  z-index: 1000;
+  z-index: 2000; /* 모달 덮개(1100) 위 */
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -486,7 +486,7 @@
 
 .kit-menu {
   position: fixed;
-  z-index: 1000;
+  z-index: 2000; /* 모달 덮개(1100) 위 */
   overflow-y: auto;
   padding: var(--space-1);
   border: 1px solid var(--border);
@@ -888,4 +888,144 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--bg-elevated);
+}
+
+/* 줄 단추 */
+.kit-row-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+}
+
+.kit-row-button:hover {
+  background: var(--bg-hover);
+}
+
+.kit-row-button-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kit-row-button-main:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.kit-row-button-icon {
+  flex: none;
+  color: var(--fg-muted);
+}
+
+.kit-row-button-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kit-row-button-title {
+  overflow: hidden;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kit-row-button-detail {
+  overflow: hidden;
+  color: var(--fg-subtle);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kit-row-button-actions {
+  display: none;
+  padding-right: var(--space-2);
+}
+
+.kit-row-button:hover .kit-row-button-actions,
+.kit-row-button:focus-within .kit-row-button-actions {
+  display: inline-flex;
+}
+
+/* 고르는 카드 */
+.kit-choice {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--fg);
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 80ms ease, box-shadow 80ms ease;
+}
+
+.kit-choice:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.kit-choice.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.kit-choice:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.kit-choice:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.kit-choice-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  background: var(--bg-input);
+  color: var(--fg-subtle);
+  overflow: hidden;
+}
+
+.kit-choice-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
+
+.kit-choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.kit-choice-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.kit-choice-desc {
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  word-break: keep-all;
 }

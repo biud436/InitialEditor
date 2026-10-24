@@ -41,7 +41,7 @@ async function openSampleWith(page: Page, files: Record<string, string>) {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
   await page.evaluate(async (entries) => {
     const editor = (window as unknown as TestWindow).initialEditor;
