@@ -6,8 +6,16 @@ import { Document, DocumentRegistry } from "@initial-editor/core";
 import { createDockview, type DockviewApi } from "dockview";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DocumentDock, documentPlacement, relativeDirection, type DockPanelInfo } from "./documentDock";
-import { WelcomeDocument } from "./documents/WelcomeDocument";
 import { GAME_KIND, GameDocument } from "./gameView/GameDocument";
+
+/** 경로 없는 문서 (자리 규칙의 기준이 되는 첫 문서) */
+class AnchorDocument extends Document {
+  constructor() {
+    super("anchor", null, "기준");
+  }
+  async save(): Promise<void> {}
+  async reload(): Promise<void> {}
+}
 
 class PathDocument extends Document {
   constructor(path: string, kind = "script") {
@@ -23,10 +31,10 @@ const game: DockPanelInfo = { id: "doc:game", kind: GAME_KIND };
 
 describe("documentPlacement", () => {
   it("보통 문서: 활성 보통 문서 옆, 게임 탭이 활성이면 다른 보통 문서 옆", () => {
-    const panels = [tool("console"), doc("welcome", "welcome"), doc("scripts/main.lua"), game];
+    const panels = [tool("console"), doc("anchor", "anchor"), doc("scripts/main.lua"), game];
     expect(documentPlacement({ panels, activeId: "doc:scripts/main.lua" }, "script")).toEqual({ referencePanel: "doc:scripts/main.lua", direction: "within" });
-    expect(documentPlacement({ panels, activeId: "doc:game" }, "script")).toEqual({ referencePanel: "doc:welcome", direction: "within" });
-    expect(documentPlacement({ panels, activeId: "console" }, "scene")).toEqual({ referencePanel: "doc:welcome", direction: "within" });
+    expect(documentPlacement({ panels, activeId: "doc:game" }, "script")).toEqual({ referencePanel: "doc:anchor", direction: "within" });
+    expect(documentPlacement({ panels, activeId: "console" }, "scene")).toEqual({ referencePanel: "doc:anchor", direction: "within" });
   });
 
   it("보통 문서: 게임 탭만 남았으면 그 왼쪽, 문서가 없으면 콘솔 위", () => {
@@ -37,14 +45,14 @@ describe("documentPlacement", () => {
   });
 
   it("게임 탭: 처음은 활성 보통 문서 그룹의 오른쪽", () => {
-    const panels = [tool("console"), doc("welcome", "welcome"), doc("scripts/main.lua")];
+    const panels = [tool("console"), doc("anchor", "anchor"), doc("scripts/main.lua")];
     expect(documentPlacement({ panels, activeId: "doc:scripts/main.lua" }, GAME_KIND)).toEqual({ referencePanel: "doc:scripts/main.lua", direction: "right" });
-    expect(documentPlacement({ panels, activeId: "console" }, GAME_KIND)).toEqual({ referencePanel: "doc:welcome", direction: "right" });
+    expect(documentPlacement({ panels, activeId: "console" }, GAME_KIND)).toEqual({ referencePanel: "doc:anchor", direction: "right" });
     expect(documentPlacement({ panels: [tool("console")], activeId: null }, GAME_KIND)).toEqual({ referencePanel: "console", direction: "above" });
   });
 
   it("게임 탭: 기억한 자리 (같은 그룹에 있던 탭, 없어졌으면 기억한 방향이나 오른쪽)", () => {
-    const panels = [tool("console"), doc("welcome", "welcome"), doc("scripts/main.lua")];
+    const panels = [tool("console"), doc("anchor", "anchor"), doc("scripts/main.lua")];
     expect(documentPlacement({ panels, activeId: "doc:scripts/main.lua", sideSpot: { referencePanel: "console" } }, GAME_KIND)).toEqual({
       referencePanel: "console",
       direction: "within",
@@ -97,7 +105,7 @@ describe("DocumentDock (dockview)", () => {
     api.layout(1200, 800);
     api.addPanel({ id: "console", component: "console", title: "콘솔" });
     documents = new DocumentRegistry();
-    dock = new DocumentDock({ documents, openPath: async () => {}, openWelcome: () => {}, canOpenPaths: () => true });
+    dock = new DocumentDock({ documents, openPath: async () => {}, canOpenPaths: () => true });
     dock.attach(api, { applying: false });
   });
 
@@ -111,10 +119,10 @@ describe("DocumentDock (dockview)", () => {
   const settle = () => new Promise<void>((r) => setTimeout(r, 0));
 
   it("게임 탭은 스크립트 그룹 옆의 새 그룹에 열리고, 그 뒤 여는 스크립트는 게임 그룹에 끼지 않는다", async () => {
-    documents.open(new WelcomeDocument());
+    documents.open(new AnchorDocument());
     const main = new PathDocument("scripts/lua/main.lua");
     documents.open(main);
-    expect(groupOf("doc:scripts/lua/main.lua")).toBe(groupOf("doc:welcome"));
+    expect(groupOf("doc:scripts/lua/main.lua")).toBe(groupOf("doc:anchor"));
 
     const gameDoc = new GameDocument();
     documents.open(gameDoc);
@@ -129,8 +137,8 @@ describe("DocumentDock (dockview)", () => {
     documents.open(new PathDocument("scripts/lua/title.lua"));
     documents.activate(gameDoc);
     documents.open(new PathDocument("resources/scenes/title.json", "scene"));
-    expect(groupOf("doc:scripts/lua/title.lua")).toBe(groupOf("doc:welcome"));
-    expect(groupOf("doc:resources/scenes/title.json")).toBe(groupOf("doc:welcome"));
+    expect(groupOf("doc:scripts/lua/title.lua")).toBe(groupOf("doc:anchor"));
+    expect(groupOf("doc:resources/scenes/title.json")).toBe(groupOf("doc:anchor"));
     expect(groupOf("doc:game")?.panels.map((p) => p.id)).toEqual(["doc:game"]);
 
     // 닫고 다시 열면 다시 옆 그룹
@@ -138,12 +146,12 @@ describe("DocumentDock (dockview)", () => {
     expect(api.getPanel("doc:game")).toBeUndefined();
     documents.open(new GameDocument());
     await settle();
-    expect(groupOf("doc:game")).not.toBe(groupOf("doc:welcome"));
+    expect(groupOf("doc:game")).not.toBe(groupOf("doc:anchor"));
     expect(groupOf("doc:game")?.panels).toHaveLength(1);
   });
 
   it("사용자가 게임 탭을 옮기면 그 자리를 기억해 닫고 다시 열 때 그 자리에 연다", async () => {
-    documents.open(new WelcomeDocument());
+    documents.open(new AnchorDocument());
     documents.open(new PathDocument("scripts/lua/main.lua"));
     const first = new GameDocument();
     documents.open(first);
@@ -163,16 +171,16 @@ describe("DocumentDock (dockview)", () => {
     expect(groupOf("doc:game")).toBe(groupOf("console"));
 
     // 문서 그룹으로 옮기면 거기
-    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:anchor")!, position: "center" });
     await settle();
     documents.close(documents.documents.find((d) => d.kind === GAME_KIND)!);
     documents.open(new GameDocument());
     await settle();
-    expect(groupOf("doc:game")).toBe(groupOf("doc:welcome"));
+    expect(groupOf("doc:game")).toBe(groupOf("doc:anchor"));
   });
 
   it("탭을 다른 그룹이나 새 자리로 옮기면 그 문서를 알린다 (그룹 통째로 옮기기도)", async () => {
-    documents.open(new WelcomeDocument());
+    documents.open(new AnchorDocument());
     const main = new PathDocument("scripts/lua/main.lua");
     documents.open(main);
     const gameDoc = new GameDocument();
@@ -181,25 +189,33 @@ describe("DocumentDock (dockview)", () => {
     const moved: Document[] = [];
     const off = dock.onDocumentMoved((d) => moved.push(d));
 
-    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:anchor")!, position: "center" });
     expect(moved).toEqual([gameDoc]);
-    expect(groupOf("doc:game")).toBe(groupOf("doc:welcome"));
+    expect(groupOf("doc:game")).toBe(groupOf("doc:anchor"));
 
     // 새 그룹(아래)으로
-    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "bottom" });
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:anchor")!, position: "bottom" });
     expect(moved).toEqual([gameDoc, gameDoc]);
-    expect(groupOf("doc:game")).not.toBe(groupOf("doc:welcome"));
+    expect(groupOf("doc:game")).not.toBe(groupOf("doc:anchor"));
 
     // 도구 패널을 옮기는 것은 문서가 아니다
-    api.getPanel("console")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    api.getPanel("console")!.api.moveTo({ group: groupOf("doc:anchor")!, position: "center" });
     expect(moved).toHaveLength(2);
 
     // 스크립트 탭의 그룹을 통째로 옮기면 그 그룹의 문서들
-    groupOf("doc:welcome")!.api.moveTo({ group: groupOf("doc:game")!, position: "right" });
+    groupOf("doc:anchor")!.api.moveTo({ group: groupOf("doc:game")!, position: "right" });
     expect(moved.slice(2)).toEqual(expect.arrayContaining([main]));
 
     off();
-    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:welcome")!, position: "center" });
+    api.getPanel("doc:game")!.api.moveTo({ group: groupOf("doc:anchor")!, position: "center" });
     expect(moved.filter((d) => d === gameDoc)).toHaveLength(2);
+  });
+
+  it("옛 레이아웃의 시작 탭(경로 없는 welcome)은 다시 열지 않고 지운다", () => {
+    api.addPanel({ id: "doc:welcome", component: "document", title: "시작", params: { kind: "welcome" } });
+    expect(api.getPanel("doc:welcome")).toBeTruthy();
+    dock.reconcile();
+    expect(api.getPanel("doc:welcome")).toBeUndefined();
+    expect(documents.documents).toEqual([]);
   });
 });

@@ -15,7 +15,7 @@ test.describe("RPG 데모 샘플 (메모리 모드)", () => {
     await page.goto("/?backend=memory");
     await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
     await page.reload();
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     const tree = page.getByTestId("project-tree");
     await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
     expect(await ev<string>(page, "(e) => e.project.gameJson.name")).toBe("떠나기 전에");
@@ -56,7 +56,7 @@ test.describe("RPG 데모 샘플 (메모리 모드)", () => {
 
   test("웹판(브라우저 폴더 모드)에서 샘플 단추를 두 번 눌러도 한 번만 열고 오류가 없다", async ({ page }) => {
     await page.goto("/?backend=browser");
-    const button = page.getByTestId("welcome").getByRole("button", { name: "샘플 프로젝트 열기" });
+    const button = page.getByTestId("launcher").getByRole("button", { name: "샘플 게임 열기" });
     await button.dblclick();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible({ timeout: 30_000 });
     const logs = await ev<string[]>(page, "(e) => e.log.entries.map((x) => x.text)");

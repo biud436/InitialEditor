@@ -8,8 +8,8 @@
 
 | 기능 | 단축키 |
 |---|---|
-| 새 프로젝트 | Ctrl+N |
-| 프로젝트 열기 | Ctrl+O |
+| 새 게임 | Ctrl+N |
+| 게임 열기 | Ctrl+O |
 | 저장 | Ctrl+S |
 | 모두 저장 | Ctrl+Shift+S |
 | 새 스크립트 | Ctrl+Alt+N |

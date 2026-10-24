@@ -35,7 +35,7 @@ async function openSample(page: Page, query: string) {
   await page.goto(`/?backend=memory${query}`);
   await page.evaluate(() => localStorage.removeItem("initial-editor.layout"));
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
 }
 

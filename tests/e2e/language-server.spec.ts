@@ -98,7 +98,7 @@ async function openSample(page: Page): Promise<string> {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate(() => localStorage.removeItem("initial-editor.layout"));
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
   await page.evaluate(async (files) => {
     const editor = (window as unknown as EditorWindow).initialEditor;

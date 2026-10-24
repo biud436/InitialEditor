@@ -7,11 +7,20 @@ import { DEFAULT_GAME_JSON, GAME_JSON, serializeGameJson, type ProjectBackend, t
 import { bundledTemplateSource, templateManifest, type TemplateSource } from "./templateFiles";
 import { TEMPLATE_START_SCENE, templatePlan, type ProjectTemplateId, type TemplateManifest } from "./templateManifest";
 
+/** game.json 의 창 크기와 렌더 배율. 논리 해상도는 width / scale, height / scale 이다 */
+export interface ScreenSize {
+  width: number;
+  height: number;
+  scale: number;
+}
+
 export interface ProjectTemplateOptions {
   template: ProjectTemplateId;
   language: ScriptBackend;
-  /** game.json 의 name (보통 폴더 이름) */
+  /** game.json 의 name */
   name: string;
+  /** 화면 크기. 없으면 엔진 기본(768x896, 배율 1) */
+  screen?: ScreenSize;
 }
 
 export const PROJECT_DIRS = ["resources/images", "resources/audio", "resources/fonts", "resources/scenes", "resources/maps"];
@@ -20,10 +29,12 @@ export const GITIGNORE_TEXT =
   "# InitialEditor 편집 상태 (레이아웃, 열린 탭). 게임 데이터 아님\n.initial-editor/\n" +
   "# 엔진이 실행할 때 쓰는 파일 (실행 파일 경로가 들어가 사람마다 다름)\nconfig.setting\n";
 
-/** 템플릿의 game.json (엔진 기본 해상도 768x896. 플래피 씬과 타일맵 템플릿의 맵도 그 크기다) */
+/** 템플릿의 game.json (화면 크기를 고르지 않으면 엔진 기본 해상도 768x896. 플래피 씬도 그 크기다) */
 export function templateGameJson(options: ProjectTemplateOptions): string {
+  const screen = options.screen;
   return serializeGameJson({
     ...DEFAULT_GAME_JSON,
+    ...(screen ? { windowWidth: screen.width, windowHeight: screen.height, renderScale: screen.scale } : {}),
     name: options.name,
     script: options.language,
     startScene: TEMPLATE_START_SCENE[options.template],

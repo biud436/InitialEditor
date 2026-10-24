@@ -27,7 +27,7 @@ test.describe("안드로이드로 스테이징 (메모리 모드)", () => {
     await expect(page.locator(".menu-item-wrap", { has: item }).locator(".menu-separator")).toHaveCount(1);
     await page.keyboard.press("Escape");
 
-    await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await page.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await openRunMenu(page);
     await expect(item).toBeDisabled();
