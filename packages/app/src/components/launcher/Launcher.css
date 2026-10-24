@@ -1,0 +1,170 @@
+/* 시작 창. 작업 화면(도구 모음, 도킹, 상태 바) 위를 덮는다 */
+
+.launcher {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  background: var(--bg-base);
+  color: var(--fg);
+}
+
+.launcher-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 280px;
+  flex: none;
+  padding: var(--space-6) var(--space-5);
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow-y: auto;
+}
+
+.launcher-name {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+}
+
+.launcher-version {
+  margin-top: var(--space-1);
+  color: var(--fg-subtle);
+  font-size: var(--text-sm);
+}
+
+.launcher-tagline {
+  margin-top: var(--space-2);
+  color: var(--fg-muted);
+  font-size: var(--text-md);
+}
+
+.launcher-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.launcher-actions .kit-btn {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.launcher-actions .kit-btn-key,
+.launcher-links .kit-btn-key {
+  margin-left: auto;
+}
+
+.launcher-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+}
+
+.launcher-link.kit-btn {
+  justify-content: flex-start;
+  width: 100%;
+  color: var(--fg-muted);
+  font-weight: var(--weight-regular);
+}
+
+.launcher-link.kit-btn:hover:not(:disabled) {
+  color: var(--fg);
+}
+
+.launcher-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-6) var(--space-6);
+  overflow-y: auto;
+}
+
+.launcher-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 720px;
+}
+
+.launcher-heading {
+  margin: 0 0 var(--space-1);
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.launcher-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.launcher-empty {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+
+.launcher-note {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+  word-break: keep-all;
+}
+
+.launcher-sample {
+  display: flex;
+  gap: var(--space-4);
+  max-width: 720px;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.launcher-sample-image {
+  width: 160px;
+  aspect-ratio: 4 / 3;
+  align-self: flex-start;
+  flex: none;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.launcher-sample-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-1) 0;
+}
+
+.launcher-sample-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.launcher-sample-desc,
+.launcher-sample-note {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: var(--text-md);
+  word-break: keep-all;
+}
+
+.launcher-sample-note {
+  font-size: var(--text-sm);
+  color: var(--fg-subtle);
+}
+
+.launcher-sample .kit-btn {
+  margin-top: auto;
+}

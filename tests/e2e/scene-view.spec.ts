@@ -33,7 +33,7 @@ async function openSample(page: Page) {
     [LAYOUT_KEY, VIEW_KEY],
   );
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   const tree = page.getByTestId("project-tree");
   await expect(tree.locator('[data-path="resources"]')).toBeVisible();
   return tree;

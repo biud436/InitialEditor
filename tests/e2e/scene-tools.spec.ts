@@ -38,7 +38,7 @@ async function openSample(page: Page) {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((key) => localStorage.removeItem(key), LAYOUT_KEY);
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   const tree = page.getByTestId("project-tree");
   await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
   return tree;
@@ -67,7 +67,8 @@ test.describe("씬 도구 (메모리 모드)", () => {
   test("새 씬, 오브젝트 추가, 인스펙터, 이름 바꾸기, 복제, 삭제, 되돌리기, 복사와 붙여넣기, 시작 씬, 저장", async ({ page }) => {
     await openSample(page);
     const mod = await primaryKey(page);
-    await expect(page.getByTestId("hierarchy")).toContainText("활성 씬 탭 없음");
+    // 처음 여는 게임은 시작 씬(game.json 의 startScene)이 탭으로 열린다
+    await expect(page.getByTestId("hierarchy")).toHaveAttribute("data-scene", "main.json");
     // 도구 모음의 씬 목록은 game.json 의 startScene 이다
     const sceneSelect = page.getByTestId("scene-select");
     await expect(sceneSelect).toHaveValue("main");

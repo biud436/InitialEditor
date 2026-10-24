@@ -10,7 +10,6 @@ import type { DockviewApi, IDockviewPanel } from "dockview";
 type IDisposable = { dispose(): void };
 import type { Document, DocumentRegistry } from "@initial-editor/core";
 import { toPosition, type Direction, type Placement } from "./layoutPresets";
-import { WELCOME_KIND } from "./documents/WelcomeDocument";
 import { GAME_KIND } from "./gameView/GameDocument";
 
 export const DOCUMENT_COMPONENT = "document";
@@ -110,7 +109,6 @@ export interface DocumentDockDeps {
   documents: DocumentRegistry;
   /** 레이아웃에 남아 있던 경로의 문서를 다시 연다 */
   openPath(path: string): Promise<void>;
-  openWelcome(): void;
   /** 경로 문서를 열 수 있는가 (프로젝트가 열려 있는가). 아니면 남은 탭은 조용히 지운다 */
   canOpenPaths(): boolean;
   /** 가운데 그룹이 처음 생길 때 콘솔 높이 */
@@ -187,14 +185,14 @@ export class DocumentDock {
   reconcile(): void {
     const api = this.api;
     if (!api) return;
-    // 시작 탭을 다시 여는 것이 활성 문서를 바꾸므로, 들어올 때의 활성 문서를 끝에서 되돌린다
+    // 다시 여는 것이 활성 문서를 바꾸므로, 들어올 때의 활성 문서를 끝에서 되돌린다
     const activeBefore = this.deps.documents.active;
     for (const panel of [...api.panels]) {
       if (!isDocumentPanelId(panel.id)) continue;
       if (this.findDocument(panel.id)) continue;
       const params = (panel.params ?? {}) as Partial<DocumentPanelParams>;
-      if (params.kind === WELCOME_KIND) this.deps.openWelcome();
-      else if (params.path && this.deps.canOpenPaths()) void this.deps.openPath(params.path);
+      // 옛 레이아웃의 시작 탭(kind "welcome")은 경로가 없어 지운다. 시작 화면은 이제 탭이 아니라 시작 창이다
+      if (params.path && this.deps.canOpenPaths()) void this.deps.openPath(params.path);
       else api.removePanel(panel);
     }
     for (const doc of this.deps.documents.documents) this.addPanel(doc);

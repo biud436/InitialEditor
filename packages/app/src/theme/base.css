@@ -141,6 +141,14 @@ pre {
   background: var(--bg-base);
 }
 
+.app-work {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .app-dock {
   flex: 1;
   min-height: 0;
