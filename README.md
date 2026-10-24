@@ -238,11 +238,17 @@ KEEP_WORKDIR=1 yarn test:engine-map               # 임시 프로젝트와 엔�
   되돌리기 한 번에 돌아갑니다. 채우기는 같은 지형을 한 영역으로 봅니다.
 - 원본 ChipSet이 바뀌면 열린 맵의 아틀라스를 다시 굽고, 맵을 열 때 아틀라스가 없으면 굽습니다. 물과 애니메이션 타일은 맵 뷰에서도
   움직이고, 게임에서는 엔진의 타일 애니메이션(엔진 `Tilemap.Update`)이 움직이므로 그 기능이 있는 엔진이어야 합니다.
+- 맵 > 맵 가져오기: RPG Maker 2000 게임 폴더(`RPG_RT.ldb`, `RPG_RT.lmt`, `MapXXXX.lmu`, `ChipSet`)를 고르면 맵마다
+  `resources/maps/mapXXXX.json`을 쓰고, ChipSet 이미지(BMP와 XYZ는 PNG로)와 아틀라스를 씁니다. ChipSet의 통행(네 방향 모두 막힌
+  타일만 1)과 별(캐릭터 위 레이어 `lower_over`, `upper_over`)과 물결 설정을 옮깁니다. 텍스트 인코딩은 짐작하거나 선택합니다. 이벤트와
+  원경은 옮기지 않습니다. 절차는 [docs/guide/rm2k-import.md](docs/guide/rm2k-import.md). 확장이 맵 가져오기를 등록하는 자리는
+  `TilemapApi.registerMapImporter`입니다.
 
 ```sh
-INITIAL2D_DIR=../Initial2D yarn test:engine-rm2k   # 굽고 칠한 맵을 진짜 엔진이 시계 넷에서 같게 그리는지 (타일 애니메이션 전 엔진이면 SKIP)
+INITIAL2D_DIR=../Initial2D yarn test:engine-rm2k   # 굽고 칠한 맵과 가져온 맵을 진짜 엔진이 맞게 그리는지 (타일 애니메이션 전 엔진이면 SKIP)
+RM2K_GAME_DIR=~/rm2k/MyGame INITIAL2D_DIR=../Initial2D yarn test:engine-rm2k  # 그 게임의 맵을 모두 가져와 형식 검사와 엔진 읽기
 KEEP_WORKDIR=1 yarn test:engine-rm2k               # 임시 폴더(ChipSet, 아틀라스, 맵, 스크린샷)를 남긴다
-yarn build && yarn test:e2e tests/e2e/rm2k-tilemap.spec.ts  # 새 맵의 형식, 팔레트 두 쪽, 땅과 물 칠하기, 채우기, 맵 뷰의 물결
+yarn build && yarn test:e2e tests/e2e/rm2k-tilemap.spec.ts  # 새 맵의 형식, 팔레트 두 쪽, 땅과 물 칠하기, 채우기, 맵 뷰의 물결, 게임 가져오기
 ```
 
 검사는 저장소에 넣을 수 있는 검사용 ChipSet(`packages/ext-rm2k/src/model/testChipset.ts`, 조각마다 제 자리를 색으로 든 이미지)으로 합니다.
@@ -472,7 +478,7 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 | `yarn luals:fetch` | 앱에 싣는 언어 서버 LuaLS 를 받아(sha256 확인) 쓰지 않는 것을 빼고 `src-tauri/luals/` 에 푼다. 고지는 `src-tauri/licenses/luals/`. `--target <트리플>`, `--from <압축 파일>` |
 | `yarn test:luals` | 진짜 LuaLS 와 에디터의 LSP 클라이언트 (`tests/luals/`): 새 RPG 프로젝트가 경고 없이 읽히는지, 스텁 없는 프로젝트의 진단, 완성, 호버, 정의, 참조, 이름 바꾸기. 먼저 `yarn luals:fetch`, 다른 실행 파일은 `INITIAL_EDITOR_LUALS` |
 | `yarn test:engine-events` | 모델의 명령으로 만든 RPG 이벤트를 진짜 엔진이 돌리는 교차 검사 (항구 마을 사본, 네 판과 대조 세 판, `INITIAL2D_DIR`) |
-| `yarn test:engine-rm2k` | 구운 ChipSet 과 모양을 맞춰 칠한 맵을 진짜 엔진이 시계 넷에서 아틀라스와 같게 그리고 물과 애니메이션 타일이 움직이는지 (위 "RPG Maker 2000 ChipSet", `INITIAL2D_DIR`, `INITIAL2D_EXE`) |
+| `yarn test:engine-rm2k` | 구운 ChipSet 과 모양을 맞춰 칠한 맵을 진짜 엔진이 시계 넷에서 아틀라스와 같게 그리고 물과 애니메이션 타일이 움직이는지, 가져온 RPG Maker 2000 맵을 칸마다 ChipSet 의 맞는 조각으로 그리고 통행이 같은지 (위 "RPG Maker 2000 ChipSet", `INITIAL2D_DIR`, `INITIAL2D_EXE`, `RM2K_GAME_DIR`) |
 | `yarn sync:templates` | 엔진 저장소의 씬 로더와 템플릿과 예제를 `packages/app/templates/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256, 생성물 표시)를 갱신 (`INITIAL2D_DIR`). `--from-zip <zip 이나 dist 폴더>` 는 엔진의 템플릿 묶음에서 |
 | `yarn sync:rpg` | 엔진 저장소의 RPG 이벤트 계약 파일을 `packages/ext-rpg/test/fixtures/` 로 복사하고 MANIFEST(출처, 엔진 커밋, sha256)를 갱신 (`INITIAL2D_DIR`) |
 | `yarn engine:fetch` | 앱에 싣는 엔진을 받는다. `--from <엔진 dist 폴더>`, `--target <트리플>`, `--templates <폴더>`, `--any-commit` (위 "앱에 싣는 엔진") |
