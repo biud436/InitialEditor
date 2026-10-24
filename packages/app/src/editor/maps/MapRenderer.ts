@@ -19,7 +19,7 @@
 
 import { Emitter } from "@initial-editor/core";
 import type { MapLayerSpec, MapLayerTool, MapLayerToolContext, MapLayerView, MapLayerViewContext } from "@initial-editor/ext-tilemap";
-import { isJsonText, tileSource, typeOf, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
+import { isJsonText, tileSource, typeOf, type AutotileRule, type MapDocument, type MapObject, type ObjectTypeSchema } from "@initial-editor/ext-tilemap/model";
 import { comparer, observable, reaction, runInAction } from "mobx";
 import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Text, Texture, UPDATE_PRIORITY } from "pixi.js";
 import type { LoadedTexture, TextureCache } from "../sceneView/textures";
@@ -64,6 +64,8 @@ export interface MapRendererDeps {
   layers?: () => readonly MapLayerSpec[];
   /** 이 뷰의 타일 고르기. 없으면 고르지 않는다 */
   pick?: MapCellPick;
+  /** 이 맵의 모양 맞추기 규칙 (타일셋 종류). 없으면 붓 그대로 칠한다 */
+  autotileRules?: () => readonly AutotileRule[];
 }
 
 /** 렌더러가 보는 타일 고르기 (MapSupport.picker 를 이 문서로 좁힌 것) */
@@ -198,6 +200,7 @@ export class MapRenderer {
         this.events.emit("warn", message);
       },
       layerTool: (id) => this.layerTool(id),
+      autotileRules: () => this.deps.autotileRules?.() ?? [],
     });
   }
 

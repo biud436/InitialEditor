@@ -63,6 +63,7 @@ export const MapView = observer(function MapView({ document: doc }: { document: 
       },
       layers: () => support.layers(),
       pick: { active: () => support.picker.isPicking(doc), choose: (cell) => support.picker.choose(doc, cell) },
+      autotileRules: () => editor.tilemap?.autotileRules(doc.model.tilesets) ?? [],
     });
     setRenderer(r);
     support.attachRenderer(doc, r);

@@ -75,3 +75,21 @@
   color: var(--warning);
   font-size: 12px;
 }
+
+.map-dialog-guides {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.map-dialog-guides .link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.map-dialog-guides .link-button:hover {
+  text-decoration: underline;
+}

@@ -1,11 +1,13 @@
 // 새 맵 (맵/새 맵, Ctrl+Alt+M). 이름, 칸 수, 타일 크기, 타일셋 그림, 레이어 이름, 통행 여부를 받아
 // resources/maps/<이름>.json을 고정 형식 v2(serializeMap)로 쓰고 연다. 이미 있는 이름은 거부한다.
 // 타일셋은 꼭 하나 있어야 한다 (엔진은 tilesets가 빈 맵을 읽지 않는다). 열 수는 PNG 머리(IHDR)의 폭을 타일 크기로 나눈 값이다.
+// 형식(타일셋 종류, 예: RPG Maker 2000 ChipSet)을 고르면 그 종류가 그림으로 타일셋 항목을 만든다 (변환한 그림을 쓴 뒤).
 // 대화상자는 components/maps/NewMapDialog.tsx.
 
 import type { LogStore, ProjectBackend } from "@initial-editor/core";
+import type { TilemapApi } from "@initial-editor/ext-tilemap";
 import { extname } from "@initial-editor/core";
-import { isMapPath, MAPS_DIR, MAX_MAP_TILES, serializeMap, type MapData } from "@initial-editor/ext-tilemap/model";
+import { isMapPath, MAPS_DIR, MAX_MAP_TILES, serializeMap, type MapData, type Tileset } from "@initial-editor/ext-tilemap/model";
 import { RESOURCES_DIR, walkFiles } from "../scene/projectAssets";
 
 export const DEFAULT_TILE_SIZE = 16;
@@ -85,6 +87,10 @@ export function tilesetColumns(imageWidth: number, tileSize: number): number {
 export interface NewMapTileset {
   image: string;
   columns: number;
+  /** 타일셋 종류의 id. 없으면 그림 그대로 */
+  kind?: string;
+  /** 종류의 선택지 (id → value) */
+  options?: Record<string, string>;
 }
 
 export interface NewMapSpec {
@@ -97,8 +103,8 @@ export interface NewMapSpec {
   collision: boolean;
 }
 
-/** 새 맵의 데이터. 칸은 전부 0(빈 칸)이고 통행을 켜면 전부 지나감이다 */
-export function buildNewMap(spec: NewMapSpec, id = 0): MapData {
+/** 새 맵의 데이터. 칸은 전부 0(빈 칸)이고 통행을 켜면 전부 지나감이다. tileset 을 주면 그 항목을 쓴다 (타일셋 종류가 만든 것) */
+export function buildNewMap(spec: NewMapSpec, id = 0, tileset?: Omit<Tileset, "firstGid">): MapData {
   const cells = spec.width * spec.height;
   return {
     version: 2,
@@ -110,7 +116,7 @@ export function buildNewMap(spec: NewMapSpec, id = 0): MapData {
     tileHeight: spec.tileSize,
     layers: spec.layers.map((name) => ({ name, data: new Array<number>(cells).fill(0), extra: {} })),
     collision: spec.collision ? new Array<number>(cells).fill(0) : null,
-    tilesets: [{ image: spec.tileset.image, firstGid: 1, columns: spec.tileset.columns, extra: {} }],
+    tilesets: [tileset ? { ...tileset, firstGid: 1 } : { image: spec.tileset.image, firstGid: 1, columns: spec.tileset.columns, extra: {} }],
     events: null,
     objects: [],
     extra: {},
@@ -164,6 +170,8 @@ export interface NewMapHost {
   readonly tree: { reveal(path: string): Promise<void> };
   readonly log: LogStore;
   readonly toasts: { warn(text: string): unknown; error(text: string): unknown };
+  /** 타일셋 종류를 찾는 곳 (형식을 고른 새 맵) */
+  readonly tilemap?: Pick<TilemapApi, "tilesetKinds"> | null;
 }
 
 /** 맵 파일을 쓴다. 이미 있거나 쓰지 못하면 알리고 null */
@@ -175,8 +183,15 @@ export async function createMapFile(host: NewMapHost, spec: NewMapSpec): Promise
       return null;
     }
     const id = await nextMapId(host.backend, await listMapPaths(host.backend));
-    await host.backend.writeText(path, serializeMap(buildNewMap(spec, id)));
-    for (const dir of ["", RESOURCES_DIR, MAPS_DIR]) await host.project.refresh(dir).catch(() => {});
+    let tileset: Omit<Tileset, "firstGid"> | undefined;
+    if (spec.tileset.kind) {
+      const kind = host.tilemap?.tilesetKinds.find((k) => k.id === spec.tileset.kind);
+      if (!kind?.createTileset) throw new Error(`타일셋 형식을 찾을 수 없습니다: ${spec.tileset.kind}`);
+      tileset = await kind.createTileset({ source: spec.tileset.image, options: spec.tileset.options ?? {}, backend: host.backend });
+    }
+    await host.backend.writeText(path, serializeMap(buildNewMap(spec, id, tileset)));
+    const tilesetDir = tileset ? tileset.image.slice(0, tileset.image.lastIndexOf("/")) : null;
+    for (const dir of ["", RESOURCES_DIR, MAPS_DIR, ...(tilesetDir ? [tilesetDir] : [])]) await host.project.refresh(dir).catch(() => {});
     await host.tree.reveal(path).catch(() => {});
   } catch (e) {
     const message = `맵 생성 실패: ${(e as Error).message}`;
@@ -184,7 +199,8 @@ export async function createMapFile(host: NewMapHost, spec: NewMapSpec): Promise
     host.toasts.error(message);
     return null;
   }
-  const tileset = `${spec.tileset.image} (${spec.tileset.columns}열)`;
+  const kindLabel = spec.tileset.kind ? (host.tilemap?.tilesetKinds.find((k) => k.id === spec.tileset.kind)?.label ?? spec.tileset.kind) : null;
+  const tileset = kindLabel ? `${spec.tileset.image} (${kindLabel})` : `${spec.tileset.image} (${spec.tileset.columns}열)`;
   host.log.info(LOG, `새 맵 생성됨: ${path} (${spec.width}x${spec.height} 타일, 타일 크기 ${spec.tileSize}px, 타일셋 ${tileset}, 레이어 ${spec.layers.join(", ")}, 통행 ${spec.collision ? "있음" : "없음"})`);
   return path;
 }

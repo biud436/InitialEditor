@@ -13,6 +13,8 @@
 //            순찰 범위가 있는 점을 옮기면 범위도 같이 옮긴다 (Alt는 몸통만)
 //   ext      대상이 확장 레이어(docs/plans/e5-rpg.md 2.2)면 포인터와 키를 그 레이어의 도구(MapLayerTool)에 넘긴다.
 //            키는 Ctrl 조합도 여기의 다른 규칙보다 먼저 넘긴다. 도구가 처리하면 렌더러가 전파를 막아 전역 단축키에 닿지 않는다
+// 타일 레이어에 칠한 바뀜은 타일셋 종류의 모양 맞추기 규칙(ctx.autotileRules)을 지난다: 칠한 칸과 이웃 오토타일 칸의 모양이
+// 함께 바뀌고 한 번의 칠하기로 되돌린다. 채우기는 같은 지형의 오토타일 칸을 한 영역으로 본다.
 // 대상이 통행이면 타일 도구도 통행을 칠한다 (펜과 사각형과 채우기는 1, 지우개는 0).
 // 대상 레이어나 통행을 숨겼으면 칠하지 않는다 (ctx.notice로 알린다). 숨긴 확장 레이어도 포인터와 편집 키를 도구에 넘기지 않고 알린다.
 
@@ -20,6 +22,7 @@ import type { Command } from "@initial-editor/core";
 import type { MapLayerPointer, MapLayerTool } from "@initial-editor/ext-tilemap";
 import { runInAction } from "mobx";
 import {
+  applyAutotile,
   ERASER,
   floodFillArea,
   pickBrush,
@@ -27,6 +30,7 @@ import {
   singleBrush,
   tileSource,
   typeOf,
+  type AutotileRule,
   type Brush,
   type CellChange,
   type MapDocument,
@@ -100,6 +104,8 @@ export interface ToolContext {
   warn?(message: string): void;
   /** 확장 레이어의 도구 (렌더러가 레이어마다 만든다). 없으면 null */
   layerTool?(id: string): MapLayerTool | null;
+  /** 이 맵의 모양 맞추기 규칙 (타일셋 종류가 준다). 없으면 붓 그대로 칠한다 */
+  autotileRules?(): readonly AutotileRule[];
 }
 
 /** 채우기가 한도에 닿았을 때의 안내 */
@@ -109,6 +115,16 @@ export function fillLimitNotice(filled: number, limit: number): string {
 
 export const HIDDEN_TARGET_NOTICE = "숨긴 레이어나 통행에는 칠할 수 없습니다 (레이어 패널에서 보이기를 켜면 칠할 수 있습니다)";
 export const HIDDEN_EXT_NOTICE = "숨긴 레이어는 편집할 수 없습니다 (레이어 패널에서 보이기를 켜면 편집할 수 있습니다)";
+
+/** 채우기의 영역 열쇠: 오토타일 칸은 지형, 그 밖은 gid */
+function terrainOfGid(rules: readonly AutotileRule[], gid: number): string | number {
+  if (gid <= 0) return gid;
+  for (const rule of rules) {
+    const terrain = rule.terrainOf(gid);
+    if (terrain !== null) return terrain;
+  }
+  return gid;
+}
 
 /** 칠하거나 고칠 대상(타일 레이어, 통행, 확장 레이어)을 숨겼는가 */
 export function targetHidden(doc: MapDocument): boolean {
@@ -242,8 +258,15 @@ export class MapToolController {
     return cellAt(p, this.model.tileWidth, this.model.tileHeight);
   }
 
+  private rules(target: number | "collision"): readonly AutotileRule[] {
+    return target === "collision" ? [] : (this.ctx.autotileRules?.() ?? []);
+  }
+
   private apply(target: number | "collision", changes: CellChange[], key?: string): void {
-    const real = onlyChanged(this.dataOf(target), changes);
+    const data = this.dataOf(target);
+    const rules = this.rules(target);
+    const shaped = data && rules.length > 0 ? applyAutotile(this.model, data, changes, rules) : changes;
+    const real = onlyChanged(data, shaped);
     if (real.length > 0) this.doc.apply(this.model.paintCells(target, real, key));
   }
 
@@ -287,7 +310,9 @@ export class MapToolController {
       this.gesture = { kind: "rect", target, brush, from: cell, to: cell };
     } else if (tool === "fill") {
       const data = this.dataOf(target) ?? new Array<number>(this.model.width * this.model.height).fill(0);
-      const fill = floodFillArea(this.model, data, brush, cell.x, cell.y, this.fillLimit ?? undefined);
+      const rules = this.rules(target);
+      const regionOf = rules.length > 0 ? (gid: number) => terrainOfGid(rules, gid) : undefined;
+      const fill = floodFillArea(this.model, data, brush, cell.x, cell.y, this.fillLimit ?? undefined, regionOf);
       this.apply(target, fill.changes);
       if (fill.truncated) {
         const message = fillLimitNotice(fill.changes.length, fill.limit);

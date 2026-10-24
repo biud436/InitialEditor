@@ -1,7 +1,10 @@
 // 새 맵 대화상자 (맵/새 맵). 이름, 폭과 높이(칸), 타일 크기, 타일셋 그림, 레이어 이름, 통행을 받는다.
 // 그림 목록과 맵 목록은 열 때 읽고, 그림을 고르면 PNG 머리로 크기를 읽어 열 수를 보인다.
 // 타일셋 그림이 없으면 만들지 않는다 (엔진이 타일셋 없는 맵을 읽지 않는다). 파일 쓰기는 editor/maps/newMap.ts가 한다.
+// 그림을 받는 타일셋 종류(예: RPG Maker 2000 ChipSet)가 있으면 형식 줄이 나오고, 처음에는 그 종류를 고른다. 종류의 선택지도
+// 형식 아래에 나온다.
 
+import type { TilesetKindSpec } from "@initial-editor/ext-tilemap";
 import { useEffect, useState, type FormEvent } from "react";
 import type { Editor } from "../../editor/Editor";
 import {
@@ -21,13 +24,22 @@ import {
   type ImageSize,
   type NewMapSpec,
 } from "../../editor/maps/newMap";
+import { guidePage } from "../../editor/about";
+import { openLink } from "../../editor/openExternal";
 import "./MapDialogs.css";
 
 export interface NewMapSource {
   listImages(): Promise<string[]>;
   listMaps(): Promise<string[]>;
   imageSize(path: string): Promise<ImageSize>;
+  /** 등록된 타일셋 종류. 없으면 그림 그대로만 */
+  kinds?(): readonly TilesetKindSpec[];
+  /** 사용자 가이드의 문서를 연다 (종류의 guides) */
+  openGuide?(page: string): void;
 }
+
+/** 형식 줄의 "이미지 그대로" */
+export const PLAIN_TILESET = "";
 
 type SizeState = { path: string; size: ImageSize | null; error: string | null };
 
@@ -49,6 +61,9 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
   const [lists, setLists] = useState<{ images: string[]; maps: string[] } | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [sizeState, setSizeState] = useState<SizeState | null>(null);
+  /** 고른 형식 (그림마다 기억한다). 없으면 그 그림을 받는 첫 종류 */
+  const [kindChoice, setKindChoice] = useState<{ image: string; kind: string } | null>(null);
+  const [optionValues, setOptionValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let live = true;
@@ -110,12 +125,17 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
       width: Number(widthText.trim()),
       height: Number(heightText.trim()),
       tileSize,
-      tileset: { image, columns },
+      tileset: kind ? { image, columns, kind: kind.id, options: optionsOf(kind) } : { image, columns },
       layers: layers.names,
       collision,
     });
   };
 
+  const kinds = source.kinds?.() ?? [];
+  const accepting = size?.size && tileSize > 0 ? kinds.filter((k) => k.createTileset && k.accepts?.(size.size!, tileSize, tileSize)) : [];
+  const kindId = kindChoice && kindChoice.image === image && (kindChoice.kind === PLAIN_TILESET || accepting.some((k) => k.id === kindChoice.kind)) ? kindChoice.kind : (accepting[0]?.id ?? PLAIN_TILESET);
+  const kind = accepting.find((k) => k.id === kindId) ?? null;
+  const optionsOf = (k: TilesetKindSpec) => Object.fromEntries((k.options ?? []).map((o) => [o.id, optionValues[`${k.id}.${o.id}`] ?? o.default]));
   const spare = size?.size && tileSize > 0 ? size.size.width - columns * tileSize : 0;
   return (
     <form onSubmit={submit} data-testid="new-map-dialog">
@@ -154,12 +174,55 @@ export function NewMapForm({ source, onSubmit, onCancel }: { source: NewMapSourc
               {lists ? "resources 아래에 PNG 없음" : "이미지 목록 불러오는 중"}
             </div>
           )}
-          {image && size?.size && tileSize > 0 ? (
+          {image && size?.size && tileSize > 0 && !kind ? (
             <div className="form-help" data-testid="new-map-columns" data-columns={columns}>
               {size.size.width}x{size.size.height} px, {columns}열 {rows}행{spare > 0 ? ` (오른쪽 ${spare}px 미사용)` : ""}
             </div>
           ) : null}
         </div>
+        {accepting.length > 0 ? (
+          <div className="form-row">
+            <label htmlFor="new-map-kind">형식</label>
+            <select id="new-map-kind" className="select" value={kindId} onChange={(e) => setKindChoice({ image, kind: e.target.value })} data-testid="new-map-kind">
+              <option value={PLAIN_TILESET}>이미지 그대로</option>
+              {accepting.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.label}
+                </option>
+              ))}
+            </select>
+            {kind?.description ? <div className="form-help">{kind.description}</div> : null}
+            {kind?.guides && source.openGuide ? (
+              <div className="form-help map-dialog-guides" data-testid="new-map-kind-guides">
+                {kind.guides.map((g) => (
+                  <button key={g.page} type="button" className="link-button" onClick={() => source.openGuide?.(g.page)}>
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {kind
+          ? (kind.options ?? []).map((o) => (
+              <div className="form-row" key={o.id}>
+                <label htmlFor={`new-map-option-${o.id}`}>{o.label}</label>
+                <select
+                  id={`new-map-option-${o.id}`}
+                  className="select map-dialog-short"
+                  value={optionsOf(kind)[o.id]}
+                  onChange={(e) => setOptionValues((v) => ({ ...v, [`${kind.id}.${o.id}`]: e.target.value }))}
+                  data-testid={`new-map-option-${o.id}`}
+                >
+                  {o.choices.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))
+          : null}
         <div className="form-row">
           <label htmlFor="new-map-layers">레이어</label>
           <input id="new-map-layers" className="input" value={layersText} onChange={(e) => setLayersText(e.target.value)} data-testid="new-map-layers" />
@@ -195,6 +258,8 @@ export function newMapSource(editor: Editor): NewMapSource {
     listImages: () => listTilesetImages(editor.backend),
     listMaps: () => listMapPaths(editor.backend),
     imageSize: (path) => readImageSize(editor.backend, path),
+    kinds: () => editor.tilemap?.tilesetKinds ?? [],
+    openGuide: (page) => void openLink(editor, guidePage(page)),
   };
 }
 
