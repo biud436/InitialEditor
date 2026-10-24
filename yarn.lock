@@ -823,6 +823,7 @@ __metadata:
     "@initial-editor/backend-fsaccess": "npm:2.0.0-alpha.3"
     "@initial-editor/backend-tauri": "npm:2.0.0-alpha.3"
     "@initial-editor/core": "npm:2.0.0-alpha.3"
+    "@initial-editor/ext-rm2k": "npm:2.0.0-alpha.3"
     "@initial-editor/ext-rpg": "npm:2.0.0-alpha.3"
     "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.3"
     "@initial-editor/ui": "npm:2.0.0-alpha.3"
@@ -879,6 +880,15 @@ __metadata:
   resolution: "@initial-editor/core@workspace:packages/core"
   dependencies:
     mobx: "npm:^6.13.0"
+  languageName: unknown
+  linkType: soft
+
+"@initial-editor/ext-rm2k@npm:2.0.0-alpha.3, @initial-editor/ext-rm2k@workspace:packages/ext-rm2k":
+  version: 0.0.0-use.local
+  resolution: "@initial-editor/ext-rm2k@workspace:packages/ext-rm2k"
+  dependencies:
+    "@initial-editor/core": "npm:2.0.0-alpha.3"
+    "@initial-editor/ext-tilemap": "npm:2.0.0-alpha.3"
   languageName: unknown
   linkType: soft
 

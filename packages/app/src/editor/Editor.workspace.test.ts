@@ -100,7 +100,9 @@ describe("에디터의 타일맵 자리", () => {
   it("RPG 확장을 켠다: 이벤트 레이어 커맨드(N)와 타일맵 프리셋의 이벤트 목록 패널", async () => {
     const editor = makeEditor(new MemoryBackend());
     await editor.start();
-    expect([...editor.extensions.active.keys()]).toEqual(["tilemap", "rpg"]);
+    expect([...editor.extensions.active.keys()]).toEqual(["tilemap", "rpg", "rm2k"]);
+    // RPG Maker 2000 타일맵 확장은 타일셋 종류 하나를 등록한다
+    expect(editor.tilemap?.tilesetKinds.map((k) => k.id)).toEqual(["rm2k"]);
     expect(editor.commands.get(layerCommandId("rpg.events"))?.shortcut).toBe("N");
     expect(editor.registries.panels.get("rpg.events")).toMatchObject({ title: "이벤트", presets: ["tilemap"] });
     // 이벤트 실행 명령 둘이 맵 메뉴의 여기서 실행 뒤에 있다
