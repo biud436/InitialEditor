@@ -18,4 +18,5 @@ export * from "./log";
 export * from "./errorLinks";
 export * from "./settings";
 export * from "./graph";
+export * from "./png";
 export { MemoryBackend } from "./testing/memory-backend";

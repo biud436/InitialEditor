@@ -54,3 +54,19 @@ describe("채우기 한도", () => {
     expect(floodFillArea(map, data, singleBrush(1), 9, 9)).toEqual({ changes: [], truncated: false, limit: 8 });
   });
 });
+
+describe("채우기의 영역 열쇠 (regionOf)", () => {
+  it("열쇠가 같은 칸을 한 영역으로 채운다 (모양이 다른 오토타일 칸)", () => {
+    const map = { width: 4, height: 1 };
+    // 100..115 는 한 지형의 모양들, 5 는 다른 타일
+    const data = [101, 107, 5, 103];
+    const terrain = (gid: number) => (gid >= 100 && gid < 116 ? "물" : gid);
+    expect(floodFill(map, data, singleBrush(9), 0, 0)).toEqual([{ index: 0, value: 9 }]);
+    expect(floodFill(map, data, singleBrush(9), 0, 0, undefined, terrain)).toEqual([
+      { index: 0, value: 9 },
+      { index: 1, value: 9 },
+    ]);
+    // 같은 지형의 붓으로 채우면 바뀌는 것이 없다
+    expect(floodFill(map, data, singleBrush(100), 1, 0, undefined, terrain)).toEqual([]);
+  });
+});

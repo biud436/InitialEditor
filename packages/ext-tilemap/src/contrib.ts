@@ -11,11 +11,15 @@
 //                 게임이 찍는 줄을 넘겨 끝났는지, 멈춰야 하는지 묻는다 (자동 재생이 끝나지 않는 실행을 멈춘다)
 //   맵 뷰         확장의 폼이 맵 위의 좌표를 받는다. pickCell 은 맵 파일을 탭으로 열고 그 뷰에서 타일 하나를 고르게 하고,
 //                 revealCell 은 맵 파일을 열고 타일을 뷰 가운데에 둔다. 앱이 setMapViews 로 맵 탭과 뷰를 다루는 길을 넣는다
+//   타일셋 종류   타일셋 그림을 그대로 쓰지 않는 형식 (RPG Maker 2000 ChipSet 은 ext-rm2k). 팔레트에 보일 쪽, 칠한 뒤 모양
+//                 맞추기 규칙(model/autotileRules.ts), 새 맵 대화상자에서 그림으로 타일셋 항목을 만드는 길을 준다
 //
 // 뷰와 도구와 인스펙터는 앱이 붙인다. 여기 타입은 DOM 과 PIXI 를 모른다: PIXI 물체와 React 컴포넌트는 unknown 이고 앱이 좁혀 쓴다.
 
-import type { Document, DocumentRegistry } from "@initial-editor/core";
+import type { Document, DocumentRegistry, ProjectBackend } from "@initial-editor/core";
 import { action, observable } from "mobx";
+import type { AutotileRule } from "./model/autotileRules";
+import type { Tileset } from "./model/format";
 import { sectionKeyProblem, type MapLayerBinding, type MapLayerState } from "./model/layers";
 import { MapDocument } from "./model/mapDocument";
 
@@ -220,6 +224,65 @@ export interface MapViews {
 
 export const NO_MAP_VIEWS = "맵 뷰 없음 (에디터가 맵 뷰를 등록하지 않음)";
 
+/** 팔레트 칸 하나 */
+export interface PaletteCell {
+  /** 칠할 gid (0 은 칸을 비운다) */
+  value: number;
+  /** 칸에 그릴 gid */
+  icon: number;
+  /** 칸 이름 (팔레트의 툴팁과 붓 표시) */
+  label: string;
+}
+
+/** 팔레트의 쪽 하나. 칸을 columns 열로 늘어놓는다 */
+export interface PalettePage {
+  id: string;
+  label: string;
+  columns: number;
+  cells: readonly PaletteCell[];
+  /** gid 가 이 쪽의 몇 번째 칸인가 (모양을 맞춘 오토타일 칸은 그 지형의 칸). 없으면 -1 */
+  cellOf(gid: number): number;
+}
+
+/** 새 맵 대화상자에서 고르는 선택지 하나 */
+export interface TilesetKindOption {
+  id: string;
+  label: string;
+  choices: ReadonlyArray<{ value: string; label: string }>;
+  default: string;
+}
+
+export interface TilesetCreateRequest {
+  /** 고른 그림 (프로젝트 경로) */
+  source: string;
+  /** options 의 id → 고른 value */
+  options: Readonly<Record<string, string>>;
+  backend: ProjectBackend;
+}
+
+export interface TilesetKindSpec {
+  /** 예: "rm2k" */
+  readonly id: string;
+  /** 새 맵 대화상자의 형식 이름 */
+  readonly label: string;
+  /** 새 맵 대화상자의 형식 설명 한 줄 */
+  readonly description?: string;
+  /** 사용자 가이드의 문서 (docs/guide 의 파일 이름). 새 맵 대화상자와 팔레트가 링크로 보인다 */
+  readonly guides?: ReadonlyArray<{ label: string; page: string }>;
+  /** 이 타일셋을 이 종류가 맡는가 (보통 타일셋 항목의 extra 키로 본다) */
+  owns(tileset: Tileset): boolean;
+  /** 팔레트의 쪽. 없으면 팔레트가 타일셋 그림을 그대로 보인다 */
+  palette?(tileset: Tileset): readonly PalettePage[];
+  /** 칠한 뒤 모양 맞추기 규칙. 없으면 붓 그대로 칠한다 */
+  autotile?(tileset: Tileset): AutotileRule | null;
+  /** 새 맵 대화상자: 이 크기의 그림과 타일 크기로 이 종류를 만들 수 있는가 */
+  accepts?(image: { width: number; height: number }, tileWidth: number, tileHeight: number): boolean;
+  /** 새 맵 대화상자의 선택지 */
+  readonly options?: readonly TilesetKindOption[];
+  /** 새 맵 대화상자: 그림으로 타일셋 항목을 만든다 (변환한 그림 쓰기 포함). firstGid 는 맵이 정한다 */
+  createTileset?(request: TilesetCreateRequest): Promise<Omit<Tileset, "firstGid">>;
+}
+
 export interface TilemapApi {
   registerMapLayer(spec: MapLayerSpec): () => void;
   registerPlayProvider(spec: PlayProviderSpec): () => void;
@@ -243,6 +306,13 @@ export interface TilemapApi {
   mapViewsBlocked(): string | undefined;
   /** 앱이 맵 탭과 뷰를 다루는 길을 넣는다. 돌려준 함수로 뺀다 */
   setMapViews(views: MapViews): () => void;
+  registerTilesetKind(spec: TilesetKindSpec): () => void;
+  /** 등록된 타일셋 종류, 등록 순서 (관찰 가능) */
+  readonly tilesetKinds: readonly TilesetKindSpec[];
+  /** 이 타일셋을 맡는 종류 (먼저 등록한 것). 없으면 null */
+  tilesetKind(tileset: Tileset): TilesetKindSpec | null;
+  /** 맵의 타일셋들의 모양 맞추기 규칙 (타일셋 순서) */
+  autotileRules(tilesets: readonly Tileset[]): AutotileRule[];
 }
 
 export interface TilemapContribDeps {
@@ -262,6 +332,7 @@ export class TilemapContrib implements TilemapApi {
   private readonly providers = observable.array<PlayProviderSpec>([], { deep: false });
   private readonly player = observable.box<MapPlayer | null>(null, { deep: false });
   private readonly views = observable.box<MapViews | null>(null, { deep: false });
+  private readonly kinds = observable.array<TilesetKindSpec>([], { deep: false });
   private offOpen: (() => void) | null = null;
 
   constructor(private readonly deps: TilemapContribDeps = {}) {
@@ -364,6 +435,31 @@ export class TilemapContrib implements TilemapApi {
     });
   }
 
+  get tilesetKinds(): readonly TilesetKindSpec[] {
+    return this.kinds.slice();
+  }
+
+  registerTilesetKind(spec: TilesetKindSpec): () => void {
+    if (this.kinds.some((k) => k.id === spec.id)) throw new Error(`타일셋 종류 id 중복: ${spec.id}`);
+    action(() => this.kinds.push(spec))();
+    return action(() => {
+      this.kinds.remove(spec);
+    });
+  }
+
+  tilesetKind(tileset: Tileset): TilesetKindSpec | null {
+    return this.kinds.find((k) => k.owns(tileset)) ?? null;
+  }
+
+  autotileRules(tilesets: readonly Tileset[]): AutotileRule[] {
+    const out: AutotileRule[] = [];
+    for (const t of tilesets) {
+      const rule = this.tilesetKind(t)?.autotile?.(t);
+      if (rule) out.push(rule);
+    }
+    return out;
+  }
+
   refreshLayer(id: string): void {
     const spec = this.layers.get(id);
     if (!spec) return;
@@ -395,6 +491,7 @@ export class TilemapContrib implements TilemapApi {
       this.providers.clear();
       this.player.set(null);
       this.views.set(null);
+      this.kinds.clear();
     })();
   }
 }

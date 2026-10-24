@@ -22,6 +22,8 @@ InitialEditor는 Initial2D 엔진의 프로젝트를 편집하고 실행하는 �
 | 효과음과 배경 음악 | [소리](audio.md) |
 | 실행 방식, 핫 리로드, 엔진 탐색 | [게임 실행](running.md) |
 | 맵 파일, 타일셋, 레이어, 통행, 맵 오브젝트 | [맵](maps.md) |
+| RPG Maker 2000 ChipSet으로 맵을 만들어 실행하는 절차 | [RPG Maker 2000 맵 따라 만들기](rm2k-tutorial.md) |
+| RPG Maker 2000 ChipSet, 하층과 상층 팔레트, 오토타일 규칙, 물결, 맵 파일의 타일셋 항목 | [RPG Maker 2000 ChipSet](rm2k.md) |
 | RPG 이벤트와 커맨드 | [RPG 이벤트](rpg-events.md) |
 | 노드 그래프로 컴포넌트 정의 | [비주얼 스크립팅](visual-scripting.md) |
 

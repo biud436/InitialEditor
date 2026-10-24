@@ -135,20 +135,29 @@ export interface FloodFillResult {
  * 같은 값으로 이어진 칸을 채운다 (네 방향). 무늬는 채울 영역의 격자에 맞춰 되풀이한다.
  * 시작 칸이 이미 그 값이고 붓이 한 칸이면 바뀌는 것이 없다.
  * 한도의 기본값은 맵의 칸 수라 맵 전체도 채운다. 한도에 닿으면 truncated로 알린다.
+ * regionOf 를 주면 값 대신 그 열쇠가 같은 칸을 같은 영역으로 본다 (모양이 다른 오토타일 칸을 한 지형으로)
  */
-export function floodFillArea(map: Pick<MapData, "width" | "height">, data: readonly number[], brush: Brush, x: number, y: number, limit = map.width * map.height): FloodFillResult {
+export function floodFillArea(
+  map: Pick<MapData, "width" | "height">,
+  data: readonly number[],
+  brush: Brush,
+  x: number,
+  y: number,
+  limit = map.width * map.height,
+  regionOf: (gid: number) => unknown = (gid) => gid,
+): FloodFillResult {
   const out: CellChange[] = [];
   if (!inBounds(map, x, y)) return { changes: out, truncated: false, limit };
   const start = cellIndex(map, x, y);
-  const target = data[start];
-  if (brush.width === 1 && brush.height === 1 && brush.gids[0][0] === target) return { changes: out, truncated: false, limit };
+  const target = regionOf(data[start]);
+  if (brush.width === 1 && brush.height === 1 && regionOf(brush.gids[0][0]) === target) return { changes: out, truncated: false, limit };
   const cells = map.width * map.height;
   // 넣을 때 표시하므로 한 칸은 한 번만 쌓이고 스택은 칸 수를 넘지 않는다
   const seen = new Uint8Array(cells);
   const stack = new Int32Array(cells);
   let top = 0;
   const visit = (i: number) => {
-    if (seen[i] || data[i] !== target) return;
+    if (seen[i] || regionOf(data[i]) !== target) return;
     seen[i] = 1;
     stack[top++] = i;
   };
@@ -170,8 +179,8 @@ export function floodFillArea(map: Pick<MapData, "width" | "height">, data: read
 }
 
 /** floodFillArea의 바뀌는 칸만 */
-export function floodFill(map: Pick<MapData, "width" | "height">, data: readonly number[], brush: Brush, x: number, y: number, limit?: number): CellChange[] {
-  return floodFillArea(map, data, brush, x, y, limit).changes;
+export function floodFill(map: Pick<MapData, "width" | "height">, data: readonly number[], brush: Brush, x: number, y: number, limit?: number, regionOf?: (gid: number) => unknown): CellChange[] {
+  return floodFillArea(map, data, brush, x, y, limit, regionOf).changes;
 }
 
 /** 칸 범위에서 붓을 뜬다 (스포이드, 여러 칸) */

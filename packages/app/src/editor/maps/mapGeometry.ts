@@ -213,6 +213,56 @@ export function brushInTileset(
   return { rect: null, cells };
 }
 
+/** 타일셋 종류가 준 팔레트 쪽 (ext-tilemap 의 PalettePage 에서 여기에 쓰는 것만) */
+export interface PalettePageLike {
+  columns: number;
+  cells: ReadonlyArray<{ value: number }>;
+  cellOf(gid: number): number;
+}
+
+/** 팔레트 쪽에서 사각형으로 고른 붓. 쪽 밖의 칸(마지막 줄의 빈자리)은 0 이다 */
+export function pageBrush(page: PalettePageLike, col0: number, row0: number, col1: number, row1: number): Brush {
+  const left = Math.max(0, Math.min(col0, col1));
+  const right = Math.min(page.columns - 1, Math.max(col0, col1));
+  const top = Math.max(0, Math.min(row0, row1));
+  const bottom = Math.max(row0, row1);
+  const gids: number[][] = [];
+  for (let r = top; r <= bottom; r++) {
+    const row: number[] = [];
+    for (let c = left; c <= right; c++) row.push(page.cells[r * page.columns + c]?.value ?? 0);
+    gids.push(row);
+  }
+  return { width: right - left + 1, height: bottom - top + 1, gids };
+}
+
+/** 붓이 팔레트 쪽의 어디인지 (brushInTileset 과 같은 모양). 모양을 맞춘 오토타일 gid 도 그 지형의 칸으로 찾는다 */
+export function brushInPage(brush: Brush, page: PalettePageLike): { rect: { col: number; row: number; width: number; height: number } | null; cells: PaletteCell[] } {
+  const seen = new Set<number>();
+  const cells: PaletteCell[] = [];
+  for (const row of brush.gids) {
+    for (const gid of row) {
+      const i = page.cellOf(gid);
+      if (i < 0 || seen.has(i)) continue;
+      seen.add(i);
+      cells.push({ col: i % page.columns, row: Math.floor(i / page.columns) });
+    }
+  }
+  const origin = page.cellOf(brush.gids[0]?.[0] ?? 0);
+  if (origin >= 0 && (origin % page.columns) + brush.width <= page.columns) {
+    let exact = true;
+    for (let y = 0; y < brush.height && exact; y++) {
+      for (let x = 0; x < brush.width; x++) {
+        if (page.cells[origin + y * page.columns + x]?.value !== brush.gids[y][x]) {
+          exact = false;
+          break;
+        }
+      }
+    }
+    if (exact) return { rect: { col: origin % page.columns, row: Math.floor(origin / page.columns), width: brush.width, height: brush.height }, cells };
+  }
+  return { rect: null, cells };
+}
+
 // ---- 오브젝트 모양 ----
 
 export interface RangeInfo {

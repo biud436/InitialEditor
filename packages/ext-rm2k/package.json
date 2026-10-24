@@ -1,0 +1,21 @@
+{
+  "name": "@initial-editor/ext-rm2k",
+  "version": "2.0.0-alpha.3",
+  "private": true,
+  "description": "RPG Maker 2000 타일맵 확장: ChipSet 을 엔진이 그리는 타일셋으로 굽고, 하층과 상층 팔레트, 오토타일(땅, 물), 물과 애니메이션 타일을 맡는다",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:engine-rm2k": "vitest run --root . --config ./vitest.engine.config.ts"
+  },
+  "dependencies": {
+    "@initial-editor/core": "2.0.0-alpha.3",
+    "@initial-editor/ext-tilemap": "2.0.0-alpha.3"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./model": "./src/model/index.ts"
+  }
+}
