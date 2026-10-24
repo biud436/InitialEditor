@@ -8,7 +8,6 @@ import { ENGINE_README_API, guidePage, USER_GUIDE } from "./about";
 import { openSettingsDialog } from "../components/SettingsDialog";
 import { browserFolders } from "./browserFolders";
 import type { Editor } from "./Editor";
-import { WELCOME_KIND } from "./documents/WelcomeDocument";
 import { PANEL_IDS, PANEL_TITLES, PRESET_LABELS, type PresetName } from "./layoutPresets";
 import { createNewProject, newProjectBlocker } from "./newProject";
 import { openLink } from "./openExternal";
@@ -59,10 +58,10 @@ export function registerAppCommands(editor: Editor): void {
   const active = () => editor.documents.active;
   const reg = (cmd: EditorCommand) => c.register(cmd);
   // 파일
-  // 새 프로젝트는 폴더를 고를 수 있는 곳(데스크톱 앱, 폴더 열기가 있는 브라우저의 웹판)에서 된다
-  reg({ id: "file.newProject", label: "새 프로젝트", category: "file", shortcut: "Ctrl+N", enabled: () => newProjectBlocker(editor) === null, run: () => void createNewProject(editor) });
+  // 새 게임은 폴더를 고를 수 있는 곳(데스크톱 앱, 폴더 열기가 있는 브라우저의 웹판)에서 된다
+  reg({ id: "file.newProject", label: "새 게임", category: "file", shortcut: "Ctrl+N", enabled: () => newProjectBlocker(editor) === null, run: () => void createNewProject(editor) });
   editor.setHint("file.newProject", () => newProjectBlocker(editor) ?? undefined);
-  reg({ id: "file.openProject", label: "프로젝트 열기", category: "file", shortcut: "Ctrl+O", run: () => openProjectCommand(editor) });
+  reg({ id: "file.openProject", label: "게임 열기", category: "file", shortcut: "Ctrl+O", run: () => openProjectCommand(editor) });
   reg({
     id: "file.save",
     label: "저장",
@@ -70,7 +69,7 @@ export function registerAppCommands(editor: Editor): void {
     shortcut: "Ctrl+S",
     enabled: () => {
       const doc = active();
-      return !!doc && doc.kind !== WELCOME_KIND && doc.dirty;
+      return !!doc && doc.dirty;
     },
     run: async () => {
       await saveActiveDocument(editor);
@@ -86,7 +85,7 @@ export function registerAppCommands(editor: Editor): void {
       await saveAllDocuments(editor);
     },
   });
-  reg({ id: "file.closeProject", label: "프로젝트 닫기", category: "file", enabled: () => editor.project.isOpen, run: () => void editor.closeProject() });
+  reg({ id: "file.closeProject", label: "게임 닫기", category: "file", enabled: () => editor.project.isOpen, run: () => void editor.closeProject() });
 
   // 편집
   reg({ id: "edit.undo", label: "되돌리기", category: "edit", shortcut: "Ctrl+Z", enabled: () => !!active()?.undo.canUndo, run: () => void active()?.undo.undo() });

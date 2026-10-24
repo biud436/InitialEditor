@@ -43,7 +43,7 @@ async function newSceneInSample(page: Page, name: string): Promise<Locator> {
   await page.goto("/?backend=memory&sample=meadow");
   await page.evaluate((keys) => keys.forEach((k) => localStorage.removeItem(k)), [LAYOUT_KEY, VIEW_KEY]);
   await page.reload();
-  await page.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+  await page.getByRole("button", { name: "샘플 게임 열기" }).click();
   await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
   await openMenu(page, "씬", "새 씬");
   const dialog = page.getByRole("dialog");

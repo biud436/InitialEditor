@@ -1,4 +1,5 @@
 // 화면 뼈대: 메뉴 바(브라우저 모드), 툴바, 도킹, 상태 바, 토스트, 모달. 브라우저와 Tauri 가 같은 App 을 쓴다.
+// 게임이 열려 있지 않으면 작업 화면 위를 시작 창이 덮는다 (도킹은 그대로 두어 레이아웃 복원이 흔들리지 않는다).
 
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
@@ -6,6 +7,7 @@ import { useEditor } from "../editor/EditorContext";
 import { installNativeMenu } from "../editor/nativeMenu";
 import { installShortcuts, installUnloadGuard, losesWorkOnUnload } from "../editor/shortcuts";
 import { Dock } from "./Dock";
+import { Launcher } from "./launcher/Launcher";
 import { MenuBar } from "./MenuBar";
 import { Modals } from "./Modals";
 import { StatusBar } from "./StatusBar";
@@ -41,9 +43,12 @@ export const App = observer(function App() {
   return (
     <div className="app" data-mode={editor.mode}>
       {editor.isBrowser && <MenuBar />}
-      <Toolbar />
-      <Dock />
-      <StatusBar />
+      <div className="app-work">
+        <Toolbar />
+        <Dock />
+        <StatusBar />
+        {!editor.project.isOpen && <Launcher />}
+      </div>
       <Toasts />
       <Modals />
     </div>

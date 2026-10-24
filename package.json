@@ -31,6 +31,8 @@
     "test:engine-graph": "node scripts/e2e-engine-graph.mjs",
     "test:luals": "vitest run --config vitest.luals.config.ts",
     "guide:screenshots": "playwright test --config playwright.guide.config.ts",
+    "review": "playwright test --config playwright.review.config.ts review.spec",
+    "review:previews": "playwright test --config playwright.review.config.ts template-previews",
     "test:android-stage": "node scripts/e2e-android-stage.mjs",
     "test:engine-events": "yarn workspace @initial-editor/ext-rpg test:engine-events",
     "test:engine-rm2k": "yarn workspace @initial-editor/ext-rm2k test:engine-rm2k",
@@ -47,6 +49,7 @@
     "selftest:app": "node scripts/selftest-app.mjs",
     "check:colors": "node scripts/check-color-literals.mjs",
     "check:terms": "node scripts/check-terms.mjs",
+    "check:ui": "node scripts/check-ui-kit.mjs",
     "tauri": "tauri"
   },
   "devDependencies": {

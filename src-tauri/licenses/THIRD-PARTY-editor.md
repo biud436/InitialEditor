@@ -6,7 +6,7 @@
 InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소프트웨어다. 둘 이상 중에서 고르는 라이선스는 고른 것을 적었고,
 원문은 아래 "라이선스 원문" 에 번호로 한 번씩 싣는다. 원문 파일이 없는 패키지는 라이선스 이름과 출처만 적는다.
 
-## npm, 프런트 (28개)
+## npm, 프런트 (30개)
 
 | 패키지 | 판 | 라이선스 | 원문 | 출처 |
 |---|---|---|---|---|
@@ -28,28 +28,30 @@ InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소
 | js-tokens | 4.0.0 | MIT | 11 | https://github.com/lydell/js-tokens |
 | loose-envify | 1.4.0 | MIT | 12 | https://github.com/zertosh/loose-envify |
 | luaparse | 0.3.1 | MIT | 13 | https://github.com/fstirlitz/luaparse |
-| mobx | 6.16.1 | MIT | 14 | https://github.com/mobxjs/mobx |
-| mobx-react-lite | 4.1.1 | MIT | 14 | https://github.com/mobxjs/mobx |
-| monaco-editor | 0.52.2 | MIT | 15 | https://github.com/microsoft/monaco-editor |
-| parse-svg-path | 0.2.0 | MIT | 16 | https://github.com/jkroso/parse-svg-path |
-| pixi.js | 8.21.0 | MIT | 17 | https://github.com/pixijs/pixijs |
-| react | 18.3.1 | MIT | 18 | https://github.com/facebook/react |
-| react-dom | 18.3.1 | MIT | 18 | https://github.com/facebook/react |
-| scheduler | 0.23.2 | MIT | 18 | https://github.com/facebook/react |
-| tiny-lru | 11.4.7 | BSD-3-Clause | 19 | https://github.com/avoidwork/tiny-lru |
-| use-sync-external-store | 1.7.0 | MIT | 20 | https://github.com/react/react |
+| lucide-react | 0.460.0 | ISC | 14 | https://github.com/lucide-icons/lucide |
+| mobx | 6.16.1 | MIT | 15 | https://github.com/mobxjs/mobx |
+| mobx-react-lite | 4.1.1 | MIT | 15 | https://github.com/mobxjs/mobx |
+| monaco-editor | 0.52.2 | MIT | 16 | https://github.com/microsoft/monaco-editor |
+| parse-svg-path | 0.2.0 | MIT | 17 | https://github.com/jkroso/parse-svg-path |
+| pixi.js | 8.21.0 | MIT | 18 | https://github.com/pixijs/pixijs |
+| pretendard | 1.3.9 | OFL-1.1 | 19 | https://github.com/orioncactus/pretendard |
+| react | 18.3.1 | MIT | 20 | https://github.com/facebook/react |
+| react-dom | 18.3.1 | MIT | 20 | https://github.com/facebook/react |
+| scheduler | 0.23.2 | MIT | 20 | https://github.com/facebook/react |
+| tiny-lru | 11.4.7 | BSD-3-Clause | 21 | https://github.com/avoidwork/tiny-lru |
+| use-sync-external-store | 1.7.0 | MIT | 22 | https://github.com/react/react |
 
 ## Cargo, 데스크톱 셸 (모든 OS 의 합) (470개)
 
 | 패키지 | 판 | 라이선스 | 원문 | 출처 |
 |---|---|---|---|---|
 | adler2 | 2.0.1 | MIT | 1 | https://github.com/oyvindln/adler2 |
-| aho-corasick | 1.1.5 | MIT | 21 | https://github.com/BurntSushi/aho-corasick |
-| alloc-no-stdlib | 2.0.4 | BSD-3-Clause | 22 | https://github.com/dropbox/rust-alloc-no-stdlib |
+| aho-corasick | 1.1.5 | MIT | 23 | https://github.com/BurntSushi/aho-corasick |
+| alloc-no-stdlib | 2.0.4 | BSD-3-Clause | 24 | https://github.com/dropbox/rust-alloc-no-stdlib |
 | alloc-stdlib | 0.2.4 | BSD-3-Clause | - | https://github.com/dropbox/rust-alloc-no-stdlib |
-| android_system_properties | 0.1.6 | MIT | 23 | https://github.com/nical/android_system_properties |
+| android_system_properties | 0.1.6 | MIT | 25 | https://github.com/nical/android_system_properties |
 | anyhow | 1.0.104 | MIT | 1 | https://github.com/dtolnay/anyhow |
-| async-broadcast | 0.7.2 | MIT | 24 | https://github.com/smol-rs/async-broadcast |
+| async-broadcast | 0.7.2 | MIT | 26 | https://github.com/smol-rs/async-broadcast |
 | async-channel | 2.5.0 | MIT | 1 | https://github.com/smol-rs/async-channel |
 | async-executor | 1.14.0 | MIT | 1 | https://github.com/smol-rs/async-executor |
 | async-io | 2.6.0 | MIT | 1 | https://github.com/smol-rs/async-io |
@@ -59,204 +61,204 @@ InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소
 | async-signal | 0.2.14 | MIT | 1 | https://github.com/smol-rs/async-signal |
 | async-task | 4.7.1 | MIT | 1 | https://github.com/smol-rs/async-task |
 | async-trait | 0.1.92 | MIT | 1 | https://github.com/dtolnay/async-trait |
-| atk | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| atk-sys | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
+| atk | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| atk-sys | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
 | atomic-waker | 1.1.2 | MIT | 1 | https://github.com/smol-rs/atomic-waker |
-| base64 | 0.21.7 | MIT | 26 | https://github.com/marshallpierce/rust-base64 |
-| base64 | 0.22.1 | MIT | 26 | https://github.com/marshallpierce/rust-base64 |
-| base64 | 0.23.1 | MIT | 27 | https://github.com/marshallpierce/rust-base64 |
-| bit-set | 0.8.0 | MIT | 28 | https://github.com/contain-rs/bit-set |
-| bit-vec | 0.8.0 | MIT | 28 | https://github.com/contain-rs/bit-vec |
-| bitflags | 1.3.2 | MIT | 29 | https://github.com/bitflags/bitflags |
-| bitflags | 2.13.2 | MIT | 29 | https://github.com/bitflags/bitflags |
-| block-buffer | 0.10.4 | MIT | 30 | https://github.com/RustCrypto/utils |
+| base64 | 0.21.7 | MIT | 28 | https://github.com/marshallpierce/rust-base64 |
+| base64 | 0.22.1 | MIT | 28 | https://github.com/marshallpierce/rust-base64 |
+| base64 | 0.23.1 | MIT | 29 | https://github.com/marshallpierce/rust-base64 |
+| bit-set | 0.8.0 | MIT | 30 | https://github.com/contain-rs/bit-set |
+| bit-vec | 0.8.0 | MIT | 30 | https://github.com/contain-rs/bit-vec |
+| bitflags | 1.3.2 | MIT | 31 | https://github.com/bitflags/bitflags |
+| bitflags | 2.13.2 | MIT | 31 | https://github.com/bitflags/bitflags |
+| block-buffer | 0.10.4 | MIT | 32 | https://github.com/RustCrypto/utils |
 | block2 | 0.6.2 | MIT | - | https://github.com/madsmtm/objc2 |
 | blocking | 1.7.0 | MIT | 1 | https://github.com/smol-rs/blocking |
-| brotli | 8.0.4 | BSD-3-Clause AND MIT | 22, 31 | https://github.com/dropbox/rust-brotli |
-| brotli-decompressor | 5.0.3 | MIT | 22 | https://github.com/dropbox/rust-brotli-decompressor |
-| bs58 | 0.5.1 | MIT | 32 | https://github.com/Nullus157/bs58-rs |
-| bumpalo | 3.20.3 | MIT | 33 | https://github.com/fitzgen/bumpalo |
-| bytemuck | 1.25.2 | MIT | 34 | https://github.com/Lokathor/bytemuck |
-| byteorder | 1.5.0 | MIT | 21 | https://github.com/BurntSushi/byteorder |
-| bytes | 1.12.1 | MIT | 35 | https://github.com/tokio-rs/bytes |
-| cairo-rs | 0.18.5 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| cairo-sys-rs | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
+| brotli | 8.0.4 | BSD-3-Clause AND MIT | 24, 33 | https://github.com/dropbox/rust-brotli |
+| brotli-decompressor | 5.0.3 | MIT | 24 | https://github.com/dropbox/rust-brotli-decompressor |
+| bs58 | 0.5.1 | MIT | 34 | https://github.com/Nullus157/bs58-rs |
+| bumpalo | 3.20.3 | MIT | 35 | https://github.com/fitzgen/bumpalo |
+| bytemuck | 1.25.2 | MIT | 36 | https://github.com/Lokathor/bytemuck |
+| byteorder | 1.5.0 | MIT | 23 | https://github.com/BurntSushi/byteorder |
+| bytes | 1.12.1 | MIT | 37 | https://github.com/tokio-rs/bytes |
+| cairo-rs | 0.18.5 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| cairo-sys-rs | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
 | camino | 1.2.6 | MIT | 1 | https://github.com/camino-rs/camino |
 | cargo-platform | 0.1.9 | MIT | 1 | https://github.com/rust-lang/cargo |
 | cargo_metadata | 0.19.2 | MIT | 1 | https://github.com/oli-obk/cargo_metadata |
 | cesu8 | 1.1.0 | MIT | - | https://github.com/emk/cesu8-rs |
-| cfb | 0.7.3 | MIT | 36 | https://github.com/mdsteele/rust-cfb |
-| cfg-if | 1.0.5 | MIT | 37 | https://github.com/rust-lang/cfg-if |
-| chrono | 0.4.45 | MIT | 38 | https://github.com/chronotope/chrono |
-| combine | 4.6.8 | MIT | 39 | https://github.com/Marwes/combine |
+| cfb | 0.7.3 | MIT | 38 | https://github.com/mdsteele/rust-cfb |
+| cfg-if | 1.0.5 | MIT | 39 | https://github.com/rust-lang/cfg-if |
+| chrono | 0.4.45 | MIT | 40 | https://github.com/chronotope/chrono |
+| combine | 4.6.8 | MIT | 41 | https://github.com/Marwes/combine |
 | concurrent-queue | 2.5.0 | MIT | 1 | https://github.com/smol-rs/concurrent-queue |
-| cookie | 0.18.2 | MIT | 40 | https://github.com/SergioBenitez/cookie-rs |
-| core-foundation | 0.10.1 | MIT | 41 | https://github.com/servo/core-foundation-rs |
-| core-foundation-sys | 0.8.7 | MIT | 41 | https://github.com/servo/core-foundation-rs |
-| core-graphics | 0.25.0 | MIT | 41 | https://github.com/servo/core-foundation-rs |
-| core-graphics-types | 0.2.0 | MIT | 41 | https://github.com/servo/core-foundation-rs |
-| cpufeatures | 0.2.17 | MIT | 42 | https://github.com/RustCrypto/utils |
-| crc32fast | 1.5.2 | MIT | 43 | https://github.com/srijs/rust-crc32fast |
-| crossbeam-channel | 0.5.17 | MIT | 44 | https://github.com/crossbeam-rs/crossbeam |
-| crossbeam-utils | 0.8.23 | MIT | 44 | https://github.com/crossbeam-rs/crossbeam |
-| crypto-common | 0.1.7 | MIT | 45 | https://github.com/RustCrypto/traits |
-| cssparser | 0.36.0 | MPL-2.0 | 46 | https://github.com/servo/rust-cssparser |
-| cssparser-macros | 0.6.1 | MPL-2.0 | 46 | https://github.com/servo/rust-cssparser |
-| ctor | 0.8.0 | MIT | 47 | https://github.com/mmastrac/rust-ctor |
-| ctor-proc-macro | 0.0.7 | MIT | 47 | https://github.com/mmastrac/rust-ctor |
-| darling | 0.24.1 | MIT | 48 | https://github.com/TedDriggs/darling |
-| darling_core | 0.24.1 | MIT | 48 | https://github.com/TedDriggs/darling |
-| darling_macro | 0.24.1 | MIT | 48 | https://github.com/TedDriggs/darling |
-| dbus | 0.9.12 | MIT | 49 | https://github.com/diwic/dbus-rs |
-| defmt | 1.1.1 | MIT | 50 | https://github.com/knurling-rs/defmt |
-| defmt-macros | 1.1.1 | MIT | 50 | https://github.com/knurling-rs/defmt |
+| cookie | 0.18.2 | MIT | 42 | https://github.com/SergioBenitez/cookie-rs |
+| core-foundation | 0.10.1 | MIT | 43 | https://github.com/servo/core-foundation-rs |
+| core-foundation-sys | 0.8.7 | MIT | 43 | https://github.com/servo/core-foundation-rs |
+| core-graphics | 0.25.0 | MIT | 43 | https://github.com/servo/core-foundation-rs |
+| core-graphics-types | 0.2.0 | MIT | 43 | https://github.com/servo/core-foundation-rs |
+| cpufeatures | 0.2.17 | MIT | 44 | https://github.com/RustCrypto/utils |
+| crc32fast | 1.5.2 | MIT | 45 | https://github.com/srijs/rust-crc32fast |
+| crossbeam-channel | 0.5.17 | MIT | 46 | https://github.com/crossbeam-rs/crossbeam |
+| crossbeam-utils | 0.8.23 | MIT | 46 | https://github.com/crossbeam-rs/crossbeam |
+| crypto-common | 0.1.7 | MIT | 47 | https://github.com/RustCrypto/traits |
+| cssparser | 0.36.0 | MPL-2.0 | 48 | https://github.com/servo/rust-cssparser |
+| cssparser-macros | 0.6.1 | MPL-2.0 | 48 | https://github.com/servo/rust-cssparser |
+| ctor | 0.8.0 | MIT | 49 | https://github.com/mmastrac/rust-ctor |
+| ctor-proc-macro | 0.0.7 | MIT | 49 | https://github.com/mmastrac/rust-ctor |
+| darling | 0.24.1 | MIT | 50 | https://github.com/TedDriggs/darling |
+| darling_core | 0.24.1 | MIT | 50 | https://github.com/TedDriggs/darling |
+| darling_macro | 0.24.1 | MIT | 50 | https://github.com/TedDriggs/darling |
+| dbus | 0.9.12 | MIT | 51 | https://github.com/diwic/dbus-rs |
+| defmt | 1.1.1 | MIT | 52 | https://github.com/knurling-rs/defmt |
+| defmt-macros | 1.1.1 | MIT | 52 | https://github.com/knurling-rs/defmt |
 | defmt-parser | 1.0.0 | MIT | - | https://github.com/knurling-rs/defmt |
-| deranged | 0.5.8 | MIT | 51 | https://github.com/jhpratt/deranged |
-| derive_more | 2.1.1 | MIT | 52 | https://github.com/JelteF/derive_more |
-| derive_more-impl | 2.1.1 | MIT | 52 | https://github.com/JelteF/derive_more |
-| digest | 0.10.7 | MIT | 53 | https://github.com/RustCrypto/traits |
-| dirs | 6.0.0 | MIT | 54 | https://github.com/soc/dirs-rs |
-| dirs-sys | 0.5.0 | MIT | 54 | https://github.com/dirs-dev/dirs-sys-rs |
+| deranged | 0.5.8 | MIT | 53 | https://github.com/jhpratt/deranged |
+| derive_more | 2.1.1 | MIT | 54 | https://github.com/JelteF/derive_more |
+| derive_more-impl | 2.1.1 | MIT | 54 | https://github.com/JelteF/derive_more |
+| digest | 0.10.7 | MIT | 55 | https://github.com/RustCrypto/traits |
+| dirs | 6.0.0 | MIT | 56 | https://github.com/soc/dirs-rs |
+| dirs-sys | 0.5.0 | MIT | 56 | https://github.com/dirs-dev/dirs-sys-rs |
 | dispatch2 | 0.3.1 | MIT | - | https://github.com/madsmtm/objc2 |
 | displaydoc | 0.2.7 | MIT | 1 | https://github.com/yaahc/displaydoc |
 | dlopen2 | 0.8.2 | MIT | - | https://github.com/OpenByteDev/dlopen2 |
 | dlopen2_derive | 0.4.3 | MIT | - | https://github.com/OpenByteDev/dlopen2 |
-| dom_query | 0.27.0 | MIT | 55 | https://github.com/niklak/dom_query |
-| dpi | 0.1.2 | Apache-2.0 AND MIT | 56, 57 | https://github.com/rust-windowing/winit |
+| dom_query | 0.27.0 | MIT | 57 | https://github.com/niklak/dom_query |
+| dpi | 0.1.2 | Apache-2.0 AND MIT | 58, 59 | https://github.com/rust-windowing/winit |
 | dtoa | 1.0.11 | MIT | 1 | https://github.com/dtolnay/dtoa |
-| dtoa-short | 0.3.5 | MPL-2.0 | 46 | https://github.com/upsuper/dtoa-short |
-| dtor | 0.3.0 | MIT | 47 | https://github.com/mmastrac/rust-ctor |
-| dtor-proc-macro | 0.0.6 | MIT | 47 | https://github.com/mmastrac/rust-ctor |
-| dunce | 1.0.5 | Apache-2.0 | 58 | https://gitlab.com/kornelski/dunce |
+| dtoa-short | 0.3.5 | MPL-2.0 | 48 | https://github.com/upsuper/dtoa-short |
+| dtor | 0.3.0 | MIT | 49 | https://github.com/mmastrac/rust-ctor |
+| dtor-proc-macro | 0.0.6 | MIT | 49 | https://github.com/mmastrac/rust-ctor |
+| dunce | 1.0.5 | Apache-2.0 | 60 | https://gitlab.com/kornelski/dunce |
 | dyn-clone | 1.0.20 | MIT | 1 | https://github.com/dtolnay/dyn-clone |
-| embed_plist | 1.2.2 | MIT | 59 | https://github.com/nvzqz/embed-plist-rs |
+| embed_plist | 1.2.2 | MIT | 61 | https://github.com/nvzqz/embed-plist-rs |
 | endi | 1.1.1 | MIT | 1 | https://github.com/zeenix/endi |
-| enumflags2 | 0.7.12 | MIT | 60 | https://github.com/meithecatte/enumflags2 |
-| enumflags2_derive | 0.7.12 | MIT | 61 | https://github.com/meithecatte/enumflags2 |
-| equivalent | 1.0.2 | MIT | 62 | https://github.com/indexmap-rs/equivalent |
+| enumflags2 | 0.7.12 | MIT | 62 | https://github.com/meithecatte/enumflags2 |
+| enumflags2_derive | 0.7.12 | MIT | 63 | https://github.com/meithecatte/enumflags2 |
+| equivalent | 1.0.2 | MIT | 64 | https://github.com/indexmap-rs/equivalent |
 | erased-serde | 0.4.10 | MIT | 1 | https://github.com/dtolnay/erased-serde |
-| errno | 0.3.14 | MIT | 63 | https://github.com/lambda-fairy/rust-errno |
+| errno | 0.3.14 | MIT | 65 | https://github.com/lambda-fairy/rust-errno |
 | event-listener | 5.4.2 | MIT | 1 | https://github.com/smol-rs/event-listener |
 | event-listener-strategy | 0.5.4 | MIT | 1 | https://github.com/smol-rs/event-listener-strategy |
 | fastrand | 2.5.0 | MIT | 1 | https://github.com/smol-rs/fastrand |
-| fdeflate | 0.3.7 | MIT | 64 | https://github.com/image-rs/fdeflate |
-| field-offset | 0.3.6 | MIT | 65 | https://github.com/Diggsey/rust-field-offset |
-| filetime | 0.2.29 | MIT | 37 | https://github.com/alexcrichton/filetime |
-| flate2 | 1.1.10 | MIT | 66 | https://github.com/rust-lang/flate2-rs |
-| fnv | 1.0.7 | MIT | 67 | https://github.com/servo/rust-fnv |
-| foldhash | 0.2.0 | Zlib | 68 | https://github.com/orlp/foldhash |
-| foreign-types | 0.5.0 | MIT | 69 | https://github.com/sfackler/foreign-types |
-| foreign-types-macros | 0.2.4 | MIT | 69 | https://github.com/sfackler/foreign-types |
-| foreign-types-shared | 0.3.1 | MIT | 69 | https://github.com/sfackler/foreign-types |
-| form_urlencoded | 1.2.2 | MIT | 70 | https://github.com/servo/rust-url |
-| fsevent-sys | 4.1.0 | MIT | 71 | https://github.com/octplane/fsevent-rust/tree/master/fsevent-sys |
-| futures-channel | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| futures-core | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| futures-executor | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| futures-io | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
+| fdeflate | 0.3.7 | MIT | 66 | https://github.com/image-rs/fdeflate |
+| field-offset | 0.3.6 | MIT | 67 | https://github.com/Diggsey/rust-field-offset |
+| filetime | 0.2.29 | MIT | 39 | https://github.com/alexcrichton/filetime |
+| flate2 | 1.1.10 | MIT | 68 | https://github.com/rust-lang/flate2-rs |
+| fnv | 1.0.7 | MIT | 69 | https://github.com/servo/rust-fnv |
+| foldhash | 0.2.0 | Zlib | 70 | https://github.com/orlp/foldhash |
+| foreign-types | 0.5.0 | MIT | 71 | https://github.com/sfackler/foreign-types |
+| foreign-types-macros | 0.2.4 | MIT | 71 | https://github.com/sfackler/foreign-types |
+| foreign-types-shared | 0.3.1 | MIT | 71 | https://github.com/sfackler/foreign-types |
+| form_urlencoded | 1.2.2 | MIT | 72 | https://github.com/servo/rust-url |
+| fsevent-sys | 4.1.0 | MIT | 73 | https://github.com/octplane/fsevent-rust/tree/master/fsevent-sys |
+| futures-channel | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| futures-core | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| futures-executor | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| futures-io | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
 | futures-lite | 2.6.1 | MIT | 1 | https://github.com/smol-rs/futures-lite |
-| futures-macro | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| futures-sink | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| futures-task | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| futures-util | 0.3.34 | MIT | 72 | https://github.com/rust-lang/futures-rs |
-| gdk | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| gdk-pixbuf | 0.18.5 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| gdk-pixbuf-sys | 0.18.0 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| gdk-sys | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| gdkwayland-sys | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| gdkx11 | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| gdkx11-sys | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| generic-array | 0.14.7 | MIT | 73 | https://github.com/fizyk20/generic-array.git |
-| getrandom | 0.3.4 | MIT | 74 | https://github.com/rust-random/getrandom |
-| getrandom | 0.4.3 | MIT | 75 | https://github.com/rust-random/getrandom |
-| gio | 0.18.4 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| gio-sys | 0.18.1 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| glib | 0.18.5 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| glib-macros | 0.18.5 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| glib-sys | 0.18.1 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| glob | 0.3.4 | MIT | 29 | https://github.com/rust-lang/glob |
-| gobject-sys | 0.18.0 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| gtk | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| gtk-sys | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| gtk3-macros | 0.18.2 | MIT | 25 | https://github.com/gtk-rs/gtk3-rs |
-| hashbrown | 0.12.3 | MIT | 76 | https://github.com/rust-lang/hashbrown |
-| hashbrown | 0.17.1 | MIT | 76 | https://github.com/rust-lang/hashbrown |
-| heck | 0.4.1 | MIT | 77 | https://github.com/withoutboats/heck |
-| heck | 0.5.0 | MIT | 77 | https://github.com/withoutboats/heck |
+| futures-macro | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| futures-sink | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| futures-task | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| futures-util | 0.3.34 | MIT | 74 | https://github.com/rust-lang/futures-rs |
+| gdk | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| gdk-pixbuf | 0.18.5 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| gdk-pixbuf-sys | 0.18.0 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| gdk-sys | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| gdkwayland-sys | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| gdkx11 | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| gdkx11-sys | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| generic-array | 0.14.7 | MIT | 75 | https://github.com/fizyk20/generic-array.git |
+| getrandom | 0.3.4 | MIT | 76 | https://github.com/rust-random/getrandom |
+| getrandom | 0.4.3 | MIT | 77 | https://github.com/rust-random/getrandom |
+| gio | 0.18.4 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| gio-sys | 0.18.1 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| glib | 0.18.5 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| glib-macros | 0.18.5 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| glib-sys | 0.18.1 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| glob | 0.3.4 | MIT | 31 | https://github.com/rust-lang/glob |
+| gobject-sys | 0.18.0 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| gtk | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| gtk-sys | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| gtk3-macros | 0.18.2 | MIT | 27 | https://github.com/gtk-rs/gtk3-rs |
+| hashbrown | 0.12.3 | MIT | 78 | https://github.com/rust-lang/hashbrown |
+| hashbrown | 0.17.1 | MIT | 78 | https://github.com/rust-lang/hashbrown |
+| heck | 0.4.1 | MIT | 79 | https://github.com/withoutboats/heck |
+| heck | 0.5.0 | MIT | 79 | https://github.com/withoutboats/heck |
 | hermit-abi | 0.5.3 | MIT | 1 | https://github.com/hermit-os/hermit-rs |
-| hex | 0.4.3 | MIT | 78 | https://github.com/KokaKiwi/rust-hex |
-| html5ever | 0.38.0 | MIT | 79 | https://github.com/servo/html5ever |
-| http | 1.5.0 | MIT | 80 | https://github.com/hyperium/http |
-| http-body | 1.1.0 | MIT | 81 | https://github.com/hyperium/http-body |
-| http-body-util | 0.1.5 | MIT | 81 | https://github.com/hyperium/http-body |
-| httparse | 1.10.1 | MIT | 82 | https://github.com/seanmonstar/httparse |
-| hyper | 1.11.1 | MIT | 83 | https://github.com/hyperium/hyper |
-| hyper-util | 0.1.21 | MIT | 84 | https://github.com/hyperium/hyper-util |
-| iana-time-zone | 0.1.65 | MIT | 85 | https://github.com/strawlab/iana-time-zone |
-| iana-time-zone-haiku | 0.1.2 | MIT | 85 | https://github.com/strawlab/iana-time-zone |
-| ico | 0.5.0 | MIT | 86 | https://github.com/mdsteele/rust-ico |
-| icu_collections | 2.3.0 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| icu_locale_core | 2.3.0 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| icu_normalizer | 2.3.0 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| icu_normalizer_data | 2.3.0 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| icu_properties | 2.3.0 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| icu_properties_data | 2.3.0 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| icu_provider | 2.3.1 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| ident_case | 1.0.1 | MIT | 88 | https://github.com/TedDriggs/ident_case |
-| idna | 1.1.0 | MIT | 89 | https://github.com/servo/rust-url/ |
-| idna_adapter | 1.2.2 | MIT | 90 | https://github.com/hsivonen/idna_adapter |
-| indexmap | 1.9.3 | MIT | 91 | https://github.com/bluss/indexmap |
-| indexmap | 2.14.2 | MIT | 91 | https://github.com/indexmap-rs/indexmap |
-| infer | 0.19.0 | MIT | 92 | https://github.com/bojand/infer |
-| inotify | 0.10.2 | ISC | 93 | https://github.com/hannobraun/inotify |
-| inotify-sys | 0.1.8 | ISC | 93 | https://github.com/hannobraun/inotify-sys |
-| instant | 0.1.13 | BSD-3-Clause | 94 | https://github.com/sebcrozet/instant |
-| ipnet | 2.12.2 | MIT | 95 | https://github.com/krisprice/ipnet |
-| is-docker | 0.2.0 | MIT | 96 | https://github.com/TheLarkInn/is-docker |
-| is-wsl | 0.4.0 | MIT | 96 | https://github.com/TheLarkInn/is-wsl |
+| hex | 0.4.3 | MIT | 80 | https://github.com/KokaKiwi/rust-hex |
+| html5ever | 0.38.0 | MIT | 81 | https://github.com/servo/html5ever |
+| http | 1.5.0 | MIT | 82 | https://github.com/hyperium/http |
+| http-body | 1.1.0 | MIT | 83 | https://github.com/hyperium/http-body |
+| http-body-util | 0.1.5 | MIT | 83 | https://github.com/hyperium/http-body |
+| httparse | 1.10.1 | MIT | 84 | https://github.com/seanmonstar/httparse |
+| hyper | 1.11.1 | MIT | 85 | https://github.com/hyperium/hyper |
+| hyper-util | 0.1.21 | MIT | 86 | https://github.com/hyperium/hyper-util |
+| iana-time-zone | 0.1.65 | MIT | 87 | https://github.com/strawlab/iana-time-zone |
+| iana-time-zone-haiku | 0.1.2 | MIT | 87 | https://github.com/strawlab/iana-time-zone |
+| ico | 0.5.0 | MIT | 88 | https://github.com/mdsteele/rust-ico |
+| icu_collections | 2.3.0 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| icu_locale_core | 2.3.0 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| icu_normalizer | 2.3.0 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| icu_normalizer_data | 2.3.0 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| icu_properties | 2.3.0 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| icu_properties_data | 2.3.0 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| icu_provider | 2.3.1 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| ident_case | 1.0.1 | MIT | 90 | https://github.com/TedDriggs/ident_case |
+| idna | 1.1.0 | MIT | 91 | https://github.com/servo/rust-url/ |
+| idna_adapter | 1.2.2 | MIT | 92 | https://github.com/hsivonen/idna_adapter |
+| indexmap | 1.9.3 | MIT | 93 | https://github.com/bluss/indexmap |
+| indexmap | 2.14.2 | MIT | 93 | https://github.com/indexmap-rs/indexmap |
+| infer | 0.19.0 | MIT | 94 | https://github.com/bojand/infer |
+| inotify | 0.10.2 | ISC | 95 | https://github.com/hannobraun/inotify |
+| inotify-sys | 0.1.8 | ISC | 95 | https://github.com/hannobraun/inotify-sys |
+| instant | 0.1.13 | BSD-3-Clause | 96 | https://github.com/sebcrozet/instant |
+| ipnet | 2.12.2 | MIT | 97 | https://github.com/krisprice/ipnet |
+| is-docker | 0.2.0 | MIT | 98 | https://github.com/TheLarkInn/is-docker |
+| is-wsl | 0.4.0 | MIT | 98 | https://github.com/TheLarkInn/is-wsl |
 | itoa | 1.0.18 | MIT | 1 | https://github.com/dtolnay/itoa |
-| javascriptcore-rs | 1.1.2 | MIT | 97 | https://github.com/tauri-apps/javascriptcore-rs |
-| javascriptcore-rs-sys | 1.1.1 | MIT | 98 | https://github.com/tauri-apps/javascriptcore-rs |
-| jiff | 0.2.37 | MIT | 21 | https://github.com/BurntSushi/jiff |
-| jiff-core | 0.1.1 | MIT | 21 | https://github.com/BurntSushi/jiff |
-| jiff-static | 0.2.37 | MIT | 21 | https://github.com/BurntSushi/jiff |
-| jiff-tzdb | 0.1.8 | MIT | 21 | https://github.com/BurntSushi/jiff |
-| jiff-tzdb-platform | 0.1.3 | MIT | 21 | https://github.com/BurntSushi/jiff |
-| jni | 0.21.1 | MIT | 99 | https://github.com/jni-rs/jni-rs |
-| jni-sys | 0.3.1 | MIT | 100 | https://github.com/jni-rs/jni-sys |
-| jni-sys | 0.4.1 | MIT | 100 | https://github.com/jni-rs/jni-sys |
+| javascriptcore-rs | 1.1.2 | MIT | 99 | https://github.com/tauri-apps/javascriptcore-rs |
+| javascriptcore-rs-sys | 1.1.1 | MIT | 100 | https://github.com/tauri-apps/javascriptcore-rs |
+| jiff | 0.2.37 | MIT | 23 | https://github.com/BurntSushi/jiff |
+| jiff-core | 0.1.1 | MIT | 23 | https://github.com/BurntSushi/jiff |
+| jiff-static | 0.2.37 | MIT | 23 | https://github.com/BurntSushi/jiff |
+| jiff-tzdb | 0.1.8 | MIT | 23 | https://github.com/BurntSushi/jiff |
+| jiff-tzdb-platform | 0.1.3 | MIT | 23 | https://github.com/BurntSushi/jiff |
+| jni | 0.21.1 | MIT | 101 | https://github.com/jni-rs/jni-rs |
+| jni-sys | 0.3.1 | MIT | 102 | https://github.com/jni-rs/jni-sys |
+| jni-sys | 0.4.1 | MIT | 102 | https://github.com/jni-rs/jni-sys |
 | jni-sys-macros | 0.4.1 | MIT | - | https://github.com/jni-rs/jni-sys |
-| js-sys | 0.3.106 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/js-sys |
-| json-patch | 3.0.1 | MIT | 101 | https://github.com/idubrov/json-patch |
-| jsonptr | 0.6.3 | MIT | 102 | https://github.com/chanced/jsonptr |
-| keyboard-types | 0.7.0 | MIT | 103 | https://github.com/pyfisch/keyboard-types |
-| kqueue | 1.2.1 | MIT | 104 | https://gitlab.com/rust-kqueue/rust-kqueue |
-| kqueue-sys | 1.1.2 | MIT | 104 | https://gitlab.com/rust-kqueue/rust-kqueue-sys |
-| libappindicator | 0.9.0 | MIT | 105 |  |
+| js-sys | 0.3.106 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/js-sys |
+| json-patch | 3.0.1 | MIT | 103 | https://github.com/idubrov/json-patch |
+| jsonptr | 0.6.3 | MIT | 104 | https://github.com/chanced/jsonptr |
+| keyboard-types | 0.7.0 | MIT | 105 | https://github.com/pyfisch/keyboard-types |
+| kqueue | 1.2.1 | MIT | 106 | https://gitlab.com/rust-kqueue/rust-kqueue |
+| kqueue-sys | 1.1.2 | MIT | 106 | https://gitlab.com/rust-kqueue/rust-kqueue-sys |
+| libappindicator | 0.9.0 | MIT | 107 |  |
 | libappindicator-sys | 0.9.0 | MIT | - |  |
-| libc | 0.2.189 | MIT | 106 | https://github.com/rust-lang/libc |
-| libdbus-sys | 0.2.7 | MIT | 49 | https://github.com/diwic/dbus-rs |
-| libloading | 0.7.4 | ISC | 107 | https://github.com/nagisa/rust_libloading/ |
-| libredox | 0.1.25 | MIT | 108 | https://gitlab.redox-os.org/redox-os/libredox.git |
+| libc | 0.2.189 | MIT | 108 | https://github.com/rust-lang/libc |
+| libdbus-sys | 0.2.7 | MIT | 51 | https://github.com/diwic/dbus-rs |
+| libloading | 0.7.4 | ISC | 109 | https://github.com/nagisa/rust_libloading/ |
+| libredox | 0.1.25 | MIT | 110 | https://gitlab.redox-os.org/redox-os/libredox.git |
 | linux-raw-sys | 0.12.1 | MIT | 1 | https://github.com/sunfishcode/linux-raw-sys |
-| litemap | 0.8.3 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| lock_api | 0.4.14 | MIT | 109 | https://github.com/Amanieu/parking_lot |
-| log | 0.4.34 | MIT | 29 | https://github.com/rust-lang/log |
-| markup5ever | 0.38.0 | MIT | 79 | https://github.com/servo/html5ever |
-| memchr | 2.8.3 | MIT | 21 | https://github.com/BurntSushi/memchr |
-| memoffset | 0.9.1 | MIT | 110 | https://github.com/Gilnaa/memoffset |
-| mime | 0.3.17 | MIT | 111 | https://github.com/hyperium/mime |
-| miniz_oxide | 0.8.9 | MIT | 112 | https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide |
-| miniz_oxide | 0.9.1 | MIT | 112 | https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide |
-| mio | 1.2.3 | MIT | 113 | https://github.com/tokio-rs/mio |
-| muda | 0.19.3 | MIT | 114 | https://github.com/tauri-apps/muda |
+| litemap | 0.8.3 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| lock_api | 0.4.14 | MIT | 111 | https://github.com/Amanieu/parking_lot |
+| log | 0.4.34 | MIT | 31 | https://github.com/rust-lang/log |
+| markup5ever | 0.38.0 | MIT | 81 | https://github.com/servo/html5ever |
+| memchr | 2.8.3 | MIT | 23 | https://github.com/BurntSushi/memchr |
+| memoffset | 0.9.1 | MIT | 112 | https://github.com/Gilnaa/memoffset |
+| mime | 0.3.17 | MIT | 113 | https://github.com/hyperium/mime |
+| miniz_oxide | 0.8.9 | MIT | 114 | https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide |
+| miniz_oxide | 0.9.1 | MIT | 114 | https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide |
+| mio | 1.2.3 | MIT | 115 | https://github.com/tokio-rs/mio |
+| muda | 0.19.3 | MIT | 116 | https://github.com/tauri-apps/muda |
 | ndk | 0.9.0 | MIT | - | https://github.com/rust-mobile/ndk |
 | ndk-sys | 0.6.0+11769913 | MIT | - | https://github.com/rust-mobile/ndk |
-| new_debug_unreachable | 1.0.6 | MIT | 115 | https://github.com/mbrubeck/rust-debug-unreachable |
-| notify | 7.0.0 | CC0-1.0 | 116 | https://github.com/notify-rs/notify.git |
-| notify-types | 1.0.1 | MIT | 117 | https://github.com/notify-rs/notify.git |
-| num-conv | 0.2.2 | MIT | 118 | https://github.com/jhpratt/num-conv |
-| num-traits | 0.2.19 | MIT | 29 | https://github.com/rust-num/num-traits |
+| new_debug_unreachable | 1.0.6 | MIT | 117 | https://github.com/mbrubeck/rust-debug-unreachable |
+| notify | 7.0.0 | CC0-1.0 | 118 | https://github.com/notify-rs/notify.git |
+| notify-types | 1.0.1 | MIT | 119 | https://github.com/notify-rs/notify.git |
+| num-conv | 0.2.2 | MIT | 120 | https://github.com/jhpratt/num-conv |
+| num-traits | 0.2.19 | MIT | 31 | https://github.com/rust-num/num-traits |
 | num_enum | 0.7.6 | MIT | 1 | https://github.com/illicitonion/num_enum |
 | num_enum_derive | 0.7.6 | MIT | 1 | https://github.com/illicitonion/num_enum |
 | objc2 | 0.6.4 | MIT | - | https://github.com/madsmtm/objc2 |
@@ -277,59 +279,59 @@ InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소
 | objc2-user-notifications | 0.3.2 | MIT | - | https://github.com/madsmtm/objc2 |
 | objc2-web-kit | 0.3.2 | MIT | - | https://github.com/madsmtm/objc2 |
 | once_cell | 1.21.4 | MIT | 1 | https://github.com/matklad/once_cell |
-| open | 5.4.4 | MIT | 119 | https://github.com/Byron/open-rs |
-| option-ext | 0.2.0 | MPL-2.0 | 120 | https://github.com/soc/option-ext.git |
+| open | 5.4.4 | MIT | 121 | https://github.com/Byron/open-rs |
+| option-ext | 0.2.0 | MPL-2.0 | 122 | https://github.com/soc/option-ext.git |
 | ordered-stream | 0.2.0 | MIT | 1 | https://github.com/danieldg/ordered-stream |
-| pango | 0.18.3 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
-| pango-sys | 0.18.0 | MIT | 25 | https://github.com/gtk-rs/gtk-rs-core |
+| pango | 0.18.3 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
+| pango-sys | 0.18.0 | MIT | 27 | https://github.com/gtk-rs/gtk-rs-core |
 | parking | 2.2.1 | MIT | 1 | https://github.com/smol-rs/parking |
-| parking_lot | 0.12.5 | MIT | 109 | https://github.com/Amanieu/parking_lot |
-| parking_lot_core | 0.9.12 | MIT | 109 | https://github.com/Amanieu/parking_lot |
-| percent-encoding | 2.3.2 | MIT | 89 | https://github.com/servo/rust-url/ |
-| phf | 0.13.1 | MIT | 121 | https://github.com/rust-phf/rust-phf |
-| phf_generator | 0.13.1 | MIT | 121 | https://github.com/rust-phf/rust-phf |
-| phf_macros | 0.13.1 | MIT | 121 | https://github.com/rust-phf/rust-phf |
-| phf_shared | 0.13.1 | MIT | 121 | https://github.com/rust-phf/rust-phf |
+| parking_lot | 0.12.5 | MIT | 111 | https://github.com/Amanieu/parking_lot |
+| parking_lot_core | 0.9.12 | MIT | 111 | https://github.com/Amanieu/parking_lot |
+| percent-encoding | 2.3.2 | MIT | 91 | https://github.com/servo/rust-url/ |
+| phf | 0.13.1 | MIT | 123 | https://github.com/rust-phf/rust-phf |
+| phf_generator | 0.13.1 | MIT | 123 | https://github.com/rust-phf/rust-phf |
+| phf_macros | 0.13.1 | MIT | 123 | https://github.com/rust-phf/rust-phf |
+| phf_shared | 0.13.1 | MIT | 123 | https://github.com/rust-phf/rust-phf |
 | pin-project-lite | 0.2.17 | MIT | 1 | https://github.com/taiki-e/pin-project-lite |
 | piper | 0.2.5 | MIT | 1 | https://github.com/smol-rs/piper |
-| plist | 1.10.1 | MIT | 122 | https://github.com/ebarnard/rust-plist/ |
-| png | 0.17.16 | MIT | 123 | https://github.com/image-rs/image-png |
-| png | 0.18.1 | MIT | 123 | https://github.com/image-rs/image-png |
+| plist | 1.10.1 | MIT | 124 | https://github.com/ebarnard/rust-plist/ |
+| png | 0.17.16 | MIT | 125 | https://github.com/image-rs/image-png |
+| png | 0.18.1 | MIT | 125 | https://github.com/image-rs/image-png |
 | polling | 3.11.0 | MIT | 1 | https://github.com/smol-rs/polling |
 | portable-atomic | 1.15.0 | MIT | 1 | https://github.com/taiki-e/portable-atomic |
 | portable-atomic-util | 0.2.8 | MIT | 1 | https://github.com/taiki-e/portable-atomic-util |
-| potential_utf | 0.1.6 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| powerfmt | 0.2.0 | MIT | 124 | https://github.com/jhpratt/powerfmt |
-| precomputed-hash | 0.1.1 | MIT | 125 | https://github.com/emilio/precomputed-hash |
+| potential_utf | 0.1.6 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| powerfmt | 0.2.0 | MIT | 126 | https://github.com/jhpratt/powerfmt |
+| precomputed-hash | 0.1.1 | MIT | 127 | https://github.com/emilio/precomputed-hash |
 | proc-macro-crate | 1.3.1 | MIT | 1 | https://github.com/bkchr/proc-macro-crate |
 | proc-macro-crate | 2.0.2 | MIT | 1 | https://github.com/bkchr/proc-macro-crate |
 | proc-macro-crate | 3.5.0 | MIT | 1 | https://github.com/bkchr/proc-macro-crate |
-| proc-macro-error | 1.0.4 | MIT | 126 | https://gitlab.com/CreepySkeleton/proc-macro-error |
-| proc-macro-error-attr | 1.0.4 | MIT | 126 | https://gitlab.com/CreepySkeleton/proc-macro-error |
+| proc-macro-error | 1.0.4 | MIT | 128 | https://gitlab.com/CreepySkeleton/proc-macro-error |
+| proc-macro-error-attr | 1.0.4 | MIT | 128 | https://gitlab.com/CreepySkeleton/proc-macro-error |
 | proc-macro2 | 1.0.107 | MIT | 1 | https://github.com/dtolnay/proc-macro2 |
-| quick-xml | 0.42.0 | MIT | 127 | https://github.com/tafia/quick-xml |
+| quick-xml | 0.42.0 | MIT | 129 | https://github.com/tafia/quick-xml |
 | quote | 1.0.47 | MIT | 1 | https://github.com/dtolnay/quote |
 | r-efi | 5.3.0 | MIT | - | https://github.com/r-efi/r-efi |
 | r-efi | 6.0.0 | MIT | - | https://github.com/r-efi/r-efi |
-| raw-window-handle | 0.6.2 | MIT | 128 | https://github.com/rust-windowing/raw-window-handle |
-| redox_syscall | 0.5.18 | MIT | 129 | https://gitlab.redox-os.org/redox-os/syscall |
-| redox_users | 0.5.3 | MIT | 130 | https://gitlab.redox-os.org/redox-os/users |
+| raw-window-handle | 0.6.2 | MIT | 130 | https://github.com/rust-windowing/raw-window-handle |
+| redox_syscall | 0.5.18 | MIT | 131 | https://gitlab.redox-os.org/redox-os/syscall |
+| redox_users | 0.5.3 | MIT | 132 | https://gitlab.redox-os.org/redox-os/users |
 | ref-cast | 1.0.27 | MIT | 1 | https://github.com/dtolnay/ref-cast |
 | ref-cast-impl | 1.0.27 | MIT | 1 | https://github.com/dtolnay/ref-cast |
-| regex | 1.13.1 | MIT | 29 | https://github.com/rust-lang/regex |
-| regex-automata | 0.4.18 | MIT | 29 | https://github.com/rust-lang/regex |
-| regex-syntax | 0.8.11 | MIT | 29 | https://github.com/rust-lang/regex |
-| reqwest | 0.13.5 | MIT | 131 | https://github.com/seanmonstar/reqwest |
-| rfd | 0.16.0 | MIT | 132 | https://github.com/PolyMeilex/rfd |
+| regex | 1.13.1 | MIT | 31 | https://github.com/rust-lang/regex |
+| regex-automata | 0.4.18 | MIT | 31 | https://github.com/rust-lang/regex |
+| regex-syntax | 0.8.11 | MIT | 31 | https://github.com/rust-lang/regex |
+| reqwest | 0.13.5 | MIT | 133 | https://github.com/seanmonstar/reqwest |
+| rfd | 0.16.0 | MIT | 134 | https://github.com/PolyMeilex/rfd |
 | rustc-hash | 2.1.3 | MIT | 1 | https://github.com/rust-lang/rustc-hash |
 | rustix | 1.1.5 | MIT | 1 | https://github.com/bytecodealliance/rustix |
 | rustversion | 1.0.23 | MIT | 1 | https://github.com/dtolnay/rustversion |
-| same-file | 1.0.6 | MIT | 133 | https://github.com/BurntSushi/same-file |
-| schemars | 0.8.22 | MIT | 134 | https://github.com/GREsau/schemars |
-| schemars | 0.9.0 | MIT | 134 | https://github.com/GREsau/schemars |
-| schemars | 1.2.2 | MIT | 134 | https://github.com/GREsau/schemars |
-| schemars_derive | 0.8.22 | MIT | 134 | https://github.com/GREsau/schemars |
-| scopeguard | 1.2.0 | MIT | 135 | https://github.com/bluss/scopeguard |
+| same-file | 1.0.6 | MIT | 135 | https://github.com/BurntSushi/same-file |
+| schemars | 0.8.22 | MIT | 136 | https://github.com/GREsau/schemars |
+| schemars | 0.9.0 | MIT | 136 | https://github.com/GREsau/schemars |
+| schemars | 1.2.2 | MIT | 136 | https://github.com/GREsau/schemars |
+| schemars_derive | 0.8.22 | MIT | 136 | https://github.com/GREsau/schemars |
+| scopeguard | 1.2.0 | MIT | 137 | https://github.com/bluss/scopeguard |
 | selectors | 0.36.1 | MPL-2.0 | - | https://github.com/servo/stylo |
 | semver | 1.0.28 | MIT | 1 | https://github.com/dtolnay/semver |
 | serde | 1.0.229 | MIT | 1 | https://github.com/serde-rs/serde |
@@ -339,34 +341,34 @@ InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소
 | serde_derive_internals | 0.29.1 | MIT | 1 | https://github.com/serde-rs/serde |
 | serde_json | 1.0.151 | MIT | 1 | https://github.com/serde-rs/json |
 | serde_repr | 0.1.21 | MIT | 1 | https://github.com/dtolnay/serde-repr |
-| serde_spanned | 0.6.9 | MIT | 136 | https://github.com/toml-rs/toml |
-| serde_spanned | 1.1.1 | MIT | 136 | https://github.com/toml-rs/toml |
-| serde_with | 3.23.0 | MIT | 137 | https://github.com/jonasbb/serde_with/ |
-| serde_with_macros | 3.23.0 | MIT | 137 | https://github.com/jonasbb/serde_with/ |
-| serialize-to-javascript | 0.1.2 | MIT | 138 | https://github.com/chippers/serialize-to-javascript |
-| serialize-to-javascript-impl | 0.1.2 | MIT | 138 | https://github.com/chippers/serialize-to-javascript |
+| serde_spanned | 0.6.9 | MIT | 138 | https://github.com/toml-rs/toml |
+| serde_spanned | 1.1.1 | MIT | 138 | https://github.com/toml-rs/toml |
+| serde_with | 3.23.0 | MIT | 139 | https://github.com/jonasbb/serde_with/ |
+| serde_with_macros | 3.23.0 | MIT | 139 | https://github.com/jonasbb/serde_with/ |
+| serialize-to-javascript | 0.1.2 | MIT | 140 | https://github.com/chippers/serialize-to-javascript |
+| serialize-to-javascript-impl | 0.1.2 | MIT | 140 | https://github.com/chippers/serialize-to-javascript |
 | servo_arc | 0.4.3 | MIT | 1 | https://github.com/servo/stylo |
-| sha2 | 0.10.9 | MIT | 139 | https://github.com/RustCrypto/hashes |
-| signal-hook-registry | 1.4.8 | MIT | 140 | https://github.com/vorner/signal-hook |
-| simd-adler32 | 0.3.10 | MIT | 141 | https://github.com/mcountryman/simd-adler32 |
-| siphasher | 1.0.4 | MIT | 25 | https://github.com/jedisct1/rust-siphash |
-| slab | 0.4.12 | MIT | 142 | https://github.com/tokio-rs/slab |
-| smallvec | 1.16.2 | MIT | 143 | https://github.com/servo/rust-smallvec |
-| socket2 | 0.6.5 | MIT | 37 | https://github.com/rust-lang/socket2 |
-| softbuffer | 0.4.8 | MIT | 144 | https://github.com/rust-windowing/softbuffer |
-| soup3 | 0.5.0 | MIT | 98 | https://gitlab.gnome.org/World/Rust/soup3-rs |
-| soup3-sys | 0.5.0 | MIT | 98 | https://gitlab.gnome.org/World/Rust/soup3-rs |
-| stable_deref_trait | 1.2.1 | MIT | 145 | https://github.com/storyyeller/stable_deref_trait |
-| string_cache | 0.9.0 | MIT | 41 | https://github.com/servo/string-cache |
-| strsim | 0.11.1 | MIT | 146 | https://github.com/rapidfuzz/strsim-rs |
-| swift-rs | 1.0.8 | MIT | 147 | https://github.com/Brendonovich/swift-rs |
+| sha2 | 0.10.9 | MIT | 141 | https://github.com/RustCrypto/hashes |
+| signal-hook-registry | 1.4.8 | MIT | 142 | https://github.com/vorner/signal-hook |
+| simd-adler32 | 0.3.10 | MIT | 143 | https://github.com/mcountryman/simd-adler32 |
+| siphasher | 1.0.4 | MIT | 27 | https://github.com/jedisct1/rust-siphash |
+| slab | 0.4.12 | MIT | 144 | https://github.com/tokio-rs/slab |
+| smallvec | 1.16.2 | MIT | 145 | https://github.com/servo/rust-smallvec |
+| socket2 | 0.6.5 | MIT | 39 | https://github.com/rust-lang/socket2 |
+| softbuffer | 0.4.8 | MIT | 146 | https://github.com/rust-windowing/softbuffer |
+| soup3 | 0.5.0 | MIT | 100 | https://gitlab.gnome.org/World/Rust/soup3-rs |
+| soup3-sys | 0.5.0 | MIT | 100 | https://gitlab.gnome.org/World/Rust/soup3-rs |
+| stable_deref_trait | 1.2.1 | MIT | 147 | https://github.com/storyyeller/stable_deref_trait |
+| string_cache | 0.9.0 | MIT | 43 | https://github.com/servo/string-cache |
+| strsim | 0.11.1 | MIT | 148 | https://github.com/rapidfuzz/strsim-rs |
+| swift-rs | 1.0.8 | MIT | 149 | https://github.com/Brendonovich/swift-rs |
 | syn | 1.0.109 | MIT | 1 | https://github.com/dtolnay/syn |
 | syn | 2.0.119 | MIT | 1 | https://github.com/dtolnay/syn |
 | syn | 3.0.6 | MIT | 1 | https://github.com/dtolnay/syn |
-| sync_wrapper | 1.0.2 | Apache-2.0 | 148 | https://github.com/Actyx/sync_wrapper |
-| synstructure | 0.14.0 | MIT | 149 | https://github.com/mystor/synstructure |
-| tao | 0.35.3 | Apache-2.0 | 56, 150 | https://github.com/tauri-apps/tao |
-| tao-macros | 0.1.4 | MIT | 151 | https://github.com/tauri-apps/tao |
+| sync_wrapper | 1.0.2 | Apache-2.0 | 150 | https://github.com/Actyx/sync_wrapper |
+| synstructure | 0.14.0 | MIT | 151 | https://github.com/mystor/synstructure |
+| tao | 0.35.3 | Apache-2.0 | 58, 152 | https://github.com/tauri-apps/tao |
+| tao-macros | 0.1.4 | MIT | 153 | https://github.com/tauri-apps/tao |
 | tauri | 2.11.6 | MIT | 2 | https://github.com/tauri-apps/tauri |
 | tauri-codegen | 2.6.3 | MIT | 2 | https://github.com/tauri-apps/tauri |
 | tauri-macros | 2.6.3 | MIT | 2 | https://github.com/tauri-apps/tauri |
@@ -377,72 +379,72 @@ InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소
 | tauri-runtime | 2.11.3 | MIT | 2 | https://github.com/tauri-apps/tauri |
 | tauri-runtime-wry | 2.11.4 | MIT | 2 | https://github.com/tauri-apps/tauri |
 | tauri-utils | 2.9.3 | MIT | 2 | https://github.com/tauri-apps/tauri |
-| tempfile | 3.27.0 | MIT | 152 | https://github.com/Stebalien/tempfile |
-| tendril | 0.5.1 | MIT | 153 | https://github.com/servo/html5ever |
+| tempfile | 3.27.0 | MIT | 154 | https://github.com/Stebalien/tempfile |
+| tendril | 0.5.1 | MIT | 155 | https://github.com/servo/html5ever |
 | thiserror | 1.0.69 | MIT | 1 | https://github.com/dtolnay/thiserror |
 | thiserror | 2.0.21 | MIT | 1 | https://github.com/dtolnay/thiserror |
 | thiserror-impl | 1.0.69 | MIT | 1 | https://github.com/dtolnay/thiserror |
 | thiserror-impl | 2.0.21 | MIT | 1 | https://github.com/dtolnay/thiserror |
-| time | 0.3.55 | MIT | 154 | https://github.com/time-rs/time |
-| time-core | 0.1.9 | MIT | 154 | https://github.com/time-rs/time |
-| time-macros | 0.2.32 | MIT | 154 | https://github.com/time-rs/time |
-| tinystr | 0.8.4 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| tinyvec | 1.13.3 | MIT | 47 | https://github.com/Lokathor/tinyvec |
-| tokio | 1.53.1 | MIT | 155 | https://github.com/tokio-rs/tokio |
-| tokio-util | 0.7.19 | MIT | 155 | https://github.com/tokio-rs/tokio |
-| toml | 1.1.6+spec-1.1.0 | MIT | 136 | https://github.com/toml-rs/toml |
-| toml_datetime | 0.6.3 | MIT | 37 | https://github.com/toml-rs/toml |
-| toml_datetime | 1.1.1+spec-1.1.0 | MIT | 136 | https://github.com/toml-rs/toml |
-| toml_edit | 0.19.15 | MIT | 136 | https://github.com/toml-rs/toml |
-| toml_edit | 0.20.2 | MIT | 136 | https://github.com/toml-rs/toml |
-| toml_edit | 0.25.15+spec-1.1.0 | MIT | 136 | https://github.com/toml-rs/toml |
-| toml_parser | 1.1.3+spec-1.1.0 | MIT | 136 | https://github.com/toml-rs/toml |
-| toml_writer | 1.1.2+spec-1.1.0 | MIT | 136 | https://github.com/toml-rs/toml |
-| tower | 0.5.3 | MIT | 156 | https://github.com/tower-rs/tower |
-| tower-http | 0.6.11 | MIT | 157 | https://github.com/tower-rs/tower-http |
-| tower-layer | 0.3.3 | MIT | 156 | https://github.com/tower-rs/tower |
-| tower-service | 0.3.3 | MIT | 156 | https://github.com/tower-rs/tower |
-| tracing | 0.1.44 | MIT | 158 | https://github.com/tokio-rs/tracing |
-| tracing-attributes | 0.1.31 | MIT | 158 | https://github.com/tokio-rs/tracing |
-| tracing-core | 0.1.36 | MIT | 158 | https://github.com/tokio-rs/tracing |
-| tray-icon | 0.24.2 | MIT | 114 | https://github.com/tauri-apps/tray-icon |
-| try-lock | 0.2.5 | MIT | 159 | https://github.com/seanmonstar/try-lock |
+| time | 0.3.55 | MIT | 156 | https://github.com/time-rs/time |
+| time-core | 0.1.9 | MIT | 156 | https://github.com/time-rs/time |
+| time-macros | 0.2.32 | MIT | 156 | https://github.com/time-rs/time |
+| tinystr | 0.8.4 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| tinyvec | 1.13.3 | MIT | 49 | https://github.com/Lokathor/tinyvec |
+| tokio | 1.53.1 | MIT | 157 | https://github.com/tokio-rs/tokio |
+| tokio-util | 0.7.19 | MIT | 157 | https://github.com/tokio-rs/tokio |
+| toml | 1.1.6+spec-1.1.0 | MIT | 138 | https://github.com/toml-rs/toml |
+| toml_datetime | 0.6.3 | MIT | 39 | https://github.com/toml-rs/toml |
+| toml_datetime | 1.1.1+spec-1.1.0 | MIT | 138 | https://github.com/toml-rs/toml |
+| toml_edit | 0.19.15 | MIT | 138 | https://github.com/toml-rs/toml |
+| toml_edit | 0.20.2 | MIT | 138 | https://github.com/toml-rs/toml |
+| toml_edit | 0.25.15+spec-1.1.0 | MIT | 138 | https://github.com/toml-rs/toml |
+| toml_parser | 1.1.3+spec-1.1.0 | MIT | 138 | https://github.com/toml-rs/toml |
+| toml_writer | 1.1.2+spec-1.1.0 | MIT | 138 | https://github.com/toml-rs/toml |
+| tower | 0.5.3 | MIT | 158 | https://github.com/tower-rs/tower |
+| tower-http | 0.6.11 | MIT | 159 | https://github.com/tower-rs/tower-http |
+| tower-layer | 0.3.3 | MIT | 158 | https://github.com/tower-rs/tower |
+| tower-service | 0.3.3 | MIT | 158 | https://github.com/tower-rs/tower |
+| tracing | 0.1.44 | MIT | 160 | https://github.com/tokio-rs/tracing |
+| tracing-attributes | 0.1.31 | MIT | 160 | https://github.com/tokio-rs/tracing |
+| tracing-core | 0.1.36 | MIT | 160 | https://github.com/tokio-rs/tracing |
+| tray-icon | 0.24.2 | MIT | 116 | https://github.com/tauri-apps/tray-icon |
+| try-lock | 0.2.5 | MIT | 161 | https://github.com/seanmonstar/try-lock |
 | typeid | 1.0.3 | MIT | 1 | https://github.com/dtolnay/typeid |
-| typenum | 1.20.1 | MIT | 160 | https://github.com/paholg/typenum |
-| uds_windows | 1.2.1 | MIT | 161 | https://github.com/haraldh/rust_uds_windows |
+| typenum | 1.20.1 | MIT | 162 | https://github.com/paholg/typenum |
+| uds_windows | 1.2.1 | MIT | 163 | https://github.com/haraldh/rust_uds_windows |
 | unic-char-property | 0.9.0 | MIT | - | https://github.com/open-i18n/rust-unic/ |
 | unic-char-range | 0.9.0 | MIT | - | https://github.com/open-i18n/rust-unic/ |
 | unic-common | 0.9.0 | MIT | - | https://github.com/open-i18n/rust-unic/ |
 | unic-ucd-ident | 0.9.0 | MIT | - | https://github.com/open-i18n/rust-unic/ |
 | unic-ucd-version | 0.9.0 | MIT | - | https://github.com/open-i18n/rust-unic/ |
-| unicode-ident | 1.0.26 | (MIT OR Apache-2.0) AND Unicode-3.0 | 162, 1, 163 | https://github.com/dtolnay/unicode-ident |
-| unicode-segmentation | 1.13.3 | MIT | 77 | https://github.com/unicode-rs/unicode-segmentation |
-| url | 2.5.8 | MIT | 89 | https://github.com/servo/rust-url |
-| urlpattern | 0.3.0 | MIT | 164 | https://github.com/denoland/rust-urlpattern |
-| utf8_iter | 1.0.4 | MIT | 165 | https://github.com/hsivonen/utf8_iter |
-| uuid | 1.26.1 | MIT | 166 | https://github.com/uuid-rs/uuid |
-| walkdir | 2.5.0 | MIT | 21 | https://github.com/BurntSushi/walkdir |
-| want | 0.3.1 | MIT | 167 | https://github.com/seanmonstar/want |
+| unicode-ident | 1.0.26 | (MIT OR Apache-2.0) AND Unicode-3.0 | 164, 1, 165 | https://github.com/dtolnay/unicode-ident |
+| unicode-segmentation | 1.13.3 | MIT | 79 | https://github.com/unicode-rs/unicode-segmentation |
+| url | 2.5.8 | MIT | 91 | https://github.com/servo/rust-url |
+| urlpattern | 0.3.0 | MIT | 166 | https://github.com/denoland/rust-urlpattern |
+| utf8_iter | 1.0.4 | MIT | 167 | https://github.com/hsivonen/utf8_iter |
+| uuid | 1.26.1 | MIT | 168 | https://github.com/uuid-rs/uuid |
+| walkdir | 2.5.0 | MIT | 23 | https://github.com/BurntSushi/walkdir |
+| want | 0.3.1 | MIT | 169 | https://github.com/seanmonstar/want |
 | wasi | 0.11.1+wasi-snapshot-preview1 | MIT | 1 | https://github.com/bytecodealliance/wasi |
 | wasip2 | 1.0.4+wasi-0.2.12 | MIT | 1 | https://github.com/bytecodealliance/wasi-rs |
-| wasm-bindgen | 0.2.129 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen |
-| wasm-bindgen-futures | 0.4.79 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/futures |
-| wasm-bindgen-macro | 0.2.129 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/macro |
-| wasm-bindgen-macro-support | 0.2.129 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen/tree/main/crates/macro-support |
-| wasm-bindgen-shared | 0.2.129 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/shared |
+| wasm-bindgen | 0.2.129 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen |
+| wasm-bindgen-futures | 0.4.79 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/futures |
+| wasm-bindgen-macro | 0.2.129 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/macro |
+| wasm-bindgen-macro-support | 0.2.129 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen/tree/main/crates/macro-support |
+| wasm-bindgen-shared | 0.2.129 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/shared |
 | wasm-streams | 0.5.0 | MIT | 1 | https://github.com/MattiasBuelens/wasm-streams/ |
-| web-sys | 0.3.106 | MIT | 37 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/web-sys |
-| web_atoms | 0.2.6 | MIT | 79 | https://github.com/servo/html5ever |
-| webkit2gtk | 2.0.2 | MIT | 168 | https://github.com/tauri-apps/webkit2gtk-rs |
-| webkit2gtk-sys | 2.0.2 | MIT | 169 | https://github.com/tauri-apps/webkit2gtk-rs |
+| web-sys | 0.3.106 | MIT | 39 | https://github.com/wasm-bindgen/wasm-bindgen/tree/master/crates/web-sys |
+| web_atoms | 0.2.6 | MIT | 81 | https://github.com/servo/html5ever |
+| webkit2gtk | 2.0.2 | MIT | 170 | https://github.com/tauri-apps/webkit2gtk-rs |
+| webkit2gtk-sys | 2.0.2 | MIT | 171 | https://github.com/tauri-apps/webkit2gtk-rs |
 | webview2-com | 0.38.2 | MIT | - | https://github.com/wravery/webview2-rs |
 | webview2-com-macros | 0.8.1 | MIT | - | https://github.com/wravery/webview2-rs |
 | webview2-com-sys | 0.38.2 | MIT | - | https://github.com/wravery/webview2-rs |
-| winapi | 0.3.9 | MIT | 170 | https://github.com/retep998/winapi-rs |
+| winapi | 0.3.9 | MIT | 172 | https://github.com/retep998/winapi-rs |
 | winapi-i686-pc-windows-gnu | 0.4.0 | MIT | - | https://github.com/retep998/winapi-rs |
-| winapi-util | 0.1.11 | MIT | 133 | https://github.com/BurntSushi/winapi-util |
+| winapi-util | 0.1.11 | MIT | 135 | https://github.com/BurntSushi/winapi-util |
 | winapi-x86_64-pc-windows-gnu | 0.4.0 | MIT | - | https://github.com/retep998/winapi-rs |
-| window-vibrancy | 0.6.0 | MIT | 171 | https://github.com/tauri-apps/tauri-plugin-vibrancy |
+| window-vibrancy | 0.6.0 | MIT | 173 | https://github.com/tauri-apps/tauri-plugin-vibrancy |
 | windows | 0.61.3 | MIT | 4 | https://github.com/microsoft/windows-rs |
 | windows-collections | 0.2.0 | MIT | 4 | https://github.com/microsoft/windows-rs |
 | windows-core | 0.61.2 | MIT | 4 | https://github.com/microsoft/windows-rs |
@@ -490,28 +492,28 @@ InitialEditor 의 프런트(웹뷰)와 데스크톱 셸에 들어간 제3자 소
 | windows_x86_64_msvc | 0.42.2 | MIT | 4 | https://github.com/microsoft/windows-rs |
 | windows_x86_64_msvc | 0.52.6 | MIT | 4 | https://github.com/microsoft/windows-rs |
 | windows_x86_64_msvc | 0.53.1 | MIT | 4 | https://github.com/microsoft/windows-rs |
-| winnow | 0.5.40 | MIT | 172 | https://github.com/winnow-rs/winnow |
-| winnow | 1.0.4 | MIT | 172 | https://github.com/winnow-rs/winnow |
+| winnow | 0.5.40 | MIT | 174 | https://github.com/winnow-rs/winnow |
+| winnow | 1.0.4 | MIT | 174 | https://github.com/winnow-rs/winnow |
 | wit-bindgen | 0.57.1 | MIT | 1 | https://github.com/bytecodealliance/wit-bindgen |
-| writeable | 0.6.4 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| wry | 0.55.1 | MIT | 173 | https://github.com/tauri-apps/wry |
+| writeable | 0.6.4 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| wry | 0.55.1 | MIT | 175 | https://github.com/tauri-apps/wry |
 | x11 | 2.21.0 | MIT | 1 | https://github.com/AltF02/x11-rs.git |
 | x11-dl | 2.21.0 | MIT | 1 | https://github.com/AltF02/x11-rs.git |
-| yoke | 0.8.3 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| yoke-derive | 0.8.3 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| zbus | 5.19.0 | MIT | 174 | https://github.com/z-galaxy/zbus/ |
-| zbus_macros | 5.19.0 | MIT | 174 | https://github.com/z-galaxy/zbus/ |
-| zbus_names | 4.3.4 | MIT | 174 | https://github.com/z-galaxy/zbus/ |
-| zcheapstr | 1.1.0 | MIT | 175 | https://github.com/z-galaxy/zcheapstr/ |
-| zerofrom | 0.1.8 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| zerofrom-derive | 0.1.8 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| zerotrie | 0.2.5 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| zerovec | 0.11.8 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| zerovec-derive | 0.11.6 | Unicode-3.0 | 87 | https://github.com/unicode-org/icu4x |
-| zlib-rs | 0.6.8 | Zlib | 176 | https://github.com/trifectatechfoundation/zlib-rs |
+| yoke | 0.8.3 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| yoke-derive | 0.8.3 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| zbus | 5.19.0 | MIT | 176 | https://github.com/z-galaxy/zbus/ |
+| zbus_macros | 5.19.0 | MIT | 176 | https://github.com/z-galaxy/zbus/ |
+| zbus_names | 4.3.4 | MIT | 176 | https://github.com/z-galaxy/zbus/ |
+| zcheapstr | 1.1.0 | MIT | 177 | https://github.com/z-galaxy/zcheapstr/ |
+| zerofrom | 0.1.8 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| zerofrom-derive | 0.1.8 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| zerotrie | 0.2.5 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| zerovec | 0.11.8 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| zerovec-derive | 0.11.6 | Unicode-3.0 | 89 | https://github.com/unicode-org/icu4x |
+| zlib-rs | 0.6.8 | Zlib | 178 | https://github.com/trifectatechfoundation/zlib-rs |
 | zmij | 1.0.23 | MIT | 1 | https://github.com/dtolnay/zmij |
-| zvariant | 5.15.0 | MIT | 174 | https://github.com/z-galaxy/zbus/ |
-| zvariant_derive | 5.15.0 | MIT | 174 | https://github.com/z-galaxy/zbus/ |
+| zvariant | 5.15.0 | MIT | 176 | https://github.com/z-galaxy/zbus/ |
+| zvariant_derive | 5.15.0 | MIT | 176 | https://github.com/z-galaxy/zbus/ |
 | zvariant_utils | 4.2.0 | MIT | 1 | https://github.com/z-galaxy/zbus/ |
 
 ## 라이선스 원문
@@ -868,6 +870,28 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ### 14
 
+적용: lucide-react 0.460.0
+
+````text
+ISC License
+
+Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+````
+
+### 15
+
 적용: mobx 6.16.1, mobx-react-lite 4.1.1
 
 ````text
@@ -894,7 +918,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 15
+### 16
 
 적용: monaco-editor 0.52.2
 
@@ -922,7 +946,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 16
+### 17
 
 적용: parse-svg-path 0.2.0
 
@@ -951,7 +975,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 17
+### 18
 
 적용: pixi.js 8.21.0
 
@@ -979,7 +1003,108 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 18
+### 19
+
+적용: pretendard 1.3.9
+
+````text
+Copyright (c) 2021, Kil Hyung-jin (https://github.com/orioncactus/pretendard),
+with Reserved Font Name Pretendard.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+````
+
+### 20
 
 적용: react 18.3.1, react-dom 18.3.1, scheduler 0.23.2
 
@@ -1007,7 +1132,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 19
+### 21
 
 적용: tiny-lru 11.4.7
 
@@ -1041,7 +1166,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ````
 
-### 20
+### 22
 
 적용: use-sync-external-store 1.7.0
 
@@ -1069,7 +1194,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 21
+### 23
 
 적용: aho-corasick 1.1.5, byteorder 1.5.0, jiff 0.2.37, jiff-core 0.1.1, jiff-static 0.2.37, jiff-tzdb 0.1.8, jiff-tzdb-platform 0.1.3, memchr 2.8.3, walkdir 2.5.0
 
@@ -1097,7 +1222,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 22
+### 24
 
 적용: alloc-no-stdlib 2.0.4, brotli 8.0.4, brotli-decompressor 5.0.3
 
@@ -1116,7 +1241,7 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ````
 
-### 23
+### 25
 
 적용: android_system_properties 0.1.6
 
@@ -1143,7 +1268,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 24
+### 26
 
 적용: async-broadcast 0.7.2
 
@@ -1171,7 +1296,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 25
+### 27
 
 적용: atk 0.18.2, atk-sys 0.18.2, cairo-rs 0.18.5, cairo-sys-rs 0.18.2, gdk 0.18.2, gdk-pixbuf 0.18.5, gdk-pixbuf-sys 0.18.0, gdk-sys 0.18.2, gdkwayland-sys 0.18.2, gdkx11 0.18.2, gdkx11-sys 0.18.2, gio 0.18.4, gio-sys 0.18.1, glib 0.18.5, glib-macros 0.18.5, glib-sys 0.18.1, gobject-sys 0.18.0, gtk 0.18.2, gtk-sys 0.18.2, gtk3-macros 0.18.2, pango 0.18.3, pango-sys 0.18.0, siphasher 1.0.4
 
@@ -1195,7 +1320,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 26
+### 28
 
 적용: base64 0.21.7, base64 0.22.1
 
@@ -1223,7 +1348,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 27
+### 29
 
 적용: base64 0.23.1
 
@@ -1251,7 +1376,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 28
+### 30
 
 적용: bit-set 0.8.0, bit-vec 0.8.0
 
@@ -1283,7 +1408,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 29
+### 31
 
 적용: bitflags 1.3.2, bitflags 2.13.2, glob 0.3.4, log 0.4.34, num-traits 0.2.19, regex 1.13.1, regex-automata 0.4.18, regex-syntax 0.8.11
 
@@ -1315,7 +1440,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 30
+### 32
 
 적용: block-buffer 0.10.4
 
@@ -1347,7 +1472,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 31
+### 33
 
 적용: brotli 8.0.4
 
@@ -1373,7 +1498,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 32
+### 34
 
 적용: bs58 0.5.1
 
@@ -1400,7 +1525,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 33
+### 35
 
 적용: bumpalo 3.20.3
 
@@ -1432,7 +1557,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 34
+### 36
 
 적용: bytemuck 1.25.2
 
@@ -1448,7 +1573,7 @@ The above copyright notice and this permission notice (including the next paragr
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 35
+### 37
 
 적용: bytes 1.12.1
 
@@ -1480,7 +1605,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 36
+### 38
 
 적용: cfb 0.7.3
 
@@ -1508,7 +1633,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 37
+### 39
 
 적용: cfg-if 1.0.5, filetime 0.2.29, js-sys 0.3.106, socket2 0.6.5, toml_datetime 0.6.3, wasm-bindgen 0.2.129, wasm-bindgen-futures 0.4.79, wasm-bindgen-macro 0.2.129, wasm-bindgen-macro-support 0.2.129, wasm-bindgen-shared 0.2.129, web-sys 0.3.106
 
@@ -1540,7 +1665,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 38
+### 40
 
 적용: chrono 0.4.45
 
@@ -1786,7 +1911,7 @@ limitations under the License.
 ~~~~
 ````
 
-### 39
+### 41
 
 적용: combine 4.6.8
 
@@ -1814,7 +1939,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 40
+### 42
 
 적용: cookie 0.18.2
 
@@ -1847,7 +1972,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 41
+### 43
 
 적용: core-foundation 0.10.1, core-foundation-sys 0.8.7, core-graphics 0.25.0, core-graphics-types 0.2.0, string_cache 0.9.0
 
@@ -1879,7 +2004,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 42
+### 44
 
 적용: cpufeatures 0.2.17
 
@@ -1911,7 +2036,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 43
+### 45
 
 적용: crc32fast 1.5.2
 
@@ -1939,7 +2064,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 44
+### 46
 
 적용: crossbeam-channel 0.5.17, crossbeam-utils 0.8.23
 
@@ -1973,7 +2098,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 45
+### 47
 
 적용: crypto-common 0.1.7
 
@@ -2005,7 +2130,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 46
+### 48
 
 적용: cssparser 0.36.0, cssparser-macros 0.6.1, dtoa-short 0.3.5
 
@@ -2385,7 +2510,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ````
 
-### 47
+### 49
 
 적용: ctor 0.8.0, ctor-proc-macro 0.0.7, dtor 0.3.0, dtor-proc-macro 0.0.6, tinyvec 1.13.3
 
@@ -2397,7 +2522,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 48
+### 50
 
 적용: darling 0.24.1, darling_core 0.24.1, darling_macro 0.24.1
 
@@ -2425,7 +2550,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 49
+### 51
 
 적용: dbus 0.9.12, libdbus-sys 0.2.7
 
@@ -2451,7 +2576,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 50
+### 52
 
 적용: defmt 1.1.1, defmt-macros 1.1.1
 
@@ -2483,7 +2608,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 51
+### 53
 
 적용: deranged 0.5.8
 
@@ -2509,7 +2634,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 52
+### 54
 
 적용: derive_more 2.1.1, derive_more-impl 2.1.1
 
@@ -2537,7 +2662,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 53
+### 55
 
 적용: digest 0.10.7
 
@@ -2569,7 +2694,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 54
+### 56
 
 적용: dirs 6.0.0, dirs-sys 0.5.0
 
@@ -2595,7 +2720,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 55
+### 57
 
 적용: dom_query 0.27.0
 
@@ -2629,7 +2754,7 @@ derived from the "nipper" project (https://github.com/importcjj/nipper),
 developed by Chen Jiaju, licensed under the MIT License and the Apache License 2.0 (dual licensed).
 ````
 
-### 56
+### 58
 
 적용: dpi 0.1.2, tao 0.35.3
 
@@ -2837,7 +2962,7 @@ Apache License
    limitations under the License.
 ````
 
-### 57
+### 59
 
 적용: dpi 0.1.2
 
@@ -2895,7 +3020,7 @@ have been licensed under extremely permissive terms.
 ------------------------------------------------------------------------------
 ````
 
-### 58
+### 60
 
 적용: dunce 1.0.5
 
@@ -3023,7 +3148,7 @@ express Statement of Purpose.
     this CC0 or use of the Work.
 ````
 
-### 59
+### 61
 
 적용: embed_plist 1.2.2
 
@@ -3051,7 +3176,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 60
+### 62
 
 적용: enumflags2 0.7.12
 
@@ -3083,7 +3208,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 61
+### 63
 
 적용: enumflags2_derive 0.7.12
 
@@ -3115,7 +3240,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 62
+### 64
 
 적용: equivalent 1.0.2
 
@@ -3147,7 +3272,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 63
+### 65
 
 적용: errno 0.3.14
 
@@ -3179,7 +3304,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 64
+### 66
 
 적용: fdeflate 0.3.7
 
@@ -3211,7 +3336,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 65
+### 67
 
 적용: field-offset 0.3.6
 
@@ -3239,7 +3364,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 66
+### 68
 
 적용: flate2 1.1.10
 
@@ -3271,7 +3396,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 67
+### 69
 
 적용: fnv 1.0.7
 
@@ -3303,7 +3428,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 68
+### 70
 
 적용: foldhash 0.2.0
 
@@ -3329,7 +3454,7 @@ the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 ````
 
-### 69
+### 71
 
 적용: foreign-types 0.5.0, foreign-types-macros 0.2.4, foreign-types-shared 0.3.1
 
@@ -3355,7 +3480,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 70
+### 72
 
 적용: form_urlencoded 1.2.2
 
@@ -3387,7 +3512,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 71
+### 73
 
 적용: fsevent-sys 4.1.0
 
@@ -3415,7 +3540,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 72
+### 74
 
 적용: futures-channel 0.3.34, futures-core 0.3.34, futures-executor 0.3.34, futures-io 0.3.34, futures-macro 0.3.34, futures-sink 0.3.34, futures-task 0.3.34, futures-util 0.3.34
 
@@ -3448,7 +3573,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 73
+### 75
 
 적용: generic-array 0.14.7
 
@@ -3476,7 +3601,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 74
+### 76
 
 적용: getrandom 0.3.4
 
@@ -3509,7 +3634,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 75
+### 77
 
 적용: getrandom 0.4.3
 
@@ -3542,7 +3667,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 76
+### 78
 
 적용: hashbrown 0.12.3, hashbrown 0.17.1
 
@@ -3574,7 +3699,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 77
+### 79
 
 적용: heck 0.4.1, heck 0.5.0, unicode-segmentation 1.13.3
 
@@ -3606,7 +3731,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 78
+### 80
 
 적용: hex 0.4.3
 
@@ -3633,7 +3758,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 79
+### 81
 
 적용: html5ever 0.38.0, markup5ever 0.38.0, web_atoms 0.2.6
 
@@ -3665,7 +3790,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 80
+### 82
 
 적용: http 1.5.0
 
@@ -3697,7 +3822,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 81
+### 83
 
 적용: http-body 1.1.0, http-body-util 0.1.5
 
@@ -3729,7 +3854,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 82
+### 84
 
 적용: httparse 1.10.1
 
@@ -3755,7 +3880,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 83
+### 85
 
 적용: hyper 1.11.1
 
@@ -3781,7 +3906,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 84
+### 86
 
 적용: hyper-util 0.1.21
 
@@ -3807,7 +3932,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 85
+### 87
 
 적용: iana-time-zone 0.1.65, iana-time-zone-haiku 0.1.2
 
@@ -3839,7 +3964,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 86
+### 88
 
 적용: ico 0.5.0
 
@@ -3867,7 +3992,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 87
+### 89
 
 적용: icu_collections 2.3.0, icu_locale_core 2.3.0, icu_normalizer 2.3.0, icu_normalizer_data 2.3.0, icu_properties 2.3.0, icu_properties_data 2.3.0, icu_provider 2.3.1, litemap 0.8.3, potential_utf 0.1.6, tinystr 0.8.4, writeable 0.6.4, yoke 0.8.3, yoke-derive 0.8.3, zerofrom 0.1.8, zerofrom-derive 0.1.8, zerotrie 0.2.5, zerovec 0.11.8, zerovec-derive 0.11.6
 
@@ -3920,7 +4045,7 @@ Portions of ICU4X may have been adapted from ICU4C and/or ICU4J.
 ICU 1.8.1 to ICU 57.1 © 1995-2016 International Business Machines Corporation and others.
 ````
 
-### 88
+### 90
 
 적용: ident_case 1.0.1
 
@@ -3946,7 +4071,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 89
+### 91
 
 적용: idna 1.1.0, percent-encoding 2.3.2, url 2.5.8
 
@@ -3978,7 +4103,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 90
+### 92
 
 적용: idna_adapter 1.2.2
 
@@ -4010,7 +4135,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 91
+### 93
 
 적용: indexmap 1.9.3, indexmap 2.14.2
 
@@ -4042,7 +4167,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 92
+### 94
 
 적용: infer 0.19.0
 
@@ -4070,7 +4195,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 93
+### 95
 
 적용: inotify 0.10.2, inotify-sys 0.1.8
 
@@ -4090,7 +4215,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ````
 
-### 94
+### 96
 
 적용: instant 0.1.13
 
@@ -4124,7 +4249,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ````
 
-### 95
+### 97
 
 적용: ipnet 2.12.2
 
@@ -4138,7 +4263,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 96
+### 98
 
 적용: is-docker 0.2.0, is-wsl 0.4.0
 
@@ -4166,7 +4291,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 97
+### 99
 
 적용: javascriptcore-rs 1.1.2
 
@@ -4195,7 +4320,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 98
+### 100
 
 적용: javascriptcore-rs-sys 1.1.1, soup3 0.5.0, soup3-sys 0.5.0
 
@@ -4223,7 +4348,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 99
+### 101
 
 적용: jni 0.21.1
 
@@ -4251,7 +4376,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 100
+### 102
 
 적용: jni-sys 0.3.1, jni-sys 0.4.1
 
@@ -4277,7 +4402,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 101
+### 103
 
 적용: json-patch 3.0.1
 
@@ -4305,7 +4430,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 102
+### 104
 
 적용: jsonptr 0.6.3
 
@@ -4333,7 +4458,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 103
+### 105
 
 적용: keyboard-types 0.7.0
 
@@ -4359,7 +4484,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 104
+### 106
 
 적용: kqueue 1.2.1, kqueue-sys 1.1.2
 
@@ -4385,7 +4510,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 105
+### 107
 
 적용: libappindicator 0.9.0
 
@@ -4414,7 +4539,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 106
+### 108
 
 적용: libc 0.2.189
 
@@ -4446,7 +4571,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 107
+### 109
 
 적용: libloading 0.7.4
 
@@ -4465,7 +4590,7 @@ NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE US
 THIS SOFTWARE.
 ````
 
-### 108
+### 110
 
 적용: libredox 0.1.25
 
@@ -4493,7 +4618,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 109
+### 111
 
 적용: lock_api 0.4.14, parking_lot 0.12.5, parking_lot_core 0.9.12
 
@@ -4525,7 +4650,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 110
+### 112
 
 적용: memoffset 0.9.1
 
@@ -4551,7 +4676,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 111
+### 113
 
 적용: mime 0.3.17
 
@@ -4577,7 +4702,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 112
+### 114
 
 적용: miniz_oxide 0.8.9, miniz_oxide 0.9.1
 
@@ -4608,7 +4733,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 113
+### 115
 
 적용: mio 1.2.3
 
@@ -4634,7 +4759,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 114
+### 116
 
 적용: muda 0.19.3, tray-icon 0.24.2
 
@@ -4662,7 +4787,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 115
+### 117
 
 적용: new_debug_unreachable 1.0.6
 
@@ -4694,7 +4819,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 116
+### 118
 
 적용: notify 7.0.0
 
@@ -4742,7 +4867,7 @@ For these and/or other purposes and motivations, and without any expectation of 
      d. Affirmer understands and acknowledges that Creative Commons is not a party to this document and has no duty or obligation with respect to this CC0 or use of the Work.
 ````
 
-### 117
+### 119
 
 적용: notify-types 1.0.1
 
@@ -4774,7 +4899,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 118
+### 120
 
 적용: num-conv 0.2.2
 
@@ -4800,7 +4925,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 119
+### 121
 
 적용: open 5.4.4
 
@@ -4832,7 +4957,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 120
+### 122
 
 적용: option-ext 0.2.0
 
@@ -5212,7 +5337,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ````
 
-### 121
+### 123
 
 적용: phf 0.13.1, phf_generator 0.13.1, phf_macros 0.13.1, phf_shared 0.13.1
 
@@ -5239,7 +5364,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 122
+### 124
 
 적용: plist 1.10.1
 
@@ -5265,7 +5390,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 123
+### 125
 
 적용: png 0.17.16, png 0.18.1
 
@@ -5297,7 +5422,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 124
+### 126
 
 적용: powerfmt 0.2.0
 
@@ -5323,7 +5448,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 125
+### 127
 
 적용: precomputed-hash 0.1.1
 
@@ -5351,7 +5476,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 126
+### 128
 
 적용: proc-macro-error 1.0.4, proc-macro-error-attr 1.0.4
 
@@ -5379,7 +5504,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 127
+### 129
 
 적용: quick-xml 0.42.0
 
@@ -5409,7 +5534,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 128
+### 130
 
 적용: raw-window-handle 0.6.2
 
@@ -5437,7 +5562,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 129
+### 131
 
 적용: redox_syscall 0.5.18
 
@@ -5466,7 +5591,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 130
+### 132
 
 적용: redox_users 0.5.3
 
@@ -5494,7 +5619,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 131
+### 133
 
 적용: reqwest 0.13.5
 
@@ -5520,7 +5645,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 132
+### 134
 
 적용: rfd 0.16.0
 
@@ -5548,7 +5673,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 133
+### 135
 
 적용: same-file 1.0.6, winapi-util 0.1.11
 
@@ -5576,7 +5701,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 134
+### 136
 
 적용: schemars 0.8.22, schemars 0.9.0, schemars 1.2.2, schemars_derive 0.8.22
 
@@ -5604,7 +5729,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 135
+### 137
 
 적용: scopeguard 1.2.0
 
@@ -5636,7 +5761,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 136
+### 138
 
 적용: serde_spanned 0.6.9, serde_spanned 1.1.1, toml 1.1.6+spec-1.1.0, toml_datetime 1.1.1+spec-1.1.0, toml_edit 0.19.15, toml_edit 0.20.2, toml_edit 0.25.15+spec-1.1.0, toml_parser 1.1.3+spec-1.1.0, toml_writer 1.1.2+spec-1.1.0
 
@@ -5662,7 +5787,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 137
+### 139
 
 적용: serde_with 3.23.0, serde_with_macros 3.23.0
 
@@ -5694,7 +5819,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 138
+### 140
 
 적용: serialize-to-javascript 0.1.2, serialize-to-javascript-impl 0.1.2
 
@@ -5722,7 +5847,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 139
+### 141
 
 적용: sha2 0.10.9
 
@@ -5756,7 +5881,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 140
+### 142
 
 적용: signal-hook-registry 1.4.8
 
@@ -5788,7 +5913,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 141
+### 143
 
 적용: simd-adler32 0.3.10
 
@@ -5816,7 +5941,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 142
+### 144
 
 적용: slab 0.4.12
 
@@ -5848,7 +5973,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 143
+### 145
 
 적용: smallvec 1.16.2
 
@@ -5880,7 +6005,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 144
+### 146
 
 적용: softbuffer 0.4.8
 
@@ -5906,7 +6031,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 145
+### 147
 
 적용: stable_deref_trait 1.2.1
 
@@ -5938,7 +6063,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 146
+### 148
 
 적용: strsim 0.11.1
 
@@ -5968,7 +6093,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 147
+### 149
 
 적용: swift-rs 1.0.8
 
@@ -5994,7 +6119,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 148
+### 150
 
 적용: sync_wrapper 1.0.2
 
@@ -6177,7 +6302,7 @@ Apache License
    END OF TERMS AND CONDITIONS
 ````
 
-### 149
+### 151
 
 적용: synstructure 0.14.0
 
@@ -6191,7 +6316,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 150
+### 152
 
 적용: tao 0.35.3
 
@@ -6216,7 +6341,7 @@ PackageDownloadLocation: git+ssh://github.com/tauri-apps/tao.git
 Creator: Person: Daniel Thompson-Yvetot
 ````
 
-### 151
+### 153
 
 적용: tao-macros 0.1.4
 
@@ -6244,7 +6369,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 152
+### 154
 
 적용: tempfile 3.27.0
 
@@ -6276,7 +6401,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 153
+### 155
 
 적용: tendril 0.5.1
 
@@ -6308,7 +6433,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 154
+### 156
 
 적용: time 0.3.55, time-core 0.1.9, time-macros 0.2.32
 
@@ -6334,7 +6459,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 155
+### 157
 
 적용: tokio 1.53.1, tokio-util 0.7.19
 
@@ -6362,7 +6487,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 156
+### 158
 
 적용: tower 0.5.3, tower-layer 0.3.3, tower-service 0.3.3
 
@@ -6394,7 +6519,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 157
+### 159
 
 적용: tower-http 0.6.11
 
@@ -6426,7 +6551,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 158
+### 160
 
 적용: tracing 0.1.44, tracing-attributes 0.1.31, tracing-core 0.1.36
 
@@ -6458,7 +6583,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 159
+### 161
 
 적용: try-lock 0.2.5
 
@@ -6485,7 +6610,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 160
+### 162
 
 적용: typenum 1.20.1
 
@@ -6513,7 +6638,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 161
+### 163
 
 적용: uds_windows 1.2.1
 
@@ -6541,7 +6666,7 @@ MIT License
     SOFTWARE
 ````
 
-### 162
+### 164
 
 적용: unicode-ident 1.0.26
 
@@ -6724,7 +6849,7 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 END OF TERMS AND CONDITIONS
 ````
 
-### 163
+### 165
 
 적용: unicode-ident 1.0.26
 
@@ -6770,7 +6895,7 @@ dealings in these Data Files or Software without prior written
 authorization of the copyright holder.
 ````
 
-### 164
+### 166
 
 적용: urlpattern 0.3.0
 
@@ -6798,7 +6923,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 165
+### 167
 
 적용: utf8_iter 1.0.4
 
@@ -6830,7 +6955,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 166
+### 168
 
 적용: uuid 1.26.1
 
@@ -6863,7 +6988,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 167
+### 169
 
 적용: want 0.3.1
 
@@ -6889,7 +7014,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ````
 
-### 168
+### 170
 
 적용: webkit2gtk 2.0.2
 
@@ -6916,7 +7041,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 169
+### 171
 
 적용: webkit2gtk-sys 2.0.2
 
@@ -6941,7 +7066,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 170
+### 172
 
 적용: winapi 0.3.9
 
@@ -6967,7 +7092,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 171
+### 173
 
 적용: window-vibrancy 0.6.0
 
@@ -6995,7 +7120,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 172
+### 174
 
 적용: winnow 0.5.40, winnow 1.0.4
 
@@ -7020,7 +7145,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ````
 
-### 173
+### 175
 
 적용: wry 0.55.1
 
@@ -7048,7 +7173,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ````
 
-### 174
+### 176
 
 적용: zbus 5.19.0, zbus_macros 5.19.0, zbus_names 4.3.4, zvariant 5.15.0, zvariant_derive 5.15.0
 
@@ -7080,7 +7205,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 175
+### 177
 
 적용: zcheapstr 1.1.0
 
@@ -7112,7 +7237,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ````
 
-### 176
+### 178
 
 적용: zlib-rs 0.6.8
 

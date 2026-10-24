@@ -245,7 +245,7 @@ const PRIVATE_NOTICE = "시크릿 창일 수 있어 최근 폴더 목록을 불�
 const CRASH_NOTICE = "지난번에 최근 폴더 목록을 불러오는 중 브라우저가 종료되었습니다";
 
 async function expectBrowserWelcome(page: Page) {
-  const welcome = page.getByTestId("welcome");
+  const welcome = page.getByTestId("launcher");
   // 브라우저 폴더 모드만 폴더 열기 단추와 최근 폴더가 있다 (폴더 열기가 없는 브라우저면 꺼진 채로 있다)
   await expect(welcome.getByRole("button", { name: "폴더 열기", exact: true })).toBeVisible();
   await expect(welcome).toContainText("최근 폴더");
@@ -263,13 +263,13 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     const welcome = await expectBrowserWelcome(page);
     const openFolder = welcome.getByRole("button", { name: "폴더 열기", exact: true });
     await expect(openFolder).toBeEnabled();
-    await expect(welcome).toContainText("최근 폴더 없음");
+    await expect(welcome).toContainText("최근에 연 게임이 없습니다");
 
     await rememberOpfsFolder(page, "remembered", "folder-e2e");
     await page.reload();
-    const recent = page.getByTestId("welcome-recent-folders");
+    const recent = page.getByTestId("launcher-recent-folders");
     await expect(recent).toContainText("remembered");
-    await expect(page.getByTestId("welcome-restore-notice")).toContainText(PRIVATE_NOTICE);
+    await expect(page.getByTestId("launcher-restore-notice")).toContainText(PRIVATE_NOTICE);
 
     // 다시 열기: 핸들을 꺼내지 않고 이유를 알린 뒤 폴더 고르기(같은 id)로 연다
     await recent.getByRole("button", { name: "다시 열기" }).click();
@@ -301,7 +301,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     expect(await folderKeys(page)).toEqual(["folder-e2e"]);
 
     await page.reload();
-    await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await welcome.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
     expect(browser.isConnected()).toBe(true);
@@ -327,9 +327,9 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     expect(signals.quota, `시크릿 컨텍스트의 할당량 ${signals.quota}`).toBeGreaterThanOrEqual(2 * 1024 ** 3);
     expect(signals.quota, `시크릿 컨텍스트의 할당량 ${signals.quota}`).toBeLessThanOrEqual(4 * 1024 ** 3);
 
-    const recent = page.getByTestId("welcome-recent-folders");
+    const recent = page.getByTestId("launcher-recent-folders");
     await expect(recent).toContainText("remembered");
-    await expect(page.getByTestId("welcome-restore-notice")).toContainText(PRIVATE_NOTICE);
+    await expect(page.getByTestId("launcher-restore-notice")).toContainText(PRIVATE_NOTICE);
     await recent.getByRole("button", { name: "다시 열기" }).click();
     await expect(page.getByTestId("toasts")).toContainText(PRIVATE_NOTICE);
     await expect(page.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
@@ -346,13 +346,13 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
     const tree = page.getByTestId("project-tree");
     const statusbar = page.getByTestId("statusbar");
 
-    for (const how of ["Ctrl+O", "파일 > 프로젝트 열기"]) {
+    for (const how of ["Ctrl+O", "파일 > 게임 열기"]) {
       await page.reload();
-      await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+      await welcome.getByRole("button", { name: "샘플 게임 열기" }).click();
       await expect(statusbar).toContainText("memory://sample");
       await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
       if (how === "Ctrl+O") await page.keyboard.press("ControlOrMeta+o");
-      else await openMenu(page, "파일", "프로젝트 열기");
+      else await openMenu(page, "파일", "게임 열기");
       await expect(statusbar, how).toContainText("remembered");
       await expect(statusbar).toContainText("브라우저 폴더");
       await expect(tree.locator('[data-path="game.json"]')).toBeVisible();
@@ -366,7 +366,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
   test("샘플로 해 보기(메모리 백엔드)는 밖에 엔진이 없다: 수동 리로드는 게임 탭이 돌 때만 켜지고, 게임이 끝난 뒤 저장해도 보냈다고 적지 않는다", async ({ page }) => {
     await page.goto("/?backend=browser&sample=meadow");
     const welcome = await expectBrowserWelcome(page);
-    await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await welcome.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     const toolbar = page.getByTestId("toolbar");
     const reload = toolbar.locator('[data-command="run.reload"]');
@@ -481,7 +481,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       const page = context.pages()[0] ?? (await context.newPage());
       await page.goto("/?backend=browser");
       const welcome = await expectBrowserWelcome(page);
-      await expect(welcome).toContainText("최근 폴더 없음");
+      await expect(welcome).toContainText("최근에 연 게임이 없습니다");
       // 앱의 짐작(profile.ts)이 이 컨텍스트를 일반 프로필로 봐야 이 테스트가 뜻이 있다:
       // 힙 한도가 있고, 할당량이 힙 한도의 두 배보다 크고 4 GiB 보다도 크다
       const signals = await page.evaluate(async () => ({
@@ -494,9 +494,9 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
 
       await rememberOpfsFolder(page, "remembered", "folder-e2e");
       await page.reload();
-      const recent = page.getByTestId("welcome-recent-folders");
+      const recent = page.getByTestId("launcher-recent-folders");
       await expect(recent).toContainText("remembered");
-      await expect(page.getByTestId("welcome-restore-notice")).toHaveCount(0);
+      await expect(page.getByTestId("launcher-restore-notice")).toHaveCount(0);
       await recent.getByRole("button", { name: "다시 열기" }).click();
 
       const tree = page.getByTestId("project-tree");
@@ -516,7 +516,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       await page.evaluate(() => localStorage.setItem("initial-editor.folders.restoring", String(Date.now())));
       await page.reload();
       await expect(recent).toContainText("remembered");
-      await expect(page.getByTestId("welcome-restore-notice")).toContainText(CRASH_NOTICE);
+      await expect(page.getByTestId("launcher-restore-notice")).toContainText(CRASH_NOTICE);
       await recent.getByRole("button", { name: "다시 열기" }).click();
       await expect(page.getByTestId("toasts")).toContainText(CRASH_NOTICE);
       await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
@@ -527,7 +527,7 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       // 표시가 지워졌으니 다음 페이지는 다시 바로 꺼낸다
       await page.reload();
       await expect(recent).toContainText("remembered");
-      await expect(page.getByTestId("welcome-restore-notice")).toHaveCount(0);
+      await expect(page.getByTestId("launcher-restore-notice")).toHaveCount(0);
       await recent.getByRole("button", { name: "다시 열기" }).click();
       await expect(tree.locator('[data-path="scripts"]')).toBeVisible();
       expect(await pickerCalls(page)).toEqual([]);
@@ -536,9 +536,9 @@ test.describe("웹판 시작 화면 (브라우저 폴더 모드)", () => {
       const bare = await context.newPage();
       await bare.addInitScript(NO_MEMORY);
       await bare.goto("/?backend=browser");
-      const bareRecent = bare.getByTestId("welcome-recent-folders");
+      const bareRecent = bare.getByTestId("launcher-recent-folders");
       await expect(bareRecent).toContainText("remembered");
-      await expect(bare.getByTestId("welcome-restore-notice")).toContainText(PRIVATE_NOTICE);
+      await expect(bare.getByTestId("launcher-restore-notice")).toContainText(PRIVATE_NOTICE);
       await bareRecent.getByRole("button", { name: "다시 열기" }).click();
       await expect(bare.getByTestId("toasts")).toContainText(PRIVATE_NOTICE);
       await expect(bare.getByTestId("project-tree").locator('[data-path="scripts"]')).toBeVisible();
@@ -564,17 +564,12 @@ async function withoutMruby(page: Page) {
 }
 
 test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
-  test("샘플로 해 보기는 RPG 데모의 항구 마을 맵을 연 채로 뜨고 칠하고 F5 안내를 한 번 띄운다. 아래 줄은 데스크톱 앱 받기와 웹판에서 안 되는 것", async ({ page }) => {
+  test("샘플로 해 보기는 RPG 데모의 항구 마을 맵을 연 채로 뜨고 칠하고 F5 안내를 한 번 띄운다. 시작 창에 데스크톱 앱 받기가 있다", async ({ page }) => {
     await page.goto("/?backend=browser");
     const welcome = await expectBrowserWelcome(page);
-    const footer = page.getByTestId("welcome-web");
-    await expect(footer.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
-    await expect(footer.getByTestId("welcome-edition")).toHaveAttribute("href", "https://github.com/biud436/InitialEditor/releases");
-    await expect(footer.getByTestId("welcome-edition")).not.toHaveAttribute("target", /.+/);
-    // 이 웹 엔진 빌드에는 mruby 가 있어 Ruby 실행은 안 되는 것에 없다
-    await expect(page.getByTestId("welcome-web-limits")).toHaveText("데스크톱 앱에서만 되는 기능: 엔진 프로세스 실행, 안드로이드 스테이징");
+    await expect(welcome.getByRole("button", { name: "데스크톱 앱 받기" })).toBeVisible();
 
-    await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await welcome.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
     await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible();
     await expect(page.getByTestId("map-view")).toHaveAttribute("data-ready", "true");
@@ -586,46 +581,45 @@ test.describe("웹판 시작 화면의 더한 것 (e6 7.4)", () => {
       for (const t of [...toasts.toasts]) toasts.dismiss(t.id);
     });
     await expect(page.getByTestId("toasts")).not.toContainText(RPG_SAMPLE_HINT);
-    await openMenu(page, "파일", "프로젝트 닫기");
-    await page.getByTestId("welcome").getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await openMenu(page, "파일", "게임 닫기");
+    await page.getByTestId("launcher").getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible();
     await page.waitForTimeout(300);
     await expect(page.getByTestId("toasts")).not.toContainText(RPG_SAMPLE_HINT);
   });
 
-  test("웹 엔진에 mruby 가 없으면 아래 줄에 Ruby 게임 실행이 붙는다", async ({ page }) => {
-    await withoutMruby(page);
-    await page.goto("/?backend=browser");
-    await expectBrowserWelcome(page);
-    await expect(page.getByTestId("welcome-web-limits")).toHaveText("데스크톱 앱에서만 되는 기능: 엔진 프로세스 실행, 안드로이드 스테이징, Ruby 게임 실행");
-  });
 });
 
-test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
-  test("시작 화면의 새 프로젝트: 빈 폴더를 고르고 플래피(Lua)를 만들면 그 폴더가 브라우저 폴더로 열리고 기억되며, F5 로 게임 탭에서 돈다", async ({ browser, context, page }) => {
+test.describe("웹판 새 게임 (브라우저 폴더)", () => {
+  test("시작 창의 새 게임: 플래피버드를 고르고 대화상자 안에서 빈 폴더를 선택해 만들면 그 폴더가 브라우저 폴더로 열리고 기억되며, 씬이 열리고 F5 로 게임 탭에서 돈다", async ({ browser, context, page }) => {
     await context.addInitScript(PICKER_STUB);
     await page.goto("/?backend=browser");
     const welcome = await expectBrowserWelcome(page);
     await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "newgame"));
-    await welcome.getByRole("button", { name: "새 프로젝트", exact: true }).click();
+    await welcome.getByRole("button", { name: /새 게임/ }).click();
 
     const form = page.getByTestId("new-project-dialog");
     await expect(form).toBeVisible();
-    await expect(form).toContainText("newgame");
-    await expect(page.getByTestId("new-project-name")).toHaveValue("newgame");
-    await page.getByTestId("new-project-template").selectOption("flappy");
+    // 폴더는 대화상자 안에서 고른다. 고르기 전에는 폴더 고르기 대화상자가 뜨지 않았다
+    expect(await pickerCalls(page)).toEqual([]);
+    await form.getByRole("radio", { name: /플래피버드/ }).click();
+    await page.getByTestId("new-project-pick").click();
+    await expect(page.getByTestId("new-project-folder")).toHaveText("newgame");
+    await expect(form.getByLabel("게임 이름")).toHaveValue("newgame");
     // 이 웹 엔진 빌드에는 mruby 가 있어 Ruby 를 골라도 안내가 없다
-    await page.getByTestId("new-project-language").selectOption("mruby");
+    await form.getByRole("radio", { name: "Ruby" }).click();
     await expect(page.getByTestId("new-project-ruby-note")).toHaveCount(0);
-    await page.getByTestId("new-project-language").selectOption("lua");
+    await form.getByRole("radio", { name: "Lua" }).click();
     await page.getByTestId("new-project-ok").click();
 
     const tree = page.getByTestId("project-tree");
     await expect(tree.locator('[data-path="game.json"]')).toBeVisible();
     await expect(page.getByTestId("statusbar")).toContainText("newgame");
     await expect(page.getByTestId("statusbar")).toContainText("브라우저 폴더");
-    await expect(page.getByTestId("toasts")).toContainText("새 프로젝트: newgame");
-    await expect(page.getByTestId("console-list")).toContainText(/새 프로젝트 생성됨: newgame \(플래피버드[^)]*\), lua, 파일 \d+개\)/);
+    await expect(page.getByTestId("toasts")).toContainText("새 게임을 만들었습니다: newgame");
+    await expect(page.getByTestId("console-list")).toContainText(/새 게임: newgame \(플래피버드[^)]*\), lua, 파일 \d+개\)/);
+    await expect(page.getByTestId("doc-tab").filter({ hasText: "flappy.json" })).toBeVisible();
+    await expect(page.getByTestId("launcher")).toHaveCount(0);
     expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS]);
     expect((await folderRecords(page)).map((r) => r.name)).toEqual(["newgame"]);
     const game = JSON.parse(await readOpfs(page, "newgame/game.json")) as { name: string; script: string; startScene: string };
@@ -644,21 +638,23 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     expect(browser.isConnected()).toBe(true);
   });
 
-  test("샘플을 연 채로 파일 > 새 프로젝트: 비어 있지 않은 폴더는 한 번 묻고, 있는 파일은 두고 없는 것만 만든 뒤 브라우저 폴더로 바꿔 연다", async ({ context, page }) => {
+  test("샘플을 연 채로 파일 > 새 게임: 비어 있지 않은 폴더는 만들기 뒤에 한 번 묻고, 있는 파일은 두고 없는 것만 만든 뒤 브라우저 폴더로 바꿔 연다", async ({ context, page }) => {
     await context.addInitScript(PICKER_STUB);
     await page.goto("/?backend=browser");
     const welcome = await expectBrowserWelcome(page);
     await writeOpfs(page, { "notes.txt": "메모\n", "scripts/lua/main.lua": "-- 내 것\n" }, "mine");
-    await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    await welcome.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("statusbar")).toContainText("memory://sample");
 
     await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "mine"));
-    await openMenu(page, "파일", "새 프로젝트");
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("폴더가 비어 있지 않습니다 (항목 2개)");
-    await dialog.getByRole("button", { name: "만들기" }).click();
+    await openMenu(page, "파일", "새 게임");
     await expect(page.getByTestId("new-project-dialog")).toBeVisible();
+    await page.getByTestId("new-project-pick").click();
+    await expect(page.getByTestId("new-project-folder")).toHaveText("mine");
     await page.getByTestId("new-project-ok").click();
+    const confirm = page.getByRole("dialog");
+    await expect(confirm).toContainText("폴더가 비어 있지 않습니다 (항목 2개)");
+    await confirm.getByRole("button", { name: "만들기" }).click();
 
     await expect(page.getByTestId("statusbar")).toContainText("mine");
     await expect(page.getByTestId("statusbar")).toContainText("브라우저 폴더");
@@ -669,18 +665,21 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     expect(await pickerCalls(page)).toEqual([PICKER_OPTIONS]);
   });
 
-  test("웹 엔진에 mruby 가 없으면 새 프로젝트 대화상자에서 Ruby 를 고를 때 안내가 뜬다. 취소하면 폴더에 쓰지도 기억하지도 않는다", async ({ context, page }) => {
+  test("웹 엔진에 mruby 가 없으면 새 게임 대화상자에서 Ruby 를 고를 때 안내가 뜬다. 폴더를 고른 뒤 취소해도 폴더에 쓰지도 기억하지도 않는다", async ({ context, page }) => {
     await withoutMruby(page);
     await context.addInitScript(PICKER_STUB);
     await page.goto("/?backend=browser");
     await expectBrowserWelcome(page);
     await page.evaluate(() => ((window as unknown as PickerWindow).__pick = "rubygame"));
     await page.keyboard.press("ControlOrMeta+n");
-    await expect(page.getByTestId("new-project-dialog")).toBeVisible();
+    const form = page.getByTestId("new-project-dialog");
+    await expect(form).toBeVisible();
     await expect(page.getByTestId("new-project-ruby-note")).toHaveCount(0);
-    await page.getByTestId("new-project-language").selectOption("mruby");
+    await form.getByRole("radio", { name: "Ruby" }).click();
     await expect(page.getByTestId("new-project-ruby-note")).toHaveText(WEB_NO_RUBY);
-    await page.getByTestId("new-project-dialog").getByRole("button", { name: "취소" }).click();
+    await page.getByTestId("new-project-pick").click();
+    await expect(page.getByTestId("new-project-folder")).toHaveText("rubygame");
+    await form.getByRole("button", { name: "취소" }).click();
     await expect(page.getByTestId("new-project-dialog")).toHaveCount(0);
     const names = await page.evaluate(async () => {
       const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle("rubygame");
@@ -690,24 +689,24 @@ test.describe("웹판 새 프로젝트 (브라우저 폴더)", () => {
     });
     expect(names).toEqual([]);
     expect(await folderRecords(page)).toEqual([]);
-    await expect(page.getByTestId("welcome")).toContainText("최근 폴더 없음");
+    await expect(page.getByTestId("launcher")).toContainText("최근에 연 게임이 없습니다");
   });
 
-  test("폴더 열기가 없는 브라우저의 웹판은 새 프로젝트가 꺼져 있고 이유를 보인다", async ({ context, page }) => {
+  test("폴더 열기가 없는 브라우저의 웹판은 새 게임이 꺼져 있고 이유를 보인다", async ({ context, page }) => {
     await context.addInitScript(() => {
       delete (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker;
     });
     await page.goto("/?backend=browser");
     const welcome = await expectBrowserWelcome(page);
-    const button = welcome.getByRole("button", { name: "새 프로젝트", exact: true });
-    await expect(button).toBeDisabled();
-    await expect(button).toHaveAttribute("title", "이 브라우저는 폴더 열기를 지원하지 않습니다 (크롬과 엣지에서 지원합니다)");
+    await expect(welcome.getByRole("button", { name: /새 게임/ })).toBeDisabled();
+    await expect(welcome.getByRole("button", { name: "폴더 열기", exact: true })).toBeDisabled();
+    await expect(welcome).toContainText("이 브라우저는 폴더를 열 수 없습니다. 크롬이나 엣지에서 엽니다.");
     expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
   });
 });
 
 test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라우저)", () => {
-  test("로컬이 아닌 주소에서 폴더 열기가 없으면 메모리로 시작하고, 샘플 프로젝트 열기도 샘플 맵과 안내를 띄운다", async ({ context, page, baseURL }) => {
+  test("로컬이 아닌 주소에서 폴더 열기가 없으면 메모리로 시작하고, 샘플 게임 열기도 샘플 맵과 안내를 띄운다", async ({ context, page, baseURL }) => {
     await context.addInitScript(() => {
       delete (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker;
     });
@@ -715,11 +714,11 @@ test.describe("배포 웹판의 메모리 샘플 (폴더 열기가 없는 브라
     const deployed = new URL(baseURL!);
     deployed.hostname = "pages.localhost";
     await page.goto(deployed.href);
-    const welcome = page.getByTestId("welcome");
-    await expect(welcome).toContainText("페이지를 다시 열면 처음 상태로 돌아갑니다");
-    await expect(welcome).toContainText("이 브라우저는 폴더 열기를 지원하지 않아 샘플 프로젝트로 시작했습니다");
-    await expect(page.getByTestId("welcome-edition")).toHaveText("데스크톱 앱 받기");
-    await welcome.getByRole("button", { name: "샘플 프로젝트 열기" }).click();
+    const welcome = page.getByTestId("launcher");
+    await expect(welcome).toContainText("페이지를 닫으면 처음 상태로 돌아갑니다");
+    await expect(welcome).toContainText("이 브라우저는 폴더를 열 수 없어 샘플 게임으로 시작했습니다");
+    await expect(welcome.getByRole("button", { name: "데스크톱 앱 받기" })).toBeVisible();
+    await welcome.getByRole("button", { name: "샘플 게임 열기" }).click();
     await expect(page.getByTestId("doc-tab").filter({ hasText: "port_town.json" })).toBeVisible();
     await expect(page.getByTestId("toasts")).toContainText(RPG_SAMPLE_HINT);
     expect(await page.evaluate(() => (window as unknown as { initialEditor: { commands: { isEnabled(id: string): boolean } } }).initialEditor.commands.isEnabled("file.newProject"))).toBe(false);
