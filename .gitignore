@@ -145,3 +145,6 @@ src-tauri/luals/
 
 # 화면 검수판 (yarn review)
 /review/
+
+# 튜토리얼 영상의 촬영 재료와 영상 (scripts/video, docs/tutorial-video.md)
+/build/video/

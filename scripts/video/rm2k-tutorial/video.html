@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>RPG Maker 2000 맵 따라 만들기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&display=block">
+<style>
+  :root {
+    --bg0: #0a0d12;
+    --bg1: #131925;
+    --text: #eef2f7;
+    --muted: #9aa5b4;
+    --accent: #5aa9ff;
+    --accent-soft: rgba(90, 169, 255, 0.22);
+    --warn: #f2b84b;
+    --plate: rgba(12, 15, 21, 0.88);
+    --line: rgba(255, 255, 255, 0.09);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg0); }
+  body { font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  #stage { position: absolute; inset: 0; overflow: hidden; }
+  #bg { position: absolute; inset: 0;
+    background:
+      radial-gradient(1200px 700px at 78% 18%, rgba(90, 169, 255, 0.10), transparent 60%),
+      radial-gradient(900px 600px at 12% 92%, rgba(120, 220, 170, 0.06), transparent 60%),
+      linear-gradient(160deg, var(--bg1), var(--bg0) 70%); }
+  #bg::after { content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px; }
+  .layer { position: absolute; inset: 0; }
+
+  /* 에디터 화면 */
+  #screen { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.07); background: #1b1f26; }
+  #ui { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; }
+  #marks { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; }
+  .hl { position: absolute; border-radius: 6px; border: 2px solid var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft), 0 0 22px rgba(90, 169, 255, 0.55); }
+  #dim { position: absolute; inset: 0; background: rgba(6, 8, 12, 0.62); opacity: 0; }
+
+  /* 커서와 누름 */
+  #cursor { position: absolute; left: 0; top: 0; width: 30px; height: 30px; transform-origin: 3px 2px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.55)); }
+  .ripple { position: absolute; border-radius: 50%; border: 3px solid var(--accent); }
+  #press { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: rgba(90, 169, 255, 0.35); border: 2px solid var(--accent); opacity: 0; }
+
+  /* 게임 창 */
+  #gamewin { position: absolute; left: 0; top: 0; border-radius: 10px; overflow: hidden; background: #000;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12); opacity: 0; transform-origin: 50% 50%; }
+  #gamewin .bar { height: 40px; background: #20252e; display: flex; align-items: center; padding: 0 16px; gap: 10px; font-size: 17px; color: #cfd6e0; }
+  #gamewin .bar .title { flex: 1; }
+  #gamewin .bar .btns { display: flex; gap: 22px; color: #8d97a6; font-size: 16px; }
+  #game { display: block; image-rendering: pixelated; }
+
+  /* 파일 복사 */
+  #drop { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 14px; padding: 14px 20px 14px 14px; border-radius: 12px;
+    background: #222833; box-shadow: 0 18px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1); opacity: 0; transform-origin: 0 0; }
+  #drop img { width: 96px; height: 51px; image-rendering: pixelated; border-radius: 4px; }
+  #drop .name { font-size: 22px; font-weight: 600; }
+  #drop .sub { font-size: 16px; color: var(--muted); margin-top: 2px; }
+
+  /* 자막 */
+  #caption { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); max-width: 1560px; padding: 18px 34px 20px; border-radius: 16px;
+    background: var(--plate); border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    font-size: 35px; font-weight: 600; line-height: 1.45; letter-spacing: -0.01em; text-align: center; text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere; opacity: 0; white-space: normal; }
+  #caption b { color: #9fd0ff; font-weight: 700; }
+  #caption code { font-size: 0.86em; color: #ffd28a; background: rgba(255,255,255,0.06); padding: 1px 8px 3px; border-radius: 6px; }
+  #caption .tag { display: inline-block; font-size: 0.72em; font-weight: 700; padding: 2px 12px 4px; border-radius: 999px; margin-right: 14px; vertical-align: 0.12em; }
+  #caption .tag.warn { background: rgba(242, 184, 75, 0.18); color: var(--warn); }
+  #caption .tag.note { background: rgba(90, 169, 255, 0.18); color: #9fd0ff; }
+
+  /* 장 표시 */
+  #chip { position: absolute; left: 48px; top: 36px; display: flex; align-items: center; gap: 14px; padding: 10px 22px 10px 10px; border-radius: 999px;
+    background: var(--plate); border: 1px solid var(--line); font-size: 24px; font-weight: 650; opacity: 0; }
+  .badge { min-width: 44px; height: 44px; padding: 0 12px; border-radius: 999px; background: var(--accent); color: #07121f; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; }
+  .badge.prep { background: #8fe0b5; font-size: 19px; }
+  #chip .steps { display: flex; gap: 6px; margin-left: 8px; }
+  #chip .steps i { width: 18px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.14); }
+  #chip .steps i.on { background: var(--accent); }
+  #chip .steps i.done { background: rgba(90, 169, 255, 0.5); }
+
+  #card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; opacity: 0; }
+  #card .badge { width: 112px; height: 112px; margin: 0 auto 30px; font-size: 64px; }
+  #card .badge.prep { width: fit-content; min-width: 0; height: 84px; padding: 0 34px; font-size: 40px; }
+  #card .title { font-size: 72px; font-weight: 800; letter-spacing: -0.02em; }
+  #card .steps { display: flex; gap: 10px; justify-content: center; margin-top: 36px; }
+  #card .steps i { width: 54px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.14); }
+  #card .steps i.on { background: var(--accent); }
+  #card .steps i.done { background: rgba(90, 169, 255, 0.5); }
+
+  /* 단축키 */
+  #keys { position: absolute; right: 52px; top: 36px; display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 16px;
+    background: var(--plate); border: 1px solid var(--line); opacity: 0; transform-origin: 100% 0; }
+  .key { min-width: 54px; height: 54px; padding: 0 16px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; background: linear-gradient(#3a4250, #2a303b); border: 1px solid rgba(255,255,255,0.16);
+    box-shadow: 0 4px 0 #161a21, 0 6px 14px rgba(0,0,0,0.4); }
+  #keys .plus { color: var(--muted); font-size: 24px; font-weight: 600; }
+  #keys .label { margin-left: 10px; font-size: 26px; font-weight: 650; color: #cfe5ff; }
+
+  /* 처음 */
+  #intro .kicker { position: absolute; left: 110px; top: 360px; font-size: 30px; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+  #intro .title { position: absolute; left: 106px; top: 410px; font-size: 66px; font-weight: 800; line-height: 1.18; letter-spacing: -0.03em; word-break: keep-all; }
+  #intro .sub { position: absolute; left: 110px; top: 590px; font-size: 28px; font-weight: 500; color: var(--muted); }
+  #hero { position: absolute; left: 880px; top: 180px; width: 960px; height: 720px; border-radius: 14px; box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); }
+
+  /* ChipSet 설명 */
+  #chipcanvas { position: absolute; left: 0; top: 0; }
+
+  /* 끝 */
+  #outro .head { position: absolute; left: 110px; top: 150px; font-size: 56px; font-weight: 800; letter-spacing: -0.02em; }
+  #outro ol { position: absolute; left: 110px; top: 250px; list-style: none; }
+  #outro li { display: flex; align-items: center; gap: 22px; height: 70px; font-size: 32px; font-weight: 600; }
+  #outro li .badge { width: 46px; height: 46px; min-width: 46px; font-size: 24px; }
+  #outro .more { position: absolute; left: 110px; top: 922px; font-size: 27px; color: #cfd6e0; }
+  #outro .more b { color: #9fd0ff; }
+  #outro .credit { position: absolute; left: 110px; top: 972px; font-size: 20px; color: var(--muted); line-height: 1.7; }
+  #outhero { position: absolute; left: 880px; top: 150px; width: 960px; height: 720px; border-radius: 14px; box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); image-rendering: pixelated; }
+  #black { position: absolute; inset: 0; background: #000; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"></div>
+
+  <div id="intro" class="layer">
+    <div class="kicker">InitialEditor 따라 하기</div>
+    <div class="title">RPG Maker 2000<br>ChipSet으로 맵 만들기</div>
+    <div class="sub">ChipSet 한 장으로 맵을 칠하고, 게임에서 실행합니다.</div>
+    <canvas id="hero" width="960" height="720"></canvas>
+  </div>
+
+  <div id="explain" class="layer">
+    <canvas id="chipcanvas" width="1920" height="1080"></canvas>
+  </div>
+
+  <div id="editor" class="layer">
+    <div id="screen">
+      <img id="ui" alt="">
+      <div id="marks"></div>
+    </div>
+    <div id="dim"></div>
+    <div id="gamewin">
+      <div class="bar"><span class="title">호숫가</span><span class="btns"><span>&#x2013;</span><span>&#x25A1;</span><span>&#x2715;</span></span></div>
+      <canvas id="game"></canvas>
+    </div>
+    <div id="drop"><img id="dropimg" alt=""><div><div class="name mono">Exterior.png</div><div class="sub">480 x 256 PNG</div></div></div>
+    <div id="ripples"></div>
+    <div id="press"></div>
+    <svg id="cursor" viewBox="0 0 30 30"><path d="M3 2 L3 24 L9 18.5 L13 27.5 L17 25.8 L13 17 L21 17 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>
+  </div>
+
+  <div id="outro" class="layer">
+    <div class="head">따라 한 순서</div>
+    <ol id="steps"></ol>
+    <div class="more">자세한 설명: <b>도움말 &gt; 사용자 가이드 &gt; RPG Maker 2000 맵 따라 만들기</b></div>
+    <div class="credit">ChipSet: EasyRPG RTP의 Exterior, JasonPerry (CC0)<br>화면은 InitialEditor와 Initial2D 엔진이 실제로 그린 프레임입니다.</div>
+    <canvas id="outhero" width="960" height="720"></canvas>
+  </div>
+
+  <div id="hud" class="layer">
+    <div id="chip"><span class="badge" id="chipbadge"></span><span id="chiptitle"></span><span class="steps" id="chipsteps"></span></div>
+    <div id="card"><div class="badge" id="cardbadge"></div><div class="title" id="cardtitle"></div><div class="steps" id="cardsteps"></div></div>
+    <div id="keys"></div>
+    <div id="caption"></div>
+  </div>
+  <div id="black"></div>
+</div>
+<script type="module" src="video.js"></script>
+</body>
+</html>

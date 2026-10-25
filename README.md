@@ -516,6 +516,21 @@ docs/design/              UI 용어와 문구 규칙 (ui-terms.md)
 기준은 [docs/plans/quality.md](./docs/plans/quality.md) 5절에 있습니다. 화면을 고치면 `yarn review`로 전후를 찍어 PR에 붙이고,
 부품으로 옮긴 화면은 `scripts/ui-kit-scope.json`에 더해 `yarn check:ui`가 지키게 합니다.
 
+## 튜토리얼 영상
+
+사용자 가이드의 따라 하기를 에디터에서 실제로 한 화면과 엔진이 그린 게임 화면으로 보여 주는 모션 그래픽 영상을 만듭니다.
+지금은 [RPG Maker 2000 맵 따라 만들기](./docs/guide/rm2k-tutorial.md) 한 편이고, 결과는 `build/video/rm2k-tutorial.mp4`(1920x1080, 30fps)입니다.
+
+```sh
+yarn build                                          # 촬영은 빌드한 에디터를 띄워 찍는다
+node scripts/video/rm2k-tutorial/build.mjs          # ChipSet 받기, 에디터 촬영, 게임 촬영, 합성 (20분쯤)
+node scripts/video/rm2k-tutorial/build.mjs --skip-editor --skip-game --times 3,40,120   # 합성만 몇 장 PNG 로
+```
+
+엔진 저장소의 빌드(`../Initial2D/build/Initial2D`, `--engine` 이나 `INITIAL2D_DIR` 로 바꿈)와 ffmpeg 가 필요합니다. 에디터 화면은 가짜 시계로
+프레임마다 1/30초씩 나아가며 찍고, 게임 화면은 엔진을 창 없이 돌려 프레임마다 받습니다. ChipSet 은 EasyRPG RTP 의 Exterior(CC0)를 고정한 커밋에서 받습니다.
+자막을 고치는 곳과 단계별 동작은 [docs/tutorial-video.md](./docs/tutorial-video.md)에 있습니다.
+
 ## UI 문구
 
 화면, 알림, 콘솔, 오류에 쓰는 말은 [docs/design/ui-terms.md](./docs/design/ui-terms.md)의 용어표와 끝맺음 규칙을 따릅니다.
