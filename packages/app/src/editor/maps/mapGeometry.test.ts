@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseObjectSchema, singleBrush, type MapObject } from "@initial-editor/ext-tilemap/model";
 import {
   bandEdgeDrag,
+  brushInPage,
   brushInTileset,
   cellAt,
   cellRange,
@@ -10,6 +11,7 @@ import {
   chunkGrid,
   chunkOfIndex,
   clampRange,
+  pageBrush,
   clampZoom,
   fitRect,
   groupByChunk,
@@ -336,5 +338,27 @@ describe("타일 격자", () => {
     expect(far.major.xs).toEqual([0, 128, 256]);
     // 뷰포트가 맵 밖만 보면 없음
     expect(tileGridLines({ zoom: 1, panX: -2000, panY: 0 }, { width: 100, height: 100 }, 16, 16, map)).toBeNull();
+  });
+});
+
+describe("팔레트 쪽 (타일셋 종류)", () => {
+  // 3열 쪽: 칸 값은 10, 20, ... (0 번 칸은 빈 칸 값 0). 100..109 는 2번 칸(값 30)과 같은 지형으로 본다
+  const page = {
+    columns: 3,
+    cells: [0, 20, 30, 40, 50, 60, 70].map((value) => ({ value })),
+    cellOf: (gid: number) => (gid >= 100 && gid < 110 ? 2 : [0, 20, 30, 40, 50, 60, 70].indexOf(gid)),
+  };
+
+  it("사각형으로 고른 칸의 값으로 붓을 만든다 (쪽 밖은 0)", () => {
+    expect(pageBrush(page, 1, 0, 2, 1)).toEqual({ width: 2, height: 2, gids: [[20, 30], [50, 60]] });
+    expect(pageBrush(page, 1, 2, 2, 2)).toEqual({ width: 2, height: 1, gids: [[0, 0]] });
+  });
+
+  it("쪽에서 뜬 사각형이면 rect, 모양을 맞춘 칸은 그 지형의 칸", () => {
+    expect(brushInPage({ width: 2, height: 2, gids: [[20, 30], [50, 60]] }, page).rect).toEqual({ col: 1, row: 0, width: 2, height: 2 });
+    const shaped = brushInPage(singleBrush(105), page);
+    expect(shaped.rect).toBeNull();
+    expect(shaped.cells).toEqual([{ col: 2, row: 0 }]);
+    expect(brushInPage(singleBrush(999), page)).toEqual({ rect: null, cells: [] });
   });
 });

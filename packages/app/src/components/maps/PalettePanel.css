@@ -69,3 +69,18 @@
 .palette-error {
   color: var(--danger);
 }
+
+.palette-pages {
+  padding-top: 0;
+}
+
+.palette-guide {
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.palette-guide:hover {
+  text-decoration: underline;
+}
